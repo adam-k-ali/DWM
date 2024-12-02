@@ -1,0 +1,8 @@
+{
+  "sonic_screwdriver": {
+    "subtitle": "open_dwm.subtitle.sonic_sound",
+    "sounds": [
+      "open_dwm:sonic_screwdriver"
+    ]
+  }
+}
