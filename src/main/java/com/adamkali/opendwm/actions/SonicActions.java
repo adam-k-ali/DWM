@@ -4,7 +4,7 @@ import com.adamkali.opendwm.sound.DWMSounds;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.TntBlock;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -16,10 +16,9 @@ public class SonicActions {
 
 
     private SonicActions() {
-        this.actions.put(Blocks.IRON_DOOR, (level, blockPos, blockState, player) -> {
-            boolean isOpen = blockState.getValue(DoorBlock.OPEN);
-            ((DoorBlock) blockState.getBlock()).setOpen(player, level, blockState, blockPos, !isOpen);
-            level.updateNeighborsAt(blockPos, blockState.getBlock());
+        this.actions.put(Blocks.TNT, (level, blockPos, blockState, player) -> {
+            level.setBlockAndUpdate(blockPos, Blocks.AIR.defaultBlockState());
+            TntBlock.explode(level, blockPos);
         });
     }
 
