@@ -16,7 +16,6 @@ public class DWMItems {
 
     @SubscribeEvent
     public static void buildCreativeTabContents(BuildCreativeModeTabContentsEvent event) {
-        System.out.println("Adding item to creative mode tab");
         if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
             event.accept(SONIC_THIRD_DOCTOR);
         }
