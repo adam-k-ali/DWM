@@ -1,6 +1,6 @@
-package com.adamkali.opendwm.sound;
+package com.adamkali.dwm.sound;
 
-import com.adamkali.opendwm.DWMMain;
+import com.adamkali.dwm.DWMMain;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.fml.common.Mod;

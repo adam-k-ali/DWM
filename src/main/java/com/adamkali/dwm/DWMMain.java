@@ -1,4 +1,4 @@
-package com.adamkali.opendwm;
+package com.adamkali.dwm;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.registries.Registries;

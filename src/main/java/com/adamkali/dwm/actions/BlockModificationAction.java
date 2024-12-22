@@ -1,4 +1,4 @@
-package com.adamkali.opendwm.actions;
+package com.adamkali.dwm.actions;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
