@@ -11,6 +11,9 @@ import net.minecraftforge.registries.RegistryObject;
 
 @Mod.EventBusSubscriber(modid = DWMMain.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class DWMItems {
+
+    public static final RegistryObject<Item> SONIC_SECOND_DOCTOR = DWMMain.ITEMS.register("sonic_second_doctor",
+            () -> new SonicScrewdriverItem(new Item.Properties().setId(DWMMain.ITEMS.key("sonic_second_doctor"))));
     public static final RegistryObject<Item> SONIC_THIRD_DOCTOR = DWMMain.ITEMS.register("sonic_third_doctor",
             () -> new SonicScrewdriverItem(new Item.Properties().setId(DWMMain.ITEMS.key("sonic_third_doctor"))));
     public static final RegistryObject<Item> SONIC_FOURTH_DOCTOR = DWMMain.ITEMS.register("sonic_fourth_doctor",
@@ -19,6 +22,7 @@ public class DWMItems {
     @SubscribeEvent
     public static void buildCreativeTabContents(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
+            event.accept(SONIC_SECOND_DOCTOR);
             event.accept(SONIC_THIRD_DOCTOR);
             event.accept(SONIC_FOURTH_DOCTOR);
         }
