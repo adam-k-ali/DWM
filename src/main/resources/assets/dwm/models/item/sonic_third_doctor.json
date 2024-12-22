@@ -4,7 +4,7 @@
     32
   ],
   "textures": {
-    "1": "open_dwm:item/sonic_third_doctor"
+    "1": "dwm:item/sonic_third_doctor"
   },
   "elements": [
     {
