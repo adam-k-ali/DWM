@@ -1,4 +1,4 @@
-package com.adamkali.opendwm;
+package com.adamkali.dwm;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.registries.Registries;
@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 
 @Mod(DWMMain.MODID)
 public class DWMMain {
-    public static final String MODID = "open_dwm";
+    public static final String MODID = "dwm";
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, DWMMain.MODID);

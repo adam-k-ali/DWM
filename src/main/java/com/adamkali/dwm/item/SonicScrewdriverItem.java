@@ -1,6 +1,6 @@
-package com.adamkali.opendwm.item;
+package com.adamkali.dwm.item;
 
-import com.adamkali.opendwm.actions.SonicActions;
+import com.adamkali.dwm.actions.SonicActions;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.UseOnContext;

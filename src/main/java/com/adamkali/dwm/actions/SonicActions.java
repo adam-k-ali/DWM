@@ -1,6 +1,6 @@
-package com.adamkali.opendwm.actions;
+package com.adamkali.dwm.actions;
 
-import com.adamkali.opendwm.sound.DWMSounds;
+import com.adamkali.dwm.sound.DWMSounds;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;

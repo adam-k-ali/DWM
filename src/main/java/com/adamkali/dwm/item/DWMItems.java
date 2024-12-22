@@ -1,6 +1,6 @@
-package com.adamkali.opendwm.item;
+package com.adamkali.dwm.item;
 
-import com.adamkali.opendwm.DWMMain;
+import com.adamkali.dwm.DWMMain;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
