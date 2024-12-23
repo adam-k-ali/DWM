@@ -15,7 +15,9 @@ jobs:
       - checkout
       - run:
           name: Run Gradle Command
-          command: ./gradlew << parameters.gradle_command >>
+          command: |
+            chmod +x ./gradlew
+            ./gradlew << parameters.gradle_command >>
 
 # Orchestrate jobs using workflows
 # See: https://circleci.com/docs/workflows/ & https://circleci.com/docs/configuration-reference/#workflows
