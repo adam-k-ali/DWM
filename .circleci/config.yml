@@ -1,21 +1,35 @@
 version: 2.1
 
 jobs:
-  publish:
-    machine:
-      image: ubuntu-2204:2024.08.1
+  run-gradle:
+    parameters:
+      gradle_command:
+        type: string
+        default: ""
+    docker:
+      - image: circleci/openjdk:8-jdk
     environment:
       _JAVA_OPTIONS: -Xmx3200m
       GRADLE_OPTS: -Dorg.gradle.daemon=false
     steps:
       - checkout
-      - run: |
-          chmod +x ./gradlew
-          ./gradlew publish
+      - run:
+          name: Run Gradle Command
+          command: ./gradlew << parameters.gradle_command >>
 
 # Orchestrate jobs using workflows
 # See: https://circleci.com/docs/workflows/ & https://circleci.com/docs/configuration-reference/#workflows
 workflows:
-  build-and-publish:
+  build-and-test:
     jobs:
-      - publish
+      - run-gradle:
+          gradle_command: "build"
+      - run-gradle:
+          gradle_command: "test"
+
+#  build-and-publish:
+#    jobs:
+#      - run-gradle:
+#          gradle_command: "build"
+#      - run-gradle:
+#          gradle_command: "publish"
