@@ -1,18 +1,18 @@
 package com.adamkali.dwm.item;
 
 import com.adamkali.dwm.actions.SonicActions;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemUsageContext;
+import net.minecraft.util.ActionResult;
 
 public class SonicScrewdriverItem extends Item {
-    public SonicScrewdriverItem(Properties itemProperties) {
+    public SonicScrewdriverItem(Item.Settings itemProperties) {
         super(itemProperties);
     }
 
     @Override
-    public InteractionResult useOn(UseOnContext context) {
+    public ActionResult useOnBlock(ItemUsageContext context) {
         SonicActions.getInstance().tryPerformAction(context);
-        return super.useOn(context);
+        return super.useOnBlock(context);
     }
 }

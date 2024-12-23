@@ -1,13 +1,19 @@
 package com.adamkali.dwm.sound;
 
-import com.adamkali.dwm.DWMMain;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.RegistryObject;
+import com.adamkali.dwm.DWMReference;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.util.Identifier;
 
-@Mod.EventBusSubscriber(modid = DWMMain.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class DWMSounds {
-    public static final RegistryObject<SoundEvent> SONIC_THIRD_DOCTOR = DWMMain.SOUNDS.register("sonic_screwdriver",
-            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(DWMMain.MODID, "sonic_screwdriver")));
+    public static final SoundEvent SONIC_THIRD_DOCTOR = register("sonic_screwdriver");
+
+    public static void initialize() {
+    }
+
+    private static SoundEvent register(String id) {
+        Identifier identifier = Identifier.of(DWMReference.MOD_ID, id);
+        return Registry.register(Registries.SOUND_EVENT, identifier, SoundEvent.of(identifier));
+    }
 }

@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "title": "Item Model Schema",
+  "definitions": {
+    "vector3": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "vector4": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "vector3location": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minimum": -16,
+        "maximum": 32
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "face": {
+      "type": "object",
+      "properties": {
+        "uv": {
+          "$ref": "#/definitions/vector4"
+        },
+        "texture": {
+          "type": "string"
+        },
+        "cullface": {
+          "type": "string",
+          "enum": [
+            "down",
+            "up",
+            "north",
+            "south",
+            "west",
+            "east"
+          ]
+        },
+        "rotation": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 270,
+          "multipleOf": 90
+        },
+        "tintindex": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "uv",
+        "texture"
+      ]
+    },
+    "element": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "$ref": "#/definitions/vector3location"
+        },
+        "to": {
+          "$ref": "#/definitions/vector3location"
+        },
+        "rotation": {
+          "type": "object",
+          "properties": {
+            "origin": {
+              "$ref": "#/definitions/vector3"
+            },
+            "axis": {
+              "type": "string",
+              "enum": [
+                "x",
+                "y",
+                "z"
+              ]
+            },
+            "angle": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45,
+              "multipleOf": 22.5
+            },
+            "rescale": {
+              "type": "boolean"
+            }
+          }
+        },
+        "shade": {
+          "type": "boolean"
+        },
+        "light_emission": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 15
+        },
+        "faces": {
+          "type": "object",
+          "properties": {
+            "down": {
+              "$ref": "#/definitions/face"
+            },
+            "up": {
+              "$ref": "#/definitions/face"
+            },
+            "north": {
+              "$ref": "#/definitions/face"
+            },
+            "south": {
+              "$ref": "#/definitions/face"
+            },
+            "west": {
+              "$ref": "#/definitions/face"
+            },
+            "east": {
+              "$ref": "#/definitions/face"
+            }
+          }
+        }
+      },
+      "required": [
+        "from",
+        "to",
+        "rotation",
+        "faces"
+      ]
+    }
+  },
+  "properties": {
+    "parent": {
+      "type": "string",
+      "enum": [
+        "item/generated",
+        "builtin/entity"
+      ]
+    },
+    "display": {
+      "type": "object",
+      "properties": {
+        "Position": {
+          "type": "object",
+          "properties": {
+            "rotation": {
+              "$ref": "#/definitions/vector3"
+            },
+            "translation": {
+              "$ref": "#/definitions/vector3"
+            },
+            "scale": {
+              "$ref": "#/definitions/vector3"
+            }
+          }
+        }
+      }
+    },
+    "textures": {
+      "type": "object",
+      "patternProperties": {
+        "^layer[0-9]+$": {
+          "type": "string",
+          "description": "Texture layer"
+        },
+        "^[a-z0-9_]+$": {
+          "type": "string",
+          "description": "Texture variable"
+        }
+      },
+      "properties": {
+        "particle": {
+          "type": "string",
+          "description": "Particle texture"
+        }
+      }
+    },
+    "gui_light": {
+      "type": "string",
+      "enum": [
+        "side",
+        "front"
+      ]
+    },
+    "elements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/element"
+      }
+    }
+  }
+}
