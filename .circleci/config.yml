@@ -8,7 +8,7 @@ jobs:
       _JAVA_OPTIONS: -Xmx3200m
       GRADLE_OPTS: -Dorg.gradle.daemon=false
     steps:
-      - setup
+      - checkout
       - run: |
           chmod +x ./gradlew
           ./gradlew publish
