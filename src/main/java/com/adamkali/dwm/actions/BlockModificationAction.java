@@ -1,11 +1,12 @@
 package com.adamkali.dwm.actions;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
+
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 
 @FunctionalInterface
 public interface BlockModificationAction {
-    void perform(Level level, BlockPos blockPos, BlockState blockState, Player player);
+    void perform(World level, BlockPos blockPos, BlockState blockState, PlayerEntity player);
 }
