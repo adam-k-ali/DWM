@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  aws-cli: circleci/aws-cli@5.1.2
+
 jobs:
   run-gradle:
     parameters:
@@ -19,8 +22,17 @@ jobs:
             chmod +x ./gradlew
             ./gradlew << parameters.gradle_command >>
 
-# Orchestrate jobs using workflows
-# See: https://circleci.com/docs/workflows/ & https://circleci.com/docs/configuration-reference/#workflows
+  update-version:
+    steps:
+      - checkout
+      - aws-cli/setup:
+          profile_name: default
+      - run:
+          name: Upload version.json to S3
+          command: |
+              aws s3 cp version.json s3://modding/dwm/version.json
+
+
 workflows:
   build-and-test:
     jobs:
@@ -31,9 +43,11 @@ workflows:
           name: Test
           gradle_command: "test"
 
-#  build-and-publish:
-#    jobs:
-#      - run-gradle:
-#          gradle_command: "build"
-#      - run-gradle:
-#          gradle_command: "publish"
+  build-and-publish:
+    jobs:
+      - update-version
+      - run-gradle:
+          filters:
+            branches:
+              only:
+                - main
