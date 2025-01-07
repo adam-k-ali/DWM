@@ -46,8 +46,3 @@ workflows:
   build-and-publish:
     jobs:
       - update-version
-      - run-gradle:
-          filters:
-            branches:
-              only:
-                - main
