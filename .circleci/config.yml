@@ -23,6 +23,8 @@ jobs:
             ./gradlew << parameters.gradle_command >>
 
   update-version:
+    machine:
+      image: ubuntu-2404:2024.05.1
     steps:
       - checkout
       - aws-cli/setup:
