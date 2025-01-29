@@ -48,4 +48,8 @@ workflows:
 
   build-and-publish:
     jobs:
-      - update-version
+      - update-version:
+          filters:
+            branches:
+              only:
+                - main
