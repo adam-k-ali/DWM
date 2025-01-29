@@ -1,6 +1,16 @@
 {
     "1.21.4": {
-      "1.0.0": "<changelog for this version>"
+      "1.0.0": {
+        "added": [
+          "Item: Sonic Screwdriver (Second Doctor)",
+          "Item: Sonic Screwdriver (Third Doctor)",
+          "Item: Sonic Screwdriver (Fourth Doctor)",
+          "Item: Sonic Screwdriver (Fifth Doctor)",
+          "Item: Sonic Screwdriver (Seventh Doctor)"
+        ],
+        "changed": [],
+        "removed": []
+      }
     },
     "promos": {
       "1.21.4-latest": "1.21.4-1.0.0",
