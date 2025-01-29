@@ -28,7 +28,8 @@ jobs:
     steps:
       - checkout
       - aws-cli/setup:
-          profile_name: default
+          role_arn: arn:aws:iam::251520706888:role/CircleCI
+          region: eu-west-1
       - run:
           name: Upload version.json to S3
           command: |

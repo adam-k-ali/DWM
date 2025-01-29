@@ -1,5 +1,4 @@
 {
-    "homepage": "<homepage/download page for your mod>",
     "1.21.4": {
       "1.0.0": "<changelog for this version>"
     },
@@ -7,4 +6,4 @@
       "1.21.4-latest": "1.21.4-1.0.0",
       "1.21.4-recommended": "1.21.4-1.0.0"
     }
-  }
+}
