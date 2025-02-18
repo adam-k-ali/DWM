@@ -15,5 +15,8 @@ public class DWMMain implements ModInitializer {
         DWMItems.initialize();
         DWMSounds.initialize();
         LOGGER.info("Doctor Who Mod initialized");
+
+        DWMVersion.checkVersion();
     }
+
 }
