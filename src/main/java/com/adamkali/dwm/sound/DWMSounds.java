@@ -7,7 +7,7 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
 
 public class DWMSounds {
-    public static final SoundEvent SONIC_THIRD_DOCTOR = register("sonic_screwdriver");
+    public static final SoundEvent SONIC_SCREWDRIVER = register("sonic_screwdriver");
 
     public static void initialize() {
     }
