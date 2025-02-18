@@ -13,6 +13,7 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
 
@@ -37,6 +38,14 @@ public class SonicActions {
             boolean open = newState.get(DoorBlock.OPEN);
             level.setBlockState(blockPos, newState, 10);
             level.playSound(player, blockPos, open ? block.getBlockSetType().doorOpen() : block.getBlockSetType().doorClose(), SoundCategory.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.1F + 0.9F);
+            level.emitGameEvent(player, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, blockPos);
+        });
+        this.blockActions.put(Blocks.IRON_TRAPDOOR, (level, blockPos, blockState, player) -> {
+            BlockState newState = blockState.cycle(TrapdoorBlock.OPEN);
+            TrapdoorBlock block = (TrapdoorBlock) blockState.getBlock();
+            boolean open = newState.get(TrapdoorBlock.OPEN);
+            level.setBlockState(blockPos, newState, 10);
+            level.playSound(player, blockPos, open ? SoundEvents.BLOCK_IRON_TRAPDOOR_OPEN : SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE, SoundCategory.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.1F + 0.9F);
             level.emitGameEvent(player, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, blockPos);
         });
 
