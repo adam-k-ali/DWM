@@ -1,11 +1,10 @@
 package com.adamkali.dwm.actions;
 
 import com.adamkali.dwm.sound.DWMSounds;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.TntBlock;
+import net.minecraft.block.*;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.world.event.GameEvent;
 
 import java.util.HashMap;
 
@@ -19,6 +18,14 @@ public class SonicActions {
         this.actions.put(Blocks.TNT, (level, blockPos, blockState, player) -> {
             level.setBlockState(blockPos, Blocks.AIR.getDefaultState());
             TntBlock.primeTnt(level, blockPos);
+        });
+        this.actions.put(Blocks.IRON_DOOR, (level, blockPos, blockState, player) -> {
+            BlockState newState = blockState.cycle(DoorBlock.OPEN);
+            DoorBlock block = (DoorBlock) blockState.getBlock();
+            boolean open = newState.get(DoorBlock.OPEN);
+            level.setBlockState(blockPos, newState, 10);
+            level.playSound(player, blockPos, open ? block.getBlockSetType().doorOpen() : block.getBlockSetType().doorClose(), SoundCategory.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.1F + 0.9F);
+            level.emitGameEvent(player, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, blockPos);
         });
     }
 

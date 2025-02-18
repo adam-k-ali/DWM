@@ -16,7 +16,7 @@ import java.net.URLConnection;
 public class DWMClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        MinecraftClient.getInstance().getGameVersion();
+
     }
 
 
