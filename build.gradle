@@ -42,7 +42,7 @@ dependencies {
     testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
 
     implementation "org.json:json:20240303"
-    implementation "com.github.erosb:everit-json-schema:1.14.4"
+    implementation "com.github.erosb:everit-json-schema:1.14.5"
 }
 
 processResources {
