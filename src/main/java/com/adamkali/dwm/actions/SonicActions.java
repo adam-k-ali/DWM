@@ -54,6 +54,45 @@ public class SonicActions {
             DamageSource damageSource = new DamageSource(damageType, player, entity);
             entity.damage(level, damageSource, 1.0F);
         });
+
+        BlockModificationAction blockBreakAction = (level, blockPos, blockState, player) -> {
+            level.breakBlock(blockPos, false, player);
+        };
+
+        this.blockActions.put(Blocks.GLASS, blockBreakAction);
+        this.blockActions.put(Blocks.GLASS_PANE, blockBreakAction);
+        this.blockActions.put(Blocks.WHITE_STAINED_GLASS, blockBreakAction);
+        this.blockActions.put(Blocks.ORANGE_STAINED_GLASS, blockBreakAction);
+        this.blockActions.put(Blocks.MAGENTA_STAINED_GLASS, blockBreakAction);
+        this.blockActions.put(Blocks.LIGHT_BLUE_STAINED_GLASS, blockBreakAction);
+        this.blockActions.put(Blocks.YELLOW_STAINED_GLASS, blockBreakAction);
+        this.blockActions.put(Blocks.LIME_STAINED_GLASS, blockBreakAction);
+        this.blockActions.put(Blocks.PINK_STAINED_GLASS, blockBreakAction);
+        this.blockActions.put(Blocks.GRAY_STAINED_GLASS, blockBreakAction);
+        this.blockActions.put(Blocks.LIGHT_GRAY_STAINED_GLASS, blockBreakAction);
+        this.blockActions.put(Blocks.CYAN_STAINED_GLASS, blockBreakAction);
+        this.blockActions.put(Blocks.PURPLE_STAINED_GLASS, blockBreakAction);
+        this.blockActions.put(Blocks.BLUE_STAINED_GLASS, blockBreakAction);
+        this.blockActions.put(Blocks.BROWN_STAINED_GLASS, blockBreakAction);
+        this.blockActions.put(Blocks.GREEN_STAINED_GLASS, blockBreakAction);
+        this.blockActions.put(Blocks.RED_STAINED_GLASS, blockBreakAction);
+        this.blockActions.put(Blocks.BLACK_STAINED_GLASS, blockBreakAction);
+        this.blockActions.put(Blocks.WHITE_STAINED_GLASS_PANE, blockBreakAction);
+        this.blockActions.put(Blocks.ORANGE_STAINED_GLASS_PANE, blockBreakAction);
+        this.blockActions.put(Blocks.MAGENTA_STAINED_GLASS_PANE, blockBreakAction);
+        this.blockActions.put(Blocks.LIGHT_BLUE_STAINED_GLASS_PANE, blockBreakAction);
+        this.blockActions.put(Blocks.YELLOW_STAINED_GLASS_PANE, blockBreakAction);
+        this.blockActions.put(Blocks.LIME_STAINED_GLASS_PANE, blockBreakAction);
+        this.blockActions.put(Blocks.PINK_STAINED_GLASS_PANE, blockBreakAction);
+        this.blockActions.put(Blocks.GRAY_STAINED_GLASS_PANE, blockBreakAction);
+        this.blockActions.put(Blocks.LIGHT_GRAY_STAINED_GLASS_PANE, blockBreakAction);
+        this.blockActions.put(Blocks.CYAN_STAINED_GLASS_PANE, blockBreakAction);
+        this.blockActions.put(Blocks.PURPLE_STAINED_GLASS_PANE, blockBreakAction);
+        this.blockActions.put(Blocks.BLUE_STAINED_GLASS_PANE, blockBreakAction);
+        this.blockActions.put(Blocks.BROWN_STAINED_GLASS_PANE, blockBreakAction);
+        this.blockActions.put(Blocks.GREEN_STAINED_GLASS_PANE, blockBreakAction);
+        this.blockActions.put(Blocks.RED_STAINED_GLASS_PANE, blockBreakAction);
+        this.blockActions.put(Blocks.BLACK_STAINED_GLASS_PANE, blockBreakAction);
     }
 
     public static SonicActions getInstance() {
