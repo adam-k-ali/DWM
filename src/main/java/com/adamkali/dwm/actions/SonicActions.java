@@ -7,6 +7,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageType;
 import net.minecraft.entity.damage.DamageTypes;
+import net.minecraft.entity.passive.SheepEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.registry.RegistryKeys;
@@ -14,6 +15,7 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
 
@@ -49,10 +51,19 @@ public class SonicActions {
             level.emitGameEvent(player, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, blockPos);
         });
 
-        this.entityActions.put(EntityType.SLIME, (entity, player, level) -> {
+        this.entityActions.put(EntityType.SLIME, (entity, player, level, hand) -> {
             RegistryEntry<DamageType> damageType = level.getRegistryManager().getOrThrow(RegistryKeys.DAMAGE_TYPE).getEntry(DamageTypes.PLAYER_ATTACK.getValue()).orElseThrow();
             DamageSource damageSource = new DamageSource(damageType, player, entity);
             entity.damage(level, damageSource, 1.0F);
+        });
+
+        this.entityActions.put(EntityType.SHEEP, (entity, player, level, hand) -> {
+            SheepEntity sheepEntity = (SheepEntity) entity;
+            if (!sheepEntity.isShearable()) {
+                return;
+            }
+
+            sheepEntity.sheared(level, SoundCategory.PLAYERS, player.getStackInHand(hand));
         });
 
         BlockModificationAction blockBreakAction = (level, blockPos, blockState, player) -> {
@@ -111,7 +122,7 @@ public class SonicActions {
         }
     }
 
-    public void interactWithEntity(LivingEntity entity, PlayerEntity player) {
+    public void interactWithEntity(LivingEntity entity, PlayerEntity player, Hand hand) {
         World level = entity.getEntityWorld();
         level.playSoundAtBlockCenter(player.getBlockPos(), DWMSounds.SONIC_SCREWDRIVER, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
         if (level.isClient) {
@@ -120,7 +131,7 @@ public class SonicActions {
 
         ServerWorld serverWorld = Objects.requireNonNull(level.getServer()).getWorld(level.getRegistryKey());
         if (this.entityActions.containsKey(entity.getType())) {
-            this.entityActions.get(entity.getType()).perform(entity, player, serverWorld);
+            this.entityActions.get(entity.getType()).perform(entity, player, serverWorld, hand);
         }
     }
 

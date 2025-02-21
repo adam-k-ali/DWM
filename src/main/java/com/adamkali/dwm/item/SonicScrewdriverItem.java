@@ -22,7 +22,7 @@ public class SonicScrewdriverItem extends Item {
 
     @Override
     public ActionResult useOnEntity(ItemStack stack, PlayerEntity user, LivingEntity entity, Hand hand) {
-        SonicActions.getInstance().interactWithEntity(entity, user);
+        SonicActions.getInstance().interactWithEntity(entity, user, hand);
         return super.useOnEntity(stack, user, entity, hand);
     }
 }
