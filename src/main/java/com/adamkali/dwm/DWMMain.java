@@ -1,5 +1,6 @@
 package com.adamkali.dwm;
 
+import com.adamkali.dwm.analytics.DWMStatistics;
 import com.adamkali.dwm.item.DWMItems;
 import com.adamkali.dwm.sound.DWMSounds;
 import com.mojang.logging.LogUtils;
@@ -12,6 +13,7 @@ public class DWMMain implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing Doctor Who Mod");
+        DWMStatistics.initialize();
         DWMItems.initialize();
         DWMSounds.initialize();
         LOGGER.info("Doctor Who Mod initialized");

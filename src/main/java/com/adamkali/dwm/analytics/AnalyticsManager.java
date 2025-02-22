@@ -1,4 +1,4 @@
-package com.adamkali.dwm.events;
+package com.adamkali.dwm.analytics;
 
 import com.mixpanel.mixpanelapi.ClientDelivery;
 import com.mixpanel.mixpanelapi.MessageBuilder;
@@ -19,19 +19,25 @@ public class AnalyticsManager {
 
     private static final String ANALYTICS_USER = "user";
 
-    public static final String EVENT_SIGNUP = "signup";
+    public static final String EVENT_LAUNCH = "launch";
+    public static final String EVENT_SONIC_SCREWDRIVER_USE = "sonic_screwdriver_use";
 
 
     private static void init() {
         messageBuilder = new MessageBuilder("af25c1c6ce93b2f71848ac3d6133f074");
     }
 
-    public static void trackEvent(String event) {
+    public static void trackEvent(String event, Object... properties) {
         if (messageBuilder == null) {
             init();
         }
 
-        JSONObject someEvent = messageBuilder.event(ANALYTICS_USER, event, null);
+        JSONObject jsonProperties = new JSONObject();
+        for (int i = 0; i < properties.length; i += 2) {
+            jsonProperties.put(properties[i].toString(), properties[i + 1]);
+        }
+
+        JSONObject someEvent = messageBuilder.event(ANALYTICS_USER, event, jsonProperties);
         EVENTS.add(someEvent);
     }
 

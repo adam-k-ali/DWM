@@ -1,5 +1,7 @@
 package com.adamkali.dwm.actions;
 
+import com.adamkali.dwm.analytics.AnalyticsManager;
+import com.adamkali.dwm.analytics.DWMStatistics;
 import com.adamkali.dwm.sound.DWMSounds;
 import net.minecraft.block.*;
 import net.minecraft.entity.EntityType;
@@ -9,6 +11,7 @@ import net.minecraft.entity.damage.DamageType;
 import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.entity.passive.SheepEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -114,15 +117,20 @@ public class SonicActions {
         return INSTANCE;
     }
 
-    public void tryPerformAction(ItemUsageContext context) {
+    public void interactWithBlock(ItemUsageContext context) {
         context.getWorld().playSoundAtBlockCenter(context.getBlockPos(), DWMSounds.SONIC_SCREWDRIVER, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
         Block blockClicked = context.getWorld().getBlockState(context.getBlockPos()).getBlock();
-        if (this.blockActions.containsKey(blockClicked)) {
+        boolean actionExists = this.blockActions.containsKey(blockClicked);
+        AnalyticsManager.trackEvent(AnalyticsManager.EVENT_SONIC_SCREWDRIVER_USE, "item_name", context.getStack().getItem().getName(), "action_exists", actionExists, "block", blockClicked.getName().toString());
+        if (actionExists) {
+            if (context.getPlayer() != null) {
+                context.getPlayer().incrementStat(DWMStatistics.SONIC_SCREWDRIVER_USE);
+            }
             this.blockActions.get(blockClicked).perform(context.getWorld(), context.getBlockPos(), context.getWorld().getBlockState(context.getBlockPos()), context.getPlayer());
         }
     }
 
-    public void interactWithEntity(LivingEntity entity, PlayerEntity player, Hand hand) {
+    public void interactWithEntity(ItemStack itemStack, LivingEntity entity, PlayerEntity player, Hand hand) {
         World level = entity.getEntityWorld();
         level.playSoundAtBlockCenter(player.getBlockPos(), DWMSounds.SONIC_SCREWDRIVER, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
         if (level.isClient) {
@@ -130,7 +138,10 @@ public class SonicActions {
         }
 
         ServerWorld serverWorld = Objects.requireNonNull(level.getServer()).getWorld(level.getRegistryKey());
-        if (this.entityActions.containsKey(entity.getType())) {
+        boolean actionExists = this.entityActions.containsKey(entity.getType());
+        AnalyticsManager.trackEvent(AnalyticsManager.EVENT_SONIC_SCREWDRIVER_USE, "item_name", itemStack.getItem().getName(), "action_exists", actionExists, "entity_type", entity.getType().toString());
+        if (actionExists) {
+            player.incrementStat(DWMStatistics.SONIC_SCREWDRIVER_USE);
             this.entityActions.get(entity.getType()).perform(entity, player, serverWorld, hand);
         }
     }

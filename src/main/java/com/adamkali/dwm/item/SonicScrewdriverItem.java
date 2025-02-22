@@ -16,13 +16,13 @@ public class SonicScrewdriverItem extends Item {
 
     @Override
     public ActionResult useOnBlock(ItemUsageContext context) {
-        SonicActions.getInstance().tryPerformAction(context);
+        SonicActions.getInstance().interactWithBlock(context);
         return super.useOnBlock(context);
     }
 
     @Override
     public ActionResult useOnEntity(ItemStack stack, PlayerEntity user, LivingEntity entity, Hand hand) {
-        SonicActions.getInstance().interactWithEntity(entity, user, hand);
+        SonicActions.getInstance().interactWithEntity(stack, entity, user, hand);
         return super.useOnEntity(stack, user, entity, hand);
     }
 }
