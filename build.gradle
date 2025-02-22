@@ -49,6 +49,8 @@ dependencies {
         exclude(group: "net.fabricmc.fabric-api")
     }
 
+    modImplementation("com.mixpanel:mixpanel-java:1.5.1")
+
 }
 
 processResources {

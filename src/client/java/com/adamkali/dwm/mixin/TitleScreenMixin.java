@@ -1,6 +1,7 @@
 package com.adamkali.dwm.mixin;
 
 import com.adamkali.dwm.config.DWMConfig;
+import com.adamkali.dwm.events.AnalyticsManager;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.text.Text;
@@ -20,6 +21,8 @@ public class TitleScreenMixin extends Screen {
     private void newPlayerEvent(CallbackInfo info) {
         if (DWMConfig.getBoolean(DWMConfig.IS_FIRST_START)) {
             DWMConfig.setBoolean(DWMConfig.IS_FIRST_START, false);
+            AnalyticsManager.trackEvent(AnalyticsManager.EVENT_SIGNUP);
+            AnalyticsManager.deliver();
             DWMConfig.save();
         }
     }
