@@ -8,19 +8,36 @@ import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.text.Text;
 
 public class DWMModMenuIntegration implements ModMenuApi {
+    private static void addBooleanEntry(ConfigCategory category, ConfigEntryBuilder entryBuilder, String configKey, String translationKey, boolean defaultValue) {
+        category.addEntry(entryBuilder
+                .startBooleanToggle(Text.translatable(translationKey), DWMConfig.getBoolean(configKey))
+                .setDefaultValue(defaultValue)
+                .setSaveConsumer(newValue -> DWMConfig.setBoolean(configKey, newValue)).build());
+    }
+
+    private static void buildGeneralCategory(ConfigBuilder builder) {
+        ConfigCategory general = builder.getOrCreateCategory(Text.translatable("config.dwm.category.general"));
+        ConfigEntryBuilder entryBuilder = builder.entryBuilder();
+        DWMModMenuIntegration.addBooleanEntry(general,
+                entryBuilder,
+                DWMConfig.ALL_ANALYTICS_KEY,
+                "config.dwm.option.analytics",
+                false);
+        DWMModMenuIntegration.addBooleanEntry(general,
+                entryBuilder,
+                DWMConfig.ANONYMOUS_ANALYTICS_KEY,
+                "config.dwm.option.analytics.anonymous",
+                false);
+    }
+
     @Override
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
         return parent -> {
             ConfigBuilder builder = ConfigBuilder.create()
                     .setParentScreen(parent)
                     .setTitle(Text.translatable("config.dwm.title"));
-            builder.setSavingRunnable(() -> {
-
-            });
-            ConfigCategory general = builder.getOrCreateCategory(Text.translatable("config.dwm.category.general"));
-            ConfigEntryBuilder entryBuilder = builder.entryBuilder();
-            general.addEntry(entryBuilder.startBooleanToggle(Text.translatable("config.dwm.option.analytics"), false).setDefaultValue(false).build());
-            general.addEntry(entryBuilder.startBooleanToggle(Text.translatable("config.dwm.option.analytics.anonymous"), false).setDefaultValue(false).build());
+            builder.setSavingRunnable(DWMConfig::save);
+            buildGeneralCategory(builder);
             return builder.build();
         };
     }
