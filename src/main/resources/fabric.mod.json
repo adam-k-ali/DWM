@@ -20,6 +20,9 @@
     ],
     "client": [
       "com.adamkali.dwm.DWMClient"
+    ],
+    "modmenu": [
+      "com.adamkali.dwm.DWMModMenuIntegration"
     ]
   },
   "mixins": [
@@ -31,5 +34,9 @@
     "fabric-api": "*"
   },
   "suggests": {
+  },
+  "custom": {
+    "modmenu": {
+    }
   }
 }
