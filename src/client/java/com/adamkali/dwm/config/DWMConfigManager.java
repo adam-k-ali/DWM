@@ -1,4 +1,4 @@
-package com.adamkali.dwm;
+package com.adamkali.dwm.config;
 
 import com.google.gson.Gson;
 import com.mojang.logging.LogUtils;

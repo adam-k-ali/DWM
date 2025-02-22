@@ -4,8 +4,5 @@
   "item.dwm.sonic_fourth_doctor": "Sonic Screwdriver (Fourth Doctor)",
   "item.dwm.sonic_fifth_doctor": "Sonic Screwdriver (Fifth Doctor)",
   "dwm.subtitle.sonic_sound": "Whirring",
-  "config.dwm.title": "Doctor Who Mod",
-  "config.dwm.category.general": "General",
-  "config.dwm.option.analytics": "Send analytics",
-  "config.dwm.option.analytics.anonymous": "Send anonymous analytics"
+  "config.dwm.title": "Doctor Who Mod"
 }

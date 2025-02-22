@@ -1,4 +1,4 @@
-package com.adamkali.dwm;
+package com.adamkali.dwm.config;
 
 import com.mojang.logging.LogUtils;
 import org.slf4j.Logger;
@@ -10,8 +10,7 @@ public class DWMConfig {
 
     private static boolean initialized = false;
 
-    public static final String ALL_ANALYTICS_KEY = "allAnalytics";
-    public static final String ANONYMOUS_ANALYTICS_KEY = "anonymousAnalytics";
+    public static final String IS_FIRST_START = "isFirstStart";
 
     private static HashMap<String, Object> config = new HashMap<>();
 
@@ -24,8 +23,7 @@ public class DWMConfig {
         initialized = true;
         config = DWMConfigManager.load();
 
-        DWMConfig.register(ALL_ANALYTICS_KEY, false);
-        DWMConfig.register(ANONYMOUS_ANALYTICS_KEY, false);
+        DWMConfig.register(IS_FIRST_START, true);
 
         LOGGER.info("DWMConfig initialized");
     }
