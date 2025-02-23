@@ -99,6 +99,13 @@ publishing {
     }
 }
 
+fabricApi {
+    configureDataGeneration() {
+        client = true
+    }
+}
+
+
 test {
     useJUnitPlatform()
 }

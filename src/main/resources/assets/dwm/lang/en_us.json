@@ -5,5 +5,7 @@
   "item.dwm.sonic_fifth_doctor": "Sonic Screwdriver (Fifth Doctor)",
   "dwm.subtitle.sonic_sound": "Whirring",
   "config.dwm.title": "Doctor Who Mod",
-  "stat.dwm.sonic_screwdriver_use": "Uses of Sonic Screwdriver"
+  "stat.dwm.sonic_screwdriver_use": "Uses of Sonic Screwdriver",
+  "advancements.dwm.sonic_screwdriver": "Sonic Screwdriver",
+  "advancements.dwm.sonic_screwdriver.description": "Obtain a Sonic Screwdriver"
 }
