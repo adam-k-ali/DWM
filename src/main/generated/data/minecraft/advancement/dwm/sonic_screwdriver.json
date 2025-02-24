@@ -1,0 +1,33 @@
+{
+  "criteria": {
+    "sonic_screwdriver": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#dwm:sonic_screwdrivers"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "minecraft:textures/gui/advancements/backgrounds/adventure.png",
+    "description": {
+      "translate": "advancements.dwm.sonic_screwdriver.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "dwm:sonic_third_doctor"
+    },
+    "title": {
+      "translate": "advancements.dwm.sonic_screwdriver"
+    }
+  },
+  "requirements": [
+    [
+      "sonic_screwdriver"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
