@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class DWMItemsTest {
+public class DWMItemsTests {
     @BeforeAll
     public static void setup() {
         SharedConstants.createGameVersion();
