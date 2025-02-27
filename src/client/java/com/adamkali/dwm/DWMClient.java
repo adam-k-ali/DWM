@@ -10,8 +10,6 @@ public class DWMClient implements ClientModInitializer {
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             AnalyticsManager.deliver();
         });
-
-
     }
 
 
