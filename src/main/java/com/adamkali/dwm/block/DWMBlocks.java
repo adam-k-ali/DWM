@@ -10,12 +10,13 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.Identifier;
 
 import java.util.function.Function;
 
 public class DWMBlocks {
-    public static final Block WHITE_ROUNDEL_A = register(Block::new, "white_roundel_a");
+    public static final Block WHITE_ROUNDEL_A = register(Block::new, AbstractBlock.Settings.create().strength(2.0F, 3.0F).sounds(BlockSoundGroup.WOOD), "white_roundel_a");
 
     public static void initialize() {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> {
