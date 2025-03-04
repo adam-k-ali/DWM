@@ -1,0 +1,8 @@
+{
+  "parent": "dwm:block/roundel_b",
+  "textures": {
+    "particle": "dwm:block/ash_stripped",
+    "outer": "dwm:block/ash_stripped",
+    "inner": "dwm:block/black_plungboll_block"
+  }
+}
