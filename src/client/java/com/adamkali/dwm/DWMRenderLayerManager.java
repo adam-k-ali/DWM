@@ -6,6 +6,6 @@ import net.minecraft.client.render.RenderLayer;
 
 public class DWMRenderLayerManager {
     public static void initialize() {
-        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.WHITE_ROUNDEL_B, RenderLayer.getCutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.WHITE_ROUNDEL_B, RenderLayer.getCutoutMipped());
     }
 }

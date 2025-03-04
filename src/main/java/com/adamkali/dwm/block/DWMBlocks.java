@@ -17,7 +17,7 @@ import java.util.function.Function;
 
 public class DWMBlocks {
     public static final Block WHITE_ROUNDEL_A = register(Block::new, AbstractBlock.Settings.create().strength(2.0F, 3.0F).sounds(BlockSoundGroup.WOOD), "white_roundel_a");
-    public static final Block WHITE_ROUNDEL_B = register(Block::new, AbstractBlock.Settings.create().strength(2.0F, 3.0F).sounds(BlockSoundGroup.WOOD), "white_roundel_b");
+    public static final Block WHITE_ROUNDEL_B = register(Block::new, AbstractBlock.Settings.create().strength(2.0F, 3.0F).sounds(BlockSoundGroup.WOOD).nonOpaque(), "white_roundel_b");
 
     public static void initialize() {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> {
