@@ -10,19 +10,22 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.Identifier;
 
 import java.util.function.Function;
 
 public class DWMBlocks {
-    public static final Block WHITE_ROUNDEL_A = register(Block::new, AbstractBlock.Settings.create().strength(2.0F, 3.0F).sounds(BlockSoundGroup.WOOD), "white_roundel_a");
-    public static final Block WHITE_ROUNDEL_B = register(Block::new, AbstractBlock.Settings.create().strength(2.0F, 3.0F).sounds(BlockSoundGroup.WOOD).nonOpaque(), "white_roundel_b");
+    public static final Block WHITE_ROUNDEL_A = register(Block::new, DWMBlockSettings.ROUNDEL_BLOCK_SETTINGS, "white_roundel_a");
+    public static final Block WHITE_ROUNDEL_B = register(Block::new, DWMBlockSettings.ROUNDEL_BLOCK_SETTINGS.nonOpaque(), "white_roundel_b");
+    public static final Block WHITE_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.ROUNDEL_BLOCK_SETTINGS, "white_big_roundel_a");
+    public static final Block WHITE_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.ROUNDEL_BLOCK_SETTINGS.nonOpaque(), "white_big_roundel_b");
 
     public static void initialize() {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> {
             content.add(WHITE_ROUNDEL_A.asItem());
             content.add(WHITE_ROUNDEL_B.asItem());
+            content.add(WHITE_BIG_ROUNDEL_A.asItem());
+            content.add(WHITE_BIG_ROUNDEL_B.asItem());
         });
     }
 
