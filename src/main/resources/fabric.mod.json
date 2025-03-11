@@ -3,12 +3,11 @@
   "id": "dwm",
   "version": "${version}",
   "name": "The Doctor Who Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "description": "The Doctor Who Mod is a mod that adds Doctor Who related content to Minecraft.",
   "authors": [
-    "Me!"
+    "Kaneras"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
     "sources": "https://github.com/adam-k-ali/DWM"
   },
   "license": "CC0-1.0",
@@ -38,6 +37,10 @@
   },
   "custom": {
     "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.gg/pGdRYBh"
+      },
+      "update_checker": true
     }
   }
 }
