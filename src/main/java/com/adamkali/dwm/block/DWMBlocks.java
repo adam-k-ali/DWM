@@ -19,6 +19,8 @@ public class DWMBlocks {
     public static final Block WHITE_ROUNDEL_B = register(Block::new, DWMBlockSettings.ROUNDEL_BLOCK_SETTINGS.nonOpaque(), "white_roundel_b");
     public static final Block WHITE_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.ROUNDEL_BLOCK_SETTINGS, "white_big_roundel_a");
     public static final Block WHITE_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.ROUNDEL_BLOCK_SETTINGS.nonOpaque(), "white_big_roundel_b");
+    public static final Block WHITE_EXTRUDED_ROUNDEL_A = register(DWMHorizontalFacingBlock::new, DWMBlockSettings.ROUNDEL_BLOCK_SETTINGS, "white_extruded_roundel_a");
+    public static final Block WHITE_EXTRUDED_ROUNDEL_B = register(DWMHorizontalFacingBlock::new, DWMBlockSettings.ROUNDEL_BLOCK_SETTINGS.nonOpaque(), "white_extruded_roundel_b");
 
     public static void initialize() {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> {
@@ -26,6 +28,8 @@ public class DWMBlocks {
             content.add(WHITE_ROUNDEL_B.asItem());
             content.add(WHITE_BIG_ROUNDEL_A.asItem());
             content.add(WHITE_BIG_ROUNDEL_B.asItem());
+            content.add(WHITE_EXTRUDED_ROUNDEL_A.asItem());
+            content.add(WHITE_EXTRUDED_ROUNDEL_B.asItem());
         });
     }
 

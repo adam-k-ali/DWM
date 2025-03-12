@@ -1,0 +1,7 @@
+{
+  "parent": "dwm:block/extruded_roundel_b",
+  "textures": {
+    "particle": "dwm:block/ash_stripped",
+    "base": "dwm:block/white_extruded_roundel"
+  }
+}
