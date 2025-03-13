@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "dwm:block/white_extruded_roundel_a",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "dwm:block/white_extruded_roundel_a",
+      "y": 270
+    },
+    "facing=north": {
+      "model": "dwm:block/white_extruded_roundel_a",
+      "y": 0
+    },
+    "facing=south": {
+      "model": "dwm:block/white_extruded_roundel_a",
+      "y": 180
+    }
+  }
+}
