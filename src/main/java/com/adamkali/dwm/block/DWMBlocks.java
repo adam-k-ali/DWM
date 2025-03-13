@@ -17,6 +17,8 @@ import java.util.function.Function;
 public class DWMBlocks {
     public static final Block WHITE_ROUNDEL_A = register(Block::new, DWMBlockSettings.ROUNDEL_BLOCK_SETTINGS, "white_roundel_a");
     public static final Block WHITE_ROUNDEL_B = register(Block::new, DWMBlockSettings.ROUNDEL_BLOCK_SETTINGS.nonOpaque(), "white_roundel_b");
+    public static final Block TEAL_ROUNDEL_A = register(Block::new, DWMBlockSettings.ROUNDEL_BLOCK_SETTINGS, "teal_roundel_a");
+    public static final Block TEAL_ROUNDEL_B = register(Block::new, DWMBlockSettings.ROUNDEL_BLOCK_SETTINGS.nonOpaque(), "teal_roundel_b");
     public static final Block WHITE_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.ROUNDEL_BLOCK_SETTINGS, "white_big_roundel_a");
     public static final Block WHITE_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.ROUNDEL_BLOCK_SETTINGS.nonOpaque(), "white_big_roundel_b");
     public static final Block TEAL_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.ROUNDEL_BLOCK_SETTINGS, "teal_big_roundel_a");
@@ -30,6 +32,8 @@ public class DWMBlocks {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> {
             content.add(WHITE_ROUNDEL_A.asItem());
             content.add(WHITE_ROUNDEL_B.asItem());
+            content.add(TEAL_ROUNDEL_A.asItem());
+            content.add(TEAL_ROUNDEL_B.asItem());
             content.add(WHITE_BIG_ROUNDEL_A.asItem());
             content.add(WHITE_BIG_ROUNDEL_B.asItem());
             content.add(TEAL_BIG_ROUNDEL_A.asItem());
