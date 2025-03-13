@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "dwm:white_roundel_b"
+  ],
+  "result": {
+    "id": "dwm:white_big_roundel_b",
+    "count": 1
+  }
+}
