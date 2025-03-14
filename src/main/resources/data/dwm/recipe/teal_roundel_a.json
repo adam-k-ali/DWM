@@ -8,8 +8,8 @@
     "XXX"
   ],
   "key": {
-    "X": "dwm:white_tardis_wall",
-    "#": "minecraft:cherry_wood"
+    "X": "dwm:teal_tardis_wall",
+    "#": "dwm:white_tardis_wall"
   },
   "result": {
     "count": 6,
