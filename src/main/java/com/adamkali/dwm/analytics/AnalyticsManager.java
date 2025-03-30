@@ -1,5 +1,6 @@
 package com.adamkali.dwm.analytics;
 
+import com.adamkali.dwm.DWMReference;
 import com.mixpanel.mixpanelapi.ClientDelivery;
 import com.mixpanel.mixpanelapi.MessageBuilder;
 import com.mixpanel.mixpanelapi.MixpanelAPI;
@@ -28,6 +29,9 @@ public class AnalyticsManager {
     }
 
     public static void trackEvent(String event, Object... properties) {
+        if (!DWMReference.IS_ANALYTICS_ENABLED) {
+            return;
+        }
         if (messageBuilder == null) {
             init();
         }
@@ -42,6 +46,9 @@ public class AnalyticsManager {
     }
 
     public static void deliver() {
+        if (!DWMReference.IS_ANALYTICS_ENABLED) {
+            return;
+        }
         if (messageBuilder == null) {
             return;
         }
