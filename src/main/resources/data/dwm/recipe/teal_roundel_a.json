@@ -1,18 +1,17 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "construction",
-  "group": "tardis_decoration",
+  "type": "crafting_shaped",
+  "group": "crafting_building_blocks",
   "pattern": [
     "XXX",
     "X#X",
     "XXX"
   ],
   "key": {
-    "X": "dwm:teal_tardis_wall",
-    "#": "dwm:white_tardis_wall"
+    "X": "dwm:white_tardis_wall",
+    "#": "dwm:teal_tardis_wall"
   },
   "result": {
-    "count": 6,
-    "id": "dwm:white_roundel_a"
+    "id": "dwm:teal_roundel_a",
+    "count": 6
   }
 }

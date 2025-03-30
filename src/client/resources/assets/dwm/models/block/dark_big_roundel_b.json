@@ -1,8 +1,0 @@
-{
-  "parent": "dwm:block/big_roundel_b",
-  "textures": {
-    "particle": "dwm:block/dark_tardis_wall",
-    "outer": "dwm:block/dark_tardis_wall",
-    "inner": "dwm:block/white_tardis_wall"
-  }
-}

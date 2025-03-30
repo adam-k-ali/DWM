@@ -1,0 +1,11 @@
+{
+  "type": "crafting_shapeless",
+  "group": "crafting_building_blocks",
+  "ingredients": [
+    "dwm:brown_roundel_a"
+  ],
+  "result": {
+    "id": "dwm:brown_big_roundel_a",
+    "count": 1
+  }
+}

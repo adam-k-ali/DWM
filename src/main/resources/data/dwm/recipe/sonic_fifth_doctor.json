@@ -1,20 +1,19 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "equipment",
-  "group": "sonic",
+  "type": "crafting_shaped",
+  "group": "crafting_misc",
   "pattern": [
-    "PRP",
-    " D ",
-    " I "
+    "CEC",
+    " # ",
+    " H "
   ],
   "key": {
-    "P": "minecraft:red_stained_glass_pane",
-    "R": "minecraft:redstone",
-    "D": "minecraft:diamond",
-    "I": "minecraft:iron_ingot"
+    "C": "minecraft:diamond",
+    "E": "minecraft:redstone_torch",
+    "H": "minecraft:iron_ingot",
+    "#": "minecraft:red_stained_glass_pane"
   },
   "result": {
-    "count": 1,
-    "id": "dwm:sonic_fifth_doctor"
+    "id": "dwm:sonic_fifth_doctor",
+    "count": 1
   }
 }

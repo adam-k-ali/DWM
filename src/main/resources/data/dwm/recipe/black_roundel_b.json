@@ -1,0 +1,17 @@
+{
+  "type": "crafting_shaped",
+  "group": "crafting_building_blocks",
+  "pattern": [
+    "XXX",
+    "X#X",
+    "XXX"
+  ],
+  "key": {
+    "X": "dwm:white_tardis_wall",
+    "#": "dwm:black_tardis_wall"
+  },
+  "result": {
+    "id": "dwm:black_roundel_b",
+    "count": 6
+  }
+}

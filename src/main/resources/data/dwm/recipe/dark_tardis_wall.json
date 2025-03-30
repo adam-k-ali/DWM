@@ -1,9 +1,0 @@
-{
-  "type": "minecraft:smelting",
-  "ingredient": "minecraft:black_concrete",
-  "result": {
-    "id": "dwm:dark_tardis_wall"
-  },
-  "experience": 1.0,
-  "cookingtime": 100
-}

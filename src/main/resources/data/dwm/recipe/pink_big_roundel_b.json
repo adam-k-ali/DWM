@@ -1,0 +1,11 @@
+{
+  "type": "crafting_shapeless",
+  "group": "crafting_building_blocks",
+  "ingredients": [
+    "dwm:pink_roundel_b"
+  ],
+  "result": {
+    "id": "dwm:pink_big_roundel_b",
+    "count": 1
+  }
+}

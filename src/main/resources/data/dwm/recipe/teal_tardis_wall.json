@@ -1,9 +1,10 @@
 {
-  "type": "minecraft:smelting",
-  "ingredient": "minecraft:oxidized_copper",
+  "type": "smelting",
+  "group": "furnace_blocks",
   "result": {
     "id": "dwm:teal_tardis_wall"
   },
-  "experience": 1.0,
-  "cookingtime": 100
+  "ingredient": "dwm:teal_chronoplasm_powder",
+  "experience": 3.0,
+  "cooking_time": 100
 }

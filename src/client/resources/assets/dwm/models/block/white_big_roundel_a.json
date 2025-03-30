@@ -2,7 +2,7 @@
   "parent": "dwm:block/big_roundel_a",
   "textures": {
     "particle": "dwm:block/white_tardis_wall",
-    "outer": "dwm:block/white_tardis_wall",
-    "inner": "dwm:block/black_plungboll_block"
+    "inner": "dwm:block/black_tardis_wall",
+    "outer": "dwm:block/white_tardis_wall"
   }
 }

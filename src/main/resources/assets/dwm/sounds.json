@@ -1,6 +1,6 @@
 {
   "sonic_screwdriver": {
-    "subtitle": "dwm.subtitle.sonic_sound",
+    "subtitle": "dwm.sonic_screwdriver.subtitle",
     "sounds": [
       "dwm:sonic_screwdriver"
     ]

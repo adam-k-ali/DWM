@@ -1,0 +1,13 @@
+{
+  "type": "crafting_shapeless",
+  "group": "crafting_misc",
+  "ingredients": [
+    "minecraft:red_concrete_powder",
+    "minecraft:redstone",
+    "minecraft:sand"
+  ],
+  "result": {
+    "id": "dwm:red_chronoplasm_powder",
+    "count": 3
+  }
+}

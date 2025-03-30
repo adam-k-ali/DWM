@@ -1,0 +1,10 @@
+{
+  "type": "smelting",
+  "group": "furnace_blocks",
+  "result": {
+    "id": "dwm:green_tardis_wall"
+  },
+  "ingredient": "dwm:green_chronoplasm_powder",
+  "experience": 3.0,
+  "cooking_time": 100
+}
