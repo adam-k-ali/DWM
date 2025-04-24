@@ -4,5 +4,17 @@
     "sounds": [
       "dwm:sonic_screwdriver"
     ]
+  },
+  "tardis_door_close": {
+    "subtitle": "dwm.tardis_door_close.subtitle",
+    "sounds": [
+      "dwm:tardis_door_close"
+    ]
+  },
+  "tardis_door_open": {
+    "subtitle": "dwm.tardis_door_open.subtitle",
+    "sounds": [
+      "dwm:tardis_door_open"
+    ]
   }
 }
