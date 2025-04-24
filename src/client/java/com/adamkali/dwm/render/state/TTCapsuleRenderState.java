@@ -1,4 +1,4 @@
-package com.adamkali.dwm.model.tileentity;
+package com.adamkali.dwm.render.state;
 
 import net.minecraft.client.render.entity.state.EntityRenderState;
 import net.minecraft.util.math.MathHelper;

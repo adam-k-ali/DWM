@@ -1,7 +1,9 @@
-package com.adamkali.dwm.model.tileentity;
+package com.adamkali.dwm.render;
 
 import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
+import com.adamkali.dwm.model.tileentity.TTCapsuleModel;
+import com.adamkali.dwm.render.state.TTCapsuleRenderState;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
