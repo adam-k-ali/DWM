@@ -14,6 +14,7 @@ public class DWMRenderLayerManager {
     private static void registerEntityRenderLayers() {
         EntityModelLayerRegistry.registerModelLayer(TTCapsuleModel.LAYER_LOCATION, TTCapsuleModel::getTexturedModelData);
     }
+
     public static void initialize() {
         registerBlockRenderLayers();
         registerEntityRenderLayers();
