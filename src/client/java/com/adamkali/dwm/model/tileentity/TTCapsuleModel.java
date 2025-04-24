@@ -35,7 +35,7 @@ public class TTCapsuleModel extends EntityModel<TTCapsuleRenderState> {
 		ModelPartData bone = modelPartData.addChild("bone", ModelPartBuilder.create(), ModelTransform.of(0.0F, 24.0F, 0.0F, 0.0F, 1.5708F, 0.0F));
 
 		ModelPartData Door = bone.addChild("Door", ModelPartBuilder.create().uv(27, 37).cuboid(6.5F, -13.5F, -5.0F, 1.0F, 22.0F, 10.0F, new Dilation(0.0F))
-		.uv(27, 37).cuboid(6.5F, -13.5F, -5.0F, 1.0F, 22.0F, 1.0F, new Dilation(0.0F)), ModelTransform.pivot(-0.5F, -9.5F, 0.0F));
+		.uv(27, 37), ModelTransform.pivot(-0.5F, -9.5F, 0.0F));
 
 		ModelPartData base = bone.addChild("base", ModelPartBuilder.create().uv(0, 11).cuboid(-6.0F, -1.0F, 0.0F, 14.0F, 1.0F, 14.0F, new Dilation(0.0F))
 		.uv(0, 13).cuboid(8.0F, -1.0F, 1.0F, 1.0F, 1.0F, 12.0F, new Dilation(0.0F))
