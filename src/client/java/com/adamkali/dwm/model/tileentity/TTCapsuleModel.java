@@ -14,19 +14,12 @@ public class TTCapsuleModel extends EntityModel<TTCapsuleRenderState> {
 	public static final EntityModelLayer LAYER_LOCATION = new EntityModelLayer(Identifier.of(DWMReference.MOD_ID, "tardis"), "tardis");
 	public static final Identifier TEXTURE_LOCATION = Identifier.of(DWMReference.MOD_ID, "textures/entity/tt_capsule.png");
 
-	private final ModelPart bone;
 	private final ModelPart door;
-	private final ModelPart base;
-	private final ModelPart roof;
-	private final ModelPart structure;
 
 	public TTCapsuleModel(ModelPart root) {
         super(root);
-        this.bone = root.getChild("bone");
-		this.door = this.bone.getChild("Door");
-		this.base = this.bone.getChild("base");
-		this.roof = this.bone.getChild("Roof");
-		this.structure = this.bone.getChild("Structure");
+		ModelPart bone = root.getChild("bone");
+		this.door = bone.getChild("door");
 	}
 
 	public static TexturedModelData getTexturedModelData() {
@@ -34,17 +27,17 @@ public class TTCapsuleModel extends EntityModel<TTCapsuleRenderState> {
 		ModelPartData modelPartData = modelData.getRoot();
 		ModelPartData bone = modelPartData.addChild("bone", ModelPartBuilder.create(), ModelTransform.of(0.0F, 24.0F, 0.0F, 0.0F, 1.5708F, 0.0F));
 
-		ModelPartData Door = bone.addChild("Door", ModelPartBuilder.create().uv(27, 37).cuboid(6.5F, -13.5F, -5.0F, 1.0F, 22.0F, 10.0F, new Dilation(0.0F))
+		bone.addChild("door", ModelPartBuilder.create().uv(27, 37).cuboid(6.5F, -13.5F, -5.0F, 1.0F, 22.0F, 10.0F, new Dilation(0.0F))
 		.uv(27, 37), ModelTransform.pivot(-0.5F, -9.5F, 0.0F));
 
-		ModelPartData base = bone.addChild("base", ModelPartBuilder.create().uv(0, 11).cuboid(-6.0F, -1.0F, 0.0F, 14.0F, 1.0F, 14.0F, new Dilation(0.0F))
+		bone.addChild("base", ModelPartBuilder.create().uv(0, 11).cuboid(-6.0F, -1.0F, 0.0F, 14.0F, 1.0F, 14.0F, new Dilation(0.0F))
 		.uv(0, 13).cuboid(8.0F, -1.0F, 1.0F, 1.0F, 1.0F, 12.0F, new Dilation(0.0F))
 		.uv(0, 10).cuboid(9.0F, -1.0F, 2.0F, 1.0F, 1.0F, 10.0F, new Dilation(0.0F))
 		.uv(0, 6).cuboid(-7.0F, -1.0F, 1.0F, 1.0F, 1.0F, 12.0F, new Dilation(0.0F))
 		.uv(0, 8).cuboid(-5.0F, -1.0F, -1.0F, 12.0F, 1.0F, 1.0F, new Dilation(0.0F))
 		.uv(0, 25).cuboid(-5.0F, -1.0F, 14.0F, 12.0F, 1.0F, 1.0F, new Dilation(0.0F)), ModelTransform.pivot(-1.0F, 0.0F, -7.0F));
 
-		ModelPartData Roof = bone.addChild("Roof", ModelPartBuilder.create().uv(0, 0).cuboid(-4.0F, -3.0F, -2.0F, 10.0F, 3.0F, 1.0F, new Dilation(0.0F))
+		bone.addChild("roof", ModelPartBuilder.create().uv(0, 0).cuboid(-4.0F, -3.0F, -2.0F, 10.0F, 3.0F, 1.0F, new Dilation(0.0F))
 		.uv(0, 0).cuboid(-6.0F, -3.0F, 0.0F, 14.0F, 3.0F, 14.0F, new Dilation(0.0F))
 		.uv(0, 0).cuboid(8.0F, -3.0F, 1.0F, 1.0F, 3.0F, 1.0F, new Dilation(0.0F))
 		.uv(0, 0).cuboid(8.0F, -3.0F, 1.0F, 1.0F, 3.0F, 1.0F, new Dilation(0.0F))
@@ -56,7 +49,7 @@ public class TTCapsuleModel extends EntityModel<TTCapsuleRenderState> {
 		.uv(0, 0).cuboid(-5.0F, -3.0F, 14.0F, 12.0F, 3.0F, 1.0F, new Dilation(0.0F))
 		.uv(0, 0).cuboid(-4.0F, -3.0F, 15.0F, 10.0F, 3.0F, 1.0F, new Dilation(0.0F)), ModelTransform.pivot(-1.0F, -21.0F, -7.0F));
 
-		ModelPartData Structure = bone.addChild("Structure", ModelPartBuilder.create().uv(0, 0).cuboid(-2.0F, -21.0F, 0.0F, 10.0F, 21.0F, 1.0F, new Dilation(0.0F))
+		bone.addChild("structure", ModelPartBuilder.create().uv(0, 0).cuboid(-2.0F, -21.0F, 0.0F, 10.0F, 21.0F, 1.0F, new Dilation(0.0F))
 		.uv(7, 0).cuboid(-2.0F, -21.0F, -17.0F, 10.0F, 21.0F, 1.0F, new Dilation(0.0F))
 		.uv(8, 0).cuboid(-6.0F, -21.0F, -13.0F, 1.0F, 21.0F, 10.0F, new Dilation(0.0F))
 		.uv(0, 0).cuboid(-5.0F, -21.0F, -14.0F, 1.0F, 20.0F, 1.0F, new Dilation(0.0F))
