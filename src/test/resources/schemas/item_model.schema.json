@@ -143,8 +143,8 @@
     "parent": {
       "type": "string",
       "enum": [
-        "item/generated",
-        "builtin/entity"
+        "minecraft:item/generated",
+        "minecraft:builtin/entity"
       ]
     },
     "display": {
