@@ -1,5 +1,6 @@
 package com.adamkali.dwm.block.entities;
 
+import com.adamkali.dwm.sound.DWMSounds;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -8,9 +9,13 @@ import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<TardisBlockEntity> {
     private DoorState doorState = new DoorState();
@@ -20,6 +25,15 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
     }
 
     public void toggleDoor() {
+        if (doorState.isDoorSwinging()) {
+            return; // Prevent toggling if the door is already swinging
+        }
+
+        if (Objects.requireNonNull(this.getWorld()).isClient()) {
+            SoundEvent soundEvent = doorState.isOpen() ? DWMSounds.TARDIS_DOOR_CLOSE : DWMSounds.TARDIS_DOOR_OPEN;
+            this.getWorld().playSoundAtBlockCenter(getPos(), soundEvent, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
+        }
+
         doorState.toggle();
     }
 
@@ -92,6 +106,10 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
             } else {
                 doorSwing = Math.max(doorSwing - doorCloseSpeed, 0.0f);
             }
+        }
+
+        public boolean isDoorSwinging() {
+            return doorSwing > 0.0f && doorSwing < 1.0f;
         }
 
         public void toggle() {
