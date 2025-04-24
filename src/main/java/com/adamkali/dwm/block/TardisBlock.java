@@ -65,11 +65,6 @@ public class TardisBlock extends BlockWithEntity {
         }
 
         tardisBlockEntity.toggleDoor();
-        if (tardisBlockEntity.getDoorState().isOpen()) {
-            player.sendMessage(Text.literal("The door is now open!"), true);
-        } else {
-            player.sendMessage(Text.literal("The door is now closed!"), true);
-        }
         tardisBlockEntity.markDirty();
 
         return ActionResult.SUCCESS;
