@@ -41,7 +41,6 @@ public class TTCapsuleModel extends EntityModel<TTCapsuleRenderState> {
 		bone.addChild("roof", ModelPartBuilder.create().uv(0, 0).cuboid(-4.0F, -3.0F, -2.0F, 10.0F, 3.0F, 1.0F, new Dilation(0.0F))
 		.uv(0, 0).cuboid(-6.0F, -3.0F, 0.0F, 14.0F, 3.0F, 14.0F, new Dilation(0.0F))
 		.uv(0, 0).cuboid(8.0F, -3.0F, 1.0F, 1.0F, 3.0F, 1.0F, new Dilation(0.0F))
-		.uv(0, 0).cuboid(8.0F, -3.0F, 1.0F, 1.0F, 3.0F, 1.0F, new Dilation(0.0F))
 		.uv(0, 0).cuboid(8.0F, -3.0F, 12.0F, 1.0F, 3.0F, 1.0F, new Dilation(0.0F))
 		.uv(0, 0).cuboid(8.0F, -3.0F, 2.0F, 2.0F, 7.0F, 10.0F, new Dilation(0.0F))
 		.uv(0, 0).cuboid(-8.0F, -3.0F, 2.0F, 1.0F, 3.0F, 10.0F, new Dilation(0.0F))
