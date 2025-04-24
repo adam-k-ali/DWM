@@ -14,6 +14,7 @@ import net.minecraft.util.math.RotationPropertyHelper;
 
 public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBlockEntity> {
     private final TTCapsuleModel ttCapsuleModel;
+
     public TardisBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
         this.ttCapsuleModel = new TTCapsuleModel(context.getLayerModelPart(TTCapsuleModel.LAYER_LOCATION));
     }
