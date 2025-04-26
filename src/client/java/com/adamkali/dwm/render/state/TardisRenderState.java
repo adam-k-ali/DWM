@@ -3,9 +3,9 @@ package com.adamkali.dwm.render.state;
 import net.minecraft.client.render.entity.state.EntityRenderState;
 import net.minecraft.util.math.MathHelper;
 
-public class TTCapsuleRenderState extends EntityRenderState {
+public class TardisRenderState extends EntityRenderState {
     private float doorSwingProgress;
-    public TTCapsuleRenderState() {
+    public TardisRenderState() {
         this.doorSwingProgress = 0.0f;
     }
 
