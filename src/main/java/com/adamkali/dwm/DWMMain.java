@@ -4,6 +4,7 @@ import com.adamkali.dwm.analytics.DWMStatistics;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.entities.DWMBlockEntities;
 import com.adamkali.dwm.item.DWMItems;
+import com.adamkali.dwm.network.ServerPayloadTypeRegistry;
 import com.adamkali.dwm.sound.DWMSounds;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
@@ -20,6 +21,7 @@ public class DWMMain implements ModInitializer {
         DWMBlocks.initialize();
         DWMBlockEntities.initialize();
         DWMSounds.initialize();
+        ServerPayloadTypeRegistry.initialize();
         LOGGER.info("Doctor Who Mod initialized");
 
         DWMVersion.checkVersion();
