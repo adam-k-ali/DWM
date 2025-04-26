@@ -2,6 +2,7 @@ package com.adamkali.dwm.network;
 
 import com.adamkali.dwm.ClientTardis;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
+import com.adamkali.dwm.gui.TardisChameleonGui;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
@@ -23,8 +24,7 @@ public class ClientPayloadTypeRegistry {
             BlockEntity blockEntity = context.client().world.getBlockEntity(payload.tardisPosition().pos());
             if (blockEntity instanceof TardisBlockEntity tardis) {
                 ClientTardis clientTardis = new ClientTardis(tardis);
-                System.out.println("ClientTardis: " + clientTardis);
-//                    client.setScreen(new TardisChameleonGui(clientTardis));
+                context.client().setScreen(new TardisChameleonGui(clientTardis));
             } else {
                 LOGGER.warn("Received OpenTardisChameleonScreen payload but block entity is not a TardisBlockEntity");
             }
