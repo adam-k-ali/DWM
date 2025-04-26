@@ -14,6 +14,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -39,7 +40,7 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
         doorState.toggle();
     }
 
-    public void setVariant(TardisChameleonVariant variant) {
+    public void setVariant(@NotNull TardisChameleonVariant variant) {
         this.variant = variant;
     }
 

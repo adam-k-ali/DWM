@@ -44,6 +44,7 @@ public class TardisChameleonGui extends Screen {
 
         ButtonWidget saveButton = ButtonWidget.builder(Text.literal("Save"), button -> {
             this.tardis.updateChameleonVariant(variants[currentVariantIndex]);
+            close();
         }).dimensions(width / 2 - 100, height / 2 + 60, 200, 20).build();
 
         ButtonWidget cancelButton = ButtonWidget.builder(Text.literal("Cancel"), button -> {

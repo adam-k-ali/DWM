@@ -6,6 +6,7 @@ public enum TardisChameleonVariant {
     TT_CAPSULE(Identifier.of(DWMReference.MOD_ID, "tt_capsule"));
 
     private final Identifier id;
+
     TardisChameleonVariant(Identifier id) {
         this.id = id;
     }
@@ -16,7 +17,7 @@ public enum TardisChameleonVariant {
 
     public static TardisChameleonVariant fromId(Identifier id) {
         for (TardisChameleonVariant variant : values()) {
-            if (variant.getId() == id) {
+            if (variant.getId().equals(id)) {
                 return variant;
             }
         }

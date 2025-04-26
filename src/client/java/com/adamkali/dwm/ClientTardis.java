@@ -1,7 +1,12 @@
 package com.adamkali.dwm;
 
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
+import com.adamkali.dwm.network.UpdateTardisChameleonC2SPayload;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.util.math.GlobalPos;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 public class ClientTardis {
     private final TardisBlockEntity tardisBlockEntity;
@@ -11,8 +16,6 @@ public class ClientTardis {
     }
 
     public void updateChameleonVariant(@NotNull TardisChameleonVariant variant) {
-        System.out.println("ClientTardis: updateChameleonVariant: " + variant.getId());
-        System.out.println("ClientTardis: Tardis Pos: " + this.tardisBlockEntity.getPos());
-//        ClientPlayNetworking.send(new UpdateTardisChameleonC2SPayload(variant.getId(), new GlobalPos(Objects.requireNonNull(this.tardisBlockEntity.getWorld()).getRegistryKey(), this.tardisBlockEntity.getPos())));
+        ClientPlayNetworking.send(new UpdateTardisChameleonC2SPayload(variant.getId(), new GlobalPos(Objects.requireNonNull(this.tardisBlockEntity.getWorld()).getRegistryKey(), this.tardisBlockEntity.getPos())));
     }
 }
