@@ -105,12 +105,14 @@
   "item.dwm.gray_big_roundel_b": "Gray Big Roundel B",
   "item.dwm.purple_big_roundel_b": "Purple Big Roundel B",
   "item.dwm.teal_big_roundel_b": "Teal Big Roundel B",
-  "item.dwm.tt_capsule": "TT Capsule",
+  "item.dwm.tardis_block": "TARDIS",
   "dwm.sonic_screwdriver.subtitle": "Whirring",
   "dwm.tardis_door_close.subtitle": "TARDIS Door Closing",
   "dwm.tardis_door_open.subtitle": "TARDIS Door Opening",
   "config.dwm.title": "Doctor Who Mod",
   "stat.dwm.sonic_screwdriver_use": "Uses of Sonic Screwdriver",
   "advancements.dwm.sonic_screwdriver": "Sonic Screwdriver",
-  "advancements.dwm.sonic_screwdriver.description": "Obtain a Sonic Screwdriver"
+  "advancements.dwm.sonic_screwdriver.description": "Obtain a Sonic Screwdriver",
+  "dwm.tt_capsule": "TT Capsule",
+  "dwm.gui.no_more_variants": "No more variants"
 }

@@ -47,13 +47,13 @@ public class TardisChameleonGui extends Screen {
             Tooltip tooltip = Tooltip.of(Text.translatable(variants[currentVariantIndex + 1].getId().toTranslationKey()));
             upButton.setTooltip(tooltip);
         } else {
-            upButton.setTooltip(Tooltip.of(Text.literal("No more variants")));
+            upButton.setTooltip(Tooltip.of(Text.translatable("dwm.gui.no_more_variants")));
         }
         if (downButton.active) {
             Tooltip tooltip = Tooltip.of(Text.translatable(variants[currentVariantIndex - 1].getId().toTranslationKey()));
             downButton.setTooltip(tooltip);
         } else {
-            downButton.setTooltip(Tooltip.of(Text.literal("No more variants")));
+            downButton.setTooltip(Tooltip.of(Text.translatable("dwm.gui.no_more_variants")));
         }
     }
 
