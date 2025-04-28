@@ -15,6 +15,10 @@ public class ClientTardis {
         this.tardisBlockEntity = tardisBlockEntity;
     }
 
+    public TardisBlockEntity getTardisBlockEntity() {
+        return tardisBlockEntity;
+    }
+
     public void updateChameleonVariant(@NotNull TardisChameleonVariant variant) {
         ClientPlayNetworking.send(new UpdateTardisChameleonC2SPayload(variant.getId(), new GlobalPos(Objects.requireNonNull(this.tardisBlockEntity.getWorld()).getRegistryKey(), this.tardisBlockEntity.getPos())));
     }
