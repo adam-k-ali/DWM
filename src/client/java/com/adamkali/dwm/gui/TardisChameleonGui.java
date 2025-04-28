@@ -69,8 +69,6 @@ public class TardisChameleonGui extends Screen {
 
     @Override
     protected void init() {
-        setVariant(0);
-
         upButton = ButtonWidget.builder(Text.literal(">"), button -> {
             incrementVariant();
         }).dimensions(width / 2 + 80, this.height / 2 + 20, 20, 20).build();
@@ -93,6 +91,8 @@ public class TardisChameleonGui extends Screen {
         addDrawableChild(downButton);
         addDrawableChild(saveButton);
         addDrawableChild(cancelButton);
+
+        setVariant(0);
     }
 
     public void drawTardis(DrawContext context, int x1, int y1, int x2, int y2, int size, float f, BlockEntity entity) {
