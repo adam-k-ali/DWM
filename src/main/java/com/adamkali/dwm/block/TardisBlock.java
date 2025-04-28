@@ -1,5 +1,6 @@
 package com.adamkali.dwm.block;
 
+import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.entities.DWMBlockEntities;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.network.OpenTardisChameleonScreen;
@@ -86,7 +87,7 @@ public class TardisBlock extends BlockWithEntity {
                 tardisBlockEntity.markDirty();
             }
         } else {
-            if (player.isSneaking()) {
+            if (player.isSneaking() && DWMReference.IS_CHAMELEON_GUI_ENABLED) {
                 ServerPlayNetworking.send((ServerPlayerEntity) player, new OpenTardisChameleonScreen(GlobalPos.create(world.getRegistryKey(), pos)));
             }
         }
