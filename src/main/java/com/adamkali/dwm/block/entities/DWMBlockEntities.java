@@ -12,7 +12,7 @@ import net.minecraft.util.Identifier;
 
 public class DWMBlockEntities {
     public static final BlockEntityType<TardisBlockEntity> TARDIS_BLOCK_ENTITY =
-            register("tardis", TardisBlockEntity::new, DWMBlocks.TT_CAPSULE);
+            register("tardis", TardisBlockEntity::new, DWMBlocks.TARDIS_BLOCK);
 
     public static void initialize() {
     }

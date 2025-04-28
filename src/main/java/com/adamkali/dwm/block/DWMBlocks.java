@@ -123,7 +123,7 @@ public class DWMBlocks {
     public static final Block PURPLE_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "purple_chronoplasm_powder");
     public static final Block TEAL_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "teal_chronoplasm_powder");
 
-    public static final Block TT_CAPSULE = register(TardisBlock::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "tt_capsule");
+    public static final Block TARDIS_BLOCK = register(TardisBlock::new, DWMBlockSettings.TARDIS_BLOCK, "tardis_block");
 
     public static void initialize() {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> {
@@ -238,7 +238,7 @@ public class DWMBlocks {
         });
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(content -> {
-            content.add(TT_CAPSULE.asItem());
+            content.add(TARDIS_BLOCK.asItem());
         });
     }
 
