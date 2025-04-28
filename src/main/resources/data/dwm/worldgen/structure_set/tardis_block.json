@@ -1,0 +1,15 @@
+{
+  "structures": [
+    {
+      "structure": "dwm:tardis_block",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 5,
+    "separation": 2,
+    "frequency": 0.1,
+    "salt": 1646207470
+  }
+}
