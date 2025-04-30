@@ -234,11 +234,6 @@ public class DWMBlocks {
             content.add(GRAY_CHRONOPLASM_POWDER.asItem());
             content.add(PURPLE_CHRONOPLASM_POWDER.asItem());
             content.add(TEAL_CHRONOPLASM_POWDER.asItem());
-
-        });
-
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(content -> {
-            content.add(TARDIS_BLOCK.asItem());
         });
     }
 
