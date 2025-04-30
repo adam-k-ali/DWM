@@ -1,0 +1,26 @@
+package com.adamkali.dwm;
+
+import net.minecraft.util.Identifier;
+
+public enum TardisChameleonVariant {
+    TT_CAPSULE(Identifier.of(DWMReference.MOD_ID, "tt_capsule"));
+
+    private final Identifier id;
+
+    TardisChameleonVariant(Identifier id) {
+        this.id = id;
+    }
+
+    public Identifier getId() {
+        return id;
+    }
+
+    public static TardisChameleonVariant fromId(Identifier id) {
+        for (TardisChameleonVariant variant : values()) {
+            if (variant.getId().equals(id)) {
+                return variant;
+            }
+        }
+        throw new IllegalArgumentException("Invalid TardisChameleonVariant ID: " + id);
+    }
+}

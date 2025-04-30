@@ -1,5 +1,6 @@
 package com.adamkali.dwm.block.entities;
 
+import com.adamkali.dwm.TardisChameleonVariant;
 import com.adamkali.dwm.sound.DWMSounds;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -13,12 +14,14 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
 public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<TardisBlockEntity> {
     private DoorState doorState = new DoorState();
+    private TardisChameleonVariant variant = TardisChameleonVariant.TT_CAPSULE;
 
     public TardisBlockEntity(BlockPos pos, BlockState state) {
         super(DWMBlockEntities.TARDIS_BLOCK_ENTITY, pos, state);
@@ -35,6 +38,14 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
         }
 
         doorState.toggle();
+    }
+
+    public void setVariant(@NotNull TardisChameleonVariant variant) {
+        this.variant = variant;
+    }
+
+    public TardisChameleonVariant getVariant() {
+        return variant;
     }
 
     @Deprecated(forRemoval = true)
