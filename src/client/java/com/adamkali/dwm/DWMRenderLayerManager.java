@@ -1,6 +1,7 @@
 package com.adamkali.dwm;
 
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.model.tileentity.FirstDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.TTCapsuleModel;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
@@ -13,6 +14,7 @@ public class DWMRenderLayerManager {
 
     private static void registerEntityRenderLayers() {
         EntityModelLayerRegistry.registerModelLayer(TTCapsuleModel.LAYER_LOCATION, TTCapsuleModel::getTexturedModelData);
+        EntityModelLayerRegistry.registerModelLayer(FirstDoctorTardisModel.LAYER_LOCATION, FirstDoctorTardisModel::getTexturedModelData);
     }
 
     public static void initialize() {

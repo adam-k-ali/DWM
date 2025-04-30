@@ -3,6 +3,7 @@ package com.adamkali.dwm.render;
 import com.adamkali.dwm.TardisChameleonVariant;
 import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
+import com.adamkali.dwm.model.tileentity.FirstDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.TTCapsuleModel;
 import com.adamkali.dwm.model.tileentity.TardisModel;
 import com.adamkali.dwm.render.state.TardisRenderState;
@@ -12,8 +13,8 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.RotationPropertyHelper;
 
@@ -21,9 +22,14 @@ import java.util.HashMap;
 
 public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBlockEntity> {
     private final HashMap<TardisChameleonVariant, TardisModel> modelCache = new HashMap<>();
+    private final HashMap<TardisChameleonVariant, Identifier> textureCache = new HashMap<>();
 
     public TardisBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
         modelCache.put(TardisChameleonVariant.TT_CAPSULE, new TTCapsuleModel(context.getLayerModelPart(TTCapsuleModel.LAYER_LOCATION)));
+        textureCache.put(TardisChameleonVariant.TT_CAPSULE, TTCapsuleModel.TEXTURE_LOCATION);
+
+        modelCache.put(TardisChameleonVariant.FIRST_DOCTOR_BOX, new FirstDoctorTardisModel(context.getLayerModelPart(FirstDoctorTardisModel.LAYER_LOCATION)));
+        textureCache.put(TardisChameleonVariant.FIRST_DOCTOR_BOX, FirstDoctorTardisModel.TEXTURE_LOCATION);
     }
 
     @Override
@@ -31,7 +37,7 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         BlockState state = entity.getCachedState();
         int rotation = state.get(TardisBlock.FACING_ROTATION, 0);
 
-        VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntitySolid(TTCapsuleModel.TEXTURE_LOCATION));
+        VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntitySolid(textureCache.get(entity.getVariant())));
         this.render(matrices, vertexConsumer, modelCache.get(entity.getVariant()), entity.getDoorState().getDoorSwing(), RotationPropertyHelper.toDegrees(rotation), light, overlay);
     }
 

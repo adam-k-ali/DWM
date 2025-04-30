@@ -20,6 +20,8 @@ public class ClientTardis {
     }
 
     public void updateChameleonVariant(@NotNull TardisChameleonVariant variant) {
+        this.tardisBlockEntity.setVariant(variant);
         ClientPlayNetworking.send(new UpdateTardisChameleonC2SPayload(variant.getId(), new GlobalPos(Objects.requireNonNull(this.tardisBlockEntity.getWorld()).getRegistryKey(), this.tardisBlockEntity.getPos())));
+        this.tardisBlockEntity.markDirty();
     }
 }

@@ -2,6 +2,8 @@ package com.adamkali.dwm.gui;
 
 import com.adamkali.dwm.ClientTardis;
 import com.adamkali.dwm.TardisChameleonVariant;
+import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.entity.BlockEntity;
@@ -22,10 +24,14 @@ import org.joml.Vector3f;
 public class TardisChameleonGui extends Screen {
     private static final TardisChameleonVariant[] variants = TardisChameleonVariant.values();
     private final ClientTardis tardis;
+    private final TardisBlockEntity tardisBlockEntity;
 
     public TardisChameleonGui(ClientTardis tardis) {
         super(Text.literal("Tardis Chameleon"));
         this.tardis = tardis;
+
+        this.tardisBlockEntity = new TardisBlockEntity(this.tardis.getTardisBlockEntity().getPos(), DWMBlocks.TARDIS_BLOCK.getDefaultState());
+        this.tardisBlockEntity.setWorld(MinecraftClient.getInstance().world);
     }
 
     private int currentVariantIndex = 0;
@@ -40,6 +46,8 @@ public class TardisChameleonGui extends Screen {
         }
         currentVariantIndex = variantIndex;
         chameleonVariantName = variants[currentVariantIndex].getId().toTranslationKey();
+
+        this.tardisBlockEntity.setVariant(variants[currentVariantIndex]);
 
         downButton.active = currentVariantIndex != 0;
         upButton.active = currentVariantIndex != variants.length - 1;
@@ -101,8 +109,8 @@ public class TardisChameleonGui extends Screen {
 
         context.enableScissor(x1, y1, x2, y2);
         context.fill(x1, y1, x2, y2, 0xFF000000);
-        Quaternionf quaternionf = (new Quaternionf()).rotateZ((float) Math.PI).rotateY((float) Math.toRadians(250.0D));
-        Vector3f vector3f = new Vector3f(-0.6F, 1.5F, 0.0F);
+        Quaternionf quaternionf = (new Quaternionf()).rotateZ((float) Math.PI).rotateY((float) Math.toRadians(35));
+        Vector3f vector3f = new Vector3f(0.6F, 1.5F, 0.0F);
         float q = (float) size;
         drawTardis(context, horizontalCenter, verticalCenter, q, vector3f, quaternionf, entity);
         context.disableScissor();
@@ -143,10 +151,11 @@ public class TardisChameleonGui extends Screen {
 
         int tardisX2 = tardisX1 + tardisWidth;
         int tardisY2 = tardisY1 + tardisHeight;
-        drawTardis(context, tardisX1, tardisY1, tardisX2, tardisY2, tardisScale, 0.0625f, this.tardis.getTardisBlockEntity());
+        drawTardis(context, tardisX1, tardisY1, tardisX2, tardisY2, tardisScale, 0.0625f, this.tardisBlockEntity);
 
         int textXCenter = (tardisX1 + tardisX2) / 2;
         context.drawCenteredTextWithShadow(textRenderer, Text.translatable(this.chameleonVariantName), textXCenter, height / 2 + 26, 0xFFFFFF);
+        context.drawText(textRenderer, this.getTitle(), x1 + 10, y1 + 10, 0x404040, false);
     }
 
     @Override

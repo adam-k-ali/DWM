@@ -3,7 +3,8 @@ package com.adamkali.dwm;
 import net.minecraft.util.Identifier;
 
 public enum TardisChameleonVariant {
-    TT_CAPSULE(Identifier.of(DWMReference.MOD_ID, "tt_capsule"));
+    TT_CAPSULE(Identifier.of(DWMReference.MOD_ID, "tt_capsule")),
+    FIRST_DOCTOR_BOX(Identifier.of(DWMReference.MOD_ID, "first_doctor_box"));
 
     private final Identifier id;
 

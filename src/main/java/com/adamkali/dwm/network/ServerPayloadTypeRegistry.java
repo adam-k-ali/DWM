@@ -35,6 +35,7 @@ public class ServerPayloadTypeRegistry {
                 return;
             }
             tardis.setVariant(TardisChameleonVariant.fromId(variantId));
+            tardis.markDirty();
         });
     }
 }

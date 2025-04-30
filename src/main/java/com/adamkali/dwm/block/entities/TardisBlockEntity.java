@@ -41,6 +41,7 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
     }
 
     public void setVariant(@NotNull TardisChameleonVariant variant) {
+        System.out.println("Setting variant to: " + variant.getId().toTranslationKey());
         this.variant = variant;
     }
 
@@ -65,6 +66,7 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
     @Override
     protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
         nbt.put("doorState", doorState.toNbt());
+        nbt.putString("variant", variant.name());
 
         super.writeNbt(nbt, registries);
     }
@@ -74,6 +76,7 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
         super.readNbt(nbt, registries);
 
         doorState = DoorState.fromNbt(nbt.getCompound("doorState"));
+        variant = TardisChameleonVariant.valueOf(nbt.getString("variant"));
     }
 
     @Override
