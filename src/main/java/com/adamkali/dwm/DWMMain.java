@@ -3,6 +3,7 @@ package com.adamkali.dwm;
 import com.adamkali.dwm.analytics.DWMStatistics;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.entities.DWMBlockEntities;
+import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.item.DWMItems;
 import com.adamkali.dwm.network.ServerPayloadTypeRegistry;
 import com.adamkali.dwm.sound.DWMSounds;
@@ -16,6 +17,7 @@ public class DWMMain implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing Doctor Who Mod");
+        DWMConfig.init();
         DWMStatistics.initialize();
         DWMItems.initialize();
         DWMBlocks.initialize();

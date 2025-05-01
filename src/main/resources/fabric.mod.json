@@ -22,6 +22,9 @@
     ],
     "client": [
       "com.adamkali.dwm.DWMClient"
+    ],
+    "modmenu": [
+      "com.adamkali.dwm.DWMModMenuIntegration"
     ]
   },
   "mixins": [
