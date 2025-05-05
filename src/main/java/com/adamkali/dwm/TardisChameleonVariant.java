@@ -4,7 +4,8 @@ import net.minecraft.util.Identifier;
 
 public enum TardisChameleonVariant {
     TT_CAPSULE(Identifier.of(DWMReference.MOD_ID, "tt_capsule")),
-    FIRST_DOCTOR_BOX(Identifier.of(DWMReference.MOD_ID, "first_doctor_box"));
+    FIRST_DOCTOR_BOX(Identifier.of(DWMReference.MOD_ID, "first_doctor_box")),
+    SECOND_DOCTOR_BOX(Identifier.of(DWMReference.MOD_ID, "second_doctor_box"));
 
     private final Identifier id;
 

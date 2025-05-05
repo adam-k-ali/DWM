@@ -115,6 +115,7 @@
   "advancements.dwm.sonic_screwdriver.description": "Obtain a Sonic Screwdriver",
   "dwm.tt_capsule": "TT Capsule",
   "dwm.first_doctor_box": "First Doctor Box",
+  "dwm.second_doctor_box": "Second Doctor Box",
   "dwm.gui.no_more_variants": "No more variants",
   "dwm.config.option.chameleon_gui": "Enable Chameleon GUI",
   "dwm.config.category.experimental": "Experimental"
