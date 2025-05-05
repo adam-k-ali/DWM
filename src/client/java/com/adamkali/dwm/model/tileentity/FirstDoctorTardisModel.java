@@ -106,7 +106,7 @@ public class FirstDoctorTardisModel extends TardisModel {
                 .uv(0, 0).cuboid(-4.5F, -7.1F, -0.5F, 5.0F, 1.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 0).cuboid(-4.5F, -11.1F, -0.5F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 0).cuboid(-4.5F, -12.1F, -0.5F, 5.0F, 1.0F, 1.0F, new Dilation(0.0F))
-                .uv(42, 88).cuboid(-4.2F, -11.125F, -0.25F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F)), ModelTransform.pivot(4.5F, 14.0F, -5.5F));
+                .uv(42, 89).cuboid(-4.2F, -11.125F, -0.25F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F)), ModelTransform.pivot(4.5F, 14.0F, -5.5F));
 
         ModelPartData window3_1 = leftDoor.addChild("window3_1", ModelPartBuilder.create().uv(38, 48).cuboid(4.7F, -0.2621F, -0.1818F, 4.0F, 1.0F, 1.0F, new Dilation(0.0F)), ModelTransform.of(-8.5F, -7.1F, -0.2F, 0.3491F, 0.0F, 0.0F));
 
@@ -124,7 +124,7 @@ public class FirstDoctorTardisModel extends TardisModel {
                 .uv(0, 0).cuboid(3.5F, -6.1F, -0.5F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 0).cuboid(3.5F, -11.1F, -0.5F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 0).cuboid(-0.5F, -12.1F, -0.5F, 5.0F, 1.0F, 1.0F, new Dilation(0.0F))
-                .uv(42, 88).cuboid(-0.5F, -11.125F, -0.25F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F))
+                .uv(42, 89).cuboid(-0.5F, -11.125F, -0.25F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 0).cuboid(-0.5F, -1.1F, -0.2F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 0).cuboid(-0.5F, -2.1F, -0.5F, 5.0F, 1.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 0).cuboid(3.5F, -1.1F, -0.5F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
@@ -210,8 +210,8 @@ public class FirstDoctorTardisModel extends TardisModel {
         ModelPartData bone24 = Main2.addChild("bone24", ModelPartBuilder.create().uv(38, 48).cuboid(4.7F, -0.2621F, -0.1818F, 4.0F, 1.0F, 1.0F, new Dilation(0.0F))
                 .uv(38, 48).cuboid(-0.3F, -0.2621F, -0.1818F, 4.0F, 1.0F, 1.0F, new Dilation(0.0F)), ModelTransform.of(-4.0F, -17.1F, -5.7F, 0.3491F, 0.0F, 0.0F));
 
-        ModelPartData side_windows = Main2.addChild("side_windows", ModelPartBuilder.create().uv(42, 88).cuboid(0.3F, -2.15F, -0.125F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F))
-                .uv(42, 88).cuboid(-5.0F, -2.15F, -0.125F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F)), ModelTransform.pivot(0.0F, -19.0F, -5.625F));
+        ModelPartData side_windows = Main2.addChild("side_windows", ModelPartBuilder.create().uv(42, 89).cuboid(0.3F, -2.15F, -0.125F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F))
+                .uv(42, 89).cuboid(-5.0F, -2.15F, -0.125F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F)), ModelTransform.pivot(0.0F, -19.0F, -5.625F));
 
         ModelPartData bone26 = side_windows.addChild("bone26", ModelPartBuilder.create().uv(38, 48).cuboid(-0.4293F, -2.7F, -0.5707F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(38, 48).cuboid(-4.177F, -2.7F, 3.177F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
@@ -230,7 +230,7 @@ public class FirstDoctorTardisModel extends TardisModel {
                 .uv(38, 48).cuboid(-0.3F, -1.5378F, 1.0787F, 4.0F, 1.0F, 1.0F, new Dilation(0.0F)), ModelTransform.of(-4.0F, 1.6F, 0.025F, 0.7854F, 0.0F, 0.0F));
 
         ModelPartData Main3 = modelPartData.addChild("Main3", ModelPartBuilder.create().uv(0, 0).cuboid(-5.0F, -2.1F, -6.0F, 10.0F, 1.0F, 1.0F, new Dilation(0.0F))
-                .uv(42, 88).cuboid(-5.0F, -21.15F, -5.75F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F))
+                .uv(42, 89).cuboid(-5.0F, -21.15F, -5.75F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 0).cuboid(1.0F, -6.1F, -5.7F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 0).cuboid(1.0F, -11.1F, -5.7F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 0).cuboid(1.0F, -16.1F, -5.7F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F))
@@ -260,7 +260,7 @@ public class FirstDoctorTardisModel extends TardisModel {
                 .uv(0, 0).cuboid(-5.3F, -6.1F, -6.0F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 0).cuboid(4.3F, -6.1F, -6.0F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 0).cuboid(-1.0F, -6.1F, -6.0F, 2.0F, 4.0F, 1.0F, new Dilation(0.0F))
-                .uv(42, 88).cuboid(0.3F, -21.15F, -5.75F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F)), ModelTransform.of(0.0F, 24.0F, 0.0F, 0.0F, 3.1416F, 0.0F));
+                .uv(42, 89).cuboid(0.3F, -21.15F, -5.75F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F)), ModelTransform.of(0.0F, 24.0F, 0.0F, 0.0F, 3.1416F, 0.0F));
 
         ModelPartData bone27 = Main3.addChild("bone27", ModelPartBuilder.create().uv(0, 0).cuboid(-0.75F, -11.0F, -0.5F, 1.0F, 22.0F, 1.0F, new Dilation(0.0F)), ModelTransform.of(0.25F, -12.1F, -5.3F, 0.0F, -0.7854F, 0.0F));
 
