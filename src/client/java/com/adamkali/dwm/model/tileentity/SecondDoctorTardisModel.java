@@ -5,7 +5,6 @@
 package com.adamkali.dwm.model.tileentity;
 
 import com.adamkali.dwm.DWMReference;
-import com.adamkali.dwm.render.state.TardisRenderState;
 import net.minecraft.client.model.*;
 import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.util.Identifier;
@@ -14,14 +13,8 @@ public class SecondDoctorTardisModel extends TardisModel {
     public static final EntityModelLayer LAYER_LOCATION = new EntityModelLayer(Identifier.of(DWMReference.MOD_ID, "second_doctor_box"), "second_doctor_box");
     public static final Identifier TEXTURE_LOCATION = Identifier.of(DWMReference.MOD_ID, "textures/entity/second_doctor_box.png");
 
-    private final ModelPart Door1;
-    private final ModelPart Door2;
-
     public SecondDoctorTardisModel(ModelPart root) {
         super(root);
-        ModelPart main = root.getChild("Main");
-        this.Door1 = main.getChild("Door1");
-        this.Door2 = main.getChild("Door2");
     }
 
     public static TexturedModelData getTexturedModelData() {
@@ -35,7 +28,7 @@ public class SecondDoctorTardisModel extends TardisModel {
                 .uv(0, 0).cuboid(-1.5F, -5.65F, -0.7F, 11.0F, 1.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 0).cuboid(-2.0F, -6.7F, -1.6F, 2.0F, 1.0F, 1.0F, new Dilation(0.0F)), ModelTransform.pivot(-4.0F, 6.9F, -5.7F));
 
-        ModelPartData Door1 = Main.addChild("Door1", ModelPartBuilder.create().uv(22, 0).cuboid(-4.0F, 3.9F, 0.0F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F))
+        ModelPartData LeftDoor = Main.addChild("LeftDoor", ModelPartBuilder.create().uv(22, 0).cuboid(-4.0F, 3.9F, 0.0F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(10, 12).mirrored().cuboid(-5.0F, 7.9F, -0.3F, 5.0F, 1.0F, 1.0F, new Dilation(0.0F)).mirrored(false)
                 .uv(0, 0).cuboid(-5.0F, 3.9F, -0.3F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(5, 2).cuboid(-0.7F, -12.1F, -0.3F, 1.0F, 21.0F, 1.0F, new Dilation(0.0F))
@@ -49,22 +42,22 @@ public class SecondDoctorTardisModel extends TardisModel {
                 .uv(0, 0).cuboid(-5.0F, -11.1F, -0.3F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(1, 9).cuboid(-5.0F, -12.1F, -0.3F, 5.0F, 1.0F, 1.0F, new Dilation(0.0F)), ModelTransform.pivot(9.0F, 7.1F, -0.3F));
 
-        ModelPartData window3_1 = Door1.addChild("window3_1", ModelPartBuilder.create(), ModelTransform.of(-9.0F, -7.1F, 0.3F, 0.3491F, 0.0F, 0.0F));
+        ModelPartData window3_1 = LeftDoor.addChild("window3_1", ModelPartBuilder.create(), ModelTransform.of(-9.0F, -7.1F, 0.3F, 0.3491F, 0.0F, 0.0F));
 
-        ModelPartData window2_1 = Door1.addChild("window2_1", ModelPartBuilder.create().uv(0, 10).cuboid(-0.6414F, -2.5F, -0.7828F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
+        ModelPartData window2_1 = LeftDoor.addChild("window2_1", ModelPartBuilder.create().uv(0, 10).cuboid(-0.6414F, -2.5F, -0.7828F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 10).cuboid(-2.9749F, -2.5F, 1.5506F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 10).cuboid(-2.1971F, -2.5F, 0.7728F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 10).cuboid(-1.4192F, -2.5F, -0.005F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F)), ModelTransform.of(-0.8F, -8.6357F, 0.7766F, 0.0F, -0.7854F, 0.0F));
 
-        ModelPartData Window1_1 = Door1.addChild("Window1_1", ModelPartBuilder.create().uv(0, 10).cuboid(4.7F, -0.265F, -0.6184F, 4.0F, 1.0F, 1.0F, new Dilation(0.0F))
+        ModelPartData Window1_1 = LeftDoor.addChild("Window1_1", ModelPartBuilder.create().uv(0, 10).cuboid(4.7F, -0.265F, -0.6184F, 4.0F, 1.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 10).cuboid(4.7F, -3.0227F, 2.1393F, 4.0F, 1.0F, 1.0F, new Dilation(0.0F))
                 .uv(0, 10).cuboid(4.7F, -1.6085F, 0.7251F, 4.0F, 1.0F, 1.0F, new Dilation(0.0F)), ModelTransform.of(-9.0F, -7.4F, 0.4F, 0.7854F, 0.0F, 0.0F));
 
-        ModelPartData bone41 = Door1.addChild("bone41", ModelPartBuilder.create().uv(22, 15).cuboid(-2.0F, -2.0F, -0.5F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F)), ModelTransform.of(-2.0F, -8.9F, 0.45F, 0.0F, 0.0F, -3.1416F));
+        ModelPartData bone41 = LeftDoor.addChild("bone41", ModelPartBuilder.create().uv(22, 15).cuboid(-2.0F, -2.0F, -0.5F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F)), ModelTransform.of(-2.0F, -8.9F, 0.45F, 0.0F, 0.0F, -3.1416F));
 
-        ModelPartData bone18 = Door1.addChild("bone18", ModelPartBuilder.create().uv(2, 24).cuboid(0.7964F, -0.4876F, -0.94F, 1.0F, 1.0F, 1.0F, new Dilation(-0.2F)), ModelTransform.pivot(-5.7F, -1.6F, 0.3F));
+        ModelPartData bone18 = LeftDoor.addChild("bone18", ModelPartBuilder.create().uv(2, 24).cuboid(0.7964F, -0.4876F, -0.94F, 1.0F, 1.0F, 1.0F, new Dilation(-0.2F)), ModelTransform.pivot(-5.7F, -1.6F, 0.3F));
 
-        ModelPartData bone19 = Door1.addChild("bone19", ModelPartBuilder.create().uv(6, 29).cuboid(-0.2879F, -1.4F, -0.7121F, 1.0F, 2.0F, 1.0F, new Dilation(0.0F)), ModelTransform.of(-4.5036F, -3.6876F, 0.56F, 0.0F, 0.7854F, 0.0F));
+        ModelPartData bone19 = LeftDoor.addChild("bone19", ModelPartBuilder.create().uv(6, 29).cuboid(-0.2879F, -1.4F, -0.7121F, 1.0F, 2.0F, 1.0F, new Dilation(0.0F)), ModelTransform.of(-4.5036F, -3.6876F, 0.56F, 0.0F, 0.7854F, 0.0F));
 
         ModelPartData Door2 = Main.addChild("Door2", ModelPartBuilder.create().uv(5, 6).cuboid(0.0F, -7.1F, -0.3F, 5.0F, 1.0F, 1.0F, new Dilation(0.0F))
                 .uv(10, 27).cuboid(0.1F, -6.1F, -0.05F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F))
@@ -366,11 +359,5 @@ public class SecondDoctorTardisModel extends TardisModel {
                 .uv(0, 0).cuboid(-2.0F, -26.7F, -2.0F, 4.0F, 3.0F, 4.0F, new Dilation(0.0F))
                 .uv(0, 0).cuboid(-1.5F, -26.975F, -1.5F, 3.0F, 3.0F, 3.0F, new Dilation(0.0F)), ModelTransform.pivot(0.0F, 24.0F, 0.0F));
         return TexturedModelData.of(modelData, 32, 32);
-    }
-
-    @Override
-    public void setAngles(TardisRenderState state) {
-        float doorSwingProgress = state.getDoorSwingProgress();
-        this.Door1.setAngles(0.0F, doorSwingProgress * (float) Math.PI / 3, 0.0F);
     }
 }

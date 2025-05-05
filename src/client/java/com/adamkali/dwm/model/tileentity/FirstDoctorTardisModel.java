@@ -5,7 +5,6 @@
 package com.adamkali.dwm.model.tileentity;
 
 import com.adamkali.dwm.DWMReference;
-import com.adamkali.dwm.render.state.TardisRenderState;
 import net.minecraft.client.model.*;
 import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.util.Identifier;
@@ -14,11 +13,9 @@ public class FirstDoctorTardisModel extends TardisModel {
     public static final EntityModelLayer LAYER_LOCATION = new EntityModelLayer(Identifier.of(DWMReference.MOD_ID, "first_doctor_box"), "first_doctor_box");
     public static final Identifier TEXTURE_LOCATION = Identifier.of(DWMReference.MOD_ID, "textures/entity/first_doctor_box.png");
 
-    private final ModelPart leftDoor;
 
     public FirstDoctorTardisModel(ModelPart root) {
         super(root);
-        this.leftDoor = root.getChild("leftDoor");
     }
 
     public static TexturedModelData getTexturedModelData() {
@@ -92,7 +89,7 @@ public class FirstDoctorTardisModel extends TardisModel {
 
         ModelPartData bone15 = post4.addChild("bone15", ModelPartBuilder.create(), ModelTransform.of(-0.2F, -12.5F, 0.9F, 0.0F, 0.7854F, 0.0F));
 
-        ModelPartData leftDoor = modelPartData.addChild("leftDoor", ModelPartBuilder.create().uv(0, 0).cuboid(-3.5F, 3.9F, -0.2F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F))
+        ModelPartData LeftDoor = modelPartData.addChild("LeftDoor", ModelPartBuilder.create().uv(0, 0).cuboid(-3.5F, 3.9F, -0.2F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(4, 33).cuboid(-4.5F, 7.9F, -0.5F, 5.0F, 1.0F, 1.0F, new Dilation(0.0F))
                 .uv(6, 29).cuboid(-4.5F, 3.9F, -0.5F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(7, 9).cuboid(-0.2F, -12.1F, -0.5F, 1.0F, 21.0F, 1.0F, new Dilation(0.0F))
@@ -108,14 +105,14 @@ public class FirstDoctorTardisModel extends TardisModel {
                 .uv(0, 0).cuboid(-4.5F, -12.1F, -0.5F, 5.0F, 1.0F, 1.0F, new Dilation(0.0F))
                 .uv(42, 89).cuboid(-4.2F, -11.125F, -0.25F, 4.0F, 4.0F, 1.0F, new Dilation(0.0F)), ModelTransform.pivot(4.5F, 14.0F, -5.5F));
 
-        ModelPartData window3_1 = leftDoor.addChild("window3_1", ModelPartBuilder.create().uv(38, 48).cuboid(4.7F, -0.2621F, -0.1818F, 4.0F, 1.0F, 1.0F, new Dilation(0.0F)), ModelTransform.of(-8.5F, -7.1F, -0.2F, 0.3491F, 0.0F, 0.0F));
+        ModelPartData window3_1 = LeftDoor.addChild("window3_1", ModelPartBuilder.create().uv(38, 48).cuboid(4.7F, -0.2621F, -0.1818F, 4.0F, 1.0F, 1.0F, new Dilation(0.0F)), ModelTransform.of(-8.5F, -7.1F, -0.2F, 0.3491F, 0.0F, 0.0F));
 
-        ModelPartData window2_1 = leftDoor.addChild("window2_1", ModelPartBuilder.create().uv(38, 48).cuboid(-0.4293F, -2.7F, -0.5707F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
+        ModelPartData window2_1 = LeftDoor.addChild("window2_1", ModelPartBuilder.create().uv(38, 48).cuboid(-0.4293F, -2.7F, -0.5707F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(38, 48).cuboid(-2.7627F, -2.7F, 1.7627F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(38, 48).cuboid(-1.9849F, -2.7F, 0.9849F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F))
                 .uv(38, 48).cuboid(-1.2071F, -2.7F, 0.2071F, 1.0F, 4.0F, 1.0F, new Dilation(0.0F)), ModelTransform.of(-0.3F, -8.6357F, 0.2766F, 0.0F, -0.7854F, 0.0F));
 
-        ModelPartData Window1_1 = leftDoor.addChild("Window1_1", ModelPartBuilder.create().uv(38, 48).cuboid(4.7F, -0.1943F, -0.2648F, 4.0F, 1.0F, 1.0F, new Dilation(0.0F))
+        ModelPartData Window1_1 = LeftDoor.addChild("Window1_1", ModelPartBuilder.create().uv(38, 48).cuboid(4.7F, -0.1943F, -0.2648F, 4.0F, 1.0F, 1.0F, new Dilation(0.0F))
                 .uv(38, 48).cuboid(4.7F, -2.846F, 2.3868F, 4.0F, 1.0F, 1.0F, new Dilation(0.0F))
                 .uv(38, 48).cuboid(4.7F, -1.5378F, 1.0787F, 4.0F, 1.0F, 1.0F, new Dilation(0.0F)), ModelTransform.of(-8.5F, -7.4F, -0.1F, 0.7854F, 0.0F, 0.0F));
 
@@ -354,11 +351,5 @@ public class FirstDoctorTardisModel extends TardisModel {
                 .uv(85, 15).cuboid(-0.5F, -29.51F, -0.5F, 1.0F, 1.0F, 1.0F, new Dilation(0.0F))
                 .uv(81, 25).cuboid(-0.5F, -28.5F, -0.5F, 1.0F, 2.0F, 1.0F, new Dilation(0.0F)), ModelTransform.pivot(0.0F, 24.0F, 0.0F));
         return TexturedModelData.of(modelData, 96, 96);
-    }
-
-    @Override
-    public void setAngles(TardisRenderState state) {
-        float doorSwingProgress = state.getDoorSwingProgress();
-        this.leftDoor.setAngles(0.0F, doorSwingProgress * (float) Math.PI / 3, 0.0F);
     }
 }
