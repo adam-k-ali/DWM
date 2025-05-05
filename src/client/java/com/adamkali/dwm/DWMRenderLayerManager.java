@@ -19,6 +19,7 @@ public class DWMRenderLayerManager {
         EntityModelLayerRegistry.registerModelLayer(FourthDoctorTardisModel.LAYER_LOCATION, FourthDoctorTardisModel::getTexturedModelData);
         EntityModelLayerRegistry.registerModelLayer(FifthDoctorTardisModel.LAYER_LOCATION, FifthDoctorTardisModel::getTexturedModelData);
         EntityModelLayerRegistry.registerModelLayer(SixthDoctorTardisModel.LAYER_LOCATION, SixthDoctorTardisModel::getTexturedModelData);
+        EntityModelLayerRegistry.registerModelLayer(SeventhDoctorTardisModel.LAYER_LOCATION, SeventhDoctorTardisModel::getTexturedModelData);
     }
 
     public static void initialize() {

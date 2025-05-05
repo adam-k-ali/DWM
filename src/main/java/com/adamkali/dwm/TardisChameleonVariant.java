@@ -9,7 +9,8 @@ public enum TardisChameleonVariant {
     THIRD_DOCTOR_BOX(Identifier.of(DWMReference.MOD_ID, "third_doctor_box")),
     FOURTH_DOCTOR_BOX(Identifier.of(DWMReference.MOD_ID, "fourth_doctor_box")),
     FIFTH_DOCTOR_BOX(Identifier.of(DWMReference.MOD_ID, "fifth_doctor_box")),
-    SIXTH_DOCTOR_BOX(Identifier.of(DWMReference.MOD_ID, "sixth_doctor_box"));
+    SIXTH_DOCTOR_BOX(Identifier.of(DWMReference.MOD_ID, "sixth_doctor_box")),
+    SEVENTH_DOCTOR_BOX(Identifier.of(DWMReference.MOD_ID, "seventh_doctor_box"));
 
     private final Identifier id;
 
