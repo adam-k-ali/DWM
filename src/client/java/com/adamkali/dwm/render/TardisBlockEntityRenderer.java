@@ -3,10 +3,7 @@ package com.adamkali.dwm.render;
 import com.adamkali.dwm.TardisChameleonVariant;
 import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
-import com.adamkali.dwm.model.tileentity.FirstDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.SecondDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.TTCapsuleModel;
-import com.adamkali.dwm.model.tileentity.TardisModel;
+import com.adamkali.dwm.model.tileentity.*;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.RenderLayer;
@@ -34,6 +31,7 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         saveChameleonVariant(TardisChameleonVariant.TT_CAPSULE, new TTCapsuleModel(context.getLayerModelPart(TTCapsuleModel.LAYER_LOCATION)), TTCapsuleModel.TEXTURE_LOCATION);
         saveChameleonVariant(TardisChameleonVariant.FIRST_DOCTOR_BOX, new FirstDoctorTardisModel(context.getLayerModelPart(FirstDoctorTardisModel.LAYER_LOCATION)), FirstDoctorTardisModel.TEXTURE_LOCATION);
         saveChameleonVariant(TardisChameleonVariant.SECOND_DOCTOR_BOX, new SecondDoctorTardisModel(context.getLayerModelPart(SecondDoctorTardisModel.LAYER_LOCATION)), SecondDoctorTardisModel.TEXTURE_LOCATION);
+        saveChameleonVariant(TardisChameleonVariant.THIRD_DOCTOR_BOX, new ThirdDoctorTardisModel(context.getLayerModelPart(ThirdDoctorTardisModel.LAYER_LOCATION)), ThirdDoctorTardisModel.TEXTURE_LOCATION);
     }
 
     @Override
