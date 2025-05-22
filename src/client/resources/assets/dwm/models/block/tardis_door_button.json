@@ -1,0 +1,450 @@
+{
+  "credit": "Made with Blockbench",
+  "textures": {
+    "particle": "dwm:block/tardis_door_button",
+    "all": "dwm:block/tardis_door_button"
+  },
+  "elements": [
+    {
+      "name": "button_base",
+      "from": [
+        5,
+        0,
+        1
+      ],
+      "to": [
+        11,
+        1,
+        7
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          5,
+          0,
+          1
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            6,
+            6,
+            7
+          ],
+          "texture": "#all"
+        },
+        "east": {
+          "uv": [
+            6,
+            6,
+            12,
+            7
+          ],
+          "texture": "#all"
+        },
+        "south": {
+          "uv": [
+            10,
+            6,
+            16,
+            7
+          ],
+          "texture": "#all"
+        },
+        "west": {
+          "uv": [
+            0,
+            6,
+            6,
+            7
+          ],
+          "texture": "#all"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "texture": "#all"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "texture": "#all"
+        }
+      }
+    },
+    {
+      "name": "button",
+      "from": [
+        7.5,
+        0.75,
+        3.5
+      ],
+      "to": [
+        8.5,
+        1.75,
+        4.5
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          7.5,
+          -0.25,
+          3.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            7,
+            5,
+            8
+          ],
+          "texture": "#all"
+        },
+        "east": {
+          "uv": [
+            4,
+            8,
+            5,
+            9
+          ],
+          "texture": "#all"
+        },
+        "south": {
+          "uv": [
+            7,
+            8,
+            8,
+            9
+          ],
+          "texture": "#all"
+        },
+        "west": {
+          "uv": [
+            7,
+            7,
+            8,
+            8
+          ],
+          "texture": "#all"
+        },
+        "up": {
+          "uv": [
+            5,
+            7,
+            6,
+            8
+          ],
+          "texture": "#all"
+        },
+        "down": {
+          "uv": [
+            5,
+            8,
+            6,
+            9
+          ],
+          "texture": "#all"
+        }
+      }
+    },
+    {
+      "name": "light_base",
+      "from": [
+        5,
+        0,
+        9
+      ],
+      "to": [
+        11,
+        1,
+        15
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          5,
+          0,
+          9
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            6,
+            1
+          ],
+          "texture": "#all"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            6,
+            1
+          ],
+          "texture": "#all"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            6,
+            1
+          ],
+          "texture": "#all"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            6,
+            1
+          ],
+          "texture": "#all"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "texture": "#all"
+        },
+        "down": {
+          "uv": [
+            10,
+            6,
+            16,
+            12
+          ],
+          "texture": "#all"
+        }
+      }
+    },
+    {
+      "name": "light",
+      "from": [
+        6.5,
+        0.75,
+        10.5
+      ],
+      "to": [
+        9.5,
+        1.75,
+        13.5
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          6.5,
+          -0.25,
+          10.5
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            13,
+            8,
+            14
+          ],
+          "texture": "#all"
+        },
+        "east": {
+          "uv": [
+            1,
+            13,
+            4,
+            14
+          ],
+          "texture": "#all"
+        },
+        "south": {
+          "uv": [
+            5,
+            14,
+            8,
+            15
+          ],
+          "texture": "#all"
+        },
+        "west": {
+          "uv": [
+            1,
+            14,
+            4,
+            15
+          ],
+          "texture": "#all"
+        },
+        "up": {
+          "uv": [
+            3,
+            12,
+            6,
+            15
+          ],
+          "texture": "#all"
+        },
+        "down": {
+          "uv": [
+            3,
+            12,
+            6,
+            15
+          ],
+          "texture": "#all"
+        }
+      }
+    }
+  ],
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [
+        100,
+        90,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        4.5
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        100,
+        -90,
+        0
+      ],
+      "translation": [
+        0,
+        0.25,
+        4.5
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        30,
+        -175,
+        0
+      ],
+      "translation": [
+        4.25,
+        6.5,
+        0
+      ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [
+        30,
+        -175,
+        0
+      ],
+      "translation": [
+        1.5,
+        8.5,
+        2.75
+      ]
+    },
+    "ground": {
+      "rotation": [
+        27,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        7.5,
+        0
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    },
+    "gui": {
+      "rotation": [
+        30,
+        30,
+        0
+      ],
+      "translation": [
+        0,
+        5.75,
+        0
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        -90,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        -7
+      ]
+    }
+  },
+  "groups": [
+    {
+      "name": "button",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "color": 0,
+      "children": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "light",
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "color": 0,
+      "children": [
+        2,
+        3
+      ]
+    }
+  ]
+}
