@@ -70,7 +70,7 @@ public class TardisButtonBlock extends HorizontalFacingBlock {
         return null;
     }
 
-    private String getShapeHit(BlockState state, BlockHitResult hit, Map<String, VoxelShape> shapes) {
+    private String getShapeHit(BlockHitResult hit, Map<String, VoxelShape> shapes) {
         BlockPos blockPos = hit.getBlockPos();
         Vec3d hitPos = hit.getPos().subtract(new Vec3d(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
 
@@ -92,9 +92,9 @@ public class TardisButtonBlock extends HorizontalFacingBlock {
         boolean buttonIsHit;
         String shapeHit;
         if (state.get(FACING) == Direction.NORTH || state.get(FACING) == Direction.SOUTH) {
-            shapeHit = getShapeHit(state, hit, Map.of("NORTH_SOUTH_SHAPE_A", NORTH_SOUTH_SHAPE_A, "NORTH_SOUTH_SHAPE_B", NORTH_SOUTH_SHAPE_B));
+            shapeHit = getShapeHit(hit, Map.of("NORTH_SOUTH_SHAPE_A", NORTH_SOUTH_SHAPE_A, "NORTH_SOUTH_SHAPE_B", NORTH_SOUTH_SHAPE_B));
         } else {
-            shapeHit = getShapeHit(state, hit, Map.of("EAST_WEST_SHAPE_A", EAST_WEST_SHAPE_A, "EAST_WEST_SHAPE_B", EAST_WEST_SHAPE_B));
+            shapeHit = getShapeHit(hit, Map.of("EAST_WEST_SHAPE_A", EAST_WEST_SHAPE_A, "EAST_WEST_SHAPE_B", EAST_WEST_SHAPE_B));
         }
 
         if (shapeHit == null) {
