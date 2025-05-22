@@ -125,6 +125,8 @@ public class DWMBlocks {
 
     public static final Block TARDIS_BLOCK = register(TardisBlock::new, DWMBlockSettings.TARDIS_BLOCK, "tardis_block");
 
+    public static final Block TARDIS_DOOR_BUTTON = register(TardisButtonBlock::new, DWMBlockSettings.BUTTON_SETTINGS, "tardis_door_button");
+
     public static void initialize() {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> {
             content.add(BLACK_ROUNDEL_A);
@@ -234,6 +236,10 @@ public class DWMBlocks {
             content.add(GRAY_CHRONOPLASM_POWDER);
             content.add(PURPLE_CHRONOPLASM_POWDER);
             content.add(TEAL_CHRONOPLASM_POWDER);
+        });
+
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(content -> {
+            content.add(TARDIS_DOOR_BUTTON);
         });
     }
 
