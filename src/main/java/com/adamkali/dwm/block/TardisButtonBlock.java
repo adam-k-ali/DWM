@@ -24,6 +24,8 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+
 public class TardisButtonBlock extends HorizontalFacingBlock {
     public static final MapCodec<TardisButtonBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(createSettingsCodec()).apply(instance, TardisButtonBlock::new));
     public static final BooleanProperty POWERED = Properties.POWERED;
@@ -68,27 +70,49 @@ public class TardisButtonBlock extends HorizontalFacingBlock {
         return null;
     }
 
+    private String getShapeHit(BlockState state, BlockHitResult hit, Map<String, VoxelShape> shapes) {
+        BlockPos blockPos = hit.getBlockPos();
+        Vec3d hitPos = hit.getPos().subtract(new Vec3d(blockPos.getX(), blockPos.getY(), blockPos.getZ()));
+
+        final Vec3d translatedHitPos = new Vec3d(hitPos.x, 0, hitPos.z); // Flatten the hit position to 2D
+
+        for (Map.Entry<String, VoxelShape> entry : shapes.entrySet()) {
+            String name = entry.getKey();
+            VoxelShape shape = entry.getValue();
+            if (shape.getBoundingBox().contains(translatedHitPos)) {
+                return name;
+            }
+        }
+
+        return null;
+    }
+
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        // Work out which shape the player is hitting
-        Vec3d hitPos = hit.getPos();
-        Vec3d blockPos = Vec3d.ofCenter(pos);
-        Vec3d distFromCenter = hitPos.subtract(blockPos);
-        double distX = distFromCenter.x;
-        double distZ = distFromCenter.z;
         boolean buttonIsHit;
+        String shapeHit;
+        if (state.get(FACING) == Direction.NORTH || state.get(FACING) == Direction.SOUTH) {
+            shapeHit = getShapeHit(state, hit, Map.of("NORTH_SOUTH_SHAPE_A", NORTH_SOUTH_SHAPE_A, "NORTH_SOUTH_SHAPE_B", NORTH_SOUTH_SHAPE_B));
+        } else {
+            shapeHit = getShapeHit(state, hit, Map.of("EAST_WEST_SHAPE_A", EAST_WEST_SHAPE_A, "EAST_WEST_SHAPE_B", EAST_WEST_SHAPE_B));
+        }
+
+        if (shapeHit == null) {
+            return ActionResult.PASS;
+        }
+
         switch (state.get(FACING)) {
             case NORTH:
-                buttonIsHit = distZ > 0;
+                buttonIsHit = shapeHit.equals("NORTH_SOUTH_SHAPE_B");
                 break;
             case SOUTH:
-                buttonIsHit = distZ < 0;
+                buttonIsHit = shapeHit.equals("NORTH_SOUTH_SHAPE_A");
                 break;
             case EAST:
-                buttonIsHit = distX < 0;
+                buttonIsHit = shapeHit.equals("EAST_WEST_SHAPE_B");
                 break;
             case WEST:
-                buttonIsHit = distX > 0;
+                buttonIsHit = shapeHit.equals("EAST_WEST_SHAPE_A");
                 break;
             default:
                 buttonIsHit = true;
