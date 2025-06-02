@@ -85,10 +85,10 @@ workflows:
           name: Test
           gradle_command: "test"
       - update-version:
-        <<: *main_branch_only
-        requires:
-          - Test
+          <<: *main_branch_only
+          requires: 
+            - Test
       - create_draft_release:
-        <<: *main_branch_only
-        requires:
-          - Test
+          <<: *main_branch_only
+          requires:
+            - Test
