@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   aws-cli: circleci/aws-cli@5.1.2
+  github-cli: circleci/github-cli@2.7.0
 
 jobs:
   run-gradle:
@@ -33,7 +34,37 @@ jobs:
       - run:
           name: Upload version.json to S3
           command: |
-              aws s3 cp version.json s3://modding/dwm/version.json
+            aws s3 cp version.json s3://modding/dwm/version.json
+
+  create_release:
+    machine:
+      image: ubuntu-2404:2024.05.1
+    steps:
+      - checkout
+      - run:
+          name: Get Current Build Name
+          command: |
+            chmod +x ./gradlew
+            export BUILD_NAME=$(date +%Y-%m-%d)/${CIRCLE_BUILD_NUM}
+            echo "BUILD_NAME=${BUILD_NAME}" >> $BASH_ENV
+            export VERSION=$(./gradlew properties -q | grep "^mod_version:" | cut -d' ' -f2)
+            echo "VERSION=${VERSION}" >> $BASH_ENV
+      - run:
+          name: Build JAR
+          command: |
+            chmod +x ./gradlew
+            ./gradlew build
+      - github-cli/create-release:
+          tag_name: ${BUILD_NAME}
+          release_name: "Release " + ${BUILD_NAME}
+          body: "Release notes for version << pipeline.git.tag >>"
+          draft: false
+          prerelease: false
+      - run:
+          name: Upload JAR to GitHub Release
+          command: |
+            gh release upload "v<< pipeline.git.tag >>" build/libs/dwm-${VERSION}.jar --clobber
+            gh release upload "v<< pipeline.git.tag >>" build/libs/dwm-${VERSION}-sources.jar --clobber
 
 
 workflows:
@@ -47,9 +78,10 @@ workflows:
           gradle_command: "test"
 
   build-and-publish:
+    filters:
+      branches:
+        only:
+          - main
     jobs:
-      - update-version:
-          filters:
-            branches:
-              only:
-                - main
+      - update-version
+      - create_release
