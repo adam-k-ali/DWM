@@ -36,7 +36,7 @@ jobs:
           command: |
             aws s3 cp version.json s3://modding/dwm/version.json
 
-  create_release:
+  create_draft_release:
     machine:
       image: ubuntu-2404:2024.05.1
     steps:
@@ -44,7 +44,6 @@ jobs:
       - run:
           name: Get Current Build Name
           command: |
-            chmod +x ./gradlew
             export BUILD_NAME=$(date +%Y-%m-%d)/${CIRCLE_BUILD_NUM}
             echo "BUILD_NAME=${BUILD_NAME}" >> $BASH_ENV
             export VERSION=$(./gradlew properties -q | grep "^mod_version:" | cut -d' ' -f2)
@@ -52,19 +51,23 @@ jobs:
       - run:
           name: Build JAR
           command: |
-            chmod +x ./gradlew
             ./gradlew build
-      - gh/release:
-          tag_name: "${BUILD_NAME}"
-          release_name: "Release ${BUILD_NAME}"
-          body: "Release notes for version << pipeline.git.tag >>"
-          draft: false
-          prerelease: false
+      - gh/setup:
+          token: $GITHUB_TOKEN
+      - run:
+          name: Create GitHub Release
+          command: |
+            gh auth login --with-token <<< $GITHUB_TOKEN
+            gh release create "${BUILD_NAME}" \
+              --title "Draft Release ${BUILD_NAME}" \
+              --notes "Draft Release ${BUILD_NAME}" \
+              --draft \
+              --prerelease
       - run:
           name: Upload JAR to GitHub Release
           command: |
-            gh release upload "v<< pipeline.git.tag >>" build/libs/dwm-${VERSION}.jar --clobber
-            gh release upload "v<< pipeline.git.tag >>" build/libs/dwm-${VERSION}-sources.jar --clobber
+            gh release upload "${BUILD_NAME}" build/libs/dwm-${VERSION}.jar --clobber
+            gh release upload "${BUILD_NAME}" build/libs/dwm-${VERSION}-sources.jar --clobber
 
 
 workflows:
@@ -84,4 +87,4 @@ workflows:
           - main
     jobs:
       - update-version
-      - create_release
+      - create_draft_release
