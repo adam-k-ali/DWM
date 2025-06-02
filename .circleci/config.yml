@@ -84,10 +84,11 @@ workflows:
       - run-gradle:
           name: Test
           gradle_command: "test"
-
-  build-and-publish:
-    jobs:
       - update-version:
         <<: *main_branch_only
+        requires:
+          - Test
       - create_draft_release:
         <<: *main_branch_only
+        requires:
+          - Test
