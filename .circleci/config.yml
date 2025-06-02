@@ -4,6 +4,11 @@ orbs:
   aws-cli: circleci/aws-cli@5.1.2
   gh: circleci/github-cli@2.7.0
 
+main_branch_only: &main_branch_only
+  filters:
+    branches:
+      only: main
+
 jobs:
   run-gradle:
     parameters:
@@ -53,11 +58,11 @@ jobs:
           command: |
             ./gradlew build
       - gh/setup:
-          token: $GITHUB_TOKEN
+          token: GITHUB_TOKEN
       - run:
           name: Create GitHub Release
           command: |
-            gh auth login --with-token <<< $GITHUB_TOKEN
+            gh auth login --with-token \<<< $GITHUB_TOKEN
             gh release create "${BUILD_NAME}" \
               --title "Draft Release ${BUILD_NAME}" \
               --notes "Draft Release ${BUILD_NAME}" \
@@ -81,10 +86,8 @@ workflows:
           gradle_command: "test"
 
   build-and-publish:
-    filters:
-      branches:
-        only:
-          - main
     jobs:
-      - update-version
-      - create_draft_release
+      - update-version:
+        <<: *main_branch_only
+      - create_draft_release:
+        <<: *main_branch_only
