@@ -62,7 +62,6 @@ jobs:
       - run:
           name: Create GitHub Release
           command: |
-            gh auth login --with-token \<<< $GITHUB_TOKEN
             gh release create "${BUILD_NAME}" \
               --title "Draft Release ${BUILD_NAME}" \
               --notes "Draft Release ${BUILD_NAME}" \
