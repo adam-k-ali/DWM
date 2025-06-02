@@ -90,5 +90,7 @@ workflows:
             - Test
       - create_draft_release:
           <<: *main_branch_only
+          context:
+            - GITHUB_CLI
           requires:
             - Test
