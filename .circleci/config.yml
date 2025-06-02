@@ -55,8 +55,8 @@ jobs:
             chmod +x ./gradlew
             ./gradlew build
       - github-cli/create-release:
-          tag_name: ${BUILD_NAME}
-          release_name: "Release " + ${BUILD_NAME}
+          tag_name: "${BUILD_NAME}"
+          release_name: "Release ${BUILD_NAME}"
           body: "Release notes for version << pipeline.git.tag >>"
           draft: false
           prerelease: false
