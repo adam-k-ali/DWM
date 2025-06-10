@@ -23,13 +23,12 @@ public class TardisDataLoaderTest {
 
     @BeforeEach
     void setUp() {
-        originalSaveDir = new File(TardisDataLoader.tardisSaveDirectory);
-        TardisDataLoader.tardisSaveDirectory = tempDir.toString();
+        TardisDataLoader.tardisSaveDirectory = tempDir;
     }
 
     @AfterEach
     void tearDown() {
-        TardisDataLoader.tardisSaveDirectory = originalSaveDir.getPath();
+        TardisDataLoader.tardisSaveDirectory = null;
     }
 
     @Test
@@ -51,8 +50,9 @@ public class TardisDataLoaderTest {
     @Test
     void save_CreatesDirectoryIfNotExists() throws IOException {
         // Arrange
-        File saveDir = tempDir.resolve("nested/directory").toFile();
-        TardisDataLoader.tardisSaveDirectory = saveDir.getPath();
+        Path saveDirPath = tempDir.resolve("nested/directory");
+        File saveDir = saveDirPath.toFile();
+        TardisDataLoader.tardisSaveDirectory = saveDirPath;
 
         TardisDataModel testModel = new TardisDataModel();
         testModel.uuid = UUID.randomUUID();

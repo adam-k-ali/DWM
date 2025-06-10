@@ -5,14 +5,19 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.io.*;
+import java.nio.file.Path;
 import java.util.UUID;
 
 public class TardisDataLoader {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    static String tardisSaveDirectory = "tardis_data";
+    public static Path tardisSaveDirectory;
 
-    private static File getTardisDataDirectory(boolean createIfMissing) {
-        File directory = new File(tardisSaveDirectory);
+    private static File getTardisDataDirectory(boolean createIfMissing) throws RuntimeException {
+        if (tardisSaveDirectory == null) {
+            throw new RuntimeException("Tardis save directory has not been set");
+        }
+
+        File directory = new File(tardisSaveDirectory.toUri());
         if (createIfMissing && !directory.exists()) {
             if (!directory.mkdirs()) {
                 throw new RuntimeException("Failed to create tardis data directory");

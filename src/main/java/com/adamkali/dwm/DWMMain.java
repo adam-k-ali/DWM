@@ -7,8 +7,11 @@ import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.item.DWMItems;
 import com.adamkali.dwm.network.ServerPayloadTypeRegistry;
 import com.adamkali.dwm.sound.DWMSounds;
+import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.minecraft.util.WorldSavePath;
 import org.slf4j.Logger;
 
 public class DWMMain implements ModInitializer {
@@ -24,6 +27,10 @@ public class DWMMain implements ModInitializer {
         DWMBlockEntities.initialize();
         DWMSounds.initialize();
         ServerPayloadTypeRegistry.initialize();
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            TardisDataLoader.tardisSaveDirectory = server.getSavePath(WorldSavePath.ROOT).resolve("tardis_data");
+        });
+
         LOGGER.info("Doctor Who Mod initialized");
 
         DWMVersion.checkVersion();
