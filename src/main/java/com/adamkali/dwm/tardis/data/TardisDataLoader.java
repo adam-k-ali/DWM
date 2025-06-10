@@ -46,15 +46,4 @@ public class TardisDataLoader {
             GSON.toJson(dataModel, writer);
         }
     }
-
-    public static void main(String[] args) {
-        TardisDataModel dataModel = new TardisDataModel();
-        try {
-            TardisDataLoader.save(dataModel);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        TardisDataModel readModel = TardisDataLoader.get(dataModel.uuid);
-        System.out.println(GSON.toJson(readModel));
-    }
 }
