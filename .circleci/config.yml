@@ -62,7 +62,6 @@ jobs:
       - run:
           name: Create GitHub Release
           command: |
-            gh auth login --with-token \<<< $GITHUB_TOKEN
             gh release create "${BUILD_NAME}" \
               --title "Draft Release ${BUILD_NAME}" \
               --notes "Draft Release ${BUILD_NAME}" \
@@ -85,10 +84,12 @@ workflows:
           name: Test
           gradle_command: "test"
       - update-version:
-        <<: *main_branch_only
-        requires:
-          - Test
+          <<: *main_branch_only
+          requires:
+            - Test
       - create_draft_release:
-        <<: *main_branch_only
-        requires:
-          - Test
+          <<: *main_branch_only
+          context:
+            - GITHUB_CLI
+          requires: 
+            - Test
