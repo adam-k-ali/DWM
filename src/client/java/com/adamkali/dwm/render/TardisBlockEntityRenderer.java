@@ -1,10 +1,10 @@
 package com.adamkali.dwm.render;
 
-import com.adamkali.dwm.TardisChameleonVariant;
 import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.model.tileentity.*;
 import com.adamkali.dwm.render.state.TardisRenderState;
+import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;

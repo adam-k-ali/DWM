@@ -85,11 +85,11 @@ workflows:
           gradle_command: "test"
       - update-version:
           <<: *main_branch_only
-          requires: 
+          requires:
             - Test
       - create_draft_release:
           <<: *main_branch_only
           context:
             - GITHUB_CLI
-          requires:
+          requires: 
             - Test

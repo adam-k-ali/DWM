@@ -1,9 +1,9 @@
 package com.adamkali.dwm.gui;
 
 import com.adamkali.dwm.ClientTardis;
-import com.adamkali.dwm.TardisChameleonVariant;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
+import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.entity.BlockEntity;

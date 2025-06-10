@@ -1,7 +1,7 @@
 package com.adamkali.dwm.block.entities;
 
-import com.adamkali.dwm.TardisChameleonVariant;
 import com.adamkali.dwm.sound.DWMSounds;
+import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
