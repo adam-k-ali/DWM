@@ -30,6 +30,9 @@ public class DWMMain implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             TardisDataLoader.tardisSaveDirectory = server.getSavePath(WorldSavePath.ROOT).resolve("tardis_data");
         });
+        ServerLifecycleEvents.AFTER_SAVE.register((server, flush, force) -> {
+            TardisDataLoader.save();
+        });
 
         LOGGER.info("Doctor Who Mod initialized");
 
