@@ -17,9 +17,7 @@ public class TardisDataLoaderTest {
 
     @TempDir
     Path tempDir;
-
-    private static final String TEST_FIELD_VALUE = "test_value";
-
+    
     @BeforeEach
     void setUp() {
         TardisDataLoader.tardisSaveDirectory = tempDir;
