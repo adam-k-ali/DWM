@@ -1,12 +1,14 @@
 package com.adamkali.dwm.tardis.data;
 
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.google.gson.Gson;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.UUID;
@@ -17,7 +19,7 @@ public class TardisDataLoaderTest {
 
     @TempDir
     Path tempDir;
-    
+
     @BeforeEach
     void setUp() {
         TardisDataLoader.tardisSaveDirectory = tempDir;
@@ -32,30 +34,39 @@ public class TardisDataLoaderTest {
     void save_CreatesFileWithCorrectContent() throws IOException {
         // Arrange
         UUID testUuid = UUID.randomUUID();
-        TardisDataModel testModel = new TardisDataModel();
+        TardisDataModel testModel = TardisDataLoader.create();
         testModel.uuid = testUuid;
+        testModel.markDirty();
 
         // Act
-        TardisDataLoader.save(testModel);
+        TardisDataLoader.save();
 
         // Assert
-        File savedFile = new File(tempDir.toFile(), testUuid.toString() + ".json");
+        File savedFile = new File(tempDir.toFile(), testUuid + ".json");
         assertTrue(savedFile.exists(), "File should exist after saving");
         assertTrue(savedFile.length() > 0, "File should not be empty");
+
+        Gson gson = new Gson();
+        try (FileReader reader = new FileReader(savedFile)) {
+            TardisDataModel loadedModel = gson.fromJson(reader, TardisDataModel.class);
+            assertEquals(loadedModel, testModel, "File should contain correct data");
+        }
+
     }
 
     @Test
-    void save_CreatesDirectoryIfNotExists() throws IOException {
+    void save_CreatesDirectoryIfNotExists() {
         // Arrange
         Path saveDirPath = tempDir.resolve("nested/directory");
         File saveDir = saveDirPath.toFile();
         TardisDataLoader.tardisSaveDirectory = saveDirPath;
 
-        TardisDataModel testModel = new TardisDataModel();
+        TardisDataModel testModel = TardisDataLoader.create();
         testModel.uuid = UUID.randomUUID();
+        testModel.markDirty();
 
         // Act
-        TardisDataLoader.save(testModel);
+        TardisDataLoader.save();
 
         // Assert
         assertTrue(saveDir.exists(), "Directory should be created");
@@ -63,7 +74,7 @@ public class TardisDataLoaderTest {
     }
 
     @Test
-    void get_ReturnsNullForNonexistentFile() throws IOException {
+    void get_ReturnsNullForNonexistentFile() {
         // Arrange
         UUID nonexistentUuid = UUID.randomUUID();
 
@@ -75,12 +86,13 @@ public class TardisDataLoaderTest {
     }
 
     @Test
-    void get_LoadsExistingFile() throws IOException {
+    void get_LoadsExistingFile() {
         // Arrange
         UUID testUuid = UUID.randomUUID();
-        TardisDataModel originalModel = new TardisDataModel();
+        TardisDataModel originalModel = TardisDataLoader.create();
         originalModel.uuid = testUuid;
-        TardisDataLoader.save(originalModel);
+        originalModel.markDirty();
+        TardisDataLoader.save();
 
         // Act
         TardisDataModel loadedModel = TardisDataLoader.get(testUuid);
@@ -88,17 +100,18 @@ public class TardisDataLoaderTest {
         // Assert
         assertNotNull(loadedModel, "Loaded model should not be null");
         assertEquals(testUuid, loadedModel.uuid, "UUIDs should match");
+        assertFalse(loadedModel.needsSaving(), "Unmodified model should not need saving");
     }
 
     @Test
-    void saveAndGet_MaintainsDataIntegrity() throws IOException {
+    void saveAndGet_MaintainsDataIntegrity() {
         // Arrange
-        UUID testUuid = UUID.randomUUID();
-        TardisDataModel originalModel = new TardisDataModel();
-        originalModel.uuid = testUuid;
+        TardisDataModel originalModel = TardisDataLoader.create();
+        UUID testUuid = originalModel.uuid;
+        originalModel.markDirty();
 
         // Act
-        TardisDataLoader.save(originalModel);
+        TardisDataLoader.save();
         TardisDataModel loadedModel = TardisDataLoader.get(testUuid);
 
         // Assert
