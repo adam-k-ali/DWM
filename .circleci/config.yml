@@ -62,7 +62,6 @@ jobs:
       - run:
           name: Create GitHub Release
           command: |
-            gh auth login --with-token \<<< $GITHUB_TOKEN
             gh release create "${BUILD_NAME}" \
               --title "Draft Release ${BUILD_NAME}" \
               --notes "Draft Release ${BUILD_NAME}" \
@@ -90,5 +89,7 @@ workflows:
             - Test
       - create_draft_release:
           <<: *main_branch_only
-          requires:
+          context:
+            - GITHUB_CLI
+          requires: 
             - Test
