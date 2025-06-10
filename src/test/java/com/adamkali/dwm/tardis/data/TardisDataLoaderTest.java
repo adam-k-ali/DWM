@@ -18,7 +18,6 @@ public class TardisDataLoaderTest {
     @TempDir
     Path tempDir;
 
-    private File originalSaveDir;
     private static final String TEST_FIELD_VALUE = "test_value";
 
     @BeforeEach
