@@ -1,5 +1,6 @@
-package com.adamkali.dwm;
+package com.adamkali.dwm.tardis.data.model;
 
+import com.adamkali.dwm.DWMReference;
 import net.minecraft.util.Identifier;
 
 public enum TardisChameleonVariant {

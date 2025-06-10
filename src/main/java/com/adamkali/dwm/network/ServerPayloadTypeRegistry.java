@@ -1,7 +1,7 @@
 package com.adamkali.dwm.network;
 
-import com.adamkali.dwm.TardisChameleonVariant;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
+import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;

@@ -2,6 +2,7 @@ package com.adamkali.dwm;
 
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.network.UpdateTardisChameleonC2SPayload;
+import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.util.math.GlobalPos;
 import org.jetbrains.annotations.NotNull;
