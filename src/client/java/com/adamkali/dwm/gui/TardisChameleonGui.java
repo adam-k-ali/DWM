@@ -6,19 +6,15 @@ import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.render.DiffuseLighting;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
+import net.minecraft.util.math.BlockPos;
 
 @Environment(EnvType.CLIENT)
 public class TardisChameleonGui extends Screen {
@@ -30,7 +26,7 @@ public class TardisChameleonGui extends Screen {
         super(Text.literal("Tardis Chameleon"));
         this.tardis = tardis;
 
-        this.tardisBlockEntity = new TardisBlockEntity(this.tardis.getTardisBlockEntity().getPos(), DWMBlocks.TARDIS_BLOCK.getDefaultState());
+        this.tardisBlockEntity = new TardisBlockEntity(tardis.getTardisId(), new BlockPos(0, 0, 0), DWMBlocks.TARDIS_BLOCK.getDefaultState());
         this.tardisBlockEntity.setWorld(MinecraftClient.getInstance().world);
     }
 
@@ -46,9 +42,7 @@ public class TardisChameleonGui extends Screen {
         }
         currentVariantIndex = variantIndex;
         chameleonVariantName = variants[currentVariantIndex].getId().toTranslationKey();
-
-        this.tardisBlockEntity.setVariant(variants[currentVariantIndex]);
-
+        
         downButton.active = currentVariantIndex != 0;
         upButton.active = currentVariantIndex != variants.length - 1;
         if (upButton.active) {
@@ -77,13 +71,16 @@ public class TardisChameleonGui extends Screen {
 
     @Override
     protected void init() {
+        int contentHeight = 256;
+        int y1 = (height) / 2 - contentHeight / 3;
+
         upButton = ButtonWidget.builder(Text.literal(">"), button -> {
             incrementVariant();
-        }).dimensions(width / 2 + 80, this.height / 2 + 20, 20, 20).build();
+        }).dimensions(width / 2 + 80, y1 + 40, 20, 20).build();
 
         downButton = ButtonWidget.builder(Text.literal("<"), button -> {
             decrementVariant();
-        }).dimensions(width / 2 - 100, this.height / 2 + 20, 20, 20).build();
+        }).dimensions(width / 2 - 100, y1 + 40, 20, 20).build();
 
         ButtonWidget saveButton = ButtonWidget.builder(Text.literal("Save"), button -> {
             this.tardis.updateChameleonVariant(variants[currentVariantIndex]);
@@ -103,58 +100,19 @@ public class TardisChameleonGui extends Screen {
         setVariant(0);
     }
 
-    public void drawTardis(DrawContext context, int x1, int y1, int x2, int y2, int size, float f, BlockEntity entity) {
-        float horizontalCenter = (float) (x1 + x2) / 2.0F;
-        float verticalCenter = (float) (y1 + y2) / 2.0F;
-
-        context.enableScissor(x1, y1, x2, y2);
-        context.fill(x1, y1, x2, y2, 0xFF000000);
-        Quaternionf quaternionf = (new Quaternionf()).rotateZ((float) Math.PI).rotateY((float) Math.toRadians(35));
-        Vector3f vector3f = new Vector3f(0.6F, 1.5F, 0.0F);
-        float q = (float) size;
-        drawTardis(context, horizontalCenter, verticalCenter, q, vector3f, quaternionf, entity);
-        context.disableScissor();
-    }
-
-    public void drawTardis(DrawContext context, float x, float y, float size, Vector3f vector3f, Quaternionf quaternionf, BlockEntity entity) {
-        context.getMatrices().push();
-        context.getMatrices().translate(x, y, 50.0F);
-        context.getMatrices().scale(size, size, -size);
-        context.getMatrices().translate(vector3f.x, vector3f.y, vector3f.z);
-        context.getMatrices().multiply(quaternionf);
-        context.draw();
-        DiffuseLighting.method_34742();
-        BlockEntityRenderDispatcher renderDispatcher = MinecraftClient.getInstance().getBlockEntityRenderDispatcher();
-
-        context.draw((vertexConsumers) -> renderDispatcher.render(entity, 0.0F, context.getMatrices(), vertexConsumers));
-        context.draw();
-        context.getMatrices().pop();
-        DiffuseLighting.enableGuiDepthLighting();
-    }
-
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         int contentWidth = 256;
         int contentHeight = 256;
 
         int x1 = (width - contentWidth) / 2;
+        int x2 = x1 + contentWidth;
         int y1 = (height) / 2 - contentHeight / 3;
         context.drawTexture(RenderLayer::getGuiTextured, Identifier.ofVanilla("textures/gui/demo_background.png"), x1, y1, 0, 0, 256, 256, 256, 256);
 
         super.render(context, mouseX, mouseY, delta);
-        int tardisWidth = 64;
-        int tardisHeight = tardisWidth * 13 / 10;
-        int tardisScale = 16;
 
-        int tardisX1 = (x1 + contentWidth + (tardisWidth / 2)) / 2;
-        int tardisY1 = y1 + 10;
-
-        int tardisX2 = tardisX1 + tardisWidth;
-        int tardisY2 = tardisY1 + tardisHeight;
-        drawTardis(context, tardisX1, tardisY1, tardisX2, tardisY2, tardisScale, 0.0625f, this.tardisBlockEntity);
-
-        int textXCenter = (tardisX1 + tardisX2) / 2;
-        context.drawCenteredTextWithShadow(textRenderer, Text.translatable(this.chameleonVariantName), textXCenter, height / 2 + 26, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(textRenderer, Text.translatable(this.chameleonVariantName), (x1 + x2) / 2, y1 + 45, 0xFFFFFF);
         context.drawText(textRenderer, this.getTitle(), x1 + 10, y1 + 10, 0x404040, false);
     }
 

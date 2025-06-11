@@ -3,6 +3,7 @@ package com.adamkali.dwm.tardis.data;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -30,12 +31,16 @@ public class TardisDataLoader {
         return directory;
     }
 
-    private static File getTardisDataFile(UUID uuid, boolean createDirectoryIfMissing) {
+    private static File getTardisDataFile(@NotNull UUID uuid, boolean createDirectoryIfMissing) {
         File directory = getTardisDataDirectory(createDirectoryIfMissing);
-        return new File(directory, uuid.toString() + ".json");
+        return new File(directory, uuid + ".json");
     }
 
-    private static TardisDataModel load(UUID uuid) {
+    private static TardisDataModel load(@Nullable UUID uuid) {
+        if (uuid == null) {
+            return null;
+        }
+
         File file = TardisDataLoader.getTardisDataFile(uuid, false);
         if (!file.exists()) {
             return null;
@@ -53,7 +58,18 @@ public class TardisDataLoader {
         }
     }
 
-    public static @Nullable TardisDataModel get(UUID uuid) {
+    /**
+     * Returns the TardisDataModel from cache, or loads it from file if not already loaded.
+     * Returns null if the UUID is null, or if the TardisDataModel doesn't exist.
+     *
+     * @param uuid
+     * @return The TardisDataModel, or null.
+     */
+    public static @Nullable TardisDataModel get(@Nullable UUID uuid) {
+        if (uuid == null) {
+            return null;
+        }
+
         if (tardisData.containsKey(uuid)) {
             return tardisData.get(uuid);
         }
