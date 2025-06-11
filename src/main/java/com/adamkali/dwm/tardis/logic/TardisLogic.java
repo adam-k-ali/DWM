@@ -4,18 +4,25 @@ import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
+import net.minecraft.util.ActionResult;
 
 import java.util.UUID;
 
 public class TardisLogic {
-    public static void toggleDoor(UUID tardisId) {
+    public static ActionResult toggleDoor(UUID tardisId) {
         TardisDataModel tardis = TardisDataLoader.get(tardisId);
         if (tardis == null) {
-            return;
+            return ActionResult.FAIL;
+        }
+
+        float doorSwing = tardis.doorState.doorSwing;
+        if (doorSwing > 0.0f && doorSwing < 1.0f) {
+            return ActionResult.PASS;
         }
 
         tardis.doorState.isOpen = !tardis.doorState.isOpen;
         tardis.markDirty();
+        return ActionResult.SUCCESS;
     }
 
     public static TardisDoorState getDoorState(UUID tardisId) {

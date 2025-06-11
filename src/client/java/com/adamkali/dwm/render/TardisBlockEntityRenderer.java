@@ -5,6 +5,8 @@ import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.model.tileentity.*;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
+import com.adamkali.dwm.tardis.data.model.TardisDoorState;
+import com.adamkali.dwm.tardis.logic.TardisLogic;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
@@ -17,6 +19,7 @@ import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.RotationPropertyHelper;
 
 import java.util.HashMap;
+import java.util.Objects;
 
 public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBlockEntity> {
     private final HashMap<TardisChameleonVariant, TardisModel> modelCache = new HashMap<>();
@@ -43,8 +46,10 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         BlockState state = entity.getCachedState();
         int rotation = state.get(TardisBlock.FACING_ROTATION, 0);
 
-        VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutout(textureCache.get(entity.getVariant())));
-        this.render(matrices, vertexConsumer, modelCache.get(entity.getVariant()), entity.getDoorState().getDoorSwing(), RotationPropertyHelper.toDegrees(rotation), light, overlay);
+        TardisChameleonVariant variant = Objects.requireNonNullElse(TardisLogic.getVariant(entity.getTardisId()), TardisChameleonVariant.TT_CAPSULE);
+        TardisDoorState doorState = Objects.requireNonNullElse(TardisLogic.getDoorState(entity.getTardisId()), new TardisDoorState());
+        VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutout(textureCache.get(variant)));
+        this.render(matrices, vertexConsumer, modelCache.get(variant), doorState.doorSwing, RotationPropertyHelper.toDegrees(rotation), light, overlay);
     }
 
     private void render(MatrixStack matrices, VertexConsumer vertices, TardisModel model, float doorProgress, float rotation, int light, int overlay) {

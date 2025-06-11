@@ -24,7 +24,6 @@ import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
 import net.minecraft.util.math.RotationPropertyHelper;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -88,7 +87,7 @@ public class TardisBlock extends BlockWithEntity {
             }
         } else {
             if (player.isSneaking() && DWMConfig.getBoolean(DWMConfig.ENABLE_CHAMELEON_GUI)) {
-                ServerPlayNetworking.send((ServerPlayerEntity) player, new OpenTardisChameleonScreen(GlobalPos.create(world.getRegistryKey(), pos)));
+                ServerPlayNetworking.send((ServerPlayerEntity) player, new OpenTardisChameleonScreen(tardisBlockEntity.getTardisId()));
             }
         }
 
