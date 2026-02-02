@@ -33,5 +33,9 @@ The project uses a split source set approach:
 - **Testing:**
   - Run tests using `./gradlew test`.
   - Use JUnit 5 and Mockito for unit testing.
+  - Use Game Tests for integration testing.
+    - Run using `./gradlew runGametestServer`
+    - Placed in `src/gametest/java`
+    - You need to register test entry points in `fabric.mod.json`
 - **Build:** Build the project using `./gradlew build`.
 - **Data Generation:** The project uses Fabric's Data Generation API. Run `./gradlew runDatagen` if changes to data-driven files are needed.
