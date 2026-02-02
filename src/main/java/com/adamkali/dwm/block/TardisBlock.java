@@ -80,15 +80,12 @@ public class TardisBlock extends BlockWithEntity {
         if (!(world.getBlockEntity(pos) instanceof TardisBlockEntity tardisBlockEntity)) {
             return ActionResult.PASS;
         }
-        if (world.isClient) {
-            if (!player.isSneaking()) {
-                tardisBlockEntity.toggleDoor();
-                tardisBlockEntity.markDirty();
-            }
-        } else {
-            if (player.isSneaking() && DWMConfig.getBoolean(DWMConfig.ENABLE_CHAMELEON_GUI)) {
-                ServerPlayNetworking.send((ServerPlayerEntity) player, new OpenTardisChameleonScreen(tardisBlockEntity.getTardisId()));
-            }
+
+        if (!player.isSneaking()) {
+            tardisBlockEntity.toggleDoor();
+            tardisBlockEntity.markDirty();
+        } else if (!world.isClient && DWMConfig.getBoolean(DWMConfig.ENABLE_CHAMELEON_GUI)) {
+            ServerPlayNetworking.send((ServerPlayerEntity) player, new OpenTardisChameleonScreen(tardisBlockEntity.getTardisId()));
         }
 
         return ActionResult.SUCCESS;
