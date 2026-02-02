@@ -18,6 +18,27 @@ repositories {
     }
 }
 
+sourceSets {
+    main {
+        resources {
+            srcDirs += [
+                'src/main/generated'
+            ]
+        }
+    }
+    gametest {
+        compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+        runtimeClasspath += sourceSets.main.runtimeClasspath + output
+    }
+}
+
+configurations {
+    // Make sure gametest can see the same deps as main (Fabric, mappings, etc.)
+    gametestImplementation.extendsFrom(modImplementation)
+    gametestCompileOnly.extendsFrom(modCompileOnly)
+    gametestRuntimeOnly.extendsFrom(modRuntimeOnly)
+}
+
 loom {
     splitEnvironmentSourceSets()
 
@@ -25,9 +46,30 @@ loom {
         "dwm" {
             sourceSet sourceSets.main
             sourceSet sourceSets.client
+            sourceSet sourceSets.gametest
         }
     }
 
+    runs {
+        gametestServer {
+            server()
+            name "GameTest Server"
+            vmArg "-Dfabric-api.gametest"
+        }
+    }
+}
+
+// Now that Loom has created the "client" source set, wire it into gametest classpaths.
+afterEvaluate {
+    sourceSets.gametest.compileClasspath += sourceSets.client.output + sourceSets.client.compileClasspath
+    sourceSets.gametest.runtimeClasspath += sourceSets.client.output + sourceSets.client.runtimeClasspath
+    
+    // Ensure gametest classes are available when running the mod
+    sourceSets.main.runtimeClasspath += sourceSets.gametest.output
+}
+
+tasks.named("runGametestServer").configure {
+    dependsOn(tasks.named("gametestClasses"))
 }
 
 dependencies {

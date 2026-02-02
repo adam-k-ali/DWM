@@ -17,6 +17,9 @@
     "fabric-datagen": [
       "com.adamkali.dwm.DWMDataGenerator"
     ],
+    "fabric-gametest": [
+      "com.adamkali.dwm.gametest.TardisGameTest"
+    ],
     "main": [
       "com.adamkali.dwm.DWMMain"
     ],

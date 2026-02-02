@@ -34,13 +34,13 @@ public class TardisGameTest implements FabricGameTest {
         context.setBlockState(pos, DWMBlocks.TARDIS_BLOCK.getDefaultState());
 
         TardisBlockEntity be = (TardisBlockEntity) context.getBlockEntity(pos);
-        // Force NBT write/read to initialize tardisId if it's null (it usually is until first save)
-        // or just rely on the fact that writeNbt initializes it if we can access it.
-        // Actually be.getTardisId() might return null if not initialized.
+        if (be == null) {
+            throw new RuntimeException("TardisBlockEntity is null at " + pos);
+        }
+        
         UUID tardisId = be.getTardisId();
         if (tardisId == null) {
-            // Placeholders or trigger NBT
-            context.getWorld().getBlockEntity(pos).createNbt(context.getWorld().getRegistryManager());
+            be.createNbt(context.getWorld().getRegistryManager());
             tardisId = be.getTardisId();
         }
 
@@ -74,9 +74,12 @@ public class TardisGameTest implements FabricGameTest {
         context.setBlockState(pos, DWMBlocks.TARDIS_BLOCK.getDefaultState());
 
         TardisBlockEntity be = (TardisBlockEntity) context.getBlockEntity(pos);
+        if (be == null) {
+            throw new RuntimeException("TardisBlockEntity is null at " + pos);
+        }
         UUID tardisId = be.getTardisId();
         if (tardisId == null) {
-            context.getWorld().getBlockEntity(pos).createNbt(context.getWorld().getRegistryManager());
+            be.createNbt(context.getWorld().getRegistryManager());
             tardisId = be.getTardisId();
         }
 
