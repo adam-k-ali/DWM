@@ -21,6 +21,12 @@ Allow players to personalize TARDIS exterior identity through selectable visual 
 2. Sneak-use the TARDIS interaction path that opens the variant selector.
 3. Pick a variant; client sends update payload; server applies new variant data.
 
+## Quick-Start Recipe (Experimental)
+- Confirm this system is marked Experimental and disabled by default.
+- Enable chameleon GUI in config before launching your world/session.
+- Sneak-use the TARDIS interaction path to open the selector and pick a variant.
+- Re-open the selector once to verify your chosen variant persists.
+
 ## Known Constraints
 - This feature is experimental and disabled by default.
 - Stability and UX polish are still evolving.

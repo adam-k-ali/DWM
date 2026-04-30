@@ -24,6 +24,12 @@ Enable players to quickly build coherent Doctor Who-inspired interiors and exter
 2. Craft themed block components from provided recipes.
 3. Combine families to create room panels, corridors, and console-like spaces.
 
+## Quick-Start Recipe
+- Start with one pair from each family: `Roundel A/B`, `Big Roundel A/B`, and `TARDIS Wall`.
+- Use Chronoplasm Powder variants as accent materials to define room zones.
+- Build one small wall module first, then duplicate it to keep visual consistency.
+- Expand by color-swapping within the same family to preserve a cohesive style.
+
 ## Known Constraints
 - Current focus is on strong decorative breadth and consistency.
 - Some visual polish relies on the completeness of bundled texture assets.

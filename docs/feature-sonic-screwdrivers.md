@@ -20,6 +20,12 @@ Give players a recognizable Doctor Who utility tool that feels versatile, tactil
 2. Use it on supported blocks/entities.
 3. The action is resolved based on target context.
 
+## Quick-Start Recipe
+- Craft any available sonic variant first (Second/Third/Fourth/Fifth Doctor).
+- Test on an iron trapdoor or iron door to confirm toggle behavior.
+- Try one entity interaction (for example, sheep) to learn context-specific outcomes.
+- If a target is unsupported, no sonic utility action is applied.
+
 Current interactions include:
 - Toggle iron doors and iron trapdoors.
 - Prime TNT safely.

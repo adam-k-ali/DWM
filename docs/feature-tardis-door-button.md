@@ -21,6 +21,12 @@ Provide a compact, thematic interaction block that feels mechanically readable a
 2. Interact to press it.
 3. Button enters active state briefly, then returns to default state.
 
+## Quick-Start Recipe
+- Place `tardis_door_button` near your TARDIS wall/door area.
+- Press it once and verify active state + click feedback.
+- Wait for automatic reset to confirm the short interaction loop.
+- Repeat in different orientations to confirm facing behavior for your build.
+
 ## Known Constraints
 - Purpose is focused on concise interaction feedback, not complex control logic.
 - Shape and orientation follow defined facing-based rules.
