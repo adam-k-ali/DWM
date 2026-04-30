@@ -13,6 +13,9 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 ### Experimental Features
 - [TARDIS Chameleon System](./feature-chameleon-system.md) (config-gated and disabled by default)
 
+## Lore Knowledge Base (AI Agent Context)
+- [Doctor Who Lore Index](./lore/index.md)
+
 ## Brand and Differentiation
 - [Branding Guidelines](./branding-guidelines.md)
 - [Differentiation Strategy](./differentiation-strategy.md)
