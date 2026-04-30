@@ -91,3 +91,30 @@
 - Required automation commands were run (or explicitly reported as not run).
 - Datagen was run when relevant.
 - Handoff notes include what changed, what was validated, and any follow-up automation tasks.
+
+## Git Conventions
+
+### Commits
+
+Conventional Commits: `<type>(<scope>): <description>`
+Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+
+Commits must be atomic - one change per commit.
+
+### Pull requests
+
+The default pull request description structure is defined in `.github/pull_request_template.md`. When creating or updating a pull request, write the **body** using that template: keep the three sections below in this order, replace placeholder bullets with concrete content, and do not leave a section empty — if nothing applies, use a single line `None`.
+
+- **Why this matters** — business value / product reason, tightened for clarity
+- **Proposed Implementation** — brief summary of what changed
+- **Problems Encountered / Decisions Made** — deviations from the plan or issues that surfaced during implementation
+
+### Pull request labels
+
+After creating or updating a pull request, apply the appropriate label(s) using the `EditPullRequestLabels` tool:
+
+- **`documentation`** — the PR contains changes to documentation only (e.g. `AGENTS.md`, `README.md`, inline code comments, or other docs)
+- **`enhancement`** — the PR introduces a change in intended behaviour, an improvement to an existing feature, or a new feature
+- **`bug`** — the PR fixes a defect / unintended behaviour
+
+A single PR may carry more than one label if it touches multiple categories.
