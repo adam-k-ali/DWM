@@ -1,5 +1,6 @@
 package com.adamkali.dwm.network;
 
+import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
@@ -24,6 +25,15 @@ public class ServerPayloadTypeRegistry {
 
     static boolean safelyHandleChameleonUpdate(UpdateTardisChameleonC2SPayload payload, String playerName) {
         try {
+            if (!DWMConfig.getBoolean(DWMConfig.ENABLE_CHAMELEON_GUI)) {
+                LOGGER.warn("Rejected chameleon update while experimental feature is disabled from {}", playerName);
+                return false;
+            }
+            if (payload == null || payload.tardisId() == null || payload.variantId() == null) {
+                LOGGER.warn("Rejected malformed chameleon payload from {}", playerName);
+                return false;
+            }
+
             TardisDataModel tardis = TardisDataLoader.get(payload.tardisId());
             if (tardis == null) {
                 LOGGER.warn("Rejected chameleon update for unknown tardisId {} from {}", payload.tardisId(), playerName);
