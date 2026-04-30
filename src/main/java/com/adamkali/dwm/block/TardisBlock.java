@@ -19,6 +19,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
@@ -86,8 +87,13 @@ public class TardisBlock extends BlockWithEntity {
                 tardisBlockEntity.markDirty();
             }
         } else {
-            if (player.isSneaking() && DWMConfig.getBoolean(DWMConfig.ENABLE_CHAMELEON_GUI)) {
-                ServerPlayNetworking.send((ServerPlayerEntity) player, new OpenTardisChameleonScreen(tardisBlockEntity.getTardisId()));
+            if (player.isSneaking()) {
+                if (DWMConfig.getBoolean(DWMConfig.ENABLE_CHAMELEON_GUI)) {
+                    player.sendMessage(Text.literal("Experimental: opening TARDIS chameleon selector"), true);
+                    ServerPlayNetworking.send((ServerPlayerEntity) player, new OpenTardisChameleonScreen(tardisBlockEntity.getTardisId()));
+                } else {
+                    player.sendMessage(Text.literal("Experimental: chameleon selector is disabled in config"), true);
+                }
             }
         }
 
