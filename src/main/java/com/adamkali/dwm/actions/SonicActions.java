@@ -18,6 +18,7 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
@@ -125,8 +126,14 @@ public class SonicActions {
         if (actionExists) {
             if (context.getPlayer() != null) {
                 context.getPlayer().incrementStat(DWMStatistics.SONIC_SCREWDRIVER_USE);
+                context.getPlayer().sendMessage(Text.literal("Sonic action: " + describeBlockAction(blockClicked)), true);
             }
             this.blockActions.get(blockClicked).perform(context.getWorld(), context.getBlockPos(), context.getWorld().getBlockState(context.getBlockPos()), context.getPlayer());
+            return;
+        }
+
+        if (context.getPlayer() != null) {
+            context.getPlayer().sendMessage(Text.literal("Sonic action: no effect"), true);
         }
     }
 
@@ -142,8 +149,47 @@ public class SonicActions {
         AnalyticsManager.trackEvent(AnalyticsManager.EVENT_SONIC_SCREWDRIVER_USE, "item_name", itemStack.getItem().getName(), "action_exists", actionExists, "entity_type", entity.getType().toString());
         if (actionExists) {
             player.incrementStat(DWMStatistics.SONIC_SCREWDRIVER_USE);
+            player.sendMessage(Text.literal("Sonic action: " + describeEntityAction(entity.getType())), true);
             this.entityActions.get(entity.getType()).perform(entity, player, serverWorld, hand);
+            return;
         }
+
+        player.sendMessage(Text.literal("Sonic action: no effect"), true);
+    }
+
+    private String describeBlockAction(Block block) {
+        if (block == Blocks.TNT) {
+            return "primed TNT";
+        }
+        if (block == Blocks.IRON_DOOR || block == Blocks.IRON_TRAPDOOR) {
+            return "toggled door";
+        }
+        if (block == Blocks.GLASS || block == Blocks.GLASS_PANE || block == Blocks.WHITE_STAINED_GLASS || block == Blocks.ORANGE_STAINED_GLASS
+                || block == Blocks.MAGENTA_STAINED_GLASS || block == Blocks.LIGHT_BLUE_STAINED_GLASS || block == Blocks.YELLOW_STAINED_GLASS
+                || block == Blocks.LIME_STAINED_GLASS || block == Blocks.PINK_STAINED_GLASS || block == Blocks.GRAY_STAINED_GLASS
+                || block == Blocks.LIGHT_GRAY_STAINED_GLASS || block == Blocks.CYAN_STAINED_GLASS || block == Blocks.PURPLE_STAINED_GLASS
+                || block == Blocks.BLUE_STAINED_GLASS || block == Blocks.BROWN_STAINED_GLASS || block == Blocks.GREEN_STAINED_GLASS
+                || block == Blocks.RED_STAINED_GLASS || block == Blocks.BLACK_STAINED_GLASS || block == Blocks.WHITE_STAINED_GLASS_PANE
+                || block == Blocks.ORANGE_STAINED_GLASS_PANE || block == Blocks.MAGENTA_STAINED_GLASS_PANE || block == Blocks.LIGHT_BLUE_STAINED_GLASS_PANE
+                || block == Blocks.YELLOW_STAINED_GLASS_PANE || block == Blocks.LIME_STAINED_GLASS_PANE || block == Blocks.PINK_STAINED_GLASS_PANE
+                || block == Blocks.GRAY_STAINED_GLASS_PANE || block == Blocks.LIGHT_GRAY_STAINED_GLASS_PANE || block == Blocks.CYAN_STAINED_GLASS_PANE
+                || block == Blocks.PURPLE_STAINED_GLASS_PANE || block == Blocks.BLUE_STAINED_GLASS_PANE || block == Blocks.BROWN_STAINED_GLASS_PANE
+                || block == Blocks.GREEN_STAINED_GLASS_PANE || block == Blocks.RED_STAINED_GLASS_PANE || block == Blocks.BLACK_STAINED_GLASS_PANE) {
+            return "broke glass";
+        }
+
+        return "used";
+    }
+
+    private String describeEntityAction(EntityType<?> type) {
+        if (type == EntityType.SHEEP) {
+            return "sheared sheep";
+        }
+        if (type == EntityType.SLIME) {
+            return "zapped slime";
+        }
+
+        return "used";
     }
 
 
