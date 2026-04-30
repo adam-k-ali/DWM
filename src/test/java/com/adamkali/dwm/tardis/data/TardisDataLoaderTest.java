@@ -9,8 +9,11 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,8 +24,12 @@ public class TardisDataLoaderTest {
     Path tempDir;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         TardisDataLoader.tardisSaveDirectory = tempDir;
+        Field field = TardisDataLoader.class.getDeclaredField("tardisData");
+        field.setAccessible(true);
+        HashMap<?, ?> cache = (HashMap<?, ?>) field.get(null);
+        cache.clear();
     }
 
     @AfterEach
@@ -117,6 +124,37 @@ public class TardisDataLoaderTest {
         // Assert
         assertNotNull(loadedModel, "Loaded model should not be null");
         assertEquals(originalModel.uuid, loadedModel.uuid, "UUIDs should match");
+    }
+
+    @Test
+    void save_OnlyPersistsDirtyModels() {
+        TardisDataModel dirtyModel = TardisDataLoader.create();
+        dirtyModel.markDirty();
+        UUID dirtyId = dirtyModel.uuid;
+
+        TardisDataModel cleanModel = TardisDataLoader.create();
+        UUID cleanId = cleanModel.uuid;
+
+        TardisDataLoader.save();
+
+        File dirtyFile = new File(tempDir.toFile(), dirtyId + ".json");
+        File cleanFile = new File(tempDir.toFile(), cleanId + ".json");
+
+        assertTrue(dirtyFile.exists(), "Dirty model should be saved");
+        assertFalse(cleanFile.exists(), "Clean model should not be saved");
+    }
+
+    @Test
+    void get_WithCorruptedJson_ShouldFailSafe() throws IOException {
+        UUID testUuid = UUID.randomUUID();
+        File corruptedFile = new File(tempDir.toFile(), testUuid + ".json");
+        try (FileWriter writer = new FileWriter(corruptedFile)) {
+            writer.write("{invalid json");
+        }
+
+        TardisDataModel loadedModel = TardisDataLoader.get(testUuid);
+
+        assertNull(loadedModel, "Corrupted json should be treated as missing model");
     }
 
 

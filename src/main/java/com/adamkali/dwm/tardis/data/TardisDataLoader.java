@@ -53,7 +53,7 @@ public class TardisDataLoader {
             }
             tardisData.put(uuid, model);
             return model;
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             return null;
         }
     }

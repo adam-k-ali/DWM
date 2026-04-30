@@ -15,6 +15,9 @@ jobs:
       gradle_command:
         type: string
         default: ""
+      store_test_results:
+        type: boolean
+        default: false
     docker:
       - image: cimg/openjdk:21.0
     environment:
@@ -27,6 +30,11 @@ jobs:
           command: |
             chmod +x ./gradlew
             ./gradlew << parameters.gradle_command >>
+      - when:
+          condition: << parameters.store_test_results >>
+          steps:
+            - store_test_results:
+                path: build/test-results/test
 
   update-version:
     machine:
@@ -83,6 +91,7 @@ workflows:
       - run-gradle:
           name: Test
           gradle_command: "test"
+          store_test_results: true
       - update-version:
           <<: *main_branch_only
           requires:
