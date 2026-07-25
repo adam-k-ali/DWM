@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "dwm:block/tardis_interior_door" },
+    "facing=south": { "model": "dwm:block/tardis_interior_door", "y": 180 },
+    "facing=west": { "model": "dwm:block/tardis_interior_door", "y": 270 },
+    "facing=east": { "model": "dwm:block/tardis_interior_door", "y": 90 }
+  }
+}

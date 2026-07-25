@@ -103,4 +103,18 @@ public class TardisDataLoader {
 
         return model;
     }
+
+    /**
+     * Returns the existing model for {@code uuid}, or creates and caches a new one with that id.
+     */
+    public static TardisDataModel getOrCreate(@NotNull UUID uuid) {
+        TardisDataModel existing = get(uuid);
+        if (existing != null) {
+            return existing;
+        }
+        TardisDataModel model = new TardisDataModel();
+        model.uuid = uuid;
+        tardisData.put(uuid, model);
+        return model;
+    }
 }
