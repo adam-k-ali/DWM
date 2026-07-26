@@ -14,6 +14,9 @@ public final class TardisDimensions {
     /** Minimum doorSwing (0–1) required before exterior collision teleports the player. */
     public static final float ENTRY_DOOR_SWING_THRESHOLD = 0.9f;
 
+    /** Minimum doorSwing (0–1) before exterior BOTI preview appears (lower than entry). */
+    public static final float BOTI_DOOR_SWING_THRESHOLD = 0.15f;
+
     private TardisDimensions() {
     }
 }

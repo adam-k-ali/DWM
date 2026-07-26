@@ -61,6 +61,31 @@ class TardisInteriorUnitTest {
     }
 
     @Test
+    void botiGate_ShowsEarlierThanEntry() {
+        TardisDoorState closed = new TardisDoorState();
+        closed.doorSwing = 0f;
+        assertFalse(TardisBotiGate.shouldShow(closed));
+
+        TardisDoorState ajar = new TardisDoorState();
+        ajar.isOpen = true;
+        ajar.doorSwing = TardisDimensions.BOTI_DOOR_SWING_THRESHOLD;
+        assertTrue(TardisBotiGate.shouldShow(ajar));
+        assertFalse(TardisEntryGate.canEnter(ajar));
+
+        assertFalse(TardisBotiGate.shouldShow(null));
+        assertTrue(TardisDimensions.BOTI_DOOR_SWING_THRESHOLD < TardisDimensions.ENTRY_DOOR_SWING_THRESHOLD);
+    }
+
+    @Test
+    void consoleRoomLayout_ConstantsAlignWithPlacer() {
+        assertEquals(FirstDoctorConsoleRoomLayout.SIZE_X, FirstDoctorConsoleRoomPlacer.SIZE_X);
+        assertEquals(FirstDoctorConsoleRoomLayout.SIZE_Y, FirstDoctorConsoleRoomPlacer.SIZE_Y);
+        assertEquals(FirstDoctorConsoleRoomLayout.SIZE_Z, FirstDoctorConsoleRoomPlacer.SIZE_Z);
+        assertEquals(FirstDoctorConsoleRoomLayout.LOCAL_ENTRANCE, FirstDoctorConsoleRoomPlacer.LOCAL_ENTRANCE);
+        assertEquals(1, FirstDoctorConsoleRoomLayout.LAYOUT_VERSION);
+    }
+
+    @Test
     void dimensionConstants_AreStable() {
         assertEquals("dwm", TardisDimensions.DIMENSION_ID.getNamespace());
         assertEquals("tardis", TardisDimensions.DIMENSION_ID.getPath());

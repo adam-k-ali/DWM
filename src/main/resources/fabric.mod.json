@@ -33,7 +33,11 @@
     ]
   },
   "mixins": [
-    "dwm.mixins.json"
+    "dwm.mixins.json",
+    {
+      "config": "dwm.client.mixins.json",
+      "environment": "client"
+    }
   ],
   "depends": {
     "fabricloader": ">=0.16.9",
