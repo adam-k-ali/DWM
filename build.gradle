@@ -28,6 +28,15 @@ loom {
         }
     }
 
+    runs {
+        gametest {
+            server()
+            name "Game Test"
+            vmArg "-Dfabric-api.gametest"
+            vmArg "-Dfabric-api.gametest.report-file=${layout.buildDirectory.get()}/gametest/report.xml"
+            runDir "build/gametest"
+        }
+    }
 }
 
 dependencies {

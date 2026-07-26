@@ -25,6 +25,11 @@
     ],
     "modmenu": [
       "com.adamkali.dwm.DWMModMenuIntegration"
+    ],
+    "fabric-gametest": [
+      "com.adamkali.dwm.gametest.TardisDoorGameTests",
+      "com.adamkali.dwm.gametest.TardisInteriorGameTests",
+      "com.adamkali.dwm.network.ChameleonGameTests"
     ]
   },
   "mixins": [
