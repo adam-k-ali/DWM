@@ -4,13 +4,16 @@ import com.adamkali.dwm.block.entities.DWMBlockEntities;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.network.OpenTardisChameleonScreen;
+import com.adamkali.dwm.tardis.interior.TardisEntryGate;
 import com.adamkali.dwm.tardis.interior.TardisInteriorService;
+import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
+import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
@@ -28,8 +31,13 @@ import net.minecraft.util.BlockRotation;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RotationPropertyHelper;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 public class TardisBlock extends BlockWithEntity {
     private static final MapCodec<TardisBlock> CODEC = createCodec(TardisBlock::new);
@@ -99,6 +107,26 @@ public class TardisBlock extends BlockWithEntity {
             return;
         }
         TardisInteriorService.tryEnterFromExterior(player, serverWorld, tardisBlockEntity);
+    }
+
+    /**
+     * When the door is open enough for entry, disable collision so players can walk into the
+     * block volume and trigger {@link #onEntityCollision}. Outline stays full for interaction.
+     */
+    @Override
+    protected VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+        if (world.getBlockEntity(pos) instanceof TardisBlockEntity tardisBlockEntity) {
+            UUID tardisId = tardisBlockEntity.getTardisIdOrNull();
+            if (tardisId != null && TardisEntryGate.canEnter(TardisLogic.getDoorState(tardisId))) {
+                return VoxelShapes.empty();
+            }
+        }
+        return VoxelShapes.fullCube();
+    }
+
+    @Override
+    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+        return VoxelShapes.fullCube();
     }
 
     @Override

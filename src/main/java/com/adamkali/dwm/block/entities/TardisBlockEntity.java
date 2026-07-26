@@ -100,6 +100,10 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
         return tardisId;
     }
 
+    public @Nullable UUID getTardisIdOrNull() {
+        return tardisId;
+    }
+
     public @Nullable BlockPos getInteriorEntrance() {
         return interiorEntrance;
     }

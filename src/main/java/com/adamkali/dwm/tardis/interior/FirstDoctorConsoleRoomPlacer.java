@@ -36,10 +36,18 @@ public final class FirstDoctorConsoleRoomPlacer {
     }
 
     public static BlockPos place(ServerWorld world, BlockPos origin, UUID tardisId) {
-        boolean placedFromTemplate = tryPlaceFromTemplate(world, origin);
-        if (!placedFromTemplate) {
-            placeProgrammatically(world, origin);
+        // Far UUID-derived plots are often unloaded; load the structure footprint before placing.
+        BlockPos max = origin.add(SIZE_X - 1, SIZE_Y - 1, SIZE_Z - 1);
+        for (int x = origin.getX() >> 4; x <= max.getX() >> 4; x++) {
+            for (int z = origin.getZ() >> 4; z <= max.getZ() >> 4; z++) {
+                world.getChunk(x, z);
+            }
         }
+
+        // Prefer the programmatic layout for reliability. Template placement can report success
+        // while leaving an empty footprint when chunks were not ready; always build in code.
+        tryPlaceFromTemplate(world, origin);
+        placeProgrammatically(world, origin);
         stampInteriorDoors(world, origin, tardisId);
         return origin.add(LOCAL_ENTRANCE);
     }

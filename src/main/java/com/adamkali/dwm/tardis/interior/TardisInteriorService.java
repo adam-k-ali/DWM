@@ -43,11 +43,15 @@ public final class TardisInteriorService {
 
         updateExteriorLocation(exteriorWorld, exteriorEntity);
 
+        BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
         if (exteriorEntity.isInteriorGenerated() && exteriorEntity.getInteriorEntrance() != null) {
-            return exteriorEntity.getInteriorEntrance();
+            // Recover from a prior empty place (e.g. unloaded chunks) by regenerating if the floor is missing.
+            BlockPos entrance = exteriorEntity.getInteriorEntrance();
+            if (!interiorWorld.getBlockState(entrance.down()).isAir()) {
+                return entrance;
+            }
         }
 
-        BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
         BlockPos entrance = FirstDoctorConsoleRoomPlacer.place(interiorWorld, origin, tardisId);
         exteriorEntity.setInteriorEntrance(entrance);
         exteriorEntity.setInteriorGenerated(true);
