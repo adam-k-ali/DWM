@@ -39,9 +39,10 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
         ActionResult result = TardisLogic.toggleDoor(this.getTardisId());
         if (result == ActionResult.SUCCESS) {
             boolean isDoorOpen = Objects.requireNonNull(TardisLogic.getDoorState(this.getTardisId())).isOpen;
-            if (Objects.requireNonNull(this.getWorld()).isClient()) {
+            World world = this.getWorld();
+            if (world != null && !world.isClient()) {
                 SoundEvent soundEvent = isDoorOpen ? DWMSounds.TARDIS_DOOR_OPEN : DWMSounds.TARDIS_DOOR_CLOSE;
-                this.getWorld().playSoundAtBlockCenter(getPos(), soundEvent, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
+                world.playSound(null, getPos(), soundEvent, SoundCategory.BLOCKS, 1.0F, 1.0F);
             }
         }
     }

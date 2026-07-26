@@ -85,9 +85,12 @@ public class TardisBlock extends BlockWithEntity {
             return ActionResult.PASS;
         }
         if (!player.isSneaking()) {
-            // Toggle on both sides: server is authoritative for entry teleports; client drives sound/swing.
-            tardisBlockEntity.toggleDoor();
-            tardisBlockEntity.markDirty();
+            // Door state lives in a shared TardisDataLoader cache; toggling on both sides in
+            // integrated singleplayer immediately undoes the client open. Server is authoritative.
+            if (!world.isClient()) {
+                tardisBlockEntity.toggleDoor();
+                tardisBlockEntity.markDirty();
+            }
         } else if (!world.isClient && DWMConfig.getBoolean(DWMConfig.ENABLE_CHAMELEON_GUI)) {
             ServerPlayNetworking.send((ServerPlayerEntity) player, new OpenTardisChameleonScreen(tardisBlockEntity.getTardisId()));
         }
