@@ -12,6 +12,11 @@ class TardisBotiRendererAlignmentTest {
     private static final float EPSILON = 1e-4f;
 
     @Test
+    void apertureZ_matchesExteriorDoorPlane() {
+        assertEquals(-5.5f / 16.0f, TardisBotiRenderer.APERTURE_Z, EPSILON);
+    }
+
+    @Test
     void applyInteriorAlignment_mapsDoorCenterToAperture() {
         Vector3f mapped = transform(
                 (float) TardisBotiRenderer.INTERIOR_DOOR_CENTER_X,
@@ -25,7 +30,7 @@ class TardisBotiRendererAlignmentTest {
     }
 
     @Test
-    void applyInteriorAlignment_mapsRoomDepthToModelNegativeZ() {
+    void applyInteriorAlignment_mapsRoomDepthToModelPositiveZ() {
         Vector3f door = transform(
                 (float) TardisBotiRenderer.INTERIOR_DOOR_CENTER_X,
                 (float) TardisBotiRenderer.INTERIOR_DOOR_CENTER_Y,
@@ -37,8 +42,9 @@ class TardisBotiRendererAlignmentTest {
                 (float) TardisBotiRenderer.INTERIOR_DOOR_PLANE_Z + 3.0f
         );
 
-        assertTrue(deeper.z < door.z, "Room +Z should map to model -Z (portal view depth)");
-        assertEquals(door.z - 3.0f, deeper.z, EPSILON);
+        // Front doors face -Z; player looks in along +Z — room must extend +Z behind the door.
+        assertTrue(deeper.z > door.z, "Room +Z should map to model +Z (behind front door)");
+        assertEquals(door.z + 3.0f, deeper.z, EPSILON);
     }
 
     @Test
@@ -54,9 +60,26 @@ class TardisBotiRendererAlignmentTest {
                 (float) TardisBotiRenderer.INTERIOR_DOOR_PLANE_Z
         );
 
-        // BER rotateX(180) makes model -Y world-up; alignment X-180 sends interior +Y to model -Y.
+        // BER rotateX(180) makes model -Y world-up; alignment Z-180 sends interior +Y to model -Y.
         assertEquals(door.y - 1.0f, above.y, EPSILON);
         assertTrue(above.y < door.y);
+    }
+
+    @Test
+    void applyInteriorAlignment_mapsRoomPositiveXToModelNegativeX() {
+        Vector3f door = transform(
+                (float) TardisBotiRenderer.INTERIOR_DOOR_CENTER_X,
+                (float) TardisBotiRenderer.INTERIOR_DOOR_CENTER_Y,
+                (float) TardisBotiRenderer.INTERIOR_DOOR_PLANE_Z
+        );
+        Vector3f right = transform(
+                (float) TardisBotiRenderer.INTERIOR_DOOR_CENTER_X + 1.0f,
+                (float) TardisBotiRenderer.INTERIOR_DOOR_CENTER_Y,
+                (float) TardisBotiRenderer.INTERIOR_DOOR_PLANE_Z
+        );
+
+        assertEquals(door.x - 1.0f, right.x, EPSILON);
+        assertTrue(right.x < door.x);
     }
 
     private static Vector3f transform(float x, float y, float z) {
