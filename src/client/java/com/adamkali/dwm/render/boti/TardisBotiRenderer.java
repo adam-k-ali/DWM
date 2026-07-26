@@ -33,12 +33,13 @@ public final class TardisBotiRenderer {
     private static final float APERTURE_X1 = 5.0f / 16.0f;
     private static final float APERTURE_Y0 = -22.0f / 16.0f;
     private static final float APERTURE_Y1 = -1.0f / 16.0f;
-    private static final float APERTURE_Z = 0.55f / 16.0f;
+    static final float APERTURE_Z = 0.55f / 16.0f;
 
     /** Interior door opening center (local structure coords). */
-    private static final double INTERIOR_DOOR_CENTER_X = 5.5;
-    private static final double INTERIOR_DOOR_CENTER_Y = 1.5;
-    private static final double INTERIOR_DOOR_PLANE_Z = 0.0;
+    static final double INTERIOR_DOOR_CENTER_X = 5.5;
+    /** Door blocks at y=1..2 span [1, 3); geometric center. */
+    static final double INTERIOR_DOOR_CENTER_Y = 2.0;
+    static final double INTERIOR_DOOR_PLANE_Z = 0.0;
 
     private TardisBotiRenderer() {
     }
@@ -103,14 +104,24 @@ public final class TardisBotiRenderer {
 
     private static void drawInterior(MatrixStack matrices, VertexConsumerProvider vertexConsumers) {
         matrices.push();
-        // Aperture is roughly at model origin on Z; map interior door plane onto it and look +Z into the room.
-        double apertureCenterY = (APERTURE_Y0 + APERTURE_Y1) * 0.5;
-        matrices.translate(0.0, apertureCenterY, APERTURE_Z);
-        // Interior faces south at z=0; looking into the room is +Z. Flip so exterior view looks inward.
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0f));
-        matrices.translate(-INTERIOR_DOOR_CENTER_X, -INTERIOR_DOOR_CENTER_Y, -INTERIOR_DOOR_PLANE_Z);
+        applyInteriorAlignment(matrices);
         BotiInteriorMeshCache.render(matrices, vertexConsumers, FULLBRIGHT);
         matrices.pop();
+    }
+
+    /**
+     * Maps interior structure coords onto the exterior door aperture in BER model space.
+     * <p>
+     * BER already applied {@code rotateX(180)} (Blockbench), so model +Y is world-down. An
+     * additional X-180 after moving to the aperture flips Y (upright) and Z (same portal depth
+     * mapping as the original Y-180 view). Net on interior points relative to the door center:
+     * {@code (x, y, z) → (x, -y, -z)} in aperture-local space.
+     */
+    static void applyInteriorAlignment(MatrixStack matrices) {
+        double apertureCenterY = (APERTURE_Y0 + APERTURE_Y1) * 0.5;
+        matrices.translate(0.0, apertureCenterY, APERTURE_Z);
+        matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180.0f));
+        matrices.translate(-INTERIOR_DOOR_CENTER_X, -INTERIOR_DOOR_CENTER_Y, -INTERIOR_DOOR_PLANE_Z);
     }
 
     private static void sealApertureDepth(MatrixStack matrices) {
@@ -152,5 +163,10 @@ public final class TardisBotiRenderer {
     /** Expose layout size for tests / debug. */
     public static int interiorSizeX() {
         return FirstDoctorConsoleRoomLayout.SIZE_X;
+    }
+
+    /** Aperture vertical center in BER model space (for tests). */
+    static float apertureCenterY() {
+        return (APERTURE_Y0 + APERTURE_Y1) * 0.5f;
     }
 }
