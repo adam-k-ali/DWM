@@ -30,7 +30,12 @@ public class ClientPayloadTypeRegistry {
 
     private static void syncBotiInterior(SyncBotiInteriorS2CPayload payload, ClientPlayNetworking.Context context) {
         context.client().execute(() -> {
-            BotiInteriorMeshCache.applySnapshot(payload.tardisId(), payload.revision(), payload.toBlockMap());
+            BotiInteriorMeshCache.applySnapshot(
+                    payload.tardisId(),
+                    payload.revision(),
+                    payload.toBlockMap(),
+                    payload.toBlockEntityMap()
+            );
         });
     }
 }

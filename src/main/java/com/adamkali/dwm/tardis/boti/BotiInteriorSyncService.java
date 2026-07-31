@@ -123,7 +123,9 @@ public final class BotiInteriorSyncService {
         BotiPlotIndex.register(tardisId);
         int revision = REVISIONS.merge(tardisId, 1, Integer::sum);
         Map<BlockPos, net.minecraft.block.BlockState> blocks = BotiInteriorSampler.sample(interiorWorld, tardisId);
-        BotiInteriorSnapshot snapshot = BotiInteriorSnapshot.of(tardisId, revision, blocks);
+        Map<BlockPos, net.minecraft.nbt.NbtCompound> blockEntities =
+                BotiInteriorSampler.sampleBlockEntities(interiorWorld, tardisId);
+        BotiInteriorSnapshot snapshot = BotiInteriorSnapshot.of(tardisId, revision, blocks, blockEntities);
         LAST_SNAPSHOT.put(tardisId, snapshot);
         return snapshot;
     }

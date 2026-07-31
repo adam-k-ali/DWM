@@ -58,7 +58,12 @@ public final class TardisBotiRenderer {
      * Renders BOTI into the current BER matrix stack (caller must already have applied exterior
      * model transforms). Flushes {@code vertexConsumers} when it is an Immediate provider.
      */
-    public static void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, UUID tardisId) {
+    public static void render(
+            MatrixStack matrices,
+            VertexConsumerProvider vertexConsumers,
+            float tickDelta,
+            UUID tardisId
+    ) {
         flush(vertexConsumers);
 
         matrices.push();
@@ -73,7 +78,7 @@ public final class TardisBotiRenderer {
             RenderSystem.enableDepthTest();
             RenderSystem.depthFunc(GL11.GL_LEQUAL);
             RenderSystem.depthMask(true);
-            drawInterior(matrices, vertexConsumers, tardisId);
+            drawInterior(matrices, vertexConsumers, tickDelta, tardisId);
             flush(vertexConsumers);
             sealApertureDepth(matrices);
         } catch (Throwable t) {
@@ -156,10 +161,15 @@ public final class TardisBotiRenderer {
         RenderSystem.colorMask(true, true, true, true);
     }
 
-    private static void drawInterior(MatrixStack matrices, VertexConsumerProvider vertexConsumers, UUID tardisId) {
+    private static void drawInterior(
+            MatrixStack matrices,
+            VertexConsumerProvider vertexConsumers,
+            float tickDelta,
+            UUID tardisId
+    ) {
         matrices.push();
         applyInteriorAlignment(matrices);
-        BotiInteriorMeshCache.render(matrices, vertexConsumers, FULLBRIGHT, tardisId);
+        BotiInteriorMeshCache.render(matrices, vertexConsumers, FULLBRIGHT, tickDelta, tardisId);
         matrices.pop();
     }
 

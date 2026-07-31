@@ -34,8 +34,8 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 
 ## BOTI Notes
 - Visual illusion: does not stream the live `dwm:tardis` dimension to the exterior client.
-- When the interior has been generated, the preview shows a synced BlockState snapshot of the 11×7×11 console-room footprint (near-live on interior edits). Until then (or if no snapshot yet), it falls back to `FirstDoctorConsoleRoomLayout`.
-- Block-entity / entity visuals inside BOTI are not included yet (payload format is reserved for a later version).
+- When the interior has been generated, the preview shows a synced BlockState + block-entity snapshot of the 11×7×11 console-room footprint (near-live on interior edits). Until then (or if no snapshot yet), it falls back to `FirstDoctorConsoleRoomLayout` (blocks only).
+- Format version 2 includes chunk-sync block-entity NBT; the client reconstructs synthetic BEs and best-effort renders any type with a `BlockEntityRenderer` (vanilla + mods via the dispatcher). Interior doors remain excluded from BOTI (no dedicated interior-door BER yet).
 - Requires a stencil-capable framebuffer (mixin upgrades depth to depth+stencil). If stencil init/render fails, BOTI disables for the session and the exterior still renders.
 - May not work with Fabulous graphics or some Sodium / shader setups; disable via config if needed.
 - Interior → exterior “smaller on the outside” (SOTO) is not implemented yet.

@@ -63,4 +63,11 @@ class BotiInteriorSamplerTest {
         assertFalse(BotiInteriorSampler.isInsideFootprint(origin.add(BotiInteriorSampler.SIZE_X, 0, 0), origin));
         assertFalse(BotiInteriorSampler.isInsideFootprint(origin.add(0, -1, 0), origin));
     }
+
+    @Test
+    void isBotiVisible_excludesInteriorDoorIncludesChest() {
+        assertFalse(BotiInteriorSampler.isBotiVisible(DWMBlocks.TARDIS_INTERIOR_DOOR.getDefaultState()));
+        assertTrue(BotiInteriorSampler.isBotiVisible(Blocks.CHEST.getDefaultState()));
+        assertFalse(BotiInteriorSampler.isBotiVisible(Blocks.LIGHT.getDefaultState()));
+    }
 }

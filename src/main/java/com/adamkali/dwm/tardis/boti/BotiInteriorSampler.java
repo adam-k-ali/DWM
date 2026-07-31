@@ -5,6 +5,9 @@ import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
@@ -64,6 +67,43 @@ public final class BotiInteriorSampler {
             }
         }
         return visible;
+    }
+
+    /**
+     * Samples chunk-sync NBT for block entities in the footprint (interior doors excluded).
+     * Each compound includes the BE type {@code id} for client reconstruction.
+     */
+    public static Map<BlockPos, NbtCompound> sampleBlockEntities(ServerWorld interiorWorld, UUID tardisId) {
+        BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
+        RegistryWrapper.WrapperLookup registries = interiorWorld.getRegistryManager();
+        Map<BlockPos, NbtCompound> entities = new HashMap<>();
+        BlockPos.Mutable mutable = new BlockPos.Mutable();
+        for (int x = 0; x < SIZE_X; x++) {
+            for (int y = 0; y < SIZE_Y; y++) {
+                for (int z = 0; z < SIZE_Z; z++) {
+                    mutable.set(origin.getX() + x, origin.getY() + y, origin.getZ() + z);
+                    BlockState state = interiorWorld.getBlockState(mutable);
+                    if (!isBotiVisible(state)) {
+                        continue;
+                    }
+                    BlockEntity blockEntity = interiorWorld.getBlockEntity(mutable);
+                    if (blockEntity == null) {
+                        continue;
+                    }
+                    entities.put(new BlockPos(x, y, z), captureSyncNbt(blockEntity, registries));
+                }
+            }
+        }
+        return entities;
+    }
+
+    /**
+     * Chunk-sync NBT plus type {@code id} for client {@link BlockEntity#createFromNbt} reconstruction.
+     */
+    public static NbtCompound captureSyncNbt(BlockEntity blockEntity, RegistryWrapper.WrapperLookup registries) {
+        NbtCompound nbt = blockEntity.toInitialChunkDataNbt(registries);
+        BlockEntity.writeIdToNbt(nbt, blockEntity.getType());
+        return nbt;
     }
 
     public static boolean isInsideFootprint(BlockPos worldPos, BlockPos plotOrigin) {
