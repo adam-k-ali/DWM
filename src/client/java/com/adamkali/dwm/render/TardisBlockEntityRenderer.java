@@ -51,15 +51,22 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         TardisDoorState doorState = Objects.requireNonNullElse(TardisLogic.getDoorState(entity.getTardisId()), new TardisDoorState());
         float degrees = RotationPropertyHelper.toDegrees(rotation);
 
-        // Exterior first, then BOTI: stencil punches the door after shell depth/color are in place.
+        TardisModel model = modelCache.get(variant);
         VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutout(textureCache.get(variant)));
-        this.renderExterior(matrices, vertexConsumer, modelCache.get(variant), doorState.doorSwing, degrees, light, overlay);
 
         if (TardisBotiRenderer.shouldRender(doorState)) {
+            // Shell → BOTI → doors so swung doors draw over the interior preview.
+            this.renderShell(matrices, vertexConsumer, model, doorState.doorSwing, degrees, light, overlay);
+
             matrices.push();
             applyExteriorTransforms(matrices, degrees);
             TardisBotiRenderer.render(matrices, vertexConsumers);
             matrices.pop();
+
+            vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutout(textureCache.get(variant)));
+            this.renderDoors(matrices, vertexConsumer, model, doorState.doorSwing, degrees, light, overlay);
+        } else {
+            this.renderExterior(matrices, vertexConsumer, model, doorState.doorSwing, degrees, light, overlay);
         }
     }
 
@@ -70,13 +77,34 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
     }
 
     private void renderExterior(MatrixStack matrices, VertexConsumer vertices, TardisModel model, float doorProgress, float rotation, int light, int overlay) {
-        TardisRenderState state = new TardisRenderState();
-        state.setDoorSwingProgress(doorProgress);
+        prepareRenderState(model, doorProgress);
         matrices.push();
         applyExteriorTransforms(matrices, rotation);
-        model.setAngles(state);
         model.render(matrices, vertices, light, overlay);
         matrices.pop();
+    }
+
+    private void renderShell(MatrixStack matrices, VertexConsumer vertices, TardisModel model, float doorProgress, float rotation, int light, int overlay) {
+        prepareRenderState(model, doorProgress);
+        matrices.push();
+        applyExteriorTransforms(matrices, rotation);
+        model.renderShell(matrices, vertices, light, overlay);
+        matrices.pop();
+    }
+
+    private void renderDoors(MatrixStack matrices, VertexConsumer vertices, TardisModel model, float doorProgress, float rotation, int light, int overlay) {
+        prepareRenderState(model, doorProgress);
+        matrices.push();
+        applyExteriorTransforms(matrices, rotation);
+        model.renderDoors(matrices, vertices, light, overlay);
+        matrices.pop();
+    }
+
+    private static TardisRenderState prepareRenderState(TardisModel model, float doorProgress) {
+        TardisRenderState state = new TardisRenderState();
+        state.setDoorSwingProgress(doorProgress);
+        model.setAngles(state);
+        return state;
     }
 
     private static void applyExteriorTransforms(MatrixStack matrices, float rotationDegrees) {
