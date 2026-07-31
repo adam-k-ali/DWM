@@ -51,15 +51,16 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         TardisDoorState doorState = Objects.requireNonNullElse(TardisLogic.getDoorState(entity.getTardisId()), new TardisDoorState());
         float degrees = RotationPropertyHelper.toDegrees(rotation);
 
-        matrices.push();
-        applyExteriorTransforms(matrices, degrees);
-        if (TardisBotiRenderer.shouldRender(doorState)) {
-            TardisBotiRenderer.render(matrices, vertexConsumers);
-        }
-        matrices.pop();
-
+        // Exterior first, then BOTI: stencil punches the door after shell depth/color are in place.
         VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutout(textureCache.get(variant)));
         this.renderExterior(matrices, vertexConsumer, modelCache.get(variant), doorState.doorSwing, degrees, light, overlay);
+
+        if (TardisBotiRenderer.shouldRender(doorState)) {
+            matrices.push();
+            applyExteriorTransforms(matrices, degrees);
+            TardisBotiRenderer.render(matrices, vertexConsumers);
+            matrices.pop();
+        }
     }
 
     @Override

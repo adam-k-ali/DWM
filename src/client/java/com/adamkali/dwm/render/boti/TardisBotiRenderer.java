@@ -27,12 +27,13 @@ public final class TardisBotiRenderer {
 
     /**
      * Door aperture in model-local space after the same BER transforms as the exterior shell
-     * (Blockbench units / 16). Tuned for police-box / capsule door openings.
+     * (Blockbench units / 16). Must use the same +Y range as ModelPart door meshes (TT Capsule
+     * door ~1..23px; First Doctor doors similar) — negative Y places the portal above the shell.
      */
     private static final float APERTURE_X0 = -5.0f / 16.0f;
     private static final float APERTURE_X1 = 5.0f / 16.0f;
-    private static final float APERTURE_Y0 = -22.0f / 16.0f;
-    private static final float APERTURE_Y1 = -1.0f / 16.0f;
+    private static final float APERTURE_Y0 = 1.0f / 16.0f;
+    private static final float APERTURE_Y1 = 23.0f / 16.0f;
     /** Police-box door plane (First Doctor LeftDoor pivot z=-5.5). Must match exterior door. */
     static final float APERTURE_Z = -5.5f / 16.0f;
 
@@ -61,12 +62,17 @@ public final class TardisBotiRenderer {
         matrices.push();
         try {
             writeStencilMask(matrices);
-            clearDepthInMask(matrices);
-            // Into-shell (+Z) is farther than the aperture; LEQUAL would reject those fragments.
-            RenderSystem.depthFunc(GL11.GL_ALWAYS);
+            // Far depth in the mask so block-layer LEQUAL draws accept interior behind the door.
+            clearDepthInMaskToFar(matrices);
+
+            GL11.glEnable(GL11.GL_STENCIL_TEST);
+            RenderSystem.stencilFunc(GL11.GL_EQUAL, STENCIL_REF, 0xFF);
+            RenderSystem.stencilMask(0x00);
+            RenderSystem.enableDepthTest();
+            RenderSystem.depthFunc(GL11.GL_LEQUAL);
+            RenderSystem.depthMask(true);
             drawInterior(matrices, vertexConsumers);
             flush(vertexConsumers);
-            RenderSystem.depthFunc(GL11.GL_LEQUAL);
             sealApertureDepth(matrices);
         } catch (Throwable t) {
             BotiStencilSupport.disableForSession("BOTI render failed", t);
@@ -80,30 +86,72 @@ public final class TardisBotiRenderer {
         GL11.glEnable(GL11.GL_STENCIL_TEST);
         RenderSystem.stencilMask(0xFF);
         RenderSystem.clearStencil(0);
-        // Clear only stencil; depth/color preserved. Drivers vary on stencil-only clear with mask.
         GL11.glClear(GL11.GL_STENCIL_BUFFER_BIT);
 
         RenderSystem.stencilFunc(GL11.GL_ALWAYS, STENCIL_REF, 0xFF);
-        RenderSystem.stencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_REPLACE);
-        RenderSystem.colorMask(false, false, false, false);
-        RenderSystem.depthMask(false);
-
-        drawApertureQuad(matrices);
-
+        RenderSystem.stencilOp(GL11.GL_REPLACE, GL11.GL_REPLACE, GL11.GL_REPLACE);
+        // Keep colorMask true: some drivers skip stencil updates when color+depth writes are off.
         RenderSystem.colorMask(true, true, true, true);
+        RenderSystem.depthMask(false);
+        RenderSystem.disableDepthTest();
+        boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
+        if (cullWasEnabled) {
+            RenderSystem.disableCull();
+        }
+
+        RenderSystem.setShaderColor(0.0f, 0.0f, 0.0f, 0.0f);
+        drawApertureQuad(matrices);
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+        if (cullWasEnabled) {
+            RenderSystem.enableCull();
+        }
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthFunc(GL11.GL_LEQUAL);
         RenderSystem.depthMask(true);
         RenderSystem.stencilMask(0x00);
         RenderSystem.stencilFunc(GL11.GL_EQUAL, STENCIL_REF, 0xFF);
         RenderSystem.stencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_KEEP);
     }
 
-    private static void clearDepthInMask(MatrixStack matrices) {
+    /**
+     * Clears depth in the stencil mask to the far plane so subsequent LEQUAL draws (block layers)
+     * can render interior geometry behind the door aperture.
+     */
+    private static void clearDepthInMaskToFar(MatrixStack matrices) {
+        RenderSystem.enableDepthTest();
         RenderSystem.depthFunc(GL11.GL_ALWAYS);
         RenderSystem.depthMask(true);
         RenderSystem.colorMask(false, false, false, false);
+        boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
+        if (cullWasEnabled) {
+            RenderSystem.disableCull();
+        }
+        // Force written depth to 1.0 (far) regardless of aperture clip-space Z.
+        GL11.glDepthRange(1.0, 1.0);
         drawApertureQuad(matrices);
+        GL11.glDepthRange(0.0, 1.0);
+        if (cullWasEnabled) {
+            RenderSystem.enableCull();
+        }
         RenderSystem.colorMask(true, true, true, true);
         RenderSystem.depthFunc(GL11.GL_LEQUAL);
+    }
+
+    private static void sealApertureDepth(MatrixStack matrices) {
+        RenderSystem.colorMask(false, false, false, false);
+        RenderSystem.depthMask(true);
+        RenderSystem.depthFunc(GL11.GL_ALWAYS);
+        boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
+        if (cullWasEnabled) {
+            RenderSystem.disableCull();
+        }
+        drawApertureQuad(matrices);
+        if (cullWasEnabled) {
+            RenderSystem.enableCull();
+        }
+        RenderSystem.depthFunc(GL11.GL_LEQUAL);
+        RenderSystem.colorMask(true, true, true, true);
     }
 
     private static void drawInterior(MatrixStack matrices, VertexConsumerProvider vertexConsumers) {
@@ -118,25 +166,15 @@ public final class TardisBotiRenderer {
      * <p>
      * BER already applied {@code rotateX(180)} (Blockbench), so model +Y is world-down. Exterior
      * doors are on model −Z (LeftDoor pivot −5.5px); the aperture must sit on that plane. Z-180
-     * keeps upright Y and room depth in model +Z (into the shell). Interior must be drawn with
-     * {@code GL_ALWAYS} depth — after clearing the aperture depth, {@code GL_LEQUAL} rejects the
-     * farther into-shell fragments. Net relative to the door center:
-     * {@code (x, y, z) → (-x, -y, z)}.
+     * keeps upright Y and room depth in model +Z (into the shell). Depth in the aperture is cleared
+     * to far before interior draw so block-layer {@code GL_LEQUAL} accepts into-shell fragments.
+     * Net relative to the door center: {@code (x, y, z) → (-x, -y, z)}.
      */
     static void applyInteriorAlignment(MatrixStack matrices) {
         double apertureCenterY = (APERTURE_Y0 + APERTURE_Y1) * 0.5;
         matrices.translate(0.0, apertureCenterY, APERTURE_Z);
         matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180.0f));
         matrices.translate(-INTERIOR_DOOR_CENTER_X, -INTERIOR_DOOR_CENTER_Y, -INTERIOR_DOOR_PLANE_Z);
-    }
-
-    private static void sealApertureDepth(MatrixStack matrices) {
-        RenderSystem.colorMask(false, false, false, false);
-        RenderSystem.depthMask(true);
-        RenderSystem.depthFunc(GL11.GL_ALWAYS);
-        drawApertureQuad(matrices);
-        RenderSystem.depthFunc(GL11.GL_LEQUAL);
-        RenderSystem.colorMask(true, true, true, true);
     }
 
     private static void restoreGlState() {
