@@ -60,7 +60,7 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
 
             matrices.push();
             applyExteriorTransforms(matrices, degrees);
-            TardisBotiRenderer.render(matrices, vertexConsumers);
+            TardisBotiRenderer.render(matrices, vertexConsumers, entity.getTardisId());
             matrices.pop();
 
             vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutout(textureCache.get(variant)));

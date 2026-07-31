@@ -2,6 +2,7 @@ package com.adamkali.dwm.tardis.interior;
 
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
+import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
@@ -12,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Pure First Doctor console-room block layout shared by world placement and client BOTI preview.
+ * Pure First Doctor console-room block layout shared by world placement and client BOTI fallback.
  */
 public final class FirstDoctorConsoleRoomLayout {
     public static final int SIZE_X = 11;
@@ -41,15 +42,7 @@ public final class FirstDoctorConsoleRoomLayout {
      * Blocks that should be tessellated for the exterior BOTI preview (no air/light/door slabs).
      */
     public static Map<BlockPos, BlockState> botiVisiblePlacements() {
-        Map<BlockPos, BlockState> visible = new HashMap<>();
-        for (Map.Entry<BlockPos, BlockState> entry : placements().entrySet()) {
-            BlockState state = entry.getValue();
-            if (state.isAir() || state.isOf(Blocks.LIGHT) || state.isOf(DWMBlocks.TARDIS_INTERIOR_DOOR)) {
-                continue;
-            }
-            visible.put(entry.getKey(), state);
-        }
-        return visible;
+        return BotiInteriorSampler.filterVisible(placements());
     }
 
     static Map<BlockPos, BlockState> buildPlacements() {

@@ -3,6 +3,8 @@ package com.adamkali.dwm.tardis.interior;
 import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
+import com.adamkali.dwm.tardis.boti.BotiInteriorSyncService;
+import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
@@ -48,6 +50,7 @@ public final class TardisInteriorService {
             // Recover from a prior empty place (e.g. unloaded chunks) by regenerating if the floor is missing.
             BlockPos entrance = exteriorEntity.getInteriorEntrance();
             if (!interiorWorld.getBlockState(entrance.down()).isAir()) {
+                BotiPlotIndex.register(tardisId);
                 return entrance;
             }
         }
@@ -55,6 +58,8 @@ public final class TardisInteriorService {
         BlockPos entrance = FirstDoctorConsoleRoomPlacer.place(interiorWorld, origin, tardisId);
         exteriorEntity.setInteriorEntrance(entrance);
         exteriorEntity.setInteriorGenerated(true);
+        BotiPlotIndex.register(tardisId);
+        BotiInteriorSyncService.markDirty(tardisId);
         return entrance;
     }
 

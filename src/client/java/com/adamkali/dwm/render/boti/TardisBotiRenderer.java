@@ -18,8 +18,10 @@ import net.minecraft.util.math.RotationAxis;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
+import java.util.UUID;
+
 /**
- * Stencil-masked exterior BOTI: draws a baked First Doctor console room through the open door.
+ * Stencil-masked exterior BOTI: draws a synced (or blueprint-fallback) console room through the open door.
  */
 public final class TardisBotiRenderer {
     private static final int STENCIL_REF = 1;
@@ -56,7 +58,7 @@ public final class TardisBotiRenderer {
      * Renders BOTI into the current BER matrix stack (caller must already have applied exterior
      * model transforms). Flushes {@code vertexConsumers} when it is an Immediate provider.
      */
-    public static void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers) {
+    public static void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, UUID tardisId) {
         flush(vertexConsumers);
 
         matrices.push();
@@ -71,7 +73,7 @@ public final class TardisBotiRenderer {
             RenderSystem.enableDepthTest();
             RenderSystem.depthFunc(GL11.GL_LEQUAL);
             RenderSystem.depthMask(true);
-            drawInterior(matrices, vertexConsumers);
+            drawInterior(matrices, vertexConsumers, tardisId);
             flush(vertexConsumers);
             sealApertureDepth(matrices);
         } catch (Throwable t) {
@@ -154,10 +156,10 @@ public final class TardisBotiRenderer {
         RenderSystem.colorMask(true, true, true, true);
     }
 
-    private static void drawInterior(MatrixStack matrices, VertexConsumerProvider vertexConsumers) {
+    private static void drawInterior(MatrixStack matrices, VertexConsumerProvider vertexConsumers, UUID tardisId) {
         matrices.push();
         applyInteriorAlignment(matrices);
-        BotiInteriorMeshCache.render(matrices, vertexConsumers, FULLBRIGHT);
+        BotiInteriorMeshCache.render(matrices, vertexConsumers, FULLBRIGHT, tardisId);
         matrices.pop();
     }
 

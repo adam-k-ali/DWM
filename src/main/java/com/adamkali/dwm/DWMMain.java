@@ -7,6 +7,7 @@ import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.item.DWMItems;
 import com.adamkali.dwm.network.ServerPayloadTypeRegistry;
 import com.adamkali.dwm.sound.DWMSounds;
+import com.adamkali.dwm.tardis.boti.BotiInteriorSyncService;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
@@ -27,6 +28,7 @@ public class DWMMain implements ModInitializer {
         DWMBlockEntities.initialize();
         DWMSounds.initialize();
         ServerPayloadTypeRegistry.initialize();
+        BotiInteriorSyncService.initialize();
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             TardisDataLoader.tardisSaveDirectory = server.getSavePath(WorldSavePath.ROOT).resolve("tardis_data");
         });
