@@ -1,16 +1,26 @@
 package com.adamkali.dwm.tardis.interior;
 
+import com.adamkali.dwm.MinecraftTestBootstrap;
+import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
+import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TardisInteriorUnitTest {
+
+    @BeforeAll
+    static void bootstrap() {
+        MinecraftTestBootstrap.ensure();
+    }
 
     @Test
     void plotOrigin_IsStableForSameUuid() {
@@ -82,7 +92,18 @@ class TardisInteriorUnitTest {
         assertEquals(FirstDoctorConsoleRoomLayout.SIZE_Y, FirstDoctorConsoleRoomPlacer.SIZE_Y);
         assertEquals(FirstDoctorConsoleRoomLayout.SIZE_Z, FirstDoctorConsoleRoomPlacer.SIZE_Z);
         assertEquals(FirstDoctorConsoleRoomLayout.LOCAL_ENTRANCE, FirstDoctorConsoleRoomPlacer.LOCAL_ENTRANCE);
-        assertEquals(2, FirstDoctorConsoleRoomLayout.LAYOUT_VERSION);
+        assertEquals(3, FirstDoctorConsoleRoomLayout.LAYOUT_VERSION);
+    }
+
+    @Test
+    void consoleRoomLayout_PlacesFirstDoctorConsoleWithoutStackedRoundel() {
+        Map<BlockPos, BlockState> placements = FirstDoctorConsoleRoomLayout.placements();
+        BlockPos consolePos = new BlockPos(5, 1, 5);
+        assertEquals(DWMBlocks.FIRST_DOCTOR_CONSOLE, placements.get(consolePos).getBlock());
+        assertTrue(placements.get(new BlockPos(5, 2, 5)).isAir(), "no stacked roundel above console");
+
+        Map<BlockPos, BlockState> boti = FirstDoctorConsoleRoomLayout.botiVisiblePlacements();
+        assertFalse(boti.containsKey(consolePos), "console must be excluded from BOTI tessellation");
     }
 
     @Test
