@@ -110,4 +110,16 @@ class ServerPayloadTypeRegistryTest {
         assertTrue(loaded != null);
         assertTrue(loaded.variant == TardisChameleonVariant.SIXTH_DOCTOR_BOX);
     }
+
+    @Test
+    void safelyHandleSotoRequest_rejectsNullTardisIdOrPlayer() {
+        assertFalse(ServerPayloadTypeRegistry.safelyHandleSotoRequest(
+                new RequestSotoExteriorC2SPayload(null),
+                null
+        ));
+        assertFalse(ServerPayloadTypeRegistry.safelyHandleSotoRequest(
+                new RequestSotoExteriorC2SPayload(UUID.randomUUID()),
+                null
+        ));
+    }
 }

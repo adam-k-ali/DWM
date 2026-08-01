@@ -7,6 +7,8 @@ import com.adamkali.dwm.tardis.boti.BotiInteriorSyncService;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.soto.SotoExteriorIndex;
+import com.adamkali.dwm.tardis.soto.SotoExteriorSyncService;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -122,6 +124,8 @@ public final class TardisInteriorService {
                 pos.getZ(),
                 rotation
         );
+        SotoExteriorIndex.register(tardisId, model);
+        SotoExteriorSyncService.markDirty(tardisId);
     }
 
     private static Direction rotationToHorizontal(int rotation) {

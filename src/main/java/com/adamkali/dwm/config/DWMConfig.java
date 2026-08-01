@@ -17,6 +17,9 @@ public class DWMConfig {
     /** Exterior bigger-on-the-inside door preview (client stencil). Default on. */
     public static final ConfigKey<Boolean> ENABLE_BOTI = new ConfigKey<>("enableBoti", true);
 
+    /** Interior smaller-on-the-outside door preview (client stencil). Default on. */
+    public static final ConfigKey<Boolean> ENABLE_SOTO = new ConfigKey<>("enableSoto", true);
+
     private static HashMap<String, Object> config = new HashMap<>();
 
     public static void init() {

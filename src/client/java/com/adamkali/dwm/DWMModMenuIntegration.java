@@ -21,6 +21,7 @@ public class DWMModMenuIntegration implements ModMenuApi {
             ConfigEntryBuilder entryBuilder = builder.entryBuilder();
             general.addEntry(entryBuilder.startBooleanToggle(Text.translatable("dwm.config.option.chameleon_gui"), DWMConfig.getBoolean(DWMConfig.ENABLE_CHAMELEON_GUI)).setDefaultValue(DWMConfig.ENABLE_CHAMELEON_GUI.getDefaultValue()).setSaveConsumer((newValue) -> DWMConfig.setBoolean(DWMConfig.ENABLE_CHAMELEON_GUI, newValue)).build());
             general.addEntry(entryBuilder.startBooleanToggle(Text.translatable("dwm.config.option.enable_boti"), DWMConfig.getBoolean(DWMConfig.ENABLE_BOTI)).setDefaultValue(DWMConfig.ENABLE_BOTI.getDefaultValue()).setTooltip(Text.translatable("dwm.config.option.enable_boti.tooltip")).setSaveConsumer((newValue) -> DWMConfig.setBoolean(DWMConfig.ENABLE_BOTI, newValue)).build());
+            general.addEntry(entryBuilder.startBooleanToggle(Text.translatable("dwm.config.option.enable_soto"), DWMConfig.getBoolean(DWMConfig.ENABLE_SOTO)).setDefaultValue(DWMConfig.ENABLE_SOTO.getDefaultValue()).setTooltip(Text.translatable("dwm.config.option.enable_soto.tooltip")).setSaveConsumer((newValue) -> DWMConfig.setBoolean(DWMConfig.ENABLE_SOTO, newValue)).build());
             return builder.alwaysShowTabs().build();
         };
     }
