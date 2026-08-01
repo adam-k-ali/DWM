@@ -1,9 +1,11 @@
 package com.adamkali.dwm.render.soto;
 
 import com.adamkali.dwm.network.RequestSotoExteriorC2SPayload;
+import com.adamkali.dwm.network.RequestSotoGhostC2SPayload;
 import com.adamkali.dwm.render.boti.BotiEntityMotion;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.EntityInterpState;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.LerpedPose;
+import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
@@ -210,12 +212,14 @@ public final class SotoExteriorMeshCache {
         if (tardisId != null) {
             SNAPSHOTS.remove(tardisId);
             LAST_REQUEST_MS.remove(tardisId);
+            SotoGhostExterior.invalidate(tardisId);
         }
     }
 
     public static void invalidateAll() {
         SNAPSHOTS.clear();
         LAST_REQUEST_MS.clear();
+        SotoGhostExterior.invalidateAll();
     }
 
     public static void renderWorld(
@@ -255,6 +259,33 @@ public final class SotoExteriorMeshCache {
         if (world != null) {
             entityDispatcher.configure(world, client.gameRenderer.getCamera(), client.player);
         }
+
+        // Phase 1: prefer live ghost entities; fall back to snapshot synthetics.
+        if (SotoGhostExterior.hasEntities(tardisId)) {
+            SotoGhostExterior.requestIfNeeded(tardisId);
+            for (SotoGhostExterior.RenderableGhostEntity ghost : SotoGhostExterior.getRenderableEntities(tardisId)) {
+                Entity entity = ghost.entity();
+                LerpedPose pose = ghost.pose();
+                entity.setYaw(pose.yaw());
+                entity.setPitch(pose.pitch());
+                if (entity instanceof LivingEntity living) {
+                    snapLivingYaw(living, pose.yaw());
+                }
+                entityDispatcher.render(
+                        entity,
+                        pose.x(),
+                        pose.y(),
+                        pose.z(),
+                        tickDelta,
+                        matrices,
+                        vertexConsumers,
+                        light
+                );
+            }
+            return;
+        }
+
+        SotoGhostExterior.requestIfNeeded(tardisId);
         List<Entity> entities = getEntities(tardisId);
         CachedSnapshot cached = tardisId == null ? null : SNAPSHOTS.get(tardisId);
         Map<UUID, EntityInterpState> interpMap = cached == null ? Map.of() : cached.entityInterp();
@@ -515,6 +546,7 @@ public final class SotoExteriorMeshCache {
         }
         LAST_REQUEST_MS.put(tardisId, now);
         ClientPlayNetworking.send(new RequestSotoExteriorC2SPayload(tardisId));
+        ClientPlayNetworking.send(new RequestSotoGhostC2SPayload(tardisId));
     }
 
     private record ReconcileResult(List<Entity> entities, Map<UUID, EntityInterpState> interp) {

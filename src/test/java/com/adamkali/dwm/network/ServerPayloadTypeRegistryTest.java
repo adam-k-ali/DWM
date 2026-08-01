@@ -122,4 +122,16 @@ class ServerPayloadTypeRegistryTest {
                 null
         ));
     }
+
+    @Test
+    void safelyHandleSotoGhostRequest_rejectsNullTardisIdOrPlayer() {
+        assertFalse(ServerPayloadTypeRegistry.safelyHandleSotoGhostRequest(
+                new RequestSotoGhostC2SPayload(null),
+                null
+        ));
+        assertFalse(ServerPayloadTypeRegistry.safelyHandleSotoGhostRequest(
+                new RequestSotoGhostC2SPayload(UUID.randomUUID()),
+                null
+        ));
+    }
 }

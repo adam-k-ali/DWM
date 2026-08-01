@@ -32,14 +32,14 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Near-live SOTO snapshot sync: dirty on exterior edits / door-shell changes and while entities
- * occupy the exterior footprint. Pushes to players tracking the interior door origin.
+ * Near-live SOTO snapshot sync: dirty on exterior edits / door-shell changes.
+ * Live entity motion is owned by {@link SotoGhostSyncService} (Phase 1); entity occupancy
+ * no longer accelerates the snapshot flush cadence.
  */
 public final class SotoExteriorSyncService {
     private static final int FLUSH_INTERVAL_TICKS = 3;
 
     private static final Set<UUID> DIRTY = ConcurrentHashMap.newKeySet();
-    private static final Set<UUID> ENTITY_ACTIVE = ConcurrentHashMap.newKeySet();
     private static final Map<UUID, SotoExteriorSnapshot> LAST_SNAPSHOT = new ConcurrentHashMap<>();
     private static final Map<UUID, Integer> REVISIONS = new ConcurrentHashMap<>();
     private static int tickCounter;
@@ -66,7 +66,6 @@ public final class SotoExteriorSyncService {
 
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             DIRTY.clear();
-            ENTITY_ACTIVE.clear();
             LAST_SNAPSHOT.clear();
             REVISIONS.clear();
             SotoExteriorIndex.clear();
@@ -85,10 +84,18 @@ public final class SotoExteriorSyncService {
         if (tardisId != null) {
             DIRTY.add(tardisId);
         }
+        SotoGhostSyncService.markChunkDirtyAt(worldKey, worldPos);
     }
 
     public static SotoExteriorSnapshot getLastSnapshot(UUID tardisId) {
         return LAST_SNAPSHOT.get(tardisId);
+    }
+
+    /**
+     * Snapshot flush interval. Entity occupancy never accelerates this (ghost stream owns motion).
+     */
+    static int snapshotFlushIntervalTicks(boolean entityActiveIgnored) {
+        return FLUSH_INTERVAL_TICKS;
     }
 
     /**
@@ -110,13 +117,12 @@ public final class SotoExteriorSyncService {
 
     private static void onEndTick(MinecraftServer server) {
         tickCounter++;
-        markEntityOccupiedPlotsDirty(server);
+        maintainExteriorKeepAlive(server);
         markShellAnimatingDirty(server);
         if (DIRTY.isEmpty()) {
             return;
         }
-        int interval = intersectsEntityActive(DIRTY) ? 1 : FLUSH_INTERVAL_TICKS;
-        if (tickCounter % interval != 0) {
+        if (tickCounter % snapshotFlushIntervalTicks(false) != 0) {
             return;
         }
         Set<UUID> toFlush = Set.copyOf(DIRTY);
@@ -130,17 +136,19 @@ public final class SotoExteriorSyncService {
         }
     }
 
-    private static boolean intersectsEntityActive(Set<UUID> dirty) {
-        for (UUID tardisId : dirty) {
-            if (ENTITY_ACTIVE.contains(tardisId)) {
-                return true;
-            }
+    /**
+     * Ticket-only stream keep-alive + mob AI for TARDIS with interior door trackers.
+     * Does not dirty snapshots for entity occupancy.
+     */
+    private static void maintainExteriorKeepAlive(MinecraftServer server) {
+        ServerWorld interiorWorld = server.getWorld(TardisDimensions.TARDIS_WORLD_KEY);
+        if (interiorWorld == null) {
+            return;
         }
-        return false;
-    }
-
-    private static void markEntityOccupiedPlotsDirty(MinecraftServer server) {
         for (UUID tardisId : SotoExteriorIndex.registeredIds()) {
+            if (!hasInteriorDoorTrackers(interiorWorld, tardisId)) {
+                continue;
+            }
             RegistryKey<World> worldKey = SotoExteriorIndex.getWorldKey(tardisId);
             BlockPos exteriorPos = SotoExteriorIndex.getExteriorPos(tardisId);
             if (worldKey == null || exteriorPos == null) {
@@ -150,17 +158,18 @@ public final class SotoExteriorSyncService {
             if (exteriorWorld == null) {
                 continue;
             }
-            boolean hasEntities = SotoExteriorSampler.hasEntities(exteriorWorld, exteriorPos);
-            if (hasEntities || ENTITY_ACTIVE.contains(tardisId)) {
-                markDirty(tardisId);
-                if (hasEntities) {
-                    ENTITY_ACTIVE.add(tardisId);
-                    SotoExteriorSampler.keepMobAiActive(exteriorWorld, exteriorPos);
-                } else {
-                    ENTITY_ACTIVE.remove(tardisId);
-                }
-            }
+            SotoExteriorSampler.addStreamTickets(exteriorWorld, exteriorPos);
+            SotoExteriorSampler.keepMobAiActive(exteriorWorld, exteriorPos);
         }
+    }
+
+    static boolean hasInteriorDoorTrackers(ServerWorld interiorWorld, UUID tardisId) {
+        if (interiorWorld == null || tardisId == null) {
+            return false;
+        }
+        BlockPos doorOrigin = TardisPlotAllocator.plotOrigin(tardisId)
+                .add(FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN);
+        return !PlayerLookup.tracking(interiorWorld, doorOrigin).isEmpty();
     }
 
     /** Keep shell door swing in sync while animating. */
@@ -194,6 +203,7 @@ public final class SotoExteriorSyncService {
         Map<BlockPos, net.minecraft.block.BlockState> blocks = SotoExteriorSampler.sample(exteriorWorld, exteriorPos);
         Map<BlockPos, net.minecraft.nbt.NbtCompound> blockEntities =
                 SotoExteriorSampler.sampleBlockEntities(exteriorWorld, exteriorPos);
+        // Snapshot entities kept for fallback when ghost stream is empty; live path is SotoGhostSyncService.
         List<BotiEntitySample> entities = SotoExteriorSampler.sampleEntities(exteriorWorld, exteriorPos);
         SotoAtmosphere atmosphere = SotoExteriorSampler.sampleAtmosphere(exteriorWorld, exteriorPos);
 

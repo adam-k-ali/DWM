@@ -38,6 +38,19 @@ class BotiEntityMotionTest {
     }
 
     @Test
+    void blendFactor_customIntervalUsesProvidedMs() {
+        long receive = 1000L;
+        float half = BotiEntityMotion.blendFactor(receive, receive + 50L, 100L);
+        assertEquals(0.5f, half, 1.0e-4f);
+        LerpedPose pose = BotiEntityMotion.lerpPose(
+                new EntityInterpState(0, 0, 0, 0, 0, 10, 0, 0, 0, 0, receive),
+                receive + 50L,
+                100L
+        );
+        assertEquals(5.0, pose.x(), 1.0e-4);
+    }
+
+    @Test
     void lerpPose_MidpointIsHalfway() {
         EntityInterpState state = new EntityInterpState(
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,

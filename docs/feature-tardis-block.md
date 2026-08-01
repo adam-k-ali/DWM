@@ -44,10 +44,12 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - May not work with Fabulous graphics or some Sodium / shader setups; disable via config if needed.
 
 ## SOTO Notes
-- Visual illusion: does not stream the live exterior dimension to the interior client.
-- Syncs an 11×7×11 exterior footprint centered on the TARDIS block (blocks + BE NBT + entities) plus shell metadata (`variant`, `doorSwing`, `isOpen`, `exteriorRotation`) and atmosphere (`dimensionEffectsId`, `timeOfDay`, rain/thunder gradients, biome sky/fog colors). The exterior `tardis_block` is excluded from the block sample and drawn as a synthetic chameleon shell.
+- Visual illusion: does not inject exterior chunks into the player's `dwm:tardis` dimension.
+- **Snapshot path (blocks / BEs / shell / atmosphere):** syncs an 11×7×11 exterior footprint centered on the TARDIS block plus shell metadata (`variant`, `doorSwing`, `isOpen`, `exteriorRotation`) and atmosphere (`dimensionEffectsId`, `timeOfDay`, rain/thunder gradients, biome sky/fog colors). The exterior `tardis_block` is excluded from the block sample and drawn as a synthetic chameleon shell.
+- **Phase 1 ghost stream (live entities):** while interior players track the door origin (or request `request_soto_ghost`), the server tickets a fixed **2-chunk** Chebyshev radius around the exterior (`STREAM_RADIUS_CHUNKS`), streams sparse chunk columns into a client `SotoGhostExterior` store, and pushes live entity spawn/update/remove packets (~10 Hz). Entity motion and walk cycles come from this ghost path, not snapshot lerp.
+- Snapshot flush stays on a 3-tick cadence for terrain/shell dirtying; entity occupancy no longer forces a 1-tick full snapshot resample. Mob despawn counters are reset over the stream box (ticket-only keep-alive, no per-tick force-load of the whole cube).
 - Client draws a mini skybox (overworld sun/moon/stars, End sky, or Nether fog backdrop) and short-range terrain fog inside the stencil mask before the footprint mesh so gaps do not show the interior dimension sky.
-- Snapshots push to players tracking the interior door origin; clients may also request on cache miss (`request_soto_exterior`).
+- Snapshots push to players tracking the interior door origin; clients may also request on cache miss (`request_soto_exterior` + `request_soto_ghost`).
 - Shares the same stencil framebuffer support as BOTI; session disable covers both if stencil fails during either path.
 - May not work with Fabulous graphics or some Sodium / shader setups; disable via `enableSoto` if needed.
 
@@ -56,8 +58,10 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Door open/closed for entry is server-authoritative; swing animation still updates locally on both sides.
 - Shared exterior BOTI door aperture table per chameleon variant; interior SOTO uses one classic 3×2 opening aperture.
 - Exterior SOTO footprint is axis-aligned (not rotated with exterior facing).
+- Phase 1 still draws **blocks** from the snapshot mesh path; ghost chunk data is stored for Phase 2 terrain meshes.
 
 ## Future Opportunities
 - Richer First Doctor console props.
 - Per-chameleon BOTI / SOTO aperture meshes.
 - Ownership, multi-room corridors, and dematerialization travel.
+- Phase 2: draw SOTO terrain from ghost-world chunk meshes; optional view-distance scaling beyond the fixed 2-chunk stream radius.

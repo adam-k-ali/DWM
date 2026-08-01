@@ -14,10 +14,14 @@ public final class BotiEntityMotion {
     }
 
     public static float blendFactor(long receiveTimeMs, long nowMs) {
-        if (EXPECTED_INTERVAL_MS <= 0L) {
+        return blendFactor(receiveTimeMs, nowMs, EXPECTED_INTERVAL_MS);
+    }
+
+    public static float blendFactor(long receiveTimeMs, long nowMs, long expectedIntervalMs) {
+        if (expectedIntervalMs <= 0L) {
             return 1.0f;
         }
-        return MathHelper.clamp((nowMs - receiveTimeMs) / (float) EXPECTED_INTERVAL_MS, 0.0f, 1.0f);
+        return MathHelper.clamp((nowMs - receiveTimeMs) / (float) expectedIntervalMs, 0.0f, 1.0f);
     }
 
     public static float lerp(float from, float to, float t) {
@@ -34,7 +38,11 @@ public final class BotiEntityMotion {
     }
 
     public static LerpedPose lerpPose(EntityInterpState state, long nowMs) {
-        float t = blendFactor(state.receiveTimeMs(), nowMs);
+        return lerpPose(state, nowMs, EXPECTED_INTERVAL_MS);
+    }
+
+    public static LerpedPose lerpPose(EntityInterpState state, long nowMs, long expectedIntervalMs) {
+        float t = blendFactor(state.receiveTimeMs(), nowMs, expectedIntervalMs);
         return new LerpedPose(
                 lerp(state.fromX(), state.toX(), t),
                 lerp(state.fromY(), state.toY(), t),
@@ -74,33 +82,43 @@ public final class BotiEntityMotion {
             long receiveTimeMs
     ) {
         public static EntityInterpState identity(BotiEntitySample sample, long receiveTimeMs) {
-            return new EntityInterpState(
-                    sample.relX(),
-                    sample.relY(),
-                    sample.relZ(),
-                    sample.yaw(),
-                    sample.pitch(),
-                    sample.relX(),
-                    sample.relY(),
-                    sample.relZ(),
-                    sample.yaw(),
-                    sample.pitch(),
-                    receiveTimeMs
-            );
+            return identity(sample.relX(), sample.relY(), sample.relZ(), sample.yaw(), sample.pitch(), receiveTimeMs);
+        }
+
+        public static EntityInterpState identity(
+                float x,
+                float y,
+                float z,
+                float yaw,
+                float pitch,
+                long receiveTimeMs
+        ) {
+            return new EntityInterpState(x, y, z, yaw, pitch, x, y, z, yaw, pitch, receiveTimeMs);
         }
 
         public EntityInterpState advanceTo(BotiEntitySample sample, long receiveTimeMs) {
+            return advanceTo(sample.relX(), sample.relY(), sample.relZ(), sample.yaw(), sample.pitch(), receiveTimeMs);
+        }
+
+        public EntityInterpState advanceTo(
+                float x,
+                float y,
+                float z,
+                float yaw,
+                float pitch,
+                long receiveTimeMs
+        ) {
             return new EntityInterpState(
                     toX,
                     toY,
                     toZ,
                     toYaw,
                     toPitch,
-                    sample.relX(),
-                    sample.relY(),
-                    sample.relZ(),
-                    sample.yaw(),
-                    sample.pitch(),
+                    x,
+                    y,
+                    z,
+                    yaw,
+                    pitch,
                     receiveTimeMs
             );
         }

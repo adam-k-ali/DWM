@@ -1,10 +1,9 @@
 package com.adamkali.dwm;
 
-import com.adamkali.dwm.block.entities.DWMBlockEntities;
 import com.adamkali.dwm.network.ClientPayloadTypeRegistry;
-import com.adamkali.dwm.render.TardisBlockEntityRenderer;
+import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
 import net.fabricmc.api.ClientModInitializer;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 public class DWMClient implements ClientModInitializer {
     @Override
@@ -13,7 +12,6 @@ public class DWMClient implements ClientModInitializer {
         ClientAnalyticsManager.initialize();
         DWMBlockEntityRendererFactories.initialize();
         ClientPayloadTypeRegistry.initialize();
+        ClientTickEvents.END_CLIENT_TICK.register(client -> SotoGhostExterior.clientTick());
     }
-
-
 }
