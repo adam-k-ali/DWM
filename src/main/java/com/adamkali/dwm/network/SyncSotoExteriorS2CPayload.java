@@ -3,6 +3,7 @@ package com.adamkali.dwm.network;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.adamkali.dwm.tardis.boti.BotiRelativePosCodec;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
+import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSnapshot;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.NbtCompound;
@@ -12,6 +13,7 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.dimension.DimensionTypes;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +22,8 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * S2C full SOTO exterior footprint snapshot. formatVersion 3 = blocks + BE NBT + entities + shell.
+ * S2C full SOTO exterior footprint snapshot.
+ * formatVersion 4 = blocks + BE NBT + entities + shell + atmosphere.
  */
 public record SyncSotoExteriorS2CPayload(
         byte formatVersion,
@@ -32,7 +35,8 @@ public record SyncSotoExteriorS2CPayload(
         Identifier variantId,
         float doorSwing,
         boolean isOpen,
-        int exteriorRotation
+        int exteriorRotation,
+        SotoAtmosphere atmosphere
 ) implements CustomPayload {
     public static final CustomPayload.Id<SyncSotoExteriorS2CPayload> ID =
             new CustomPayload.Id<>(DWMPacketIds.SYNC_SOTO_EXTERIOR_PACKET_ID);
@@ -60,6 +64,7 @@ public record SyncSotoExteriorS2CPayload(
         buf.writeFloat(payload.doorSwing);
         buf.writeBoolean(payload.isOpen);
         PacketCodecs.VAR_INT.encode(buf, payload.exteriorRotation);
+        encodeAtmosphere(payload.atmosphere(), buf);
     }
 
     private static SyncSotoExteriorS2CPayload decode(RegistryByteBuf buf) {
@@ -85,6 +90,9 @@ public record SyncSotoExteriorS2CPayload(
         float doorSwing = buf.readFloat();
         boolean isOpen = buf.readBoolean();
         int exteriorRotation = PacketCodecs.VAR_INT.decode(buf);
+        SotoAtmosphere atmosphere = formatVersion >= SotoExteriorSnapshot.FORMAT_VERSION_ATMOSPHERE
+                ? decodeAtmosphere(buf)
+                : SotoAtmosphere.DEFAULT;
         return new SyncSotoExteriorS2CPayload(
                 formatVersion,
                 tardisId,
@@ -95,7 +103,33 @@ public record SyncSotoExteriorS2CPayload(
                 variantId,
                 doorSwing,
                 isOpen,
-                exteriorRotation
+                exteriorRotation,
+                atmosphere
+        );
+    }
+
+    private static void encodeAtmosphere(SotoAtmosphere atmosphere, RegistryByteBuf buf) {
+        SotoAtmosphere value = atmosphere == null ? SotoAtmosphere.DEFAULT : atmosphere;
+        Identifier.PACKET_CODEC.encode(buf, value.dimensionEffectsId());
+        buf.writeLong(value.timeOfDay());
+        buf.writeFloat(value.rainGradient());
+        buf.writeFloat(value.thunderGradient());
+        buf.writeInt(value.biomeSkyColor());
+        buf.writeInt(value.biomeFogColor());
+    }
+
+    private static SotoAtmosphere decodeAtmosphere(RegistryByteBuf buf) {
+        Identifier effectsId = Identifier.PACKET_CODEC.decode(buf);
+        if (effectsId == null) {
+            effectsId = DimensionTypes.OVERWORLD_ID;
+        }
+        return new SotoAtmosphere(
+                effectsId,
+                buf.readLong(),
+                buf.readFloat(),
+                buf.readFloat(),
+                buf.readInt(),
+                buf.readInt()
         );
     }
 
@@ -137,7 +171,8 @@ public record SyncSotoExteriorS2CPayload(
                 snapshot.variant().getId(),
                 snapshot.doorSwing(),
                 snapshot.isOpen(),
-                snapshot.exteriorRotation()
+                snapshot.exteriorRotation(),
+                snapshot.atmosphere()
         );
     }
 

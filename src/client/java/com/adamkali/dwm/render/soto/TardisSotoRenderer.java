@@ -6,11 +6,13 @@ import com.adamkali.dwm.tardis.data.model.TardisBotiAperture;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisSotoAperture;
 import com.adamkali.dwm.tardis.interior.TardisSotoGate;
+import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
+import net.minecraft.client.render.Fog;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -99,11 +101,22 @@ public final class TardisSotoRenderer {
                 shell == null ? TardisChameleonVariant.TT_CAPSULE : shell.variant();
         TardisBotiAperture exteriorAperture = variant.getAperture();
         int exteriorRotation = shell == null ? 0 : shell.exteriorRotation();
+        SotoAtmosphere atmosphere = SotoExteriorMeshCache.getAtmosphere(tardisId);
+        if (atmosphere == null) {
+            atmosphere = SotoAtmosphere.DEFAULT;
+        }
 
         matrices.push();
         applyExteriorAlignment(matrices, aperture, exteriorAperture);
         applyDoorFacingCorrection(matrices, exteriorRotation);
-        SotoExteriorMeshCache.renderWorld(matrices, vertexConsumers, FULLBRIGHT, tickDelta, tardisId);
+        SotoSkyFogRenderer.renderSky(matrices, vertexConsumers, atmosphere);
+        Fog previousFog = SotoSkyFogRenderer.applyTerrainFog(atmosphere);
+        try {
+            SotoExteriorMeshCache.renderWorld(matrices, vertexConsumers, FULLBRIGHT, tickDelta, tardisId);
+            flush(vertexConsumers);
+        } finally {
+            SotoSkyFogRenderer.restoreFog(previousFog);
+        }
         matrices.pop();
     }
 

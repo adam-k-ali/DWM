@@ -195,6 +195,7 @@ public final class SotoExteriorSyncService {
         Map<BlockPos, net.minecraft.nbt.NbtCompound> blockEntities =
                 SotoExteriorSampler.sampleBlockEntities(exteriorWorld, exteriorPos);
         List<BotiEntitySample> entities = SotoExteriorSampler.sampleEntities(exteriorWorld, exteriorPos);
+        SotoAtmosphere atmosphere = SotoExteriorSampler.sampleAtmosphere(exteriorWorld, exteriorPos);
 
         TardisDoorState doorState = model.doorState == null ? new TardisDoorState() : model.doorState;
         TardisChameleonVariant variant =
@@ -209,7 +210,8 @@ public final class SotoExteriorSyncService {
                 variant,
                 doorState.doorSwing,
                 doorState.isOpen,
-                model.exteriorRotation
+                model.exteriorRotation,
+                atmosphere
         );
         LAST_SNAPSHOT.put(tardisId, snapshot);
         return snapshot;

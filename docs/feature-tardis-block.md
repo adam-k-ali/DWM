@@ -45,7 +45,8 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 
 ## SOTO Notes
 - Visual illusion: does not stream the live exterior dimension to the interior client.
-- Syncs an 11×7×11 exterior footprint centered on the TARDIS block (blocks + BE NBT + entities) plus shell metadata (`variant`, `doorSwing`, `isOpen`, `exteriorRotation`). The exterior `tardis_block` is excluded from the block sample and drawn as a synthetic chameleon shell.
+- Syncs an 11×7×11 exterior footprint centered on the TARDIS block (blocks + BE NBT + entities) plus shell metadata (`variant`, `doorSwing`, `isOpen`, `exteriorRotation`) and atmosphere (`dimensionEffectsId`, `timeOfDay`, rain/thunder gradients, biome sky/fog colors). The exterior `tardis_block` is excluded from the block sample and drawn as a synthetic chameleon shell.
+- Client draws a mini skybox (overworld sun/moon/stars, End sky, or Nether fog backdrop) and short-range terrain fog inside the stencil mask before the footprint mesh so gaps do not show the interior dimension sky.
 - Snapshots push to players tracking the interior door origin; clients may also request on cache miss (`request_soto_exterior`).
 - Shares the same stencil framebuffer support as BOTI; session disable covers both if stencil fails during either path.
 - May not work with Fabulous graphics or some Sodium / shader setups; disable via `enableSoto` if needed.

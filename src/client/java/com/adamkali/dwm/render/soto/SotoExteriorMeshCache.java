@@ -6,6 +6,7 @@ import com.adamkali.dwm.render.boti.BotiEntityMotion.EntityInterpState;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.LerpedPose;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
+import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -74,6 +75,18 @@ public final class SotoExteriorMeshCache {
             return null;
         }
         return cached.shell();
+    }
+
+    public static SotoAtmosphere getAtmosphere(UUID tardisId) {
+        if (tardisId == null) {
+            return null;
+        }
+        CachedSnapshot cached = SNAPSHOTS.get(tardisId);
+        if (cached == null) {
+            requestIfNeeded(tardisId);
+            return null;
+        }
+        return cached.atmosphere();
     }
 
     public static int getBlockEntityNbtCount(UUID tardisId) {
@@ -155,7 +168,8 @@ public final class SotoExteriorMeshCache {
             TardisChameleonVariant variant,
             float doorSwing,
             boolean isOpen,
-            int exteriorRotation
+            int exteriorRotation,
+            SotoAtmosphere atmosphere
     ) {
         if (tardisId == null) {
             return;
@@ -177,6 +191,7 @@ public final class SotoExteriorMeshCache {
                 isOpen,
                 exteriorRotation
         );
+        SotoAtmosphere atm = atmosphere == null ? SotoAtmosphere.DEFAULT : atmosphere;
         SNAPSHOTS.put(tardisId, new CachedSnapshot(
                 revision,
                 blockCopy,
@@ -185,7 +200,8 @@ public final class SotoExteriorMeshCache {
                 entityCopy,
                 reconciled.entities(),
                 reconciled.interp(),
-                shell
+                shell,
+                atm
         ));
         LAST_REQUEST_MS.remove(tardisId);
     }
@@ -512,21 +528,27 @@ public final class SotoExteriorMeshCache {
             List<BotiEntitySample> entitySamples,
             List<Entity> renderedEntities,
             Map<UUID, EntityInterpState> entityInterp,
-            ShellState shell
+            ShellState shell,
+            SotoAtmosphere atmosphere
     ) {
         private CachedSnapshot {
             entityInterp = entityInterp == null || entityInterp.isEmpty() ? Map.of() : Map.copyOf(entityInterp);
+            if (atmosphere == null) {
+                atmosphere = SotoAtmosphere.DEFAULT;
+            }
         }
 
         private CachedSnapshot withRenderedBlockEntities(List<BlockEntity> bes) {
             return new CachedSnapshot(
-                    revision, blocks, blockEntityNbt, bes, entitySamples, renderedEntities, entityInterp, shell
+                    revision, blocks, blockEntityNbt, bes, entitySamples, renderedEntities, entityInterp, shell,
+                    atmosphere
             );
         }
 
         private CachedSnapshot withEntities(List<Entity> entities, Map<UUID, EntityInterpState> interp) {
             return new CachedSnapshot(
-                    revision, blocks, blockEntityNbt, renderedBlockEntities, entitySamples, entities, interp, shell
+                    revision, blocks, blockEntityNbt, renderedBlockEntities, entitySamples, entities, interp, shell,
+                    atmosphere
             );
         }
     }

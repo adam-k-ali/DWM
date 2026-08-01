@@ -56,7 +56,8 @@ public class ClientPayloadTypeRegistry {
                     payload.variant(),
                     payload.doorSwing(),
                     payload.isOpen(),
-                    payload.exteriorRotation()
+                    payload.exteriorRotation(),
+                    payload.atmosphere()
             );
         });
     }

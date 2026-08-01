@@ -12,10 +12,12 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.ChunkSectionPos;
+import net.minecraft.world.biome.Biome;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -67,6 +69,25 @@ public final class SotoExteriorSampler {
             }
         }
         return visible;
+    }
+
+    /**
+     * Samples exterior sky/fog atmosphere at the TARDIS block (single biome point).
+     */
+    public static SotoAtmosphere sampleAtmosphere(ServerWorld exteriorWorld, BlockPos exteriorPos) {
+        Identifier effectsId = exteriorWorld.getDimension().effects();
+        long timeOfDay = exteriorWorld.getTimeOfDay();
+        float rain = exteriorWorld.getRainGradient(0.0f);
+        float thunder = exteriorWorld.getThunderGradient(0.0f);
+        Biome biome = exteriorWorld.getBiome(exteriorPos).value();
+        return new SotoAtmosphere(
+                effectsId,
+                timeOfDay,
+                rain,
+                thunder,
+                biome.getSkyColor(),
+                biome.getFogColor()
+        );
     }
 
     public static Map<BlockPos, BlockState> sample(ServerWorld exteriorWorld, BlockPos exteriorPos) {

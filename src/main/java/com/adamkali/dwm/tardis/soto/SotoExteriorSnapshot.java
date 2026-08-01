@@ -14,7 +14,8 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Server-built exterior SOTO snapshot. formatVersion 3 = blocks + BE NBT + entities + shell metadata.
+ * Server-built exterior SOTO snapshot.
+ * formatVersion 4 = blocks + BE NBT + entities + shell + atmosphere.
  */
 public record SotoExteriorSnapshot(
         int formatVersion,
@@ -26,9 +27,13 @@ public record SotoExteriorSnapshot(
         TardisChameleonVariant variant,
         float doorSwing,
         boolean isOpen,
-        int exteriorRotation
+        int exteriorRotation,
+        SotoAtmosphere atmosphere
 ) {
+    /** @deprecated Prefer {@link #FORMAT_VERSION_ATMOSPHERE}. */
+    @Deprecated
     public static final int FORMAT_VERSION_BLOCKS_BES_ENTITIES_SHELL = 3;
+    public static final int FORMAT_VERSION_ATMOSPHERE = 4;
 
     public SotoExteriorSnapshot {
         blocks = Map.copyOf(blocks);
@@ -36,6 +41,9 @@ public record SotoExteriorSnapshot(
         entities = copyEntities(entities);
         if (variant == null) {
             variant = TardisChameleonVariant.TT_CAPSULE;
+        }
+        if (atmosphere == null) {
+            atmosphere = SotoAtmosphere.DEFAULT;
         }
     }
 
@@ -48,10 +56,11 @@ public record SotoExteriorSnapshot(
             TardisChameleonVariant variant,
             float doorSwing,
             boolean isOpen,
-            int exteriorRotation
+            int exteriorRotation,
+            SotoAtmosphere atmosphere
     ) {
         return new SotoExteriorSnapshot(
-                FORMAT_VERSION_BLOCKS_BES_ENTITIES_SHELL,
+                FORMAT_VERSION_ATMOSPHERE,
                 tardisId,
                 revision,
                 blocks,
@@ -60,7 +69,8 @@ public record SotoExteriorSnapshot(
                 variant,
                 doorSwing,
                 isOpen,
-                exteriorRotation
+                exteriorRotation,
+                atmosphere
         );
     }
 
