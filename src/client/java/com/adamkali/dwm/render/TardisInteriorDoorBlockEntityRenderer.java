@@ -5,6 +5,7 @@ import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.model.tileentity.TardisClassicInteriorDoorModel;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.interior.TardisInteriorDoorRenderAnchor;
+import com.adamkali.dwm.tardis.interior.TardisInteriorDoorShapes;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
@@ -16,15 +17,6 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.RotationAxis;
 
 public class TardisInteriorDoorBlockEntityRenderer implements BlockEntityRenderer<TardisInteriorDoorBlockEntity> {
-    /**
-     * Model spans roughly X=-2..24 (center ≈ 11). Primary cell is the bank's west/start cell;
-     * shift so the double door centers on a 3-wide bank (+1 block along the wall).
-     */
-    private static final float MODEL_CENTER_X_PX = 11.0F;
-    /** Door mesh is 32px tall (~2 blocks); pivot sits at the top after the Blockbench X-180 flip. */
-    private static final float MODEL_HEIGHT_BLOCKS = 2.0F;
-    private static final float BANK_CENTER_OFFSET_BLOCKS = 1.0F;
-
     private final TardisClassicInteriorDoorModel model;
 
     public TardisInteriorDoorBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
@@ -66,11 +58,11 @@ public class TardisInteriorDoorBlockEntityRenderer implements BlockEntityRendere
      * then yaw for {@code facing}. Model pixel units render as 1/16 block.
      */
     static void applyTransforms(MatrixStack matrices, Direction facing) {
-        matrices.translate(0.5, MODEL_HEIGHT_BLOCKS, 0.5);
+        matrices.translate(0.5, TardisInteriorDoorShapes.MODEL_HEIGHT_BLOCKS, 0.5);
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-Direction.getHorizontalDegreesOrThrow(facing)));
-        // Center the ~1.6-block-wide mesh on the 3-wide bank (primary is bank start cell).
-        matrices.translate(BANK_CENTER_OFFSET_BLOCKS, 0.0, 0.0);
+        // Center the ~2-block-wide mesh on the 3-wide bank (primary is bank start cell).
+        matrices.translate(TardisInteriorDoorShapes.BANK_CENTER_OFFSET_BLOCKS, 0.0, 0.0);
         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180.0f));
-        matrices.translate(-MODEL_CENTER_X_PX / 16.0F, 0.0F, 0.0F);
+        matrices.translate(-TardisInteriorDoorShapes.MODEL_CENTER_X_PX / 16.0F, 0.0F, 0.0F);
     }
 }

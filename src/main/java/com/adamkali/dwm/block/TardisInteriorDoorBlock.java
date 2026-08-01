@@ -2,6 +2,7 @@ package com.adamkali.dwm.block;
 
 import com.adamkali.dwm.block.entities.DWMBlockEntities;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
+import com.adamkali.dwm.tardis.interior.TardisInteriorDoorShapes;
 import com.adamkali.dwm.tardis.interior.TardisInteriorService;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.block.Block;
@@ -98,6 +99,7 @@ public class TardisInteriorDoorBlock extends BlockWithEntity {
 
     /**
      * Open interior doors are non-solid so players can walk through and trigger exit collision.
+     * Closed collision matches the classic door mesh (thin slab on the facing side of the bank).
      */
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
@@ -105,12 +107,12 @@ public class TardisInteriorDoorBlock extends BlockWithEntity {
                 && doorEntity.isOpenEnoughForExit()) {
             return VoxelShapes.empty();
         }
-        return VoxelShapes.fullCube();
+        return TardisInteriorDoorShapes.outline(state, world, pos);
     }
 
     @Override
     protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return VoxelShapes.fullCube();
+        return TardisInteriorDoorShapes.outline(state, world, pos);
     }
 
     @Override
