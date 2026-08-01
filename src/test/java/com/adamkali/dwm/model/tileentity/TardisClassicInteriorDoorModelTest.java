@@ -10,15 +10,15 @@ class TardisClassicInteriorDoorModelTest {
     private static final float EPSILON = 1e-4f;
 
     @Test
-    void swingAngles_oppositeSignsAndMatchExteriorMagnitude() {
+    void swingAngles_sameLocalSignAndMatchExteriorMagnitude() {
         assertEquals(0.0f, TardisClassicInteriorDoorModel.door1Yaw(0.0f), EPSILON);
         assertEquals(0.0f, TardisClassicInteriorDoorModel.door2Yaw(0.0f), EPSILON);
 
-        float expected = (float) Math.PI / 3.0f;
+        float expected = (float) (3.0 * Math.PI / 4.0);
         assertEquals(-expected, TardisClassicInteriorDoorModel.door1Yaw(1.0f), EPSILON);
-        assertEquals(expected, TardisClassicInteriorDoorModel.door2Yaw(1.0f), EPSILON);
+        assertEquals(-expected, TardisClassicInteriorDoorModel.door2Yaw(1.0f), EPSILON);
         assertTrue(TardisClassicInteriorDoorModel.door1Yaw(0.5f) < 0.0f);
-        assertTrue(TardisClassicInteriorDoorModel.door2Yaw(0.5f) > 0.0f);
+        assertTrue(TardisClassicInteriorDoorModel.door2Yaw(0.5f) < 0.0f);
     }
 
     @Test

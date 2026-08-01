@@ -44,15 +44,19 @@ public class TardisClassicInteriorDoorModel extends EntityModel<TardisRenderStat
         return TexturedModelData.of(modelData, 32, 32);
     }
 
+    /** Fully open yaw: 135°. */
+    private static final float MAX_DOOR_YAW = (float) (3.0 * Math.PI / 4.0);
+
     /**
-     * Door1 (right leaf when closed) swings negative Y; Door2 swings positive Y.
+     * Door1 (right leaf when closed) and Door2 (left leaf; parent frame2 is Z-flipped)
+     * both swing negative Y so they open outward in world space.
      */
     public static float door1Yaw(float doorSwingProgress) {
-        return -doorSwingProgress * (float) Math.PI / 3.0F;
+        return -doorSwingProgress * MAX_DOOR_YAW;
     }
 
     public static float door2Yaw(float doorSwingProgress) {
-        return doorSwingProgress * (float) Math.PI / 3.0F;
+        return -doorSwingProgress * MAX_DOOR_YAW;
     }
 
     @Override
