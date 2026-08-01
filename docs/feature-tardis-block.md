@@ -50,6 +50,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - **Phase 2 mesh draw:** on chunk apply, client bakes per-chunk GPU meshes (`SotoGhostMeshCache`) and draws them through the existing stencil aperture when ghost chunks and meshes are present; otherwise falls back to snapshot `renderBlockAsEntity`. Ghost block entities render from streamed NBT when on the mesh path.
 - Preview hitch sits one block in front of the exterior shell door face (`PREVIEW_FORWARD_OFFSET`) so the look-out clears the chameleon body rather than starting at the shell center.
 - Lookout stable view (`applyLookoutStableView`) freezes the exterior eye at that hitch looking outward at a fixed view depth (`LOOKOUT_VIEW_DEPTH`) so walking/strafing does not dolly the preview; the synthetic shell is not drawn on the SOTO path.
+- Interior BER layering mirrors exterior BOTI: **shell (frames/jambs) → SOTO → full door mesh**. The post-SOTO pass uses a cutout `RenderLayer` with `ALWAYS_DEPTH_TEST` plus an explicit `GL_ALWAYS` before flush — vanilla `entity_cutout` re-applies `LEQUAL` during `Immediate.draw()`, which let sealed SOTO depths win over door leaves (and left lookout color under hitbox outlines in the aperture).
 - Shares the same stencil framebuffer support as BOTI; session disable covers both if stencil fails during either path.
 - May not work with Fabulous graphics or some Sodium / shader setups; disable via `enableSoto` if needed.
 
