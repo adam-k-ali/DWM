@@ -1,6 +1,8 @@
 package com.adamkali.dwm.block.entities;
 
+import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -15,6 +17,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+/**
+ * Origin-cell state for a 3×2 interior door bank. {@link TardisInteriorDoorBlock#OPEN} on the
+ * blockstates is the source of truth for open/closed; this BE owns swing animation and tardisId.
+ */
 public class TardisInteriorDoorBlockEntity extends BlockEntity implements BlockEntityTicker<TardisInteriorDoorBlockEntity> {
     private @Nullable UUID tardisId;
     private boolean open = true;
@@ -22,6 +28,10 @@ public class TardisInteriorDoorBlockEntity extends BlockEntity implements BlockE
 
     public TardisInteriorDoorBlockEntity(BlockPos pos, BlockState state) {
         super(DWMBlockEntities.TARDIS_INTERIOR_DOOR_BLOCK_ENTITY, pos, state);
+        if (state.contains(TardisInteriorDoorBlock.OPEN)) {
+            this.open = state.get(TardisInteriorDoorBlock.OPEN);
+            this.doorSwing = this.open ? 1.0f : 0.0f;
+        }
     }
 
     public void setTardisId(@Nullable UUID tardisId) {
@@ -41,20 +51,28 @@ public class TardisInteriorDoorBlockEntity extends BlockEntity implements BlockE
         return doorSwing;
     }
 
+    public boolean isSwingInProgress() {
+        return doorSwing > 0.0f && doorSwing < 1.0f;
+    }
+
     public boolean isOpenEnoughForExit() {
         return open && doorSwing >= TardisDimensions.ENTRY_DOOR_SWING_THRESHOLD;
     }
 
-    public void toggleDoor() {
-        if (doorSwing > 0.0f && doorSwing < 1.0f) {
-            return;
-        }
-        open = !open;
+    public void setOpen(boolean open) {
+        this.open = open;
         markDirty();
+        if (world != null) {
+            BlockState state = getCachedState();
+            world.updateListeners(pos, state, state, Block.NOTIFY_LISTENERS);
+        }
     }
 
     @Override
     public void tick(World world, BlockPos pos, BlockState state, TardisInteriorDoorBlockEntity blockEntity) {
+        if (state.contains(TardisInteriorDoorBlock.OPEN)) {
+            open = state.get(TardisInteriorDoorBlock.OPEN);
+        }
         if (open) {
             doorSwing = Math.min(doorSwing + 0.05f, 1f);
         } else {

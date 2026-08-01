@@ -82,7 +82,7 @@ class TardisInteriorUnitTest {
         assertEquals(FirstDoctorConsoleRoomLayout.SIZE_Y, FirstDoctorConsoleRoomPlacer.SIZE_Y);
         assertEquals(FirstDoctorConsoleRoomLayout.SIZE_Z, FirstDoctorConsoleRoomPlacer.SIZE_Z);
         assertEquals(FirstDoctorConsoleRoomLayout.LOCAL_ENTRANCE, FirstDoctorConsoleRoomPlacer.LOCAL_ENTRANCE);
-        assertEquals(1, FirstDoctorConsoleRoomLayout.LAYOUT_VERSION);
+        assertEquals(2, FirstDoctorConsoleRoomLayout.LAYOUT_VERSION);
     }
 
     @Test

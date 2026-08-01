@@ -5,6 +5,7 @@ import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
@@ -24,7 +25,7 @@ public final class FirstDoctorConsoleRoomLayout {
     public static final BlockPos LOCAL_ENTRANCE = new BlockPos(5, 1, 1);
 
     /** Layout version for client mesh cache invalidation. */
-    public static final int LAYOUT_VERSION = 1;
+    public static final int LAYOUT_VERSION = 2;
 
     private static Map<BlockPos, BlockState> cachedPlacements;
 
@@ -54,9 +55,6 @@ public final class FirstDoctorConsoleRoomLayout {
         BlockState console = DWMBlocks.TEAL_BIG_ROUNDEL_A.getDefaultState();
         BlockState air = Blocks.AIR.getDefaultState();
         BlockState light = Blocks.LIGHT.getDefaultState();
-        BlockState doorState = DWMBlocks.TARDIS_INTERIOR_DOOR.getDefaultState()
-                .with(TardisInteriorDoorBlock.FACING, Direction.SOUTH);
-
         for (int x = 0; x < SIZE_X; x++) {
             for (int z = 0; z < SIZE_Z; z++) {
                 placements.put(new BlockPos(x, 0, z), floor);
@@ -67,9 +65,13 @@ public final class FirstDoctorConsoleRoomLayout {
                 }
             }
         }
-        for (int y = 1; y <= 2; y++) {
-            for (int x = 4; x <= 6; x++) {
-                placements.put(new BlockPos(x, y, 0), doorState);
+        // 3×2 door bank: origin (4,1,0) = lower/slot0; slots increase east when facing south.
+        Direction doorFacing = Direction.SOUTH;
+        for (DoubleBlockHalf half : DoubleBlockHalf.values()) {
+            for (int slot = 0; slot < TardisInteriorDoorBlock.BANK_WIDTH; slot++) {
+                BlockPos cell = TardisInteriorDoorBlock.cellPos(
+                        new BlockPos(4, 1, 0), doorFacing, half, slot);
+                placements.put(cell, TardisInteriorDoorBlock.bankCellState(doorFacing, half, slot, true));
             }
         }
         placements.put(new BlockPos(5, 1, 5), console);

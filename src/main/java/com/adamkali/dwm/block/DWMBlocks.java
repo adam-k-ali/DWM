@@ -243,10 +243,6 @@ public class DWMBlocks {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(content -> {
             content.add(TARDIS_DOOR_BUTTON);
         });
-
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(content -> {
-            content.add(TARDIS_INTERIOR_DOOR);
-        });
     }
 
     private static Block register(Function<AbstractBlock.Settings, Block> factory, AbstractBlock.Settings settings, String id) {
