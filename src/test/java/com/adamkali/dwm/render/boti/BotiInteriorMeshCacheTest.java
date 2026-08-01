@@ -2,6 +2,7 @@ package com.adamkali.dwm.render.boti;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import net.minecraft.block.BlockState;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -135,5 +137,76 @@ class BotiInteriorMeshCacheTest {
 
         assertFalse(BotiInteriorMeshCache.hasSnapshot(id));
         assertEquals(0, BotiInteriorMeshCache.getBlockEntityNbtCount(id));
+    }
+
+    @Test
+    void applySnapshot_StoresEntitySamples() {
+        UUID id = UUID.randomUUID();
+        BlockPos wall = new BlockPos(0, 0, 0);
+        NbtCompound entityNbt = new NbtCompound();
+        entityNbt.putString("id", "minecraft:armor_stand");
+        BotiEntitySample sample = new BotiEntitySample(4f, 1f, 5f, 45f, 0f, entityNbt);
+
+        BotiInteriorMeshCache.applySnapshot(
+                id,
+                1,
+                Map.of(wall, DWMBlocks.WHITE_TARDIS_WALL.getDefaultState()),
+                Map.of(),
+                List.of(sample)
+        );
+
+        assertTrue(BotiInteriorMeshCache.hasSnapshot(id));
+        assertEquals(1, BotiInteriorMeshCache.getEntitySampleCount(id));
+        // Without a client world, synthetic entities are not rebuilt yet.
+        assertTrue(BotiInteriorMeshCache.getEntities(id).isEmpty());
+    }
+
+    @Test
+    void applySnapshot_OlderRevisionDoesNotReplaceEntities() {
+        UUID id = UUID.randomUUID();
+        BlockPos wall = new BlockPos(0, 0, 0);
+        NbtCompound newerNbt = new NbtCompound();
+        newerNbt.putString("id", "minecraft:armor_stand");
+        BotiEntitySample newer = new BotiEntitySample(1f, 1f, 1f, 0f, 0f, newerNbt);
+
+        BotiInteriorMeshCache.applySnapshot(
+                id,
+                4,
+                Map.of(wall, DWMBlocks.WHITE_TARDIS_WALL.getDefaultState()),
+                Map.of(),
+                List.of(newer)
+        );
+        BotiInteriorMeshCache.applySnapshot(
+                id,
+                3,
+                Map.of(wall, DWMBlocks.TEAL_BIG_ROUNDEL_A.getDefaultState()),
+                Map.of(),
+                List.of()
+        );
+
+        assertEquals(1, BotiInteriorMeshCache.getEntitySampleCount(id));
+        assertEquals(
+                DWMBlocks.WHITE_TARDIS_WALL.getDefaultState(),
+                BotiInteriorMeshCache.getVisibleBlocks(id).get(wall)
+        );
+    }
+
+    @Test
+    void invalidate_ClearsEntitySamples() {
+        UUID id = UUID.randomUUID();
+        NbtCompound entityNbt = new NbtCompound();
+        entityNbt.putString("id", "minecraft:pig");
+        BotiInteriorMeshCache.applySnapshot(
+                id,
+                1,
+                Map.of(new BlockPos(0, 0, 0), DWMBlocks.WHITE_TARDIS_WALL.getDefaultState()),
+                Map.of(),
+                List.of(new BotiEntitySample(2f, 1f, 2f, 0f, 0f, entityNbt))
+        );
+
+        BotiInteriorMeshCache.invalidate(id);
+
+        assertFalse(BotiInteriorMeshCache.hasSnapshot(id));
+        assertEquals(0, BotiInteriorMeshCache.getEntitySampleCount(id));
     }
 }

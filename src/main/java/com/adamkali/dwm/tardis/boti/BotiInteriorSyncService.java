@@ -20,18 +20,22 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Near-live BOTI snapshot sync: dirty on interior edits, coalesced flush every few ticks.
+ * Near-live BOTI snapshot sync: dirty on interior edits and while entities occupy a plot,
+ * coalesced flush every few ticks.
  */
 public final class BotiInteriorSyncService {
     private static final int FLUSH_INTERVAL_TICKS = 3;
 
     private static final Set<UUID> DIRTY = ConcurrentHashMap.newKeySet();
+    /** Plots that currently have entities (or just cleared — removed after one empty flush). */
+    private static final Set<UUID> ENTITY_ACTIVE = ConcurrentHashMap.newKeySet();
     private static final Map<UUID, BotiInteriorSnapshot> LAST_SNAPSHOT = new ConcurrentHashMap<>();
     private static final Map<UUID, Integer> REVISIONS = new ConcurrentHashMap<>();
     private static int tickCounter;
@@ -58,6 +62,7 @@ public final class BotiInteriorSyncService {
 
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             DIRTY.clear();
+            ENTITY_ACTIVE.clear();
             LAST_SNAPSHOT.clear();
             REVISIONS.clear();
             BotiPlotIndex.clear();
@@ -101,6 +106,7 @@ public final class BotiInteriorSyncService {
 
     private static void onEndTick(MinecraftServer server) {
         tickCounter++;
+        markEntityOccupiedPlotsDirty(server);
         if (tickCounter % FLUSH_INTERVAL_TICKS != 0 || DIRTY.isEmpty()) {
             return;
         }
@@ -115,6 +121,28 @@ public final class BotiInteriorSyncService {
         }
     }
 
+    /**
+     * Keeps plots dirty while entities are present, and one more flush after they leave
+     * so clients clear the last rendered entities.
+     */
+    private static void markEntityOccupiedPlotsDirty(MinecraftServer server) {
+        ServerWorld interiorWorld = server.getWorld(TardisDimensions.TARDIS_WORLD_KEY);
+        if (interiorWorld == null) {
+            return;
+        }
+        for (UUID tardisId : BotiPlotIndex.registeredIds()) {
+            boolean hasEntities = BotiInteriorSampler.hasEntities(interiorWorld, tardisId);
+            if (hasEntities || ENTITY_ACTIVE.contains(tardisId)) {
+                markDirty(tardisId);
+                if (hasEntities) {
+                    ENTITY_ACTIVE.add(tardisId);
+                } else {
+                    ENTITY_ACTIVE.remove(tardisId);
+                }
+            }
+        }
+    }
+
     private static BotiInteriorSnapshot buildSnapshot(MinecraftServer server, UUID tardisId) {
         ServerWorld interiorWorld = server.getWorld(TardisDimensions.TARDIS_WORLD_KEY);
         if (interiorWorld == null) {
@@ -125,7 +153,8 @@ public final class BotiInteriorSyncService {
         Map<BlockPos, net.minecraft.block.BlockState> blocks = BotiInteriorSampler.sample(interiorWorld, tardisId);
         Map<BlockPos, net.minecraft.nbt.NbtCompound> blockEntities =
                 BotiInteriorSampler.sampleBlockEntities(interiorWorld, tardisId);
-        BotiInteriorSnapshot snapshot = BotiInteriorSnapshot.of(tardisId, revision, blocks, blockEntities);
+        List<BotiEntitySample> entities = BotiInteriorSampler.sampleEntities(interiorWorld, tardisId);
+        BotiInteriorSnapshot snapshot = BotiInteriorSnapshot.of(tardisId, revision, blocks, blockEntities, entities);
         LAST_SNAPSHOT.put(tardisId, snapshot);
         return snapshot;
     }

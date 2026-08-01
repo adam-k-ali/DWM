@@ -34,7 +34,8 @@ public class ClientPayloadTypeRegistry {
                     payload.tardisId(),
                     payload.revision(),
                     payload.toBlockMap(),
-                    payload.toBlockEntityMap()
+                    payload.toBlockEntityMap(),
+                    payload.toEntityList()
             );
         });
     }

@@ -3,15 +3,28 @@ package com.adamkali.dwm.tardis.boti;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
+import com.mojang.authlib.GameProfile;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtDouble;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.ChunkSectionPos;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -23,6 +36,13 @@ public final class BotiInteriorSampler {
     public static final int SIZE_X = FirstDoctorConsoleRoomLayout.SIZE_X;
     public static final int SIZE_Y = FirstDoctorConsoleRoomLayout.SIZE_Y;
     public static final int SIZE_Z = FirstDoctorConsoleRoomLayout.SIZE_Z;
+
+    /**
+     * Keeps footprint chunks entity-accessible briefly after the player leaves the TARDIS
+     * dimension so BOTI can still sample live entities for the exterior preview.
+     */
+    private static final ChunkTicketType<ChunkPos> BOTI_TICKET =
+            ChunkTicketType.create("dwm_boti", Comparator.comparingLong(ChunkPos::toLong), 80);
 
     private BotiInteriorSampler() {
     }
@@ -104,6 +124,137 @@ public final class BotiInteriorSampler {
         NbtCompound nbt = blockEntity.toInitialChunkDataNbt(registries);
         BlockEntity.writeIdToNbt(nbt, blockEntity.getType());
         return nbt;
+    }
+
+    /** Axis-aligned footprint box in world space for entity queries. */
+    public static Box footprintBox(BlockPos plotOrigin) {
+        return new Box(
+                plotOrigin.getX(),
+                plotOrigin.getY(),
+                plotOrigin.getZ(),
+                plotOrigin.getX() + SIZE_X,
+                plotOrigin.getY() + SIZE_Y,
+                plotOrigin.getZ() + SIZE_Z
+        );
+    }
+
+    /**
+     * Inclusive chunk-grid bounds covering the footprint:
+     * {@code [minChunkX, maxChunkX, minChunkZ, maxChunkZ]}.
+     */
+    public static int[] footprintChunkBounds(BlockPos plotOrigin) {
+        return new int[]{
+                ChunkSectionPos.getSectionCoord(plotOrigin.getX()),
+                ChunkSectionPos.getSectionCoord(plotOrigin.getX() + SIZE_X - 1),
+                ChunkSectionPos.getSectionCoord(plotOrigin.getZ()),
+                ChunkSectionPos.getSectionCoord(plotOrigin.getZ() + SIZE_Z - 1)
+        };
+    }
+
+    /**
+     * Ensures footprint chunks are loaded (and briefly ticketed) so entity queries work even when
+     * no player is in {@code dwm:tardis}.
+     */
+    public static void ensureFootprintChunksLoaded(ServerWorld world, BlockPos plotOrigin) {
+        if (world == null || plotOrigin == null) {
+            return;
+        }
+        int[] bounds = footprintChunkBounds(plotOrigin);
+        var chunkManager = world.getChunkManager();
+        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
+            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
+                ChunkPos chunkPos = new ChunkPos(cx, cz);
+                chunkManager.addTicket(BOTI_TICKET, chunkPos, 2, chunkPos);
+                world.getChunk(cx, cz);
+            }
+        }
+    }
+
+    /** True if any non-removed entity intersects the plot footprint. */
+    public static boolean hasEntities(ServerWorld interiorWorld, UUID tardisId) {
+        BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
+        ensureFootprintChunksLoaded(interiorWorld, origin);
+        return !interiorWorld.getOtherEntities(null, footprintBox(origin), entity -> !entity.isRemoved()).isEmpty();
+    }
+
+    /**
+     * Samples entities intersecting the footprint into relative structure coordinates.
+     * Uses {@link Entity#saveSelfNbt}; players are special-cased ({@code EntityType.PLAYER} is not saveable).
+     */
+    public static List<BotiEntitySample> sampleEntities(ServerWorld interiorWorld, UUID tardisId) {
+        BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
+        ensureFootprintChunksLoaded(interiorWorld, origin);
+        List<Entity> found = interiorWorld.getOtherEntities(null, footprintBox(origin), entity -> !entity.isRemoved());
+        if (found.isEmpty()) {
+            return List.of();
+        }
+        List<BotiEntitySample> samples = new ArrayList<>(found.size());
+        for (Entity entity : found) {
+            BotiEntitySample sample = captureEntity(entity, origin);
+            if (sample != null) {
+                samples.add(sample);
+            }
+        }
+        return List.copyOf(samples);
+    }
+
+    /**
+     * Captures one entity for BOTI sync. Returns null when the entity cannot be serialized.
+     */
+    public static BotiEntitySample captureEntity(Entity entity, BlockPos plotOrigin) {
+        if (entity == null || entity.isRemoved() || plotOrigin == null) {
+            return null;
+        }
+        NbtCompound nbt = captureEntityNbt(entity);
+        if (nbt == null) {
+            return null;
+        }
+        float relX = (float) (entity.getX() - plotOrigin.getX());
+        float relY = (float) (entity.getY() - plotOrigin.getY());
+        float relZ = (float) (entity.getZ() - plotOrigin.getZ());
+        writeRelativePos(nbt, relX, relY, relZ);
+        writeRelativeAttachment(nbt, plotOrigin);
+        return new BotiEntitySample(relX, relY, relZ, entity.getYaw(), entity.getPitch(), nbt);
+    }
+
+    /**
+     * Entity NBT with type {@code id}. Players get profile tags for client {@code OtherClientPlayerEntity}.
+     */
+    public static NbtCompound captureEntityNbt(Entity entity) {
+        NbtCompound nbt = new NbtCompound();
+        if (entity instanceof PlayerEntity player) {
+            nbt.putString("id", EntityType.getId(EntityType.PLAYER).toString());
+            GameProfile profile = player.getGameProfile();
+            nbt.putUuid(BotiEntitySample.BOTI_PROFILE_ID, profile.getId());
+            nbt.putString(BotiEntitySample.BOTI_PROFILE_NAME, profile.getName() == null ? "" : profile.getName());
+            player.writeNbt(nbt);
+            return nbt;
+        }
+        if (!entity.saveSelfNbt(nbt)) {
+            return null;
+        }
+        return nbt;
+    }
+
+    static void writeRelativePos(NbtCompound nbt, float relX, float relY, float relZ) {
+        NbtList pos = new NbtList();
+        pos.add(NbtDouble.of(relX));
+        pos.add(NbtDouble.of(relY));
+        pos.add(NbtDouble.of(relZ));
+        nbt.put("Pos", pos);
+    }
+
+    /**
+     * Rewrites decoration {@code TileX/Y/Z} into plot-relative coords so client reconstruction
+     * does not trip {@code BlockAttachedEntity}'s absolute-vs-Pos distance check.
+     */
+    static void writeRelativeAttachment(NbtCompound nbt, BlockPos plotOrigin) {
+        if (nbt == null || plotOrigin == null || !nbt.contains("TileX")) {
+            return;
+        }
+        nbt.putInt("TileX", nbt.getInt("TileX") - plotOrigin.getX());
+        nbt.putInt("TileY", nbt.getInt("TileY") - plotOrigin.getY());
+        nbt.putInt("TileZ", nbt.getInt("TileZ") - plotOrigin.getZ());
     }
 
     public static boolean isInsideFootprint(BlockPos worldPos, BlockPos plotOrigin) {

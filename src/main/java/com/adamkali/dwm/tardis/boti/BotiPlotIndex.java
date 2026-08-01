@@ -4,7 +4,9 @@ import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,6 +36,11 @@ public final class BotiPlotIndex {
 
     public static boolean isRegistered(UUID tardisId) {
         return tardisId != null && ORIGINS.containsKey(tardisId);
+    }
+
+    /** Snapshot of currently registered TARDIS ids (for entity occupancy dirtying). */
+    public static Set<UUID> registeredIds() {
+        return Collections.unmodifiableSet(ORIGINS.keySet());
     }
 
     public static @Nullable BlockPos getOrigin(UUID tardisId) {

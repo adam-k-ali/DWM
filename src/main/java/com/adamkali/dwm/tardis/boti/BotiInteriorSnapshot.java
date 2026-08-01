@@ -4,30 +4,54 @@ import net.minecraft.block.BlockState;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.BlockPos;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 /**
- * Server-built BOTI placement snapshot. formatVersion 2 includes block states plus
- * chunk-sync block-entity NBT for client BER rendering.
+ * Server-built BOTI placement snapshot. formatVersion 3 includes block states,
+ * chunk-sync block-entity NBT, and live entity samples for client rendering.
  */
 public record BotiInteriorSnapshot(
         int formatVersion,
         UUID tardisId,
         int revision,
         Map<BlockPos, BlockState> blocks,
-        Map<BlockPos, NbtCompound> blockEntities
+        Map<BlockPos, NbtCompound> blockEntities,
+        List<BotiEntitySample> entities
 ) {
-    /** @deprecated Prefer {@link #FORMAT_VERSION_BLOCKS_AND_BES}; kept for test comparisons. */
+    /** @deprecated Prefer {@link #FORMAT_VERSION_BLOCKS_BES_AND_ENTITIES}; kept for test comparisons. */
     @Deprecated
     public static final int FORMAT_VERSION_BLOCKS = 1;
+    /** @deprecated Prefer {@link #FORMAT_VERSION_BLOCKS_BES_AND_ENTITIES}; kept for test comparisons. */
+    @Deprecated
     public static final int FORMAT_VERSION_BLOCKS_AND_BES = 2;
+    public static final int FORMAT_VERSION_BLOCKS_BES_AND_ENTITIES = 3;
 
     public BotiInteriorSnapshot {
         blocks = Map.copyOf(blocks);
         blockEntities = copyNbtMap(blockEntities);
+        entities = copyEntities(entities);
+    }
+
+    public static BotiInteriorSnapshot of(
+            UUID tardisId,
+            int revision,
+            Map<BlockPos, BlockState> blocks,
+            Map<BlockPos, NbtCompound> blockEntities,
+            List<BotiEntitySample> entities
+    ) {
+        return new BotiInteriorSnapshot(
+                FORMAT_VERSION_BLOCKS_BES_AND_ENTITIES,
+                tardisId,
+                revision,
+                blocks,
+                blockEntities,
+                entities
+        );
     }
 
     public static BotiInteriorSnapshot of(
@@ -36,11 +60,11 @@ public record BotiInteriorSnapshot(
             Map<BlockPos, BlockState> blocks,
             Map<BlockPos, NbtCompound> blockEntities
     ) {
-        return new BotiInteriorSnapshot(FORMAT_VERSION_BLOCKS_AND_BES, tardisId, revision, blocks, blockEntities);
+        return of(tardisId, revision, blocks, blockEntities, List.of());
     }
 
     public static BotiInteriorSnapshot of(UUID tardisId, int revision, Map<BlockPos, BlockState> blocks) {
-        return of(tardisId, revision, blocks, Map.of());
+        return of(tardisId, revision, blocks, Map.of(), List.of());
     }
 
     public Map<BlockPos, BlockState> blocksView() {
@@ -49,6 +73,10 @@ public record BotiInteriorSnapshot(
 
     public Map<BlockPos, NbtCompound> blockEntitiesView() {
         return Collections.unmodifiableMap(blockEntities);
+    }
+
+    public List<BotiEntitySample> entitiesView() {
+        return Collections.unmodifiableList(entities);
     }
 
     private static Map<BlockPos, NbtCompound> copyNbtMap(Map<BlockPos, NbtCompound> source) {
@@ -62,5 +90,18 @@ public record BotiInteriorSnapshot(
             }
         }
         return Map.copyOf(copy);
+    }
+
+    private static List<BotiEntitySample> copyEntities(List<BotiEntitySample> source) {
+        if (source == null || source.isEmpty()) {
+            return List.of();
+        }
+        List<BotiEntitySample> copy = new ArrayList<>(source.size());
+        for (BotiEntitySample sample : source) {
+            if (sample != null) {
+                copy.add(sample);
+            }
+        }
+        return List.copyOf(copy);
     }
 }
