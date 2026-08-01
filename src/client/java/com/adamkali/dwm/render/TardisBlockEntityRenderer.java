@@ -3,6 +3,7 @@ package com.adamkali.dwm.render;
 import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.model.tileentity.*;
+import com.adamkali.dwm.render.boti.TardisBotiRenderer;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
@@ -48,20 +49,68 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
 
         TardisChameleonVariant variant = Objects.requireNonNullElse(TardisLogic.getVariant(entity.getTardisId()), TardisChameleonVariant.TT_CAPSULE);
         TardisDoorState doorState = Objects.requireNonNullElse(TardisLogic.getDoorState(entity.getTardisId()), new TardisDoorState());
+        float degrees = RotationPropertyHelper.toDegrees(rotation);
+
+        TardisModel model = modelCache.get(variant);
         VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutout(textureCache.get(variant)));
-        this.render(matrices, vertexConsumer, modelCache.get(variant), doorState.doorSwing, RotationPropertyHelper.toDegrees(rotation), light, overlay);
+
+        if (TardisBotiRenderer.shouldRender(doorState)) {
+            // Shell → BOTI → doors so swung doors draw over the interior preview.
+            this.renderShell(matrices, vertexConsumer, model, doorState.doorSwing, degrees, light, overlay);
+
+            matrices.push();
+            applyExteriorTransforms(matrices, degrees);
+            TardisBotiRenderer.render(matrices, vertexConsumers, tickDelta, entity.getTardisId(), variant);
+            matrices.pop();
+
+            vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutout(textureCache.get(variant)));
+            this.renderDoors(matrices, vertexConsumer, model, doorState.doorSwing, degrees, light, overlay);
+        } else {
+            this.renderExterior(matrices, vertexConsumer, model, doorState.doorSwing, degrees, light, overlay);
+        }
     }
 
-    private void render(MatrixStack matrices, VertexConsumer vertices, TardisModel model, float doorProgress, float rotation, int light, int overlay) {
+    @Override
+    public int getRenderDistance() {
+        // Interior preview extends several blocks behind the door aperture.
+        return 128;
+    }
+
+    private void renderExterior(MatrixStack matrices, VertexConsumer vertices, TardisModel model, float doorProgress, float rotation, int light, int overlay) {
+        prepareRenderState(model, doorProgress);
+        matrices.push();
+        applyExteriorTransforms(matrices, rotation);
+        model.render(matrices, vertices, light, overlay);
+        matrices.pop();
+    }
+
+    private void renderShell(MatrixStack matrices, VertexConsumer vertices, TardisModel model, float doorProgress, float rotation, int light, int overlay) {
+        prepareRenderState(model, doorProgress);
+        matrices.push();
+        applyExteriorTransforms(matrices, rotation);
+        model.renderShell(matrices, vertices, light, overlay);
+        matrices.pop();
+    }
+
+    private void renderDoors(MatrixStack matrices, VertexConsumer vertices, TardisModel model, float doorProgress, float rotation, int light, int overlay) {
+        prepareRenderState(model, doorProgress);
+        matrices.push();
+        applyExteriorTransforms(matrices, rotation);
+        model.renderDoors(matrices, vertices, light, overlay);
+        matrices.pop();
+    }
+
+    private static TardisRenderState prepareRenderState(TardisModel model, float doorProgress) {
         TardisRenderState state = new TardisRenderState();
         state.setDoorSwingProgress(doorProgress);
-        matrices.push();
+        model.setAngles(state);
+        return state;
+    }
+
+    private static void applyExteriorTransforms(MatrixStack matrices, float rotationDegrees) {
         matrices.scale(2.0f, 2.0f, 2.0f);
         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180.0f));
         matrices.translate(0.25D, -1.5D, -0.25D);
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(rotation - 180.0f));
-        model.setAngles(state);
-        model.render(matrices, vertices, light, overlay);
-        matrices.pop();
+        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(rotationDegrees - 180.0f));
     }
 }

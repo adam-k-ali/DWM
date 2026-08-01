@@ -1,6 +1,7 @@
 package com.adamkali.dwm.block.entities;
 
 import com.adamkali.dwm.sound.DWMSounds;
+import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import net.minecraft.block.BlockState;
@@ -51,6 +52,9 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
     public void tick(World world, BlockPos pos, BlockState state, TardisBlockEntity blockEntity) {
         if (this.tardisId != null) {
             TardisLogic.updateDoorState(this.tardisId);
+            if (!world.isClient() && this.interiorGenerated && !BotiPlotIndex.isRegistered(this.tardisId)) {
+                BotiPlotIndex.register(this.tardisId);
+            }
         }
     }
 

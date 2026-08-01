@@ -14,6 +14,9 @@ public class DWMConfig {
 
     public static final ConfigKey<Boolean> ENABLE_CHAMELEON_GUI = new ConfigKey<>("enableChameleonGui", false);
 
+    /** Exterior bigger-on-the-inside door preview (client stencil). Default on. */
+    public static final ConfigKey<Boolean> ENABLE_BOTI = new ConfigKey<>("enableBoti", true);
+
     private static HashMap<String, Object> config = new HashMap<>();
 
     public static void init() {

@@ -32,6 +32,7 @@ class DWMConfigTest {
 
             assertTrue(DWMConfig.getBoolean(DWMConfig.IS_FIRST_START));
             assertFalse(DWMConfig.getBoolean(DWMConfig.ENABLE_CHAMELEON_GUI));
+            assertTrue(DWMConfig.getBoolean(DWMConfig.ENABLE_BOTI));
         }
     }
 
