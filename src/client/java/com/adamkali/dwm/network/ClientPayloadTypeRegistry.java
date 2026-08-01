@@ -50,7 +50,6 @@ public class ClientPayloadTypeRegistry {
             SotoExteriorMeshCache.applySnapshot(
                     payload.tardisId(),
                     payload.revision(),
-                    payload.radiusChunks(),
                     payload.toBlockMap(),
                     payload.toBlockEntityMap(),
                     payload.toEntityList(),

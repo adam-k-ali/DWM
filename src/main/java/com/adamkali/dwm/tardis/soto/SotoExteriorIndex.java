@@ -83,7 +83,8 @@ public final class SotoExteriorIndex {
             if (!key.worldKey().equals(worldKey)) {
                 continue;
             }
-            if (SotoExteriorSampler.isInsideMaxFootprint(worldPos, key.exteriorPos())) {
+            BlockPos footprintOrigin = SotoExteriorSampler.footprintOrigin(key.exteriorPos());
+            if (SotoExteriorSampler.isInsideFootprint(worldPos, footprintOrigin)) {
                 return entry.getKey();
             }
         }

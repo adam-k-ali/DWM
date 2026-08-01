@@ -114,11 +114,11 @@ class ServerPayloadTypeRegistryTest {
     @Test
     void safelyHandleSotoRequest_rejectsNullTardisIdOrPlayer() {
         assertFalse(ServerPayloadTypeRegistry.safelyHandleSotoRequest(
-                new RequestSotoExteriorC2SPayload(null, 8),
+                new RequestSotoExteriorC2SPayload(null),
                 null
         ));
         assertFalse(ServerPayloadTypeRegistry.safelyHandleSotoRequest(
-                new RequestSotoExteriorC2SPayload(UUID.randomUUID(), 8),
+                new RequestSotoExteriorC2SPayload(UUID.randomUUID()),
                 null
         ));
     }

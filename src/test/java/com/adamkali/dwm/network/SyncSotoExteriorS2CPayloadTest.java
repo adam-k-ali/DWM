@@ -24,7 +24,7 @@ class SyncSotoExteriorS2CPayloadTest {
     }
 
     @Test
-    void fromSnapshot_roundTripsBlocksEntitiesShellAndRadius() {
+    void fromSnapshot_roundTripsBlocksEntitiesAndShell() {
         UUID id = UUID.randomUUID();
         NbtCompound beNbt = new NbtCompound();
         beNbt.putString("id", "minecraft:chest");
@@ -35,9 +35,8 @@ class SyncSotoExteriorS2CPayloadTest {
         SotoExteriorSnapshot snapshot = SotoExteriorSnapshot.of(
                 id,
                 7,
-                4,
-                Map.of(new BlockPos(-12, 2, 30), Blocks.OAK_PLANKS.getDefaultState()),
-                Map.of(new BlockPos(-12, 2, 30), beNbt),
+                Map.of(new BlockPos(1, 2, 3), Blocks.OAK_PLANKS.getDefaultState()),
+                Map.of(new BlockPos(1, 2, 3), beNbt),
                 List.of(entity),
                 TardisChameleonVariant.FOURTH_DOCTOR_BOX,
                 0.8f,
@@ -49,35 +48,15 @@ class SyncSotoExteriorS2CPayloadTest {
 
         assertEquals(id, payload.tardisId());
         assertEquals(7, payload.revision());
-        assertEquals(4, payload.radiusChunks());
-        assertEquals(SotoExteriorSnapshot.FORMAT_VERSION_VIEW_DISTANCE, payload.formatVersion());
         assertEquals(TardisChameleonVariant.FOURTH_DOCTOR_BOX.getId(), payload.variantId());
         assertEquals(0.8f, payload.doorSwing(), 1e-4f);
         assertTrue(payload.isOpen());
         assertEquals(12, payload.exteriorRotation());
         assertEquals(1, payload.toBlockMap().size());
-        assertEquals(Blocks.OAK_PLANKS, payload.toBlockMap().get(new BlockPos(-12, 2, 30)).getBlock());
+        assertEquals(Blocks.OAK_PLANKS, payload.toBlockMap().get(new BlockPos(1, 2, 3)).getBlock());
         assertEquals(1, payload.toBlockEntityMap().size());
         assertEquals(1, payload.toEntityList().size());
         assertEquals(TardisChameleonVariant.FOURTH_DOCTOR_BOX, payload.variant());
         assertEquals(SyncSotoExteriorS2CPayload.ID, payload.getId());
-    }
-
-    @Test
-    void fromSnapshot_clampsRadiusChunks() {
-        SotoExteriorSnapshot snapshot = SotoExteriorSnapshot.of(
-                UUID.randomUUID(),
-                1,
-                99,
-                Map.of(),
-                Map.of(),
-                List.of(),
-                TardisChameleonVariant.TT_CAPSULE,
-                0.0f,
-                false,
-                0
-        );
-        assertEquals(8, snapshot.radiusChunks());
-        assertEquals(8, SyncSotoExteriorS2CPayload.fromSnapshot(snapshot).radiusChunks());
     }
 }

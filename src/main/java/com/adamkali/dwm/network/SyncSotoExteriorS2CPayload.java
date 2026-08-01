@@ -3,7 +3,6 @@ package com.adamkali.dwm.network;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.adamkali.dwm.tardis.boti.BotiRelativePosCodec;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
-import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSnapshot;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.NbtCompound;
@@ -21,15 +20,14 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * S2C SOTO exterior snapshot. formatVersion 4 = signed relative positions + radiusChunks + shell.
+ * S2C full SOTO exterior footprint snapshot. formatVersion 3 = blocks + BE NBT + entities + shell.
  */
 public record SyncSotoExteriorS2CPayload(
         byte formatVersion,
         UUID tardisId,
         int revision,
-        int radiusChunks,
-        List<RelativeBlockEntry> blocks,
-        List<RelativeBlockEntityEntry> blockEntities,
+        List<SyncBotiInteriorS2CPayload.Entry> blocks,
+        List<SyncBotiInteriorS2CPayload.BlockEntityEntry> blockEntities,
         List<SyncBotiInteriorS2CPayload.EntityEntry> entities,
         Identifier variantId,
         float doorSwing,
@@ -42,30 +40,17 @@ public record SyncSotoExteriorS2CPayload(
     public static final PacketCodec<RegistryByteBuf, SyncSotoExteriorS2CPayload> CODEC =
             PacketCodec.of(SyncSotoExteriorS2CPayload::encode, SyncSotoExteriorS2CPayload::decode);
 
-    public record RelativeBlockEntry(int x, int y, int z, int stateId) {
-    }
-
-    public record RelativeBlockEntityEntry(int x, int y, int z, NbtCompound nbt) {
-    }
-
     private static void encode(SyncSotoExteriorS2CPayload payload, RegistryByteBuf buf) {
         buf.writeByte(payload.formatVersion);
         DWMPacketCodecs.UUID_PACKET_CODEC.encode(buf, payload.tardisId);
         PacketCodecs.VAR_INT.encode(buf, payload.revision);
-        PacketCodecs.VAR_INT.encode(buf, payload.radiusChunks);
         PacketCodecs.VAR_INT.encode(buf, payload.blocks.size());
-        for (RelativeBlockEntry entry : payload.blocks) {
-            PacketCodecs.VAR_INT.encode(buf, entry.x());
-            PacketCodecs.VAR_INT.encode(buf, entry.y());
-            PacketCodecs.VAR_INT.encode(buf, entry.z());
-            PacketCodecs.VAR_INT.encode(buf, entry.stateId());
+        for (SyncBotiInteriorS2CPayload.Entry entry : payload.blocks) {
+            SyncBotiInteriorS2CPayload.ENTRY_CODEC.encode(buf, entry);
         }
         PacketCodecs.VAR_INT.encode(buf, payload.blockEntities.size());
-        for (RelativeBlockEntityEntry entry : payload.blockEntities) {
-            PacketCodecs.VAR_INT.encode(buf, entry.x());
-            PacketCodecs.VAR_INT.encode(buf, entry.y());
-            PacketCodecs.VAR_INT.encode(buf, entry.z());
-            PacketCodecs.NBT_COMPOUND.encode(buf, entry.nbt());
+        for (SyncBotiInteriorS2CPayload.BlockEntityEntry entry : payload.blockEntities) {
+            SyncBotiInteriorS2CPayload.BLOCK_ENTITY_ENTRY_CODEC.encode(buf, entry);
         }
         PacketCodecs.VAR_INT.encode(buf, payload.entities.size());
         for (SyncBotiInteriorS2CPayload.EntityEntry entry : payload.entities) {
@@ -81,26 +66,15 @@ public record SyncSotoExteriorS2CPayload(
         byte formatVersion = buf.readByte();
         UUID tardisId = DWMPacketCodecs.UUID_PACKET_CODEC.decode(buf);
         int revision = PacketCodecs.VAR_INT.decode(buf);
-        int radiusChunks = PacketCodecs.VAR_INT.decode(buf);
         int blockCount = PacketCodecs.VAR_INT.decode(buf);
-        List<RelativeBlockEntry> blocks = new ArrayList<>(blockCount);
+        List<SyncBotiInteriorS2CPayload.Entry> blocks = new ArrayList<>(blockCount);
         for (int i = 0; i < blockCount; i++) {
-            blocks.add(new RelativeBlockEntry(
-                    PacketCodecs.VAR_INT.decode(buf),
-                    PacketCodecs.VAR_INT.decode(buf),
-                    PacketCodecs.VAR_INT.decode(buf),
-                    PacketCodecs.VAR_INT.decode(buf)
-            ));
+            blocks.add(SyncBotiInteriorS2CPayload.ENTRY_CODEC.decode(buf));
         }
         int beCount = PacketCodecs.VAR_INT.decode(buf);
-        List<RelativeBlockEntityEntry> blockEntities = new ArrayList<>(beCount);
+        List<SyncBotiInteriorS2CPayload.BlockEntityEntry> blockEntities = new ArrayList<>(beCount);
         for (int i = 0; i < beCount; i++) {
-            blockEntities.add(new RelativeBlockEntityEntry(
-                    PacketCodecs.VAR_INT.decode(buf),
-                    PacketCodecs.VAR_INT.decode(buf),
-                    PacketCodecs.VAR_INT.decode(buf),
-                    PacketCodecs.NBT_COMPOUND.decode(buf)
-            ));
+            blockEntities.add(SyncBotiInteriorS2CPayload.BLOCK_ENTITY_ENTRY_CODEC.decode(buf));
         }
         int entityCount = PacketCodecs.VAR_INT.decode(buf);
         List<SyncBotiInteriorS2CPayload.EntityEntry> entities = new ArrayList<>(entityCount);
@@ -115,7 +89,6 @@ public record SyncSotoExteriorS2CPayload(
                 formatVersion,
                 tardisId,
                 revision,
-                SotoExteriorSampler.clampRadiusChunks(radiusChunks),
                 blocks,
                 blockEntities,
                 entities,
@@ -127,23 +100,18 @@ public record SyncSotoExteriorS2CPayload(
     }
 
     public static SyncSotoExteriorS2CPayload fromSnapshot(SotoExteriorSnapshot snapshot) {
-        List<RelativeBlockEntry> entries = new ArrayList<>(snapshot.blocks().size());
+        List<SyncBotiInteriorS2CPayload.Entry> entries = new ArrayList<>(snapshot.blocks().size());
         for (Map.Entry<BlockPos, BlockState> e : snapshot.blocks().entrySet()) {
-            BlockPos pos = e.getKey();
-            entries.add(new RelativeBlockEntry(
-                    pos.getX(),
-                    pos.getY(),
-                    pos.getZ(),
+            entries.add(new SyncBotiInteriorS2CPayload.Entry(
+                    BotiRelativePosCodec.pack(e.getKey()),
                     BotiRelativePosCodec.stateId(e.getValue())
             ));
         }
-        List<RelativeBlockEntityEntry> beEntries = new ArrayList<>(snapshot.blockEntities().size());
+        List<SyncBotiInteriorS2CPayload.BlockEntityEntry> beEntries =
+                new ArrayList<>(snapshot.blockEntities().size());
         for (Map.Entry<BlockPos, NbtCompound> e : snapshot.blockEntities().entrySet()) {
-            BlockPos pos = e.getKey();
-            beEntries.add(new RelativeBlockEntityEntry(
-                    pos.getX(),
-                    pos.getY(),
-                    pos.getZ(),
+            beEntries.add(new SyncBotiInteriorS2CPayload.BlockEntityEntry(
+                    BotiRelativePosCodec.pack(e.getKey()),
                     e.getValue().copy()
             ));
         }
@@ -163,7 +131,6 @@ public record SyncSotoExteriorS2CPayload(
                 (byte) snapshot.formatVersion(),
                 snapshot.tardisId(),
                 snapshot.revision(),
-                snapshot.radiusChunks(),
                 entries,
                 beEntries,
                 entityEntries,
@@ -176,10 +143,10 @@ public record SyncSotoExteriorS2CPayload(
 
     public Map<BlockPos, BlockState> toBlockMap() {
         Map<BlockPos, BlockState> map = new HashMap<>(blocks.size());
-        for (RelativeBlockEntry entry : blocks) {
+        for (SyncBotiInteriorS2CPayload.Entry entry : blocks) {
             BlockState state = BotiRelativePosCodec.stateFromId(entry.stateId());
             if (state != null && !state.isAir()) {
-                map.put(new BlockPos(entry.x(), entry.y(), entry.z()), state);
+                map.put(BotiRelativePosCodec.unpack(entry.packedPos()), state);
             }
         }
         return map;
@@ -187,9 +154,9 @@ public record SyncSotoExteriorS2CPayload(
 
     public Map<BlockPos, NbtCompound> toBlockEntityMap() {
         Map<BlockPos, NbtCompound> map = new HashMap<>(blockEntities.size());
-        for (RelativeBlockEntityEntry entry : blockEntities) {
+        for (SyncBotiInteriorS2CPayload.BlockEntityEntry entry : blockEntities) {
             if (entry.nbt() != null) {
-                map.put(new BlockPos(entry.x(), entry.y(), entry.z()), entry.nbt().copy());
+                map.put(BotiRelativePosCodec.unpack(entry.packedPos()), entry.nbt().copy());
             }
         }
         return map;

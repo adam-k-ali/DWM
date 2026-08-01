@@ -21,7 +21,7 @@ class SotoExteriorIndexTest {
     }
 
     @Test
-    void registerAndResolve_findsTardisInMaxFootprint() {
+    void registerAndResolve_findsTardisInFootprint() {
         UUID id = UUID.randomUUID();
         RegistryKey<World> overworld = RegistryKey.of(RegistryKeys.WORLD, Identifier.of("minecraft", "overworld"));
         BlockPos exterior = new BlockPos(50, 70, -10);
@@ -30,11 +30,8 @@ class SotoExteriorIndexTest {
         assertTrue(SotoExteriorIndex.isRegistered(id));
         assertEquals(exterior, SotoExteriorIndex.getExteriorPos(id));
         assertEquals(id, SotoExteriorIndex.resolve(overworld, exterior));
-        assertEquals(id, SotoExteriorIndex.resolve(overworld, exterior.add(20, 0, -1)));
-        assertNull(SotoExteriorIndex.resolve(
-                overworld,
-                exterior.add(SotoExteriorSampler.MAX_RADIUS_BLOCKS + 1, 0, 0)
-        ));
+        assertEquals(id, SotoExteriorIndex.resolve(overworld, exterior.add(2, 0, -1)));
+        assertNull(SotoExteriorIndex.resolve(overworld, exterior.add(20, 0, 0)));
     }
 
     @Test
