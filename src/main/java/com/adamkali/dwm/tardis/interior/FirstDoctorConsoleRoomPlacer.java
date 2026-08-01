@@ -1,5 +1,6 @@
 package com.adamkali.dwm.tardis.interior;
 
+import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -43,7 +44,7 @@ public final class FirstDoctorConsoleRoomPlacer {
         // while leaving an empty footprint when chunks were not ready; always build in code.
         tryPlaceFromTemplate(world, origin);
         placeProgrammatically(world, origin);
-        stampInteriorDoors(world, origin, tardisId);
+        stampInteriorEntities(world, origin, tardisId);
         return origin.add(LOCAL_ENTRANCE);
     }
 
@@ -68,13 +69,15 @@ public final class FirstDoctorConsoleRoomPlacer {
         }
     }
 
-    private static void stampInteriorDoors(ServerWorld world, BlockPos origin, UUID tardisId) {
+    private static void stampInteriorEntities(ServerWorld world, BlockPos origin, UUID tardisId) {
         for (int x = 0; x < SIZE_X; x++) {
             for (int y = 0; y < SIZE_Y; y++) {
                 for (int z = 0; z < SIZE_Z; z++) {
                     BlockPos pos = origin.add(x, y, z);
                     if (world.getBlockEntity(pos) instanceof TardisInteriorDoorBlockEntity doorEntity) {
                         doorEntity.setTardisId(tardisId);
+                    } else if (world.getBlockEntity(pos) instanceof FirstDoctorConsoleBlockEntity consoleEntity) {
+                        consoleEntity.setTardisId(tardisId);
                     }
                 }
             }

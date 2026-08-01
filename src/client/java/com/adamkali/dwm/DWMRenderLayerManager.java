@@ -26,6 +26,9 @@ public class DWMRenderLayerManager {
         EntityModelLayerRegistry.registerModelLayer(
                 FirstDoctorConsoleModel.LAYER_LOCATION,
                 FirstDoctorConsoleModel::getTexturedModelData);
+        EntityModelLayerRegistry.registerModelLayer(
+                BiomeSelectorModel.LAYER_LOCATION,
+                BiomeSelectorModel::getTexturedModelData);
     }
 
     public static void initialize() {

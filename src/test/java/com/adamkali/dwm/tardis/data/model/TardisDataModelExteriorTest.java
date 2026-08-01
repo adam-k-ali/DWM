@@ -22,4 +22,16 @@ class TardisDataModelExteriorTest {
         assertEquals(4, loaded.exteriorRotation);
         assertEquals(model, loaded);
     }
+
+    @Test
+    void selectedBiome_SerializesThroughGson() {
+        TardisDataModel model = new TardisDataModel();
+        model.selectedBiome = "minecraft:plains";
+
+        Gson gson = new Gson();
+        TardisDataModel loaded = gson.fromJson(gson.toJson(model), TardisDataModel.class);
+
+        assertEquals("minecraft:plains", loaded.selectedBiome);
+        assertEquals(model, loaded);
+    }
 }

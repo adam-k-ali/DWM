@@ -5,8 +5,17 @@ import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSyncService;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Identifier;
+import net.minecraft.world.biome.Biome;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class TardisLogic {
@@ -67,5 +76,34 @@ public class TardisLogic {
             return null;
         }
         return tardis.variant;
+    }
+
+    /**
+     * Cycles {@link TardisDataModel#selectedBiome} through biomes tagged for the TARDIS exterior
+     * dimension. Returns the newly selected biome id, or empty if none are available.
+     */
+    public static Optional<Identifier> cycleSelectedBiome(UUID tardisId, MinecraftServer server) {
+        TardisDataModel tardis = TardisDataLoader.get(tardisId);
+        if (tardis == null || server == null) {
+            return Optional.empty();
+        }
+        Registry<Biome> biomes = server.getRegistryManager().getOrThrow(RegistryKeys.BIOME);
+        List<RegistryKey<Biome>> list =
+                BiomeSelectorLogic.biomesForDimension(biomes, tardis.exteriorDimension);
+        Optional<Identifier> next = BiomeSelectorLogic.nextBiome(tardis.selectedBiome, list);
+        if (next.isEmpty()) {
+            return Optional.empty();
+        }
+        tardis.selectedBiome = next.get().toString();
+        tardis.markDirty();
+        return next;
+    }
+
+    public static @Nullable String getSelectedBiome(UUID tardisId) {
+        TardisDataModel tardis = TardisDataLoader.get(tardisId);
+        if (tardis == null) {
+            return null;
+        }
+        return tardis.selectedBiome;
     }
 }
