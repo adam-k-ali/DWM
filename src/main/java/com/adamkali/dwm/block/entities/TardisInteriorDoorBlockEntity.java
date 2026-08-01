@@ -1,6 +1,7 @@
 package com.adamkali.dwm.block.entities;
 
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -51,6 +52,10 @@ public class TardisInteriorDoorBlockEntity extends BlockEntity implements BlockE
         }
         open = !open;
         markDirty();
+        if (world != null) {
+            BlockState state = getCachedState();
+            world.updateListeners(pos, state, state, Block.NOTIFY_LISTENERS);
+        }
     }
 
     @Override
