@@ -27,8 +27,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Near-live BOTI snapshot sync: dirty on interior edits and while entities occupy a plot,
- * coalesced flush every few ticks.
+ * Near-live BOTI snapshot sync: dirty on interior edits and while entities occupy a plot.
+ * Entity-occupied plots flush every tick; block-only dirty is coalesced every few ticks.
  */
 public final class BotiInteriorSyncService {
     private static final int FLUSH_INTERVAL_TICKS = 3;
@@ -107,7 +107,12 @@ public final class BotiInteriorSyncService {
     private static void onEndTick(MinecraftServer server) {
         tickCounter++;
         markEntityOccupiedPlotsDirty(server);
-        if (tickCounter % FLUSH_INTERVAL_TICKS != 0 || DIRTY.isEmpty()) {
+        if (DIRTY.isEmpty()) {
+            return;
+        }
+        // Entity-occupied plots flush every tick (~20 Hz poses); block-only dirty stays coalesced.
+        int interval = intersectsEntityActive(DIRTY) ? 1 : FLUSH_INTERVAL_TICKS;
+        if (tickCounter % interval != 0) {
             return;
         }
         Set<UUID> toFlush = Set.copyOf(DIRTY);
@@ -119,6 +124,15 @@ public final class BotiInteriorSyncService {
             }
             pushToExteriorTrackers(server, snapshot);
         }
+    }
+
+    private static boolean intersectsEntityActive(Set<UUID> dirty) {
+        for (UUID tardisId : dirty) {
+            if (ENTITY_ACTIVE.contains(tardisId)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

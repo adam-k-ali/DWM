@@ -1,6 +1,8 @@
 package com.adamkali.dwm.render.boti;
 
 import com.adamkali.dwm.network.RequestBotiInteriorC2SPayload;
+import com.adamkali.dwm.render.boti.BotiEntityMotion.EntityInterpState;
+import com.adamkali.dwm.render.boti.BotiEntityMotion.LerpedPose;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.mojang.authlib.GameProfile;
@@ -23,6 +25,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.decoration.BlockAttachedEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -104,7 +107,8 @@ public final class BotiInteriorMeshCache {
                     cached.blockEntityNbt(),
                     rebuilt,
                     cached.entitySamples(),
-                    cached.renderedEntities()
+                    cached.renderedEntities(),
+                    cached.entityInterp()
             ));
         }
         return rebuilt;
@@ -124,18 +128,19 @@ public final class BotiInteriorMeshCache {
         if (cached.entitySamples().isEmpty()) {
             return List.of();
         }
-        List<Entity> rebuilt = buildEntities(cached.entitySamples());
-        if (!rebuilt.isEmpty()) {
+        ReconcileResult rebuilt = reconcileEntities(List.of(), cached.entitySamples(), Map.of());
+        if (!rebuilt.entities().isEmpty()) {
             SNAPSHOTS.put(tardisId, new CachedSnapshot(
                     cached.revision(),
                     cached.blocks(),
                     cached.blockEntityNbt(),
                     cached.renderedBlockEntities(),
                     cached.entitySamples(),
-                    rebuilt
+                    rebuilt.entities(),
+                    rebuilt.interp()
             ));
         }
-        return rebuilt;
+        return rebuilt.entities();
     }
 
     public static void applySnapshot(UUID tardisId, int revision, Map<BlockPos, BlockState> blocks) {
@@ -170,14 +175,16 @@ public final class BotiInteriorMeshCache {
         List<BotiEntitySample> entityCopy = copyEntitySamples(entities);
         List<BlockEntity> renderedBes = buildBlockEntities(blockCopy, beCopy);
         List<Entity> previousEntities = existing == null ? List.of() : existing.renderedEntities();
-        List<Entity> renderedEntities = reconcileEntities(previousEntities, entityCopy);
+        Map<UUID, EntityInterpState> previousInterp = existing == null ? Map.of() : existing.entityInterp();
+        ReconcileResult reconciled = reconcileEntities(previousEntities, entityCopy, previousInterp);
         SNAPSHOTS.put(tardisId, new CachedSnapshot(
                 revision,
                 blockCopy,
                 beCopy,
                 renderedBes,
                 entityCopy,
-                renderedEntities
+                reconciled.entities(),
+                reconciled.interp()
         ));
         LAST_REQUEST_MS.remove(tardisId);
     }
@@ -232,12 +239,31 @@ public final class BotiInteriorMeshCache {
         if (world != null) {
             entityDispatcher.configure(world, client.gameRenderer.getCamera(), client.player);
         }
-        for (Entity entity : getEntities(tardisId)) {
+        List<Entity> entities = getEntities(tardisId);
+        CachedSnapshot cached = tardisId == null ? null : SNAPSHOTS.get(tardisId);
+        Map<UUID, EntityInterpState> interpMap = cached == null ? Map.of() : cached.entityInterp();
+        long now = Util.getMeasuringTimeMs();
+        for (Entity entity : entities) {
+            double x = entity.getX();
+            double y = entity.getY();
+            double z = entity.getZ();
+            EntityInterpState interp = interpMap.get(entity.getUuid());
+            if (interp != null) {
+                LerpedPose pose = BotiEntityMotion.lerpPose(interp, now);
+                x = pose.x();
+                y = pose.y();
+                z = pose.z();
+                entity.setYaw(pose.yaw());
+                entity.setPitch(pose.pitch());
+                if (entity instanceof LivingEntity living) {
+                    snapLivingYaw(living, pose.yaw());
+                }
+            }
             entityDispatcher.render(
                     entity,
-                    entity.getX(),
-                    entity.getY(),
-                    entity.getZ(),
+                    x,
+                    y,
+                    z,
                     tickDelta,
                     matrices,
                     vertexConsumers,
@@ -275,22 +301,22 @@ public final class BotiInteriorMeshCache {
         return List.copyOf(result);
     }
 
-    private static List<Entity> buildEntities(List<BotiEntitySample> samples) {
-        return reconcileEntities(List.of(), samples);
-    }
-
     /**
      * Reuses synthetic entities across snapshots (matched by UUID) and only updates pose,
      * avoiding full NBT rebuild every flush which causes living-entity jitter.
      */
-    private static List<Entity> reconcileEntities(List<Entity> previous, List<BotiEntitySample> samples) {
+    private static ReconcileResult reconcileEntities(
+            List<Entity> previous,
+            List<BotiEntitySample> samples,
+            Map<UUID, EntityInterpState> previousInterp
+    ) {
         if (samples == null || samples.isEmpty()) {
-            return List.of();
+            return new ReconcileResult(List.of(), Map.of());
         }
         MinecraftClient client = MinecraftClient.getInstance();
         World world = client == null ? null : client.world;
         if (world == null) {
-            return List.of();
+            return new ReconcileResult(List.of(), Map.of());
         }
         Map<UUID, Entity> previousById = new HashMap<>();
         for (Entity entity : previous) {
@@ -298,21 +324,28 @@ public final class BotiInteriorMeshCache {
                 previousById.put(entity.getUuid(), entity);
             }
         }
+        Map<UUID, EntityInterpState> prevInterp = previousInterp == null ? Map.of() : previousInterp;
+        Map<UUID, EntityInterpState> nextInterp = new HashMap<>();
         List<Entity> result = new ArrayList<>(samples.size());
+        long now = Util.getMeasuringTimeMs();
         for (BotiEntitySample sample : samples) {
             UUID id = sampleEntityUuid(sample);
             Entity existing = id == null ? null : previousById.get(id);
             if (existing != null) {
-                updateSyntheticPose(existing, sample);
+                updateSyntheticPose(existing, sample, id, prevInterp, nextInterp, now);
                 result.add(existing);
             } else {
                 Entity entity = createSyntheticEntity(world, sample);
                 if (entity != null) {
+                    UUID createdId = entity.getUuid();
+                    if (createdId != null && !(entity instanceof BlockAttachedEntity)) {
+                        nextInterp.put(createdId, EntityInterpState.identity(sample, now));
+                    }
                     result.add(entity);
                 }
             }
         }
-        return List.copyOf(result);
+        return new ReconcileResult(List.copyOf(result), Map.copyOf(nextInterp));
     }
 
     private static UUID sampleEntityUuid(BotiEntitySample sample) {
@@ -329,27 +362,44 @@ public final class BotiInteriorMeshCache {
         return null;
     }
 
-    private static void updateSyntheticPose(Entity entity, BotiEntitySample sample) {
+    private static void updateSyntheticPose(
+            Entity entity,
+            BotiEntitySample sample,
+            UUID id,
+            Map<UUID, EntityInterpState> previousInterp,
+            Map<UUID, EntityInterpState> nextInterp,
+            long now
+    ) {
         if (entity instanceof BlockAttachedEntity) {
             // Attachment/facing come from NBT at create time; avoid setPosition clobbering Tile.
             return;
         }
+        EntityInterpState previous = id == null ? null : previousInterp.get(id);
+        EntityInterpState next = previous == null
+                ? EntityInterpState.identity(sample, now)
+                : previous.advanceTo(sample, now);
+        if (id != null) {
+            nextInterp.put(id, next);
+        }
+        if (previous != null && entity instanceof LivingEntity living) {
+            float speed = BotiEntityMotion.limbSpeed(next.fromX(), next.fromZ(), next.toX(), next.toZ());
+            living.limbAnimator.updateLimbs(speed, 0.4f, living.isBaby() ? 3.0f : 1.0f);
+        }
         entity.refreshPositionAndAngles(sample.relX(), sample.relY(), sample.relZ(), sample.yaw(), sample.pitch());
         if (entity instanceof LivingEntity living) {
-            syncLivingRenderPose(living, sample.yaw());
+            snapLivingYaw(living, sample.yaw());
         }
     }
 
     /**
-     * Synthetic BOTI entities are not ticked, so render-state lerp fields must be snapped with the
-     * pose. Otherwise LivingEntityRenderer interpolates forever between stale prev* and new yaw.
+     * Snap living yaw lerp fields so LivingEntityRenderer does not add a second interpolation
+     * on top of {@link BotiEntityMotion} pre-lerped poses.
      */
-    private static void syncLivingRenderPose(LivingEntity living, float yaw) {
+    private static void snapLivingYaw(LivingEntity living, float yaw) {
         living.setBodyYaw(yaw);
         living.setHeadYaw(yaw);
         living.prevBodyYaw = yaw;
         living.prevHeadYaw = yaw;
-        living.limbAnimator.reset();
     }
 
     private static Entity createSyntheticEntity(World world, BotiEntitySample sample) {
@@ -386,7 +436,7 @@ public final class BotiInteriorMeshCache {
             } else {
                 entity.refreshPositionAndAngles(sample.relX(), sample.relY(), sample.relZ(), sample.yaw(), sample.pitch());
                 if (entity instanceof LivingEntity living) {
-                    syncLivingRenderPose(living, sample.yaw());
+                    snapLivingYaw(living, sample.yaw());
                 }
             }
             return entity;
@@ -442,13 +492,20 @@ public final class BotiInteriorMeshCache {
         return blueprintFallback;
     }
 
+    private record ReconcileResult(List<Entity> entities, Map<UUID, EntityInterpState> interp) {
+    }
+
     private record CachedSnapshot(
             int revision,
             Map<BlockPos, BlockState> blocks,
             Map<BlockPos, NbtCompound> blockEntityNbt,
             List<BlockEntity> renderedBlockEntities,
             List<BotiEntitySample> entitySamples,
-            List<Entity> renderedEntities
+            List<Entity> renderedEntities,
+            Map<UUID, EntityInterpState> entityInterp
     ) {
+        private CachedSnapshot {
+            entityInterp = entityInterp == null || entityInterp.isEmpty() ? Map.of() : Map.copyOf(entityInterp);
+        }
     }
 }
