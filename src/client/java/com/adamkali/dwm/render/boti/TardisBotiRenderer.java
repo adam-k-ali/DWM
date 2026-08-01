@@ -1,6 +1,8 @@
 package com.adamkali.dwm.render.boti;
 
 import com.adamkali.dwm.config.DWMConfig;
+import com.adamkali.dwm.tardis.data.model.TardisBotiAperture;
+import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisBotiGate;
@@ -27,18 +29,6 @@ public final class TardisBotiRenderer {
     private static final int STENCIL_REF = 1;
     private static final int FULLBRIGHT = LightmapTextureManager.pack(15, 15);
 
-    /**
-     * Door aperture in model-local space after the same BER transforms as the exterior shell
-     * (Blockbench units / 16). Must use the same +Y range as ModelPart door meshes (TT Capsule
-     * door ~1..23px; First Doctor doors similar) — negative Y places the portal above the shell.
-     */
-    private static final float APERTURE_X0 = -5.0f / 16.0f;
-    private static final float APERTURE_X1 = 5.0f / 16.0f;
-    private static final float APERTURE_Y0 = 1.0f / 16.0f;
-    private static final float APERTURE_Y1 = 23.0f / 16.0f;
-    /** Police-box door plane (First Doctor LeftDoor pivot z=-5.5). Must match exterior door. */
-    static final float APERTURE_Z = -5.5f / 16.0f;
-
     /** Interior door opening center (local structure coords). */
     static final double INTERIOR_DOOR_CENTER_X = 5.5;
     /** Door blocks at y=1..2 span [1, 3); geometric center. */
@@ -62,15 +52,17 @@ public final class TardisBotiRenderer {
             MatrixStack matrices,
             VertexConsumerProvider vertexConsumers,
             float tickDelta,
-            UUID tardisId
+            UUID tardisId,
+            TardisChameleonVariant variant
     ) {
+        TardisBotiAperture aperture = variant.getAperture();
         flush(vertexConsumers);
 
         matrices.push();
         try {
-            writeStencilMask(matrices);
+            writeStencilMask(matrices, aperture);
             // Far depth in the mask so block-layer LEQUAL draws accept interior behind the door.
-            clearDepthInMaskToFar(matrices);
+            clearDepthInMaskToFar(matrices, aperture);
 
             GL11.glEnable(GL11.GL_STENCIL_TEST);
             RenderSystem.stencilFunc(GL11.GL_EQUAL, STENCIL_REF, 0xFF);
@@ -78,9 +70,9 @@ public final class TardisBotiRenderer {
             RenderSystem.enableDepthTest();
             RenderSystem.depthFunc(GL11.GL_LEQUAL);
             RenderSystem.depthMask(true);
-            drawInterior(matrices, vertexConsumers, tickDelta, tardisId);
+            drawInterior(matrices, vertexConsumers, tickDelta, tardisId, aperture);
             flush(vertexConsumers);
-            sealApertureDepth(matrices);
+            sealApertureDepth(matrices, aperture);
         } catch (Throwable t) {
             BotiStencilSupport.disableForSession("BOTI render failed", t);
         } finally {
@@ -89,7 +81,7 @@ public final class TardisBotiRenderer {
         }
     }
 
-    private static void writeStencilMask(MatrixStack matrices) {
+    private static void writeStencilMask(MatrixStack matrices, TardisBotiAperture aperture) {
         GL11.glEnable(GL11.GL_STENCIL_TEST);
         RenderSystem.stencilMask(0xFF);
         RenderSystem.clearStencil(0);
@@ -107,7 +99,7 @@ public final class TardisBotiRenderer {
         // Keep cull on so the back-facing aperture (rear / inside-looking-out) does not stamp.
 
         RenderSystem.setShaderColor(0.0f, 0.0f, 0.0f, 0.0f);
-        drawApertureQuad(matrices);
+        drawApertureQuad(matrices, aperture);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         RenderSystem.depthMask(true);
@@ -120,7 +112,7 @@ public final class TardisBotiRenderer {
      * Clears depth in the stencil mask to the far plane so subsequent LEQUAL draws (block layers)
      * can render interior geometry behind the door aperture.
      */
-    private static void clearDepthInMaskToFar(MatrixStack matrices) {
+    private static void clearDepthInMaskToFar(MatrixStack matrices, TardisBotiAperture aperture) {
         RenderSystem.enableDepthTest();
         RenderSystem.depthFunc(GL11.GL_ALWAYS);
         RenderSystem.depthMask(true);
@@ -128,13 +120,13 @@ public final class TardisBotiRenderer {
         // Force written depth to 1.0 (far) regardless of aperture clip-space Z.
         // Restricted by stencil EQUAL from writeStencilMask — cull stays on.
         GL11.glDepthRange(1.0, 1.0);
-        drawApertureQuad(matrices);
+        drawApertureQuad(matrices, aperture);
         GL11.glDepthRange(0.0, 1.0);
         RenderSystem.colorMask(true, true, true, true);
         RenderSystem.depthFunc(GL11.GL_LEQUAL);
     }
 
-    private static void sealApertureDepth(MatrixStack matrices) {
+    private static void sealApertureDepth(MatrixStack matrices, TardisBotiAperture aperture) {
         RenderSystem.colorMask(false, false, false, false);
         RenderSystem.depthMask(true);
         RenderSystem.depthFunc(GL11.GL_ALWAYS);
@@ -142,7 +134,7 @@ public final class TardisBotiRenderer {
         if (cullWasEnabled) {
             RenderSystem.disableCull();
         }
-        drawApertureQuad(matrices);
+        drawApertureQuad(matrices, aperture);
         if (cullWasEnabled) {
             RenderSystem.enableCull();
         }
@@ -154,10 +146,11 @@ public final class TardisBotiRenderer {
             MatrixStack matrices,
             VertexConsumerProvider vertexConsumers,
             float tickDelta,
-            UUID tardisId
+            UUID tardisId,
+            TardisBotiAperture aperture
     ) {
         matrices.push();
-        applyInteriorAlignment(matrices);
+        applyInteriorAlignment(matrices, aperture);
         BotiInteriorMeshCache.render(matrices, vertexConsumers, FULLBRIGHT, tickDelta, tardisId);
         matrices.pop();
     }
@@ -166,14 +159,13 @@ public final class TardisBotiRenderer {
      * Maps interior structure coords onto the exterior door aperture in BER model space.
      * <p>
      * BER already applied {@code rotateX(180)} (Blockbench), so model +Y is world-down. Exterior
-     * doors are on model −Z (LeftDoor pivot −5.5px); the aperture must sit on that plane. Z-180
-     * keeps upright Y and room depth in model +Z (into the shell). Depth in the aperture is cleared
-     * to far before interior draw so block-layer {@code GL_LEQUAL} accepts into-shell fragments.
+     * doors are on model −Z; the aperture must sit on that plane. Z-180 keeps upright Y and room
+     * depth in model +Z (into the shell). Depth in the aperture is cleared to far before interior
+     * draw so block-layer {@code GL_LEQUAL} accepts into-shell fragments.
      * Net relative to the door center: {@code (x, y, z) → (-x, -y, z)}.
      */
-    static void applyInteriorAlignment(MatrixStack matrices) {
-        double apertureCenterY = (APERTURE_Y0 + APERTURE_Y1) * 0.5;
-        matrices.translate(0.0, apertureCenterY, APERTURE_Z);
+    static void applyInteriorAlignment(MatrixStack matrices, TardisBotiAperture aperture) {
+        matrices.translate(0.0, aperture.centerY(), aperture.z());
         matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180.0f));
         matrices.translate(-INTERIOR_DOOR_CENTER_X, -INTERIOR_DOOR_CENTER_Y, -INTERIOR_DOOR_PLANE_Z);
     }
@@ -188,15 +180,15 @@ public final class TardisBotiRenderer {
         RenderSystem.colorMask(true, true, true, true);
     }
 
-    private static void drawApertureQuad(MatrixStack matrices) {
+    private static void drawApertureQuad(MatrixStack matrices, TardisBotiAperture aperture) {
         Matrix4f matrix = matrices.peek().getPositionMatrix();
         RenderSystem.setShader(ShaderProgramKeys.POSITION);
         BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
         // Winding so the front face normals toward model -Z (player outside the doors).
-        buffer.vertex(matrix, APERTURE_X0, APERTURE_Y0, APERTURE_Z);
-        buffer.vertex(matrix, APERTURE_X0, APERTURE_Y1, APERTURE_Z);
-        buffer.vertex(matrix, APERTURE_X1, APERTURE_Y1, APERTURE_Z);
-        buffer.vertex(matrix, APERTURE_X1, APERTURE_Y0, APERTURE_Z);
+        buffer.vertex(matrix, aperture.x0(), aperture.y0(), aperture.z());
+        buffer.vertex(matrix, aperture.x0(), aperture.y1(), aperture.z());
+        buffer.vertex(matrix, aperture.x1(), aperture.y1(), aperture.z());
+        buffer.vertex(matrix, aperture.x1(), aperture.y0(), aperture.z());
         BufferRenderer.drawWithGlobalProgram(buffer.end());
     }
 
@@ -209,10 +201,5 @@ public final class TardisBotiRenderer {
     /** Expose layout size for tests / debug. */
     public static int interiorSizeX() {
         return FirstDoctorConsoleRoomLayout.SIZE_X;
-    }
-
-    /** Aperture vertical center in BER model space (for tests). */
-    static float apertureCenterY() {
-        return (APERTURE_Y0 + APERTURE_Y1) * 0.5f;
     }
 }

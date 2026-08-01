@@ -1,5 +1,7 @@
 package com.adamkali.dwm.render.boti;
 
+import com.adamkali.dwm.tardis.data.model.TardisBotiAperture;
+import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import net.minecraft.client.util.math.MatrixStack;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -10,10 +12,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TardisBotiRendererAlignmentTest {
     private static final float EPSILON = 1e-4f;
+    private static final TardisBotiAperture FIRST_DOCTOR_APERTURE =
+            TardisChameleonVariant.FIRST_DOCTOR_BOX.getAperture();
 
     @Test
     void apertureZ_matchesExteriorDoorPlane() {
-        assertEquals(-5.5f / 16.0f, TardisBotiRenderer.APERTURE_Z, EPSILON);
+        assertEquals(-5.5f / 16.0f, FIRST_DOCTOR_APERTURE.z(), EPSILON);
     }
 
     @Test
@@ -25,8 +29,8 @@ class TardisBotiRendererAlignmentTest {
         );
 
         assertEquals(0.0f, mapped.x, EPSILON);
-        assertEquals(TardisBotiRenderer.apertureCenterY(), mapped.y, EPSILON);
-        assertEquals(TardisBotiRenderer.APERTURE_Z, mapped.z, EPSILON);
+        assertEquals(FIRST_DOCTOR_APERTURE.centerY(), mapped.y, EPSILON);
+        assertEquals(FIRST_DOCTOR_APERTURE.z(), mapped.z, EPSILON);
     }
 
     @Test
@@ -84,7 +88,7 @@ class TardisBotiRendererAlignmentTest {
 
     private static Vector3f transform(float x, float y, float z) {
         MatrixStack matrices = new MatrixStack();
-        TardisBotiRenderer.applyInteriorAlignment(matrices);
+        TardisBotiRenderer.applyInteriorAlignment(matrices, FIRST_DOCTOR_APERTURE);
         Matrix4f matrix = matrices.peek().getPositionMatrix();
         return matrix.transformPosition(x, y, z, new Vector3f());
     }
