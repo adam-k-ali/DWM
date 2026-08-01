@@ -127,6 +127,16 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
         markDirty();
     }
 
+    /**
+     * Restores identity fields after exterior relocation (dematerialise / materialise).
+     */
+    public void restoreTravelIdentity(UUID tardisId, @Nullable BlockPos interiorEntrance, boolean interiorGenerated) {
+        this.tardisId = tardisId;
+        this.interiorEntrance = interiorEntrance;
+        this.interiorGenerated = interiorGenerated;
+        markDirty();
+    }
+
     @Override
     public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registries) {
         return createNbt(registries);

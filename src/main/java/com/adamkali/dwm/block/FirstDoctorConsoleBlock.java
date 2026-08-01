@@ -2,6 +2,7 @@ package com.adamkali.dwm.block;
 
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
+import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
@@ -128,12 +129,13 @@ public class FirstDoctorConsoleBlock extends BlockWithEntity {
 
         UUID tardisId = console.getTardisId();
         if (tardisId == null) {
-            player.sendMessage(Text.translatable("dwm.console.biome_unavailable"), true);
+            player.sendMessage(Text.translatable(
+                    leverHit ? "dwm.console.travel_unavailable" : "dwm.console.biome_unavailable"), true);
             return ActionResult.CONSUME;
         }
 
         if (leverHit) {
-            return handleMaterialisationLever(world, pos, player);
+            return handleMaterialisationLever(world, pos, player, serverWorld, tardisId);
         }
         return handleBiomeSelector(world, pos, player, serverWorld, tardisId);
     }
@@ -141,19 +143,30 @@ public class FirstDoctorConsoleBlock extends BlockWithEntity {
     private static ActionResult handleMaterialisationLever(
             World world,
             BlockPos pos,
-            PlayerEntity player
+            PlayerEntity player,
+            ServerWorld serverWorld,
+            UUID tardisId
     ) {
-        // Stub until travel wiring lands; acknowledge the control interaction.
-        player.sendMessage(Text.translatable("dwm.console.materialisation_lever_pulled"), true);
-        world.playSound(
-                null,
-                pos,
-                SoundEvents.UI_BUTTON_CLICK.value(),
-                SoundCategory.BLOCKS,
-                0.4F,
-                1.0F
-        );
-        return ActionResult.SUCCESS;
+        if (TardisTravelService.isTraveling(tardisId)) {
+            player.sendMessage(Text.translatable("dwm.console.travel_in_flight"), true);
+            return ActionResult.CONSUME;
+        }
+
+        ActionResult result = TardisTravelService.startTravel(tardisId, serverWorld.getServer());
+        if (result == ActionResult.SUCCESS) {
+            player.sendMessage(Text.translatable("dwm.console.travel_dematerialising"), true);
+            world.playSound(
+                    null,
+                    pos,
+                    SoundEvents.UI_BUTTON_CLICK.value(),
+                    SoundCategory.BLOCKS,
+                    0.4F,
+                    1.0F
+            );
+            return ActionResult.SUCCESS;
+        }
+        player.sendMessage(Text.translatable("dwm.console.travel_unavailable"), true);
+        return ActionResult.CONSUME;
     }
 
     private static ActionResult handleBiomeSelector(
@@ -163,6 +176,11 @@ public class FirstDoctorConsoleBlock extends BlockWithEntity {
             ServerWorld serverWorld,
             UUID tardisId
     ) {
+        if (TardisTravelService.isTraveling(tardisId)) {
+            player.sendMessage(Text.translatable("dwm.console.travel_in_flight"), true);
+            return ActionResult.CONSUME;
+        }
+
         Optional<Identifier> selected = TardisLogic.cycleSelectedBiome(tardisId, serverWorld.getServer());
         if (selected.isEmpty()) {
             player.sendMessage(Text.translatable("dwm.console.biome_unavailable"), true);

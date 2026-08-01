@@ -31,6 +31,19 @@ public final class SotoExteriorIndex {
         BY_EXTERIOR_BLOCK.clear();
     }
 
+    /**
+     * Removes tracking for a TARDIS exterior (e.g. while dematerialised / in flight).
+     */
+    public static void unregister(@Nullable UUID tardisId) {
+        if (tardisId == null) {
+            return;
+        }
+        ExteriorKey previous = BY_TARDIS.remove(tardisId);
+        if (previous != null) {
+            BY_EXTERIOR_BLOCK.remove(blockKey(previous.worldKey(), previous.exteriorPos()));
+        }
+    }
+
     public static void register(UUID tardisId, RegistryKey<World> worldKey, BlockPos exteriorPos) {
         if (tardisId == null || worldKey == null || exteriorPos == null) {
             return;
