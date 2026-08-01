@@ -29,5 +29,6 @@ class TardisClassicInteriorDoorModelTest {
         assertTrue(root.hasChild("frame2"));
         assertTrue(root.getChild("frame2").hasChild("Door2"));
         assertTrue(root.getChild("frame2").getChild("Door2").hasChild("bone"));
+        assertTrue(root.hasChild("jambs"));
     }
 }

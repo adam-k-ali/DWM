@@ -41,6 +41,14 @@ public class TardisClassicInteriorDoorModel extends EntityModel<TardisRenderStat
         ModelPartData bone = Door2.addChild("bone", ModelPartBuilder.create().uv(0, 22).cuboid(-4.5F, -4.5F, -0.3F, 9.0F, 9.0F, 1.0F, new Dilation(0.0F)).uv(0, 22).cuboid(-4.5F, 6.0F, -0.3F, 9.0F, 9.0F, 1.0F, new Dilation(0.0F)).uv(0, 22).cuboid(-4.5F, -15.0F, -0.3F, 9.0F, 9.0F, 1.0F, new Dilation(0.0F)),
                 ModelTransform.of(-7.5F, 16.0F, 0.5F, 0.0F, 0.0F, -3.1416F));
 
+        // Side jambs: extend closed mesh from 2 to 3 blocks wide (8px each side), keeping center at X=8.
+        modelPartData.addChild(
+                "jambs",
+                ModelPartBuilder.create()
+                        .uv(10, 0).cuboid(-16.0F, 0.0F, -8.0F, 8.0F, 32.0F, 9.2F, new Dilation(0.0F))
+                        .uv(10, 0).cuboid(24.0F, 0.0F, -8.0F, 8.0F, 32.0F, 9.2F, new Dilation(0.0F)),
+                ModelTransform.NONE);
+
         return TexturedModelData.of(modelData, 32, 32);
     }
 

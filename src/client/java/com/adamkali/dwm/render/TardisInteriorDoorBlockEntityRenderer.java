@@ -60,7 +60,7 @@ public class TardisInteriorDoorBlockEntityRenderer implements BlockEntityRendere
     static void applyTransforms(MatrixStack matrices, Direction facing) {
         matrices.translate(0.5, TardisInteriorDoorShapes.MODEL_HEIGHT_BLOCKS, 0.5);
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-Direction.getHorizontalDegreesOrThrow(facing)));
-        // Center the ~2-block-wide mesh on the 3-wide bank (primary is bank start cell).
+        // Center the ~3×2 mesh on the 3-wide bank (primary is bank start cell).
         matrices.translate(TardisInteriorDoorShapes.BANK_CENTER_OFFSET_BLOCKS, 0.0, 0.0);
         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180.0f));
         matrices.translate(-TardisInteriorDoorShapes.MODEL_CENTER_X_PX / 16.0F, 0.0F, 0.0F);

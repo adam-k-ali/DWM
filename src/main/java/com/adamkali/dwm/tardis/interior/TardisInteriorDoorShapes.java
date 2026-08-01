@@ -16,23 +16,29 @@ import java.util.function.Predicate;
 /**
  * Outline/collision shapes for the classic interior double-door mesh.
  *
- * <p>The mesh is ~2×2 blocks (thin in depth). Shapes are expressed in cell-local
- * space relative to the bank primary and are allowed to extend outside the unit
- * cube so the selection box matches the full rendered door, not a single-block slab.
+ * <p>The mesh is ~3×2 blocks (thin in depth) after side jambs. Shapes are expressed
+ * in cell-local space relative to the bank primary and are allowed to extend outside
+ * the unit cube so the selection box matches the full rendered door.
  *
  * <p>Bounds mirror {@code TardisInteriorDoorBlockEntityRenderer} placement.
  */
 public final class TardisInteriorDoorShapes {
-    /** Must match {@code TardisInteriorDoorBlockEntityRenderer.MODEL_CENTER_X_PX}. */
-    public static final float MODEL_CENTER_X_PX = 11.0F;
-    /** Must match {@code TardisInteriorDoorBlockEntityRenderer.MODEL_HEIGHT_BLOCKS}. */
+    /**
+     * Geometric center of the closed-door mesh in Blockbench X pixels
+     * ({@code (MODEL_MIN_X_PX + MODEL_MAX_X_PX) / 2}). Must match BER placement.
+     */
+    public static final float MODEL_CENTER_X_PX = 8.0F;
+    /** Must match {@code TardisInteriorDoorBlockEntityRenderer} height translate. */
     public static final float MODEL_HEIGHT_BLOCKS = 2.0F;
-    /** Must match {@code TardisInteriorDoorBlockEntityRenderer.BANK_CENTER_OFFSET_BLOCKS}. */
+    /**
+     * Shift so the ~3-block-wide mesh centers on a 3-wide bank (primary is bank start).
+     * With {@link #MODEL_CENTER_X_PX}, yields primary-relative X of 0..3 when facing south.
+     */
     public static final float BANK_CENTER_OFFSET_BLOCKS = 1.0F;
 
-    /** Closed-door mesh extents in Blockbench pixel space (from {@code TardisClassicInteriorDoorModel}). */
-    public static final float MODEL_MIN_X_PX = -8.0F;
-    public static final float MODEL_MAX_X_PX = 24.0F;
+    /** Closed-door mesh extents in Blockbench pixel space (doors + side jambs). */
+    public static final float MODEL_MIN_X_PX = -16.0F;
+    public static final float MODEL_MAX_X_PX = 32.0F;
     public static final float MODEL_MIN_Y_PX = 0.0F;
     public static final float MODEL_MAX_Y_PX = 32.0F;
     public static final float MODEL_MIN_Z_PX = -8.0F;
@@ -57,7 +63,7 @@ public final class TardisInteriorDoorShapes {
         int dy = pos.getY() - primary.getY();
         int dz = pos.getZ() - primary.getZ();
 
-        // Full ~2×2 mesh, offset into this cell's local coordinates (extends into neighbors).
+        // Full ~3×2 mesh, offset into this cell's local coordinates (extends into neighbors).
         return Block.createCuboidShape(
                 (model[0] - dx) * 16.0,
                 (model[1] - dy) * 16.0,

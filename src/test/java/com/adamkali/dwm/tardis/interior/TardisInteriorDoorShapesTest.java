@@ -16,16 +16,17 @@ class TardisInteriorDoorShapesTest {
     private static final float EPSILON = 1e-3f;
 
     @Test
-    void southFacingModelAabb_isApproxTwoByTwo() {
+    void southFacingModelAabb_fillsThreeWideBank() {
         float[] aabb = TardisInteriorDoorShapes.modelAabbRelativeToPrimary(Direction.SOUTH);
-        assertEquals(0.3125f, aabb[0], EPSILON);
+        // 3-wide mesh centered on 3-wide bank: 0..3 from primary.
+        assertEquals(0.0f, aabb[0], EPSILON);
         assertEquals(0.0f, aabb[1], EPSILON);
         assertEquals(0.425f, aabb[2], EPSILON);
-        assertEquals(2.3125f, aabb[3], EPSILON);
+        assertEquals(3.0f, aabb[3], EPSILON);
         assertEquals(2.0f, aabb[4], EPSILON);
         assertEquals(1.0f, aabb[5], EPSILON);
 
-        assertEquals(2.0f, aabb[3] - aabb[0], EPSILON);
+        assertEquals(3.0f, aabb[3] - aabb[0], EPSILON);
         assertEquals(2.0f, aabb[4] - aabb[1], EPSILON);
     }
 
@@ -35,19 +36,19 @@ class TardisInteriorDoorShapesTest {
         float[] west = TardisInteriorDoorShapes.modelAabbRelativeToPrimary(Direction.WEST);
         assertEquals(0.0f, west[0], EPSILON);
         assertEquals(0.0f, west[1], EPSILON);
-        assertEquals(0.3125f, west[2], EPSILON);
+        assertEquals(0.0f, west[2], EPSILON);
         assertEquals(0.575f, west[3], EPSILON);
         assertEquals(2.0f, west[4], EPSILON);
-        assertEquals(2.3125f, west[5], EPSILON);
+        assertEquals(3.0f, west[5], EPSILON);
 
         // EAST (yaw -270°): bank offset goes along -Z from primary (south end of bank).
         float[] east = TardisInteriorDoorShapes.modelAabbRelativeToPrimary(Direction.EAST);
         assertEquals(0.425f, east[0], EPSILON);
         assertEquals(0.0f, east[1], EPSILON);
-        assertEquals(-1.3125f, east[2], EPSILON);
+        assertEquals(-2.0f, east[2], EPSILON);
         assertEquals(1.0f, east[3], EPSILON);
         assertEquals(2.0f, east[4], EPSILON);
-        assertEquals(0.6875f, east[5], EPSILON);
+        assertEquals(1.0f, east[5], EPSILON);
     }
 
     @Test
@@ -69,7 +70,7 @@ class TardisInteriorDoorShapesTest {
             int dy = pos.getY() - primary.getY();
             int dz = pos.getZ() - primary.getZ();
 
-            // Cell-local box + cell offset == primary-relative model AABB (full 2×2 door).
+            // Cell-local box + cell offset == primary-relative model AABB (full 3×2 door).
             assertEquals(model[0], local.minX + dx, EPSILON);
             assertEquals(model[1], local.minY + dy, EPSILON);
             assertEquals(model[2], local.minZ + dz, EPSILON);
