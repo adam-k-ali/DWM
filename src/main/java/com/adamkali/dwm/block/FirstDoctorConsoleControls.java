@@ -8,32 +8,45 @@ import net.minecraft.util.math.Vec3d;
 
 /**
  * Hit geometry for First Doctor console controls. Coordinates match
- * {@code FirstDoctorConsoleBlockEntityRenderer} (center, Y×0.8, facing yaw, Panel3 deck).
+ * {@code FirstDoctorConsoleBlockEntityRenderer} (center, Y×0.8, facing yaw, panel decks).
  *
- * <p>Panel3 deck chain mirrors the model: Panel3 pivot/yaw → bone9 pivot/pitch → deck-top offset.
+ * <p>Panel deck chain: panel pivot/yaw → deck bone pivot/pitch → control mount offset.
  */
 public final class FirstDoctorConsoleControls {
     /** Panel3 Y rotation in the console model (radians). */
     public static final float PANEL3_YAW_RAD = 2.094395F;
 
-    /** Panel pivot Y in model pixels (matches Panel3 ModelTransform). */
+    /** Panel6 Y rotation in the console model (radians). */
+    public static final float PANEL6_YAW_RAD = -1.047198F;
+
+    /** Panel pivot Y in model pixels (matches Panel ModelTransform). */
     public static final float PANEL_PIVOT_Y_PX = 14.0F;
 
-    /** bone9 ModelTransform on Panel3 (inclined deck). */
+    /** Deck bone ModelTransform on each panel (inclined deck). */
     public static final float DECK_PIVOT_Y_PX = 1.714286F;
     public static final float DECK_PIVOT_Z_PX = -13.785714F;
     public static final float DECK_PITCH_RAD = -0.261799F;
 
     /**
-     * Selector origin on the deck top in bone9-local pixels (center of middle deck cuboid top).
+     * Control origin on the deck top in deck-local pixels (center of middle deck cuboid top).
      * Middle cuboid: {@code (-4, 4.081, -0.661) 8×4×6} → top center ≈ {@code (0, 8.081, 2.339)}.
      */
-    public static final float SELECTOR_MOUNT_X_PX = 0.0F;
-    public static final float SELECTOR_MOUNT_Y_PX = 8.081F;
-    public static final float SELECTOR_MOUNT_Z_PX = 2.339F;
+    public static final float CONTROL_MOUNT_X_PX = 0.0F;
+    public static final float CONTROL_MOUNT_Y_PX = 8.081F;
+    public static final float CONTROL_MOUNT_Z_PX = 2.339F;
+
+    /** Selector mount aliases (same as {@link #CONTROL_MOUNT_X_PX}). */
+    public static final float SELECTOR_MOUNT_X_PX = CONTROL_MOUNT_X_PX;
+    /** Selector mount aliases (same as {@link #CONTROL_MOUNT_Y_PX}). */
+    public static final float SELECTOR_MOUNT_Y_PX = CONTROL_MOUNT_Y_PX;
+    /** Selector mount aliases (same as {@link #CONTROL_MOUNT_Z_PX}). */
+    public static final float SELECTOR_MOUNT_Z_PX = CONTROL_MOUNT_Z_PX;
 
     /** Uniform scale — the raw 14px dial is oversized for the Panel3 deck. */
     public static final float SELECTOR_SCALE = 0.1125F;
+
+    /** Uniform scale for the materialisation lever on Panel6. */
+    public static final float LEVER_SCALE = 0.2F;
 
     /** Full selector footprint in selector-local pixels (14×2×14) before {@link #SELECTOR_SCALE}. */
     private static final float SEL_MIN_X = -7.0F;
@@ -42,6 +55,14 @@ public final class FirstDoctorConsoleControls {
     private static final float SEL_MAX_X = 7.0F;
     private static final float SEL_MAX_Y = 2.0F;
     private static final float SEL_MAX_Z = 7.0F;
+
+    /** Lever footprint in lever-local pixels before {@link #LEVER_SCALE}. */
+    private static final float LEV_MIN_X = -4.0F;
+    private static final float LEV_MIN_Y = 0.0F;
+    private static final float LEV_MIN_Z = -9.0F;
+    private static final float LEV_MAX_X = 3.0F;
+    private static final float LEV_MAX_Y = 8.2F;
+    private static final float LEV_MAX_Z = 9.0F;
 
     private static final float Y_SCALE = 0.8F;
     private static final float PX = 1.0F / 16.0F;
@@ -55,32 +76,8 @@ public final class FirstDoctorConsoleControls {
      * (relative to the block's min corner).
      */
     public static Box biomeSelectorBox(Direction facing) {
-        double minX = Double.POSITIVE_INFINITY;
-        double minY = Double.POSITIVE_INFINITY;
-        double minZ = Double.POSITIVE_INFINITY;
-        double maxX = Double.NEGATIVE_INFINITY;
-        double maxY = Double.NEGATIVE_INFINITY;
-        double maxZ = Double.NEGATIVE_INFINITY;
-
-        float[] xs = {SEL_MIN_X, SEL_MAX_X};
-        float[] ys = {SEL_MIN_Y, SEL_MAX_Y};
-        float[] zs = {SEL_MIN_Z, SEL_MAX_Z};
-        for (float x : xs) {
-            for (float y : ys) {
-                for (float z : zs) {
-                    Vec3d p = selectorLocalToBlockLocal(x, y, z, facing);
-                    minX = Math.min(minX, p.x);
-                    minY = Math.min(minY, p.y);
-                    minZ = Math.min(minZ, p.z);
-                    maxX = Math.max(maxX, p.x);
-                    maxY = Math.max(maxY, p.y);
-                    maxZ = Math.max(maxZ, p.z);
-                }
-            }
-        }
-        // Generous pad: outline hits and thin tilted slabs need forgiveness.
-        final double pad = 0.08;
-        return new Box(minX - pad, minY - pad, minZ - pad, maxX + pad, maxY + pad, maxZ + pad);
+        return controlBox(facing, PANEL3_YAW_RAD, SELECTOR_SCALE,
+                SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
     }
 
     public static Box biomeSelectorWorldBox(BlockPos pos, Direction facing) {
@@ -113,22 +110,118 @@ public final class FirstDoctorConsoleControls {
             Vec3d lookDir,
             double reach
     ) {
-        Box box = biomeSelectorWorldBox(pos, facing);
+        return lookHitsBox(biomeSelectorWorldBox(pos, facing), eyePos, lookDir, reach);
+    }
+
+    public static Box materialisationLeverBox(Direction facing) {
+        return controlBox(facing, PANEL6_YAW_RAD, LEVER_SCALE,
+                LEV_MIN_X, LEV_MIN_Y, LEV_MIN_Z, LEV_MAX_X, LEV_MAX_Y, LEV_MAX_Z);
+    }
+
+    public static Box materialisationLeverWorldBox(BlockPos pos, Direction facing) {
+        return materialisationLeverBox(facing).offset(pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    public static boolean isMaterialisationLeverLookHit(Direction facing, BlockPos pos, PlayerEntity player) {
+        Vec3d eye = player.getEyePos();
+        Vec3d look = player.getRotationVec(1.0F);
+        return isMaterialisationLeverLookHit(facing, pos, eye, look, REACH);
+    }
+
+    public static boolean isMaterialisationLeverLookHit(
+            Direction facing,
+            BlockPos pos,
+            Vec3d eyePos,
+            Vec3d lookDir,
+            double reach
+    ) {
+        return lookHitsBox(materialisationLeverWorldBox(pos, facing), eyePos, lookDir, reach);
+    }
+
+    /**
+     * Transforms a point in selector-local model pixels into block-local space (Panel3).
+     */
+    static Vec3d selectorLocalToBlockLocal(double px, double py, double pz, Direction facing) {
+        return controlLocalToBlockLocal(px, py, pz, facing, PANEL3_YAW_RAD, SELECTOR_SCALE);
+    }
+
+    /**
+     * Transforms a point in lever-local model pixels into block-local space (Panel6).
+     */
+    static Vec3d leverLocalToBlockLocal(double px, double py, double pz, Direction facing) {
+        return controlLocalToBlockLocal(px, py, pz, facing, PANEL6_YAW_RAD, LEVER_SCALE);
+    }
+
+    /** Horizontal distance from block center to selector center (for tests / tuning). */
+    public static double selectorDistanceFromCenter(Direction facing) {
+        Vec3d c = biomeSelectorBox(facing).getCenter();
+        return Math.hypot(c.x - 0.5, c.z - 0.5);
+    }
+
+    /** Horizontal distance from block center to lever center (for tests / tuning). */
+    public static double leverDistanceFromCenter(Direction facing) {
+        Vec3d c = materialisationLeverBox(facing).getCenter();
+        return Math.hypot(c.x - 0.5, c.z - 0.5);
+    }
+
+    private static boolean lookHitsBox(Box box, Vec3d eyePos, Vec3d lookDir, double reach) {
         Vec3d end = eyePos.add(lookDir.normalize().multiply(reach));
         return box.raycast(eyePos, end).isPresent();
     }
 
-    /**
-     * Transforms a point in selector-local model pixels into block-local space.
-     */
-    static Vec3d selectorLocalToBlockLocal(double px, double py, double pz, Direction facing) {
-        // Selector scale about origin, then bone9-local mount.
-        double x = px * SELECTOR_SCALE + SELECTOR_MOUNT_X_PX;
-        double y = py * SELECTOR_SCALE + SELECTOR_MOUNT_Y_PX;
-        double z = pz * SELECTOR_SCALE + SELECTOR_MOUNT_Z_PX;
+    private static Box controlBox(
+            Direction facing,
+            float panelYawRad,
+            float scale,
+            float minX,
+            float minY,
+            float minZ,
+            float maxX,
+            float maxY,
+            float maxZ
+    ) {
+        double outMinX = Double.POSITIVE_INFINITY;
+        double outMinY = Double.POSITIVE_INFINITY;
+        double outMinZ = Double.POSITIVE_INFINITY;
+        double outMaxX = Double.NEGATIVE_INFINITY;
+        double outMaxY = Double.NEGATIVE_INFINITY;
+        double outMaxZ = Double.NEGATIVE_INFINITY;
 
-        // bone9 pitch (rotation about X), then deck pivot translate.
-        // Matches MatrixStack / ModelPart: y' = y cos − z sin, z' = y sin + z cos.
+        float[] xs = {minX, maxX};
+        float[] ys = {minY, maxY};
+        float[] zs = {minZ, maxZ};
+        for (float x : xs) {
+            for (float y : ys) {
+                for (float z : zs) {
+                    Vec3d p = controlLocalToBlockLocal(x, y, z, facing, panelYawRad, scale);
+                    outMinX = Math.min(outMinX, p.x);
+                    outMinY = Math.min(outMinY, p.y);
+                    outMinZ = Math.min(outMinZ, p.z);
+                    outMaxX = Math.max(outMaxX, p.x);
+                    outMaxY = Math.max(outMaxY, p.y);
+                    outMaxZ = Math.max(outMaxZ, p.z);
+                }
+            }
+        }
+        final double pad = 0.08;
+        return new Box(
+                outMinX - pad, outMinY - pad, outMinZ - pad,
+                outMaxX + pad, outMaxY + pad, outMaxZ + pad
+        );
+    }
+
+    static Vec3d controlLocalToBlockLocal(
+            double px,
+            double py,
+            double pz,
+            Direction facing,
+            float panelYawRad,
+            float scale
+    ) {
+        double x = px * scale + CONTROL_MOUNT_X_PX;
+        double y = py * scale + CONTROL_MOUNT_Y_PX;
+        double z = pz * scale + CONTROL_MOUNT_Z_PX;
+
         double cosP = Math.cos(DECK_PITCH_RAD);
         double sinP = Math.sin(DECK_PITCH_RAD);
         double y1 = y * cosP - z * sinP;
@@ -137,10 +230,8 @@ public final class FirstDoctorConsoleControls {
         y1 += DECK_PIVOT_Y_PX;
         z1 += DECK_PIVOT_Z_PX;
 
-        // Panel3 yaw — must match RotationAxis.POSITIVE_Y / ModelPart (Minecraft/JOML):
-        // x' = x cos + z sin, z' = −x sin + z cos.
-        double cos = Math.cos(PANEL3_YAW_RAD);
-        double sin = Math.sin(PANEL3_YAW_RAD);
+        double cos = Math.cos(panelYawRad);
+        double sin = Math.sin(panelYawRad);
         double x2 = x1 * cos + z1 * sin;
         double z2 = -x1 * sin + z1 * cos;
         double y2 = y1 + PANEL_PIVOT_Y_PX;
@@ -156,11 +247,5 @@ public final class FirstDoctorConsoleControls {
         double z3 = -x2 * sinF + z2 * cosF;
 
         return new Vec3d(x3 + 0.5, y2, z3 + 0.5);
-    }
-
-    /** Horizontal distance from block center to selector center (for tests / tuning). */
-    public static double selectorDistanceFromCenter(Direction facing) {
-        Vec3d c = biomeSelectorBox(facing).getCenter();
-        return Math.hypot(c.x - 0.5, c.z - 0.5);
     }
 }

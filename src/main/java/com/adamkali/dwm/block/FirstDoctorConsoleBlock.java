@@ -111,7 +111,9 @@ public class FirstDoctorConsoleBlock extends BlockWithEntity {
         }
 
         Direction facing = state.get(FACING);
-        if (!FirstDoctorConsoleControls.isBiomeSelectorLookHit(facing, pos, player)) {
+        boolean leverHit = FirstDoctorConsoleControls.isMaterialisationLeverLookHit(facing, pos, player);
+        boolean biomeHit = FirstDoctorConsoleControls.isBiomeSelectorLookHit(facing, pos, player);
+        if (!leverHit && !biomeHit) {
             return ActionResult.PASS;
         }
 
@@ -130,6 +132,37 @@ public class FirstDoctorConsoleBlock extends BlockWithEntity {
             return ActionResult.CONSUME;
         }
 
+        if (leverHit) {
+            return handleMaterialisationLever(world, pos, player);
+        }
+        return handleBiomeSelector(world, pos, player, serverWorld, tardisId);
+    }
+
+    private static ActionResult handleMaterialisationLever(
+            World world,
+            BlockPos pos,
+            PlayerEntity player
+    ) {
+        // Stub until travel wiring lands; acknowledge the control interaction.
+        player.sendMessage(Text.translatable("dwm.console.materialisation_lever_pulled"), true);
+        world.playSound(
+                null,
+                pos,
+                SoundEvents.UI_BUTTON_CLICK.value(),
+                SoundCategory.BLOCKS,
+                0.4F,
+                1.0F
+        );
+        return ActionResult.SUCCESS;
+    }
+
+    private static ActionResult handleBiomeSelector(
+            World world,
+            BlockPos pos,
+            PlayerEntity player,
+            ServerWorld serverWorld,
+            UUID tardisId
+    ) {
         Optional<Identifier> selected = TardisLogic.cycleSelectedBiome(tardisId, serverWorld.getServer());
         if (selected.isEmpty()) {
             player.sendMessage(Text.translatable("dwm.console.biome_unavailable"), true);
