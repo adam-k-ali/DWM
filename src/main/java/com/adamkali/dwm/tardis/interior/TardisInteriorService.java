@@ -3,11 +3,14 @@ package com.adamkali.dwm.tardis.interior;
 import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
+import com.adamkali.dwm.tardis.TardisExteriorFacing;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSyncService;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
+import com.adamkali.dwm.tardis.soto.SotoExteriorIndex;
+import com.adamkali.dwm.tardis.soto.SotoExteriorSyncService;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
@@ -16,7 +19,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.RotationPropertyHelper;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,9 +102,9 @@ public final class TardisInteriorService {
         }
 
         BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
-        Direction facing = rotationToHorizontal(model.exteriorRotation);
-        BlockPos exitPos = exteriorPos.offset(facing);
-        float yaw = Direction.getHorizontalDegreesOrThrow(facing);
+        Direction doorFacing = TardisExteriorFacing.doorDirection(model.exteriorRotation);
+        BlockPos exitPos = exteriorPos.offset(doorFacing);
+        float yaw = Direction.getHorizontalDegreesOrThrow(doorFacing);
         TardisTeleport.teleport(player, exteriorWorld, exitPos, yaw);
         return true;
     }
@@ -122,10 +124,7 @@ public final class TardisInteriorService {
                 pos.getZ(),
                 rotation
         );
-    }
-
-    private static Direction rotationToHorizontal(int rotation) {
-        float yaw = RotationPropertyHelper.toDegrees(rotation);
-        return Direction.fromHorizontalDegrees(yaw);
+        SotoExteriorIndex.register(tardisId, model);
+        SotoExteriorSyncService.markDirty(tardisId);
     }
 }

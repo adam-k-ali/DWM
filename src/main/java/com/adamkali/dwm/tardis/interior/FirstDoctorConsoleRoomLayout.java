@@ -24,6 +24,9 @@ public final class FirstDoctorConsoleRoomLayout {
     /** Local entrance standing position relative to structure origin (feet). */
     public static final BlockPos LOCAL_ENTRANCE = new BlockPos(5, 1, 1);
 
+    /** Origin cell of the 3×2 interior door bank (lower / slot 0). */
+    public static final BlockPos LOCAL_DOOR_ORIGIN = new BlockPos(4, 1, 0);
+
     /** Layout version for client mesh cache invalidation. */
     public static final int LAYOUT_VERSION = 3;
 
@@ -66,12 +69,12 @@ public final class FirstDoctorConsoleRoomLayout {
                 }
             }
         }
-        // 3×2 door bank: origin (4,1,0) = lower/slot0; slots increase east when facing south.
+        // 3×2 door bank: origin LOCAL_DOOR_ORIGIN = lower/slot0; slots increase east when facing south.
         Direction doorFacing = Direction.SOUTH;
         for (DoubleBlockHalf half : DoubleBlockHalf.values()) {
             for (int slot = 0; slot < TardisInteriorDoorBlock.BANK_WIDTH; slot++) {
                 BlockPos cell = TardisInteriorDoorBlock.cellPos(
-                        new BlockPos(4, 1, 0), doorFacing, half, slot);
+                        LOCAL_DOOR_ORIGIN, doorFacing, half, slot);
                 placements.put(cell, TardisInteriorDoorBlock.bankCellState(doorFacing, half, slot, true));
             }
         }

@@ -6,9 +6,13 @@ package com.adamkali.dwm.model.tileentity;
 import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import net.minecraft.client.model.*;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.render.entity.model.EntityModelLayer;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
+
+import java.util.List;
 
 public class TardisClassicInteriorDoorModel extends EntityModel<TardisRenderState> {
     public static final EntityModelLayer LAYER_LOCATION = new EntityModelLayer(Identifier.of(DWMReference.MOD_ID, "tardis_classic_interior_door"), "main");
@@ -21,6 +25,54 @@ public class TardisClassicInteriorDoorModel extends EntityModel<TardisRenderStat
         super(root);
         this.door1 = root.getChild("frame").getChild("Door1");
         this.door2 = root.getChild("frame2").getChild("Door2");
+    }
+
+    /**
+     * Door leaves only ({@code Door1}, {@code Door2}); frames and jambs stay visible.
+     */
+    public List<ModelPart> getDoorParts() {
+        return List.of(door1, door2);
+    }
+
+    /**
+     * Renders frames and jambs without door leaves (for SOTO to fill the aperture first).
+     */
+    public void renderShell(MatrixStack matrices, VertexConsumer vertices, int light, int overlay) {
+        List<ModelPart> doors = getDoorParts();
+        for (ModelPart door : doors) {
+            door.visible = false;
+        }
+        try {
+            this.render(matrices, vertices, light, overlay);
+        } finally {
+            for (ModelPart door : doors) {
+                door.visible = true;
+            }
+        }
+    }
+
+    /**
+     * Renders only door leaves, applying frame ancestor transforms so nested doors stay aligned.
+     */
+    public void renderDoors(MatrixStack matrices, VertexConsumer vertices, int light, int overlay) {
+        matrices.push();
+        try {
+            root.rotate(matrices);
+
+            matrices.push();
+            ModelPart frame = root.getChild("frame");
+            frame.rotate(matrices);
+            door1.render(matrices, vertices, light, overlay);
+            matrices.pop();
+
+            matrices.push();
+            ModelPart frame2 = root.getChild("frame2");
+            frame2.rotate(matrices);
+            door2.render(matrices, vertices, light, overlay);
+            matrices.pop();
+        } finally {
+            matrices.pop();
+        }
     }
 
     public static TexturedModelData getTexturedModelData() {
