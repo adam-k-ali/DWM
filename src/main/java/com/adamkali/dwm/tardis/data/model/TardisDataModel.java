@@ -17,6 +17,9 @@ public class TardisDataModel {
     public int exteriorRotation;
     public boolean hasExteriorLocation;
 
+    /** Registry key id of the selected destination biome, e.g. {@code minecraft:plains}. */
+    public String selectedBiome;
+
     private transient boolean needsSaving = false;
 
     public TardisDataModel() {
@@ -46,7 +49,8 @@ public class TardisDataModel {
     @Override
     public String toString() {
         return "TardisDataModel [uuid=" + uuid + ", doorState=" + doorState + ", variant=" + variant
-                + ", exteriorDimension=" + exteriorDimension + ", hasExteriorLocation=" + hasExteriorLocation + ']';
+                + ", exteriorDimension=" + exteriorDimension + ", hasExteriorLocation=" + hasExteriorLocation
+                + ", selectedBiome=" + selectedBiome + ']';
     }
 
     @Override
@@ -60,7 +64,8 @@ public class TardisDataModel {
                     && this.exteriorY == other.exteriorY
                     && this.exteriorZ == other.exteriorZ
                     && this.exteriorRotation == other.exteriorRotation
-                    && this.hasExteriorLocation == other.hasExteriorLocation;
+                    && this.hasExteriorLocation == other.hasExteriorLocation
+                    && Objects.equals(this.selectedBiome, other.selectedBiome);
         }
         return false;
     }
