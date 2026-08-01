@@ -3,6 +3,7 @@ package com.adamkali.dwm.render;
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.model.tileentity.TardisClassicInteriorDoorModel;
+import com.adamkali.dwm.render.soto.SotoShellModels;
 import com.adamkali.dwm.render.soto.TardisSotoRenderer;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.interior.TardisInteriorDoorShapes;
@@ -23,7 +24,7 @@ public class TardisInteriorDoorBlockEntityRenderer implements BlockEntityRendere
     public TardisInteriorDoorBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
         this.model = new TardisClassicInteriorDoorModel(
                 context.getLayerModelPart(TardisClassicInteriorDoorModel.LAYER_LOCATION));
-        this.sotoRenderer = new TardisSotoRenderer();
+        this.sotoRenderer = new TardisSotoRenderer(new SotoShellModels(context));
     }
 
     @Override

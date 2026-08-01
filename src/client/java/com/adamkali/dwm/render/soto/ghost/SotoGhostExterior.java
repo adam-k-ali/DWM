@@ -29,6 +29,7 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockRenderView;
 import net.minecraft.world.LightType;
+import net.minecraft.world.World;
 import net.minecraft.world.biome.ColorResolver;
 import net.minecraft.world.chunk.light.LightingProvider;
 
@@ -128,12 +129,14 @@ public final class SotoGhostExterior implements BlockRenderView {
         if (tardisId != null) {
             BY_TARDIS.remove(tardisId);
             LAST_REQUEST_MS.remove(tardisId);
+            SotoGhostMeshCache.invalidate(tardisId);
         }
     }
 
     public static void invalidateAll() {
         BY_TARDIS.clear();
         LAST_REQUEST_MS.clear();
+        SotoGhostMeshCache.invalidateAll();
     }
 
     public static void clientTick() {
@@ -163,6 +166,7 @@ public final class SotoGhostExterior implements BlockRenderView {
         }
         ghost.blocksByRel.putAll(payload.toBlockMap());
         ghost.blockEntitiesByRel.putAll(payload.toBlockEntityMap());
+        SotoGhostMeshCache.onChunkApplied(payload.tardisId(), payload.chunkX(), payload.chunkZ(), ghost);
     }
 
     public static void unloadChunk(UUID tardisId, int chunkX, int chunkZ) {
@@ -183,6 +187,7 @@ public final class SotoGhostExterior implements BlockRenderView {
                 ghost.blockEntitiesByRel.remove(pos);
             }
         }
+        SotoGhostMeshCache.onChunkUnloaded(tardisId, chunkX, chunkZ);
     }
 
     public static void applyEntitySpawn(SyncSotoExteriorEntitySpawnS2CPayload payload) {
@@ -275,6 +280,49 @@ public final class SotoGhostExterior implements BlockRenderView {
 
     public Set<Long> chunkKeys() {
         return Set.copyOf(chunkBlocks.keySet());
+    }
+
+    /** Blocks currently stored for one streamed chunk column (footprint-relative keys). */
+    public Map<BlockPos, BlockState> blocksInChunk(long chunkKey) {
+        Map<BlockPos, BlockState> blocks = chunkBlocks.get(chunkKey);
+        return blocks == null || blocks.isEmpty() ? Map.of() : Map.copyOf(blocks);
+    }
+
+    public Map<BlockPos, NbtCompound> blockEntityNbtView() {
+        return Map.copyOf(blockEntitiesByRel);
+    }
+
+    public Map<BlockPos, BlockState> blocksView() {
+        return Map.copyOf(blocksByRel);
+    }
+
+    /**
+     * Synthetic block entities for ghost BE rendering (same approach as snapshot mesh cache).
+     */
+    public List<BlockEntity> buildRenderedBlockEntities() {
+        if (blockEntitiesByRel.isEmpty()) {
+            return List.of();
+        }
+        MinecraftClient client = MinecraftClient.getInstance();
+        World world = client == null ? null : client.world;
+        if (world == null) {
+            return List.of();
+        }
+        List<BlockEntity> result = new ArrayList<>(blockEntitiesByRel.size());
+        for (Map.Entry<BlockPos, NbtCompound> entry : blockEntitiesByRel.entrySet()) {
+            BlockPos pos = entry.getKey();
+            BlockState state = blocksByRel.get(pos);
+            if (state == null || entry.getValue() == null) {
+                continue;
+            }
+            BlockEntity be = BlockEntity.createFromNbt(pos, state, entry.getValue(), world.getRegistryManager());
+            if (be == null) {
+                continue;
+            }
+            be.setWorld(world);
+            result.add(be);
+        }
+        return List.copyOf(result);
     }
 
     /**

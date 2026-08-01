@@ -1,7 +1,11 @@
 package com.adamkali.dwm.render.soto;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
+import com.adamkali.dwm.network.SyncSotoExteriorChunkS2CPayload;
+import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
+import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
+import com.adamkali.dwm.tardis.boti.BotiRelativePosCodec;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import net.minecraft.block.BlockState;
@@ -160,5 +164,32 @@ class SotoExteriorMeshCacheTest {
         );
 
         assertEquals(1, SotoExteriorMeshCache.getEntitySampleCount(id));
+    }
+
+    @Test
+    void shouldPreferGhostMeshes_requiresChunksAndBakedMeshes() {
+        UUID id = UUID.randomUUID();
+        assertFalse(SotoExteriorMeshCache.shouldPreferGhostMeshes(id));
+
+        SyncSotoExteriorChunkS2CPayload payload = new SyncSotoExteriorChunkS2CPayload(
+                id,
+                0,
+                0,
+                0,
+                64,
+                0,
+                List.of(new SyncSotoExteriorChunkS2CPayload.BlockEntry(
+                        1, 1, 1, BotiRelativePosCodec.stateId(Blocks.STONE.getDefaultState())
+                )),
+                List.of()
+        );
+        SotoGhostExterior.applyChunk(payload);
+        assertFalse(SotoExteriorMeshCache.shouldPreferGhostMeshes(id));
+
+        SotoGhostMeshCache.markChunkMeshForTest(id, 0, 0);
+        assertTrue(SotoExteriorMeshCache.shouldPreferGhostMeshes(id));
+
+        SotoGhostExterior.unloadChunk(id, 0, 0);
+        assertFalse(SotoExteriorMeshCache.shouldPreferGhostMeshes(id));
     }
 }

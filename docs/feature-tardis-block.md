@@ -44,12 +44,12 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - May not work with Fabulous graphics or some Sodium / shader setups; disable via config if needed.
 
 ## SOTO Notes
-- Visual illusion: does not inject exterior chunks into the player's `dwm:tardis` dimension.
-- **Snapshot path (blocks / BEs / shell / atmosphere):** syncs an 11×7×11 exterior footprint centered on the TARDIS block plus shell metadata (`variant`, `doorSwing`, `isOpen`, `exteriorRotation`) and atmosphere (`dimensionEffectsId`, `timeOfDay`, rain/thunder gradients, biome sky/fog colors). The exterior `tardis_block` is excluded from the block sample and drawn as a synthetic chameleon shell.
-- **Phase 1 ghost stream (live entities):** while interior players track the door origin (or request `request_soto_ghost`), the server tickets a fixed **2-chunk** Chebyshev radius around the exterior (`STREAM_RADIUS_CHUNKS`), streams sparse chunk columns into a client `SotoGhostExterior` store, and pushes live entity spawn/update/remove packets (~10 Hz). Entity motion and walk cycles come from this ghost path, not snapshot lerp.
-- Snapshot flush stays on a 3-tick cadence for terrain/shell dirtying; entity occupancy no longer forces a 1-tick full snapshot resample. Mob despawn counters are reset over the stream box (ticket-only keep-alive, no per-tick force-load of the whole cube).
-- Client draws a mini skybox (overworld sun/moon/stars, End sky, or Nether fog backdrop) and short-range terrain fog inside the stencil mask before the footprint mesh so gaps do not show the interior dimension sky.
-- Snapshots push to players tracking the interior door origin; clients may also request on cache miss (`request_soto_exterior` + `request_soto_ghost`).
+- Visual illusion: does not stream the live exterior dimension to the interior client as a full world.
+- **Phase 0 snapshot:** syncs an 11×7×11 exterior footprint centered on the TARDIS block (blocks + BE NBT + entities) plus shell metadata (`variant`, `doorSwing`, `isOpen`, `exteriorRotation`) and atmosphere. The exterior `tardis_block` is excluded from the block sample and drawn as a synthetic chameleon shell via `SotoShellModels`. Snapshots push to players tracking the interior door origin; clients may also request on cache miss (`request_soto_exterior`).
+- **Phase 1 ghost stream:** streams nearby exterior chunk columns + live entities into `SotoGhostExterior` (footprint-relative coords). Ghost entities are drawn preferentially over snapshot synthetics.
+- **Phase 2 mesh draw:** on chunk apply, client bakes per-chunk GPU meshes (`SotoGhostMeshCache`) and draws them through the existing stencil aperture when ghost chunks and meshes are present; otherwise falls back to snapshot `renderBlockAsEntity`. Ghost block entities render from streamed NBT when on the mesh path.
+- Preview hitch sits one block in front of the exterior shell door face (`PREVIEW_FORWARD_OFFSET`) so the look-out clears the chameleon body rather than starting at the shell center.
+- Lookout stable view (`applyLookoutStableView`) freezes the exterior eye at that hitch looking outward at a fixed view depth (`LOOKOUT_VIEW_DEPTH`) so walking/strafing does not dolly the preview; the synthetic shell is not drawn on the SOTO path.
 - Shares the same stencil framebuffer support as BOTI; session disable covers both if stencil fails during either path.
 - May not work with Fabulous graphics or some Sodium / shader setups; disable via `enableSoto` if needed.
 
@@ -57,11 +57,9 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Interior visuals use existing roundel/wall blocks; console props are simplified.
 - Door open/closed for entry is server-authoritative; swing animation still updates locally on both sides.
 - Shared exterior BOTI door aperture table per chameleon variant; interior SOTO uses one classic 3×2 opening aperture.
-- Exterior SOTO footprint is axis-aligned (not rotated with exterior facing).
-- Phase 1 still draws **blocks** from the snapshot mesh path; ghost chunk data is stored for Phase 2 terrain meshes.
+- Exterior SOTO footprint is axis-aligned (not rotated with exterior facing). Exit teleport and SOTO look-out follow the chameleon shell door facing (`TardisExteriorFacing`), which is opposite the raw `FACING_ROTATION` skull/banner south=0 convention because of shell BER transforms.
 
 ## Future Opportunities
 - Richer First Doctor console props.
 - Per-chameleon BOTI / SOTO aperture meshes.
 - Ownership, multi-room corridors, and dematerialization travel.
-- Phase 2: draw SOTO terrain from ghost-world chunk meshes; optional view-distance scaling beyond the fixed 2-chunk stream radius.

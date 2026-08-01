@@ -6,6 +6,7 @@ import com.adamkali.dwm.render.boti.BotiEntityMotion;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.EntityInterpState;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.LerpedPose;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
+import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
@@ -222,6 +223,15 @@ public final class SotoExteriorMeshCache {
         SotoGhostExterior.invalidateAll();
     }
 
+    /**
+     * Prefer Phase 2 ghost chunk meshes when the ghost exterior has streamed chunks and baked buffers.
+     * Otherwise fall back to the Phase 0 snapshot {@code renderBlockAsEntity} path.
+     */
+    static boolean shouldPreferGhostMeshes(UUID tardisId) {
+        SotoGhostExterior ghost = SotoGhostExterior.get(tardisId);
+        return ghost != null && ghost.chunkCount() > 0 && SotoGhostMeshCache.hasMeshes(tardisId);
+    }
+
     public static void renderWorld(
             MatrixStack matrices,
             VertexConsumerProvider vertexConsumers,
@@ -229,6 +239,34 @@ public final class SotoExteriorMeshCache {
             float tickDelta,
             UUID tardisId
     ) {
+        SotoGhostExterior.requestIfNeeded(tardisId);
+
+        if (shouldPreferGhostMeshes(tardisId)) {
+            flushImmediate(vertexConsumers);
+            SotoGhostMeshCache.draw(tardisId, matrices);
+
+            BlockEntityRenderDispatcher beDispatcher = MinecraftClient.getInstance().getBlockEntityRenderDispatcher();
+            SotoGhostExterior ghost = SotoGhostExterior.get(tardisId);
+            if (ghost != null) {
+                for (BlockEntity blockEntity : ghost.buildRenderedBlockEntities()) {
+                    @SuppressWarnings("unchecked")
+                    BlockEntityRenderer<BlockEntity> renderer =
+                            (BlockEntityRenderer<BlockEntity>) beDispatcher.get(blockEntity);
+                    if (renderer == null) {
+                        continue;
+                    }
+                    BlockPos pos = blockEntity.getPos();
+                    matrices.push();
+                    matrices.translate(pos.getX(), pos.getY(), pos.getZ());
+                    renderer.render(blockEntity, tickDelta, matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV);
+                    matrices.pop();
+                }
+            }
+
+            renderEntities(matrices, vertexConsumers, light, tickDelta, tardisId);
+            return;
+        }
+
         BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
         for (Map.Entry<BlockPos, BlockState> entry : getVisibleBlocks(tardisId).entrySet()) {
             BlockPos pos = entry.getKey();
@@ -253,6 +291,16 @@ public final class SotoExteriorMeshCache {
             matrices.pop();
         }
 
+        renderEntities(matrices, vertexConsumers, light, tickDelta, tardisId);
+    }
+
+    private static void renderEntities(
+            MatrixStack matrices,
+            VertexConsumerProvider vertexConsumers,
+            int light,
+            float tickDelta,
+            UUID tardisId
+    ) {
         MinecraftClient client = MinecraftClient.getInstance();
         EntityRenderDispatcher entityDispatcher = client.getEntityRenderDispatcher();
         World world = client.world;
@@ -260,9 +308,8 @@ public final class SotoExteriorMeshCache {
             entityDispatcher.configure(world, client.gameRenderer.getCamera(), client.player);
         }
 
-        // Phase 1: prefer live ghost entities; fall back to snapshot synthetics.
+        // Prefer live ghost entities; fall back to snapshot synthetics.
         if (SotoGhostExterior.hasEntities(tardisId)) {
-            SotoGhostExterior.requestIfNeeded(tardisId);
             for (SotoGhostExterior.RenderableGhostEntity ghost : SotoGhostExterior.getRenderableEntities(tardisId)) {
                 Entity entity = ghost.entity();
                 LerpedPose pose = ghost.pose();
@@ -285,7 +332,6 @@ public final class SotoExteriorMeshCache {
             return;
         }
 
-        SotoGhostExterior.requestIfNeeded(tardisId);
         List<Entity> entities = getEntities(tardisId);
         CachedSnapshot cached = tardisId == null ? null : SNAPSHOTS.get(tardisId);
         Map<UUID, EntityInterpState> interpMap = cached == null ? Map.of() : cached.entityInterp();
@@ -316,6 +362,12 @@ public final class SotoExteriorMeshCache {
                     vertexConsumers,
                     light
             );
+        }
+    }
+
+    private static void flushImmediate(VertexConsumerProvider vertexConsumers) {
+        if (vertexConsumers instanceof VertexConsumerProvider.Immediate immediate) {
+            immediate.draw();
         }
     }
 
