@@ -16,5 +16,14 @@
     "sounds": [
       "dwm:tardis_door_open"
     ]
+  },
+  "tardis_hum": {
+    "subtitle": "dwm.tardis_hum.subtitle",
+    "sounds": [
+      {
+        "name": "dwm:tardis_hum",
+        "stream": true
+      }
+    ]
   }
 }
