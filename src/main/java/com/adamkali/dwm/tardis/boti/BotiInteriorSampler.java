@@ -53,7 +53,8 @@ public final class BotiInteriorSampler {
         return state != null
                 && !state.isAir()
                 && !state.isOf(Blocks.LIGHT)
-                && !state.isOf(DWMBlocks.TARDIS_INTERIOR_DOOR);
+                && !state.isOf(DWMBlocks.TARDIS_INTERIOR_DOOR)
+                && !state.isOf(DWMBlocks.FIRST_DOCTOR_CONSOLE);
     }
 
     /**

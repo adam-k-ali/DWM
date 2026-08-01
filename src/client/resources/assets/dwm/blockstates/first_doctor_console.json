@@ -1,0 +1,9 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "dwm:block/first_doctor_console"
+      }
+    }
+  ]
+}

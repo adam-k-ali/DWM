@@ -17,6 +17,9 @@ public class DWMBlockEntities {
     public static final BlockEntityType<TardisInteriorDoorBlockEntity> TARDIS_INTERIOR_DOOR_BLOCK_ENTITY =
             register("tardis_interior_door", TardisInteriorDoorBlockEntity::new, DWMBlocks.TARDIS_INTERIOR_DOOR);
 
+    public static final BlockEntityType<FirstDoctorConsoleBlockEntity> FIRST_DOCTOR_CONSOLE_BLOCK_ENTITY =
+            register("first_doctor_console", FirstDoctorConsoleBlockEntity::new, DWMBlocks.FIRST_DOCTOR_CONSOLE);
+
     public static void initialize() {
     }
 

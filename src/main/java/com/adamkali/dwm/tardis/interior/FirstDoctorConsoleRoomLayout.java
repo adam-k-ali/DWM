@@ -25,7 +25,7 @@ public final class FirstDoctorConsoleRoomLayout {
     public static final BlockPos LOCAL_ENTRANCE = new BlockPos(5, 1, 1);
 
     /** Layout version for client mesh cache invalidation. */
-    public static final int LAYOUT_VERSION = 2;
+    public static final int LAYOUT_VERSION = 3;
 
     private static Map<BlockPos, BlockState> cachedPlacements;
 
@@ -52,7 +52,7 @@ public final class FirstDoctorConsoleRoomLayout {
         BlockState wall = DWMBlocks.WHITE_ROUNDEL_A.getDefaultState();
         BlockState roundel = DWMBlocks.WHITE_BIG_ROUNDEL_A.getDefaultState();
         BlockState ceiling = DWMBlocks.LIGHT_GRAY_TARDIS_WALL.getDefaultState();
-        BlockState console = DWMBlocks.TEAL_BIG_ROUNDEL_A.getDefaultState();
+        BlockState console = DWMBlocks.FIRST_DOCTOR_CONSOLE.getDefaultState();
         BlockState air = Blocks.AIR.getDefaultState();
         BlockState light = Blocks.LIGHT.getDefaultState();
         for (int x = 0; x < SIZE_X; x++) {
@@ -75,7 +75,6 @@ public final class FirstDoctorConsoleRoomLayout {
             }
         }
         placements.put(new BlockPos(5, 1, 5), console);
-        placements.put(new BlockPos(5, 2, 5), roundel);
         placements.put(new BlockPos(6, 1, 5), floor);
         placements.put(new BlockPos(4, 1, 5), floor);
         placements.put(new BlockPos(5, 1, 6), floor);

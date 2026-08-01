@@ -127,6 +127,8 @@ public class DWMBlocks {
 
     public static final Block TARDIS_INTERIOR_DOOR = register(TardisInteriorDoorBlock::new, DWMBlockSettings.TARDIS_INTERIOR_DOOR, "tardis_interior_door");
 
+    public static final Block FIRST_DOCTOR_CONSOLE = register(FirstDoctorConsoleBlock::new, DWMBlockSettings.FIRST_DOCTOR_CONSOLE, "first_doctor_console");
+
     public static final Block TARDIS_DOOR_BUTTON = register(TardisButtonBlock::new, DWMBlockSettings.BUTTON_SETTINGS, "tardis_door_button");
 
     public static void initialize() {
@@ -242,6 +244,10 @@ public class DWMBlocks {
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(content -> {
             content.add(TARDIS_DOOR_BUTTON);
+        });
+
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(content -> {
+            content.add(FIRST_DOCTOR_CONSOLE);
         });
     }
 

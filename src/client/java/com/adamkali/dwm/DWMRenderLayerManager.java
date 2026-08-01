@@ -23,6 +23,9 @@ public class DWMRenderLayerManager {
         EntityModelLayerRegistry.registerModelLayer(
                 TardisClassicInteriorDoorModel.LAYER_LOCATION,
                 TardisClassicInteriorDoorModel::getTexturedModelData);
+        EntityModelLayerRegistry.registerModelLayer(
+                FirstDoctorConsoleModel.LAYER_LOCATION,
+                FirstDoctorConsoleModel::getTexturedModelData);
     }
 
     public static void initialize() {
