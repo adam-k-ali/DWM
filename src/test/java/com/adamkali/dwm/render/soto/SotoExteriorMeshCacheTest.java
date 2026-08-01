@@ -63,6 +63,8 @@ class SotoExteriorMeshCacheTest {
         assertEquals(0.75f, shell.doorSwing(), 1e-4f);
         assertTrue(shell.isOpen());
         assertEquals(4, shell.exteriorRotation());
+        // Unit tests lack a full client render pipeline; bake is best-effort and may be empty.
+        assertFalse(SotoExteriorMeshCache.hasBakedTerrainMesh(id));
     }
 
     @Test

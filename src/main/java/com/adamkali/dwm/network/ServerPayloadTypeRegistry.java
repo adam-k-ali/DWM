@@ -74,6 +74,6 @@ public class ServerPayloadTypeRegistry {
         if (model != null) {
             SotoExteriorIndex.register(payload.tardisId(), model);
         }
-        return SotoExteriorSyncService.sendToPlayer(player, payload.tardisId());
+        return SotoExteriorSyncService.sendToPlayer(player, payload.tardisId(), payload.viewDistanceChunks());
     }
 }

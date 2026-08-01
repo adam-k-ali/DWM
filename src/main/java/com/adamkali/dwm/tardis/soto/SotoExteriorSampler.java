@@ -16,36 +16,105 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.ChunkSectionPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.RotationPropertyHelper;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.function.Function;
 
 /**
- * Samples an 11×7×11 exterior footprint centered on the TARDIS block for SOTO sync.
- * Relative coords: min corner = {@code exteriorPos + (-5, -1, -5)}; TARDIS at (5, 1, 5).
+ * Samples a view-distance-capped exterior cube for SOTO sync, with portal-style visibility
+ * culling from the exterior door. Relative coords are TARDIS-centered (exterior block = 0,0,0).
  */
 public final class SotoExteriorSampler {
-    public static final int SIZE_X = 11;
-    public static final int SIZE_Y = 7;
-    public static final int SIZE_Z = 11;
+    /** Hard cap on client view distance used for SOTO (chunks). */
+    public static final int MAX_RADIUS_CHUNKS = 8;
+    public static final int MIN_RADIUS_CHUNKS = 1;
+    public static final int DEFAULT_RADIUS_CHUNKS = MAX_RADIUS_CHUNKS;
 
-    /** Relative position of the exterior TARDIS block within the footprint. */
-    public static final BlockPos RELATIVE_TARDIS_POS = new BlockPos(5, 1, 5);
+    public static final int MAX_RADIUS_BLOCKS = MAX_RADIUS_CHUNKS * 16;
 
-    /** Offset from exterior block pos to footprint min corner. */
-    public static final BlockPos FOOTPRINT_MIN_OFFSET = new BlockPos(-5, -1, -5);
+    /**
+     * Hard cap on flood-fill cell visits so open sky cannot expand to the full RD cube.
+     * Surfaces already collected remain in the sample.
+     */
+    public static final int MAX_FLOOD_VISITS = 48_000;
+
+    /** Relative position of the exterior TARDIS block within the sample space. */
+    public static final BlockPos RELATIVE_TARDIS_POS = BlockPos.ORIGIN;
 
     private static final ChunkTicketType<ChunkPos> SOTO_TICKET =
             ChunkTicketType.create("dwm_soto", Comparator.comparingLong(ChunkPos::toLong), 80);
 
+    private static final Direction[] NEIGHBORS = Direction.values();
+
     private SotoExteriorSampler() {
     }
 
+    public static int clampRadiusChunks(int viewDistanceChunks) {
+        return Math.max(MIN_RADIUS_CHUNKS, Math.min(MAX_RADIUS_CHUNKS, viewDistanceChunks));
+    }
+
+    public static int radiusBlocks(int radiusChunks) {
+        return clampRadiusChunks(radiusChunks) * 16;
+    }
+
+    /** Min corner of the max-capped cube centered on {@code exteriorPos}. */
+    public static BlockPos maxFootprintOrigin(BlockPos exteriorPos) {
+        return exteriorPos.add(-MAX_RADIUS_BLOCKS, -MAX_RADIUS_BLOCKS, -MAX_RADIUS_BLOCKS);
+    }
+
+    /** Min corner of the cube for a specific radius. */
+    public static BlockPos footprintOrigin(BlockPos exteriorPos, int radiusChunks) {
+        int r = radiusBlocks(radiusChunks);
+        return exteriorPos.add(-r, -r, -r);
+    }
+
+    /**
+     * @deprecated Prefer {@link #footprintOrigin(BlockPos, int)} or {@link #maxFootprintOrigin(BlockPos)}.
+     * Kept for callers that want the max dirty AABB origin.
+     */
+    @Deprecated
     public static BlockPos footprintOrigin(BlockPos exteriorPos) {
-        return exteriorPos.add(FOOTPRINT_MIN_OFFSET);
+        return maxFootprintOrigin(exteriorPos);
+    }
+
+    public static BlockPos toRelative(BlockPos worldPos, BlockPos exteriorPos) {
+        return worldPos.subtract(exteriorPos);
+    }
+
+    public static BlockPos toWorld(BlockPos relative, BlockPos exteriorPos) {
+        return exteriorPos.add(relative);
+    }
+
+    public static boolean isWithinChebyshev(BlockPos relative, int radiusBlocks) {
+        return Math.max(Math.abs(relative.getX()), Math.max(Math.abs(relative.getY()), Math.abs(relative.getZ())))
+                <= radiusBlocks;
+    }
+
+    /**
+     * Whether a world position lies inside the max-capped SOTO dirty cube around the exterior.
+     */
+    public static boolean isInsideMaxFootprint(BlockPos worldPos, BlockPos exteriorPos) {
+        return isWithinChebyshev(toRelative(worldPos, exteriorPos), MAX_RADIUS_BLOCKS);
+    }
+
+    /**
+     * @deprecated Use {@link #isInsideMaxFootprint(BlockPos, BlockPos)} with exterior pos.
+     * Interprets the second arg as footprint origin of the max cube.
+     */
+    @Deprecated
+    public static boolean isInsideFootprint(BlockPos worldPos, BlockPos footprintOrigin) {
+        BlockPos exterior = footprintOrigin.add(MAX_RADIUS_BLOCKS, MAX_RADIUS_BLOCKS, MAX_RADIUS_BLOCKS);
+        return isInsideMaxFootprint(worldPos, exterior);
     }
 
     /**
@@ -69,115 +138,261 @@ public final class SotoExteriorSampler {
         return visible;
     }
 
-    public static Map<BlockPos, BlockState> sample(ServerWorld exteriorWorld, BlockPos exteriorPos) {
-        BlockPos origin = footprintOrigin(exteriorPos);
+    public static Direction facingFromRotation(int exteriorRotation) {
+        float yaw = RotationPropertyHelper.toDegrees(exteriorRotation);
+        return Direction.fromHorizontalDegrees(yaw);
+    }
+
+    /**
+     * Flood-fill visibility sample. Keys are TARDIS-relative positions.
+     * {@code blockAccess} returns world block states for absolute positions.
+     */
+    public static VisibilitySample collectVisible(
+            BlockPos exteriorPos,
+            int radiusChunks,
+            int exteriorRotation,
+            Function<BlockPos, BlockState> blockAccess
+    ) {
+        int r = radiusBlocks(radiusChunks);
+        Direction facing = facingFromRotation(exteriorRotation);
         Map<BlockPos, BlockState> visible = new HashMap<>();
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
-        for (int x = 0; x < SIZE_X; x++) {
-            for (int y = 0; y < SIZE_Y; y++) {
-                for (int z = 0; z < SIZE_Z; z++) {
-                    mutable.set(origin.getX() + x, origin.getY() + y, origin.getZ() + z);
-                    BlockState state = exteriorWorld.getBlockState(mutable);
-                    if (isSotoVisible(state)) {
-                        visible.put(new BlockPos(x, y, z), state);
+        Set<BlockPos> floodedRel = new HashSet<>();
+        Set<BlockPos> visitedRel = new HashSet<>();
+        Queue<BlockPos> queue = new ArrayDeque<>();
+
+        List<BlockPos> seeds = doorSeeds(exteriorPos, facing);
+        for (BlockPos seedWorld : seeds) {
+            BlockPos seedRel = toRelative(seedWorld, exteriorPos);
+            if (!isWithinChebyshev(seedRel, r) || !visitedRel.add(seedRel)) {
+                continue;
+            }
+            BlockState seedState = blockAccess.apply(seedWorld);
+            if (!canFloodThrough(seedState)) {
+                if (isSotoVisible(seedState)) {
+                    visible.put(seedRel, seedState);
+                }
+                continue;
+            }
+            queue.add(seedRel);
+            floodedRel.add(seedRel);
+            if (isSotoVisible(seedState)) {
+                visible.put(seedRel, seedState);
+            }
+        }
+
+        BlockPos.Mutable worldMutable = new BlockPos.Mutable();
+        while (!queue.isEmpty() && visitedRel.size() < MAX_FLOOD_VISITS) {
+            BlockPos rel = queue.poll();
+            for (Direction dir : NEIGHBORS) {
+                BlockPos nextRel = rel.offset(dir);
+                if (!isWithinChebyshev(nextRel, r) || !visitedRel.add(nextRel)) {
+                    continue;
+                }
+                if (visitedRel.size() > MAX_FLOOD_VISITS) {
+                    break;
+                }
+                worldMutable.set(
+                        exteriorPos.getX() + nextRel.getX(),
+                        exteriorPos.getY() + nextRel.getY(),
+                        exteriorPos.getZ() + nextRel.getZ()
+                );
+                BlockState nextState = blockAccess.apply(worldMutable);
+                if (canFloodThrough(nextState)) {
+                    floodedRel.add(nextRel);
+                    queue.add(nextRel);
+                    if (isSotoVisible(nextState)) {
+                        visible.put(nextRel.toImmutable(), nextState);
                     }
+                } else if (isSotoVisible(nextState)) {
+                    visible.put(nextRel.toImmutable(), nextState);
                 }
             }
         }
-        return visible;
+
+        return new VisibilitySample(Map.copyOf(visible), Set.copyOf(floodedRel));
     }
 
-    public static Map<BlockPos, NbtCompound> sampleBlockEntities(ServerWorld exteriorWorld, BlockPos exteriorPos) {
-        BlockPos origin = footprintOrigin(exteriorPos);
+    public static Map<BlockPos, BlockState> sample(
+            ServerWorld exteriorWorld,
+            BlockPos exteriorPos,
+            int radiusChunks,
+            int exteriorRotation
+    ) {
+        return sampleAll(exteriorWorld, exteriorPos, radiusChunks, exteriorRotation).blocks();
+    }
+
+    public static Map<BlockPos, NbtCompound> sampleBlockEntities(
+            ServerWorld exteriorWorld,
+            BlockPos exteriorPos,
+            int radiusChunks,
+            int exteriorRotation
+    ) {
+        return sampleAll(exteriorWorld, exteriorPos, radiusChunks, exteriorRotation).blockEntities();
+    }
+
+    /**
+     * Single flood-fill pass producing blocks, block-entity NBT, and entity samples.
+     */
+    public static FullSample sampleAll(
+            ServerWorld exteriorWorld,
+            BlockPos exteriorPos,
+            int radiusChunks,
+            int exteriorRotation
+    ) {
+        int clamped = clampRadiusChunks(radiusChunks);
+        ensureFootprintChunksLoaded(exteriorWorld, exteriorPos, clamped);
+        VisibilitySample visibility = collectVisible(
+                exteriorPos, clamped, exteriorRotation, exteriorWorld::getBlockState
+        );
         RegistryWrapper.WrapperLookup registries = exteriorWorld.getRegistryManager();
-        Map<BlockPos, NbtCompound> entities = new HashMap<>();
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
-        for (int x = 0; x < SIZE_X; x++) {
-            for (int y = 0; y < SIZE_Y; y++) {
-                for (int z = 0; z < SIZE_Z; z++) {
-                    mutable.set(origin.getX() + x, origin.getY() + y, origin.getZ() + z);
-                    BlockState state = exteriorWorld.getBlockState(mutable);
-                    if (!isSotoVisible(state)) {
-                        continue;
-                    }
-                    BlockEntity blockEntity = exteriorWorld.getBlockEntity(mutable);
-                    if (blockEntity == null) {
-                        continue;
-                    }
-                    entities.put(new BlockPos(x, y, z), BotiInteriorSampler.captureSyncNbt(blockEntity, registries));
-                }
+        Map<BlockPos, NbtCompound> blockEntities = new HashMap<>();
+        for (BlockPos rel : visibility.blocks().keySet()) {
+            BlockPos worldPos = toWorld(rel, exteriorPos);
+            BlockEntity blockEntity = exteriorWorld.getBlockEntity(worldPos);
+            if (blockEntity == null) {
+                continue;
             }
+            blockEntities.put(rel, BotiInteriorSampler.captureSyncNbt(blockEntity, registries));
         }
-        return entities;
-    }
-
-    public static Box footprintBox(BlockPos footprintOrigin) {
-        return new Box(
-                footprintOrigin.getX(),
-                footprintOrigin.getY(),
-                footprintOrigin.getZ(),
-                footprintOrigin.getX() + SIZE_X,
-                footprintOrigin.getY() + SIZE_Y,
-                footprintOrigin.getZ() + SIZE_Z
+        List<BotiEntitySample> entities = sampleEntitiesFromVisibility(
+                exteriorWorld, exteriorPos, clamped, visibility
+        );
+        return new FullSample(
+                visibility.blocks(),
+                Map.copyOf(blockEntities),
+                entities,
+                visibility.floodedRel()
         );
     }
 
-    public static int[] footprintChunkBounds(BlockPos footprintOrigin) {
+    public static Box footprintBox(BlockPos exteriorPos, int radiusChunks) {
+        int r = radiusBlocks(radiusChunks);
+        return new Box(
+                exteriorPos.getX() - r,
+                exteriorPos.getY() - r,
+                exteriorPos.getZ() - r,
+                exteriorPos.getX() + r + 1,
+                exteriorPos.getY() + r + 1,
+                exteriorPos.getZ() + r + 1
+        );
+    }
+
+    public static Box maxFootprintBox(BlockPos exteriorPos) {
+        return footprintBox(exteriorPos, MAX_RADIUS_CHUNKS);
+    }
+
+    public static int[] footprintChunkBounds(BlockPos exteriorPos, int radiusChunks) {
+        int r = radiusBlocks(radiusChunks);
         return new int[]{
-                ChunkSectionPos.getSectionCoord(footprintOrigin.getX()),
-                ChunkSectionPos.getSectionCoord(footprintOrigin.getX() + SIZE_X - 1),
-                ChunkSectionPos.getSectionCoord(footprintOrigin.getZ()),
-                ChunkSectionPos.getSectionCoord(footprintOrigin.getZ() + SIZE_Z - 1)
+                ChunkSectionPos.getSectionCoord(exteriorPos.getX() - r),
+                ChunkSectionPos.getSectionCoord(exteriorPos.getX() + r),
+                ChunkSectionPos.getSectionCoord(exteriorPos.getZ() - r),
+                ChunkSectionPos.getSectionCoord(exteriorPos.getZ() + r)
         };
     }
 
-    public static void ensureFootprintChunksLoaded(ServerWorld world, BlockPos footprintOrigin) {
-        if (world == null || footprintOrigin == null) {
+    /**
+     * Adds SOTO chunk tickets for the footprint. Does <strong>not</strong> synchronously load
+     * chunks — use {@link #ensureFootprintChunksLoaded} when sampling needs block data now.
+     */
+    public static void addFootprintTickets(ServerWorld world, BlockPos exteriorPos, int radiusChunks) {
+        if (world == null || exteriorPos == null) {
             return;
         }
-        int[] bounds = footprintChunkBounds(footprintOrigin);
+        int[] bounds = footprintChunkBounds(exteriorPos, radiusChunks);
         var chunkManager = world.getChunkManager();
         for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
             for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
                 ChunkPos chunkPos = new ChunkPos(cx, cz);
                 chunkManager.addTicket(SOTO_TICKET, chunkPos, 2, chunkPos);
+            }
+        }
+    }
+
+    /**
+     * Tickets the footprint and synchronously loads chunks for an immediate sample.
+     * Avoid calling this every tick — prefer {@link #addFootprintTickets} for keep-alive.
+     */
+    public static void ensureFootprintChunksLoaded(ServerWorld world, BlockPos exteriorPos, int radiusChunks) {
+        if (world == null || exteriorPos == null) {
+            return;
+        }
+        addFootprintTickets(world, exteriorPos, radiusChunks);
+        int[] bounds = footprintChunkBounds(exteriorPos, radiusChunks);
+        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
+            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
                 world.getChunk(cx, cz);
             }
         }
     }
 
-    public static boolean hasEntities(ServerWorld exteriorWorld, BlockPos exteriorPos) {
-        BlockPos origin = footprintOrigin(exteriorPos);
-        ensureFootprintChunksLoaded(exteriorWorld, origin);
-        return !exteriorWorld.getOtherEntities(null, footprintBox(origin), entity -> !entity.isRemoved()).isEmpty();
+    /**
+     * Cheap entity occupancy probe over already-loaded chunks. Does not force-load.
+     */
+    public static boolean hasEntities(ServerWorld exteriorWorld, BlockPos exteriorPos, int radiusChunks) {
+        if (exteriorWorld == null || exteriorPos == null) {
+            return false;
+        }
+        int clamped = clampRadiusChunks(radiusChunks);
+        return !exteriorWorld.getOtherEntities(
+                null, footprintBox(exteriorPos, clamped), entity -> !entity.isRemoved()
+        ).isEmpty();
     }
 
-    public static void keepMobAiActive(ServerWorld exteriorWorld, BlockPos exteriorPos) {
+    public static boolean hasEntities(ServerWorld exteriorWorld, BlockPos exteriorPos) {
+        return hasEntities(exteriorWorld, exteriorPos, DEFAULT_RADIUS_CHUNKS);
+    }
+
+    /**
+     * Resets mob despawn counters in the SOTO radius when no players are in the exterior world.
+     * Does not force-load chunks — callers must keep tickets alive separately.
+     */
+    public static void keepMobAiActive(ServerWorld exteriorWorld, BlockPos exteriorPos, int radiusChunks) {
         if (exteriorWorld == null || exteriorPos == null) {
             return;
         }
         if (!exteriorWorld.getPlayers().isEmpty()) {
             return;
         }
-        BlockPos origin = footprintOrigin(exteriorPos);
-        ensureFootprintChunksLoaded(exteriorWorld, origin);
-        for (Entity entity : exteriorWorld.getOtherEntities(null, footprintBox(origin), e -> !e.isRemoved())) {
+        int clamped = clampRadiusChunks(radiusChunks);
+        for (Entity entity : exteriorWorld.getOtherEntities(
+                null, footprintBox(exteriorPos, clamped), e -> !e.isRemoved()
+        )) {
             if (entity instanceof MobEntity mob && mob.getDespawnCounter() != 0) {
                 mob.setDespawnCounter(0);
             }
         }
     }
 
-    public static List<BotiEntitySample> sampleEntities(ServerWorld exteriorWorld, BlockPos exteriorPos) {
-        BlockPos origin = footprintOrigin(exteriorPos);
-        ensureFootprintChunksLoaded(exteriorWorld, origin);
-        List<Entity> found = exteriorWorld.getOtherEntities(null, footprintBox(origin), entity -> !entity.isRemoved());
+    public static void keepMobAiActive(ServerWorld exteriorWorld, BlockPos exteriorPos) {
+        keepMobAiActive(exteriorWorld, exteriorPos, DEFAULT_RADIUS_CHUNKS);
+    }
+
+    /**
+     * Re-samples entities only (no terrain flood). Entities in the radius box that sit in or
+     * beside {@code floodedRel} are included; if {@code floodedRel} is empty, all entities in
+     * the box are included.
+     */
+    public static List<BotiEntitySample> sampleEntitiesOnly(
+            ServerWorld exteriorWorld,
+            BlockPos exteriorPos,
+            int radiusChunks,
+            Set<BlockPos> floodedRel
+    ) {
+        int clamped = clampRadiusChunks(radiusChunks);
+        List<Entity> found = exteriorWorld.getOtherEntities(
+                null, footprintBox(exteriorPos, clamped), entity -> !entity.isRemoved()
+        );
         if (found.isEmpty()) {
             return List.of();
         }
-        List<BotiEntitySample> samples = new ArrayList<>(found.size());
+        boolean filterByFlood = floodedRel != null && !floodedRel.isEmpty();
+        List<BotiEntitySample> samples = new ArrayList<>();
         for (Entity entity : found) {
-            BotiEntitySample sample = captureEntity(entity, origin);
+            if (filterByFlood && !isEntityInVisibleVolume(entity, exteriorPos, floodedRel)) {
+                continue;
+            }
+            BotiEntitySample sample = captureEntity(entity, exteriorPos);
             if (sample != null) {
                 samples.add(sample);
             }
@@ -185,16 +400,85 @@ public final class SotoExteriorSampler {
         return List.copyOf(samples);
     }
 
-    public static BotiEntitySample captureEntity(Entity entity, BlockPos footprintOrigin) {
-        return BotiInteriorSampler.captureEntity(entity, footprintOrigin);
+    public static List<BotiEntitySample> sampleEntities(
+            ServerWorld exteriorWorld,
+            BlockPos exteriorPos,
+            int radiusChunks,
+            int exteriorRotation
+    ) {
+        return sampleAll(exteriorWorld, exteriorPos, radiusChunks, exteriorRotation).entities();
     }
 
-    public static boolean isInsideFootprint(BlockPos worldPos, BlockPos footprintOrigin) {
-        int localX = worldPos.getX() - footprintOrigin.getX();
-        int localY = worldPos.getY() - footprintOrigin.getY();
-        int localZ = worldPos.getZ() - footprintOrigin.getZ();
-        return localX >= 0 && localX < SIZE_X
-                && localY >= 0 && localY < SIZE_Y
-                && localZ >= 0 && localZ < SIZE_Z;
+    public static BotiEntitySample captureEntity(Entity entity, BlockPos exteriorPos) {
+        return BotiInteriorSampler.captureEntity(entity, exteriorPos);
+    }
+
+    public record VisibilitySample(Map<BlockPos, BlockState> blocks, Set<BlockPos> floodedRel) {
+    }
+
+    public record FullSample(
+            Map<BlockPos, BlockState> blocks,
+            Map<BlockPos, NbtCompound> blockEntities,
+            List<BotiEntitySample> entities,
+            Set<BlockPos> floodedRel
+    ) {
+        public FullSample {
+            floodedRel = floodedRel == null ? Set.of() : Set.copyOf(floodedRel);
+        }
+    }
+
+    private static List<BotiEntitySample> sampleEntitiesFromVisibility(
+            ServerWorld exteriorWorld,
+            BlockPos exteriorPos,
+            int radiusChunks,
+            VisibilitySample visibility
+    ) {
+        List<Entity> found = exteriorWorld.getOtherEntities(
+                null, footprintBox(exteriorPos, radiusChunks), entity -> !entity.isRemoved()
+        );
+        if (found.isEmpty()) {
+            return List.of();
+        }
+        List<BotiEntitySample> samples = new ArrayList<>();
+        for (Entity entity : found) {
+            if (!isEntityInVisibleVolume(entity, exteriorPos, visibility.floodedRel())) {
+                continue;
+            }
+            BotiEntitySample sample = captureEntity(entity, exteriorPos);
+            if (sample != null) {
+                samples.add(sample);
+            }
+        }
+        return List.copyOf(samples);
+    }
+
+    private static List<BlockPos> doorSeeds(BlockPos exteriorPos, Direction facing) {
+        BlockPos outside = exteriorPos.offset(facing);
+        return List.of(outside, outside.up());
+    }
+
+    private static boolean canFloodThrough(BlockState state) {
+        if (state == null || state.isOf(DWMBlocks.TARDIS_BLOCK)) {
+            return false;
+        }
+        return !state.isOpaqueFullCube();
+    }
+
+    private static boolean isEntityInVisibleVolume(
+            Entity entity,
+            BlockPos exteriorPos,
+            Set<BlockPos> floodedRel
+    ) {
+        BlockPos feet = BlockPos.ofFloored(entity.getX(), entity.getY(), entity.getZ());
+        BlockPos rel = toRelative(feet, exteriorPos);
+        if (floodedRel.contains(rel)) {
+            return true;
+        }
+        for (Direction dir : NEIGHBORS) {
+            if (floodedRel.contains(rel.offset(dir))) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -13,6 +13,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.OtherClientPlayerEntity;
+import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.BlockRenderManager;
@@ -48,6 +49,7 @@ public final class SotoExteriorMeshCache {
 
     private static final Map<UUID, CachedSnapshot> SNAPSHOTS = new ConcurrentHashMap<>();
     private static final Map<UUID, Long> LAST_REQUEST_MS = new ConcurrentHashMap<>();
+    private static final Map<UUID, Integer> LAST_REQUESTED_VIEW_DISTANCE = new ConcurrentHashMap<>();
 
     private SotoExteriorMeshCache() {
     }
@@ -58,6 +60,14 @@ public final class SotoExteriorMeshCache {
             boolean isOpen,
             int exteriorRotation
     ) {
+    }
+
+    public static int clientViewDistanceChunks() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client == null || client.options == null) {
+            return SotoExteriorSampler.DEFAULT_RADIUS_CHUNKS;
+        }
+        return SotoExteriorSampler.clampRadiusChunks(client.options.getViewDistance().getValue());
     }
 
     public static boolean hasSnapshot(UUID tardisId) {
@@ -157,6 +167,32 @@ public final class SotoExteriorMeshCache {
             boolean isOpen,
             int exteriorRotation
     ) {
+        applySnapshot(
+                tardisId,
+                revision,
+                SotoExteriorSampler.DEFAULT_RADIUS_CHUNKS,
+                blocks,
+                blockEntities,
+                entities,
+                variant,
+                doorSwing,
+                isOpen,
+                exteriorRotation
+        );
+    }
+
+    public static void applySnapshot(
+            UUID tardisId,
+            int revision,
+            int radiusChunks,
+            Map<BlockPos, BlockState> blocks,
+            Map<BlockPos, NbtCompound> blockEntities,
+            List<BotiEntitySample> entities,
+            TardisChameleonVariant variant,
+            float doorSwing,
+            boolean isOpen,
+            int exteriorRotation
+    ) {
         if (tardisId == null) {
             return;
         }
@@ -164,6 +200,7 @@ public final class SotoExteriorMeshCache {
         if (existing != null && revision < existing.revision()) {
             return;
         }
+        int clampedRadius = SotoExteriorSampler.clampRadiusChunks(radiusChunks);
         Map<BlockPos, BlockState> blockCopy = blocks == null ? Map.of() : Map.copyOf(blocks);
         Map<BlockPos, NbtCompound> beCopy = copyNbtMap(blockEntities);
         List<BotiEntitySample> entityCopy = copyEntitySamples(entities);
@@ -177,29 +214,63 @@ public final class SotoExteriorMeshCache {
                 isOpen,
                 exteriorRotation
         );
+        SotoBakedTerrainMesh terrainMesh = SotoBakedTerrainMesh.bake(blockCopy, LightmapTextureManager.pack(15, 15));
+        SotoBakedTerrainMesh previousMesh = existing == null ? null : existing.terrainMesh();
         SNAPSHOTS.put(tardisId, new CachedSnapshot(
                 revision,
+                clampedRadius,
                 blockCopy,
                 beCopy,
                 renderedBes,
                 entityCopy,
                 reconciled.entities(),
                 reconciled.interp(),
-                shell
+                shell,
+                terrainMesh
         ));
+        if (previousMesh != null && previousMesh != terrainMesh) {
+            previousMesh.close();
+        }
         LAST_REQUEST_MS.remove(tardisId);
+        LAST_REQUESTED_VIEW_DISTANCE.put(tardisId, clampedRadius);
     }
 
     public static void invalidate(UUID tardisId) {
         if (tardisId != null) {
-            SNAPSHOTS.remove(tardisId);
+            CachedSnapshot removed = SNAPSHOTS.remove(tardisId);
+            if (removed != null && removed.terrainMesh() != null) {
+                removed.terrainMesh().close();
+            }
             LAST_REQUEST_MS.remove(tardisId);
+            LAST_REQUESTED_VIEW_DISTANCE.remove(tardisId);
         }
     }
 
     public static void invalidateAll() {
+        for (CachedSnapshot cached : SNAPSHOTS.values()) {
+            if (cached.terrainMesh() != null) {
+                cached.terrainMesh().close();
+            }
+        }
         SNAPSHOTS.clear();
         LAST_REQUEST_MS.clear();
+        LAST_REQUESTED_VIEW_DISTANCE.clear();
+    }
+
+    public static boolean hasBakedTerrainMesh(UUID tardisId) {
+        if (tardisId == null) {
+            return false;
+        }
+        CachedSnapshot cached = SNAPSHOTS.get(tardisId);
+        return cached != null && cached.terrainMesh() != null && !cached.terrainMesh().isEmpty();
+    }
+
+    public static int getBakedTerrainLayerCount(UUID tardisId) {
+        if (tardisId == null) {
+            return 0;
+        }
+        CachedSnapshot cached = SNAPSHOTS.get(tardisId);
+        return cached == null || cached.terrainMesh() == null ? 0 : cached.terrainMesh().layerCount();
     }
 
     public static void renderWorld(
@@ -209,13 +280,32 @@ public final class SotoExteriorMeshCache {
             float tickDelta,
             UUID tardisId
     ) {
+        maybeRefreshViewDistance(tardisId);
+        CachedSnapshot cached = tardisId == null ? null : SNAPSHOTS.get(tardisId);
+        int radiusBlocks = SotoExteriorSampler.radiusBlocks(
+                cached == null ? clientViewDistanceChunks() : cached.radiusChunks()
+        );
+
         BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
-        for (Map.Entry<BlockPos, BlockState> entry : getVisibleBlocks(tardisId).entrySet()) {
-            BlockPos pos = entry.getKey();
-            matrices.push();
-            matrices.translate(pos.getX(), pos.getY(), pos.getZ());
-            blockRenderManager.renderBlockAsEntity(entry.getValue(), matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV);
-            matrices.pop();
+        SotoBakedTerrainMesh terrainMesh = cached == null ? null : cached.terrainMesh();
+        if (terrainMesh != null && !terrainMesh.isEmpty()) {
+            if (vertexConsumers instanceof VertexConsumerProvider.Immediate immediate) {
+                immediate.draw();
+            }
+            terrainMesh.draw(matrices);
+        } else {
+            for (Map.Entry<BlockPos, BlockState> entry : getVisibleBlocks(tardisId).entrySet()) {
+                BlockPos pos = entry.getKey();
+                if (!SotoExteriorSampler.isWithinChebyshev(pos, radiusBlocks)) {
+                    continue;
+                }
+                matrices.push();
+                matrices.translate(pos.getX(), pos.getY(), pos.getZ());
+                blockRenderManager.renderBlockAsEntity(
+                        entry.getValue(), matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV
+                );
+                matrices.pop();
+            }
         }
 
         BlockEntityRenderDispatcher beDispatcher = MinecraftClient.getInstance().getBlockEntityRenderDispatcher();
@@ -227,6 +317,9 @@ public final class SotoExteriorMeshCache {
                 continue;
             }
             BlockPos pos = blockEntity.getPos();
+            if (!SotoExteriorSampler.isWithinChebyshev(pos, radiusBlocks)) {
+                continue;
+            }
             matrices.push();
             matrices.translate(pos.getX(), pos.getY(), pos.getZ());
             renderer.render(blockEntity, tickDelta, matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV);
@@ -240,10 +333,13 @@ public final class SotoExteriorMeshCache {
             entityDispatcher.configure(world, client.gameRenderer.getCamera(), client.player);
         }
         List<Entity> entities = getEntities(tardisId);
-        CachedSnapshot cached = tardisId == null ? null : SNAPSHOTS.get(tardisId);
         Map<UUID, EntityInterpState> interpMap = cached == null ? Map.of() : cached.entityInterp();
         long now = Util.getMeasuringTimeMs();
         for (Entity entity : entities) {
+            BlockPos entityBlock = BlockPos.ofFloored(entity.getX(), entity.getY(), entity.getZ());
+            if (!SotoExteriorSampler.isWithinChebyshev(entityBlock, radiusBlocks)) {
+                continue;
+            }
             double x = entity.getX();
             double y = entity.getY();
             double z = entity.getZ();
@@ -487,18 +583,36 @@ public final class SotoExteriorMeshCache {
         return List.copyOf(copy);
     }
 
+    private static void maybeRefreshViewDistance(UUID tardisId) {
+        if (tardisId == null) {
+            return;
+        }
+        int current = clientViewDistanceChunks();
+        Integer last = LAST_REQUESTED_VIEW_DISTANCE.get(tardisId);
+        if (last != null && last == current && SNAPSHOTS.containsKey(tardisId)) {
+            return;
+        }
+        requestIfNeeded(tardisId, true);
+    }
+
     private static void requestIfNeeded(UUID tardisId) {
+        requestIfNeeded(tardisId, false);
+    }
+
+    private static void requestIfNeeded(UUID tardisId, boolean force) {
         long now = System.currentTimeMillis();
         Long last = LAST_REQUEST_MS.get(tardisId);
-        if (last != null && now - last < REQUEST_COOLDOWN_MS) {
+        if (!force && last != null && now - last < REQUEST_COOLDOWN_MS) {
             return;
         }
         MinecraftClient client = MinecraftClient.getInstance();
         if (client == null || client.getNetworkHandler() == null) {
             return;
         }
+        int viewDistance = clientViewDistanceChunks();
         LAST_REQUEST_MS.put(tardisId, now);
-        ClientPlayNetworking.send(new RequestSotoExteriorC2SPayload(tardisId));
+        LAST_REQUESTED_VIEW_DISTANCE.put(tardisId, viewDistance);
+        ClientPlayNetworking.send(new RequestSotoExteriorC2SPayload(tardisId, viewDistance));
     }
 
     private record ReconcileResult(List<Entity> entities, Map<UUID, EntityInterpState> interp) {
@@ -506,27 +620,33 @@ public final class SotoExteriorMeshCache {
 
     private record CachedSnapshot(
             int revision,
+            int radiusChunks,
             Map<BlockPos, BlockState> blocks,
             Map<BlockPos, NbtCompound> blockEntityNbt,
             List<BlockEntity> renderedBlockEntities,
             List<BotiEntitySample> entitySamples,
             List<Entity> renderedEntities,
             Map<UUID, EntityInterpState> entityInterp,
-            ShellState shell
+            ShellState shell,
+            SotoBakedTerrainMesh terrainMesh
     ) {
         private CachedSnapshot {
+            radiusChunks = SotoExteriorSampler.clampRadiusChunks(radiusChunks);
             entityInterp = entityInterp == null || entityInterp.isEmpty() ? Map.of() : Map.copyOf(entityInterp);
+            terrainMesh = terrainMesh == null ? SotoBakedTerrainMesh.EMPTY : terrainMesh;
         }
 
         private CachedSnapshot withRenderedBlockEntities(List<BlockEntity> bes) {
             return new CachedSnapshot(
-                    revision, blocks, blockEntityNbt, bes, entitySamples, renderedEntities, entityInterp, shell
+                    revision, radiusChunks, blocks, blockEntityNbt, bes, entitySamples, renderedEntities,
+                    entityInterp, shell, terrainMesh
             );
         }
 
         private CachedSnapshot withEntities(List<Entity> entities, Map<UUID, EntityInterpState> interp) {
             return new CachedSnapshot(
-                    revision, blocks, blockEntityNbt, renderedBlockEntities, entitySamples, entities, interp, shell
+                    revision, radiusChunks, blocks, blockEntityNbt, renderedBlockEntities, entitySamples,
+                    entities, interp, shell, terrainMesh
             );
         }
     }

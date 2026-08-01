@@ -67,18 +67,18 @@ class TardisSotoRendererAlignmentTest {
 
     @Test
     void southFacingCorrection_mapsFrontOfDoorThroughAperture() {
-        // Rotation 0 = south (+Z door). +Z face of block at z=5 is z=6; outward further at z=8.
+        // Rotation 0 = south (+Z door). +Z face of block at origin is z=1; outward further at z=3.
         Vector3f doorFront = transformWithFacing(
                 0,
                 (float) TardisSotoRenderer.EXTERIOR_DOOR_CENTER_X,
                 (float) TardisSotoRenderer.EXTERIOR_DOOR_CENTER_Y,
-                6.0f
+                1.0f
         );
         Vector3f outward = transformWithFacing(
                 0,
                 (float) TardisSotoRenderer.EXTERIOR_DOOR_CENTER_X,
                 (float) TardisSotoRenderer.EXTERIOR_DOOR_CENTER_Y,
-                8.0f
+                3.0f
         );
 
         assertEquals(SOTO_APERTURE.centerX(), doorFront.x, EPSILON);
@@ -91,8 +91,8 @@ class TardisSotoRendererAlignmentTest {
     @Test
     void eastFacingCorrection_mapsOutsideThroughAperture() {
         // Rotation 12 = east (−90°). Door on +X face; outside further +X.
-        Vector3f doorFront = transformWithFacing(12, 6.0f, (float) TardisSotoRenderer.EXTERIOR_DOOR_CENTER_Y, 5.5f);
-        Vector3f outward = transformWithFacing(12, 8.0f, (float) TardisSotoRenderer.EXTERIOR_DOOR_CENTER_Y, 5.5f);
+        Vector3f doorFront = transformWithFacing(12, 1.0f, (float) TardisSotoRenderer.EXTERIOR_DOOR_CENTER_Y, 0.5f);
+        Vector3f outward = transformWithFacing(12, 3.0f, (float) TardisSotoRenderer.EXTERIOR_DOOR_CENTER_Y, 0.5f);
         assertEquals(SOTO_APERTURE.z(), doorFront.z, 0.05f);
         assertTrue(outward.z > doorFront.z);
     }

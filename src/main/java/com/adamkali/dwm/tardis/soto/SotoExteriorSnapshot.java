@@ -14,12 +14,14 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Server-built exterior SOTO snapshot. formatVersion 3 = blocks + BE NBT + entities + shell metadata.
+ * Server-built exterior SOTO snapshot.
+ * formatVersion 4 = signed relative block positions + radiusChunks + BE NBT + entities + shell.
  */
 public record SotoExteriorSnapshot(
         int formatVersion,
         UUID tardisId,
         int revision,
+        int radiusChunks,
         Map<BlockPos, BlockState> blocks,
         Map<BlockPos, NbtCompound> blockEntities,
         List<BotiEntitySample> entities,
@@ -28,9 +30,10 @@ public record SotoExteriorSnapshot(
         boolean isOpen,
         int exteriorRotation
 ) {
-    public static final int FORMAT_VERSION_BLOCKS_BES_ENTITIES_SHELL = 3;
+    public static final int FORMAT_VERSION_VIEW_DISTANCE = 4;
 
     public SotoExteriorSnapshot {
+        radiusChunks = SotoExteriorSampler.clampRadiusChunks(radiusChunks);
         blocks = Map.copyOf(blocks);
         blockEntities = copyNbtMap(blockEntities);
         entities = copyEntities(entities);
@@ -42,6 +45,7 @@ public record SotoExteriorSnapshot(
     public static SotoExteriorSnapshot of(
             UUID tardisId,
             int revision,
+            int radiusChunks,
             Map<BlockPos, BlockState> blocks,
             Map<BlockPos, NbtCompound> blockEntities,
             List<BotiEntitySample> entities,
@@ -51,9 +55,10 @@ public record SotoExteriorSnapshot(
             int exteriorRotation
     ) {
         return new SotoExteriorSnapshot(
-                FORMAT_VERSION_BLOCKS_BES_ENTITIES_SHELL,
+                FORMAT_VERSION_VIEW_DISTANCE,
                 tardisId,
                 revision,
+                radiusChunks,
                 blocks,
                 blockEntities,
                 entities,

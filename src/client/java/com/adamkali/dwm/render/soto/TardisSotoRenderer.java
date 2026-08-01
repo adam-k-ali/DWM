@@ -33,12 +33,12 @@ public final class TardisSotoRenderer {
     private static final int FULLBRIGHT = LightmapTextureManager.pack(15, 15);
 
     /**
-     * Exterior door opening center in footprint-relative coords
-     * (TARDIS block at {@link SotoExteriorSampler#RELATIVE_TARDIS_POS}).
+     * Exterior door opening center in TARDIS-relative coords
+     * (exterior block at {@link SotoExteriorSampler#RELATIVE_TARDIS_POS} = origin).
      */
-    static final double EXTERIOR_DOOR_CENTER_X = SotoExteriorSampler.RELATIVE_TARDIS_POS.getX() + 0.5;
-    static final double EXTERIOR_DOOR_CENTER_Y = SotoExteriorSampler.RELATIVE_TARDIS_POS.getY() + 1.0;
-    static final double EXTERIOR_DOOR_PLANE_Z = SotoExteriorSampler.RELATIVE_TARDIS_POS.getZ() + 0.0;
+    static final double EXTERIOR_DOOR_CENTER_X = 0.5;
+    static final double EXTERIOR_DOOR_CENTER_Y = 1.0;
+    static final double EXTERIOR_DOOR_PLANE_Z = 0.0;
 
     public TardisSotoRenderer() {
     }
@@ -136,8 +136,8 @@ public final class TardisSotoRenderer {
     static void applyDoorFacingCorrection(MatrixStack matrices, int exteriorRotation) {
         float yaw = RotationPropertyHelper.toDegrees(exteriorRotation);
         float corrective = yaw - 180.0f;
-        double cx = SotoExteriorSampler.RELATIVE_TARDIS_POS.getX() + 0.5;
-        double cz = SotoExteriorSampler.RELATIVE_TARDIS_POS.getZ() + 0.5;
+        double cx = 0.5;
+        double cz = 0.5;
         matrices.translate(cx, 0.0, cz);
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(corrective));
         matrices.translate(-cx, 0.0, -cz);
