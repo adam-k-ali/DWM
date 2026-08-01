@@ -4,7 +4,6 @@ import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.model.tileentity.TardisClassicInteriorDoorModel;
 import com.adamkali.dwm.render.state.TardisRenderState;
-import com.adamkali.dwm.tardis.interior.TardisInteriorDoorRenderAnchor;
 import com.adamkali.dwm.tardis.interior.TardisInteriorDoorShapes;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.RenderLayer;
@@ -35,10 +34,6 @@ public class TardisInteriorDoorBlockEntityRenderer implements BlockEntityRendere
     ) {
         BlockState state = entity.getCachedState();
         Direction facing = state.get(TardisInteriorDoorBlock.FACING, Direction.NORTH);
-        if (entity.getWorld() == null
-                || !TardisInteriorDoorRenderAnchor.isPrimary(entity.getWorld(), entity.getPos(), facing)) {
-            return;
-        }
 
         TardisRenderState renderState = new TardisRenderState();
         renderState.setDoorSwingProgress(entity.getDoorSwing());
@@ -60,7 +55,7 @@ public class TardisInteriorDoorBlockEntityRenderer implements BlockEntityRendere
     static void applyTransforms(MatrixStack matrices, Direction facing) {
         matrices.translate(0.5, TardisInteriorDoorShapes.MODEL_HEIGHT_BLOCKS, 0.5);
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-Direction.getHorizontalDegreesOrThrow(facing)));
-        // Center the ~3×2 mesh on the 3-wide bank (primary is bank start cell).
+        // Center the ~3×2 mesh on the 3-wide bank (origin is bank start cell).
         matrices.translate(TardisInteriorDoorShapes.BANK_CENTER_OFFSET_BLOCKS, 0.0, 0.0);
         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180.0f));
         matrices.translate(-TardisInteriorDoorShapes.MODEL_CENTER_X_PX / 16.0F, 0.0F, 0.0F);

@@ -1,6 +1,7 @@
 package com.adamkali.dwm.gametest;
 
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
@@ -11,10 +12,17 @@ import com.adamkali.dwm.tardis.interior.TardisEntryGate;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.enums.DoubleBlockHalf;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.WorldSavePath;
+import net.minecraft.world.GameMode;
 
 import java.util.UUID;
 
@@ -36,6 +44,51 @@ public class TardisInteriorGameTests implements FabricGameTest {
         }
         if (!door.isOpenEnoughForExit()) {
             throw new AssertionError("Interior door should start open enough for exit");
+        }
+
+        context.complete();
+    }
+
+    @GameTest(templateName = EMPTY_STRUCTURE)
+    public void interiorDoor_UseOnNonOriginCell_TogglesBankOpen(TestContext context) {
+        Direction facing = Direction.SOUTH;
+        BlockPos originRel = new BlockPos(1, 2, 1);
+        for (DoubleBlockHalf half : DoubleBlockHalf.values()) {
+            for (int slot = 0; slot < TardisInteriorDoorBlock.BANK_WIDTH; slot++) {
+                BlockPos cellRel = TardisInteriorDoorBlock.cellPos(originRel, facing, half, slot);
+                context.setBlockState(
+                        cellRel.getX(), cellRel.getY(), cellRel.getZ(),
+                        TardisInteriorDoorBlock.bankCellState(facing, half, slot, true));
+            }
+        }
+
+        BlockPos originAbs = context.getAbsolutePos(originRel);
+        if (!(context.getWorld().getBlockEntity(originAbs) instanceof TardisInteriorDoorBlockEntity originDoor)) {
+            throw new AssertionError("Expected origin TardisInteriorDoorBlockEntity");
+        }
+        BlockPos farRel = TardisInteriorDoorBlock.cellPos(originRel, facing, DoubleBlockHalf.UPPER, 2);
+        BlockPos farAbs = context.getAbsolutePos(farRel);
+        if (context.getWorld().getBlockEntity(farAbs) != null) {
+            throw new AssertionError("Non-origin door cell must not have a block entity");
+        }
+
+        PlayerEntity player = context.createMockPlayer(GameMode.SURVIVAL);
+        BlockState farState = context.getWorld().getBlockState(farAbs);
+        BlockHitResult hit = new BlockHitResult(Vec3d.ofCenter(farAbs), Direction.NORTH, farAbs, false);
+        farState.onUse(context.getWorld(), player, hit);
+
+        for (DoubleBlockHalf half : DoubleBlockHalf.values()) {
+            for (int slot = 0; slot < TardisInteriorDoorBlock.BANK_WIDTH; slot++) {
+                BlockPos cellAbs = context.getAbsolutePos(
+                        TardisInteriorDoorBlock.cellPos(originRel, facing, half, slot));
+                BlockState cellState = context.getWorld().getBlockState(cellAbs);
+                if (cellState.get(TardisInteriorDoorBlock.OPEN)) {
+                    throw new AssertionError("Expected OPEN=false after use on non-origin cell at " + cellAbs);
+                }
+            }
+        }
+        if (originDoor.isOpen()) {
+            throw new AssertionError("Origin BE open flag should be false after toggle");
         }
 
         context.complete();

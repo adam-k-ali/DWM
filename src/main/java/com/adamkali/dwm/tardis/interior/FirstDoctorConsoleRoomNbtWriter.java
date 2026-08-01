@@ -39,8 +39,6 @@ public final class FirstDoctorConsoleRoomNbtWriter {
         String console = "dwm:teal_big_roundel_a";
         String air = "minecraft:air";
         String light = "minecraft:light";
-        String door = "dwm:tardis_interior_door[facing=south]";
-
         int sizeX = FirstDoctorConsoleRoomPlacer.SIZE_X;
         int sizeY = FirstDoctorConsoleRoomPlacer.SIZE_Y;
         int sizeZ = FirstDoctorConsoleRoomPlacer.SIZE_Z;
@@ -55,9 +53,13 @@ public final class FirstDoctorConsoleRoomNbtWriter {
                 }
             }
         }
-        for (int y = 1; y <= 2; y++) {
-            for (int x = 4; x <= 6; x++) {
-                placements.add(new Placement(x, y, 0, door));
+        // Origin (4,1,0); slots 0..2 along +X when facing south; half lower/upper.
+        for (String half : new String[]{"lower", "upper"}) {
+            for (int slot = 0; slot < 3; slot++) {
+                int x = 4 + slot;
+                int y = half.equals("lower") ? 1 : 2;
+                placements.add(new Placement(x, y, 0,
+                        "dwm:tardis_interior_door[facing=south,half=" + half + ",slot=" + slot + ",open=true]"));
             }
         }
         placements.add(new Placement(5, 1, 5, console));
