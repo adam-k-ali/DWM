@@ -9,6 +9,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtDouble;
@@ -175,6 +176,28 @@ public final class BotiInteriorSampler {
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
         ensureFootprintChunksLoaded(interiorWorld, origin);
         return !interiorWorld.getOtherEntities(null, footprintBox(origin), entity -> !entity.isRemoved()).isEmpty();
+    }
+
+    /**
+     * Resets vanilla mob {@code despawnCounter} so wander AI keeps running while no player is in
+     * {@code dwm:tardis}. Without a nearby player the counter climbs past 100 and
+     * {@code WanderAroundGoal} refuses to start — BOTI then shows frozen livestock.
+     */
+    public static void keepMobAiActive(ServerWorld interiorWorld, UUID tardisId) {
+        if (interiorWorld == null || tardisId == null) {
+            return;
+        }
+        // Players in-dimension already reset the counter via MobEntity#checkDespawn.
+        if (!interiorWorld.getPlayers().isEmpty()) {
+            return;
+        }
+        BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
+        ensureFootprintChunksLoaded(interiorWorld, origin);
+        for (Entity entity : interiorWorld.getOtherEntities(null, footprintBox(origin), e -> !e.isRemoved())) {
+            if (entity instanceof MobEntity mob && mob.getDespawnCounter() != 0) {
+                mob.setDespawnCounter(0);
+            }
+        }
     }
 
     /**

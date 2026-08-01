@@ -150,6 +150,8 @@ public final class BotiInteriorSyncService {
                 markDirty(tardisId);
                 if (hasEntities) {
                     ENTITY_ACTIVE.add(tardisId);
+                    // Keep wander AI alive for exterior BOTI while the interior has no players.
+                    BotiInteriorSampler.keepMobAiActive(interiorWorld, tardisId);
                 } else {
                     ENTITY_ACTIVE.remove(tardisId);
                 }
