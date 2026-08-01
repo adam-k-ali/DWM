@@ -19,7 +19,8 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 /**
- * Temporary debug wireframes for First Doctor console hit regions.
+ * Debug wireframes for First Doctor console hit regions, shown when entity hitboxes are
+ * enabled (F3 + B).
  * <ul>
  *   <li>Cyan — {@link FirstDoctorConsoleBlock#COLLISION_SHAPE}</li>
  *   <li>Lime — biome selector look/click AABB</li>
@@ -44,6 +45,9 @@ public final class ConsoleHitboxDebugRenderer {
         MinecraftClient client = MinecraftClient.getInstance();
         World world = client.world;
         if (world == null || client.player == null || context.consumers() == null || context.matrixStack() == null) {
+            return;
+        }
+        if (!client.getEntityRenderDispatcher().shouldRenderHitboxes()) {
             return;
         }
 
