@@ -96,25 +96,20 @@ public final class TardisBotiRenderer {
         GL11.glClear(GL11.GL_STENCIL_BUFFER_BIT);
 
         RenderSystem.stencilFunc(GL11.GL_ALWAYS, STENCIL_REF, 0xFF);
-        RenderSystem.stencilOp(GL11.GL_REPLACE, GL11.GL_REPLACE, GL11.GL_REPLACE);
+        // Only stamp stencil where the aperture passes the existing depth buffer (shell/world).
+        // REPLACE on depth-fail would x-ray through the exterior from behind.
+        RenderSystem.stencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_REPLACE);
         // Keep colorMask true: some drivers skip stencil updates when color+depth writes are off.
         RenderSystem.colorMask(true, true, true, true);
         RenderSystem.depthMask(false);
-        RenderSystem.disableDepthTest();
-        boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
-        if (cullWasEnabled) {
-            RenderSystem.disableCull();
-        }
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthFunc(GL11.GL_LEQUAL);
+        // Keep cull on so the back-facing aperture (rear / inside-looking-out) does not stamp.
 
         RenderSystem.setShaderColor(0.0f, 0.0f, 0.0f, 0.0f);
         drawApertureQuad(matrices);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-        if (cullWasEnabled) {
-            RenderSystem.enableCull();
-        }
-        RenderSystem.enableDepthTest();
-        RenderSystem.depthFunc(GL11.GL_LEQUAL);
         RenderSystem.depthMask(true);
         RenderSystem.stencilMask(0x00);
         RenderSystem.stencilFunc(GL11.GL_EQUAL, STENCIL_REF, 0xFF);
@@ -130,17 +125,11 @@ public final class TardisBotiRenderer {
         RenderSystem.depthFunc(GL11.GL_ALWAYS);
         RenderSystem.depthMask(true);
         RenderSystem.colorMask(false, false, false, false);
-        boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
-        if (cullWasEnabled) {
-            RenderSystem.disableCull();
-        }
         // Force written depth to 1.0 (far) regardless of aperture clip-space Z.
+        // Restricted by stencil EQUAL from writeStencilMask — cull stays on.
         GL11.glDepthRange(1.0, 1.0);
         drawApertureQuad(matrices);
         GL11.glDepthRange(0.0, 1.0);
-        if (cullWasEnabled) {
-            RenderSystem.enableCull();
-        }
         RenderSystem.colorMask(true, true, true, true);
         RenderSystem.depthFunc(GL11.GL_LEQUAL);
     }
