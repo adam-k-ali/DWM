@@ -48,13 +48,16 @@ public final class BotiInteriorSampler {
     private BotiInteriorSampler() {
     }
 
-    /** Whether a block should appear in the exterior BOTI preview. */
+    /**
+     * Whether a block should appear in the exterior BOTI preview.
+     * Interior doors stay excluded (no dedicated interior-door BER in BOTI yet).
+     * The First Doctor console is included so its BER can draw via synced BE NBT.
+     */
     public static boolean isBotiVisible(BlockState state) {
         return state != null
                 && !state.isAir()
                 && !state.isOf(Blocks.LIGHT)
-                && !state.isOf(DWMBlocks.TARDIS_INTERIOR_DOOR)
-                && !state.isOf(DWMBlocks.FIRST_DOCTOR_CONSOLE);
+                && !state.isOf(DWMBlocks.TARDIS_INTERIOR_DOOR);
     }
 
     /**
@@ -92,7 +95,8 @@ public final class BotiInteriorSampler {
     }
 
     /**
-     * Samples chunk-sync NBT for block entities in the footprint (interior doors excluded).
+     * Samples chunk-sync NBT for block entities in the footprint
+     * ({@link #isBotiVisible} — interior doors excluded).
      * Each compound includes the BE type {@code id} for client reconstruction.
      */
     public static Map<BlockPos, NbtCompound> sampleBlockEntities(ServerWorld interiorWorld, UUID tardisId) {

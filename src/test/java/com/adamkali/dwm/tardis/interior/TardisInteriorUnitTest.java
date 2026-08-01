@@ -103,7 +103,8 @@ class TardisInteriorUnitTest {
         assertTrue(placements.get(new BlockPos(5, 2, 5)).isAir(), "no stacked roundel above console");
 
         Map<BlockPos, BlockState> boti = FirstDoctorConsoleRoomLayout.botiVisiblePlacements();
-        assertFalse(boti.containsKey(consolePos), "console must be excluded from BOTI tessellation");
+        assertEquals(DWMBlocks.FIRST_DOCTOR_CONSOLE, boti.get(consolePos).getBlock(),
+                "console must be included in BOTI so its BER can draw");
     }
 
     @Test

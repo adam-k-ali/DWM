@@ -40,7 +40,8 @@ public final class FirstDoctorConsoleRoomLayout {
     }
 
     /**
-     * Blocks that should be tessellated for the exterior BOTI preview (no air/light/door slabs).
+     * Blocks that should appear in the exterior BOTI preview (no air/light/interior doors).
+     * Includes the First Doctor console (INVISIBLE + BER).
      */
     public static Map<BlockPos, BlockState> botiVisiblePlacements() {
         return BotiInteriorSampler.filterVisible(placements());

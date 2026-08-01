@@ -2,11 +2,13 @@ package com.adamkali.dwm.render.boti;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ChestBlockEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.BuiltinRegistries;
@@ -42,6 +44,19 @@ class BotiInteriorMeshCacheTest {
         UUID id = UUID.randomUUID();
         Map<BlockPos, BlockState> visible = BotiInteriorMeshCache.getVisibleBlocks(id);
         assertEquals(FirstDoctorConsoleRoomLayout.botiVisiblePlacements(), visible);
+        assertFalse(BotiInteriorMeshCache.hasSnapshot(id));
+        assertTrue(visible.containsKey(new BlockPos(5, 1, 5)));
+        assertEquals(DWMBlocks.FIRST_DOCTOR_CONSOLE, visible.get(new BlockPos(5, 1, 5)).getBlock());
+    }
+
+    @Test
+    void getBlockEntities_FallsBackToBlueprintConsoleWithoutSnapshot() {
+        UUID id = UUID.randomUUID();
+        List<BlockEntity> entities = BotiInteriorMeshCache.getBlockEntities(id);
+        assertEquals(1, entities.size());
+        BlockEntity be = entities.getFirst();
+        assertInstanceOf(FirstDoctorConsoleBlockEntity.class, be);
+        assertEquals(new BlockPos(5, 1, 5), be.getPos());
         assertFalse(BotiInteriorMeshCache.hasSnapshot(id));
     }
 

@@ -1,5 +1,7 @@
 package com.adamkali.dwm.render.boti;
 
+import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.network.RequestBotiInteriorC2SPayload;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.EntityInterpState;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.LerpedPose;
@@ -39,15 +41,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Per-TARDIS BOTI placement cache. Prefers synced live snapshots (blocks + BE NBT + entities);
- * falls back to the First Doctor blueprint until a snapshot arrives.
+ * falls back to the First Doctor blueprint (blocks + synthetic console BE) until a snapshot arrives.
  */
 public final class BotiInteriorMeshCache {
     private static final long REQUEST_COOLDOWN_MS = 2000L;
     private static final String PLAYER_ENTITY_ID = "minecraft:player";
+    /** Local console position in {@link FirstDoctorConsoleRoomLayout}. */
+    private static final BlockPos BLUEPRINT_CONSOLE_POS = new BlockPos(5, 1, 5);
 
     private static final Map<UUID, CachedSnapshot> SNAPSHOTS = new ConcurrentHashMap<>();
     private static final Map<UUID, Long> LAST_REQUEST_MS = new ConcurrentHashMap<>();
     private static Map<BlockPos, BlockState> blueprintFallback = Map.of();
+    private static List<BlockEntity> blueprintBlockEntities;
 
     private BotiInteriorMeshCache() {
     }
@@ -91,7 +96,7 @@ public final class BotiInteriorMeshCache {
         }
         CachedSnapshot cached = SNAPSHOTS.get(tardisId);
         if (cached == null) {
-            return List.of();
+            return blueprintBlockEntities();
         }
         if (!cached.renderedBlockEntities().isEmpty()) {
             return cached.renderedBlockEntities();
@@ -200,6 +205,7 @@ public final class BotiInteriorMeshCache {
         SNAPSHOTS.clear();
         LAST_REQUEST_MS.clear();
         blueprintFallback = Map.of();
+        blueprintBlockEntities = null;
     }
 
     public static void render(
@@ -490,6 +496,21 @@ public final class BotiInteriorMeshCache {
             blueprintFallback = Map.copyOf(FirstDoctorConsoleRoomLayout.botiVisiblePlacements());
         }
         return blueprintFallback;
+    }
+
+    /**
+     * Synthetic BER targets for the blueprint fallback (First Doctor console at room center).
+     */
+    private static List<BlockEntity> blueprintBlockEntities() {
+        if (blueprintBlockEntities == null) {
+            BlockState state = FirstDoctorConsoleRoomLayout.placements().get(BLUEPRINT_CONSOLE_POS);
+            if (state != null && state.isOf(DWMBlocks.FIRST_DOCTOR_CONSOLE)) {
+                blueprintBlockEntities = List.of(new FirstDoctorConsoleBlockEntity(BLUEPRINT_CONSOLE_POS, state));
+            } else {
+                blueprintBlockEntities = List.of();
+            }
+        }
+        return blueprintBlockEntities;
     }
 
     private record ReconcileResult(List<Entity> entities, Map<UUID, EntityInterpState> interp) {

@@ -34,7 +34,7 @@ class BotiInteriorSamplerTest {
     }
 
     @Test
-    void filterVisible_excludesAirLightInteriorDoorAndConsole() {
+    void filterVisible_excludesAirLightAndInteriorDoorIncludesConsole() {
         Map<BlockPos, BlockState> input = new HashMap<>();
         input.put(new BlockPos(0, 0, 0), DWMBlocks.WHITE_TARDIS_WALL.getDefaultState());
         input.put(new BlockPos(1, 0, 0), Blocks.AIR.getDefaultState());
@@ -44,8 +44,9 @@ class BotiInteriorSamplerTest {
 
         Map<BlockPos, BlockState> visible = BotiInteriorSampler.filterVisible(input);
 
-        assertEquals(1, visible.size());
+        assertEquals(2, visible.size());
         assertTrue(visible.containsKey(new BlockPos(0, 0, 0)));
+        assertTrue(visible.containsKey(new BlockPos(4, 0, 0)));
     }
 
     @Test
@@ -70,9 +71,9 @@ class BotiInteriorSamplerTest {
     }
 
     @Test
-    void isBotiVisible_excludesInteriorDoorAndConsoleIncludesChest() {
+    void isBotiVisible_excludesInteriorDoorIncludesConsoleAndChest() {
         assertFalse(BotiInteriorSampler.isBotiVisible(DWMBlocks.TARDIS_INTERIOR_DOOR.getDefaultState()));
-        assertFalse(BotiInteriorSampler.isBotiVisible(DWMBlocks.FIRST_DOCTOR_CONSOLE.getDefaultState()));
+        assertTrue(BotiInteriorSampler.isBotiVisible(DWMBlocks.FIRST_DOCTOR_CONSOLE.getDefaultState()));
         assertTrue(BotiInteriorSampler.isBotiVisible(Blocks.CHEST.getDefaultState()));
         assertFalse(BotiInteriorSampler.isBotiVisible(Blocks.LIGHT.getDefaultState()));
     }
