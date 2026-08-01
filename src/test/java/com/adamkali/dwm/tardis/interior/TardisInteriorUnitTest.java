@@ -112,6 +112,9 @@ class TardisInteriorUnitTest {
         assertEquals("dwm", TardisDimensions.DIMENSION_ID.getNamespace());
         assertEquals("tardis", TardisDimensions.DIMENSION_ID.getPath());
         assertEquals("first_doctor_console_room", TardisDimensions.CONSOLE_ROOM_STRUCTURE_ID.getPath());
+        assertTrue(TardisDimensions.isTardisWorld(TardisDimensions.TARDIS_WORLD_KEY));
+        assertFalse(TardisDimensions.isTardisWorld(net.minecraft.world.World.OVERWORLD));
+        assertFalse(TardisDimensions.isTardisWorld((net.minecraft.world.World) null));
     }
 
     @Test
