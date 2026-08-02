@@ -27,13 +27,14 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Server-authoritative dematerialise → relocate → materialise loop for exterior shells.
+ * Server-authoritative dematerialise → in-flight wait → lever-gated materialise loop for exterior shells.
  */
 public final class TardisTravelService {
-    /** Fixed delay while the exterior is absent before landing. */
-    public static final int IN_FLIGHT_TICKS = 40;
+    /** Hold after exterior removal before entering {@link TardisTravelPhase#IN_FLIGHT}. */
+    public static final int DEMATERIALISING_HOLD_TICKS = 40;
 
     private static final Set<UUID> ACTIVE = ConcurrentHashMap.newKeySet();
+    private static final ConcurrentHashMap<UUID, ShellSnapshot> FLIGHT_SHELLS = new ConcurrentHashMap<>();
 
     private TardisTravelService() {
     }
@@ -94,12 +95,87 @@ public final class TardisTravelService {
         return ActionResult.SUCCESS;
     }
 
+    /**
+     * Begins materialisation while {@code tardisId} is {@link TardisTravelPhase#IN_FLIGHT}.
+     *
+     * @return {@link ActionResult#SUCCESS} when materialisation started,
+     * {@link ActionResult#FAIL} when preconditions fail,
+     * {@link ActionResult#PASS} when not in a phase that accepts materialise
+     */
+    public static ActionResult requestMaterialise(UUID tardisId, MinecraftServer server) {
+        if (tardisId == null) {
+            return ActionResult.FAIL;
+        }
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            return ActionResult.FAIL;
+        }
+        if (model.getTravelPhase() != TardisTravelPhase.IN_FLIGHT) {
+            return ActionResult.PASS;
+        }
+        if (server == null) {
+            return ActionResult.FAIL;
+        }
+
+        ServerWorld exteriorWorld = getExteriorWorld(server, model);
+        ShellSnapshot snapshot = FLIGHT_SHELLS.get(tardisId);
+        if (exteriorWorld == null || snapshot == null) {
+            abortToIdle(server, tardisId, model);
+            return ActionResult.FAIL;
+        }
+
+        BlockPos oldPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
+        BlockPos landing = resolveLanding(exteriorWorld, model, oldPos).orElse(oldPos);
+
+        placeShell(exteriorWorld, landing, snapshot);
+        model.setExteriorLocation(
+                exteriorWorld.getRegistryKey().getValue().toString(),
+                landing.getX(),
+                landing.getY(),
+                landing.getZ(),
+                snapshot.facingRotation()
+        );
+        SotoExteriorIndex.register(tardisId, model);
+        SotoExteriorSyncService.markDirty(tardisId);
+
+        model.doorState.isOpen = true;
+        model.doorState.doorSwing = 0.0f;
+        model.travelPhaseTicks = 0;
+        model.markDirty();
+        model.setTravelPhase(TardisTravelPhase.MATERIALISING);
+        FLIGHT_SHELLS.remove(tardisId);
+        ACTIVE.add(tardisId);
+        return ActionResult.SUCCESS;
+    }
+
     public static boolean isTraveling(@Nullable UUID tardisId) {
         if (tardisId == null) {
             return false;
         }
         TardisDataModel model = TardisDataLoader.get(tardisId);
         return model != null && model.getTravelPhase().isTraveling();
+    }
+
+    /**
+     * Advances dematerialising hold countdown toward {@link TardisTravelPhase#IN_FLIGHT}.
+     * Package-visible for unit tests without a full server tick loop.
+     *
+     * @return {@code true} if the model transitioned to {@link TardisTravelPhase#IN_FLIGHT}
+     */
+    static boolean advanceDematerialisingHold(TardisDataModel model) {
+        if (model == null || model.getTravelPhase() != TardisTravelPhase.DEMATERIALISING) {
+            return false;
+        }
+        if (model.travelPhaseTicks > 0) {
+            model.travelPhaseTicks--;
+            model.markDirty();
+            if (model.travelPhaseTicks > 0) {
+                return false;
+            }
+        }
+        model.travelPhaseTicks = 0;
+        model.setTravelPhase(TardisTravelPhase.IN_FLIGHT);
+        return true;
     }
 
     private static void onEndTick(MinecraftServer server) {
@@ -120,13 +196,21 @@ public final class TardisTravelService {
 
         switch (model.getTravelPhase()) {
             case DEMATERIALISING -> tickDematerialising(server, tardisId, model);
-            case IN_FLIGHT -> tickInFlight(server, tardisId, model);
+            case IN_FLIGHT -> {
+                // Wait for lever-gated {@link #requestMaterialise}.
+            }
             case MATERIALISING -> tickMaterialising(tardisId, model);
             case IDLE -> ACTIVE.remove(tardisId);
         }
     }
 
     private static void tickDematerialising(MinecraftServer server, UUID tardisId, TardisDataModel model) {
+        // After shell removal: hold, then enter IN_FLIGHT.
+        if (FLIGHT_SHELLS.containsKey(tardisId)) {
+            advanceDematerialisingHold(model);
+            return;
+        }
+
         // Ensure door swing advances even if we closed mid-animation.
         TardisLogic.updateDoorState(tardisId);
         if (model.doorState.doorSwing > 0.0f) {
@@ -151,47 +235,10 @@ public final class TardisTravelService {
         SotoExteriorIndex.unregister(tardisId);
         SotoExteriorSyncService.markDirty(tardisId);
 
-        model.travelPhaseTicks = IN_FLIGHT_TICKS;
-        model.setTravelPhase(TardisTravelPhase.IN_FLIGHT);
-        // Keep snapshot fields on the model via transient travel cache.
-        FLIGHT_SHELLS.put(tardisId, snapshot);
-    }
-
-    private static final ConcurrentHashMap<UUID, ShellSnapshot> FLIGHT_SHELLS = new ConcurrentHashMap<>();
-
-    private static void tickInFlight(MinecraftServer server, UUID tardisId, TardisDataModel model) {
-        if (model.travelPhaseTicks > 0) {
-            model.travelPhaseTicks--;
-            model.markDirty();
-            return;
-        }
-
-        ServerWorld exteriorWorld = getExteriorWorld(server, model);
-        ShellSnapshot snapshot = FLIGHT_SHELLS.get(tardisId);
-        if (exteriorWorld == null || snapshot == null) {
-            abortToIdle(server, tardisId, model);
-            return;
-        }
-
-        BlockPos oldPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
-        BlockPos landing = resolveLanding(exteriorWorld, model, oldPos).orElse(oldPos);
-
-        placeShell(exteriorWorld, landing, snapshot);
-        model.setExteriorLocation(
-                exteriorWorld.getRegistryKey().getValue().toString(),
-                landing.getX(),
-                landing.getY(),
-                landing.getZ(),
-                snapshot.facingRotation()
-        );
-        SotoExteriorIndex.register(tardisId, model);
-        SotoExteriorSyncService.markDirty(tardisId);
-
-        model.doorState.isOpen = true;
-        model.doorState.doorSwing = 0.0f;
+        model.travelPhaseTicks = DEMATERIALISING_HOLD_TICKS;
         model.markDirty();
-        model.setTravelPhase(TardisTravelPhase.MATERIALISING);
-        FLIGHT_SHELLS.remove(tardisId);
+        // Stay DEMATERIALISING during the hold; FLIGHT_SHELLS marks shell-removed.
+        FLIGHT_SHELLS.put(tardisId, snapshot);
     }
 
     private static void tickMaterialising(UUID tardisId, TardisDataModel model) {
@@ -279,5 +326,10 @@ public final class TardisTravelService {
     public static void clearActiveForTests() {
         ACTIVE.clear();
         FLIGHT_SHELLS.clear();
+    }
+
+    /** Test helper: seed a flight shell snapshot without a world. */
+    static void putFlightShellForTests(UUID tardisId, UUID shellTardisId) {
+        FLIGHT_SHELLS.put(tardisId, new ShellSnapshot(shellTardisId, null, false, 0));
     }
 }

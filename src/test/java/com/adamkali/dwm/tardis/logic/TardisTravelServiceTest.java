@@ -70,4 +70,65 @@ class TardisTravelServiceTest {
             assertFalse(TardisTravelService.isTraveling(tardisId));
         }
     }
+
+    @Test
+    void requestMaterialise_returnsPassWhenNotInFlight() {
+        try (MockedStatic<TardisDataLoader> loader = Mockito.mockStatic(TardisDataLoader.class)) {
+            loader.when(() -> TardisDataLoader.get(tardisId)).thenReturn(model);
+
+            assertEquals(ActionResult.PASS, TardisTravelService.requestMaterialise(tardisId, null));
+
+            model.setTravelPhase(TardisTravelPhase.DEMATERIALISING);
+            assertEquals(ActionResult.PASS, TardisTravelService.requestMaterialise(tardisId, null));
+
+            model.setTravelPhase(TardisTravelPhase.MATERIALISING);
+            assertEquals(ActionResult.PASS, TardisTravelService.requestMaterialise(tardisId, null));
+        }
+    }
+
+    @Test
+    void requestMaterialise_failsWhenInFlightButServerNull() {
+        try (MockedStatic<TardisDataLoader> loader = Mockito.mockStatic(TardisDataLoader.class)) {
+            loader.when(() -> TardisDataLoader.get(tardisId)).thenReturn(model);
+            model.setTravelPhase(TardisTravelPhase.IN_FLIGHT);
+
+            assertEquals(ActionResult.FAIL, TardisTravelService.requestMaterialise(tardisId, null));
+            assertEquals(TardisTravelPhase.IN_FLIGHT, model.getTravelPhase());
+        }
+    }
+
+    @Test
+    void requestMaterialise_failsWhenMissingWithoutShellSnapshot() {
+        try (MockedStatic<TardisDataLoader> loader = Mockito.mockStatic(TardisDataLoader.class)) {
+            loader.when(() -> TardisDataLoader.get(tardisId)).thenReturn(model);
+            model.setExteriorLocation("minecraft:overworld", 0, 64, 0, 0);
+            model.setTravelPhase(TardisTravelPhase.IN_FLIGHT);
+
+            // server non-null check happens before world resolution; null server → FAIL first
+            assertEquals(ActionResult.FAIL, TardisTravelService.requestMaterialise(tardisId, null));
+        }
+    }
+
+    @Test
+    void advanceDematerialisingHold_countsDownThenEntersInFlight() {
+        model.setTravelPhase(TardisTravelPhase.DEMATERIALISING);
+        model.travelPhaseTicks = 2;
+
+        assertFalse(TardisTravelService.advanceDematerialisingHold(model));
+        assertEquals(1, model.travelPhaseTicks);
+        assertEquals(TardisTravelPhase.DEMATERIALISING, model.getTravelPhase());
+
+        assertTrue(TardisTravelService.advanceDematerialisingHold(model));
+        assertEquals(0, model.travelPhaseTicks);
+        assertEquals(TardisTravelPhase.IN_FLIGHT, model.getTravelPhase());
+    }
+
+    @Test
+    void advanceDematerialisingHold_ignoresNonDematerialising() {
+        model.setTravelPhase(TardisTravelPhase.IN_FLIGHT);
+        model.travelPhaseTicks = 5;
+        assertFalse(TardisTravelService.advanceDematerialisingHold(model));
+        assertEquals(5, model.travelPhaseTicks);
+        assertEquals(TardisTravelPhase.IN_FLIGHT, model.getTravelPhase());
+    }
 }

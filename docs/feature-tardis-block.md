@@ -27,6 +27,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Collision entry when the exterior door is open (`doorSwing >= 0.9`); exit via open interior doors.
 - Config toggles `enableBoti` and `enableSoto` (default on) via Mod Menu / Cloth Config.
 - Interior doors use an invisible block + dedicated BER (`TardisClassicInteriorDoorModel`) with swing animation.
+- Materialisation lever travel: first pull dematerialises the exterior; after a short hold the TARDIS enters `IN_FLIGHT`; a second pull materialises at the selected biome landing site.
 
 ## How It Works In-Game
 1. Place the TARDIS block.
@@ -35,6 +36,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 4. When the door is fully open, walk into the exterior block to teleport to the interior entrance.
 5. From inside, look through open interior doors to see the exterior world (SOTO preview).
 6. Walk into the interior door blocks to return just outside the exterior TARDIS.
+7. At the console: select a destination biome, pull the materialisation lever to dematerialise, wait for `IN_FLIGHT`, then pull again to materialise and land.
 
 ## BOTI Notes
 - Visual illusion: does not stream the live `dwm:tardis` dimension to the exterior client.
@@ -63,4 +65,4 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 ## Future Opportunities
 - Richer First Doctor console props.
 - Per-chameleon BOTI / SOTO aperture meshes.
-- Ownership, multi-room corridors, and dematerialization travel.
+- Ownership and multi-room corridors.

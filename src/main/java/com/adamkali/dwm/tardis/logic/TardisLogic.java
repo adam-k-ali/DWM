@@ -4,6 +4,7 @@ import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
+import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSyncService;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -105,5 +106,13 @@ public class TardisLogic {
             return null;
         }
         return tardis.selectedBiome;
+    }
+
+    public static TardisTravelPhase getTravelPhase(@Nullable UUID tardisId) {
+        TardisDataModel tardis = TardisDataLoader.get(tardisId);
+        if (tardis == null) {
+            return TardisTravelPhase.IDLE;
+        }
+        return tardis.getTravelPhase();
     }
 }

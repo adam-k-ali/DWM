@@ -23,7 +23,7 @@ public class TardisDataModel {
     /** Current exterior travel phase name ({@link TardisTravelPhase}). */
     public String travelPhase = TardisTravelPhase.IDLE.name();
 
-    /** Countdown ticks remaining within the current travel phase (used by {@code IN_FLIGHT}). */
+    /** Countdown ticks remaining within the current travel phase (used by dematerialising hold). */
     public int travelPhaseTicks;
 
     /** Biome id snapshotted when travel starts; mid-flight biome cycling is ignored. */
