@@ -5,6 +5,7 @@ import com.adamkali.dwm.block.FirstDoctorConsoleControls;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.model.tileentity.BiomeSelectorModel;
 import com.adamkali.dwm.model.tileentity.FirstDoctorConsoleModel;
+import com.adamkali.dwm.model.tileentity.MaterialisationLeverModel;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.RenderLayer;
@@ -21,12 +22,15 @@ public class FirstDoctorConsoleBlockEntityRenderer implements BlockEntityRendere
 
     private final FirstDoctorConsoleModel model;
     private final BiomeSelectorModel biomeSelectorModel;
+    private final MaterialisationLeverModel materialisationLeverModel;
 
     public FirstDoctorConsoleBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
         this.model = new FirstDoctorConsoleModel(
                 context.getLayerModelPart(FirstDoctorConsoleModel.LAYER_LOCATION));
         this.biomeSelectorModel = new BiomeSelectorModel(
                 context.getLayerModelPart(BiomeSelectorModel.LAYER_LOCATION));
+        this.materialisationLeverModel = new MaterialisationLeverModel(
+                context.getLayerModelPart(MaterialisationLeverModel.LAYER_LOCATION));
     }
 
     @Override
@@ -44,6 +48,7 @@ public class FirstDoctorConsoleBlockEntityRenderer implements BlockEntityRendere
         TardisRenderState renderState = new TardisRenderState();
         model.setAngles(renderState);
         biomeSelectorModel.setAngles(renderState);
+        materialisationLeverModel.setAngles(renderState);
 
         matrices.push();
         applyTransforms(matrices, facing);
@@ -51,10 +56,20 @@ public class FirstDoctorConsoleBlockEntityRenderer implements BlockEntityRendere
                 RenderLayer.getEntityCutout(FirstDoctorConsoleModel.TEXTURE_LOCATION));
         model.render(matrices, consoleVertices, light, overlay);
 
+        matrices.push();
         applyPanel3SelectorTransforms(matrices);
         VertexConsumer selectorVertices = vertexConsumers.getBuffer(
                 RenderLayer.getEntityCutout(BiomeSelectorModel.TEXTURE_LOCATION));
         biomeSelectorModel.render(matrices, selectorVertices, light, overlay);
+        matrices.pop();
+
+        matrices.push();
+        applyPanel6LeverTransforms(matrices);
+        VertexConsumer leverVertices = vertexConsumers.getBuffer(
+                RenderLayer.getEntityCutout(MaterialisationLeverModel.TEXTURE_LOCATION));
+        materialisationLeverModel.render(matrices, leverVertices, light, overlay);
+        matrices.pop();
+
         matrices.pop();
     }
 
@@ -69,11 +84,30 @@ public class FirstDoctorConsoleBlockEntityRenderer implements BlockEntityRendere
     }
 
     /**
-     * Panel3 → bone9 deck → mount + scale, matching {@link FirstDoctorConsoleControls}.
+     * Panel3 → deck → mount + scale, matching {@link FirstDoctorConsoleControls}.
      */
     static void applyPanel3SelectorTransforms(MatrixStack matrices) {
+        applyPanelControlTransforms(
+                matrices,
+                FirstDoctorConsoleControls.PANEL3_YAW_RAD,
+                FirstDoctorConsoleControls.SELECTOR_SCALE
+        );
+    }
+
+    /**
+     * Panel6 → deck → mount + scale, matching {@link FirstDoctorConsoleControls}.
+     */
+    static void applyPanel6LeverTransforms(MatrixStack matrices) {
+        applyPanelControlTransforms(
+                matrices,
+                FirstDoctorConsoleControls.PANEL6_YAW_RAD,
+                FirstDoctorConsoleControls.LEVER_SCALE
+        );
+    }
+
+    private static void applyPanelControlTransforms(MatrixStack matrices, float panelYawRad, float scale) {
         matrices.translate(0.0, FirstDoctorConsoleControls.PANEL_PIVOT_Y_PX * PX, 0.0);
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotation(FirstDoctorConsoleControls.PANEL3_YAW_RAD));
+        matrices.multiply(RotationAxis.POSITIVE_Y.rotation(panelYawRad));
 
         matrices.translate(
                 0.0,
@@ -83,12 +117,11 @@ public class FirstDoctorConsoleBlockEntityRenderer implements BlockEntityRendere
         matrices.multiply(RotationAxis.POSITIVE_X.rotation(FirstDoctorConsoleControls.DECK_PITCH_RAD));
 
         matrices.translate(
-                FirstDoctorConsoleControls.SELECTOR_MOUNT_X_PX * PX,
-                FirstDoctorConsoleControls.SELECTOR_MOUNT_Y_PX * PX,
-                FirstDoctorConsoleControls.SELECTOR_MOUNT_Z_PX * PX
+                FirstDoctorConsoleControls.CONTROL_MOUNT_X_PX * PX,
+                FirstDoctorConsoleControls.CONTROL_MOUNT_Y_PX * PX,
+                FirstDoctorConsoleControls.CONTROL_MOUNT_Z_PX * PX
         );
-        float s = FirstDoctorConsoleControls.SELECTOR_SCALE;
-        matrices.scale(s, s, s);
+        matrices.scale(scale, scale, scale);
     }
 
     @Override

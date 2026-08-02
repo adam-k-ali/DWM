@@ -29,6 +29,9 @@ public class DWMRenderLayerManager {
         EntityModelLayerRegistry.registerModelLayer(
                 BiomeSelectorModel.LAYER_LOCATION,
                 BiomeSelectorModel::getTexturedModelData);
+        EntityModelLayerRegistry.registerModelLayer(
+                MaterialisationLeverModel.LAYER_LOCATION,
+                MaterialisationLeverModel::getTexturedModelData);
     }
 
     public static void initialize() {

@@ -41,11 +41,15 @@ public final class ConsoleControlHud {
         }
 
         Direction facing = state.get(FirstDoctorConsoleBlock.FACING, Direction.NORTH);
-        if (!FirstDoctorConsoleControls.isBiomeSelectorLookHit(facing, pos, client.player)) {
+        Text label;
+        if (FirstDoctorConsoleControls.isMaterialisationLeverLookHit(facing, pos, client.player)) {
+            label = Text.translatable("dwm.console.materialisation_lever");
+        } else if (FirstDoctorConsoleControls.isBiomeSelectorLookHit(facing, pos, client.player)) {
+            label = Text.translatable("dwm.console.biome_selector");
+        } else {
             return;
         }
 
-        Text label = Text.translatable("dwm.console.biome_selector");
         int textWidth = client.textRenderer.getWidth(label);
         int x = (context.getScaledWindowWidth() - textWidth) / 2;
         int y = context.getScaledWindowHeight() / 2 - 15;

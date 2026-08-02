@@ -63,4 +63,47 @@ class FirstDoctorConsoleControlsTest {
         assertTrue(Math.hypot(p.x - 0.5, p.z - 0.5) > 0.45);
         assertTrue(p.y > 0.5);
     }
+
+    @Test
+    void materialisationLeverBox_sitsOnPanel6DeckAwayFromCenter() {
+        Box box = FirstDoctorConsoleControls.materialisationLeverBox(Direction.NORTH);
+        assertTrue(box.minY > 0.4, "lever should sit on panel deck, was minY=" + box.minY);
+        assertTrue(box.maxY < 2.0, "lever should stay near console top, was maxY=" + box.maxY);
+        assertTrue(
+                FirstDoctorConsoleControls.leverDistanceFromCenter(Direction.NORTH) > 0.45,
+                "lever should be out on Panel6 deck, not at the time rotor"
+        );
+    }
+
+    @Test
+    void lookRay_hitsLeverFromAbove() {
+        Direction facing = Direction.NORTH;
+        BlockPos pos = BlockPos.ORIGIN;
+        Box box = FirstDoctorConsoleControls.materialisationLeverWorldBox(pos, facing);
+        Vec3d center = box.getCenter();
+        Vec3d eye = new Vec3d(center.x, center.y + 1.5, center.z);
+        Vec3d look = new Vec3d(0, -1, 0);
+        assertTrue(FirstDoctorConsoleControls.isMaterialisationLeverLookHit(facing, pos, eye, look, 5.0));
+
+        Vec3d missEye = new Vec3d(-2.0, 2.0, -2.0);
+        Vec3d missLook = new Vec3d(0, -1, 0);
+        assertFalse(FirstDoctorConsoleControls.isMaterialisationLeverLookHit(facing, pos, missEye, missLook, 5.0));
+    }
+
+    @Test
+    void facingRotation_movesLeverHorizontally() {
+        Box north = FirstDoctorConsoleControls.materialisationLeverBox(Direction.NORTH);
+        Box east = FirstDoctorConsoleControls.materialisationLeverBox(Direction.EAST);
+        assertNotEquals(north.getCenter().x, east.getCenter().x, EPSILON);
+        assertEquals(north.getCenter().y, east.getCenter().y, EPSILON);
+    }
+
+    @Test
+    void leverAndSelector_areOnDifferentPanels() {
+        Box selector = FirstDoctorConsoleControls.biomeSelectorBox(Direction.NORTH);
+        Box lever = FirstDoctorConsoleControls.materialisationLeverBox(Direction.NORTH);
+        double dx = selector.getCenter().x - lever.getCenter().x;
+        double dz = selector.getCenter().z - lever.getCenter().z;
+        assertTrue(Math.hypot(dx, dz) > 0.3, "Panel3 and Panel6 controls should not share the same center");
+    }
 }
