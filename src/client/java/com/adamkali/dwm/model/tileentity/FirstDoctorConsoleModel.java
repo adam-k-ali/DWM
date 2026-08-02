@@ -14,8 +14,34 @@ public class FirstDoctorConsoleModel extends EntityModel<TardisRenderState> {
     public static final EntityModelLayer LAYER_LOCATION = new EntityModelLayer(Identifier.of(DWMReference.MOD_ID, "first_doctor_console"), "main");
     public static final Identifier TEXTURE_LOCATION = Identifier.of(DWMReference.MOD_ID, "textures/entity/first_white_base_console.png");
 
+    /** Peak vertical travel of {@code time_rotor} in model units while in flight. */
+    public static final float ROTOR_BOB_AMPLITUDE = 3.0f;
+
+    /** Radians per tick for one full up/down cycle (~2 seconds at 20 TPS). */
+    public static final float ROTOR_BOB_SPEED = (float) (Math.PI / 20.0);
+
+    private final ModelPart timeRotor;
+
     public FirstDoctorConsoleModel(ModelPart root) {
         super(root);
+        this.timeRotor = root.getChild("time_rotor");
+    }
+
+    /**
+     * Vertical pivot offset for the time rotor. Returns 0 when inactive.
+     *
+     * @param timeTicks age + tickDelta (or any continuous time base)
+     * @param active    whether the TARDIS is traveling
+     */
+    public static float rotorBobOffset(float timeTicks, boolean active) {
+        if (!active) {
+            return 0.0f;
+        }
+        return (float) Math.sin(timeTicks * ROTOR_BOB_SPEED) * ROTOR_BOB_AMPLITUDE;
+    }
+
+    public static float rotorPivotY(float bobOffset) {
+        return bobOffset;
     }
 
     public static TexturedModelData getTexturedModelData() {
@@ -370,6 +396,7 @@ public class FirstDoctorConsoleModel extends EntityModel<TardisRenderState> {
 
     @Override
     public void setAngles(TardisRenderState state) {
-        // Static model for now; time_rotor / Time_middle animation later.
+        this.timeRotor.resetTransform();
+        this.timeRotor.pivotY = rotorPivotY(state.getRotorBobOffset());
     }
 }
