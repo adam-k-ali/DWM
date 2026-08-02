@@ -79,10 +79,12 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
     protected void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
         super.readNbt(nbt, registries);
 
-        try {
+        if (nbt.containsUuid("tardisId")) {
             this.tardisId = nbt.getUuid("tardisId");
-        } catch (IllegalArgumentException e) {
-            this.tardisId = TardisDataLoader.create().uuid;
+        } else {
+            // Structure / empty NBT: leave null and allocate lazily via getTardisId().
+            // Calling getUuid() when missing throws NPE in 1.21.4 (not IllegalArgumentException).
+            this.tardisId = null;
         }
 
         this.interiorGenerated = nbt.getBoolean("interiorGenerated");
