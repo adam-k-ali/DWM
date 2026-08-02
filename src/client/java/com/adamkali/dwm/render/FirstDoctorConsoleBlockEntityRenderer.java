@@ -7,6 +7,8 @@ import com.adamkali.dwm.model.tileentity.BiomeSelectorModel;
 import com.adamkali.dwm.model.tileentity.FirstDoctorConsoleModel;
 import com.adamkali.dwm.model.tileentity.MaterialisationLeverModel;
 import com.adamkali.dwm.render.state.TardisRenderState;
+import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
+import com.adamkali.dwm.tardis.logic.TardisLogic;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
@@ -16,6 +18,7 @@ import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.RotationAxis;
+import net.minecraft.world.World;
 
 public class FirstDoctorConsoleBlockEntityRenderer implements BlockEntityRenderer<FirstDoctorConsoleBlockEntity> {
     private static final float PX = 1.0f / 16.0f;
@@ -46,6 +49,10 @@ public class FirstDoctorConsoleBlockEntityRenderer implements BlockEntityRendere
         Direction facing = state.get(FirstDoctorConsoleBlock.FACING, Direction.NORTH);
 
         TardisRenderState renderState = new TardisRenderState();
+        TardisTravelPhase phase = TardisLogic.getTravelPhase(entity.getTardisId());
+        World world = entity.getWorld();
+        float timeTicks = world == null ? tickDelta : world.getTime() + tickDelta;
+        renderState.setRotorBobOffset(FirstDoctorConsoleModel.rotorBobOffset(timeTicks, phase.isTraveling()));
         model.setAngles(renderState);
         biomeSelectorModel.setAngles(renderState);
         materialisationLeverModel.setAngles(renderState);

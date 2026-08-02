@@ -28,6 +28,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Config toggles `enableBoti` and `enableSoto` (default on) via Mod Menu / Cloth Config.
 - Interior doors use an invisible block + dedicated BER (`TardisClassicInteriorDoorModel`) with swing animation.
 - Materialisation lever travel: first pull dematerialises the exterior; after a short hold the TARDIS enters `IN_FLIGHT`; a second pull materialises at the selected biome landing site.
+- First Doctor console time rotor bobbles vertically while the TARDIS is traveling (`DEMATERIALISING` / `IN_FLIGHT` / `MATERIALISING`) and rests when idle.
 
 ## How It Works In-Game
 1. Place the TARDIS block.
