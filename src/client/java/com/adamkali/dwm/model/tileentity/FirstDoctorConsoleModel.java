@@ -15,7 +15,7 @@ public class FirstDoctorConsoleModel extends EntityModel<TardisRenderState> {
     public static final Identifier TEXTURE_LOCATION = Identifier.of(DWMReference.MOD_ID, "textures/entity/first_white_base_console.png");
 
     /** Peak vertical travel of {@code time_rotor} in model units while in flight. */
-    public static final float ROTOR_BOB_AMPLITUDE = 3.0f;
+    public static final float ROTOR_BOB_AMPLITUDE = 5.0f;
 
     /** Radians per tick for one full up/down cycle (~2 seconds at 20 TPS). */
     public static final float ROTOR_BOB_SPEED = (float) (Math.PI / 20.0);
