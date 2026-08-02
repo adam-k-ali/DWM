@@ -20,12 +20,31 @@ public class TardisDataModel {
     /** Registry key id of the selected destination biome, e.g. {@code minecraft:plains}. */
     public String selectedBiome;
 
+    /** Current exterior travel phase name ({@link TardisTravelPhase}). */
+    public String travelPhase = TardisTravelPhase.IDLE.name();
+
+    /** Countdown ticks remaining within the current travel phase (used by {@code IN_FLIGHT}). */
+    public int travelPhaseTicks;
+
+    /** Biome id snapshotted when travel starts; mid-flight biome cycling is ignored. */
+    public String travelDestinationBiome;
+
     private transient boolean needsSaving = false;
 
     public TardisDataModel() {
         this.uuid = UUID.randomUUID();
         this.doorState = new TardisDoorState();
         this.variant = TardisChameleonVariant.TT_CAPSULE;
+        this.travelPhase = TardisTravelPhase.IDLE.name();
+    }
+
+    public TardisTravelPhase getTravelPhase() {
+        return TardisTravelPhase.fromString(travelPhase);
+    }
+
+    public void setTravelPhase(TardisTravelPhase phase) {
+        this.travelPhase = phase == null ? TardisTravelPhase.IDLE.name() : phase.name();
+        markDirty();
     }
 
     public boolean needsSaving() {
@@ -50,7 +69,9 @@ public class TardisDataModel {
     public String toString() {
         return "TardisDataModel [uuid=" + uuid + ", doorState=" + doorState + ", variant=" + variant
                 + ", exteriorDimension=" + exteriorDimension + ", hasExteriorLocation=" + hasExteriorLocation
-                + ", selectedBiome=" + selectedBiome + ']';
+                + ", selectedBiome=" + selectedBiome
+                + ", travelPhase=" + travelPhase + ", travelPhaseTicks=" + travelPhaseTicks
+                + ", travelDestinationBiome=" + travelDestinationBiome + ']';
     }
 
     @Override
@@ -65,7 +86,10 @@ public class TardisDataModel {
                     && this.exteriorZ == other.exteriorZ
                     && this.exteriorRotation == other.exteriorRotation
                     && this.hasExteriorLocation == other.hasExteriorLocation
-                    && Objects.equals(this.selectedBiome, other.selectedBiome);
+                    && Objects.equals(this.selectedBiome, other.selectedBiome)
+                    && Objects.equals(this.travelPhase, other.travelPhase)
+                    && this.travelPhaseTicks == other.travelPhaseTicks
+                    && Objects.equals(this.travelDestinationBiome, other.travelDestinationBiome);
         }
         return false;
     }

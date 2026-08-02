@@ -11,6 +11,7 @@ import com.adamkali.dwm.tardis.boti.BotiInteriorSyncService;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSyncService;
 import com.adamkali.dwm.tardis.soto.SotoGhostSyncService;
+import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -33,6 +34,7 @@ public class DWMMain implements ModInitializer {
         BotiInteriorSyncService.initialize();
         SotoExteriorSyncService.initialize();
         SotoGhostSyncService.initialize();
+        TardisTravelService.initialize();
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             TardisDataLoader.tardisSaveDirectory = server.getSavePath(WorldSavePath.ROOT).resolve("tardis_data");
         });

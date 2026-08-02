@@ -49,4 +49,18 @@ class SotoExteriorIndexTest {
                 new BlockPos(8, 64, 16)
         ));
     }
+
+    @Test
+    void unregister_removesTracking() {
+        UUID id = UUID.randomUUID();
+        RegistryKey<World> overworld = RegistryKey.of(RegistryKeys.WORLD, Identifier.of("minecraft", "overworld"));
+        BlockPos exterior = new BlockPos(12, 70, 4);
+        SotoExteriorIndex.register(id, overworld, exterior);
+
+        SotoExteriorIndex.unregister(id);
+
+        assertFalse(SotoExteriorIndex.isRegistered(id));
+        assertNull(SotoExteriorIndex.getExteriorPos(id));
+        assertNull(SotoExteriorIndex.resolve(overworld, exterior));
+    }
 }

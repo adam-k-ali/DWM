@@ -9,6 +9,7 @@ import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
+import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.adamkali.dwm.tardis.soto.SotoExteriorIndex;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSyncService;
 import net.minecraft.registry.RegistryKey;
@@ -66,6 +67,9 @@ public final class TardisInteriorService {
     }
 
     public static boolean tryEnterFromExterior(ServerPlayerEntity player, ServerWorld exteriorWorld, TardisBlockEntity exteriorEntity) {
+        if (TardisTravelService.isTraveling(exteriorEntity.getTardisIdOrNull())) {
+            return false;
+        }
         if (!TardisEntryGate.canEnter(TardisLogic.getDoorState(exteriorEntity.getTardisId()))) {
             return false;
         }
@@ -84,6 +88,9 @@ public final class TardisInteriorService {
     public static boolean tryExitToExterior(ServerPlayerEntity player, TardisInteriorDoorBlockEntity doorEntity) {
         UUID tardisId = doorEntity.getTardisId();
         if (tardisId == null) {
+            return false;
+        }
+        if (TardisTravelService.isTraveling(tardisId)) {
             return false;
         }
         TardisDataModel model = TardisDataLoader.get(tardisId);
