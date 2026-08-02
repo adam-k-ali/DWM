@@ -25,4 +25,9 @@ public enum TardisTravelPhase {
     public boolean isTraveling() {
         return this != IDLE;
     }
+
+    /** True when a second lever pull may request materialisation. */
+    public boolean awaitsMaterialise() {
+        return this == IN_FLIGHT;
+    }
 }

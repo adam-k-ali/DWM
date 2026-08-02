@@ -1,6 +1,7 @@
 package com.adamkali.dwm.block;
 
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
+import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.mojang.serialization.MapCodec;
@@ -147,14 +148,28 @@ public class FirstDoctorConsoleBlock extends BlockWithEntity {
             ServerWorld serverWorld,
             UUID tardisId
     ) {
-        if (TardisTravelService.isTraveling(tardisId)) {
-            player.sendMessage(Text.translatable("dwm.console.travel_in_flight"), true);
+        TardisTravelPhase phase = TardisLogic.getTravelPhase(tardisId);
+        if (phase == TardisTravelPhase.DEMATERIALISING) {
+            player.sendMessage(Text.translatable("dwm.console.travel_dematerialising"), true);
+            return ActionResult.CONSUME;
+        }
+        if (phase == TardisTravelPhase.MATERIALISING) {
+            player.sendMessage(Text.translatable("dwm.console.travel_materialising"), true);
             return ActionResult.CONSUME;
         }
 
-        ActionResult result = TardisTravelService.startTravel(tardisId, serverWorld.getServer());
+        ActionResult result;
+        String successKey;
+        if (phase.awaitsMaterialise()) {
+            result = TardisTravelService.requestMaterialise(tardisId, serverWorld.getServer());
+            successKey = "dwm.console.travel_materialising";
+        } else {
+            result = TardisTravelService.startTravel(tardisId, serverWorld.getServer());
+            successKey = "dwm.console.travel_dematerialising";
+        }
+
         if (result == ActionResult.SUCCESS) {
-            player.sendMessage(Text.translatable("dwm.console.travel_dematerialising"), true);
+            player.sendMessage(Text.translatable(successKey), true);
             world.playSound(
                     null,
                     pos,
@@ -164,6 +179,10 @@ public class FirstDoctorConsoleBlock extends BlockWithEntity {
                     1.0F
             );
             return ActionResult.SUCCESS;
+        }
+        if (result == ActionResult.PASS) {
+            player.sendMessage(Text.translatable("dwm.console.travel_in_progress"), true);
+            return ActionResult.CONSUME;
         }
         player.sendMessage(Text.translatable("dwm.console.travel_unavailable"), true);
         return ActionResult.CONSUME;

@@ -26,4 +26,12 @@ class TardisTravelPhaseTest {
         assertTrue(TardisTravelPhase.IN_FLIGHT.isTraveling());
         assertTrue(TardisTravelPhase.MATERIALISING.isTraveling());
     }
+
+    @Test
+    void awaitsMaterialise_onlyInFlight() {
+        assertFalse(TardisTravelPhase.IDLE.awaitsMaterialise());
+        assertFalse(TardisTravelPhase.DEMATERIALISING.awaitsMaterialise());
+        assertTrue(TardisTravelPhase.IN_FLIGHT.awaitsMaterialise());
+        assertFalse(TardisTravelPhase.MATERIALISING.awaitsMaterialise());
+    }
 }

@@ -176,4 +176,31 @@ class TardisLogicTest {
             assertNull(returnedVariant);
         }
     }
+
+    @Test
+    void getTravelPhase_defaultsToIdleWhenMissing() {
+        try (MockedStatic<TardisDataLoader> mockedStatic = Mockito.mockStatic(TardisDataLoader.class)) {
+            mockedStatic.when(() -> TardisDataLoader.get(testTardisId)).thenReturn(null);
+            assertEquals(
+                    com.adamkali.dwm.tardis.data.model.TardisTravelPhase.IDLE,
+                    TardisLogic.getTravelPhase(testTardisId)
+            );
+            assertEquals(
+                    com.adamkali.dwm.tardis.data.model.TardisTravelPhase.IDLE,
+                    TardisLogic.getTravelPhase(null)
+            );
+        }
+    }
+
+    @Test
+    void getTravelPhase_returnsModelPhase() {
+        try (MockedStatic<TardisDataLoader> mockedStatic = Mockito.mockStatic(TardisDataLoader.class)) {
+            mockedStatic.when(() -> TardisDataLoader.get(testTardisId)).thenReturn(testTardis);
+            testTardis.setTravelPhase(com.adamkali.dwm.tardis.data.model.TardisTravelPhase.IN_FLIGHT);
+            assertEquals(
+                    com.adamkali.dwm.tardis.data.model.TardisTravelPhase.IN_FLIGHT,
+                    TardisLogic.getTravelPhase(testTardisId)
+            );
+        }
+    }
 }
