@@ -29,6 +29,8 @@ public class FirstDoctorConsoleModel extends EntityModel<TardisRenderState> {
 
     /**
      * Vertical pivot offset for the time rotor. Returns 0 when inactive.
+     * When active, dips from the rest pose down to {@code -ROTOR_BOB_AMPLITUDE} and back —
+     * never above the initial position.
      *
      * @param timeTicks age + tickDelta (or any continuous time base)
      * @param active    whether the TARDIS is traveling
@@ -37,7 +39,9 @@ public class FirstDoctorConsoleModel extends EntityModel<TardisRenderState> {
         if (!active) {
             return 0.0f;
         }
-        return (float) Math.sin(timeTicks * ROTOR_BOB_SPEED) * ROTOR_BOB_AMPLITUDE;
+        // cos: 1 → -1 → 1 maps to offset 0 → -amplitude → 0
+        float downAmount = (1.0f - (float) Math.cos(timeTicks * ROTOR_BOB_SPEED)) * 0.5f;
+        return -downAmount * ROTOR_BOB_AMPLITUDE;
     }
 
     public static float rotorPivotY(float bobOffset) {

@@ -26,20 +26,31 @@ class FirstDoctorConsoleModelTest {
     }
 
     @Test
-    void rotorBobOffset_sineWithinAmplitudeWhenActive() {
-        float mid = FirstDoctorConsoleModel.rotorBobOffset(
-                (float) (Math.PI / (2.0 * FirstDoctorConsoleModel.ROTOR_BOB_SPEED)),
-                true
-        );
-        assertEquals(FirstDoctorConsoleModel.ROTOR_BOB_AMPLITUDE, mid, EPSILON);
+    void rotorBobOffset_dipsDownFromRestNeverAbove() {
+        assertEquals(0.0f, FirstDoctorConsoleModel.rotorBobOffset(0.0f, true), EPSILON);
 
         float trough = FirstDoctorConsoleModel.rotorBobOffset(
-                (float) (3.0 * Math.PI / (2.0 * FirstDoctorConsoleModel.ROTOR_BOB_SPEED)),
+                (float) (Math.PI / FirstDoctorConsoleModel.ROTOR_BOB_SPEED),
                 true
         );
         assertEquals(-FirstDoctorConsoleModel.ROTOR_BOB_AMPLITUDE, trough, EPSILON);
 
-        assertEquals(0.0f, FirstDoctorConsoleModel.rotorBobOffset(0.0f, true), EPSILON);
+        float midDescent = FirstDoctorConsoleModel.rotorBobOffset(
+                (float) (Math.PI / (2.0 * FirstDoctorConsoleModel.ROTOR_BOB_SPEED)),
+                true
+        );
+        assertEquals(-FirstDoctorConsoleModel.ROTOR_BOB_AMPLITUDE * 0.5f, midDescent, EPSILON);
+
+        // Sample a full cycle — offset must stay in [-amplitude, 0]
+        for (int i = 0; i <= 40; i++) {
+            float t = i * 1.0f;
+            float offset = FirstDoctorConsoleModel.rotorBobOffset(t, true);
+            assertTrue(offset <= EPSILON, "must not rise above rest: t=" + t + " offset=" + offset);
+            assertTrue(
+                    offset >= -FirstDoctorConsoleModel.ROTOR_BOB_AMPLITUDE - EPSILON,
+                    "must not dip past amplitude: t=" + t + " offset=" + offset
+            );
+        }
     }
 
     @Test
@@ -49,9 +60,9 @@ class FirstDoctorConsoleModelTest {
         ModelPart timeRotor = root.getChild("time_rotor");
 
         TardisRenderState state = new TardisRenderState();
-        state.setRotorBobOffset(2.5f);
+        state.setRotorBobOffset(-2.5f);
         model.setAngles(state);
-        assertEquals(2.5f, timeRotor.pivotY, EPSILON);
+        assertEquals(-2.5f, timeRotor.pivotY, EPSILON);
 
         state.setRotorBobOffset(0.0f);
         model.setAngles(state);
