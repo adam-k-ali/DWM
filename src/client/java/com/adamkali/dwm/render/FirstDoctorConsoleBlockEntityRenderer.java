@@ -53,7 +53,7 @@ public class FirstDoctorConsoleBlockEntityRenderer implements BlockEntityRendere
         matrices.push();
         applyTransforms(matrices, facing);
         VertexConsumer consoleVertices = vertexConsumers.getBuffer(
-                RenderLayer.getEntityCutout(FirstDoctorConsoleModel.TEXTURE_LOCATION));
+                RenderLayer.getEntityTranslucent(FirstDoctorConsoleModel.TEXTURE_LOCATION));
         model.render(matrices, consoleVertices, light, overlay);
 
         matrices.push();
