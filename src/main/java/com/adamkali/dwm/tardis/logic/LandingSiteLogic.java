@@ -67,12 +67,38 @@ public final class LandingSiteLogic {
             return Optional.empty();
         }
         BlockPos biomePos = located.getFirst();
+        // locateBiome can return coordinates in unloaded chunks; heightmap then reports world bottom.
+        world.getChunk(biomePos);
         int topY = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, biomePos.getX(), biomePos.getZ());
         BlockPos landing = new BlockPos(biomePos.getX(), topY, biomePos.getZ());
         if (!isValidLanding(world, landing)) {
-            return Optional.empty();
+            return findNearbyValidLanding(world, biomePos.getX(), biomePos.getZ());
         }
         return Optional.of(landing);
+    }
+
+    /**
+     * Tries a small spiral of columns around {@code originX/Z} after the chunk is loaded.
+     */
+    private static Optional<BlockPos> findNearbyValidLanding(ServerWorld world, int originX, int originZ) {
+        for (int radius = 1; radius <= 8; radius++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    if (Math.abs(dx) != radius && Math.abs(dz) != radius) {
+                        continue;
+                    }
+                    int x = originX + dx;
+                    int z = originZ + dz;
+                    world.getChunk(x >> 4, z >> 4);
+                    int topY = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z);
+                    BlockPos candidate = new BlockPos(x, topY, z);
+                    if (isValidLanding(world, candidate)) {
+                        return Optional.of(candidate);
+                    }
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     public static Optional<BlockPos> findLanding(
