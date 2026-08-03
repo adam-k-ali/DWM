@@ -161,12 +161,14 @@ def scrape_chatter_am(n: int, rng: np.random.Generator) -> np.ndarray:
 
 
 def curved_f0_sweep(start_hz: float, end_hz: float, n: int) -> np.ndarray:
-    """Geom sweep: linger near the high end mid-pulse, then settle (classic vworp glide)."""
+    """Geom sweep with continuous motion (avoid parking on one pitch = sine drone)."""
     u = np.linspace(0.0, 1.0, n)
     if start_hz > end_hz:
-        u = 1.0 - (1.0 - u) ** 1.35
+        # descending: ease into the low body without a long static tail
+        u = 1.0 - (1.0 - u) ** 1.15
     else:
-        u = u ** 1.35
+        # ascending: keep climbing through the pulse (old u**1.35 parked at end_hz)
+        u = u ** 0.85
     return start_hz * (end_hz / start_hz) ** u
 
 
@@ -213,20 +215,26 @@ def _rms_envelope(samples: np.ndarray, win_s: float = 0.02) -> np.ndarray:
 
 
 def morph_to_baked_spectrum(signal: np.ndarray, strength: float = MORPH_STRENGTH) -> np.ndarray:
-    """Replace STFT magnitude toward baked golden shape; keep synth phase."""
+    """Replace STFT magnitude toward baked golden shape; keep carrier phase."""
     snaps, _ = _load_baked_targets()
     n = len(signal)
     win = np.hanning(MORPH_N_FFT)
+    freqs = np.fft.rfftfreq(MORPH_N_FFT, 1.0 / SR)
     n_frames = 1 + max(0, (n - MORPH_N_FFT) // MORPH_HOP)
     idx = np.linspace(0, len(snaps) - 1, n_frames)
     out = np.zeros(n, dtype=np.float64)
     norm = np.zeros(n, dtype=np.float64)
+    # Widen low-frequency peaks so morph doesn't reprint a pure ~95–200 Hz sine.
+    smooth_kernel = np.ones(7, dtype=np.float64) / 7.0
+    low_mask = freqs < 320.0
     for fi, i in enumerate(range(0, n - MORPH_N_FFT + 1, MORPH_HOP)):
         frame = signal[i : i + MORPH_N_FFT] * win
         spec = np.fft.rfft(frame)
         mag = np.abs(spec)
         phase = np.angle(spec)
-        target = snaps[int(round(idx[fi]))]
+        target = snaps[int(round(idx[fi]))].copy()
+        smoothed = np.convolve(target, smooth_kernel, mode="same")
+        target[low_mask] = 0.35 * target[low_mask] + 0.65 * smoothed[low_mask]
         energy = float(mag.sum()) or 1.0
         mag_n = mag / (float(mag.sum()) or 1.0)
         tgt_n = target / (float(target.sum()) or 1.0)
@@ -246,7 +254,7 @@ def baked_pulse_envelope(n: int) -> np.ndarray:
 
 
 def boundary_pulse_gate(
-    n: int, pulse_n: int, *, floor: float = 0.04, fade_s: float = 0.05
+    n: int, pulse_n: int, *, floor: float = 0.03, fade_s: float = 0.07
 ) -> np.ndarray:
     """Narrow fades only at pulse edges — preserves mid-pulse envelope, raises crest."""
     gate = np.ones(n, dtype=np.float64)
@@ -259,6 +267,80 @@ def boundary_pulse_gate(
     return gate
 
 
+def soften_narrow_tones(
+    signal: np.ndarray,
+    max_peak_ratio: float = 3.5,
+    *,
+    min_hz: float = 150.0,
+) -> np.ndarray:
+    """
+    Cap overly sharp spectral peaks above ``min_hz`` so a parked partial
+    can't read as a sine drone. Leaves the ~95 Hz body region alone.
+    """
+    n = len(signal)
+    win = np.hanning(MORPH_N_FFT)
+    freqs = np.fft.rfftfreq(MORPH_N_FFT, 1.0 / SR)
+    protect = freqs < min_hz
+    out = np.zeros(n, dtype=np.float64)
+    norm = np.zeros(n, dtype=np.float64)
+    for i in range(0, n - MORPH_N_FFT + 1, MORPH_HOP):
+        frame = signal[i : i + MORPH_N_FFT] * win
+        spec = np.fft.rfft(frame)
+        mag = np.abs(spec)
+        phase = np.angle(spec)
+        pad = 2
+        capped = mag.copy()
+        for b in range(pad, len(mag) - pad):
+            if protect[b]:
+                continue
+            neighbourhood = mag[b - pad : b + pad + 1]
+            med = float(np.median(neighbourhood))
+            if med > 1e-12 and mag[b] > max_peak_ratio * med:
+                capped[b] = max_peak_ratio * med
+        frame_o = np.fft.irfft(capped * np.exp(1j * phase), n=MORPH_N_FFT) * win
+        out[i : i + MORPH_N_FFT] += frame_o
+        norm[i : i + MORPH_N_FFT] += win * win
+    norm[norm < 1e-8] = 1.0
+    result = out / norm
+    if n > MORPH_N_FFT:
+        result[:MORPH_HOP] = signal[:MORPH_HOP] * 0.5 + result[:MORPH_HOP] * 0.5
+        result[-MORPH_HOP:] = signal[-MORPH_HOP:] * 0.5 + result[-MORPH_HOP:] * 0.5
+    return result
+
+
+def duck_steady_lowmid(signal: np.ndarray, rng: np.random.Generator) -> np.ndarray:
+    """
+    Break parked low tones on materialise: blur + chatter-AM 70–480 Hz.
+
+    The scrape lives above this band; a steady ~100–200 Hz partial was reading
+    as a sine underneath.
+    """
+    n = len(signal)
+    win = np.hanning(MORPH_N_FFT)
+    freqs = np.fft.rfftfreq(MORPH_N_FFT, 1.0 / SR)
+    deep = (freqs >= 70.0) & (freqs < 180.0)
+    mid = (freqs >= 180.0) & (freqs <= 400.0)
+    kernel = np.ones(9, dtype=np.float64) / 9.0
+    chatter = scrape_chatter_am(n, rng)
+    out = np.zeros(n, dtype=np.float64)
+    norm = np.zeros(n, dtype=np.float64)
+    for i in range(0, n - MORPH_N_FFT + 1, MORPH_HOP):
+        frame = signal[i : i + MORPH_N_FFT] * win
+        spec = np.fft.rfft(frame)
+        mag = np.abs(spec).copy()
+        phase = np.angle(spec)
+        blurred = np.convolve(mag, kernel, mode="same")
+        am = float(chatter[min(i + MORPH_N_FFT // 2, n - 1)])
+        # De-tone without hollowing: blur peaks + light chatter AM.
+        mag[deep] = (0.55 * mag[deep] + 0.45 * blurred[deep]) * (0.70 + 0.25 * am)
+        mag[mid] = (0.45 * mag[mid] + 0.55 * blurred[mid]) * (0.60 + 0.30 * am)
+        frame_o = np.fft.irfft(mag * np.exp(1j * phase), n=MORPH_N_FFT) * win
+        out[i : i + MORPH_N_FFT] += frame_o
+        norm[i : i + MORPH_N_FFT] += win * win
+    norm[norm < 1e-8] = 1.0
+    return out / norm
+
+
 def vworp_pulse(
     n: int,
     rng: np.random.Generator,
@@ -266,30 +348,62 @@ def vworp_pulse(
     start_hz: float,
     end_hz: float,
 ) -> np.ndarray:
-    """One ~1.75s vworp: modal scrape → baked spectral morph → golden-like envelope."""
+    """
+    One ~1.75s vworp: noise carrier + light modal glide → baked spectral morph.
+
+    Materialise previously parked a modal partial near ~200 Hz (heard as a sine
+    under the scrape). Noise carrier + low-band ducking removes that drone.
+    """
     f0 = curved_f0_sweep(start_hz, end_hz, n)
     bloom = brightness_bloom(n)
+    ascending = end_hz > start_hz
 
-    scrape = modal_string_scrape(f0, [0.9, 0.65])
-    scrape += modal_string_scrape(np.full(n, 95.0), [0.85, 0.4, 0.12]) * 0.4
-    scrape += modal_string_scrape(f0, [0.0, 0.0, 0.5, 0.35, 0.22, 0.12]) * (0.2 + 0.8 * bloom)
-    scrape += fm_metallic(f0, index=1.8, ratio=math.sqrt(2.0)) * (0.08 + 0.25 * bloom)
-    scrape += hf_scrape_layer(f0, bloom) * 1.0
-    scrape *= 1.0 - 0.60 * bloom
-    scrape *= scrape_chatter_am(n, rng)
-    scrape = soft_clip(scrape, drive=1.12)
+    carrier = rng.standard_normal(n)
+    carrier = one_pole_lowpass(carrier, 0.85)
+    carrier = brickwall_lowpass(carrier, 4500.0)
+
+    # Ascending: no modal (it parked and sang). Descending keeps a light glide.
+    if ascending:
+        modal_mix = 0.0
+        modal = 0.0
+    else:
+        modal = modal_string_scrape(f0, [0.45, 0.18])
+        modal += fm_metallic(f0, index=1.2, ratio=math.sqrt(2.0)) * (0.06 + 0.12 * bloom)
+        modal *= scrape_chatter_am(n, rng)
+        modal_mix = 0.035
+
+    scrape = carrier + modal * modal_mix
+    scrape *= 1.0 - 0.28 * bloom
+    scrape = soft_clip(scrape, drive=1.06)
     scrape /= np.max(np.abs(scrape)) or 1.0
 
-    scrape = morph_to_baked_spectrum(scrape, MORPH_STRENGTH)
-    # Reinforce ~95 Hz body (ducked through bloom so centroid can climb).
-    scrape += modal_string_scrape(np.full(n, 95.0), [1.0, 0.35, 0.1]) * 0.30 * (1.0 - 0.70 * bloom)
-    scrape += hf_scrape_layer(f0, bloom) * 0.15
-    scrape += modal_string_scrape(np.full(n, 1600.0), [1.0, 0.4, 0.15]) * 0.12 * bloom
+    scrape = morph_to_baked_spectrum(scrape, 0.975)
+    scrape = soften_narrow_tones(scrape, max_peak_ratio=2.3, min_hz=110.0)
+    if ascending:
+        scrape = duck_steady_lowmid(scrape, rng)
+    nz_hf = brickwall_lowpass(rng.standard_normal(n), 4500.0)
+    hf_amt = 0.14 if ascending else 0.08
+    scrape += nz_hf * (hf_amt * 0.35 + hf_amt * bloom)
     scrape /= np.max(np.abs(scrape)) or 1.0
 
-    # Flatten carrier RMS then apply baked envelope so dynamics track golden.
     scrape = scrape / (_rms_envelope(scrape) + 1e-4)
     out = scrape * baked_pulse_envelope(n)
+    if ascending:
+        # Notch strongest 80–250 Hz peaks that read as a sine under the scrape.
+        spec = np.fft.rfft(out)
+        freqs = np.fft.rfftfreq(len(out), 1.0 / SR)
+        mag = np.abs(spec)
+        gain = np.ones_like(freqs)
+        search = (freqs >= 80.0) & (freqs <= 250.0)
+        work = mag.copy()
+        work[~search] = 0.0
+        for depth, width in ((0.75, 16.0), (0.50, 20.0)):
+            if not np.any(work > 0):
+                break
+            peak_hz = float(freqs[int(np.argmax(work))])
+            gain *= 1.0 - depth * np.exp(-0.5 * ((freqs - peak_hz) / width) ** 2)
+            work[np.abs(freqs - peak_hz) < 28.0] = 0.0
+        out = np.fft.irfft(spec * gain, n=len(out))
     peak = np.max(np.abs(out)) or 1.0
     return out / peak
 
@@ -344,9 +458,9 @@ def synthesize_travel_loop(
         end = min(n, start + pulse_n)
         layers[start:end] += vworp_pulse(end - start, rng, start_hz=start_hz, end_hz=end_hz)
 
-    layers *= boundary_pulse_gate(n, pulse_n, floor=0.04, fade_s=0.05)
+    layers *= boundary_pulse_gate(n, pulse_n, floor=0.03, fade_s=0.07)
     layers = apply_feedback_delay(
-        layers, delay_samples=int(0.70 * SR), feedback=0.10, mix=0.03, passes=2, lp_coeff=0.90
+        layers, delay_samples=int(0.70 * SR), feedback=0.08, mix=0.025, passes=2, lp_coeff=0.90
     )
     layers = soft_clip(layers, drive=1.01)
     layers = brickwall_lowpass(layers, HF_CUTOFF_HZ)
