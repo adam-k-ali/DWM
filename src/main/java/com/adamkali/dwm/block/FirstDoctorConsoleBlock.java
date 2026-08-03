@@ -55,6 +55,11 @@ public class FirstDoctorConsoleBlock extends BlockWithEntity {
         this.setDefaultState(this.stateManager.getDefaultState().with(FACING, Direction.NORTH));
     }
 
+    /** True when players must not break this block (survival or creative left-click). */
+    public static boolean isPlayerBreakDenied(BlockState state) {
+        return state.isOf(DWMBlocks.FIRST_DOCTOR_CONSOLE);
+    }
+
     @Override
     protected MapCodec<FirstDoctorConsoleBlock> getCodec() {
         return CODEC;

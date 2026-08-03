@@ -1,5 +1,7 @@
 package com.adamkali.dwm.block;
 
+import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -10,6 +12,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 
 import java.util.function.Function;
@@ -132,6 +135,16 @@ public class DWMBlocks {
     public static final Block TARDIS_DOOR_BUTTON = register(TardisButtonBlock::new, DWMBlockSettings.BUTTON_SETTINGS, "tardis_door_button");
 
     public static void initialize() {
+        PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) ->
+                !FirstDoctorConsoleBlock.isPlayerBreakDenied(state));
+
+        AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
+            if (FirstDoctorConsoleBlock.isPlayerBreakDenied(world.getBlockState(pos))) {
+                return ActionResult.FAIL;
+            }
+            return ActionResult.PASS;
+        });
+
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> {
             content.add(BLACK_ROUNDEL_A);
             content.add(BLUE_ROUNDEL_A);
