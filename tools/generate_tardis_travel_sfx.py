@@ -175,12 +175,14 @@ def curved_f0_sweep(start_hz: float, end_hz: float, n: int) -> np.ndarray:
 def brightness_bloom(n: int) -> np.ndarray:
     """Mid–late scrape bloom: centroid/HF rise peaking ~1.15–1.25s of a 1.75s pulse."""
     t = np.linspace(0.0, 1.0, n)
-    peak = 0.68
-    width = 0.38
+    peak = 0.66
+    width = 0.34
     x = (t - peak) / width
     bloom = np.exp(-1.7 * (x * x))
     early = np.clip((t - 0.22) / 0.28, 0.0, 1.0)
-    return 0.04 + 0.96 * bloom * early
+    # Let HF scrape die into the low body (golden last ~20% is low-dominant).
+    late = np.clip(1.0 - (t - 0.78) / 0.18, 0.0, 1.0)
+    return 0.04 + 0.96 * bloom * early * late
 
 
 def hf_scrape_layer(f0: np.ndarray, bloom: np.ndarray) -> np.ndarray:
@@ -247,23 +249,42 @@ def morph_to_baked_spectrum(signal: np.ndarray, strength: float = MORPH_STRENGTH
 
 
 def baked_pulse_envelope(n: int) -> np.ndarray:
-    """Interpolate the baked one-vworp RMS envelope to ``n`` samples."""
+    """Interpolate the baked one-vworp RMS envelope to ``n`` samples.
+
+    The baked curve re-swells in the last ~15% then cliffs in one bin. Cap that
+    bump so level eases down into the boundary gate instead of jumping then cutting.
+    """
     _, env64 = _load_baked_targets()
     env = np.interp(np.linspace(0.0, 1.0, n), np.linspace(0.0, 1.0, len(env64)), env64)
-    return 0.04 + 0.96 * env
+    env = 0.04 + 0.96 * env
+    t = np.linspace(0.0, 1.0, n)
+    # From ~82%: hold a soft declining ceiling (kill 0.53→0.74 re-swell).
+    anchor_t = 0.82
+    anchor_i = int(anchor_t * (n - 1))
+    anchor = float(env[anchor_i])
+    late = t >= anchor_t
+    u = (t[late] - anchor_t) / (1.0 - anchor_t)
+    # End ceiling ~55% of anchor — gate supplies the final soft landing.
+    ceiling = anchor * (0.55 + 0.45 * (0.5 * (1.0 + np.cos(np.pi * u))))
+    env = env.copy()
+    env[late] = np.minimum(env[late], ceiling)
+    return env
 
 
 def boundary_pulse_gate(
-    n: int, pulse_n: int, *, floor: float = 0.03, fade_s: float = 0.07
+    n: int, pulse_n: int, *, floor: float = 0.015, fade_s: float = 0.20
 ) -> np.ndarray:
-    """Narrow fades only at pulse edges — preserves mid-pulse envelope, raises crest."""
+    """Cosine fades at pulse edges — ~200ms release so the vworp eases out."""
     gate = np.ones(n, dtype=np.float64)
     fade = max(1, int(fade_s * SR))
     for start in range(0, n, pulse_n):
         end = min(n, start + pulse_n)
         f = min(fade, (end - start) // 3)
-        gate[start : start + f] = np.linspace(floor, 1.0, f)
-        gate[end - f : end] = np.linspace(1.0, floor, f)
+        u_in = np.linspace(0.0, 1.0, f)
+        cos_in = floor + (1.0 - floor) * (0.5 - 0.5 * np.cos(np.pi * u_in))
+        cos_out = floor + (1.0 - floor) * (0.5 + 0.5 * np.cos(np.pi * u_in))
+        gate[start : start + f] = cos_in
+        gate[end - f : end] = cos_out
     return gate
 
 
@@ -458,9 +479,9 @@ def synthesize_travel_loop(
         end = min(n, start + pulse_n)
         layers[start:end] += vworp_pulse(end - start, rng, start_hz=start_hz, end_hz=end_hz)
 
-    layers *= boundary_pulse_gate(n, pulse_n, floor=0.03, fade_s=0.07)
+    layers *= boundary_pulse_gate(n, pulse_n, floor=0.015, fade_s=0.20)
     layers = apply_feedback_delay(
-        layers, delay_samples=int(0.70 * SR), feedback=0.08, mix=0.025, passes=2, lp_coeff=0.90
+        layers, delay_samples=int(0.70 * SR), feedback=0.09, mix=0.035, passes=2, lp_coeff=0.90
     )
     layers = soft_clip(layers, drive=1.01)
     layers = brickwall_lowpass(layers, HF_CUTOFF_HZ)
