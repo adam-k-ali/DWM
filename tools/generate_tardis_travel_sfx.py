@@ -35,8 +35,10 @@ FLIGHT_PITCH = 1.12
 FLIGHT_PEAK_LEVEL = 0.22
 FLIGHT_TARGET_RMS = 0.042
 # Baked loop crossfades — long enough to hide pitch turns at Minecraft hard-restart.
-LOOP_CROSSFADE_S = 0.45
+LOOP_CROSSFADE_S = 0.65
 FLIGHT_LOOP_CROSSFADE_S = 0.55
+LOOP_PULSE_OVERLAP_S = 0.18
+LOOP_RESEAM_S = 0.35
 
 # Piano-string-like stiffness (inharmonic partial stretch) — metallic, not harmonic siren.
 STRING_B = 0.00045
@@ -583,6 +585,12 @@ def make_seamless(signal: np.ndarray, crossfade: int) -> np.ndarray:
     return out[crossfade:]
 
 
+def finalize_loop(signal: np.ndarray, crossfade_s: float) -> np.ndarray:
+    """Trim-crossfade then in-place reseam — flight-strength wrap for demat/mat too."""
+    seamed = make_seamless(signal, crossfade=int(crossfade_s * SR))
+    return reseam_inplace(seamed, crossfade=int(LOOP_RESEAM_S * SR))
+
+
 def pitch_shift(signal: np.ndarray, ratio: float) -> np.ndarray:
     """Raise pitch by resampling (duration shrinks by ``ratio``)."""
     if ratio <= 0.0 or abs(ratio - 1.0) < 1e-6:
@@ -610,7 +618,7 @@ def synthesize_travel_loop(
     peak_level: float = 0.85,
     seamless: bool = True,
     crossfade_s: float = LOOP_CROSSFADE_S,
-    pulse_overlap_s: float = 0.14,
+    pulse_overlap_s: float = LOOP_PULSE_OVERLAP_S,
 ) -> np.ndarray:
     pulse_n = int(pulse_seconds * SR)
     n = pulse_n * len(pulse_specs)
@@ -641,22 +649,60 @@ def synthesize_travel_loop(
     layers = layers / peak * peak_level
     if not seamless:
         return layers
-    # Long loop-point crossfade: Minecraft restarts the buffer with no engine blend.
-    return make_seamless(layers, crossfade=int(crossfade_s * SR))
+    # Long loop-point crossfade + reseam: Minecraft restarts with no engine blend.
+    return finalize_loop(layers, crossfade_s)
 
 
 def synthesize_demat_loop(rng: np.random.Generator) -> np.ndarray:
-    return synthesize_travel_loop(
+    """Descending lead + quieter return ascent so the loop wrap pitch matches."""
+    return _synthesize_gesture_loop(
         rng,
-        pulse_specs=[(200.0, 95.0), (185.0, 90.0)],
+        lead_specs=(200.0, 95.0),
+        return_specs=(95.0, 195.0),
+        return_level=0.72,
     )
 
 
 def synthesize_mat_loop(rng: np.random.Generator) -> np.ndarray:
-    return synthesize_travel_loop(
+    """Ascending lead + quieter return descent so the loop wrap pitch matches."""
+    return _synthesize_gesture_loop(
         rng,
-        pulse_specs=[(95.0, 200.0), (90.0, 185.0)],
+        lead_specs=(95.0, 200.0),
+        return_specs=(195.0, 100.0),
+        return_level=0.72,
     )
+
+
+def _synthesize_gesture_loop(
+    rng: np.random.Generator,
+    *,
+    lead_specs: tuple[float, float],
+    return_specs: tuple[float, float],
+    return_level: float,
+) -> np.ndarray:
+    """
+    Same wrap strategy as flight (end pitch ≈ start pitch) with the return
+    gesture ducked so the lead demat/mat motion still reads as primary.
+    """
+    raw = synthesize_travel_loop(
+        rng,
+        pulse_specs=[lead_specs, return_specs],
+        seamless=False,
+        pulse_overlap_s=LOOP_PULSE_OVERLAP_S,
+    )
+    pulse_n = int(PULSE_SECONDS * SR)
+    # Fade the duck across the overlap so the interior join stays smooth.
+    duck = np.ones(len(raw), dtype=np.float64)
+    duck[pulse_n:] = return_level
+    overlap = int(LOOP_PULSE_OVERLAP_S * SR)
+    if overlap > 0 and pulse_n >= overlap:
+        ramp = np.linspace(1.0, return_level, overlap)
+        duck[pulse_n - overlap : pulse_n] *= ramp
+    raw = raw * duck
+    peak = float(np.max(np.abs(raw))) or 1.0
+    raw = raw / peak * 0.85
+    return finalize_loop(raw, LOOP_CROSSFADE_S)
+
 
 
 def synthesize_flight_loop(rng: np.random.Generator) -> np.ndarray:
@@ -673,7 +719,7 @@ def synthesize_flight_loop(rng: np.random.Generator) -> np.ndarray:
         pulse_seconds=PULSE_SECONDS * FLIGHT_PITCH,
         peak_level=0.85,
         seamless=False,
-        pulse_overlap_s=0.18,
+        pulse_overlap_s=LOOP_PULSE_OVERLAP_S,
     )
     shifted = pitch_shift(base, FLIGHT_PITCH)
     # Soften grit from pitching noise carriers; match demat/mat HF ceiling.
@@ -686,7 +732,7 @@ def synthesize_flight_loop(rng: np.random.Generator) -> np.ndarray:
     peak = float(np.max(np.abs(shifted))) or 1.0
     if peak > FLIGHT_PEAK_LEVEL:
         shifted = shifted * (FLIGHT_PEAK_LEVEL / peak)
-    return make_seamless(shifted, crossfade=int(FLIGHT_LOOP_CROSSFADE_S * SR))
+    return finalize_loop(shifted, FLIGHT_LOOP_CROSSFADE_S)
 
 
 def synthesize_thud(rng: np.random.Generator) -> np.ndarray:
