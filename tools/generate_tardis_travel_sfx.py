@@ -119,6 +119,51 @@ def apply_feedback_delay(
     return (1.0 - mix) * dry + mix * wet
 
 
+def echo_only(
+    signal: np.ndarray,
+    delay_samples: int,
+    feedback: float,
+    passes: int,
+    lp_coeff: float,
+) -> np.ndarray:
+    """Feedback delay minus dry — pure repeats for an echo send."""
+    wet = apply_feedback_delay(
+        signal,
+        delay_samples=delay_samples,
+        feedback=feedback,
+        mix=1.0,
+        passes=passes,
+        lp_coeff=lp_coeff,
+    )
+    return wet - signal
+
+
+def apply_tape_echo_tail(signal: np.ndarray, pulse_n: int) -> np.ndarray:
+    """
+    Radiophonic-style decaying repeats that fill each vworp's release.
+
+    Send is mid-pulse weighted (the scrape), so delayed repeats land in the
+    quiet tail — body stays mostly dry, end rings instead of chopping.
+    """
+    n = len(signal)
+    send_env = np.zeros(n, dtype=np.float64)
+    for start in range(0, n, pulse_n):
+        end = min(n, start + pulse_n)
+        m = end - start
+        t = np.linspace(0.0, 1.0, m)
+        # Bell over the scrape body; little send on the silent edges.
+        body = np.exp(-((t - 0.52) / 0.28) ** 2)
+        send_env[start:end] = body
+    send = signal * send_env
+
+    slap = echo_only(send, int(0.30 * SR), feedback=0.42, passes=5, lp_coeff=0.90)
+    wash = echo_only(send, int(0.58 * SR), feedback=0.30, passes=3, lp_coeff=0.93)
+    wet = slap * 0.32 + wash * 0.18
+    # Keep a little wet across the boundary so the next pulse inherits a wash,
+    # but taper the very end of the loop buffer via seamless crossfade later.
+    return signal + wet
+
+
 def partial_freq(f0: np.ndarray, n: int, b: float = STRING_B) -> np.ndarray:
     """Stretched partial: f_n = n*f0*sqrt(1 + B*n^2) — metallic string inharmonicity."""
     return n * f0 * np.sqrt(1.0 + b * (n * n))
@@ -448,16 +493,33 @@ def rising_whoosh_modal(n: int, rising: bool) -> np.ndarray:
 
 
 def make_seamless(signal: np.ndarray, crossfade: int) -> np.ndarray:
+    """
+    Bake a loop-point crossfade for engines that hard-restart the sample (Minecraft).
+
+    Mixes the tail into the head, then drops the original head so playback wraps
+    from the blended end onto the natural continuation of that head material.
+    """
     if crossfade <= 0 or crossfade * 2 >= len(signal):
         return signal
     out = signal.copy()
-    fade_out = np.linspace(1.0, 0.0, crossfade)
+    fade_out = _cosine_fade(crossfade, fade_in=False)
     fade_in = 1.0 - fade_out
-    head = out[:crossfade].copy()
-    tail = out[-crossfade:].copy()
-    out[-crossfade:] = tail * fade_out + head * fade_in
-    out[:crossfade] = out[-crossfade:]
-    return out
+    # Match levels so the blend doesn't pump at the seam.
+    head = out[:crossfade]
+    tail = out[-crossfade:]
+    head_rms = float(np.sqrt(np.mean(head**2))) + 1e-8
+    tail_rms = float(np.sqrt(np.mean(tail**2))) + 1e-8
+    head_matched = head * (tail_rms / head_rms)
+    out[-crossfade:] = tail * fade_out + head_matched * fade_in
+    # Trim duplicated head — new start is what followed the old head.
+    return out[crossfade:]
+
+
+def _cosine_fade(n: int, *, fade_in: bool) -> np.ndarray:
+    u = np.linspace(0.0, 1.0, n)
+    if fade_in:
+        return 0.5 - 0.5 * np.cos(np.pi * u)
+    return 0.5 + 0.5 * np.cos(np.pi * u)
 
 
 def synthesize_travel_loop(
@@ -468,6 +530,8 @@ def synthesize_travel_loop(
     n = int(LOOP_SECONDS * SR)
     layers = np.zeros(n, dtype=np.float64)
     pulse_n = int(PULSE_SECONDS * SR)
+    # Overlap adjacent vworps so the join isn't a hard cut (heard as a click).
+    overlap = int(0.10 * SR)
 
     if descending:
         pulse_specs = [(200.0, 95.0), (185.0, 90.0)]
@@ -475,19 +539,28 @@ def synthesize_travel_loop(
         pulse_specs = [(95.0, 200.0), (90.0, 185.0)]
 
     for i, (start_hz, end_hz) in enumerate(pulse_specs):
-        start = i * pulse_n
-        end = min(n, start + pulse_n)
-        layers[start:end] += vworp_pulse(end - start, rng, start_hz=start_hz, end_hz=end_hz)
+        if i == 0:
+            layers[:pulse_n] = vworp_pulse(pulse_n, rng, start_hz=start_hz, end_hz=end_hz)
+            continue
+        # Longer pulse so after overlapping the previous tail we still fill to loop end.
+        pulse = vworp_pulse(pulse_n + overlap, rng, start_hz=start_hz, end_hz=end_hz)
+        join = i * pulse_n
+        fade_in = _cosine_fade(overlap, fade_in=True)
+        fade_out = 1.0 - fade_in
+        layers[join - overlap : join] = (
+            layers[join - overlap : join] * fade_out + pulse[:overlap] * fade_in
+        )
+        layers[join : join + pulse_n] = pulse[overlap : overlap + pulse_n]
 
-    layers *= boundary_pulse_gate(n, pulse_n, floor=0.015, fade_s=0.20)
-    layers = apply_feedback_delay(
-        layers, delay_samples=int(0.70 * SR), feedback=0.09, mix=0.035, passes=2, lp_coeff=0.90
-    )
-    layers = soft_clip(layers, drive=1.01)
+    # Mild edge ease only — deep gate notches at the join reintroduce clicks.
+    layers *= boundary_pulse_gate(n, pulse_n, floor=0.55, fade_s=0.04)
+    layers = apply_tape_echo_tail(layers, pulse_n)
+    layers = soft_clip(layers, drive=1.02)
     layers = brickwall_lowpass(layers, HF_CUTOFF_HZ)
     peak = np.max(np.abs(layers)) or 1.0
     layers = layers / peak * 0.85
-    return make_seamless(layers, crossfade=int(0.03 * SR))
+    # Long loop-point crossfade: Minecraft restarts the buffer with no engine blend.
+    return make_seamless(layers, crossfade=int(0.22 * SR))
 
 
 def synthesize_demat_loop(rng: np.random.Generator) -> np.ndarray:
