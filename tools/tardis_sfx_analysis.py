@@ -231,15 +231,40 @@ def _corr_to_unit(corr: float) -> float:
     return float(np.clip((corr + 1.0) * 0.5, 0.0, 1.0))
 
 
+def _best_matching_vworp(
+    probe: np.ndarray, haystack: np.ndarray, sr: int = SR
+) -> np.ndarray:
+    """
+    Find the ~1.75s window in ``haystack`` whose RMS envelope best matches ``probe``.
+
+    Fixed start offsets mis-align long golden takes against seamless 2-pulse loops
+    (even identical audio scored ~82/100). Envelope search lifts that ceiling.
+    """
+    n = len(probe)
+    if len(haystack) <= n:
+        return peak_normalize(haystack)
+    eo = rms_envelope(probe, sr)
+    # Precompute haystack envelope once; correlate with rolling windows.
+    eh = rms_envelope(haystack, sr)
+    step = max(1, int(0.05 * sr))
+    best_start = 0
+    best_corr = float("-inf")
+    for start in range(0, len(haystack) - n + 1, step):
+        corr = _pearson(eo, eh[start : start + n])
+        if not math.isnan(corr) and corr > best_corr:
+            best_corr = corr
+            best_start = start
+    return peak_normalize(haystack[best_start : best_start + n])
+
+
 def _aligned_vworp_pair(
     ours: np.ndarray, ref: np.ndarray, sr: int = SR
 ) -> tuple[np.ndarray, np.ndarray]:
     """Peak-normalised one-vworp slices for timbre/envelope compares."""
     ours_p = peak_normalize(one_vworp_slice(ours, sr))
     ref_src = ref_analysis_slice(ref, sr)
-    # Long golden takes: prefer the mid analysis pulse. Short cuts: use whole clip.
     if len(ref_src) > int(EXPECTED_VWORP_S * sr * 1.15):
-        ref_p = peak_normalize(one_vworp_slice(ref_src, sr, start_s=2.0))
+        ref_p = _best_matching_vworp(ours_p, ref_src, sr)
     else:
         ref_p = peak_normalize(one_vworp_slice(ref_src, sr, start_s=0.0))
     n = min(len(ours_p), len(ref_p))
@@ -312,13 +337,22 @@ def log_mel_spectrogram(
     return np.column_stack(frames)
 
 
-def mel_similarity(ours: np.ndarray, ref: np.ndarray, sr: int = SR) -> float:
+def mel_similarity(
+    ours: np.ndarray,
+    ref: np.ndarray,
+    sr: int = SR,
+    *,
+    already_aligned: bool = False,
+) -> float:
     """
     Timbre similarity from log-mel spectrograms on one aligned vworp.
 
     Mean per-frame cosine similarity in [0, 1] (negative cosines clamped).
     """
-    ours_p, ref_p = _aligned_vworp_pair(ours, ref, sr)
+    if already_aligned:
+        ours_p, ref_p = ours, ref
+    else:
+        ours_p, ref_p = _aligned_vworp_pair(ours, ref, sr)
     mo = log_mel_spectrogram(ours_p, sr)
     mr = log_mel_spectrogram(ref_p, sr)
     n_frames = min(mo.shape[1], mr.shape[1])
@@ -346,9 +380,18 @@ def rms_envelope(samples: np.ndarray, sample_rate: int = SR, win_s: float = 0.02
     return np.convolve(np.abs(samples), kernel, mode="same")
 
 
-def envelope_similarity(ours: np.ndarray, ref: np.ndarray, sr: int = SR) -> float:
+def envelope_similarity(
+    ours: np.ndarray,
+    ref: np.ndarray,
+    sr: int = SR,
+    *,
+    already_aligned: bool = False,
+) -> float:
     """RMS-envelope Pearson + time-of-peak proximity on one aligned vworp."""
-    ours_p, ref_p = _aligned_vworp_pair(ours, ref, sr)
+    if already_aligned:
+        ours_p, ref_p = ours, ref
+    else:
+        ours_p, ref_p = _aligned_vworp_pair(ours, ref, sr)
     eo = rms_envelope(ours_p, sr)
     er = rms_envelope(ref_p, sr)
     shape = _corr_to_unit(_pearson(eo, er))
@@ -382,21 +425,37 @@ def dominant_peak_hz(
     return float(freqs[mask][idx])
 
 
-def peak_similarity(ours: np.ndarray, ref: np.ndarray, sr: int = SR) -> float:
+def peak_similarity(
+    ours: np.ndarray,
+    ref: np.ndarray,
+    sr: int = SR,
+    *,
+    already_aligned: bool = False,
+) -> float:
     """How close the dominant ~80–250 Hz peak is to golden (identity of the scrape body)."""
-    ours_p, ref_p = _aligned_vworp_pair(ours, ref, sr)
+    if already_aligned:
+        ours_p, ref_p = ours, ref
+    else:
+        ours_p, ref_p = _aligned_vworp_pair(ours, ref, sr)
     return _proximity(dominant_peak_hz(ours_p, sr), dominant_peak_hz(ref_p, sr), scale=40.0)
 
 
 def centroid_trajectory_similarity(
-    ours: np.ndarray, ref: np.ndarray, sr: int = SR
+    ours: np.ndarray,
+    ref: np.ndarray,
+    sr: int = SR,
+    *,
+    already_aligned: bool = False,
 ) -> float:
     """
     Brightness-motion similarity: Pearson shape + absolute bloom-peak proximity.
 
     Shape alone was too generous when both rise mid-pulse but to different Hz.
     """
-    ours_p, ref_p = _aligned_vworp_pair(ours, ref, sr)
+    if already_aligned:
+        ours_p, ref_p = ours, ref
+    else:
+        ours_p, ref_p = _aligned_vworp_pair(ours, ref, sr)
     _, oc = stft_centroid_trajectory(ours_p, sr)
     _, rc = stft_centroid_trajectory(ref_p, sr)
     shape = _corr_to_unit(_pearson(oc, rc))
@@ -439,10 +498,12 @@ def similarity_score(ours: np.ndarray, ref: np.ndarray, sr: int = SR) -> Similar
     else:
         period = float("nan")
 
-    mel = mel_similarity(ours, ref, sr)
-    envelope = envelope_similarity(ours, ref, sr)
-    trajectory = centroid_trajectory_similarity(ours, ref, sr)
-    peak = peak_similarity(ours, ref, sr)
+    # One shared alignment for timbre/dynamics components (avoids 4× search).
+    ours_p, ref_p = _aligned_vworp_pair(ours, ref, sr)
+    mel = mel_similarity(ours_p, ref_p, sr, already_aligned=True)
+    envelope = envelope_similarity(ours_p, ref_p, sr, already_aligned=True)
+    trajectory = centroid_trajectory_similarity(ours_p, ref_p, sr, already_aligned=True)
+    peak = peak_similarity(ours_p, ref_p, sr, already_aligned=True)
 
     parts = {
         "mel": (mel, 0.30),

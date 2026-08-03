@@ -1,8 +1,11 @@
 # Local TARDIS SFX fixtures (analysis only)
 
 This directory holds a **local golden reference** used to compare against
-generated travel loops. It is **not** packaged into the mod and must **not**
-be committed (see root `.gitignore`).
+generated travel loops. WAV/MP3 goldens are **not** packaged into the mod and
+must **not** be committed (see root `.gitignore`).
+
+`baked_vworp_targets.npz` is committed analysis-derived spectral/envelope
+targets used by `generate_tardis_travel_sfx.py` (not reference audio).
 
 ## Fetch the golden
 
