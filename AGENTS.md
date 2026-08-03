@@ -118,3 +118,14 @@ After creating or updating a pull request, apply the appropriate label(s) using 
 - **`bug`** — the PR fixes a defect / unintended behaviour
 
 A single PR may carry more than one label if it touches multiple categories.
+
+## Cursor Cloud specific instructions
+
+These notes are for agents running in the Cursor Cloud VM. The standard build/test/datagen commands are already documented above (`./gradlew build`, `./gradlew test`, `./gradlew runDatagen`); this section only captures non-obvious environment caveats.
+
+- Java 21 is preinstalled and is what Gradle uses (`./gradlew` picks up the system JDK; no `JAVA_HOME` tweaking needed).
+- The startup update script runs `./gradlew dependencies -q`, which resolves all configurations and lets Fabric Loom provision Minecraft, Yarn mappings, and remap the mod dependencies. The very first Loom configuration on a cold cache is slow and network-heavy (it decompiles Minecraft and remaps ~50 mods from `maven.fabricmc.net`, `maven.shedaniel.me`, `maven.terraformersmc.com`, and Maven Central); once cached, subsequent Gradle invocations are fast.
+- Running the mod end-to-end without a display: use `./gradlew runGametest`. This boots a real headless Minecraft server, loads the mod, and executes the registered in-world Fabric GameTests (TARDIS door/interior flows and chameleon networking). It is the best headless smoke test of core gameplay.
+- `./gradlew runClient` and `./gradlew runServer` start the actual game; `runClient` needs a GUI/display and will not work in the headless VM. Prefer `runGametest` for automated verification.
+- `./gradlew build` also compiles the `client` source set and runs the full JUnit suite (currently 186 tests), so a green `build` covers both compile and unit-test confidence.
+- `./gradlew runDatagen` writes generated resources under `src/main/generated/` and also leaves an untracked `src/main/generated/.cache/` directory — delete that `.cache` dir before committing to avoid stray churn.
