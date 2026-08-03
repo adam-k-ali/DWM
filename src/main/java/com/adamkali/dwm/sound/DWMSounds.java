@@ -11,6 +11,9 @@ public class DWMSounds {
     public static final SoundEvent TARDIS_DOOR_CLOSE = register("tardis_door_close");
     public static final SoundEvent TARDIS_DOOR_OPEN = register("tardis_door_open");
     public static final SoundEvent TARDIS_HUM = register("tardis_hum");
+    public static final SoundEvent TARDIS_DEMATERIALISE_LOOP = register("tardis_dematerialise_loop");
+    public static final SoundEvent TARDIS_MATERIALISE_LOOP = register("tardis_materialise_loop");
+    public static final SoundEvent TARDIS_MATERIALISE_THUD = register("tardis_materialise_thud");
 
     public static void initialize() {
     }

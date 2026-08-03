@@ -42,3 +42,7 @@ replay_*.log
 # minecraft
 
 logs/
+
+# local tool venvs
+
+tools/.venv/

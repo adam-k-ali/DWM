@@ -26,6 +26,7 @@ public class ServerPayloadTypeRegistry {
         PayloadTypeRegistry.playS2C().register(SyncSotoExteriorEntitySpawnS2CPayload.ID, SyncSotoExteriorEntitySpawnS2CPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(SyncSotoExteriorEntityUpdateS2CPayload.ID, SyncSotoExteriorEntityUpdateS2CPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(SyncSotoExteriorEntityRemoveS2CPayload.ID, SyncSotoExteriorEntityRemoveS2CPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(TravelAudioS2CPayload.ID, TravelAudioS2CPayload.CODEC);
 
         PayloadTypeRegistry.playC2S().register(UpdateTardisChameleonC2SPayload.ID, UpdateTardisChameleonC2SPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(RequestBotiInteriorC2SPayload.ID, RequestBotiInteriorC2SPayload.CODEC);

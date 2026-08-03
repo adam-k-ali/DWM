@@ -29,6 +29,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Interior doors use an invisible block + dedicated BER (`TardisClassicInteriorDoorModel`) with swing animation.
 - Materialisation lever travel: first pull dematerialises the exterior; after a short hold the TARDIS enters `IN_FLIGHT`; a second pull materialises at the selected biome landing site.
 - First Doctor console time rotor bobbles vertically while the TARDIS is traveling (`DEMATERIALISING` / `IN_FLIGHT` / `MATERIALISING`) and rests when idle.
+- Demat/mat play loopable travel SFX (seamless ~2s loops) for code-configured phase lengths (`DEMATERIALISING_DURATION_TICKS` / `MATERIALISING_DURATION_TICKS` in `TardisTravelService`); shell vanishes mid-demat at `DEMATERIALISING_SHELL_REMOVE_AT_TICK`; materialisation ends with a landing thud.
 
 ## How It Works In-Game
 1. Place the TARDIS block.

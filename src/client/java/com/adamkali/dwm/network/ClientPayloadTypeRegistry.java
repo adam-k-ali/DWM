@@ -5,6 +5,7 @@ import com.adamkali.dwm.gui.TardisChameleonGui;
 import com.adamkali.dwm.render.boti.BotiInteriorMeshCache;
 import com.adamkali.dwm.render.soto.SotoExteriorMeshCache;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
+import com.adamkali.dwm.sound.TardisTravelSoundController;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -22,10 +23,12 @@ public class ClientPayloadTypeRegistry {
         ClientPlayNetworking.registerGlobalReceiver(SyncSotoExteriorEntitySpawnS2CPayload.ID, ClientPayloadTypeRegistry::spawnSotoEntity);
         ClientPlayNetworking.registerGlobalReceiver(SyncSotoExteriorEntityUpdateS2CPayload.ID, ClientPayloadTypeRegistry::updateSotoEntity);
         ClientPlayNetworking.registerGlobalReceiver(SyncSotoExteriorEntityRemoveS2CPayload.ID, ClientPayloadTypeRegistry::removeSotoEntity);
+        ClientPlayNetworking.registerGlobalReceiver(TravelAudioS2CPayload.ID, ClientPayloadTypeRegistry::travelAudio);
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             BotiInteriorMeshCache.invalidateAll();
             SotoExteriorMeshCache.invalidateAll();
             SotoGhostExterior.invalidateAll();
+            TardisTravelSoundController.stopAll();
         });
     }
 
@@ -87,5 +90,9 @@ public class ClientPayloadTypeRegistry {
 
     private static void removeSotoEntity(SyncSotoExteriorEntityRemoveS2CPayload payload, ClientPlayNetworking.Context context) {
         context.client().execute(() -> SotoGhostExterior.removeEntity(payload.tardisId(), payload.entityUuid()));
+    }
+
+    private static void travelAudio(TravelAudioS2CPayload payload, ClientPlayNetworking.Context context) {
+        TardisTravelSoundController.handle(payload);
     }
 }

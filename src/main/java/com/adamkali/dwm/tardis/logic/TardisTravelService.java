@@ -3,9 +3,11 @@ package com.adamkali.dwm.tardis.logic;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
+import com.adamkali.dwm.sound.DWMSounds;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
+import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.soto.SotoExteriorIndex;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSyncService;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -15,6 +17,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -28,13 +31,19 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Server-authoritative dematerialise → in-flight wait → lever-gated materialise loop for exterior shells.
+ * Demat/mat phase lengths are code constants so loopable travel SFX can match gameplay duration.
  */
 public final class TardisTravelService {
-    /** Hold after exterior removal before entering {@link TardisTravelPhase#IN_FLIGHT}. */
-    public static final int DEMATERIALISING_HOLD_TICKS = 40;
+    /** Demat phase length after the door is closed (ticks). Loop SFX runs for this long. */
+    public static final int DEMATERIALISING_DURATION_TICKS = 200;
+    /** Elapsed ticks after door-closed before exterior shell is removed. Must be &lt; duration. */
+    public static final int DEMATERIALISING_SHELL_REMOVE_AT_TICK = 80;
+    /** Mat phase length after shell placed (ticks). Loop SFX runs for this long. */
+    public static final int MATERIALISING_DURATION_TICKS = 160;
 
     private static final Set<UUID> ACTIVE = ConcurrentHashMap.newKeySet();
     private static final ConcurrentHashMap<UUID, ShellSnapshot> FLIGHT_SHELLS = new ConcurrentHashMap<>();
+    private static final Set<UUID> SHELL_REMOVED = ConcurrentHashMap.newKeySet();
 
     private TardisTravelService() {
     }
@@ -140,11 +149,13 @@ public final class TardisTravelService {
 
         model.doorState.isOpen = true;
         model.doorState.doorSwing = 0.0f;
-        model.travelPhaseTicks = 0;
+        model.travelPhaseTicks = MATERIALISING_DURATION_TICKS;
         model.markDirty();
         model.setTravelPhase(TardisTravelPhase.MATERIALISING);
         FLIGHT_SHELLS.remove(tardisId);
+        SHELL_REMOVED.remove(tardisId);
         ACTIVE.add(tardisId);
+        TardisTravelAudio.startMat(server, tardisId, exteriorWorld, landing);
         return ActionResult.SUCCESS;
     }
 
@@ -157,7 +168,7 @@ public final class TardisTravelService {
     }
 
     /**
-     * Advances dematerialising hold countdown toward {@link TardisTravelPhase#IN_FLIGHT}.
+     * Advances dematerialising countdown toward {@link TardisTravelPhase#IN_FLIGHT}.
      * Package-visible for unit tests without a full server tick loop.
      *
      * @return {@code true} if the model transitioned to {@link TardisTravelPhase#IN_FLIGHT}
@@ -176,6 +187,38 @@ public final class TardisTravelService {
         model.travelPhaseTicks = 0;
         model.setTravelPhase(TardisTravelPhase.IN_FLIGHT);
         return true;
+    }
+
+    /**
+     * Advances materialising countdown toward {@link TardisTravelPhase#IDLE}.
+     * Package-visible for unit tests.
+     *
+     * @return {@code true} if the model transitioned to {@link TardisTravelPhase#IDLE}
+     */
+    static boolean advanceMaterialisingHold(TardisDataModel model) {
+        if (model == null || model.getTravelPhase() != TardisTravelPhase.MATERIALISING) {
+            return false;
+        }
+        if (model.travelPhaseTicks > 0) {
+            model.travelPhaseTicks--;
+            model.markDirty();
+            if (model.travelPhaseTicks > 0) {
+                return false;
+            }
+        }
+        model.travelDestinationBiome = null;
+        model.travelPhaseTicks = 0;
+        model.setTravelPhase(TardisTravelPhase.IDLE);
+        return true;
+    }
+
+    /** Whether demat countdown has reached the configured shell-removal elapsed tick. */
+    static boolean shouldRemoveShell(TardisDataModel model) {
+        if (model == null || model.getTravelPhase() != TardisTravelPhase.DEMATERIALISING) {
+            return false;
+        }
+        int elapsed = DEMATERIALISING_DURATION_TICKS - model.travelPhaseTicks;
+        return elapsed >= DEMATERIALISING_SHELL_REMOVE_AT_TICK;
     }
 
     private static void onEndTick(MinecraftServer server) {
@@ -199,19 +242,29 @@ public final class TardisTravelService {
             case IN_FLIGHT -> {
                 // Wait for lever-gated {@link #requestMaterialise}.
             }
-            case MATERIALISING -> tickMaterialising(tardisId, model);
+            case MATERIALISING -> tickMaterialising(server, tardisId, model);
             case IDLE -> ACTIVE.remove(tardisId);
         }
     }
 
     private static void tickDematerialising(MinecraftServer server, UUID tardisId, TardisDataModel model) {
-        // After shell removal: hold, then enter IN_FLIGHT.
+        // Countdown window: shell may still be present until remove-at tick.
         if (FLIGHT_SHELLS.containsKey(tardisId)) {
-            advanceDematerialisingHold(model);
+            if (!SHELL_REMOVED.contains(tardisId) && shouldRemoveShell(model)) {
+                removeExteriorShell(server, tardisId, model);
+            }
+            boolean enteredFlight = advanceDematerialisingHold(model);
+            if (enteredFlight) {
+                BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
+                ServerWorld exteriorWorld = getExteriorWorld(server, model);
+                TardisTravelAudio.stop(server, tardisId, exteriorWorld, exteriorPos);
+                SHELL_REMOVED.remove(tardisId);
+                // FLIGHT_SHELLS kept for materialise.
+            }
             return;
         }
 
-        // Ensure door swing advances even if we closed mid-animation.
+        // Door-close prelude before the configurable demat/vworp window.
         TardisLogic.updateDoorState(tardisId);
         if (model.doorState.doorSwing > 0.0f) {
             SotoExteriorSyncService.markDirty(tardisId);
@@ -231,26 +284,74 @@ public final class TardisTravelService {
         }
 
         ShellSnapshot snapshot = ShellSnapshot.capture(be, exteriorWorld.getBlockState(exteriorPos));
-        exteriorWorld.setBlockState(exteriorPos, Blocks.AIR.getDefaultState(), 3);
-        SotoExteriorIndex.unregister(tardisId);
-        SotoExteriorSyncService.markDirty(tardisId);
-
-        model.travelPhaseTicks = DEMATERIALISING_HOLD_TICKS;
-        model.markDirty();
-        // Stay DEMATERIALISING during the hold; FLIGHT_SHELLS marks shell-removed.
         FLIGHT_SHELLS.put(tardisId, snapshot);
+        SHELL_REMOVED.remove(tardisId);
+        model.travelPhaseTicks = DEMATERIALISING_DURATION_TICKS;
+        model.markDirty();
+        TardisTravelAudio.startDemat(server, tardisId, exteriorWorld, exteriorPos);
     }
 
-    private static void tickMaterialising(UUID tardisId, TardisDataModel model) {
-        TardisLogic.updateDoorState(tardisId);
-        SotoExteriorSyncService.markDirty(tardisId);
-        if (model.doorState.doorSwing < 1.0f) {
+    private static void removeExteriorShell(MinecraftServer server, UUID tardisId, TardisDataModel model) {
+        ServerWorld exteriorWorld = getExteriorWorld(server, model);
+        if (exteriorWorld == null) {
             return;
         }
-        model.travelDestinationBiome = null;
-        model.travelPhaseTicks = 0;
-        model.setTravelPhase(TardisTravelPhase.IDLE);
+        BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
+        if (exteriorWorld.getBlockEntity(exteriorPos) instanceof TardisBlockEntity) {
+            exteriorWorld.setBlockState(exteriorPos, Blocks.AIR.getDefaultState(), 3);
+        }
+        SotoExteriorIndex.unregister(tardisId);
+        SotoExteriorSyncService.markDirty(tardisId);
+        SHELL_REMOVED.add(tardisId);
+        model.markDirty();
+    }
+
+    private static void tickMaterialising(MinecraftServer server, UUID tardisId, TardisDataModel model) {
+        TardisLogic.updateDoorState(tardisId);
+        SotoExteriorSyncService.markDirty(tardisId);
+        boolean finished = advanceMaterialisingHold(model);
+        if (!finished) {
+            return;
+        }
         ACTIVE.remove(tardisId);
+        ServerWorld exteriorWorld = getExteriorWorld(server, model);
+        BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
+        TardisTravelAudio.stop(server, tardisId, exteriorWorld, exteriorPos);
+        playMaterialiseThud(server, tardisId, exteriorWorld, exteriorPos);
+    }
+
+    private static void playMaterialiseThud(
+            MinecraftServer server,
+            UUID tardisId,
+            @Nullable ServerWorld exteriorWorld,
+            BlockPos exteriorPos
+    ) {
+        if (exteriorWorld != null) {
+            exteriorWorld.playSound(
+                    null,
+                    exteriorPos,
+                    DWMSounds.TARDIS_MATERIALISE_THUD,
+                    SoundCategory.BLOCKS,
+                    1.0F,
+                    1.0F
+            );
+        }
+        if (server == null) {
+            return;
+        }
+        ServerWorld interior = server.getWorld(TardisDimensions.TARDIS_WORLD_KEY);
+        if (interior == null) {
+            return;
+        }
+        BlockPos console = TardisTravelAudio.consolePos(tardisId);
+        interior.playSound(
+                null,
+                console,
+                DWMSounds.TARDIS_MATERIALISE_THUD,
+                SoundCategory.BLOCKS,
+                1.0F,
+                1.0F
+        );
     }
 
     private static Optional<BlockPos> resolveLanding(
@@ -267,9 +368,13 @@ public final class TardisTravelService {
 
     private static void abortToIdle(MinecraftServer server, UUID tardisId, TardisDataModel model) {
         ShellSnapshot snapshot = FLIGHT_SHELLS.remove(tardisId);
+        SHELL_REMOVED.remove(tardisId);
         ServerWorld exteriorWorld = getExteriorWorld(server, model);
+        BlockPos pos = model.hasExteriorLocation
+                ? new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ)
+                : BlockPos.ORIGIN;
+        TardisTravelAudio.stop(server, tardisId, exteriorWorld, pos);
         if (snapshot != null && exteriorWorld != null && model.hasExteriorLocation) {
-            BlockPos pos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
             if (!(exteriorWorld.getBlockEntity(pos) instanceof TardisBlockEntity)) {
                 placeShell(exteriorWorld, pos, snapshot);
                 SotoExteriorIndex.register(tardisId, model);
@@ -326,10 +431,16 @@ public final class TardisTravelService {
     public static void clearActiveForTests() {
         ACTIVE.clear();
         FLIGHT_SHELLS.clear();
+        SHELL_REMOVED.clear();
     }
 
     /** Test helper: seed a flight shell snapshot without a world. */
     static void putFlightShellForTests(UUID tardisId, UUID shellTardisId) {
         FLIGHT_SHELLS.put(tardisId, new ShellSnapshot(shellTardisId, null, false, 0));
+    }
+
+    /** Test helper: mark shell removed for countdown tests. */
+    static void markShellRemovedForTests(UUID tardisId) {
+        SHELL_REMOVED.add(tardisId);
     }
 }

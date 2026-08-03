@@ -25,5 +25,29 @@
         "stream": true
       }
     ]
+  },
+  "tardis_dematerialise_loop": {
+    "subtitle": "dwm.tardis_dematerialise_loop.subtitle",
+    "sounds": [
+      {
+        "name": "dwm:tardis_dematerialise_loop",
+        "stream": true
+      }
+    ]
+  },
+  "tardis_materialise_loop": {
+    "subtitle": "dwm.tardis_materialise_loop.subtitle",
+    "sounds": [
+      {
+        "name": "dwm:tardis_materialise_loop",
+        "stream": true
+      }
+    ]
+  },
+  "tardis_materialise_thud": {
+    "subtitle": "dwm.tardis_materialise_thud.subtitle",
+    "sounds": [
+      "dwm:tardis_materialise_thud"
+    ]
   }
 }
