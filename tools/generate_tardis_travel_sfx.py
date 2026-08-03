@@ -6,8 +6,9 @@ Recreates the Radiophonic Workshop technique in spirit (Hodgson): key scrape on
 bass piano strings → tape varispeed → feedback/echo; materialise is the reverse
 motion; thud is a short landing bang.
 
-Metallic texture is modal/inharmonic + FM + tone×tone ring-mod (not broadband
-noise). Reference show SFX is peaky around ~95–200 Hz with ~0% energy above 5 kHz.
+Metallic texture is modal/inharmonic + light FM/ring-mod (not broadband noise).
+Reference show SFX is peaky around ~95 Hz with a mid-late 1.5–4 kHz scrape bloom
+(centroid climbs toward ~1 kHz around 1.2s of each 1.75s vworp).
 
 Does not sample or copy BBC media. Requires numpy; writes WAV then ffmpeg → OGG.
 """
@@ -31,8 +32,8 @@ THUD_SECONDS = 0.40
 
 # Piano-string-like stiffness (inharmonic partial stretch) — metallic, not harmonic siren.
 STRING_B = 0.00045
-# Hard ceiling matching reference (hf>5k ≈ 0.05% there).
-HF_CUTOFF_HZ = 3600.0
+# Allow 1.5–4 kHz scrape bloom (golden ~8–10% there) while keeping hf>5k ≈ 0.
+HF_CUTOFF_HZ = 4800.0
 
 
 def write_wav(path: Path, samples: np.ndarray, sample_rate: int = SR) -> None:
@@ -151,7 +152,43 @@ def scrape_chatter_am(n: int, rng: np.random.Generator) -> np.ndarray:
     env = one_pole_lowpass(np.abs(raw), 0.9985)
     env = one_pole_lowpass(env, 0.997)
     env = env / (np.max(env) or 1.0)
-    return 0.72 + 0.28 * env
+    return 0.78 + 0.22 * env
+
+
+def curved_f0_sweep(start_hz: float, end_hz: float, n: int) -> np.ndarray:
+    """Geom sweep: linger near the high end mid-pulse, then settle (classic vworp glide)."""
+    u = np.linspace(0.0, 1.0, n)
+    if start_hz > end_hz:
+        # descending: hold the high scrape, then fall into the ~95 Hz body
+        u = 1.0 - (1.0 - u) ** 1.35
+    else:
+        # ascending: rise earlier, then settle at the high end
+        u = u ** 1.35
+    return start_hz * (end_hz / start_hz) ** u
+
+
+def brightness_bloom(n: int) -> np.ndarray:
+    """Mid–late scrape bloom: centroid/HF rise peaking ~1.15–1.25s of a 1.75s pulse."""
+    t = np.linspace(0.0, 1.0, n)
+    peak = 0.72
+    width = 0.32
+    x = (t - peak) / width
+    bloom = np.exp(-2.5 * (x * x))
+    early = np.clip((t - 0.28) / 0.32, 0.0, 1.0)
+    return 0.03 + 0.97 * bloom * early
+
+
+def hf_scrape_layer(f0: np.ndarray, bloom: np.ndarray) -> np.ndarray:
+    """Discrete metallic energy in 1.5–4 kHz (golden ~8%), gated by bloom."""
+    carrier = np.clip(f0, 70.0, 220.0)
+    amps = [0.0, 0.0, 0.0, 0.0, 0.10, 0.18, 0.26, 0.30, 0.26, 0.18, 0.10]
+    layer = modal_string_scrape(carrier, amps)
+    for hz, amp in ((850.0, 0.40), (1300.0, 0.55), (1950.0, 0.48), (2600.0, 0.30), (3200.0, 0.16)):
+        hi = np.full_like(f0, hz)
+        layer += modal_string_scrape(hi, [1.0, 0.40, 0.15]) * amp
+    layer += fm_metallic(np.full_like(f0, 1500.0), index=1.6, ratio=math.sqrt(2.0)) * 0.18
+    layer += ring_mod_tones(np.full_like(f0, 650.0), np.full_like(f0, 1750.0)) * 0.14
+    return layer * bloom
 
 
 def vworp_pulse(
@@ -161,57 +198,62 @@ def vworp_pulse(
     start_hz: float,
     end_hz: float,
 ) -> np.ndarray:
-    """One ~1.75s vworp: metallic modal scrape + FM/ring-mod, no hiss bed."""
-    f0 = np.geomspace(start_hz, end_hz, n)
+    """One ~1.75s vworp: peaky ~95 Hz body + mid-late HF bloom, punchy envelope."""
+    f0 = curved_f0_sweep(start_hz, end_hz, n)
+    bloom = brightness_bloom(n)
+    ascending = end_hz > start_hz
+    # Ascending already brightens via f0 — use a lighter HF bloom so mat stays ~500 Hz.
+    hf_mix = 0.88 if ascending else 1.20
 
-    # Partial stack: strong lows (ref ~40% in 80–200) + enough mid for centroid ~500
-    amps = [0.58, 0.50, 0.38, 0.26, 0.18, 0.12, 0.07, 0.04]
-    scrape = modal_string_scrape(f0, amps)
+    # Dark early body (partials 1–2) — golden centroid stays ~200–300 Hz until ~0.55s.
+    low = modal_string_scrape(f0, [0.92, 0.68])
+    low += modal_string_scrape(np.full(n, 95.0), [0.70, 0.34]) * 0.28
 
-    # Metallic density without noise: FM + ring-mod sidebands
-    scrape += fm_metallic(f0, index=2.8, ratio=math.sqrt(2.0)) * 0.36
-    scrape += fm_metallic(f0 * 0.5, index=2.0, ratio=math.sqrt(3.0)) * 0.18
-    scrape += ring_mod_tones(partial_freq(f0, 1), partial_freq(f0, 2)) * 0.22
-    scrape += ring_mod_tones(partial_freq(f0, 2), partial_freq(f0, 3)) * 0.12
-    scrape += ring_mod_tones(partial_freq(f0, 1), partial_freq(f0, 4)) * 0.08
+    # Upper body partials only open with the bloom (feeds 200–500 mid-pulse).
+    upper = modal_string_scrape(f0, [0.0, 0.0, 0.42, 0.24, 0.10])
+    scrape = low + upper * (0.22 + 0.78 * bloom)
 
-    # Friction as AM only (control-smoothed) — never mixed as an audio noise layer
+    scrape += fm_metallic(f0, index=1.35, ratio=math.sqrt(2.0)) * (0.04 + 0.12 * bloom)
+    scrape += ring_mod_tones(partial_freq(f0, 1), partial_freq(f0, 2)) * (0.04 + 0.06 * bloom)
+
+    # Duck lows during bloom so centroid can climb mid–late (~1.2s).
+    scrape *= 1.0 - 0.50 * bloom
+
+    mid_amps = [0.0, 0.0, 0.20, 0.32, 0.32, 0.20, 0.10]
+    scrape += modal_string_scrape(f0, mid_amps) * (0.10 + 0.78 * bloom)
+    scrape += hf_scrape_layer(f0, bloom) * hf_mix
+
     scrape *= scrape_chatter_am(n, rng)
+    scrape = soft_clip(scrape, drive=1.22)
 
-    scrape = soft_clip(scrape, drive=1.9)
-
-    env = np.ones(n)
-    attack = max(1, int(0.08 * SR))
-    release = max(1, int(0.45 * SR))
-    if attack + release >= n:
-        release = max(1, n // 4)
-        attack = max(1, min(attack, n - release - 1))
-    env[:attack] = np.linspace(0.0, 1.0, attack) ** 0.7
-    env[-release:] *= np.linspace(1.0, 0.08, release) ** 1.4
-    body = 0.85 + 0.15 * np.sin(np.pi * np.linspace(0.0, 1.0, n))
-    suck = 0.82 + 0.18 * np.linspace(1.0, 0.50, n)
-    out = scrape * env * body * suck
+    t = np.linspace(0.0, 1.0, n)
+    attack = max(1, int(0.14 * SR))
+    release = max(1, int(0.36 * SR))
+    env = 0.48 + 0.52 * (t ** 0.75)
+    env[:attack] *= np.linspace(0.0, 1.0, attack) ** 0.85
+    env[-release:] *= np.linspace(1.0, 0.02, release) ** 1.85
+    body = 0.92 + 0.08 * np.sin(np.pi * t)
+    out = scrape * env * body
     peak = np.max(np.abs(out)) or 1.0
     return out / peak
 
 
 def rising_whoosh_modal(n: int, rising: bool) -> np.ndarray:
-    """Take-off whoosh as a soft modal swell — still tonal/metallic, not noise air."""
+    """Soft take-off swell — low-level only so it doesn't fill pulse gaps."""
     if rising:
         f0 = np.concatenate(
-            [np.geomspace(110.0, 260.0, n // 2), np.geomspace(110.0, 260.0, n - n // 2)]
+            [np.geomspace(95.0, 180.0, n // 2), np.geomspace(95.0, 180.0, n - n // 2)]
         )
     else:
         f0 = np.concatenate(
-            [np.geomspace(260.0, 110.0, n // 2), np.geomspace(260.0, 110.0, n - n // 2)]
+            [np.geomspace(180.0, 95.0, n // 2), np.geomspace(180.0, 95.0, n - n // 2)]
         )
-    whoosh = modal_string_scrape(f0, [0.45, 0.28, 0.14, 0.06])
-    whoosh += fm_metallic(f0, index=1.0, ratio=math.sqrt(2.0)) * 0.10
+    whoosh = modal_string_scrape(f0, [0.55, 0.28, 0.10])
     half = n // 2
     env = np.zeros(n)
     env[:half] = np.sin(np.pi * np.linspace(0.0, 1.0, half))
     env[half:] = np.sin(np.pi * np.linspace(0.0, 1.0, n - half))
-    return whoosh * (0.20 + 0.80 * env)
+    return whoosh * (0.15 + 0.85 * env)
 
 
 def make_seamless(signal: np.ndarray, crossfade: int) -> np.ndarray:
@@ -248,31 +290,34 @@ def synthesize_travel_loop(
         layers[start:end] += vworp_pulse(end - start, rng, start_hz=start_hz, end_hz=end_hz)
 
     t = np.arange(n) / SR
-    bed_f0 = np.full(n, 98.0)
-    bed = modal_string_scrape(bed_f0, [0.50, 0.32, 0.14, 0.06]) * 0.08
-    gate = 0.30 + 0.70 * (0.5 + 0.5 * np.sin(2.0 * np.pi * (1.0 / PULSE_SECONDS) * t - 0.3)) ** 1.5
+    # Quiet 95 Hz bed gated with the pulse — supports peakiness without filling gaps.
+    bed_f0 = np.full(n, 95.0)
+    bed = modal_string_scrape(bed_f0, [0.70, 0.28, 0.08]) * 0.028
+    gate = (0.5 + 0.5 * np.sin(2.0 * np.pi * (1.0 / PULSE_SECONDS) * t - 0.4)) ** 2.4
     layers += bed * gate
 
-    layers += rising_whoosh_modal(n, rising=descending) * 0.30
+    layers += rising_whoosh_modal(n, rising=descending) * 0.08
 
+    # Lighter tape echo — heavy feedback was smearing gaps and flattening crest.
     layers = apply_feedback_delay(
-        layers, delay_samples=int(0.85 * SR), feedback=0.45, mix=0.38, passes=4, lp_coeff=0.80
+        layers, delay_samples=int(0.85 * SR), feedback=0.24, mix=0.14, passes=3, lp_coeff=0.86
     )
     layers = apply_feedback_delay(
-        layers, delay_samples=int(0.42 * SR), feedback=0.26, mix=0.16, passes=2, lp_coeff=0.78
+        layers, delay_samples=int(0.42 * SR), feedback=0.14, mix=0.07, passes=2, lp_coeff=0.84
     )
 
     pulse_phase = (t / PULSE_SECONDS) * 2.0 * np.pi
     if not descending:
         pulse_phase = pulse_phase + np.pi
-    pulse_gate = 0.40 + 0.60 * np.clip(np.cos(pulse_phase) * 0.5 + 0.5, 0.0, 1.0) ** 1.1
+    # Deep inter-pulse gaps (golden crest ~4.8×).
+    pulse_gate = 0.04 + 0.96 * np.clip(np.cos(pulse_phase) * 0.5 + 0.5, 0.0, 1.0) ** 2.35
     layers *= pulse_gate
 
-    layers = soft_clip(layers, drive=1.2)
+    layers = soft_clip(layers, drive=1.01)
     layers = brickwall_lowpass(layers, HF_CUTOFF_HZ)
     peak = np.max(np.abs(layers)) or 1.0
     layers = layers / peak * 0.85
-    return make_seamless(layers, crossfade=int(0.06 * SR))
+    return make_seamless(layers, crossfade=int(0.05 * SR))
 
 
 def synthesize_demat_loop(rng: np.random.Generator) -> np.ndarray:
@@ -300,64 +345,21 @@ def synthesize_thud(rng: np.random.Generator) -> np.ndarray:
     return thud / peak * 0.95
 
 
-def spectral_report(samples: np.ndarray, sample_rate: int = SR) -> dict[str, float]:
-    spec = np.abs(np.fft.rfft(samples * np.hanning(len(samples)))) ** 2
-    freqs = np.fft.rfftfreq(len(samples), 1.0 / sample_rate)
-    tot = float(spec.sum()) or 1.0
-    centroid = float((freqs * spec).sum() / tot)
-    return {
-        "centroid_hz": centroid,
-        "hf_gt_3k": float(spec[freqs >= 3000].sum() / tot),
-        "hf_gt_5k": float(spec[freqs >= 5000].sum() / tot),
-        "band_80_200": float(spec[(freqs >= 80) & (freqs < 200)].sum() / tot),
-        "band_500_1500": float(spec[(freqs >= 500) & (freqs < 1500)].sum() / tot),
-        "duration_s": len(samples) / sample_rate,
-    }
-
-
-def validate_against_reference(ours: np.ndarray, ref: np.ndarray, ref_sr: int) -> list[str]:
-    """Compare ours to reference traits; return list of failure messages (empty = ok)."""
-    # Use a mid slice of the long reference take
-    if len(ref) / ref_sr > 6:
-        ref = ref[int(2 * ref_sr) : int(8 * ref_sr)]
-    if ref_sr != SR:
-        # crude resample via FFT length match for spectra only
-        target_n = int(len(ref) * SR / ref_sr)
-        ref = np.interp(np.linspace(0, len(ref) - 1, target_n), np.arange(len(ref)), ref)
-
-    r = spectral_report(ref)
-    o = spectral_report(ours)
-    failures: list[str] = []
-    # Reference: hf>5k ≈ 0.05%, hf>3k ≈ 2%
-    if o["hf_gt_5k"] > 0.002:
-        failures.append(f"hiss: hf>5k={o['hf_gt_5k']*100:.2f}% (ref {r['hf_gt_5k']*100:.2f}%, want <0.2%)")
-    if o["hf_gt_3k"] > 0.04:
-        failures.append(f"hiss: hf>3k={o['hf_gt_3k']*100:.2f}% (ref {r['hf_gt_3k']*100:.2f}%, want <4%)")
-    # Centroid near reference ~500 Hz
-    if not (320.0 <= o["centroid_hz"] <= 650.0):
-        failures.append(f"centroid={o['centroid_hz']:.0f}Hz (ref {r['centroid_hz']:.0f}Hz, want 320–650)")
-    # Energy presence in the string-fundamental band
-    if o["band_80_200"] < 0.22:
-        failures.append(
-            f"band 80–200Hz={o['band_80_200']*100:.1f}% (ref {r['band_80_200']*100:.1f}%, want ≥22%)"
-        )
-    # Mid presence (ref ~20% in 500–1500)
-    if o["band_500_1500"] < 0.10:
-        failures.append(
-            f"band 500–1500Hz={o['band_500_1500']*100:.1f}% (ref {r['band_500_1500']*100:.1f}%, want ≥10%)"
-        )
-    return failures
-
-
-def load_wav_mono(path: Path) -> tuple[np.ndarray, int]:
-    with wave.open(str(path), "rb") as wf:
-        nch, sr, nf = wf.getnchannels(), wf.getframerate(), wf.getnframes()
-        raw = np.frombuffer(wf.readframes(nf), dtype=np.int16).astype(np.float64)
-        mono = raw.reshape(-1, nch).mean(axis=1) / 32768.0
-    return mono, sr
-
-
 def main() -> int:
+    # Shared analysis lives beside this script (tools/).
+    tools_dir = Path(__file__).resolve().parent
+    sys.path.insert(0, str(tools_dir))
+    from tardis_sfx_analysis import (  # noqa: E402
+        hard_gate_failures,
+        load_audio_mono,
+        ref_analysis_slice,
+        resample_linear,
+        spectral_report,
+    )
+
+    default_ref = tools_dir / "fixtures" / "tardis_ref.wav"
+    default_compare = tools_dir / "fixtures" / "compare_out"
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--out-dir",
@@ -369,8 +371,25 @@ def main() -> int:
     parser.add_argument(
         "--validate-ref",
         type=Path,
+        nargs="?",
+        const=default_ref,
         default=None,
-        help="Optional WAV/ path used only for spectral validation (never packaged).",
+        help=(
+            "WAV/MP3 used only for spectral hard-gates (never packaged). "
+            f"Pass flag alone to use {default_ref}."
+        ),
+    )
+    parser.add_argument(
+        "--compare-report",
+        type=Path,
+        nargs="?",
+        const=default_compare,
+        default=None,
+        help=(
+            "Write markdown+PNG compare report under this dir "
+            f"(default {default_compare} when flag is passed alone). "
+            "Requires a golden --validate-ref or existing fixtures/tardis_ref.wav."
+        ),
     )
     args = parser.parse_args()
 
@@ -401,33 +420,57 @@ def main() -> int:
             f"hf>5k={rep['hf_gt_5k']*100:.2f}%"
         )
 
-    if args.validate_ref is not None:
-        ref_path = args.validate_ref
-        if ref_path.suffix.lower() == ".mp3":
-            ref_wav = tmp / "validate_ref.wav"
-            subprocess.run(
-                ["ffmpeg", "-y", "-i", str(ref_path), str(ref_wav)],
-                check=True,
-                capture_output=True,
+    ref_path: Path | None = args.validate_ref
+    if args.compare_report is not None and ref_path is None and default_ref.exists():
+        ref_path = default_ref
+
+    exit_code = 0
+    if ref_path is not None:
+        if not ref_path.exists():
+            print(
+                f"Missing golden reference: {ref_path}\n"
+                f"Run: tools/.venv/bin/python tools/fetch_tardis_ref.py",
+                file=sys.stderr,
             )
-            ref, ref_sr = load_wav_mono(ref_wav)
+            exit_code = 2
         else:
-            ref, ref_sr = load_wav_mono(ref_path)
-        failures = validate_against_reference(demat, ref, ref_sr)
-        if failures:
-            print("VALIDATION FAILED vs reference:", file=sys.stderr)
-            for msg in failures:
-                print(f"  - {msg}", file=sys.stderr)
-            for wav in tmp.glob("*.wav"):
-                wav.unlink()
-            tmp.rmdir()
-            return 1
-        print("Validation OK vs reference spectral traits.")
+            ref, ref_sr = load_audio_mono(ref_path)
+            ref = resample_linear(ref_analysis_slice(ref, ref_sr), ref_sr, SR)
+            failures = hard_gate_failures(demat, ref, SR)
+            if failures:
+                print("VALIDATION FAILED vs reference:", file=sys.stderr)
+                for msg in failures:
+                    print(f"  - {msg}", file=sys.stderr)
+                exit_code = 1
+            else:
+                print("Validation OK vs reference spectral traits.")
+
+            if args.compare_report is not None:
+                # Defer to compare CLI for plots/report (keeps generator lean).
+                compare = tools_dir / "compare_tardis_sfx.py"
+                cmd = [
+                    sys.executable,
+                    str(compare),
+                    "--ref",
+                    str(ref_path),
+                    "--ours",
+                    str(out_dir / "tardis_dematerialise_loop.ogg"),
+                    "--mat",
+                    str(out_dir / "tardis_materialise_loop.ogg"),
+                    "--out-dir",
+                    str(args.compare_report),
+                ]
+                print("Running compare report…")
+                subprocess.run(cmd, check=False)
 
     for wav in tmp.glob("*.wav"):
         wav.unlink()
-    tmp.rmdir()
-    return 0
+    if tmp.exists():
+        try:
+            tmp.rmdir()
+        except OSError:
+            pass
+    return exit_code
 
 
 if __name__ == "__main__":
