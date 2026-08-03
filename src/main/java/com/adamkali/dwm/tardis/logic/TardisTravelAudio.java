@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 /**
- * Broadcasts demat/mat loop start/stop cues to exterior tracking players and interior plot occupants.
+ * Broadcasts demat/mat/flight loop start/stop cues to exterior tracking players and interior plot occupants.
  */
 public final class TardisTravelAudio {
     private static final int EXTERIOR_RANGE = 64;
@@ -30,6 +30,40 @@ public final class TardisTravelAudio {
 
     public static void startMat(MinecraftServer server, UUID tardisId, ServerWorld exteriorWorld, BlockPos exteriorPos) {
         broadcast(server, tardisId, TravelAudioS2CPayload.START_MAT, exteriorWorld, exteriorPos);
+    }
+
+    /**
+     * Switches to the higher-pitched in-flight loop for interior listeners and stops exterior demat audio
+     * (shell is gone; no positional exterior source).
+     */
+    public static void startFlight(MinecraftServer server, UUID tardisId, @Nullable ServerWorld exteriorWorld, @Nullable BlockPos exteriorPos) {
+        if (server == null || tardisId == null) {
+            return;
+        }
+        // Clear exterior demat loop at the departure site.
+        if (exteriorWorld != null && exteriorPos != null) {
+            Identifier exteriorDim = exteriorWorld.getRegistryKey().getValue();
+            TravelAudioS2CPayload exteriorStop = new TravelAudioS2CPayload(
+                    tardisId, TravelAudioS2CPayload.STOP, exteriorDim, exteriorPos, false);
+            for (ServerPlayerEntity player : PlayerLookup.around(exteriorWorld, exteriorPos, EXTERIOR_RANGE)) {
+                ServerPlayNetworking.send(player, exteriorStop);
+            }
+        }
+
+        BlockPos console = consolePos(tardisId);
+        TravelAudioS2CPayload interiorCue = new TravelAudioS2CPayload(
+                tardisId, TravelAudioS2CPayload.START_FLIGHT, TardisDimensions.DIMENSION_ID, console, true);
+        ServerWorld interior = server.getWorld(TardisDimensions.TARDIS_WORLD_KEY);
+        if (interior == null) {
+            return;
+        }
+        BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
+        for (ServerPlayerEntity player : interior.getPlayers()) {
+            if (BotiInteriorSampler.isInsideFootprint(player.getBlockPos(), origin)
+                    || player.getBlockPos().isWithinDistance(console, EXTERIOR_RANGE)) {
+                ServerPlayNetworking.send(player, interiorCue);
+            }
+        }
     }
 
     public static void stop(MinecraftServer server, UUID tardisId, @Nullable ServerWorld exteriorWorld, @Nullable BlockPos exteriorPos) {

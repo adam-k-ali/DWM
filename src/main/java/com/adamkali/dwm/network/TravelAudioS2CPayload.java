@@ -10,7 +10,7 @@ import net.minecraft.util.math.BlockPos;
 import java.util.UUID;
 
 /**
- * S2C cue to start/stop looping dematerialise or materialise travel audio at a position.
+ * S2C cue to start/stop looping dematerialise, materialise, or in-flight travel audio at a position.
  */
 public record TravelAudioS2CPayload(
         UUID tardisId,
@@ -22,6 +22,7 @@ public record TravelAudioS2CPayload(
     public static final byte START_DEMAT = 0;
     public static final byte START_MAT = 1;
     public static final byte STOP = 2;
+    public static final byte START_FLIGHT = 3;
 
     public static final CustomPayload.Id<TravelAudioS2CPayload> ID =
             new CustomPayload.Id<>(DWMPacketIds.TRAVEL_AUDIO_PACKET_ID);

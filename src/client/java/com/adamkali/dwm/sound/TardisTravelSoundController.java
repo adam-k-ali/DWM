@@ -41,7 +41,8 @@ public final class TardisTravelSoundController {
             return;
         }
         if (payload.action() != TravelAudioS2CPayload.START_DEMAT
-                && payload.action() != TravelAudioS2CPayload.START_MAT) {
+                && payload.action() != TravelAudioS2CPayload.START_MAT
+                && payload.action() != TravelAudioS2CPayload.START_FLIGHT) {
             return;
         }
         if (client.world == null

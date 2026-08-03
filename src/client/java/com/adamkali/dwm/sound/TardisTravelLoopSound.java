@@ -8,11 +8,12 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 
 /**
- * Looping dematerialise or materialise travel SFX. Positional at an exterior/landing site,
+ * Looping dematerialise, materialise, or in-flight travel SFX. Positional at an exterior/landing site,
  * or relative (no attenuation) for interior listeners.
  */
 public class TardisTravelLoopSound extends MovingSoundInstance {
     private static final float VOLUME = 0.85f;
+    private static final float FLIGHT_VOLUME = 0.55f;
 
     private boolean finished;
 
@@ -20,7 +21,7 @@ public class TardisTravelLoopSound extends MovingSoundInstance {
         super(event, SoundCategory.BLOCKS, SoundInstance.createRandom());
         this.repeat = true;
         this.repeatDelay = 0;
-        this.volume = VOLUME;
+        this.volume = event == DWMSounds.TARDIS_FLIGHT_LOOP ? FLIGHT_VOLUME : VOLUME;
         this.relative = relative;
         if (relative) {
             this.attenuationType = SoundInstance.AttenuationType.NONE;
@@ -39,6 +40,7 @@ public class TardisTravelLoopSound extends MovingSoundInstance {
         return switch (action) {
             case TravelAudioS2CPayload.START_DEMAT -> DWMSounds.TARDIS_DEMATERIALISE_LOOP;
             case TravelAudioS2CPayload.START_MAT -> DWMSounds.TARDIS_MATERIALISE_LOOP;
+            case TravelAudioS2CPayload.START_FLIGHT -> DWMSounds.TARDIS_FLIGHT_LOOP;
             default -> DWMSounds.TARDIS_DEMATERIALISE_LOOP;
         };
     }

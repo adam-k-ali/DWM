@@ -13,6 +13,7 @@ public class DWMSounds {
     public static final SoundEvent TARDIS_HUM = register("tardis_hum");
     public static final SoundEvent TARDIS_DEMATERIALISE_LOOP = register("tardis_dematerialise_loop");
     public static final SoundEvent TARDIS_MATERIALISE_LOOP = register("tardis_materialise_loop");
+    public static final SoundEvent TARDIS_FLIGHT_LOOP = register("tardis_flight_loop");
     public static final SoundEvent TARDIS_MATERIALISE_THUD = register("tardis_materialise_thud");
 
     public static void initialize() {

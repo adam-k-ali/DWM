@@ -90,5 +90,56 @@ class SimilarityScoreTests(unittest.TestCase):
         self.assertEqual(verdict_similarity(40.0)[0], "FAIL")
 
 
+class FlightLoopTests(unittest.TestCase):
+    def test_pitch_shift_raises_centroid(self) -> None:
+        from generate_tardis_travel_sfx import pitch_shift  # noqa: E402
+        from tardis_sfx_analysis import spectral_report  # noqa: E402
+
+        n = int(0.5 * SR)
+        t = np.arange(n) / SR
+        tone = np.sin(2.0 * np.pi * 200.0 * t)
+        base = spectral_report(tone)["centroid_hz"]
+        shifted = spectral_report(pitch_shift(tone, 1.12))["centroid_hz"]
+        self.assertGreater(shifted, base * 1.05)
+
+    def test_flight_loop_higher_than_demat(self) -> None:
+        from generate_tardis_travel_sfx import (  # noqa: E402
+            synthesize_demat_loop,
+            synthesize_flight_loop,
+        )
+        from tardis_sfx_analysis import spectral_report  # noqa: E402
+
+        demat = synthesize_demat_loop(np.random.default_rng(1963))
+        flight = synthesize_flight_loop(np.random.default_rng(1963))
+        demat_c = spectral_report(demat)["centroid_hz"]
+        flight_c = spectral_report(flight)["centroid_hz"]
+        self.assertGreater(flight_c, demat_c * 1.05)
+
+    def test_loop_seams_are_continuous(self) -> None:
+        from generate_tardis_travel_sfx import (  # noqa: E402
+            SR as GSR,
+            synthesize_demat_loop,
+            synthesize_flight_loop,
+            synthesize_mat_loop,
+        )
+
+        window = int(0.08 * GSR)
+        for name, factory in (
+            ("demat", synthesize_demat_loop),
+            ("mat", synthesize_mat_loop),
+            ("flight", synthesize_flight_loop),
+        ):
+            with self.subTest(name=name):
+                x = factory(np.random.default_rng(1963))
+                step = abs(float(x[0] - x[-1]))
+                peak = float(np.max(np.abs(x))) or 1.0
+                self.assertLess(step / peak, 0.08, f"{name} wrap sample jump too large")
+                rms_pre = float(np.sqrt(np.mean(x[-window:] ** 2)))
+                rms_post = float(np.sqrt(np.mean(x[:window] ** 2)))
+                ratio = rms_post / (rms_pre + 1e-9)
+                self.assertGreater(ratio, 0.55, f"{name} seam dips too hard ({ratio:.2f})")
+                self.assertLess(ratio, 1.80, f"{name} seam spikes too hard ({ratio:.2f})")
+
+
 if __name__ == "__main__":
     unittest.main()

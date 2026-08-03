@@ -257,7 +257,7 @@ public final class TardisTravelService {
             if (enteredFlight) {
                 BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
                 ServerWorld exteriorWorld = getExteriorWorld(server, model);
-                TardisTravelAudio.stop(server, tardisId, exteriorWorld, exteriorPos);
+                TardisTravelAudio.startFlight(server, tardisId, exteriorWorld, exteriorPos);
                 SHELL_REMOVED.remove(tardisId);
                 // FLIGHT_SHELLS kept for materialise.
             }

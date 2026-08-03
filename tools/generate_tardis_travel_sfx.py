@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Synthesize seamless TARDIS dematerialise/materialise loop SFX and a landing thud.
+Synthesize seamless TARDIS dematerialise/materialise/flight loop SFX and a landing thud.
 
 Recreates the Radiophonic Workshop technique in spirit (Hodgson): key scrape on
 bass piano strings → tape varispeed → feedback/echo; materialise is the reverse
-motion; thud is a short landing bang.
+motion; in-flight is the same vocabulary at higher pitch; thud is a short landing bang.
 
 Metallic texture is modal/inharmonic + light FM/ring-mod, then shaped with a
 baked analysis-derived spectral envelope (tools/fixtures/baked_vworp_targets.npz)
@@ -30,11 +30,20 @@ SR = 44100
 PULSE_SECONDS = 1.75
 LOOP_SECONDS = PULSE_SECONDS * 2.0  # 3.5s
 THUD_SECONDS = 0.40
+# In-flight: same demat/mat gestures, slightly pitched up; tempo matched (no speedup).
+FLIGHT_PITCH = 1.12
+FLIGHT_PEAK_LEVEL = 0.22
+FLIGHT_TARGET_RMS = 0.042
+# Baked loop crossfades — long enough to hide pitch turns at Minecraft hard-restart.
+LOOP_CROSSFADE_S = 0.45
+FLIGHT_LOOP_CROSSFADE_S = 0.55
 
 # Piano-string-like stiffness (inharmonic partial stretch) — metallic, not harmonic siren.
 STRING_B = 0.00045
 # Allow 1.5–4 kHz scrape bloom (golden ~8–10% there) while keeping hf>5k ≈ 0.
 HF_CUTOFF_HZ = 4800.0
+# Pitch-up brightens noise carriers — keep flight under the same HF ceiling.
+FLIGHT_HF_CUTOFF_HZ = HF_CUTOFF_HZ
 
 MORPH_N_FFT = 1024
 MORPH_HOP = 256
@@ -58,7 +67,7 @@ def write_wav(path: Path, samples: np.ndarray, sample_rate: int = SR) -> None:
 
 def wav_to_ogg(wav_path: Path, ogg_path: Path) -> None:
     attempts = [
-        ["ffmpeg", "-y", "-i", str(wav_path), "-c:a", "libvorbis", "-q:a", "6", str(ogg_path)],
+        ["ffmpeg", "-y", "-i", str(wav_path), "-c:a", "libvorbis", "-q:a", "8", str(ogg_path)],
         ["ffmpeg", "-y", "-i", str(wav_path), "-c:a", "vorbis", "-strict", "-2", str(ogg_path)],
     ]
     last_err: subprocess.CalledProcessError | None = None
@@ -70,6 +79,58 @@ def wav_to_ogg(wav_path: Path, ogg_path: Path) -> None:
             last_err = err
     assert last_err is not None
     raise last_err
+
+
+def reseam_inplace(signal: np.ndarray, crossfade: int) -> np.ndarray:
+    """Blend start into end without trimming — repairs encoder edge damage for looping."""
+    if crossfade <= 0 or crossfade * 2 >= len(signal):
+        return signal
+    out = signal.copy()
+    u = np.linspace(0.0, 1.0, crossfade)
+    fade_out = np.cos(0.5 * np.pi * u)
+    fade_in = np.sin(0.5 * np.pi * u)
+    out[-crossfade:] = out[-crossfade:] * fade_out + out[:crossfade] * fade_in
+    # Glue a few samples so the hard wrap has no residual step after Vorbis.
+    glue = min(48, crossfade // 4)
+    if glue >= 2:
+        delta = float(out[0] - out[-1])
+        ramp = np.linspace(0.0, 1.0, glue)
+        out[-glue:] += 0.5 * delta * ramp
+        out[:glue] -= 0.5 * delta * ramp[::-1]
+    return out
+
+
+def write_loop_ogg(
+    samples: np.ndarray,
+    wav_path: Path,
+    ogg_path: Path,
+    *,
+    repair_crossfade_s: float = 0.20,
+) -> None:
+    """
+    Encode a seamless loop, then decode/re-seam/re-encode so Vorbis edge damage
+    does not leave a click when Minecraft hard-restarts the decoded buffer.
+    """
+    write_wav(wav_path, samples)
+    wav_to_ogg(wav_path, ogg_path)
+    # Late import keeps module import light when only synthesizing in tests.
+    tools_dir = Path(__file__).resolve().parent
+    if str(tools_dir) not in sys.path:
+        sys.path.insert(0, str(tools_dir))
+    from tardis_sfx_analysis import load_audio_mono  # noqa: E402
+
+    decoded, dec_sr = load_audio_mono(ogg_path)
+    if dec_sr != SR:
+        # load_audio_mono may leave native rate; resample linearly if needed.
+        n = int(round(len(decoded) * SR / dec_sr))
+        decoded = np.interp(
+            np.linspace(0.0, 1.0, n, endpoint=False),
+            np.linspace(0.0, 1.0, len(decoded), endpoint=False),
+            decoded,
+        ).astype(np.float64)
+    repaired = reseam_inplace(decoded, int(repair_crossfade_s * SR))
+    write_wav(wav_path, repaired)
+    wav_to_ogg(wav_path, ogg_path)
 
 
 def soft_clip(x: np.ndarray, drive: float = 1.4) -> np.ndarray:
@@ -317,9 +378,13 @@ def baked_pulse_envelope(n: int) -> np.ndarray:
 
 
 def boundary_pulse_gate(
-    n: int, pulse_n: int, *, floor: float = 0.015, fade_s: float = 0.20
+    n: int, pulse_n: int, *, floor: float = 0.015, fade_s: float = 0.20, gate_outer: bool = True
 ) -> np.ndarray:
-    """Cosine fades at pulse edges — ~200ms release so the vworp eases out."""
+    """Cosine fades at pulse edges — ~200ms release so the vworp eases out.
+
+    When ``gate_outer`` is False, skips the loop-buffer start/end fades so
+    ``make_seamless`` can own the wrap without fighting a double gate.
+    """
     gate = np.ones(n, dtype=np.float64)
     fade = max(1, int(fade_s * SR))
     for start in range(0, n, pulse_n):
@@ -328,8 +393,10 @@ def boundary_pulse_gate(
         u_in = np.linspace(0.0, 1.0, f)
         cos_in = floor + (1.0 - floor) * (0.5 - 0.5 * np.cos(np.pi * u_in))
         cos_out = floor + (1.0 - floor) * (0.5 + 0.5 * np.cos(np.pi * u_in))
-        gate[start : start + f] = cos_in
-        gate[end - f : end] = cos_out
+        if gate_outer or start > 0:
+            gate[start : start + f] = cos_in
+        if gate_outer or end < n:
+            gate[end - f : end] = cos_out
     return gate
 
 
@@ -496,23 +563,35 @@ def make_seamless(signal: np.ndarray, crossfade: int) -> np.ndarray:
     """
     Bake a loop-point crossfade for engines that hard-restart the sample (Minecraft).
 
-    Mixes the tail into the head, then drops the original head so playback wraps
-    from the blended end onto the natural continuation of that head material.
+    Equal-power blend of the tail into the head, then drop the original head so
+    playback wraps from the blended end onto the natural continuation. Do not
+    RMS-rescale the head — that breaks sample continuity at the wrap and leaves
+    a loud/quiet jump after the trim.
     """
     if crossfade <= 0 or crossfade * 2 >= len(signal):
         return signal
     out = signal.copy()
-    fade_out = _cosine_fade(crossfade, fade_in=False)
-    fade_in = 1.0 - fade_out
-    # Match levels so the blend doesn't pump at the seam.
+    u = np.linspace(0.0, 1.0, crossfade)
+    # Equal-power crossfade (constant summed power for uncorrelated-ish material).
+    fade_out = np.cos(0.5 * np.pi * u)
+    fade_in = np.sin(0.5 * np.pi * u)
     head = out[:crossfade]
     tail = out[-crossfade:]
-    head_rms = float(np.sqrt(np.mean(head**2))) + 1e-8
-    tail_rms = float(np.sqrt(np.mean(tail**2))) + 1e-8
-    head_matched = head * (tail_rms / head_rms)
-    out[-crossfade:] = tail * fade_out + head_matched * fade_in
+    out[-crossfade:] = tail * fade_out + head * fade_in
     # Trim duplicated head — new start is what followed the old head.
+    # Continuity: last sample ≈ head[-1], first sample = original[crossfade].
     return out[crossfade:]
+
+
+def pitch_shift(signal: np.ndarray, ratio: float) -> np.ndarray:
+    """Raise pitch by resampling (duration shrinks by ``ratio``)."""
+    if ratio <= 0.0 or abs(ratio - 1.0) < 1e-6:
+        return signal
+    n = len(signal)
+    new_n = max(2, int(round(n / ratio)))
+    t_old = np.linspace(0.0, 1.0, n, endpoint=False)
+    t_new = np.linspace(0.0, 1.0, new_n, endpoint=False)
+    return np.interp(t_new, t_old, signal).astype(np.float64)
 
 
 def _cosine_fade(n: int, *, fade_in: bool) -> np.ndarray:
@@ -525,18 +604,19 @@ def _cosine_fade(n: int, *, fade_in: bool) -> np.ndarray:
 def synthesize_travel_loop(
     rng: np.random.Generator,
     *,
-    descending: bool,
+    pulse_specs: list[tuple[float, float]],
+    pulse_seconds: float = PULSE_SECONDS,
+    hf_cutoff: float = HF_CUTOFF_HZ,
+    peak_level: float = 0.85,
+    seamless: bool = True,
+    crossfade_s: float = LOOP_CROSSFADE_S,
+    pulse_overlap_s: float = 0.14,
 ) -> np.ndarray:
-    n = int(LOOP_SECONDS * SR)
+    pulse_n = int(pulse_seconds * SR)
+    n = pulse_n * len(pulse_specs)
     layers = np.zeros(n, dtype=np.float64)
-    pulse_n = int(PULSE_SECONDS * SR)
     # Overlap adjacent vworps so the join isn't a hard cut (heard as a click).
-    overlap = int(0.10 * SR)
-
-    if descending:
-        pulse_specs = [(200.0, 95.0), (185.0, 90.0)]
-    else:
-        pulse_specs = [(95.0, 200.0), (90.0, 185.0)]
+    overlap = int(pulse_overlap_s * SR)
 
     for i, (start_hz, end_hz) in enumerate(pulse_specs):
         if i == 0:
@@ -552,23 +632,61 @@ def synthesize_travel_loop(
         )
         layers[join : join + pulse_n] = pulse[overlap : overlap + pulse_n]
 
-    # Mild edge ease only — deep gate notches at the join reintroduce clicks.
-    layers *= boundary_pulse_gate(n, pulse_n, floor=0.55, fade_s=0.04)
+    # Interior pulse joins only — outer edges left for make_seamless.
+    layers *= boundary_pulse_gate(n, pulse_n, floor=0.55, fade_s=0.04, gate_outer=False)
     layers = apply_tape_echo_tail(layers, pulse_n)
     layers = soft_clip(layers, drive=1.02)
-    layers = brickwall_lowpass(layers, HF_CUTOFF_HZ)
+    layers = brickwall_lowpass(layers, hf_cutoff)
     peak = np.max(np.abs(layers)) or 1.0
-    layers = layers / peak * 0.85
+    layers = layers / peak * peak_level
+    if not seamless:
+        return layers
     # Long loop-point crossfade: Minecraft restarts the buffer with no engine blend.
-    return make_seamless(layers, crossfade=int(0.22 * SR))
+    return make_seamless(layers, crossfade=int(crossfade_s * SR))
 
 
 def synthesize_demat_loop(rng: np.random.Generator) -> np.ndarray:
-    return synthesize_travel_loop(rng, descending=True)
+    return synthesize_travel_loop(
+        rng,
+        pulse_specs=[(200.0, 95.0), (185.0, 90.0)],
+    )
 
 
 def synthesize_mat_loop(rng: np.random.Generator) -> np.ndarray:
-    return synthesize_travel_loop(rng, descending=False)
+    return synthesize_travel_loop(
+        rng,
+        pulse_specs=[(95.0, 200.0), (90.0, 185.0)],
+    )
+
+
+def synthesize_flight_loop(rng: np.random.Generator) -> np.ndarray:
+    """Higher-pitched demat+mat vworps for sustained vortex travel."""
+    # Synthesize longer first, then pitch-shift by the same ratio so tempo matches
+    # demat/mat (resample alone would speed the loop up). Seamless only AFTER
+    # pitch-shift — shifting a pre-baked seam reintroduces a wrap click.
+    base = synthesize_travel_loop(
+        rng,
+        pulse_specs=[
+            (200.0, 95.0),  # demat-like descent
+            (95.0, 200.0),  # mat-like ascent
+        ],
+        pulse_seconds=PULSE_SECONDS * FLIGHT_PITCH,
+        peak_level=0.85,
+        seamless=False,
+        pulse_overlap_s=0.18,
+    )
+    shifted = pitch_shift(base, FLIGHT_PITCH)
+    # Soften grit from pitching noise carriers; match demat/mat HF ceiling.
+    shifted = brickwall_lowpass(shifted, FLIGHT_HF_CUTOFF_HZ)
+    shifted = one_pole_lowpass(shifted, 0.72)
+    shifted = soft_clip(shifted, drive=1.04)
+    # Pitch-up reads louder — level toward materialise RMS/peak, not demat peaks.
+    rms = float(np.sqrt(np.mean(shifted**2))) or 1.0
+    shifted = shifted * (FLIGHT_TARGET_RMS / rms)
+    peak = float(np.max(np.abs(shifted))) or 1.0
+    if peak > FLIGHT_PEAK_LEVEL:
+        shifted = shifted * (FLIGHT_PEAK_LEVEL / peak)
+    return make_seamless(shifted, crossfade=int(FLIGHT_LOOP_CROSSFADE_S * SR))
 
 
 def synthesize_thud(rng: np.random.Generator) -> np.ndarray:
@@ -644,18 +762,23 @@ def main() -> int:
     rng = np.random.default_rng(args.seed)
     demat = synthesize_demat_loop(rng)
     mat = synthesize_mat_loop(rng)
+    flight = synthesize_flight_loop(rng)
     thud = synthesize_thud(rng)
 
     jobs = [
-        ("tardis_dematerialise_loop", demat),
-        ("tardis_materialise_loop", mat),
-        ("tardis_materialise_thud", thud),
+        ("tardis_dematerialise_loop", demat, True),
+        ("tardis_materialise_loop", mat, True),
+        ("tardis_flight_loop", flight, True),
+        ("tardis_materialise_thud", thud, False),
     ]
-    for name, samples in jobs:
+    for name, samples, is_loop in jobs:
         wav_path = tmp / f"{name}.wav"
         ogg_path = out_dir / f"{name}.ogg"
-        write_wav(wav_path, samples)
-        wav_to_ogg(wav_path, ogg_path)
+        if is_loop:
+            write_loop_ogg(samples, wav_path, ogg_path)
+        else:
+            write_wav(wav_path, samples)
+            wav_to_ogg(wav_path, ogg_path)
         rep = spectral_report(samples)
         print(
             f"Wrote {ogg_path} ({rep['duration_s']:.2f}s) "
