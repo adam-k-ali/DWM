@@ -131,4 +131,47 @@ class TardisTravelServiceTest {
         assertEquals(5, model.travelPhaseTicks);
         assertEquals(TardisTravelPhase.IN_FLIGHT, model.getTravelPhase());
     }
+
+    @Test
+    void dematerialisingConstants_shellRemoveBeforeDuration() {
+        assertTrue(TardisTravelService.DEMATERIALISING_SHELL_REMOVE_AT_TICK
+                < TardisTravelService.DEMATERIALISING_DURATION_TICKS);
+        assertTrue(TardisTravelService.DEMATERIALISING_DURATION_TICKS > 0);
+        assertTrue(TardisTravelService.MATERIALISING_DURATION_TICKS > 0);
+    }
+
+    @Test
+    void shouldRemoveShell_falseUntilElapsedReachesConfiguredTick() {
+        model.setTravelPhase(TardisTravelPhase.DEMATERIALISING);
+        model.travelPhaseTicks = TardisTravelService.DEMATERIALISING_DURATION_TICKS;
+        assertFalse(TardisTravelService.shouldRemoveShell(model));
+
+        model.travelPhaseTicks = TardisTravelService.DEMATERIALISING_DURATION_TICKS
+                - TardisTravelService.DEMATERIALISING_SHELL_REMOVE_AT_TICK;
+        assertTrue(TardisTravelService.shouldRemoveShell(model));
+    }
+
+    @Test
+    void advanceMaterialisingHold_countsDownThenEntersIdle() {
+        model.setTravelPhase(TardisTravelPhase.MATERIALISING);
+        model.travelPhaseTicks = 2;
+        model.travelDestinationBiome = "minecraft:plains";
+
+        assertFalse(TardisTravelService.advanceMaterialisingHold(model));
+        assertEquals(1, model.travelPhaseTicks);
+        assertEquals(TardisTravelPhase.MATERIALISING, model.getTravelPhase());
+
+        assertTrue(TardisTravelService.advanceMaterialisingHold(model));
+        assertEquals(0, model.travelPhaseTicks);
+        assertEquals(TardisTravelPhase.IDLE, model.getTravelPhase());
+        assertNull(model.travelDestinationBiome);
+    }
+
+    @Test
+    void advanceMaterialisingHold_ignoresNonMaterialising() {
+        model.setTravelPhase(TardisTravelPhase.DEMATERIALISING);
+        model.travelPhaseTicks = 5;
+        assertFalse(TardisTravelService.advanceMaterialisingHold(model));
+        assertEquals(5, model.travelPhaseTicks);
+    }
 }

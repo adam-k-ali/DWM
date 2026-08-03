@@ -16,4 +16,5 @@ public class DWMPacketIds {
     public static final Identifier SYNC_SOTO_EXTERIOR_ENTITY_SPAWN_PACKET_ID = Identifier.of(DWMReference.MOD_ID, "sync_soto_exterior_entity_spawn");
     public static final Identifier SYNC_SOTO_EXTERIOR_ENTITY_UPDATE_PACKET_ID = Identifier.of(DWMReference.MOD_ID, "sync_soto_exterior_entity_update");
     public static final Identifier SYNC_SOTO_EXTERIOR_ENTITY_REMOVE_PACKET_ID = Identifier.of(DWMReference.MOD_ID, "sync_soto_exterior_entity_remove");
+    public static final Identifier TRAVEL_AUDIO_PACKET_ID = Identifier.of(DWMReference.MOD_ID, "travel_audio");
 }

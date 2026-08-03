@@ -42,3 +42,14 @@ replay_*.log
 # minecraft
 
 logs/
+
+# local tool venvs
+
+tools/.venv/
+tools/__pycache__/
+
+# local SFX golden / compare outputs (analysis only — never commit BBC/media samples)
+tools/fixtures/*.wav
+tools/fixtures/*.mp3
+tools/fixtures/*.ogg
+tools/fixtures/compare_out/

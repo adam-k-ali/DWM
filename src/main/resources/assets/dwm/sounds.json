@@ -25,5 +25,29 @@
         "stream": true
       }
     ]
+  },
+  "tardis_dematerialise_loop": {
+    "subtitle": "dwm.tardis_dematerialise_loop.subtitle",
+    "sounds": [
+      "dwm:tardis_dematerialise_loop"
+    ]
+  },
+  "tardis_materialise_loop": {
+    "subtitle": "dwm.tardis_materialise_loop.subtitle",
+    "sounds": [
+      "dwm:tardis_materialise_loop"
+    ]
+  },
+  "tardis_flight_loop": {
+    "subtitle": "dwm.tardis_flight_loop.subtitle",
+    "sounds": [
+      "dwm:tardis_flight_loop"
+    ]
+  },
+  "tardis_materialise_thud": {
+    "subtitle": "dwm.tardis_materialise_thud.subtitle",
+    "sounds": [
+      "dwm:tardis_materialise_thud"
+    ]
   }
 }
