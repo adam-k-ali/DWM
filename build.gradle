@@ -12,9 +12,20 @@ base {
 
 repositories {
     maven { url "https://maven.shedaniel.me/" }
+    // Prefer Modrinth: Terraformers Maven is intermittently unavailable (502/timeouts).
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+        content {
+            includeGroup "maven.modrinth"
+        }
+    }
     maven {
         name = "Terraformers"
         url = "https://maven.terraformersmc.com/"
+        content {
+            includeGroup "com.terraformersmc"
+        }
     }
 }
 
@@ -54,7 +65,7 @@ dependencies {
     implementation "org.json:json:20240303"
     implementation "com.github.erosb:everit-json-schema:1.14.4"
 
-    modImplementation("com.terraformersmc:modmenu:${project.modmenu_version}")
+    modImplementation("maven.modrinth:modmenu:${project.modmenu_version}")
     modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
