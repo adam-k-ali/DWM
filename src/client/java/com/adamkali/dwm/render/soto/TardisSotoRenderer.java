@@ -27,8 +27,8 @@ import net.minecraft.util.math.RotationPropertyHelper;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -129,7 +129,7 @@ public final class TardisSotoRenderer {
         SotoPortalRenderer.PortalTexture portalTexture =
                 portalRenderer.render(tardisId, interiorDoorPos, interiorDoorFacing, tickDelta);
         if (portalTexture.available()) {
-            drawPortalComposite(matrices, aperture, portalTexture.textureId());
+            drawPortalComposite(matrices, aperture, portalTexture);
             return;
         }
         if (!SotoPortalSupport.isAvailable()) {
@@ -169,22 +169,23 @@ public final class TardisSotoRenderer {
     }
 
     /**
-     * Composites the portal color texture as a door-aperture quad with screen-space UVs.
+     * Composites the portal color texture as a door-aperture quad with aperture-local UVs.
      * <p>
-     * Avoids a fullscreen pass + stencil clip: with {@code GL_STENCIL_BITS=0} (common on macOS)
-     * that path can paint the exterior everywhere except the mask. Geometry limits the draw to
-     * the aperture; depth was cleared to far inside the mask before this call.
+     * The portal FBO is rendered from a fixed exterior hitch. Screen-space UVs would slide that
+     * image as the player moves (and sample outside 0..1 near the door edges). Mapping a fixed,
+     * aspect-correct center crop onto the aperture keeps the exterior view stable and avoids
+     * edge wrap/smudge. Geometry still clips the draw to the doorway.
      */
     private static void drawPortalComposite(
             MatrixStack matrices,
             TardisSotoAperture aperture,
-            int textureId
+            SotoPortalRenderer.PortalTexture portalTexture
     ) {
+        int textureId = portalTexture.textureId();
         if (textureId <= 0) {
             return;
         }
         Matrix4f model = matrices.peek().getPositionMatrix();
-        Matrix4f mvp = new Matrix4f(RenderSystem.getProjectionMatrix()).mul(model);
 
         float x0 = aperture.x0();
         float x1 = aperture.x1();
@@ -194,17 +195,27 @@ public final class TardisSotoRenderer {
         // Same winding as {@link #drawApertureQuad}.
         float[] xs = {x0, x0, x1, x1};
         float[] ys = {y0, y1, y1, y0};
-        float[] us = new float[4];
-        float[] vs = new float[4];
-        for (int i = 0; i < 4; i++) {
-            Vector4f clip = mvp.transform(new Vector4f(xs[i], ys[i], z, 1.0f));
-            float invW = 1.0f / clip.w;
-            float ndcX = clip.x * invW;
-            float ndcY = clip.y * invW;
-            us[i] = ndcX * 0.5f + 0.5f;
-            // Portal FBO color attachment uses OpenGL bottom-left V=0 (same as NDC→UV).
-            vs[i] = ndcY * 0.5f + 0.5f;
+
+        float doorAspect = Math.max(x1 - x0, 1.0e-4f) / Math.max(y1 - y0, 1.0e-4f);
+        float fbAspect = portalTexture.height() <= 0
+                ? doorAspect
+                : (float) portalTexture.width() / (float) portalTexture.height();
+        float cropU;
+        float cropV;
+        if (fbAspect > doorAspect) {
+            cropV = 1.0f;
+            cropU = doorAspect / fbAspect;
+        } else {
+            cropU = 1.0f;
+            cropV = fbAspect / doorAspect;
         }
+        float uMin = 0.5f - cropU * 0.5f;
+        float uMax = 0.5f + cropU * 0.5f;
+        // OpenGL color attachment: V=0 at bottom. Aperture y0 is the bottom edge.
+        float vMin = 0.5f - cropV * 0.5f;
+        float vMax = 0.5f + cropV * 0.5f;
+        float[] us = {uMin, uMin, uMax, uMax};
+        float[] vs = {vMin, vMax, vMax, vMin};
 
         boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
         boolean stencilWasEnabled = GL11.glIsEnabled(GL11.GL_STENCIL_TEST);
@@ -220,6 +231,8 @@ public final class TardisSotoRenderer {
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
         RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
         RenderSystem.setShaderTexture(0, textureId);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
 
         BufferBuilder buffer =
                 Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);

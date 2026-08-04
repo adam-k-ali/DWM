@@ -1,8 +1,6 @@
 package com.adamkali.dwm.render.soto.portal;
 
 import com.adamkali.dwm.tardis.TardisExteriorFacing;
-import com.adamkali.dwm.tardis.data.model.TardisSotoAperture;
-import com.adamkali.dwm.tardis.interior.TardisInteriorDoorShapes;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -18,17 +16,21 @@ class SotoPortalCameraTransformTest {
     private static final BlockPos FOOTPRINT_ORIGIN = new BlockPos(-400, 64, 700);
 
     @Test
-    void mapsLookingThroughEveryInteriorFacingToExteriorOutward() {
+    void pinsEyeAtExteriorHitchLookingOutwardForEveryFacing() {
         for (Direction interiorFacing : Direction.Type.HORIZONTAL) {
-            Vec3d sourceCenter = sourceCenter(interiorFacing);
-            Vec3d camera = sourceCenter.add(vector(interiorFacing).multiply(2.0));
-            float sourceYaw = yawFor(interiorFacing.getOpposite());
+            Vec3d camera = new Vec3d(
+                    DOOR_POS.getX() + 2.5,
+                    DOOR_POS.getY() + 1.6,
+                    DOOR_POS.getZ() - 3.0
+            );
 
             for (int exteriorRotation : new int[]{0, 4, 8, 12}) {
+                Direction exteriorOutwardDirection = TardisExteriorFacing.doorDirection(exteriorRotation);
+                Vec3d exteriorOutward = vector(exteriorOutwardDirection);
                 SotoPortalCameraTransform.Result result = SotoPortalCameraTransform.map(
                         camera,
-                        sourceYaw,
-                        0.0f,
+                        45.0f,
+                        -12.0f,
                         DOOR_POS,
                         interiorFacing,
                         FOOTPRINT_ORIGIN,
@@ -36,20 +38,24 @@ class SotoPortalCameraTransformTest {
                         exteriorRotation
                 );
 
-                assertVec(vector(TardisExteriorFacing.doorDirection(exteriorRotation)), result.lookDirection());
+                assertVec(destinationCenter(exteriorOutward), result.ghostRelativePosition());
+                assertVec(exteriorOutward, result.lookDirection());
                 assertEquals(0.0f, result.pitch(), 1.0e-4f);
+                float expectedYaw = yawFor(exteriorOutwardDirection);
+                float yawDelta = Math.abs(wrapDegrees(result.yaw() - expectedYaw));
+                assertEquals(0.0f, yawDelta, 1.0e-4f);
             }
         }
     }
 
     @Test
-    void mapsRoomDistanceBehindExteriorDoor() {
+    void ignoresInteriorCameraTranslation() {
         Direction interiorFacing = Direction.SOUTH;
-        Vec3d sourceCenter = sourceCenter(interiorFacing);
-        Vec3d camera = sourceCenter.add(vector(interiorFacing).multiply(3.0));
+        Vec3d nearDoor = new Vec3d(DOOR_POS.getX() + 0.5, DOOR_POS.getY() + 1.5, DOOR_POS.getZ() + 1.0);
+        Vec3d farLeft = nearDoor.add(4.0, 0.5, 3.0);
 
-        SotoPortalCameraTransform.Result result = SotoPortalCameraTransform.map(
-                camera,
+        SotoPortalCameraTransform.Result near = SotoPortalCameraTransform.map(
+                nearDoor,
                 180.0f,
                 0.0f,
                 DOOR_POS,
@@ -58,57 +64,36 @@ class SotoPortalCameraTransformTest {
                 SotoExteriorSampler.RELATIVE_TARDIS_POS,
                 0
         );
-
-        Vec3d exteriorOutward = vector(Direction.NORTH);
-        Vec3d destinationCenter = destinationCenter(exteriorOutward);
-        assertVec(destinationCenter.add(exteriorOutward.multiply(-3.0)), result.ghostRelativePosition());
-    }
-
-    @Test
-    void mapsStrafeWithoutMirroringThePortalView() {
-        Direction interiorFacing = Direction.SOUTH;
-        Vec3d sourceRight = vector(interiorFacing.rotateYCounterclockwise());
-        Vec3d camera = sourceCenter(interiorFacing)
-                .add(vector(interiorFacing).multiply(2.0))
-                .add(sourceRight.multiply(1.25));
-
-        SotoPortalCameraTransform.Result result = SotoPortalCameraTransform.map(
-                camera,
-                180.0f,
-                0.0f,
+        SotoPortalCameraTransform.Result far = SotoPortalCameraTransform.map(
+                farLeft,
+                90.0f,
+                20.0f,
                 DOOR_POS,
                 interiorFacing,
                 FOOTPRINT_ORIGIN,
                 SotoExteriorSampler.RELATIVE_TARDIS_POS,
-                4
+                0
         );
 
-        Direction exteriorOutwardDirection = TardisExteriorFacing.doorDirection(4);
-        Vec3d exteriorOutward = vector(exteriorOutwardDirection);
-        Vec3d exteriorRight = vector(exteriorOutwardDirection.rotateYCounterclockwise());
-        Vec3d expected = destinationCenter(exteriorOutward)
-                .add(exteriorOutward.multiply(-2.0))
-                .add(exteriorRight.multiply(-1.25));
-        assertVec(expected, result.ghostRelativePosition());
+        assertVec(near.ghostRelativePosition(), far.ghostRelativePosition());
+        assertVec(near.lookDirection(), far.lookDirection());
+        assertEquals(near.yaw(), far.yaw(), 1.0e-4f);
+        assertEquals(near.pitch(), far.pitch(), 1.0e-4f);
     }
 
     @Test
-    void preservesPitchAndBuildsInverseViewMatrix() {
-        Direction interiorFacing = Direction.WEST;
-        Vec3d camera = sourceCenter(interiorFacing).add(vector(interiorFacing).multiply(2.0));
-
+    void buildsInverseViewMatrixAtHitch() {
         SotoPortalCameraTransform.Result result = SotoPortalCameraTransform.map(
-                camera,
+                new Vec3d(0.0, 0.0, 0.0),
                 -45.0f,
                 -25.0f,
                 DOOR_POS,
-                interiorFacing,
+                Direction.WEST,
                 FOOTPRINT_ORIGIN,
                 SotoExteriorSampler.RELATIVE_TARDIS_POS,
                 8
         );
 
-        assertEquals(-25.0f, result.pitch(), 1.0e-4f);
         Vector3f cameraAtOrigin = result.viewMatrix().transformPosition(
                 (float) result.ghostRelativePosition().x,
                 (float) result.ghostRelativePosition().y,
@@ -122,9 +107,8 @@ class SotoPortalCameraTransformTest {
 
     @Test
     void reportsExteriorWorldPositionFromFootprintOrigin() {
-        Vec3d camera = sourceCenter(Direction.NORTH).add(0.0, 0.75, -2.0);
         SotoPortalCameraTransform.Result result = SotoPortalCameraTransform.map(
-                camera,
+                new Vec3d(DOOR_POS.getX(), DOOR_POS.getY() + 1.0, DOOR_POS.getZ()),
                 0.0f,
                 12.0f,
                 DOOR_POS,
@@ -144,18 +128,6 @@ class SotoPortalCameraTransformTest {
         );
     }
 
-    private static Vec3d sourceCenter(Direction facing) {
-        Vec3d roomNormal = vector(facing);
-        Vec3d right = vector(facing.rotateYCounterclockwise());
-        return new Vec3d(
-                DOOR_POS.getX() + 0.5,
-                DOOR_POS.getY() + TardisInteriorDoorShapes.MODEL_HEIGHT_BLOCKS
-                        - TardisSotoAperture.CLASSIC_INTERIOR_DOORS.centerY(),
-                DOOR_POS.getZ() + 0.5
-        ).add(right.multiply(TardisInteriorDoorShapes.BANK_CENTER_OFFSET_BLOCKS))
-                .add(roomNormal.multiply(-TardisSotoAperture.CLASSIC_INTERIOR_DOORS.z()));
-    }
-
     private static Vec3d destinationCenter(Vec3d exteriorOutward) {
         BlockPos relative = SotoExteriorSampler.RELATIVE_TARDIS_POS;
         return new Vec3d(relative.getX() + 0.5, relative.getY() + 1.0, relative.getZ() + 0.5)
@@ -170,6 +142,17 @@ class SotoPortalCameraTransformTest {
             case EAST -> -90.0f;
             default -> throw new IllegalArgumentException("Horizontal direction required");
         };
+    }
+
+    private static float wrapDegrees(float degrees) {
+        float wrapped = degrees % 360.0f;
+        if (wrapped >= 180.0f) {
+            wrapped -= 360.0f;
+        }
+        if (wrapped < -180.0f) {
+            wrapped += 360.0f;
+        }
+        return wrapped;
     }
 
     private static Vec3d vector(Direction direction) {

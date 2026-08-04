@@ -1,8 +1,6 @@
 package com.adamkali.dwm.render.soto.portal;
 
 import com.adamkali.dwm.tardis.TardisExteriorFacing;
-import com.adamkali.dwm.tardis.data.model.TardisSotoAperture;
-import com.adamkali.dwm.tardis.interior.TardisInteriorDoorShapes;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
 import net.minecraft.client.render.Camera;
 import net.minecraft.util.math.BlockPos;
@@ -13,11 +11,11 @@ import org.joml.Matrix4f;
 import java.util.Objects;
 
 /**
- * Pure geometry for mapping the interior camera through the SOTO doorway.
+ * Pure geometry for the SOTO portal exterior camera.
  *
- * <p>The source door's room-facing side maps to the back of the exterior door. This is the
- * horizontal 180-degree turn expected from a linked portal: looking out of the interior points
- * out of the exterior, while strafing left/right produces matching parallax without mirroring.
+ * <p>The portal eye stays fixed at the exterior door hitch looking outward — the same stable
+ * lookout used by the Phase 0/2 fallback. Interior player movement and head rotation do not
+ * dolly or pan the exterior view; the aperture composite only reveals that fixed render.
  */
 public final class SotoPortalCameraTransform {
     private static final double EXTERIOR_HITCH_OFFSET = 1.0;
@@ -64,25 +62,12 @@ public final class SotoPortalCameraTransform {
             throw new IllegalArgumentException("Interior door facing must be horizontal");
         }
 
-        Vec3d sourceRoomNormal = vector(interiorDoorFacing);
-        Vec3d sourceRight = vector(interiorDoorFacing.rotateYCounterclockwise());
-        Vec3d sourceCenter = sourceDoorCenter(interiorDoorPos, sourceRoomNormal, sourceRight);
-
         Direction exteriorOutwardDirection = TardisExteriorFacing.doorDirection(exteriorRotation);
         Vec3d exteriorOutward = vector(exteriorOutwardDirection);
-        Vec3d exteriorRight = vector(exteriorOutwardDirection.rotateYCounterclockwise());
-        Vec3d destinationCenter = destinationDoorCenter(relativeTardisPos, exteriorOutward);
-
-        Vec3d sourceOffset = cameraPosition.subtract(sourceCenter);
-        Vec3d mappedOffset = mapVector(sourceOffset, sourceRight, sourceRoomNormal, exteriorRight, exteriorOutward);
-        Vec3d ghostRelativePosition = destinationCenter.add(mappedOffset);
-
-        Vec3d sourceLook = directionFromYawPitch(cameraYaw, cameraPitch);
-        Vec3d mappedLook = mapVector(sourceLook, sourceRight, sourceRoomNormal, exteriorRight, exteriorOutward)
-                .normalize();
-        float mappedYaw = yawFromDirection(mappedLook);
-        float mappedPitch = pitchFromDirection(mappedLook);
-        Matrix4f viewMatrix = createViewMatrix(ghostRelativePosition, mappedLook, mappedYaw);
+        Vec3d ghostRelativePosition = destinationDoorCenter(relativeTardisPos, exteriorOutward);
+        float mappedYaw = yawFromDirection(exteriorOutward);
+        float mappedPitch = 0.0f;
+        Matrix4f viewMatrix = createViewMatrix(ghostRelativePosition, exteriorOutward, mappedYaw);
 
         Vec3d exteriorWorldPosition = ghostRelativePosition.add(
                 ghostFootprintOrigin.getX(),
@@ -92,22 +77,11 @@ public final class SotoPortalCameraTransform {
         return new Result(
                 ghostRelativePosition,
                 exteriorWorldPosition,
-                mappedLook,
+                exteriorOutward,
                 mappedYaw,
                 mappedPitch,
                 viewMatrix
         );
-    }
-
-    private static Vec3d sourceDoorCenter(BlockPos doorPos, Vec3d roomNormal, Vec3d sourceRight) {
-        TardisSotoAperture aperture = TardisSotoAperture.CLASSIC_INTERIOR_DOORS;
-        double roomPlaneOffset = -aperture.z();
-        return new Vec3d(
-                doorPos.getX() + 0.5,
-                doorPos.getY() + TardisInteriorDoorShapes.MODEL_HEIGHT_BLOCKS - aperture.centerY(),
-                doorPos.getZ() + 0.5
-        ).add(sourceRight.multiply(TardisInteriorDoorShapes.BANK_CENTER_OFFSET_BLOCKS))
-                .add(roomNormal.multiply(roomPlaneOffset));
     }
 
     private static Vec3d destinationDoorCenter(BlockPos relativeTardisPos, Vec3d exteriorOutward) {
@@ -118,39 +92,8 @@ public final class SotoPortalCameraTransform {
         ).add(exteriorOutward.multiply(0.5 + EXTERIOR_HITCH_OFFSET));
     }
 
-    private static Vec3d mapVector(
-            Vec3d source,
-            Vec3d sourceRight,
-            Vec3d sourceRoomNormal,
-            Vec3d exteriorRight,
-            Vec3d exteriorOutward
-    ) {
-        double right = source.dotProduct(sourceRight);
-        double up = source.y;
-        double roomward = source.dotProduct(sourceRoomNormal);
-        return exteriorRight.multiply(-right)
-                .add(0.0, up, 0.0)
-                .add(exteriorOutward.multiply(-roomward));
-    }
-
-    private static Vec3d directionFromYawPitch(float yaw, float pitch) {
-        double yawRadians = Math.toRadians(yaw);
-        double pitchRadians = Math.toRadians(pitch);
-        double horizontal = Math.cos(pitchRadians);
-        return new Vec3d(
-                -Math.sin(yawRadians) * horizontal,
-                -Math.sin(pitchRadians),
-                Math.cos(yawRadians) * horizontal
-        );
-    }
-
     private static float yawFromDirection(Vec3d direction) {
         return wrapDegrees((float) Math.toDegrees(Math.atan2(-direction.x, direction.z)));
-    }
-
-    private static float pitchFromDirection(Vec3d direction) {
-        double clampedY = Math.max(-1.0, Math.min(1.0, direction.y));
-        return (float) Math.toDegrees(-Math.asin(clampedY));
     }
 
     private static Matrix4f createViewMatrix(Vec3d position, Vec3d look, float yaw) {
