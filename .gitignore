@@ -43,6 +43,10 @@ replay_*.log
 
 logs/
 
+# local file-based backlog (not shared via git)
+
+tickets/
+
 # local tool venvs
 
 tools/.venv/

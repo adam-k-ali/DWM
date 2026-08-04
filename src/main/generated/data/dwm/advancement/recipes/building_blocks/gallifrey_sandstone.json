@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_gallifrey_sand": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dwm:gallifrey_sand"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "dwm:gallifrey_sandstone"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_gallifrey_sand"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "dwm:gallifrey_sandstone"
+    ]
+  }
+}

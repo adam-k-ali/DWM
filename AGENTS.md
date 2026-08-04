@@ -27,6 +27,7 @@
 - Avoid touching large generated/resource surfaces unless the task requires it.
 - When fixing bugs, prefer the smallest change that addresses root cause and add regression coverage.
 - If a requested behavior cannot be fully automated/tested, document the limitation and propose follow-up automation.
+- Local product backlog (gitignored) lives in `tickets/` when present — start from `tickets/BOARD.md`; status is the folder (`open/` / `in-progress/` / `done/`). See `tickets/README.md`.
 
 ## Fabric-Specific Development Rules
 - Keep Java 21 compatibility.

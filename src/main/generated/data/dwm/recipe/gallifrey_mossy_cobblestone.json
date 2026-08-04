@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    "dwm:gallifrey_cobblestone",
+    "minecraft:vine"
+  ],
+  "result": {
+    "count": 1,
+    "id": "dwm:gallifrey_mossy_cobblestone"
+  }
+}

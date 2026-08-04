@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "dwm:block/gallifrey_sandstone_bottom",
+    "side": "dwm:block/gallifrey_sandstone",
+    "top": "dwm:block/gallifrey_sandstone_top"
+  }
+}

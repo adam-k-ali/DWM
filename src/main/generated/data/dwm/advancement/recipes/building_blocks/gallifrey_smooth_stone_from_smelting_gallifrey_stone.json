@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_gallifrey_stone": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dwm:gallifrey_stone"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "minecraft:gallifrey_smooth_stone_from_smelting_gallifrey_stone"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_gallifrey_stone"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "minecraft:gallifrey_smooth_stone_from_smelting_gallifrey_stone"
+    ]
+  }
+}
