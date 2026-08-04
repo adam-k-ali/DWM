@@ -1,46 +1,46 @@
 package com.adamkali.dwm.render.soto;
 
 import com.adamkali.dwm.config.DWMConfig;
-import com.adamkali.dwm.render.boti.BotiStencilSupport;
-import com.adamkali.dwm.tardis.data.model.TardisBotiAperture;
-import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
+import com.adamkali.dwm.render.soto.portal.SotoPortalRenderer;
+import com.adamkali.dwm.render.soto.portal.SotoPortalSupport;
 import com.adamkali.dwm.tardis.data.model.TardisSotoAperture;
 import com.adamkali.dwm.tardis.interior.TardisSotoGate;
-import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.Fog;
-import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.RotationAxis;
-import net.minecraft.util.math.RotationPropertyHelper;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
-import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Stencil-masked interior SOTO: draws a synced exterior footprint through open interior doors.
+ * Stencil-masked interior SOTO: composites a portal exterior view through open interior doors.
  */
 public final class TardisSotoRenderer {
     private static final int STENCIL_REF = 2;
-    private static final int FULLBRIGHT = LightmapTextureManager.pack(15, 15);
 
     /**
      * Blocks past the TARDIS door face for the SOTO look-out hitch plane.
      * Keeps the preview origin just in front of the shell instead of at the door face / shell body.
      */
-    static final double PREVIEW_FORWARD_OFFSET = 1.0;
+    public static final double PREVIEW_FORWARD_OFFSET = 0.5;
+
+    /**
+     * Eye height above the TARDIS block base for the exterior hitch.
+     * Matches the classic chameleon BOTI aperture mid-height (~0.75 would be exact center);
+     * kept slightly lower so the look-out sits nearer the threshold than mid-door.
+     */
+    public static final double PREVIEW_EYE_HEIGHT = 0.75;
 
     /**
      * Exterior door opening center in footprint-relative coords
@@ -49,23 +49,20 @@ public final class TardisSotoRenderer {
      * ({@code doorFaceZ - PREVIEW_FORWARD_OFFSET}), not the block center.
      */
     static final double EXTERIOR_DOOR_CENTER_X = SotoExteriorSampler.RELATIVE_TARDIS_POS.getX() + 0.5;
-    static final double EXTERIOR_DOOR_CENTER_Y = SotoExteriorSampler.RELATIVE_TARDIS_POS.getY() + 1.0;
+    static final double EXTERIOR_DOOR_CENTER_Y =
+            SotoExteriorSampler.RELATIVE_TARDIS_POS.getY() + PREVIEW_EYE_HEIGHT;
     static final double EXTERIOR_DOOR_PLANE_Z =
             SotoExteriorSampler.RELATIVE_TARDIS_POS.getZ() + 0.0 - PREVIEW_FORWARD_OFFSET;
 
-    private final SotoShellModels shellModels;
+    private final SotoPortalRenderer portalRenderer;
 
     public TardisSotoRenderer() {
-        this(null);
-    }
-
-    public TardisSotoRenderer(SotoShellModels shellModels) {
-        this.shellModels = shellModels;
+        this.portalRenderer = new SotoPortalRenderer();
     }
 
     public static boolean shouldRender(float doorSwing) {
         return DWMConfig.getBoolean(DWMConfig.ENABLE_SOTO)
-                && BotiStencilSupport.isAvailable()
+                && SotoPortalSupport.isAvailable()
                 && TardisSotoGate.shouldShow(doorSwing);
     }
 
@@ -77,9 +74,11 @@ public final class TardisSotoRenderer {
             MatrixStack matrices,
             VertexConsumerProvider vertexConsumers,
             float tickDelta,
-            UUID tardisId
+            UUID tardisId,
+            BlockPos interiorDoorPos,
+            Direction interiorDoorFacing
     ) {
-        if (tardisId == null) {
+        if (tardisId == null || interiorDoorPos == null || interiorDoorFacing == null) {
             return;
         }
         TardisSotoAperture aperture = TardisSotoAperture.CLASSIC_INTERIOR_DOORS;
@@ -96,11 +95,18 @@ public final class TardisSotoRenderer {
             RenderSystem.enableDepthTest();
             RenderSystem.depthFunc(GL11.GL_LEQUAL);
             RenderSystem.depthMask(true);
-            drawExterior(matrices, vertexConsumers, tickDelta, tardisId, aperture);
+            drawExterior(
+                    matrices,
+                    tickDelta,
+                    tardisId,
+                    interiorDoorPos,
+                    interiorDoorFacing,
+                    aperture
+            );
             flush(vertexConsumers);
             sealApertureDepth(matrices, aperture);
         } catch (Throwable t) {
-            BotiStencilSupport.disableForSession("SOTO render failed", t);
+            SotoPortalSupport.disableForSession("Portal render failed", t);
         } finally {
             restoreGlState();
             matrices.pop();
@@ -109,120 +115,107 @@ public final class TardisSotoRenderer {
 
     private void drawExterior(
             MatrixStack matrices,
-            VertexConsumerProvider vertexConsumers,
             float tickDelta,
             UUID tardisId,
+            BlockPos interiorDoorPos,
+            Direction interiorDoorFacing,
             TardisSotoAperture aperture
     ) {
-        SotoExteriorMeshCache.ShellState shell = SotoExteriorMeshCache.getShellState(tardisId);
-        TardisChameleonVariant variant =
-                shell == null ? TardisChameleonVariant.TT_CAPSULE : shell.variant();
-        TardisBotiAperture exteriorAperture = variant.getAperture();
-        int exteriorRotation = shell == null ? 0 : shell.exteriorRotation();
-        SotoAtmosphere atmosphere = SotoExteriorMeshCache.getAtmosphere(tardisId);
-        if (atmosphere == null) {
-            atmosphere = SotoAtmosphere.DEFAULT;
+        SotoPortalRenderer.PortalTexture portalTexture =
+                portalRenderer.render(tardisId, interiorDoorPos, interiorDoorFacing, tickDelta);
+        if (portalTexture.available()) {
+            drawPortalComposite(matrices, aperture, portalTexture);
         }
-
-        matrices.push();
-        applyExteriorAlignment(matrices, aperture, exteriorAperture);
-        applyDoorFacingCorrection(matrices, exteriorRotation);
-        applyLookoutStableView(matrices);
-        SotoSkyFogRenderer.renderSky(matrices, vertexConsumers, atmosphere);
-        Fog previousFog = SotoSkyFogRenderer.applyTerrainFog(atmosphere);
-        try {
-            SotoExteriorMeshCache.renderWorld(matrices, vertexConsumers, FULLBRIGHT, tickDelta, tardisId);
-            flush(vertexConsumers);
-            // Shell is omitted on the SOTO path: stable-view reprojects the hitch to aperture
-            // depth, which would otherwise pull the shell body between the eye and the lookout.
-        } finally {
-            SotoSkyFogRenderer.restoreFog(previousFog);
-        }
-        matrices.pop();
     }
 
     /**
-     * Maps exterior footprint coords onto the interior door aperture in BER model space.
+     * Composites the portal color texture as a door-aperture quad with aperture-local UVs.
      * <p>
-     * Aperture translate, Z-180 (Y correction for BER X-180), Y-180 (put footprint outward in the
-     * look-out direction), then offset so the −Z door plane lands on the SOTO aperture.
-     * Net relative to the door center: {@code (x, y, z) → (x, -y, -z)}.
-     * <p>
-     * Call {@link #applyDoorFacingCorrection} after this so the live door facing matches the −Z plane.
+     * The portal FBO is rendered from a fixed exterior hitch. Screen-space UVs would slide that
+     * image as the player moves (and sample outside 0..1 near the door edges). Mapping a fixed,
+     * aspect-correct center crop onto the aperture keeps the exterior view stable and avoids
+     * edge wrap/smudge. Geometry still clips the draw to the doorway.
      */
-    static void applyExteriorAlignment(
+    private static void drawPortalComposite(
             MatrixStack matrices,
-            TardisSotoAperture sotoAperture,
-            TardisBotiAperture exteriorAperture
+            TardisSotoAperture aperture,
+            SotoPortalRenderer.PortalTexture portalTexture
     ) {
-        Objects.requireNonNull(exteriorAperture, "exteriorAperture");
-        matrices.translate(sotoAperture.centerX(), sotoAperture.centerY(), sotoAperture.z());
-        matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180.0f));
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0f));
-        matrices.translate(-EXTERIOR_DOOR_CENTER_X, -EXTERIOR_DOOR_CENTER_Y, -EXTERIOR_DOOR_PLANE_Z);
-    }
-
-    /**
-     * Rotates the footprint about the TARDIS column so the chameleon door faces −Z
-     * ({@link #EXTERIOR_DOOR_PLANE_Z}).
-     * <p>
-     * {@code exteriorRotation} is {@code TardisBlock.FACING_ROTATION}. Raw rotation 0 is the
-     * skull/banner south convention, but shell BER transforms leave the doors facing the opposite
-     * way (see {@link com.adamkali.dwm.tardis.TardisExteriorFacing}). Corrective yaw is therefore
-     * {@code toDegrees(rotation)} (not {@code yaw - 180}), so rotation 0 looks out the visual
-     * north / −Z door axis through {@link #EXTERIOR_DOOR_PLANE_Z} (hitch just in front of the shell).
-     */
-    static void applyDoorFacingCorrection(MatrixStack matrices, int exteriorRotation) {
-        float yaw = RotationPropertyHelper.toDegrees(exteriorRotation);
-        float corrective = yaw;
-        double cx = SotoExteriorSampler.RELATIVE_TARDIS_POS.getX() + 0.5;
-        double cz = SotoExteriorSampler.RELATIVE_TARDIS_POS.getZ() + 0.5;
-        matrices.translate(cx, 0.0, cz);
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(corrective));
-        matrices.translate(-cx, 0.0, -cz);
-    }
-
-    /**
-     * Fixed eye distance in front of the hitch after stable-view reprojection.
-     * Must not depend on player↔door distance (that dollys when strafing / glancing).
-     */
-    static final float LOOKOUT_VIEW_DEPTH = 1.0f;
-
-    /**
-     * Freezes the exterior lookout at the hitch with a fixed view depth.
-     * <p>
-     * Player-relative depths ({@code |hitch|} or door-plane distance) dolly when strafing or
-     * looking from an oblique angle. Instead: view from the hitch looking outward, then place
-     * the hitch at a constant distance along camera forward so FOV stays stable.
-     */
-    static void applyLookoutStableView(MatrixStack matrices) {
-        Matrix4f m = matrices.peek().getPositionMatrix();
-        Vector3f hitch = m.transformPosition(
-                (float) EXTERIOR_DOOR_CENTER_X,
-                (float) EXTERIOR_DOOR_CENTER_Y,
-                (float) EXTERIOR_DOOR_PLANE_Z,
-                new Vector3f()
-        );
-        Vector3f outwardPoint = m.transformPosition(
-                (float) EXTERIOR_DOOR_CENTER_X,
-                (float) EXTERIOR_DOOR_CENTER_Y,
-                (float) (EXTERIOR_DOOR_PLANE_Z - 1.0),
-                new Vector3f()
-        );
-        Vector3f outward = outwardPoint.sub(hitch, new Vector3f());
-        if (outward.lengthSquared() < 1e-8f) {
+        int textureId = portalTexture.textureId();
+        if (textureId <= 0) {
             return;
         }
-        outward.normalize();
+        Matrix4f model = matrices.peek().getPositionMatrix();
 
-        Matrix4f mv = matrices.peek().getPositionMatrix();
-        // 1) Eye at hitch.
-        mv.mulLocal(new Matrix4f().translation(-hitch.x, -hitch.y, -hitch.z));
-        // 2) Look straight out the doors (camera forward is −Z).
-        Quaternionf turn = new Quaternionf().rotationTo(outward, new Vector3f(0.0f, 0.0f, -1.0f));
-        mv.mulLocal(new Matrix4f().rotation(turn));
-        // 3) Fixed FOV: hitch at constant depth (not player-relative).
-        mv.mulLocal(new Matrix4f().translation(0.0f, 0.0f, -LOOKOUT_VIEW_DEPTH));
+        float x0 = aperture.x0();
+        float x1 = aperture.x1();
+        float y0 = aperture.y0();
+        float y1 = aperture.y1();
+        float z = aperture.z();
+        // Same winding as {@link #drawApertureQuad}.
+        float[] xs = {x0, x0, x1, x1};
+        float[] ys = {y0, y1, y1, y0};
+
+        float doorAspect = Math.max(x1 - x0, 1.0e-4f) / Math.max(y1 - y0, 1.0e-4f);
+        float fbAspect = portalTexture.height() <= 0
+                ? doorAspect
+                : (float) portalTexture.width() / (float) portalTexture.height();
+        float cropU;
+        float cropV;
+        if (fbAspect > doorAspect) {
+            cropV = 1.0f;
+            cropU = doorAspect / fbAspect;
+        } else {
+            cropU = 1.0f;
+            cropV = fbAspect / doorAspect;
+        }
+        float uMin = 0.5f - cropU * 0.5f;
+        float uMax = 0.5f + cropU * 0.5f;
+        // Minecraft framebuffer color textures sample with V=0 at the top of the image
+        // (opposite raw GL). Door bottom (y0) must sample high V so ground stays at the
+        // threshold; y1 samples low V for sky.
+        float vMin = 0.5f - cropV * 0.5f;
+        float vMax = 0.5f + cropV * 0.5f;
+        float[] us = {uMin, uMin, uMax, uMax};
+        // y0,y1,y1,y0 → vMax,vMin,vMin,vMax (V flipped vs OpenGL bottom-origin)
+        float[] vs = {vMax, vMin, vMin, vMax};
+
+        boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
+        boolean stencilWasEnabled = GL11.glIsEnabled(GL11.GL_STENCIL_TEST);
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthFunc(GL11.GL_LEQUAL);
+        RenderSystem.depthMask(false);
+        RenderSystem.disableCull();
+        RenderSystem.disableBlend();
+        RenderSystem.colorMask(true, true, true, true);
+        // Geometry is the clip; do not use stencil (can invert when STENCIL_BITS reports 0).
+        GL11.glDisable(GL11.GL_STENCIL_TEST);
+
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+        RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
+        RenderSystem.setShaderTexture(0, textureId);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
+
+        BufferBuilder buffer =
+                Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
+        for (int i = 0; i < 4; i++) {
+            buffer.vertex(model, xs[i], ys[i], z).texture(us[i], vs[i]);
+        }
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+
+        if (stencilWasEnabled) {
+            GL11.glEnable(GL11.GL_STENCIL_TEST);
+            RenderSystem.stencilFunc(GL11.GL_EQUAL, STENCIL_REF, 0xFF);
+            RenderSystem.stencilMask(0x00);
+            RenderSystem.stencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_KEEP);
+        }
+        if (cullWasEnabled) {
+            RenderSystem.enableCull();
+        } else {
+            RenderSystem.disableCull();
+        }
+        RenderSystem.depthMask(true);
     }
 
     private static void writeStencilMask(MatrixStack matrices, TardisSotoAperture aperture) {

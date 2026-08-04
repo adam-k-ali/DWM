@@ -3,7 +3,6 @@ package com.adamkali.dwm.render;
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.model.tileentity.TardisClassicInteriorDoorModel;
-import com.adamkali.dwm.render.soto.SotoShellModels;
 import com.adamkali.dwm.render.soto.TardisSotoRenderer;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.interior.TardisInteriorDoorShapes;
@@ -60,7 +59,7 @@ public class TardisInteriorDoorBlockEntityRenderer implements BlockEntityRendere
     public TardisInteriorDoorBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
         this.model = new TardisClassicInteriorDoorModel(
                 context.getLayerModelPart(TardisClassicInteriorDoorModel.LAYER_LOCATION));
-        this.sotoRenderer = new TardisSotoRenderer(new SotoShellModels(context));
+        this.sotoRenderer = new TardisSotoRenderer();
     }
 
     @Override
@@ -91,7 +90,14 @@ public class TardisInteriorDoorBlockEntityRenderer implements BlockEntityRendere
             model.renderShell(matrices, vertices, light, overlay);
             flush(vertexConsumers);
 
-            sotoRenderer.render(matrices, vertexConsumers, tickDelta, entity.getTardisId());
+            sotoRenderer.render(
+                    matrices,
+                    vertexConsumers,
+                    tickDelta,
+                    entity.getTardisId(),
+                    entity.getPos(),
+                    facing
+            );
 
             // ALWAYS_DEPTH_TEST phase does not set GL_ALWAYS (no-op for 519); set it here and use
             // a layer that will not re-apply LEQUAL during Immediate.draw().

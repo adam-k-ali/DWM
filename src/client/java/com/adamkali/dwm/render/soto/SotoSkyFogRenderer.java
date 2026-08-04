@@ -5,13 +5,11 @@ import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors.EffectsKind;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.Fog;
 import net.minecraft.client.render.FogShape;
-import net.minecraft.client.render.SkyRendering;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexFormat;
@@ -30,39 +28,41 @@ public final class SotoSkyFogRenderer {
     private static final float VANILLA_SKY_RADIUS = 512.0F;
     private static final float SKY_SCALE = 10.0F / VANILLA_SKY_RADIUS;
 
-    static final float TERRAIN_FOG_START = 4.0F;
-    static final float TERRAIN_FOG_END = 14.0F;
-
-    private static SkyRendering skyRendering;
+    static final float PORTAL_FOG_START = 20.0F;
+    static final float PORTAL_FOG_END = 30.0F;
 
     private SotoSkyFogRenderer() {
     }
 
-    private static SkyRendering sky() {
-        if (skyRendering == null) {
-            skyRendering = new SkyRendering();
-        }
-        return skyRendering;
-    }
-
     /**
-     * Draws sky (or nether backdrop) in the already-aligned exterior footprint space.
-     * Caller must have stencil test active. Depth writes are disabled for this pass.
+     * Draws the Phase 3 sky with fog reaching the edge of the fixed two-chunk ghost stream.
+     * <p>
+     * Uses only Tessellator/BufferRenderer draws — never the shared entity {@code Immediate},
+     * which rebinds the main framebuffer and would paint sky onto the interior.
+     * <p>
+     * Cull must be off: the backdrop is a cube viewed from the inside.
      */
-    public static void renderSky(MatrixStack matrices, VertexConsumerProvider vertexConsumers, SotoAtmosphere atmosphere) {
+    public static void renderPortalSky(
+            MatrixStack matrices,
+            VertexConsumerProvider ignoredVertexConsumers,
+            SotoAtmosphere atmosphere
+    ) {
         if (atmosphere == null) {
             atmosphere = SotoAtmosphere.DEFAULT;
         }
         EffectsKind kind = SotoAtmosphereColors.effectsKind(atmosphere.dimensionEffectsId());
         float skyAngle = SotoAtmosphereColors.skyAngle(atmosphere.timeOfDay());
-        Fog skyFog = buildFog(atmosphere, kind, TERRAIN_FOG_START, TERRAIN_FOG_END);
+        Fog skyFog = buildFog(atmosphere, kind, PORTAL_FOG_START, PORTAL_FOG_END);
+        int skyRgb = portalBackdropRgb(atmosphere, kind, skyAngle);
         Fog previous = RenderSystem.getShaderFog();
         RenderSystem.setShaderFog(skyFog);
 
         boolean depthWasEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
+        boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(false);
         RenderSystem.depthFunc(GL11.GL_LEQUAL);
+        RenderSystem.disableCull();
 
         matrices.push();
         try {
@@ -71,15 +71,18 @@ public final class SotoSkyFogRenderer {
             double cz = SotoExteriorSampler.RELATIVE_TARDIS_POS.getZ() + 0.5;
             matrices.translate(cx, cy, cz);
             matrices.scale(SKY_SCALE, SKY_SCALE, SKY_SCALE);
-
-            switch (kind) {
-                case END -> sky().renderEndSky();
-                case NETHER -> renderSolidBackdrop(matrices, skyFog);
-                case OVERWORLD -> renderOverworldSky(matrices, vertexConsumers, atmosphere, skyAngle, skyFog);
-            }
+            // Solid colored cube in ghost space (not vanilla SkyRendering VBOs): those expect
+            // rotation-only modelview centered on the camera, and celestial Immediate draws
+            // rebind the main FBO.
+            renderSolidBackdropRgb(matrices, skyRgb);
         } finally {
             matrices.pop();
             RenderSystem.depthMask(true);
+            if (cullWasEnabled) {
+                RenderSystem.enableCull();
+            } else {
+                RenderSystem.disableCull();
+            }
             if (!depthWasEnabled) {
                 RenderSystem.disableDepthTest();
             }
@@ -87,17 +90,38 @@ public final class SotoSkyFogRenderer {
         }
     }
 
-    /**
-     * Applies short-range terrain fog for the exterior mesh, matching synced fog color.
-     * Returns the previous fog so the caller can restore it.
-     */
-    public static Fog applyTerrainFog(SotoAtmosphere atmosphere) {
+    /** RGB used to clear / fill the portal sky when geometry cannot rely on vanilla sky VBOs. */
+    public static int portalBackdropRgb(SotoAtmosphere atmosphere) {
+        if (atmosphere == null) {
+            atmosphere = SotoAtmosphere.DEFAULT;
+        }
+        EffectsKind kind = SotoAtmosphereColors.effectsKind(atmosphere.dimensionEffectsId());
+        float skyAngle = SotoAtmosphereColors.skyAngle(atmosphere.timeOfDay());
+        return portalBackdropRgb(atmosphere, kind, skyAngle);
+    }
+
+    private static int portalBackdropRgb(SotoAtmosphere atmosphere, EffectsKind kind, float skyAngle) {
+        return switch (kind) {
+            case OVERWORLD -> SotoAtmosphereColors.skyColor(
+                    atmosphere.biomeSkyColor(),
+                    skyAngle,
+                    atmosphere.rainGradient(),
+                    atmosphere.thunderGradient()
+            );
+            case NETHER, END -> {
+                Fog fog = buildFog(atmosphere, kind, PORTAL_FOG_START, PORTAL_FOG_END);
+                yield ColorHelper.fromFloats(1.0F, fog.red(), fog.green(), fog.blue());
+            }
+        };
+    }
+
+    public static Fog applyPortalTerrainFog(SotoAtmosphere atmosphere) {
         if (atmosphere == null) {
             atmosphere = SotoAtmosphere.DEFAULT;
         }
         EffectsKind kind = SotoAtmosphereColors.effectsKind(atmosphere.dimensionEffectsId());
         Fog previous = RenderSystem.getShaderFog();
-        RenderSystem.setShaderFog(buildFog(atmosphere, kind, TERRAIN_FOG_START, TERRAIN_FOG_END));
+        RenderSystem.setShaderFog(buildFog(atmosphere, kind, PORTAL_FOG_START, PORTAL_FOG_END));
         return previous;
     }
 
@@ -125,53 +149,13 @@ public final class SotoSkyFogRenderer {
         );
     }
 
-    private static void renderOverworldSky(
-            MatrixStack matrices,
-            VertexConsumerProvider vertexConsumers,
-            SotoAtmosphere atmosphere,
-            float skyAngle,
-            Fog skyFog
-    ) {
-        int skyRgb = SotoAtmosphereColors.skyColor(
-                atmosphere.biomeSkyColor(),
-                skyAngle,
-                atmosphere.rainGradient(),
-                atmosphere.thunderGradient()
-        );
-        float r = ColorHelper.getRedFloat(skyRgb);
-        float g = ColorHelper.getGreenFloat(skyRgb);
-        float b = ColorHelper.getBlueFloat(skyRgb);
-        sky().renderSky(r, g, b);
-
-        VertexConsumerProvider.Immediate immediate = resolveImmediate(vertexConsumers);
-        float rainAlpha = 1.0F - atmosphere.rainGradient();
-        float stars = SotoAtmosphereColors.starBrightness(skyAngle) * rainAlpha;
-
-        if (SotoAtmosphereColors.isSunRisingOrSetting(skyAngle)) {
-            int sunrise = SotoAtmosphereColors.sunriseSunsetColor(skyAngle);
-            sky().renderGlowingSky(matrices, immediate, SotoAtmosphereColors.skyAngleRadians(atmosphere.timeOfDay()), sunrise);
-            immediate.draw();
-        }
-
-        sky().renderCelestialBodies(
-                matrices,
-                immediate,
-                skyAngle,
-                SotoAtmosphereColors.moonPhase(atmosphere.timeOfDay()),
-                rainAlpha,
-                stars,
-                skyFog
-        );
-        immediate.draw();
-    }
-
-    private static void renderSolidBackdrop(MatrixStack matrices, Fog fog) {
+    private static void renderSolidBackdropRgb(MatrixStack matrices, int argb) {
         Matrix4f matrix = matrices.peek().getPositionMatrix();
         RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
         float size = VANILLA_SKY_RADIUS;
         BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-        int argb = ColorHelper.fromFloats(1.0F, fog.red(), fog.green(), fog.blue());
-        // Six faces of a large cube centered at origin (sky-space).
+        // Six faces of a large cube centered at origin (sky-space), wound for outside normals;
+        // callers must disable cull so the interior view sees them.
         // -Z
         buffer.vertex(matrix, -size, -size, -size).color(argb);
         buffer.vertex(matrix, -size, size, -size).color(argb);
@@ -203,12 +187,5 @@ public final class SotoSkyFogRenderer {
         buffer.vertex(matrix, size, size, -size).color(argb);
         buffer.vertex(matrix, -size, size, -size).color(argb);
         BufferRenderer.drawWithGlobalProgram(buffer.end());
-    }
-
-    private static VertexConsumerProvider.Immediate resolveImmediate(VertexConsumerProvider vertexConsumers) {
-        if (vertexConsumers instanceof VertexConsumerProvider.Immediate immediate) {
-            return immediate;
-        }
-        return MinecraftClient.getInstance().getBufferBuilders().getEntityVertexConsumers();
     }
 }

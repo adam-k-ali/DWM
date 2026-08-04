@@ -5,6 +5,7 @@ import com.adamkali.dwm.gui.TardisChameleonGui;
 import com.adamkali.dwm.render.boti.BotiInteriorMeshCache;
 import com.adamkali.dwm.render.soto.SotoExteriorMeshCache;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
+import com.adamkali.dwm.render.soto.portal.SotoPortalRenderTarget;
 import com.adamkali.dwm.sound.TardisTravelSoundController;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -28,6 +29,7 @@ public class ClientPayloadTypeRegistry {
             BotiInteriorMeshCache.invalidateAll();
             SotoExteriorMeshCache.invalidateAll();
             SotoGhostExterior.invalidateAll();
+            SotoPortalRenderTarget.closeGlobal();
             TardisTravelSoundController.stopAll();
         });
     }
@@ -60,9 +62,6 @@ public class ClientPayloadTypeRegistry {
             SotoExteriorMeshCache.applySnapshot(
                     payload.tardisId(),
                     payload.revision(),
-                    payload.toBlockMap(),
-                    payload.toBlockEntityMap(),
-                    payload.toEntityList(),
                     payload.variant(),
                     payload.doorSwing(),
                     payload.isOpen(),
