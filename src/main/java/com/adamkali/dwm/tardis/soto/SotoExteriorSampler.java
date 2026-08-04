@@ -1,7 +1,6 @@
 package com.adamkali.dwm.tardis.soto;
 
 import com.adamkali.dwm.block.DWMBlocks;
-import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -19,18 +18,17 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.ChunkSectionPos;
 import net.minecraft.world.biome.Biome;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Samples an 11×7×11 exterior footprint centered on the TARDIS block for SOTO sync.
- * Relative coords: min corner = {@code exteriorPos + (-5, -1, -5)}; TARDIS at (5, 1, 5).
+ * Exterior sampling helpers for SOTO: atmosphere, ghost stream geometry, and chunk samples.
+ * Relative footprint coords: min corner = {@code exteriorPos + (-5, -1, -5)}; TARDIS at (5, 1, 5).
  *
  * <p>Phase 1 ghost streaming uses a separate {@link #STREAM_RADIUS_CHUNKS} ticketed box
- * for live entity keep-alive (not the snapshot footprint).
+ * for live entity keep-alive.
  */
 public final class SotoExteriorSampler {
     public static final int SIZE_X = 11;
@@ -61,7 +59,8 @@ public final class SotoExteriorSampler {
 
     /**
      * Whether a block should appear in the interior SOTO preview.
-     * The exterior TARDIS block is excluded (drawn as a synthetic chameleon shell).
+     * The exterior TARDIS block is excluded (drawn as a synthetic chameleon shell historically;
+     * portal terrain comes from the ghost stream, which also skips the TARDIS block).
      */
     public static boolean isSotoVisible(BlockState state) {
         return state != null
@@ -97,68 +96,6 @@ public final class SotoExteriorSampler {
                 biome.getSkyColor(),
                 biome.getFogColor()
         );
-    }
-
-    public static Map<BlockPos, BlockState> sample(ServerWorld exteriorWorld, BlockPos exteriorPos) {
-        BlockPos origin = footprintOrigin(exteriorPos);
-        Map<BlockPos, BlockState> visible = new HashMap<>();
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
-        for (int x = 0; x < SIZE_X; x++) {
-            for (int y = 0; y < SIZE_Y; y++) {
-                for (int z = 0; z < SIZE_Z; z++) {
-                    mutable.set(origin.getX() + x, origin.getY() + y, origin.getZ() + z);
-                    BlockState state = exteriorWorld.getBlockState(mutable);
-                    if (isSotoVisible(state)) {
-                        visible.put(new BlockPos(x, y, z), state);
-                    }
-                }
-            }
-        }
-        return visible;
-    }
-
-    public static Map<BlockPos, NbtCompound> sampleBlockEntities(ServerWorld exteriorWorld, BlockPos exteriorPos) {
-        BlockPos origin = footprintOrigin(exteriorPos);
-        RegistryWrapper.WrapperLookup registries = exteriorWorld.getRegistryManager();
-        Map<BlockPos, NbtCompound> entities = new HashMap<>();
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
-        for (int x = 0; x < SIZE_X; x++) {
-            for (int y = 0; y < SIZE_Y; y++) {
-                for (int z = 0; z < SIZE_Z; z++) {
-                    mutable.set(origin.getX() + x, origin.getY() + y, origin.getZ() + z);
-                    BlockState state = exteriorWorld.getBlockState(mutable);
-                    if (!isSotoVisible(state)) {
-                        continue;
-                    }
-                    BlockEntity blockEntity = exteriorWorld.getBlockEntity(mutable);
-                    if (blockEntity == null) {
-                        continue;
-                    }
-                    entities.put(new BlockPos(x, y, z), BotiInteriorSampler.captureSyncNbt(blockEntity, registries));
-                }
-            }
-        }
-        return entities;
-    }
-
-    public static Box footprintBox(BlockPos footprintOrigin) {
-        return new Box(
-                footprintOrigin.getX(),
-                footprintOrigin.getY(),
-                footprintOrigin.getZ(),
-                footprintOrigin.getX() + SIZE_X,
-                footprintOrigin.getY() + SIZE_Y,
-                footprintOrigin.getZ() + SIZE_Z
-        );
-    }
-
-    public static int[] footprintChunkBounds(BlockPos footprintOrigin) {
-        return new int[]{
-                ChunkSectionPos.getSectionCoord(footprintOrigin.getX()),
-                ChunkSectionPos.getSectionCoord(footprintOrigin.getX() + SIZE_X - 1),
-                ChunkSectionPos.getSectionCoord(footprintOrigin.getZ()),
-                ChunkSectionPos.getSectionCoord(footprintOrigin.getZ() + SIZE_Z - 1)
-        };
     }
 
     /**
@@ -220,34 +157,6 @@ public final class SotoExteriorSampler {
             for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
                 ChunkPos chunkPos = new ChunkPos(cx, cz);
                 chunkManager.addTicket(SOTO_TICKET, chunkPos, 2, chunkPos);
-            }
-        }
-    }
-
-    /** Ticket-only for the snapshot footprint (no {@code getChunk}). */
-    public static void addFootprintTickets(ServerWorld world, BlockPos footprintOrigin) {
-        if (world == null || footprintOrigin == null) {
-            return;
-        }
-        int[] bounds = footprintChunkBounds(footprintOrigin);
-        var chunkManager = world.getChunkManager();
-        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
-            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
-                ChunkPos chunkPos = new ChunkPos(cx, cz);
-                chunkManager.addTicket(SOTO_TICKET, chunkPos, 2, chunkPos);
-            }
-        }
-    }
-
-    public static void ensureFootprintChunksLoaded(ServerWorld world, BlockPos footprintOrigin) {
-        if (world == null || footprintOrigin == null) {
-            return;
-        }
-        addFootprintTickets(world, footprintOrigin);
-        int[] bounds = footprintChunkBounds(footprintOrigin);
-        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
-            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
-                world.getChunk(cx, cz);
             }
         }
     }
@@ -330,23 +239,6 @@ public final class SotoExteriorSampler {
         return List.copyOf(exteriorWorld.getOtherEntities(null, streamBox(exteriorPos), entity -> !entity.isRemoved()));
     }
 
-    public static List<BotiEntitySample> sampleEntities(ServerWorld exteriorWorld, BlockPos exteriorPos) {
-        BlockPos origin = footprintOrigin(exteriorPos);
-        ensureFootprintChunksLoaded(exteriorWorld, origin);
-        List<Entity> found = exteriorWorld.getOtherEntities(null, footprintBox(origin), entity -> !entity.isRemoved());
-        if (found.isEmpty()) {
-            return List.of();
-        }
-        List<BotiEntitySample> samples = new ArrayList<>(found.size());
-        for (Entity entity : found) {
-            BotiEntitySample sample = captureEntity(entity, origin);
-            if (sample != null) {
-                samples.add(sample);
-            }
-        }
-        return List.copyOf(samples);
-    }
-
     /** One streamed chunk column for ghost sync. */
     public record StreamChunkSample(
             int chunkX,
@@ -362,10 +254,6 @@ public final class SotoExteriorSampler {
         public static StreamChunkSample empty(int chunkX, int chunkZ) {
             return new StreamChunkSample(chunkX, chunkZ, Map.of(), Map.of());
         }
-    }
-
-    public static BotiEntitySample captureEntity(Entity entity, BlockPos footprintOrigin) {
-        return BotiInteriorSampler.captureEntity(entity, footprintOrigin);
     }
 
     public static boolean isInsideFootprint(BlockPos worldPos, BlockPos footprintOrigin) {

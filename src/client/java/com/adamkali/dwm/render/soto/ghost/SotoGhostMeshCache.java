@@ -127,22 +127,6 @@ public final class SotoGhostMeshCache {
         }
     }
 
-    public static void draw(UUID tardisId, MatrixStack matrices) {
-        if (tardisId == null || matrices == null) {
-            return;
-        }
-        draw(tardisId, matrices.peek().getPositionMatrix());
-    }
-
-    /**
-     * Draws all terrain passes against an arbitrary view matrix.
-     */
-    public static void draw(UUID tardisId, Matrix4f viewMatrix) {
-        for (TerrainPass pass : TerrainPass.values()) {
-            drawLayer(tardisId, viewMatrix, pass);
-        }
-    }
-
     /**
      * Draws one terrain pass across every chunk, preserving opaque → cutout → translucent order.
      */

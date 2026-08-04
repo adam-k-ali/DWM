@@ -14,9 +14,9 @@ import java.util.Objects;
 /**
  * Pure geometry for the SOTO portal exterior camera.
  *
- * <p>The portal eye stays fixed at the exterior door hitch looking outward — the same stable
- * lookout used by the Phase 0/2 fallback. Interior player movement and head rotation do not
- * dolly or pan the exterior view; the aperture composite only reveals that fixed render.
+ * <p>The portal eye stays fixed at the exterior door hitch looking outward. Interior player
+ * movement and head rotation do not dolly or pan the exterior view; the aperture composite only
+ * reveals that fixed render.
  */
 public final class SotoPortalCameraTransform {
 

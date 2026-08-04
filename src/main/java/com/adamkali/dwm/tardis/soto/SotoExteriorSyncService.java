@@ -1,7 +1,6 @@
 package com.adamkali.dwm.tardis.soto;
 
 import com.adamkali.dwm.network.SyncSotoExteriorS2CPayload;
-import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
@@ -25,7 +24,6 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -200,11 +198,6 @@ public final class SotoExteriorSyncService {
         SotoExteriorIndex.register(tardisId, worldKey, exteriorPos);
 
         int revision = REVISIONS.merge(tardisId, 1, Integer::sum);
-        Map<BlockPos, net.minecraft.block.BlockState> blocks = SotoExteriorSampler.sample(exteriorWorld, exteriorPos);
-        Map<BlockPos, net.minecraft.nbt.NbtCompound> blockEntities =
-                SotoExteriorSampler.sampleBlockEntities(exteriorWorld, exteriorPos);
-        // Snapshot entities kept for fallback when ghost stream is empty; live path is SotoGhostSyncService.
-        List<BotiEntitySample> entities = SotoExteriorSampler.sampleEntities(exteriorWorld, exteriorPos);
         SotoAtmosphere atmosphere = SotoExteriorSampler.sampleAtmosphere(exteriorWorld, exteriorPos);
 
         TardisDoorState doorState = model.doorState == null ? new TardisDoorState() : model.doorState;
@@ -214,9 +207,6 @@ public final class SotoExteriorSyncService {
         SotoExteriorSnapshot snapshot = SotoExteriorSnapshot.of(
                 tardisId,
                 revision,
-                blocks,
-                blockEntities,
-                entities,
                 variant,
                 doorState.doorSwing,
                 doorState.isOpen,

@@ -3,18 +3,13 @@ package com.adamkali.dwm.render.soto;
 import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.render.soto.portal.SotoPortalRenderer;
 import com.adamkali.dwm.render.soto.portal.SotoPortalSupport;
-import com.adamkali.dwm.tardis.data.model.TardisBotiAperture;
-import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisSotoAperture;
 import com.adamkali.dwm.tardis.interior.TardisSotoGate;
-import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.Fog;
-import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexFormat;
@@ -22,22 +17,17 @@ import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.RotationAxis;
-import net.minecraft.util.math.RotationPropertyHelper;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Stencil-masked interior SOTO: draws a synced exterior footprint through open interior doors.
+ * Stencil-masked interior SOTO: composites a portal exterior view through open interior doors.
  */
 public final class TardisSotoRenderer {
     private static final int STENCIL_REF = 2;
-    private static final int FULLBRIGHT = LightmapTextureManager.pack(15, 15);
 
     /**
      * Blocks past the TARDIS door face for the SOTO look-out hitch plane.
@@ -107,7 +97,6 @@ public final class TardisSotoRenderer {
             RenderSystem.depthMask(true);
             drawExterior(
                     matrices,
-                    vertexConsumers,
                     tickDelta,
                     tardisId,
                     interiorDoorPos,
@@ -126,7 +115,6 @@ public final class TardisSotoRenderer {
 
     private void drawExterior(
             MatrixStack matrices,
-            VertexConsumerProvider vertexConsumers,
             float tickDelta,
             UUID tardisId,
             BlockPos interiorDoorPos,
@@ -137,42 +125,7 @@ public final class TardisSotoRenderer {
                 portalRenderer.render(tardisId, interiorDoorPos, interiorDoorFacing, tickDelta);
         if (portalTexture.available()) {
             drawPortalComposite(matrices, aperture, portalTexture);
-            return;
         }
-        if (!SotoPortalSupport.isAvailable()) {
-            return;
-        }
-        // macOS often reports STENCIL_BITS=0; the 3D lookout relies on EQUAL masking and can
-        // paint the exterior outside the aperture. Wait for the portal texture instead.
-        if (GL11.glGetInteger(GL11.GL_STENCIL_BITS) == 0) {
-            return;
-        }
-
-        SotoExteriorMeshCache.ShellState shell = SotoExteriorMeshCache.getShellState(tardisId);
-        TardisChameleonVariant variant =
-                shell == null ? TardisChameleonVariant.TT_CAPSULE : shell.variant();
-        TardisBotiAperture exteriorAperture = variant.getAperture();
-        int exteriorRotation = shell == null ? 0 : shell.exteriorRotation();
-        SotoAtmosphere atmosphere = SotoExteriorMeshCache.getAtmosphere(tardisId);
-        if (atmosphere == null) {
-            atmosphere = SotoAtmosphere.DEFAULT;
-        }
-
-        matrices.push();
-        applyExteriorAlignment(matrices, aperture, exteriorAperture);
-        applyDoorFacingCorrection(matrices, exteriorRotation);
-        applyLookoutStableView(matrices);
-        SotoSkyFogRenderer.renderSky(matrices, vertexConsumers, atmosphere);
-        Fog previousFog = SotoSkyFogRenderer.applyTerrainFog(atmosphere);
-        try {
-            SotoExteriorMeshCache.renderWorld(matrices, vertexConsumers, FULLBRIGHT, tickDelta, tardisId);
-            flush(vertexConsumers);
-            // Shell is omitted on the SOTO path: stable-view reprojects the hitch to aperture
-            // depth, which would otherwise pull the shell body between the eye and the lookout.
-        } finally {
-            SotoSkyFogRenderer.restoreFog(previousFog);
-        }
-        matrices.pop();
     }
 
     /**
@@ -263,114 +216,6 @@ public final class TardisSotoRenderer {
             RenderSystem.disableCull();
         }
         RenderSystem.depthMask(true);
-    }
-
-    /**
-     * Maps exterior footprint coords onto the interior door aperture in BER model space.
-     * <p>
-     * Aperture translate, Z-180 (Y correction for BER X-180), Y-180 (put footprint outward in the
-     * look-out direction), then offset so the −Z door plane lands on the SOTO aperture.
-     * Net relative to the door center: {@code (x, y, z) → (x, -y, -z)}.
-     * <p>
-     * Call {@link #applyDoorFacingCorrection} after this so the live door facing matches the −Z plane.
-     */
-    static void applyExteriorAlignment(
-            MatrixStack matrices,
-            TardisSotoAperture sotoAperture,
-            TardisBotiAperture exteriorAperture
-    ) {
-        Objects.requireNonNull(exteriorAperture, "exteriorAperture");
-        matrices.translate(sotoAperture.centerX(), sotoAperture.centerY(), sotoAperture.z());
-        matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180.0f));
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0f));
-        matrices.translate(-EXTERIOR_DOOR_CENTER_X, -EXTERIOR_DOOR_CENTER_Y, -EXTERIOR_DOOR_PLANE_Z);
-    }
-
-    /**
-     * Rotates the footprint about the TARDIS column so the chameleon door faces −Z
-     * ({@link #EXTERIOR_DOOR_PLANE_Z}).
-     * <p>
-     * {@code exteriorRotation} is {@code TardisBlock.FACING_ROTATION}. Raw rotation 0 is the
-     * skull/banner south convention, but shell BER transforms leave the doors facing the opposite
-     * way (see {@link com.adamkali.dwm.tardis.TardisExteriorFacing}). Corrective yaw is therefore
-     * {@code toDegrees(rotation)} (not {@code yaw - 180}), so rotation 0 looks out the visual
-     * north / −Z door axis through {@link #EXTERIOR_DOOR_PLANE_Z} (hitch just in front of the shell).
-     */
-    static void applyDoorFacingCorrection(MatrixStack matrices, int exteriorRotation) {
-        float yaw = RotationPropertyHelper.toDegrees(exteriorRotation);
-        float corrective = yaw;
-        double cx = SotoExteriorSampler.RELATIVE_TARDIS_POS.getX() + 0.5;
-        double cz = SotoExteriorSampler.RELATIVE_TARDIS_POS.getZ() + 0.5;
-        matrices.translate(cx, 0.0, cz);
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(corrective));
-        matrices.translate(-cx, 0.0, -cz);
-    }
-
-    /**
-     * Fixed eye distance in front of the hitch after stable-view reprojection.
-     * Must not depend on player↔door distance (that dollys when strafing / glancing).
-     * Kept near {@link #PREVIEW_FORWARD_OFFSET} so the fallback eye stays at the door face
-     * rather than pulling back into the shell body.
-     */
-    static final float LOOKOUT_VIEW_DEPTH = 0.25f;
-
-    /**
-     * Freezes the exterior lookout at the hitch with a fixed view depth.
-     * <p>
-     * Player-relative depths ({@code |hitch|} or door-plane distance) dolly when strafing or
-     * looking from an oblique angle. Instead: view from the hitch looking outward, then place
-     * the hitch at a constant distance along camera forward so FOV stays stable.
-     * <p>
-     * Must use an explicit up vector (lookAt), not {@code rotationTo(outward, -Z)} alone:
-     * {@link #applyExteriorAlignment} includes a Y flip for BER X-180, and a pure
-     * direction-to-direction rotation preserves that flip as an inverted roll.
-     */
-    static void applyLookoutStableView(MatrixStack matrices) {
-        Matrix4f m = matrices.peek().getPositionMatrix();
-        Vector3f hitch = m.transformPosition(
-                (float) EXTERIOR_DOOR_CENTER_X,
-                (float) EXTERIOR_DOOR_CENTER_Y,
-                (float) EXTERIOR_DOOR_PLANE_Z,
-                new Vector3f()
-        );
-        Vector3f outwardPoint = m.transformPosition(
-                (float) EXTERIOR_DOOR_CENTER_X,
-                (float) EXTERIOR_DOOR_CENTER_Y,
-                (float) (EXTERIOR_DOOR_PLANE_Z - 1.0),
-                new Vector3f()
-        );
-        Vector3f upPoint = m.transformPosition(
-                (float) EXTERIOR_DOOR_CENTER_X,
-                (float) EXTERIOR_DOOR_CENTER_Y + 1.0f,
-                (float) EXTERIOR_DOOR_PLANE_Z,
-                new Vector3f()
-        );
-        Vector3f outward = outwardPoint.sub(hitch, new Vector3f());
-        if (outward.lengthSquared() < 1e-8f) {
-            return;
-        }
-        outward.normalize();
-        Vector3f up = upPoint.sub(hitch, new Vector3f());
-        if (up.lengthSquared() < 1e-8f) {
-            up.set(0.0f, 1.0f, 0.0f);
-        }
-
-        Matrix4f look = new Matrix4f().lookAt(
-                hitch.x,
-                hitch.y,
-                hitch.z,
-                hitch.x + outward.x,
-                hitch.y + outward.y,
-                hitch.z + outward.z,
-                up.x,
-                up.y,
-                up.z
-        );
-        Matrix4f mv = matrices.peek().getPositionMatrix();
-        mv.set(new Matrix4f()
-                .translation(0.0f, 0.0f, -LOOKOUT_VIEW_DEPTH)
-                .mul(look)
-                .mul(m));
     }
 
     private static void writeStencilMask(MatrixStack matrices, TardisSotoAperture aperture) {
