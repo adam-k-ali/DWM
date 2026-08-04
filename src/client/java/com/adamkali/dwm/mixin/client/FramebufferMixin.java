@@ -1,12 +1,16 @@
 package com.adamkali.dwm.mixin.client;
 
 import com.adamkali.dwm.render.boti.BotiStencilSupport;
+import com.adamkali.dwm.render.soto.portal.SotoPortalRenderTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import org.lwjgl.opengl.GL30;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.nio.IntBuffer;
 
@@ -16,10 +20,26 @@ import java.nio.IntBuffer;
  * Some drivers (notably macOS) accept {@code GL_DEPTH_STENCIL_ATTACHMENT} but still report
  * zero stencil bits; attaching the same packed texture to both depth and stencil slots is more
  * reliable.
+ * <p>
+ * During the SOTO portal offscreen pass, redirects the main framebuffer's {@code beginWrite} to
+ * the portal target. {@code RenderPhase.MAIN_TARGET} otherwise steals the draw buffer before each
+ * ghost mesh / entity draw.
  */
 @Mixin(Framebuffer.class)
 public abstract class FramebufferMixin {
     private static final int GL_DEPTH_COMPONENT = 6402;
+
+    @Inject(method = "beginWrite", at = @At("HEAD"), cancellable = true)
+    private void dwm$redirectMainToPortalDuringPass(boolean setViewport, CallbackInfo ci) {
+        if (!SotoPortalRenderTarget.isPortalPassActive() || SotoPortalRenderTarget.isRedirectingMainWrite()) {
+            return;
+        }
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client != null && client.getFramebuffer() == (Object) this) {
+            SotoPortalRenderTarget.redirectMainBeginWrite(setViewport);
+            ci.cancel();
+        }
+    }
 
     @Redirect(
             method = "initFbo",

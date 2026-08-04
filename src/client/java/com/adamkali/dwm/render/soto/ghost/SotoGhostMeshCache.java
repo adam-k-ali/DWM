@@ -21,6 +21,7 @@ import net.minecraft.client.util.BufferAllocator;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 
 import java.util.ArrayList;
@@ -130,16 +131,40 @@ public final class SotoGhostMeshCache {
         if (tardisId == null || matrices == null) {
             return;
         }
+        draw(tardisId, matrices.peek().getPositionMatrix());
+    }
+
+    /**
+     * Draws all terrain passes against an arbitrary view matrix.
+     */
+    public static void draw(UUID tardisId, Matrix4f viewMatrix) {
+        for (TerrainPass pass : TerrainPass.values()) {
+            drawLayer(tardisId, viewMatrix, pass);
+        }
+    }
+
+    /**
+     * Draws one terrain pass across every chunk, preserving opaque → cutout → translucent order.
+     */
+    public static void drawLayer(UUID tardisId, Matrix4f viewMatrix, TerrainPass pass) {
+        if (tardisId == null || viewMatrix == null || pass == null) {
+            return;
+        }
         Map<Long, ChunkMesh> byChunk = MESHES.get(tardisId);
         if (byChunk == null || byChunk.isEmpty()) {
             return;
         }
         Matrix4fStack modelViewStack = RenderSystem.getModelViewStack();
         modelViewStack.pushMatrix();
-        modelViewStack.mul(matrices.peek().getPositionMatrix());
+        modelViewStack.set(viewMatrix);
         try {
-            for (ChunkMesh mesh : byChunk.values()) {
-                mesh.draw();
+            List<Long> chunkKeys = new ArrayList<>(byChunk.keySet());
+            chunkKeys.sort(Long::compare);
+            for (Long chunkKey : chunkKeys) {
+                ChunkMesh mesh = byChunk.get(chunkKey);
+                if (mesh != null) {
+                    mesh.draw(pass);
+                }
             }
         } finally {
             modelViewStack.popMatrix();
@@ -160,14 +185,15 @@ public final class SotoGhostMeshCache {
             return ChunkMesh.EMPTY;
         }
 
-        Map<RenderLayer, List<Map.Entry<BlockPos, BlockState>>> byLayer = new HashMap<>();
+        Map<LayerKey, List<Map.Entry<BlockPos, BlockState>>> byLayer = new HashMap<>();
         for (Map.Entry<BlockPos, BlockState> entry : blocks.entrySet()) {
             BlockState state = entry.getValue();
             if (state == null || state.getRenderType() == BlockRenderType.INVISIBLE) {
                 continue;
             }
             RenderLayer layer = RenderLayers.getEntityBlockLayer(state);
-            byLayer.computeIfAbsent(layer, ignored -> new ArrayList<>()).add(entry);
+            TerrainPass pass = TerrainPass.forBlockState(state);
+            byLayer.computeIfAbsent(new LayerKey(pass, layer), ignored -> new ArrayList<>()).add(entry);
         }
         if (byLayer.isEmpty()) {
             return ChunkMesh.EMPTY;
@@ -176,9 +202,10 @@ public final class SotoGhostMeshCache {
         List<LayerBuffer> uploaded = new ArrayList<>(byLayer.size());
         MatrixStack matrices = new MatrixStack();
         try {
-            for (Map.Entry<RenderLayer, List<Map.Entry<BlockPos, BlockState>>> layerEntry : byLayer.entrySet()) {
+            for (Map.Entry<LayerKey, List<Map.Entry<BlockPos, BlockState>>> layerEntry : byLayer.entrySet()) {
                 LayerBuffer layerBuffer = bakeLayer(
-                        layerEntry.getKey(),
+                        layerEntry.getKey().pass(),
+                        layerEntry.getKey().layer(),
                         layerEntry.getValue(),
                         blockRenderManager,
                         blockColors,
@@ -198,6 +225,7 @@ public final class SotoGhostMeshCache {
     }
 
     private static LayerBuffer bakeLayer(
+            TerrainPass pass,
             RenderLayer layer,
             List<Map.Entry<BlockPos, BlockState>> entries,
             BlockRenderManager blockRenderManager,
@@ -248,7 +276,7 @@ public final class SotoGhostMeshCache {
             vertexBuffer.bind();
             vertexBuffer.upload(built);
             VertexBuffer.unbind();
-            return new LayerBuffer(layer, vertexBuffer);
+            return new LayerBuffer(pass, layer, vertexBuffer);
         } catch (RuntimeException e) {
             return null;
         } finally {
@@ -278,12 +306,12 @@ public final class SotoGhostMeshCache {
             return !marker && layers.isEmpty();
         }
 
-        void draw() {
+        void draw(TerrainPass pass) {
             if (closed || isEmpty() || marker) {
                 return;
             }
             for (LayerBuffer layerBuffer : layers) {
-                if (!layerBuffer.buffer().isClosed()) {
+                if (layerBuffer.pass() == pass && !layerBuffer.buffer().isClosed()) {
                     layerBuffer.buffer().draw(layerBuffer.layer());
                 }
             }
@@ -301,12 +329,32 @@ public final class SotoGhostMeshCache {
         }
     }
 
-    private record LayerBuffer(RenderLayer layer, VertexBuffer buffer) implements AutoCloseable {
+    private record LayerKey(TerrainPass pass, RenderLayer layer) {
+    }
+
+    private record LayerBuffer(TerrainPass pass, RenderLayer layer, VertexBuffer buffer) implements AutoCloseable {
         @Override
         public void close() {
             if (!buffer.isClosed()) {
                 buffer.close();
             }
+        }
+    }
+
+    public enum TerrainPass {
+        OPAQUE,
+        CUTOUT,
+        TRANSLUCENT;
+
+        static TerrainPass forBlockState(BlockState state) {
+            RenderLayer layer = RenderLayers.getBlockLayer(state);
+            if (layer == RenderLayer.getTranslucent() || layer == RenderLayer.getTripwire()) {
+                return TRANSLUCENT;
+            }
+            if (layer == RenderLayer.getCutout() || layer == RenderLayer.getCutoutMipped()) {
+                return CUTOUT;
+            }
+            return OPAQUE;
         }
     }
 }

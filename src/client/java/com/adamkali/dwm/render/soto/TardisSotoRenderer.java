@@ -1,7 +1,8 @@
 package com.adamkali.dwm.render.soto;
 
 import com.adamkali.dwm.config.DWMConfig;
-import com.adamkali.dwm.render.boti.BotiStencilSupport;
+import com.adamkali.dwm.render.soto.portal.SotoPortalRenderer;
+import com.adamkali.dwm.render.soto.portal.SotoPortalSupport;
 import com.adamkali.dwm.tardis.data.model.TardisBotiAperture;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisSotoAperture;
@@ -19,11 +20,14 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.RotationPropertyHelper;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 
 import java.util.Objects;
@@ -53,19 +57,15 @@ public final class TardisSotoRenderer {
     static final double EXTERIOR_DOOR_PLANE_Z =
             SotoExteriorSampler.RELATIVE_TARDIS_POS.getZ() + 0.0 - PREVIEW_FORWARD_OFFSET;
 
-    private final SotoShellModels shellModels;
+    private final SotoPortalRenderer portalRenderer;
 
     public TardisSotoRenderer() {
-        this(null);
-    }
-
-    public TardisSotoRenderer(SotoShellModels shellModels) {
-        this.shellModels = shellModels;
+        this.portalRenderer = new SotoPortalRenderer();
     }
 
     public static boolean shouldRender(float doorSwing) {
         return DWMConfig.getBoolean(DWMConfig.ENABLE_SOTO)
-                && BotiStencilSupport.isAvailable()
+                && SotoPortalSupport.isAvailable()
                 && TardisSotoGate.shouldShow(doorSwing);
     }
 
@@ -77,9 +77,11 @@ public final class TardisSotoRenderer {
             MatrixStack matrices,
             VertexConsumerProvider vertexConsumers,
             float tickDelta,
-            UUID tardisId
+            UUID tardisId,
+            BlockPos interiorDoorPos,
+            Direction interiorDoorFacing
     ) {
-        if (tardisId == null) {
+        if (tardisId == null || interiorDoorPos == null || interiorDoorFacing == null) {
             return;
         }
         TardisSotoAperture aperture = TardisSotoAperture.CLASSIC_INTERIOR_DOORS;
@@ -96,11 +98,19 @@ public final class TardisSotoRenderer {
             RenderSystem.enableDepthTest();
             RenderSystem.depthFunc(GL11.GL_LEQUAL);
             RenderSystem.depthMask(true);
-            drawExterior(matrices, vertexConsumers, tickDelta, tardisId, aperture);
+            drawExterior(
+                    matrices,
+                    vertexConsumers,
+                    tickDelta,
+                    tardisId,
+                    interiorDoorPos,
+                    interiorDoorFacing,
+                    aperture
+            );
             flush(vertexConsumers);
             sealApertureDepth(matrices, aperture);
         } catch (Throwable t) {
-            BotiStencilSupport.disableForSession("SOTO render failed", t);
+            SotoPortalSupport.disableForSession("Portal render failed", t);
         } finally {
             restoreGlState();
             matrices.pop();
@@ -112,8 +122,25 @@ public final class TardisSotoRenderer {
             VertexConsumerProvider vertexConsumers,
             float tickDelta,
             UUID tardisId,
+            BlockPos interiorDoorPos,
+            Direction interiorDoorFacing,
             TardisSotoAperture aperture
     ) {
+        SotoPortalRenderer.PortalTexture portalTexture =
+                portalRenderer.render(tardisId, interiorDoorPos, interiorDoorFacing, tickDelta);
+        if (portalTexture.available()) {
+            drawPortalComposite(matrices, aperture, portalTexture.textureId());
+            return;
+        }
+        if (!SotoPortalSupport.isAvailable()) {
+            return;
+        }
+        // macOS often reports STENCIL_BITS=0; the 3D lookout relies on EQUAL masking and can
+        // paint the exterior outside the aperture. Wait for the portal texture instead.
+        if (GL11.glGetInteger(GL11.GL_STENCIL_BITS) == 0) {
+            return;
+        }
+
         SotoExteriorMeshCache.ShellState shell = SotoExteriorMeshCache.getShellState(tardisId);
         TardisChameleonVariant variant =
                 shell == null ? TardisChameleonVariant.TT_CAPSULE : shell.variant();
@@ -139,6 +166,80 @@ public final class TardisSotoRenderer {
             SotoSkyFogRenderer.restoreFog(previousFog);
         }
         matrices.pop();
+    }
+
+    /**
+     * Composites the portal color texture as a door-aperture quad with screen-space UVs.
+     * <p>
+     * Avoids a fullscreen pass + stencil clip: with {@code GL_STENCIL_BITS=0} (common on macOS)
+     * that path can paint the exterior everywhere except the mask. Geometry limits the draw to
+     * the aperture; depth was cleared to far inside the mask before this call.
+     */
+    private static void drawPortalComposite(
+            MatrixStack matrices,
+            TardisSotoAperture aperture,
+            int textureId
+    ) {
+        if (textureId <= 0) {
+            return;
+        }
+        Matrix4f model = matrices.peek().getPositionMatrix();
+        Matrix4f mvp = new Matrix4f(RenderSystem.getProjectionMatrix()).mul(model);
+
+        float x0 = aperture.x0();
+        float x1 = aperture.x1();
+        float y0 = aperture.y0();
+        float y1 = aperture.y1();
+        float z = aperture.z();
+        // Same winding as {@link #drawApertureQuad}.
+        float[] xs = {x0, x0, x1, x1};
+        float[] ys = {y0, y1, y1, y0};
+        float[] us = new float[4];
+        float[] vs = new float[4];
+        for (int i = 0; i < 4; i++) {
+            Vector4f clip = mvp.transform(new Vector4f(xs[i], ys[i], z, 1.0f));
+            float invW = 1.0f / clip.w;
+            float ndcX = clip.x * invW;
+            float ndcY = clip.y * invW;
+            us[i] = ndcX * 0.5f + 0.5f;
+            // Portal FBO color attachment uses OpenGL bottom-left V=0 (same as NDC→UV).
+            vs[i] = ndcY * 0.5f + 0.5f;
+        }
+
+        boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
+        boolean stencilWasEnabled = GL11.glIsEnabled(GL11.GL_STENCIL_TEST);
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthFunc(GL11.GL_LEQUAL);
+        RenderSystem.depthMask(false);
+        RenderSystem.disableCull();
+        RenderSystem.disableBlend();
+        RenderSystem.colorMask(true, true, true, true);
+        // Geometry is the clip; do not use stencil (can invert when STENCIL_BITS reports 0).
+        GL11.glDisable(GL11.GL_STENCIL_TEST);
+
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+        RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
+        RenderSystem.setShaderTexture(0, textureId);
+
+        BufferBuilder buffer =
+                Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
+        for (int i = 0; i < 4; i++) {
+            buffer.vertex(model, xs[i], ys[i], z).texture(us[i], vs[i]);
+        }
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+
+        if (stencilWasEnabled) {
+            GL11.glEnable(GL11.GL_STENCIL_TEST);
+            RenderSystem.stencilFunc(GL11.GL_EQUAL, STENCIL_REF, 0xFF);
+            RenderSystem.stencilMask(0x00);
+            RenderSystem.stencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_KEEP);
+        }
+        if (cullWasEnabled) {
+            RenderSystem.enableCull();
+        } else {
+            RenderSystem.disableCull();
+        }
+        RenderSystem.depthMask(true);
     }
 
     /**

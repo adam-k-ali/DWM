@@ -17,6 +17,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.OtherClientPlayerEntity;
+import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.BlockRenderManager;
@@ -244,25 +245,14 @@ public final class SotoExteriorMeshCache {
         if (shouldPreferGhostMeshes(tardisId)) {
             flushImmediate(vertexConsumers);
             SotoGhostMeshCache.draw(tardisId, matrices);
-
-            BlockEntityRenderDispatcher beDispatcher = MinecraftClient.getInstance().getBlockEntityRenderDispatcher();
-            SotoGhostExterior ghost = SotoGhostExterior.get(tardisId);
-            if (ghost != null) {
-                for (BlockEntity blockEntity : ghost.buildRenderedBlockEntities()) {
-                    @SuppressWarnings("unchecked")
-                    BlockEntityRenderer<BlockEntity> renderer =
-                            (BlockEntityRenderer<BlockEntity>) beDispatcher.get(blockEntity);
-                    if (renderer == null) {
-                        continue;
-                    }
-                    BlockPos pos = blockEntity.getPos();
-                    matrices.push();
-                    matrices.translate(pos.getX(), pos.getY(), pos.getZ());
-                    renderer.render(blockEntity, tickDelta, matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV);
-                    matrices.pop();
-                }
-            }
-
+            renderGhostBlockEntities(
+                    matrices,
+                    vertexConsumers,
+                    light,
+                    tickDelta,
+                    tardisId,
+                    MinecraftClient.getInstance().gameRenderer.getCamera()
+            );
             renderEntities(matrices, vertexConsumers, light, tickDelta, tardisId);
             return;
         }
@@ -278,9 +268,7 @@ public final class SotoExteriorMeshCache {
 
         BlockEntityRenderDispatcher beDispatcher = MinecraftClient.getInstance().getBlockEntityRenderDispatcher();
         for (BlockEntity blockEntity : getBlockEntities(tardisId)) {
-            @SuppressWarnings("unchecked")
-            BlockEntityRenderer<BlockEntity> renderer =
-                    (BlockEntityRenderer<BlockEntity>) beDispatcher.get(blockEntity);
+            BlockEntityRenderer<BlockEntity> renderer = beDispatcher.get(blockEntity);
             if (renderer == null) {
                 continue;
             }
@@ -292,6 +280,73 @@ public final class SotoExteriorMeshCache {
         }
 
         renderEntities(matrices, vertexConsumers, light, tickDelta, tardisId);
+    }
+
+    public static void renderGhostBlockEntities(
+            MatrixStack matrices,
+            VertexConsumerProvider vertexConsumers,
+            int light,
+            float tickDelta,
+            UUID tardisId,
+            Camera camera
+    ) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        SotoGhostExterior ghost = SotoGhostExterior.get(tardisId);
+        if (client == null || ghost == null) {
+            return;
+        }
+        BlockEntityRenderDispatcher beDispatcher = client.getBlockEntityRenderDispatcher();
+        if (client.world != null && camera != null) {
+            beDispatcher.configure(client.world, camera, client.crosshairTarget);
+        }
+        for (BlockEntity blockEntity : ghost.buildRenderedBlockEntities()) {
+            BlockEntityRenderer<BlockEntity> renderer = beDispatcher.get(blockEntity);
+            if (renderer == null) {
+                continue;
+            }
+            BlockPos pos = blockEntity.getPos();
+            matrices.push();
+            matrices.translate(pos.getX(), pos.getY(), pos.getZ());
+            renderer.render(blockEntity, tickDelta, matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV);
+            matrices.pop();
+        }
+    }
+
+    public static void renderGhostEntities(
+            MatrixStack matrices,
+            VertexConsumerProvider vertexConsumers,
+            int light,
+            float tickDelta,
+            UUID tardisId,
+            Camera camera
+    ) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client == null || !SotoGhostExterior.hasEntities(tardisId)) {
+            return;
+        }
+        EntityRenderDispatcher entityDispatcher = client.getEntityRenderDispatcher();
+        if (client.world != null && camera != null) {
+            entityDispatcher.configure(client.world, camera, client.player);
+        }
+        for (SotoGhostExterior.RenderableGhostEntity ghost : SotoGhostExterior.getRenderableEntities(tardisId)) {
+            Entity entity = ghost.entity();
+            LerpedPose pose = ghost.pose();
+            entity.setYaw(pose.yaw());
+            entity.setPitch(pose.pitch());
+            if (entity instanceof LivingEntity living) {
+                snapLivingYaw(living, pose.yaw());
+            }
+            entityDispatcher.render(
+                    entity,
+                    pose.x(),
+                    pose.y(),
+                    pose.z(),
+                    tickDelta,
+                    matrices,
+                    vertexConsumers,
+                    light
+            );
+        }
     }
 
     private static void renderEntities(
@@ -310,25 +365,14 @@ public final class SotoExteriorMeshCache {
 
         // Prefer live ghost entities; fall back to snapshot synthetics.
         if (SotoGhostExterior.hasEntities(tardisId)) {
-            for (SotoGhostExterior.RenderableGhostEntity ghost : SotoGhostExterior.getRenderableEntities(tardisId)) {
-                Entity entity = ghost.entity();
-                LerpedPose pose = ghost.pose();
-                entity.setYaw(pose.yaw());
-                entity.setPitch(pose.pitch());
-                if (entity instanceof LivingEntity living) {
-                    snapLivingYaw(living, pose.yaw());
-                }
-                entityDispatcher.render(
-                        entity,
-                        pose.x(),
-                        pose.y(),
-                        pose.z(),
-                        tickDelta,
-                        matrices,
-                        vertexConsumers,
-                        light
-                );
-            }
+            renderGhostEntities(
+                    matrices,
+                    vertexConsumers,
+                    light,
+                    tickDelta,
+                    tardisId,
+                    client.gameRenderer.getCamera()
+            );
             return;
         }
 
