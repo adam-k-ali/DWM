@@ -48,17 +48,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - May not work with Fabulous graphics or some Sodium / shader setups; disable via config if needed.
 
 ## SOTO Notes
-- Visual illusion: does not stream the live exterior dimension to the interior client as a full world.
-- **Phase 0 snapshot:** syncs shell metadata (`variant`, `doorSwing`, `isOpen`, `exteriorRotation`) and atmosphere for the exterior TARDIS. Snapshots push to players tracking the interior door origin; clients may also request on cache miss (`request_soto_exterior`). Terrain and entities are not included — those come from the ghost stream.
-- **Phase 1 ghost stream:** streams nearby exterior chunk columns + live entities into `SotoGhostExterior` (footprint-relative coords).
-- **Phase 2 mesh bake:** on chunk apply, client bakes per-chunk GPU meshes (`SotoGhostMeshCache`). The buffers retain opaque, cutout, and translucent pass ordering and are drawn into the portal FBO.
-- **Phase 3 portal pass:** renders the synced sky, Phase 2 terrain buffers, block entities, and entities into a full-window color/depth framebuffer from a fixed exterior door hitch looking outward, then composites that texture through the door aperture. Interior player movement does not dolly or pan the exterior eye.
-- Phase 3 renders each TARDIS at most once per client frame, resizes its target with the main framebuffer, and restores framebuffer, viewport, projection/model-view, fog, texture, blend, cull, depth, color-mask, and stencil state after the pass (including failure paths).
-- Preview hitch sits a half-block in front of the exterior shell door face (`PREVIEW_FORWARD_OFFSET`) at `PREVIEW_EYE_HEIGHT` above the TARDIS block base so the look-out clears the chameleon body without floating a full block out from the doors.
-- Until ghost chunks/meshes are ready, the door aperture stays blank (portal-only; no direct lookout fallback). Phase 3 uses the fixed hitch/outward eye via `SotoPortalCameraTransform`.
-- Interior BER layering mirrors exterior BOTI: **shell (frames/jambs) → SOTO → full door mesh**. The post-SOTO pass uses a cutout `RenderLayer` with `ALWAYS_DEPTH_TEST` plus an explicit `GL_ALWAYS` before flush — vanilla `entity_cutout` re-applies `LEQUAL` during `Immediate.draw()`, which let sealed SOTO depths win over door leaves (and left lookout color under hitbox outlines in the aperture).
-- Phase 3 is enabled only with the vanilla Fast or Fancy renderer and shared stencil support. Fabulous cleanly hides SOTO, and a portal framebuffer/render failure disables SOTO for the rest of the client session.
-- Sodium, Iris, and other replacement-renderer compatibility is outside Phase 3; disable via `enableSoto` if needed.
+- Visual illusion: portal-composites a synced exterior footprint through the interior door aperture (not a live world stream); requires stencil + vanilla Fast/Fancy, disable via `enableSoto` if needed.
 
 ## Known Constraints
 - Interior visuals use existing roundel/wall blocks; console props are simplified.
