@@ -47,6 +47,10 @@ logs/
 
 tickets/
 
+# local Cursor skills / agent tooling (not shared via git)
+
+.cursor/
+
 # local tool venvs
 
 tools/.venv/
