@@ -27,7 +27,8 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Collision entry when the exterior door is open (`doorSwing >= 0.9`); exit via open interior doors.
 - Config toggles `enableBoti` and `enableSoto` (default on) via Mod Menu / Cloth Config.
 - Interior doors use an invisible block + dedicated BER (`TardisClassicInteriorDoorModel`) with swing animation.
-- Materialisation lever travel: first pull dematerialises the exterior; after a short hold the TARDIS enters `IN_FLIGHT`; a second pull materialises at the selected biome landing site.
+- Materialisation lever travel: first pull dematerialises the exterior; after a short hold the TARDIS enters `IN_FLIGHT`; a second pull materialises at the selected dimension/biome landing site.
+- First Doctor console Panel3 hosts a biome selector and planet locator (shared dial mesh); planet locator cycles loaded worlds except `dwm:tardis` and drives cross-dimension travel.
 - First Doctor console time rotor bobbles vertically while the TARDIS is traveling (`DEMATERIALISING` / `IN_FLIGHT` / `MATERIALISING`) and rests when idle.
 - Demat/mat/in-flight play loopable travel SFX (seamless loops) for code-configured phase lengths (`DEMATERIALISING_DURATION_TICKS` / `MATERIALISING_DURATION_TICKS` in `TardisTravelService`); shell vanishes mid-demat at `DEMATERIALISING_SHELL_REMOVE_AT_TICK`; `IN_FLIGHT` uses a higher-pitched demat/mat-derived loop in the interior; materialisation ends with a landing thud.
 
@@ -38,7 +39,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 4. When the door is fully open, walk into the exterior block to teleport to the interior entrance.
 5. From inside, look through open interior doors to see the exterior world (SOTO preview).
 6. Walk into the interior door blocks to return just outside the exterior TARDIS.
-7. At the console: select a destination biome, pull the materialisation lever to dematerialise, wait for `IN_FLIGHT`, then pull again to materialise and land.
+7. At the console: select a destination dimension (planet locator) and biome, pull the materialisation lever to dematerialise, wait for `IN_FLIGHT`, then pull again to materialise and land.
 
 ## BOTI Notes
 - Visual illusion: does not stream the live `dwm:tardis` dimension to the exterior client.

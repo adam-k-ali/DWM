@@ -36,11 +36,24 @@ class TardisDataModelExteriorTest {
     }
 
     @Test
+    void selectedDimension_SerializesThroughGson() {
+        TardisDataModel model = new TardisDataModel();
+        model.selectedDimension = "minecraft:the_nether";
+
+        Gson gson = new Gson();
+        TardisDataModel loaded = gson.fromJson(gson.toJson(model), TardisDataModel.class);
+
+        assertEquals("minecraft:the_nether", loaded.selectedDimension);
+        assertEquals(model, loaded);
+    }
+
+    @Test
     void travelFields_SerializesThroughGson() {
         TardisDataModel model = new TardisDataModel();
         model.setTravelPhase(TardisTravelPhase.IN_FLIGHT);
         model.travelPhaseTicks = 40;
         model.travelDestinationBiome = "minecraft:forest";
+        model.travelDestinationDimension = "minecraft:the_end";
 
         Gson gson = new Gson();
         TardisDataModel loaded = gson.fromJson(gson.toJson(model), TardisDataModel.class);
@@ -48,6 +61,7 @@ class TardisDataModelExteriorTest {
         assertEquals(TardisTravelPhase.IN_FLIGHT, loaded.getTravelPhase());
         assertEquals(40, loaded.travelPhaseTicks);
         assertEquals("minecraft:forest", loaded.travelDestinationBiome);
+        assertEquals("minecraft:the_end", loaded.travelDestinationDimension);
         assertEquals(model, loaded);
     }
 }

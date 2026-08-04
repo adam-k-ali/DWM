@@ -24,6 +24,7 @@ import net.minecraft.world.World;
  * <ul>
  *   <li>Cyan — {@link FirstDoctorConsoleBlock#COLLISION_SHAPE}</li>
  *   <li>Lime — biome selector look/click AABB</li>
+ *   <li>Magenta — planet locator look/click AABB</li>
  *   <li>Orange — materialisation lever look/click AABB</li>
  * </ul>
  */
@@ -33,6 +34,10 @@ public final class ConsoleHitboxDebugRenderer {
     private static final float SELECTOR_G = 1.0f;
     private static final float SELECTOR_B = 0.2f;
     private static final float SELECTOR_A = 1.0f;
+    private static final float PLANET_R = 1.0f;
+    private static final float PLANET_G = 0.2f;
+    private static final float PLANET_B = 1.0f;
+    private static final float PLANET_A = 1.0f;
     private static final float LEVER_R = 1.0f;
     private static final float LEVER_G = 0.55f;
     private static final float LEVER_B = 0.1f;
@@ -97,6 +102,17 @@ public final class ConsoleHitboxDebugRenderer {
                             SELECTOR_G,
                             SELECTOR_B,
                             SELECTOR_A
+                    );
+
+                    Box planet = FirstDoctorConsoleControls.planetLocatorWorldBox(mutable, facing);
+                    VertexRendering.drawBox(
+                            matrices,
+                            lines,
+                            planet,
+                            PLANET_R,
+                            PLANET_G,
+                            PLANET_B,
+                            PLANET_A
                     );
 
                     Box lever = FirstDoctorConsoleControls.materialisationLeverWorldBox(mutable, facing);

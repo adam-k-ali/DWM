@@ -30,6 +30,9 @@ public class DWMRenderLayerManager {
                 BiomeSelectorModel.LAYER_LOCATION,
                 BiomeSelectorModel::getTexturedModelData);
         EntityModelLayerRegistry.registerModelLayer(
+                PlanetLocatorModel.LAYER_LOCATION,
+                PlanetLocatorModel::getTexturedModelData);
+        EntityModelLayerRegistry.registerModelLayer(
                 MaterialisationLeverModel.LAYER_LOCATION,
                 MaterialisationLeverModel::getTexturedModelData);
     }
