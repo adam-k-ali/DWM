@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    "dwm:gallifrey_dirt",
+    "dwm:gallifrey_dirt",
+    "minecraft:gravel",
+    "minecraft:gravel"
+  ],
+  "result": {
+    "count": 4,
+    "id": "dwm:gallifrey_coarse_dirt"
+  }
+}

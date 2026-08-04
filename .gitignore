@@ -43,6 +43,14 @@ replay_*.log
 
 logs/
 
+# local file-based backlog (not shared via git)
+
+tickets/
+
+# local Cursor skills / agent tooling (not shared via git)
+
+.cursor/
+
 # local tool venvs
 
 tools/.venv/

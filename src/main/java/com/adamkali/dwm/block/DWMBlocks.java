@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
+import net.minecraft.block.ColoredFallingBlock;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
@@ -13,8 +14,10 @@ import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.ColorCode;
 import net.minecraft.util.Identifier;
 
+import java.util.List;
 import java.util.function.Function;
 
 public class DWMBlocks {
@@ -133,6 +136,58 @@ public class DWMBlocks {
     public static final Block FIRST_DOCTOR_CONSOLE = register(FirstDoctorConsoleBlock::new, DWMBlockSettings.FIRST_DOCTOR_CONSOLE, "first_doctor_console");
 
     public static final Block TARDIS_DOOR_BUTTON = register(TardisButtonBlock::new, DWMBlockSettings.BUTTON_SETTINGS, "tardis_door_button");
+
+    public static final Block GALLIFREY_STONE = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "gallifrey_stone");
+    public static final Block GALLIFREY_STONE_BRICKS = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "gallifrey_stone_bricks");
+    public static final Block CHISELED_GALLIFREY_STONE_BRICKS = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "chiseled_gallifrey_stone_bricks");
+    public static final Block CRACKED_GALLIFREY_STONE_BRICKS = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "cracked_gallifrey_stone_bricks");
+    public static final Block MOSSY_GALLIFREY_STONE_BRICKS = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "mossy_gallifrey_stone_bricks");
+    public static final Block GALLIFREY_COBBLESTONE = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "gallifrey_cobblestone");
+    public static final Block GALLIFREY_MOSSY_COBBLESTONE = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "gallifrey_mossy_cobblestone");
+    public static final Block GALLIFREY_SMOOTH_STONE = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "gallifrey_smooth_stone");
+    public static final Block GALLIFREY_SANDSTONE = register(Block::new, DWMBlockSettings.GALLIFREY_SANDSTONE, "gallifrey_sandstone");
+    public static final Block GALLIFREY_CUT_SANDSTONE = register(Block::new, DWMBlockSettings.GALLIFREY_SANDSTONE, "gallifrey_cut_sandstone");
+    public static final Block GALLIFREY_CHISELED_SANDSTONE = register(Block::new, DWMBlockSettings.GALLIFREY_SANDSTONE, "gallifrey_chiseled_sandstone");
+    public static final Block GALLIFREY_SAND = register(
+            settings -> new ColoredFallingBlock(new ColorCode(0xC47A3A), settings),
+            DWMBlockSettings.GALLIFREY_SAND,
+            "gallifrey_sand"
+    );
+    public static final Block GALLIFREY_DIRT = register(Block::new, DWMBlockSettings.GALLIFREY_DIRT, "gallifrey_dirt");
+    public static final Block GALLIFREY_COARSE_DIRT = register(Block::new, DWMBlockSettings.GALLIFREY_DIRT, "gallifrey_coarse_dirt");
+
+    /** Building / stone-like Gallifrey blocks (excludes dirt/sand terrain). */
+    public static final List<Block> GALLIFREY_STONE_BUILDING_BLOCKS = List.of(
+            GALLIFREY_STONE,
+            GALLIFREY_STONE_BRICKS,
+            CHISELED_GALLIFREY_STONE_BRICKS,
+            CRACKED_GALLIFREY_STONE_BRICKS,
+            MOSSY_GALLIFREY_STONE_BRICKS,
+            GALLIFREY_COBBLESTONE,
+            GALLIFREY_MOSSY_COBBLESTONE,
+            GALLIFREY_SMOOTH_STONE,
+            GALLIFREY_SANDSTONE,
+            GALLIFREY_CUT_SANDSTONE,
+            GALLIFREY_CHISELED_SANDSTONE
+    );
+
+    /** Full Gallifrey stone-family set including terrain blocks. */
+    public static final List<Block> GALLIFREY_STONE_FAMILY = List.of(
+            GALLIFREY_STONE,
+            GALLIFREY_STONE_BRICKS,
+            CHISELED_GALLIFREY_STONE_BRICKS,
+            CRACKED_GALLIFREY_STONE_BRICKS,
+            MOSSY_GALLIFREY_STONE_BRICKS,
+            GALLIFREY_COBBLESTONE,
+            GALLIFREY_MOSSY_COBBLESTONE,
+            GALLIFREY_SMOOTH_STONE,
+            GALLIFREY_SANDSTONE,
+            GALLIFREY_CUT_SANDSTONE,
+            GALLIFREY_CHISELED_SANDSTONE,
+            GALLIFREY_SAND,
+            GALLIFREY_DIRT,
+            GALLIFREY_COARSE_DIRT
+    );
 
     public static void initialize() {
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) ->
@@ -253,6 +308,19 @@ public class DWMBlocks {
             content.add(GRAY_CHRONOPLASM_POWDER);
             content.add(PURPLE_CHRONOPLASM_POWDER);
             content.add(TEAL_CHRONOPLASM_POWDER);
+
+            for (Block block : GALLIFREY_STONE_BUILDING_BLOCKS) {
+                content.add(block);
+            }
+        });
+
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.NATURAL).register(content -> {
+            content.add(GALLIFREY_DIRT);
+            content.add(GALLIFREY_COARSE_DIRT);
+            content.add(GALLIFREY_SAND);
+            content.add(GALLIFREY_COBBLESTONE);
+            content.add(GALLIFREY_MOSSY_COBBLESTONE);
+            content.add(GALLIFREY_STONE);
         });
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(content -> {

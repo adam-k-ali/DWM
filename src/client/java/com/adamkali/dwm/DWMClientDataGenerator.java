@@ -1,5 +1,10 @@
 package com.adamkali.dwm;
 
+import com.adamkali.dwm.datagen.DWMBlockTagProvider;
+import com.adamkali.dwm.datagen.DWMItemTagProvider;
+import com.adamkali.dwm.datagen.DWMLanguageProvider;
+import com.adamkali.dwm.datagen.DWMModelProvider;
+import com.adamkali.dwm.datagen.DWMRecipeProvider;
 import com.adamkali.dwm.item.DWMItemTags;
 import com.adamkali.dwm.item.DWMItems;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
@@ -21,13 +26,21 @@ import net.minecraft.util.Identifier;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public class DWMDataGenerator implements DataGeneratorEntrypoint {
-
+/**
+ * Single datagen entrypoint (client source set) so model + data providers share one cache
+ * and do not delete each other's outputs.
+ */
+public class DWMClientDataGenerator implements DataGeneratorEntrypoint {
     @Override
     public void onInitializeDataGenerator(FabricDataGenerator generator) {
         FabricDataGenerator.Pack pack = generator.createPack();
 
         pack.addProvider(AdvancementsProvider::new);
+        pack.addProvider(DWMRecipeProvider::new);
+        pack.addProvider(DWMLanguageProvider::new);
+        DWMBlockTagProvider blockTagProvider = pack.addProvider(DWMBlockTagProvider::new);
+        pack.addProvider((output, registries) -> new DWMItemTagProvider(output, registries, blockTagProvider));
+        pack.addProvider(DWMModelProvider::new);
     }
 
     static class AdvancementsProvider extends FabricAdvancementProvider {
@@ -38,7 +51,7 @@ public class DWMDataGenerator implements DataGeneratorEntrypoint {
         @Override
         public void generateAdvancement(RegistryWrapper.WrapperLookup registries, Consumer<AdvancementEntry> consumer) {
             RegistryEntryLookup<Item> registryEntryLookup = registries.getOrThrow(RegistryKeys.ITEM);
-            AdvancementEntry rootAdvancement = Advancement.Builder.create()
+            Advancement.Builder.create()
                     .display(
                             DWMItems.SONIC_THIRD_DOCTOR,
                             Text.translatable("advancements.dwm.sonic_screwdriver"),
@@ -49,32 +62,8 @@ public class DWMDataGenerator implements DataGeneratorEntrypoint {
                             true,
                             false
                     )
-                    // The first string used in criterion is the name referenced by other advancements when they want to have 'requirements'
                     .criterion("sonic_screwdriver", InventoryChangedCriterion.Conditions.items(ItemPredicate.Builder.create().tag(registryEntryLookup, DWMItemTags.SONIC_SCREWDRIVERS)))
                     .build(consumer, DWMReference.MOD_ID + "/sonic_screwdriver");
-
         }
     }
-
-//    static InventoryChangedListCriterion extends AbstractCriterion<InventoryChangedCriterion.Conditions> {
-//        public InventoryChangedListCriterion(Identifier id) {
-//            super(id);
-//        }
-//
-//        public InventoryChangedListCriterion.Conditions conditions() {
-//            return new InventoryChangedListCriterion.Conditions(this);
-//        }
-//
-//        public static class Conditions extends AbstractCriterion.Conditions {
-//            public Conditions(InventoryChangedListCriterion criterion) {
-//                super(criterion);
-//            }
-//
-//            public static InventoryChangedListCriterion.Conditions items(ItemConvertible... items) {
-//                return new InventoryChangedListCriterion.Conditions(criterion, Arrays.stream(items).map(ItemConvertible::asItem).collect(Collectors.toList()));
-//            }
-//        }
-//    }
-
-
 }

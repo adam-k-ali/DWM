@@ -97,6 +97,7 @@ java {
 }
 
 jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from("LICENSE") {
         rename { "${it}_${project.base.archivesName.get()}" }
     }
@@ -126,6 +127,28 @@ fabricApi {
     }
 }
 
+// Fabric ModelProvider auto-emits item models for every BlockItem; existing families already
+// live under src/client/resources. Keep only Gallifrey (datagen-owned) item models in generated.
+tasks.register("pruneDatagenItemModels") {
+    group = "fabric"
+    description = "Remove generated item models that duplicate hand-maintained client assets"
+    doLast {
+        def itemsDir = file("src/main/generated/assets/dwm/items")
+        if (!itemsDir.directory) {
+            return
+        }
+        itemsDir.eachFile { f ->
+            if (f.name.contains("gallifrey")) {
+                return
+            }
+            f.delete()
+        }
+    }
+}
+
+tasks.named("runDatagen").configure {
+    finalizedBy("pruneDatagenItemModels")
+}
 
 test {
     useJUnitPlatform()

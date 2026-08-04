@@ -1,6 +1,8 @@
 package com.adamkali.dwm.block;
 
 import net.minecraft.block.AbstractBlock;
+import net.minecraft.block.MapColor;
+import net.minecraft.block.enums.NoteBlockInstrument;
 import net.minecraft.sound.BlockSoundGroup;
 
 public class DWMBlockSettings {
@@ -10,4 +12,27 @@ public class DWMBlockSettings {
     public static final AbstractBlock.Settings TARDIS_INTERIOR_DOOR = AbstractBlock.Settings.create().strength(-1.0F, 3600000.8F).nonOpaque();
     public static final AbstractBlock.Settings FIRST_DOCTOR_CONSOLE = AbstractBlock.Settings.create().strength(-1.0F, 3600000.8F).nonOpaque();
     public static final AbstractBlock.Settings BUTTON_SETTINGS = AbstractBlock.Settings.create().strength(0.5F).sounds(BlockSoundGroup.STONE).noCollision();
+
+    public static final AbstractBlock.Settings GALLIFREY_STONE = AbstractBlock.Settings.create()
+            .mapColor(MapColor.TERRACOTTA_ORANGE)
+            .instrument(NoteBlockInstrument.BASEDRUM)
+            .requiresTool()
+            .strength(1.5F, 6.0F);
+
+    public static final AbstractBlock.Settings GALLIFREY_SANDSTONE = AbstractBlock.Settings.create()
+            .mapColor(MapColor.TERRACOTTA_ORANGE)
+            .instrument(NoteBlockInstrument.BASEDRUM)
+            .requiresTool()
+            .strength(0.8F);
+
+    public static final AbstractBlock.Settings GALLIFREY_SAND = AbstractBlock.Settings.create()
+            .mapColor(MapColor.TERRACOTTA_ORANGE)
+            .instrument(NoteBlockInstrument.SNARE)
+            .strength(0.5F)
+            .sounds(BlockSoundGroup.SAND);
+
+    public static final AbstractBlock.Settings GALLIFREY_DIRT = AbstractBlock.Settings.create()
+            .mapColor(MapColor.TERRACOTTA_ORANGE)
+            .strength(0.5F)
+            .sounds(BlockSoundGroup.GRAVEL);
 }
