@@ -120,7 +120,8 @@ public class FirstDoctorConsoleBlock extends BlockWithEntity {
         Direction facing = state.get(FACING);
         boolean leverHit = FirstDoctorConsoleControls.isMaterialisationLeverLookHit(facing, pos, player);
         boolean biomeHit = FirstDoctorConsoleControls.isBiomeSelectorLookHit(facing, pos, player);
-        if (!leverHit && !biomeHit) {
+        boolean planetHit = FirstDoctorConsoleControls.isPlanetLocatorLookHit(facing, pos, player);
+        if (!leverHit && !biomeHit && !planetHit) {
             return ActionResult.PASS;
         }
 
@@ -135,13 +136,26 @@ public class FirstDoctorConsoleBlock extends BlockWithEntity {
 
         UUID tardisId = console.getTardisId();
         if (tardisId == null) {
-            player.sendMessage(Text.translatable(
-                    leverHit ? "dwm.console.travel_unavailable" : "dwm.console.biome_unavailable"), true);
+            String unavailableKey = leverHit
+                    ? "dwm.console.travel_unavailable"
+                    : planetHit && !biomeHit
+                    ? "dwm.console.dimension_unavailable"
+                    : "dwm.console.biome_unavailable";
+            player.sendMessage(Text.translatable(unavailableKey), true);
             return ActionResult.CONSUME;
         }
 
         if (leverHit) {
             return handleMaterialisationLever(world, pos, player, serverWorld, tardisId);
+        }
+        if (biomeHit && planetHit) {
+            if (FirstDoctorConsoleControls.preferBiomeOverPlanet(facing, pos, player)) {
+                return handleBiomeSelector(world, pos, player, serverWorld, tardisId);
+            }
+            return handlePlanetLocator(world, pos, player, serverWorld, tardisId);
+        }
+        if (planetHit) {
+            return handlePlanetLocator(world, pos, player, serverWorld, tardisId);
         }
         return handleBiomeSelector(world, pos, player, serverWorld, tardisId);
     }
@@ -213,6 +227,37 @@ public class FirstDoctorConsoleBlock extends BlockWithEntity {
 
         Text biomeName = Text.translatable(selected.get().toTranslationKey("biome"));
         player.sendMessage(Text.translatable("dwm.console.biome_selected", biomeName), true);
+        world.playSound(
+                null,
+                pos,
+                SoundEvents.UI_BUTTON_CLICK.value(),
+                SoundCategory.BLOCKS,
+                0.4F,
+                1.0F
+        );
+        return ActionResult.SUCCESS;
+    }
+
+    private static ActionResult handlePlanetLocator(
+            World world,
+            BlockPos pos,
+            PlayerEntity player,
+            ServerWorld serverWorld,
+            UUID tardisId
+    ) {
+        if (TardisTravelService.isTraveling(tardisId)) {
+            player.sendMessage(Text.translatable("dwm.console.travel_in_flight"), true);
+            return ActionResult.CONSUME;
+        }
+
+        Optional<Identifier> selected = TardisLogic.cycleSelectedDimension(tardisId, serverWorld.getServer());
+        if (selected.isEmpty()) {
+            player.sendMessage(Text.translatable("dwm.console.dimension_unavailable"), true);
+            return ActionResult.CONSUME;
+        }
+
+        Text dimensionName = Text.translatable(selected.get().toTranslationKey("dimension"));
+        player.sendMessage(Text.translatable("dwm.console.dimension_selected", dimensionName), true);
         world.playSound(
                 null,
                 pos,

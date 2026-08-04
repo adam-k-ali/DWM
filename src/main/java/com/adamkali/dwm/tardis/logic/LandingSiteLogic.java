@@ -110,6 +110,26 @@ public final class LandingSiteLogic {
     }
 
     /**
+     * Surface landing near {@code searchOrigin} without biome filtering (untagged / modded dims).
+     */
+    public static Optional<BlockPos> findSurfaceLanding(ServerWorld world, BlockPos searchOrigin) {
+        if (world == null || searchOrigin == null) {
+            return Optional.empty();
+        }
+        world.getChunk(searchOrigin);
+        int topY = world.getTopY(
+                Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                searchOrigin.getX(),
+                searchOrigin.getZ()
+        );
+        BlockPos landing = new BlockPos(searchOrigin.getX(), topY, searchOrigin.getZ());
+        if (isValidLanding(world, landing)) {
+            return Optional.of(landing);
+        }
+        return findNearbyValidLanding(world, searchOrigin.getX(), searchOrigin.getZ());
+    }
+
+    /**
      * Shell needs a solid floor under {@code pos} and replaceable space at {@code pos} and above.
      */
     public static boolean isValidLanding(WorldView world, BlockPos pos) {

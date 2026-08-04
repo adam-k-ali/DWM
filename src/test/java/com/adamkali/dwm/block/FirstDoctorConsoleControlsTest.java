@@ -106,4 +106,50 @@ class FirstDoctorConsoleControlsTest {
         double dz = selector.getCenter().z - lever.getCenter().z;
         assertTrue(Math.hypot(dx, dz) > 0.3, "Panel3 and Panel6 controls should not share the same center");
     }
+
+    @Test
+    void planetLocatorBox_sitsBesideBiomeSelectorOnPanel3() {
+        Box biome = FirstDoctorConsoleControls.biomeSelectorBox(Direction.NORTH);
+        Box planet = FirstDoctorConsoleControls.planetLocatorBox(Direction.NORTH);
+        assertTrue(planet.minY > 0.5, "planet locator should sit on panel deck, was minY=" + planet.minY);
+        assertTrue(
+                FirstDoctorConsoleControls.planetLocatorDistanceFromCenter(Direction.NORTH) > 0.45,
+                "planet locator should be out on Panel3 deck"
+        );
+        double dx = biome.getCenter().x - planet.getCenter().x;
+        double dz = biome.getCenter().z - planet.getCenter().z;
+        assertTrue(Math.hypot(dx, dz) > 0.15, "biome and planet dials should not share the same center");
+        // Pads make AABBs slightly generous; centers must still be distinct enough to aim.
+    }
+
+    @Test
+    void lookRay_hitsPlanetLocatorFromAbove() {
+        Direction facing = Direction.NORTH;
+        BlockPos pos = BlockPos.ORIGIN;
+        Box box = FirstDoctorConsoleControls.planetLocatorWorldBox(pos, facing);
+        Vec3d center = box.getCenter();
+        Vec3d eye = new Vec3d(center.x, center.y + 1.5, center.z);
+        Vec3d look = new Vec3d(0, -1, 0);
+        assertTrue(FirstDoctorConsoleControls.isPlanetLocatorLookHit(facing, pos, eye, look, 5.0));
+
+        Vec3d missEye = new Vec3d(-2.0, 2.0, -2.0);
+        Vec3d missLook = new Vec3d(0, -1, 0);
+        assertFalse(FirstDoctorConsoleControls.isPlanetLocatorLookHit(facing, pos, missEye, missLook, 5.0));
+    }
+
+    @Test
+    void preferBiomeOverPlanet_picksCloserDial() {
+        Direction facing = Direction.NORTH;
+        BlockPos pos = BlockPos.ORIGIN;
+        Box biome = FirstDoctorConsoleControls.biomeSelectorWorldBox(pos, facing);
+        Vec3d biomeCenter = biome.getCenter();
+        Vec3d eye = new Vec3d(biomeCenter.x, biomeCenter.y + 1.5, biomeCenter.z);
+        Vec3d look = new Vec3d(0, -1, 0);
+        assertTrue(FirstDoctorConsoleControls.preferBiomeOverPlanet(facing, pos, eye, look, 5.0));
+
+        Box planet = FirstDoctorConsoleControls.planetLocatorWorldBox(pos, facing);
+        Vec3d planetCenter = planet.getCenter();
+        Vec3d planetEye = new Vec3d(planetCenter.x, planetCenter.y + 1.5, planetCenter.z);
+        assertFalse(FirstDoctorConsoleControls.preferBiomeOverPlanet(facing, pos, planetEye, look, 5.0));
+    }
 }

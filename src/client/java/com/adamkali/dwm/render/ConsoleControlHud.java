@@ -44,10 +44,20 @@ public final class ConsoleControlHud {
         Text label;
         if (FirstDoctorConsoleControls.isMaterialisationLeverLookHit(facing, pos, client.player)) {
             label = Text.translatable("dwm.console.materialisation_lever");
-        } else if (FirstDoctorConsoleControls.isBiomeSelectorLookHit(facing, pos, client.player)) {
-            label = Text.translatable("dwm.console.biome_selector");
         } else {
-            return;
+            boolean biomeHit = FirstDoctorConsoleControls.isBiomeSelectorLookHit(facing, pos, client.player);
+            boolean planetHit = FirstDoctorConsoleControls.isPlanetLocatorLookHit(facing, pos, client.player);
+            if (biomeHit && planetHit) {
+                label = FirstDoctorConsoleControls.preferBiomeOverPlanet(facing, pos, client.player)
+                        ? Text.translatable("dwm.console.biome_selector")
+                        : Text.translatable("dwm.console.planet_locator");
+            } else if (planetHit) {
+                label = Text.translatable("dwm.console.planet_locator");
+            } else if (biomeHit) {
+                label = Text.translatable("dwm.console.biome_selector");
+            } else {
+                return;
+            }
         }
 
         int textWidth = client.textRenderer.getWidth(label);

@@ -53,7 +53,7 @@ public final class TardisTravelService {
     }
 
     /**
-     * Begins travel for {@code tardisId} toward its current {@code selectedBiome}.
+     * Begins travel for {@code tardisId} toward its selected destination dimension and biome.
      *
      * @return {@link ActionResult#SUCCESS} when travel started,
      * {@link ActionResult#FAIL} when preconditions fail,
@@ -76,11 +76,23 @@ public final class TardisTravelService {
         if (!model.hasExteriorLocation || model.exteriorDimension == null) {
             return ActionResult.FAIL;
         }
-        if (model.selectedBiome == null || model.selectedBiome.isBlank()) {
+
+        String destinationDimension = TardisLogic.effectiveDestinationDimension(model);
+        if (destinationDimension == null || destinationDimension.isBlank()) {
             return ActionResult.FAIL;
         }
-        if (LandingSiteLogic.parseBiome(model.selectedBiome).isEmpty()) {
+        if (getWorld(server, destinationDimension) == null) {
             return ActionResult.FAIL;
+        }
+
+        boolean requiresBiome = BiomeSelectorLogic.tagForDimension(destinationDimension).isPresent();
+        if (requiresBiome) {
+            if (model.selectedBiome == null || model.selectedBiome.isBlank()) {
+                return ActionResult.FAIL;
+            }
+            if (LandingSiteLogic.parseBiome(model.selectedBiome).isEmpty()) {
+                return ActionResult.FAIL;
+            }
         }
 
         ServerWorld exteriorWorld = getExteriorWorld(server, model);
@@ -92,6 +104,7 @@ public final class TardisTravelService {
             return ActionResult.FAIL;
         }
 
+        model.travelDestinationDimension = destinationDimension;
         model.travelDestinationBiome = model.selectedBiome;
         model.travelPhaseTicks = 0;
         model.setTravelPhase(TardisTravelPhase.DEMATERIALISING);
@@ -126,19 +139,19 @@ public final class TardisTravelService {
             return ActionResult.FAIL;
         }
 
-        ServerWorld exteriorWorld = getExteriorWorld(server, model);
         ShellSnapshot snapshot = FLIGHT_SHELLS.get(tardisId);
-        if (exteriorWorld == null || snapshot == null) {
+        ServerWorld destinationWorld = getDestinationWorld(server, model);
+        if (destinationWorld == null || snapshot == null) {
             abortToIdle(server, tardisId, model);
             return ActionResult.FAIL;
         }
 
         BlockPos oldPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
-        BlockPos landing = resolveLanding(exteriorWorld, model, oldPos).orElse(oldPos);
+        BlockPos landing = resolveLanding(destinationWorld, model, oldPos).orElse(oldPos);
 
-        placeShell(exteriorWorld, landing, snapshot);
+        placeShell(destinationWorld, landing, snapshot);
         model.setExteriorLocation(
-                exteriorWorld.getRegistryKey().getValue().toString(),
+                destinationWorld.getRegistryKey().getValue().toString(),
                 landing.getX(),
                 landing.getY(),
                 landing.getZ(),
@@ -155,7 +168,7 @@ public final class TardisTravelService {
         FLIGHT_SHELLS.remove(tardisId);
         SHELL_REMOVED.remove(tardisId);
         ACTIVE.add(tardisId);
-        TardisTravelAudio.startMat(server, tardisId, exteriorWorld, landing);
+        TardisTravelAudio.startMat(server, tardisId, destinationWorld, landing);
         return ActionResult.SUCCESS;
     }
 
@@ -207,6 +220,7 @@ public final class TardisTravelService {
             }
         }
         model.travelDestinationBiome = null;
+        model.travelDestinationDimension = null;
         model.travelPhaseTicks = 0;
         model.setTravelPhase(TardisTravelPhase.IDLE);
         return true;
@@ -360,10 +374,13 @@ public final class TardisTravelService {
             BlockPos searchOrigin
     ) {
         Optional<RegistryKey<Biome>> biome = LandingSiteLogic.parseBiome(model.travelDestinationBiome);
-        if (biome.isEmpty()) {
-            return Optional.empty();
+        if (biome.isPresent()) {
+            Optional<BlockPos> landing = LandingSiteLogic.findLanding(world, biome.get(), searchOrigin);
+            if (landing.isPresent()) {
+                return landing;
+            }
         }
-        return LandingSiteLogic.findLanding(world, biome.get(), searchOrigin);
+        return LandingSiteLogic.findSurfaceLanding(world, searchOrigin);
     }
 
     private static void abortToIdle(MinecraftServer server, UUID tardisId, TardisDataModel model) {
@@ -382,6 +399,7 @@ public final class TardisTravelService {
             }
         }
         model.travelDestinationBiome = null;
+        model.travelDestinationDimension = null;
         model.travelPhaseTicks = 0;
         model.setTravelPhase(TardisTravelPhase.IDLE);
         ACTIVE.remove(tardisId);
@@ -398,10 +416,22 @@ public final class TardisTravelService {
     }
 
     private static @Nullable ServerWorld getExteriorWorld(MinecraftServer server, TardisDataModel model) {
-        if (model.exteriorDimension == null) {
+        return getWorld(server, model.exteriorDimension);
+    }
+
+    private static @Nullable ServerWorld getDestinationWorld(MinecraftServer server, TardisDataModel model) {
+        String destination = model.travelDestinationDimension;
+        if (destination == null || destination.isBlank()) {
+            destination = TardisLogic.effectiveDestinationDimension(model);
+        }
+        return getWorld(server, destination);
+    }
+
+    private static @Nullable ServerWorld getWorld(MinecraftServer server, @Nullable String dimensionId) {
+        if (dimensionId == null || dimensionId.isBlank()) {
             return null;
         }
-        Identifier id = Identifier.tryParse(model.exteriorDimension);
+        Identifier id = Identifier.tryParse(dimensionId);
         if (id == null) {
             return null;
         }

@@ -156,6 +156,7 @@ class TardisTravelServiceTest {
         model.setTravelPhase(TardisTravelPhase.MATERIALISING);
         model.travelPhaseTicks = 2;
         model.travelDestinationBiome = "minecraft:plains";
+        model.travelDestinationDimension = "minecraft:the_nether";
 
         assertFalse(TardisTravelService.advanceMaterialisingHold(model));
         assertEquals(1, model.travelPhaseTicks);
@@ -165,6 +166,7 @@ class TardisTravelServiceTest {
         assertEquals(0, model.travelPhaseTicks);
         assertEquals(TardisTravelPhase.IDLE, model.getTravelPhase());
         assertNull(model.travelDestinationBiome);
+        assertNull(model.travelDestinationDimension);
     }
 
     @Test

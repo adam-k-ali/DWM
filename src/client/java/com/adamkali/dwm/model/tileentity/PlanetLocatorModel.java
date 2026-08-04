@@ -7,15 +7,15 @@ import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.util.Identifier;
 
 /**
- * Biome-selector dial on Panel3. Geometry lives in {@link ConsoleSelectorModel}.
+ * Planet-locator dial on Panel3. Geometry lives in {@link ConsoleSelectorModel}.
  */
-public class BiomeSelectorModel extends ConsoleSelectorModel {
+public class PlanetLocatorModel extends ConsoleSelectorModel {
     public static final EntityModelLayer LAYER_LOCATION =
-            new EntityModelLayer(Identifier.of(DWMReference.MOD_ID, "biome_selector"), "main");
+            new EntityModelLayer(Identifier.of(DWMReference.MOD_ID, "planet_locator"), "main");
     public static final Identifier TEXTURE_LOCATION =
-            Identifier.of(DWMReference.MOD_ID, "textures/entity/biome_selector.png");
+            Identifier.of(DWMReference.MOD_ID, "textures/entity/planet_locator.png");
 
-    public BiomeSelectorModel(ModelPart root) {
+    public PlanetLocatorModel(ModelPart root) {
         super(root);
     }
 
