@@ -24,6 +24,11 @@ jobs:
       _JAVA_OPTIONS: -Xmx3200m
       GRADLE_OPTS: -Dorg.gradle.daemon=false
     steps:
+      # cimg/openjdk:21.x has occasionally shipped non-git files under ~/project,
+      # which makes CircleCI's checkout step fail with "not empty and not a git repository".
+      - run:
+          name: Clear workspace for checkout
+          command: rm -rf /home/circleci/project
       - checkout
       - run:
           name: Run Gradle Command
