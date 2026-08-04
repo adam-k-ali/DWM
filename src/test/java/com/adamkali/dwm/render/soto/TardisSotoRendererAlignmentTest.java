@@ -207,4 +207,27 @@ class TardisSotoRendererAlignmentTest {
         Matrix4f matrix = matrices.peek().getPositionMatrix();
         return matrix.transformPosition(x, y, z, new Vector3f());
     }
+
+    @Test
+    void lookoutStableView_preservesWorldUp() {
+        MatrixStack matrices = new MatrixStack();
+        TardisSotoRenderer.applyExteriorAlignment(matrices, SOTO_APERTURE, FIRST_DOCTOR_APERTURE);
+        TardisSotoRenderer.applyDoorFacingCorrection(matrices, 0);
+        TardisSotoRenderer.applyLookoutStableView(matrices);
+
+        Matrix4f matrix = matrices.peek().getPositionMatrix();
+        Vector3f hitch = matrix.transformPosition(
+                (float) TardisSotoRenderer.EXTERIOR_DOOR_CENTER_X,
+                (float) TardisSotoRenderer.EXTERIOR_DOOR_CENTER_Y,
+                (float) TardisSotoRenderer.EXTERIOR_DOOR_PLANE_Z,
+                new Vector3f()
+        );
+        Vector3f above = matrix.transformPosition(
+                (float) TardisSotoRenderer.EXTERIOR_DOOR_CENTER_X,
+                (float) TardisSotoRenderer.EXTERIOR_DOOR_CENTER_Y + 1.0f,
+                (float) TardisSotoRenderer.EXTERIOR_DOOR_PLANE_Z,
+                new Vector3f()
+        );
+        assertTrue(above.y > hitch.y, "world-up should map to +Y after stable view, dy=" + (above.y - hitch.y));
+    }
 }

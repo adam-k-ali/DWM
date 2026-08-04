@@ -25,7 +25,6 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.RotationPropertyHelper;
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
@@ -219,11 +218,14 @@ public final class TardisSotoRenderer {
         }
         float uMin = 0.5f - cropU * 0.5f;
         float uMax = 0.5f + cropU * 0.5f;
-        // OpenGL color attachment: V=0 at bottom. Aperture y0 is the bottom edge.
+        // Minecraft framebuffer color textures sample with V=0 at the top of the image
+        // (opposite raw GL). Door bottom (y0) must sample high V so ground stays at the
+        // threshold; y1 samples low V for sky.
         float vMin = 0.5f - cropV * 0.5f;
         float vMax = 0.5f + cropV * 0.5f;
         float[] us = {uMin, uMin, uMax, uMax};
-        float[] vs = {vMin, vMax, vMax, vMin};
+        // y0,y1,y1,y0 → vMax,vMin,vMin,vMax (V flipped vs OpenGL bottom-origin)
+        float[] vs = {vMax, vMin, vMin, vMax};
 
         boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
         boolean stencilWasEnabled = GL11.glIsEnabled(GL11.GL_STENCIL_TEST);
@@ -318,6 +320,10 @@ public final class TardisSotoRenderer {
      * Player-relative depths ({@code |hitch|} or door-plane distance) dolly when strafing or
      * looking from an oblique angle. Instead: view from the hitch looking outward, then place
      * the hitch at a constant distance along camera forward so FOV stays stable.
+     * <p>
+     * Must use an explicit up vector (lookAt), not {@code rotationTo(outward, -Z)} alone:
+     * {@link #applyExteriorAlignment} includes a Y flip for BER X-180, and a pure
+     * direction-to-direction rotation preserves that flip as an inverted roll.
      */
     static void applyLookoutStableView(MatrixStack matrices) {
         Matrix4f m = matrices.peek().getPositionMatrix();
@@ -333,20 +339,38 @@ public final class TardisSotoRenderer {
                 (float) (EXTERIOR_DOOR_PLANE_Z - 1.0),
                 new Vector3f()
         );
+        Vector3f upPoint = m.transformPosition(
+                (float) EXTERIOR_DOOR_CENTER_X,
+                (float) EXTERIOR_DOOR_CENTER_Y + 1.0f,
+                (float) EXTERIOR_DOOR_PLANE_Z,
+                new Vector3f()
+        );
         Vector3f outward = outwardPoint.sub(hitch, new Vector3f());
         if (outward.lengthSquared() < 1e-8f) {
             return;
         }
         outward.normalize();
+        Vector3f up = upPoint.sub(hitch, new Vector3f());
+        if (up.lengthSquared() < 1e-8f) {
+            up.set(0.0f, 1.0f, 0.0f);
+        }
 
+        Matrix4f look = new Matrix4f().lookAt(
+                hitch.x,
+                hitch.y,
+                hitch.z,
+                hitch.x + outward.x,
+                hitch.y + outward.y,
+                hitch.z + outward.z,
+                up.x,
+                up.y,
+                up.z
+        );
         Matrix4f mv = matrices.peek().getPositionMatrix();
-        // 1) Eye at hitch.
-        mv.mulLocal(new Matrix4f().translation(-hitch.x, -hitch.y, -hitch.z));
-        // 2) Look straight out the doors (camera forward is −Z).
-        Quaternionf turn = new Quaternionf().rotationTo(outward, new Vector3f(0.0f, 0.0f, -1.0f));
-        mv.mulLocal(new Matrix4f().rotation(turn));
-        // 3) Fixed FOV: hitch at constant depth (not player-relative).
-        mv.mulLocal(new Matrix4f().translation(0.0f, 0.0f, -LOOKOUT_VIEW_DEPTH));
+        mv.set(new Matrix4f()
+                .translation(0.0f, 0.0f, -LOOKOUT_VIEW_DEPTH)
+                .mul(look)
+                .mul(m));
     }
 
     private static void writeStencilMask(MatrixStack matrices, TardisSotoAperture aperture) {
