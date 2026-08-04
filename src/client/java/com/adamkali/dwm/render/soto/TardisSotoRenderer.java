@@ -50,7 +50,7 @@ public final class TardisSotoRenderer {
      * Matches the classic chameleon BOTI aperture mid-height (~0.75 would be exact center);
      * kept slightly lower so the look-out sits nearer the threshold than mid-door.
      */
-    public static final double PREVIEW_EYE_HEIGHT = 0.5;
+    public static final double PREVIEW_EYE_HEIGHT = 0.75;
 
     /**
      * Exterior door opening center in footprint-relative coords
