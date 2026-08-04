@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render.soto.portal;
 
+import com.adamkali.dwm.render.soto.TardisSotoRenderer;
 import com.adamkali.dwm.tardis.TardisExteriorFacing;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
 import net.minecraft.client.render.Camera;
@@ -18,7 +19,6 @@ import java.util.Objects;
  * dolly or pan the exterior view; the aperture composite only reveals that fixed render.
  */
 public final class SotoPortalCameraTransform {
-    private static final double EXTERIOR_HITCH_OFFSET = 1.0;
 
     private SotoPortalCameraTransform() {
     }
@@ -87,9 +87,9 @@ public final class SotoPortalCameraTransform {
     private static Vec3d destinationDoorCenter(BlockPos relativeTardisPos, Vec3d exteriorOutward) {
         return new Vec3d(
                 relativeTardisPos.getX() + 0.5,
-                relativeTardisPos.getY() + 1.0,
+                relativeTardisPos.getY() + TardisSotoRenderer.PREVIEW_EYE_HEIGHT,
                 relativeTardisPos.getZ() + 0.5
-        ).add(exteriorOutward.multiply(0.5 + EXTERIOR_HITCH_OFFSET));
+        ).add(exteriorOutward.multiply(0.5 + TardisSotoRenderer.PREVIEW_FORWARD_OFFSET));
     }
 
     private static float yawFromDirection(Vec3d direction) {

@@ -44,7 +44,14 @@ public final class TardisSotoRenderer {
      * Blocks past the TARDIS door face for the SOTO look-out hitch plane.
      * Keeps the preview origin just in front of the shell instead of at the door face / shell body.
      */
-    static final double PREVIEW_FORWARD_OFFSET = 1.0;
+    public static final double PREVIEW_FORWARD_OFFSET = 0.5;
+
+    /**
+     * Eye height above the TARDIS block base for the exterior hitch.
+     * Matches the classic chameleon BOTI aperture mid-height (~0.75 would be exact center);
+     * kept slightly lower so the look-out sits nearer the threshold than mid-door.
+     */
+    public static final double PREVIEW_EYE_HEIGHT = 0.5;
 
     /**
      * Exterior door opening center in footprint-relative coords
@@ -53,7 +60,8 @@ public final class TardisSotoRenderer {
      * ({@code doorFaceZ - PREVIEW_FORWARD_OFFSET}), not the block center.
      */
     static final double EXTERIOR_DOOR_CENTER_X = SotoExteriorSampler.RELATIVE_TARDIS_POS.getX() + 0.5;
-    static final double EXTERIOR_DOOR_CENTER_Y = SotoExteriorSampler.RELATIVE_TARDIS_POS.getY() + 1.0;
+    static final double EXTERIOR_DOOR_CENTER_Y =
+            SotoExteriorSampler.RELATIVE_TARDIS_POS.getY() + PREVIEW_EYE_HEIGHT;
     static final double EXTERIOR_DOOR_PLANE_Z =
             SotoExteriorSampler.RELATIVE_TARDIS_POS.getZ() + 0.0 - PREVIEW_FORWARD_OFFSET;
 
@@ -299,8 +307,10 @@ public final class TardisSotoRenderer {
     /**
      * Fixed eye distance in front of the hitch after stable-view reprojection.
      * Must not depend on player↔door distance (that dollys when strafing / glancing).
+     * Kept near {@link #PREVIEW_FORWARD_OFFSET} so the fallback eye stays at the door face
+     * rather than pulling back into the shell body.
      */
-    static final float LOOKOUT_VIEW_DEPTH = 1.0f;
+    static final float LOOKOUT_VIEW_DEPTH = 0.25f;
 
     /**
      * Freezes the exterior lookout at the hitch with a fixed view depth.

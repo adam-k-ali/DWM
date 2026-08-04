@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render.soto.portal;
 
+import com.adamkali.dwm.render.soto.TardisSotoRenderer;
 import com.adamkali.dwm.tardis.TardisExteriorFacing;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
 import net.minecraft.util.math.BlockPos;
@@ -130,8 +131,11 @@ class SotoPortalCameraTransformTest {
 
     private static Vec3d destinationCenter(Vec3d exteriorOutward) {
         BlockPos relative = SotoExteriorSampler.RELATIVE_TARDIS_POS;
-        return new Vec3d(relative.getX() + 0.5, relative.getY() + 1.0, relative.getZ() + 0.5)
-                .add(exteriorOutward.multiply(1.5));
+        return new Vec3d(
+                relative.getX() + 0.5,
+                relative.getY() + TardisSotoRenderer.PREVIEW_EYE_HEIGHT,
+                relative.getZ() + 0.5
+        ).add(exteriorOutward.multiply(0.5 + TardisSotoRenderer.PREVIEW_FORWARD_OFFSET));
     }
 
     private static float yawFor(Direction direction) {
