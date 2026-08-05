@@ -76,9 +76,127 @@ dependencies {
 
 processResources {
     inputs.property "version", project.version
+    inputs.property "minecraft_version", project.minecraft_version
 
     filesMatching("fabric.mod.json") {
         expand "version": project.version
+    }
+    filesMatching("dwm-version.properties") {
+        expand version: project.version,
+                minecraft_version: project.minecraft_version
+    }
+}
+
+def versionJsonFile = file("version.json")
+
+/**
+ * Rewrites version.json promos from gradle.properties and stubs an empty changelog
+ * section for the current mod_version when missing. Changelog bullets stay hand-written.
+ * Run after bumping mod_version / minecraft_version: ./gradlew syncVersionJson
+ */
+tasks.register("syncVersionJson") {
+    group = "versioning"
+    description = "Sync version.json promos (and stub changelog) from gradle.properties"
+    doLast {
+        def root = new groovy.json.JsonSlurper().parse(versionJsonFile) as Map
+        def mc = project.minecraft_version as String
+        def mv = project.mod_version as String
+        def expected = "${mc}-${mv}"
+        def changed = false
+
+        if (!root.containsKey(mc) || !(root[mc] instanceof Map)) {
+            def reordered = new LinkedHashMap()
+            root.each { k, v ->
+                if (k != "promos") {
+                    reordered[k] = v
+                }
+            }
+            reordered[mc] = new LinkedHashMap()
+            if (root.promos != null) {
+                reordered.promos = root.promos
+            } else {
+                reordered.promos = new LinkedHashMap()
+            }
+            root = reordered
+            changed = true
+        }
+
+        def mcMap = root[mc] as Map
+        if (!mcMap.containsKey(mv)) {
+            def stub = [added: [], changed: [], removed: []] as LinkedHashMap
+            def reorderedMc = new LinkedHashMap()
+            reorderedMc[mv] = stub
+            mcMap.each { k, v -> reorderedMc[k] = v }
+            root[mc] = reorderedMc
+            changed = true
+            logger.lifecycle("Stubbed empty changelog for ${mc}/${mv} in version.json")
+        }
+
+        if (!(root.promos instanceof Map)) {
+            root.promos = new LinkedHashMap()
+            changed = true
+        }
+        def promos = root.promos as Map
+        if (promos.latest != expected) {
+            promos.latest = expected
+            changed = true
+        }
+        if (promos.recommended != expected) {
+            promos.recommended = expected
+            changed = true
+        }
+
+        if (changed) {
+            versionJsonFile.text = project.prettyPrintJsonTwoSpace(root) + "\n"
+            logger.lifecycle("Updated version.json promos to ${expected}")
+        } else {
+            logger.lifecycle("version.json already in sync with gradle.properties (${expected})")
+        }
+    }
+}
+
+/**
+ * Fails when version.json promos or the current changelog entry do not match
+ * minecraft_version / mod_version from gradle.properties.
+ */
+tasks.register("checkVersionSync") {
+    group = "verification"
+    description = "Fail if version.json is out of sync with gradle.properties"
+    doLast {
+        if (!versionJsonFile.exists()) {
+            throw new GradleException("Missing version.json")
+        }
+        def root = new groovy.json.JsonSlurper().parse(versionJsonFile) as Map
+        def mc = project.minecraft_version as String
+        def mv = project.mod_version as String
+        def expected = "${mc}-${mv}"
+
+        if (!(root[mc] instanceof Map) || !((root[mc] as Map).containsKey(mv))) {
+            throw new GradleException(
+                    "version.json is missing changelog for ${mc}/${mv}. " +
+                            "Run ./gradlew syncVersionJson and fill in added/changed/removed."
+            )
+        }
+        def promos = root.promos instanceof Map ? root.promos as Map : null
+        if (promos == null || promos.latest != expected || promos.recommended != expected) {
+            throw new GradleException(
+                    "version.json promos out of sync with gradle.properties. " +
+                            "Expected latest/recommended=${expected}, " +
+                            "found latest=${promos?.latest}, recommended=${promos?.recommended}. " +
+                            "Run ./gradlew syncVersionJson."
+            )
+        }
+    }
+}
+
+tasks.named("check").configure {
+    dependsOn("checkVersionSync")
+}
+
+ext.prettyPrintJsonTwoSpace = { Object data ->
+    def pretty = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(data))
+    return pretty.replaceAll(/(?m)^(    )+/) { String indent ->
+        "  " * (indent.length() / 4)
     }
 }
 
