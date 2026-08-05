@@ -147,7 +147,7 @@ tasks.register("syncVersionJson") {
         }
 
         if (changed) {
-            versionJsonFile.text = prettyPrintJsonTwoSpace(root) + "\n"
+            versionJsonFile.text = project.prettyPrintJsonTwoSpace(root) + "\n"
             logger.lifecycle("Updated version.json promos to ${expected}")
         } else {
             logger.lifecycle("version.json already in sync with gradle.properties (${expected})")
