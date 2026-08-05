@@ -17,6 +17,9 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 - [Branding Guidelines](./branding-guidelines.md)
 - [Differentiation Strategy](./differentiation-strategy.md)
 
+## Releases
+- [Release Policy](./release-policy.md) (cadence, versioning, Modrinth + Discord checklist, CI)
+
 ## Scope Notes
 - These docs describe behavior currently implemented in this repository.
 - Experimental and partially implemented surfaces are explicitly labeled.
