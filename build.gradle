@@ -81,10 +81,6 @@ processResources {
     filesMatching("fabric.mod.json") {
         expand "version": project.version
     }
-    filesMatching("dwm-version.properties") {
-        expand version: project.version,
-                minecraft_version: project.minecraft_version
-    }
 }
 
 def versionJsonFile = file("version.json")

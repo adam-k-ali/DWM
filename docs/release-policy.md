@@ -24,8 +24,7 @@ Example: `v1.21.4-1.2.0` → Minecraft `1.21.4`, mod `1.2.0`.
 | --- | --- |
 | `minecraft_version` | [`gradle.properties`](../gradle.properties) |
 | `mod_version` | [`gradle.properties`](../gradle.properties) (SemVer piece only) |
-| Packaged install id | Built into `dwm-version.properties` / [`DWMVersion.MOD_VERSION`](../src/main/java/com/adamkali/dwm/DWMVersion.java) at build time |
-| Player changelog + promos | [`version.json`](../version.json) (uploaded to S3 on release) |
+| Player changelog + promos | [`version.json`](../version.json) (source for GitHub Release notes) |
 
 ### SemVer meaning for `mod_version`
 
@@ -68,11 +67,11 @@ Ship a patch immediately for:
 ### Between releases
 
 - Keep `mod_version` and `version.json` promos on the **last published** release until you intentionally cut the next one.
-- Do not bump promos on routine `main` merges; the release workflow publishes `version.json` to S3 only on version tags.
+- Do not bump promos on routine `main` merges; the release workflow publishes a GitHub Release only on version tags.
 
 ## Source of truth
 
-- **[`version.json`](../version.json)** is the only release-notes and promo channel (S3 + in-game update check).
+- **[`version.json`](../version.json)** is the only release-notes and promo channel (GitHub Release body).
 - Do not maintain a separate changelog file; dual ledgers drift.
 
 ## Distribution checklist
@@ -83,17 +82,9 @@ Ship a patch immediately for:
 4. Commit, merge to `main`, tag `v{minecraft_version}-{mod_version}`, and push the tag.
 5. Confirm the **Release** GitHub Actions workflow succeeds:
    - GitHub Release with remapped JAR (+ sources JAR)
-   - `version.json` uploaded to `s3://modding/dwm/version.json`
+   - Release notes generated from `version.json`
 6. Upload the remapped JAR from the GitHub Release to **Modrinth** (correct Minecraft + Fabric loaders).
 7. Post in Discord **`#releases`**: short summary of shipped behavior + Modrinth link.
-
-### CI secrets / variables (ops)
-
-| Name | Where | Purpose |
-| --- | --- | --- |
-| `AWS_ROLE_ARN` | GitHub Actions secret (or variable) | OIDC role trusted for this repo; used by the release workflow to upload `version.json` to S3 (`eu-west-1`) |
-
-The role must trust GitHub’s OIDC provider for `repo:adam-k-ali/DWM` (or the current canonical repo) and allow `s3:PutObject` (and related) on `s3://modding/dwm/version.json`.
 
 Modrinth upload and the Discord `#releases` post remain **manual** in this policy. Automating them (Modrinth token / Discord webhook) is a follow-up.
 
@@ -102,6 +93,6 @@ Modrinth upload and the Discord `#releases` post remain **manual** in this polic
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `pull_request`, push to `main` | `./gradlew build` (compile + unit tests + version sync check) |
-| [`.github/workflows/release.yml`](../.github/workflows/release.yml) | push of tags `v*` | Build, publish GitHub Release artifacts, upload `version.json` to S3 |
+| [`.github/workflows/release.yml`](../.github/workflows/release.yml) | push of tags `v*` | Build, publish GitHub Release artifacts and notes from `version.json` |
 
 CircleCI is retired; do not add draft GitHub releases on every `main` merge.
