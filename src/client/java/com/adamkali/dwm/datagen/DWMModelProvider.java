@@ -61,6 +61,11 @@ public class DWMModelProvider extends FabricModelProvider {
                 BlockStateModelGenerator.CrossType.NOT_TINTED
         );
         blockStateModelGenerator.registerCubeAllModelTexturePool(DWMBlocks.ASH_PLANKS).family(ASH_FAMILY);
+        blockStateModelGenerator.registerHangingSign(
+                DWMBlocks.STRIPPED_ASH_LOG,
+                DWMBlocks.ASH_HANGING_SIGN,
+                DWMBlocks.ASH_WALL_HANGING_SIGN
+        );
     }
 
     @Override

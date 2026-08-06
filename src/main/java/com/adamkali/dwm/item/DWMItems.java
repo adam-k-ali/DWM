@@ -5,6 +5,7 @@ import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.entity.DWMEntityTypes;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.BoatItem;
+import net.minecraft.item.HangingSignItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.item.SignItem;
@@ -33,6 +34,7 @@ public class DWMItems {
             "sonic_fifth_doctor");
 
     public static Item ASH_SIGN;
+    public static Item ASH_HANGING_SIGN;
     public static Item ASH_BOAT;
 
     public static void initialize() {
@@ -40,6 +42,12 @@ public class DWMItems {
                 settings -> new SignItem(DWMBlocks.ASH_SIGN, DWMBlocks.ASH_WALL_SIGN, settings),
                 new Item.Settings().maxCount(16),
                 "ash_sign"
+        );
+        ASH_HANGING_SIGN = register(
+                settings -> new HangingSignItem(
+                        DWMBlocks.ASH_HANGING_SIGN, DWMBlocks.ASH_WALL_HANGING_SIGN, settings),
+                new Item.Settings().maxCount(16),
+                "ash_hanging_sign"
         );
         ASH_BOAT = register(
                 settings -> new BoatItem(DWMEntityTypes.ASH_BOAT, settings),
@@ -57,6 +65,7 @@ public class DWMItems {
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(content -> {
             content.add(ASH_SIGN);
+            content.add(ASH_HANGING_SIGN);
         });
     }
 

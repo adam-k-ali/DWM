@@ -16,9 +16,11 @@ import net.minecraft.block.LeavesBlock;
 import net.minecraft.block.PillarBlock;
 import net.minecraft.block.PressurePlateBlock;
 import net.minecraft.block.SaplingBlock;
+import net.minecraft.block.HangingSignBlock;
 import net.minecraft.block.SignBlock;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.StairsBlock;
+import net.minecraft.block.WallHangingSignBlock;
 import net.minecraft.block.WallSignBlock;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.enums.NoteBlockInstrument;
@@ -245,6 +247,24 @@ public class DWMBlocks {
                     .overrideTranslationKey(ASH_SIGN.getTranslationKey()),
             "ash_wall_sign"
     );
+    public static final Block ASH_HANGING_SIGN = registerWithoutItem(
+            settings -> new HangingSignBlock(DWMWoodTypes.ASH, settings),
+            DWMBlockSettings.ASH_HANGING_SIGN,
+            "ash_hanging_sign"
+    );
+    public static final Block ASH_WALL_HANGING_SIGN = registerWithoutItem(
+            settings -> new WallHangingSignBlock(DWMWoodTypes.ASH, settings),
+            AbstractBlock.Settings.create()
+                    .mapColor(DWMBlockSettings.ASH_PLANKS_COLOR)
+                    .solid()
+                    .instrument(NoteBlockInstrument.BASS)
+                    .noCollision()
+                    .strength(1.0F)
+                    .burnable()
+                    .lootTable(Optional.of(ASH_HANGING_SIGN.getLootTableKey().orElseThrow()))
+                    .overrideTranslationKey(ASH_HANGING_SIGN.getTranslationKey()),
+            "ash_wall_hanging_sign"
+    );
 
     /** Building / stone-like Gallifrey blocks (excludes dirt/sand terrain). */
     public static final List<Block> GALLIFREY_STONE_BUILDING_BLOCKS = List.of(
@@ -316,7 +336,9 @@ public class DWMBlocks {
             ASH_BUTTON,
             ASH_PRESSURE_PLATE,
             ASH_SIGN,
-            ASH_WALL_SIGN
+            ASH_WALL_SIGN,
+            ASH_HANGING_SIGN,
+            ASH_WALL_HANGING_SIGN
     );
 
     public static void initialize() {
@@ -349,6 +371,8 @@ public class DWMBlocks {
 
         BlockEntityType.SIGN.addSupportedBlock(ASH_SIGN);
         BlockEntityType.SIGN.addSupportedBlock(ASH_WALL_SIGN);
+        BlockEntityType.HANGING_SIGN.addSupportedBlock(ASH_HANGING_SIGN);
+        BlockEntityType.HANGING_SIGN.addSupportedBlock(ASH_WALL_HANGING_SIGN);
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> {
             content.add(BLACK_ROUNDEL_A);

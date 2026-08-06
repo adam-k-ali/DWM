@@ -93,6 +93,14 @@ public class DWMBlockSettings {
             .strength(1.0F)
             .burnable();
 
+    public static final AbstractBlock.Settings ASH_HANGING_SIGN = AbstractBlock.Settings.create()
+            .mapColor(ASH_PLANKS_COLOR)
+            .solid()
+            .instrument(NoteBlockInstrument.BASS)
+            .noCollision()
+            .strength(1.0F)
+            .burnable();
+
     public static final AbstractBlock.Settings ASH_BUTTON = AbstractBlock.Settings.create()
             .noCollision()
             .strength(0.5F)

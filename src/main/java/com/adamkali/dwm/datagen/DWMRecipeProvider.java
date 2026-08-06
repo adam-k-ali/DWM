@@ -108,6 +108,7 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 createSignRecipe(DWMItems.ASH_SIGN, Ingredient.ofItem(DWMBlocks.ASH_PLANKS))
                         .criterion(hasItem(DWMBlocks.ASH_PLANKS), conditionsFromItem(DWMBlocks.ASH_PLANKS))
                         .offerTo(exporter);
+                offerHangingSignRecipe(DWMItems.ASH_HANGING_SIGN, DWMBlocks.STRIPPED_ASH_LOG);
                 offerBoatRecipe(DWMItems.ASH_BOAT, DWMBlocks.ASH_PLANKS);
             }
         };

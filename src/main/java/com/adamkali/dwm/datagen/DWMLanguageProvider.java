@@ -180,6 +180,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addBlockAndItem(t, DWMBlocks.ASH_PRESSURE_PLATE, "Ash Pressure Plate");
         t.add(DWMBlocks.ASH_SIGN, "Ash Sign");
         t.add(DWMItems.ASH_SIGN, "Ash Sign");
+        t.add(DWMBlocks.ASH_HANGING_SIGN, "Ash Hanging Sign");
+        t.add(DWMItems.ASH_HANGING_SIGN, "Ash Hanging Sign");
         t.add(DWMBlocks.POTTED_ASH_SAPLING, "Potted Ash Sapling");
         addItem(t, DWMItems.ASH_BOAT, "Ash Boat");
         t.add(DWMEntityTypes.ASH_BOAT, "Ash Boat");

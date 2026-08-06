@@ -31,6 +31,7 @@ public class DWMLootTableProvider extends FabricBlockLootTableProvider {
         addDrop(DWMBlocks.ASH_BUTTON);
         addDrop(DWMBlocks.ASH_PRESSURE_PLATE);
         addDrop(DWMBlocks.ASH_SIGN);
+        addDrop(DWMBlocks.ASH_HANGING_SIGN);
         addDrop(DWMBlocks.ASH_SAPLING);
         addPottedPlantDrops(DWMBlocks.POTTED_ASH_SAPLING);
         addDrop(
@@ -154,5 +155,6 @@ public class DWMLootTableProvider extends FabricBlockLootTableProvider {
         excludeFromStrictValidation(DWMBlocks.TARDIS_INTERIOR_DOOR);
         excludeFromStrictValidation(DWMBlocks.FIRST_DOCTOR_CONSOLE);
         excludeFromStrictValidation(DWMBlocks.ASH_WALL_SIGN);
+        excludeFromStrictValidation(DWMBlocks.ASH_WALL_HANGING_SIGN);
     }
 }

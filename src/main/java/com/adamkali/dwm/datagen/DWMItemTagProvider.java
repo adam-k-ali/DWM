@@ -39,6 +39,9 @@ public class DWMItemTagProvider extends FabricTagProvider.ItemTagProvider {
         getOrCreateTagBuilder(ItemTags.SIGNS)
                 .add(DWMItems.ASH_SIGN);
 
+        getOrCreateTagBuilder(ItemTags.HANGING_SIGNS)
+                .add(DWMItems.ASH_HANGING_SIGN);
+
         getOrCreateTagBuilder(ItemTags.BOATS)
                 .add(DWMItems.ASH_BOAT);
     }

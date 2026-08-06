@@ -99,6 +99,12 @@ public class DWMBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         getOrCreateTagBuilder(BlockTags.WALL_SIGNS)
                 .add(DWMBlocks.ASH_WALL_SIGN);
 
+        getOrCreateTagBuilder(BlockTags.CEILING_HANGING_SIGNS)
+                .add(DWMBlocks.ASH_HANGING_SIGN);
+
+        getOrCreateTagBuilder(BlockTags.WALL_HANGING_SIGNS)
+                .add(DWMBlocks.ASH_WALL_HANGING_SIGN);
+
         getOrCreateTagBuilder(BlockTags.LEAVES)
                 .add(DWMBlocks.ASH_LEAVES);
 
@@ -121,6 +127,8 @@ public class DWMBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(DWMBlocks.ASH_BUTTON)
                 .add(DWMBlocks.ASH_PRESSURE_PLATE)
                 .add(DWMBlocks.ASH_SIGN)
-                .add(DWMBlocks.ASH_WALL_SIGN);
+                .add(DWMBlocks.ASH_WALL_SIGN)
+                .add(DWMBlocks.ASH_HANGING_SIGN)
+                .add(DWMBlocks.ASH_WALL_HANGING_SIGN);
     }
 }

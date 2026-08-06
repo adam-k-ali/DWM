@@ -12,6 +12,8 @@
     "dwm:ash_button",
     "dwm:ash_pressure_plate",
     "dwm:ash_sign",
-    "dwm:ash_wall_sign"
+    "dwm:ash_wall_sign",
+    "dwm:ash_hanging_sign",
+    "dwm:ash_wall_hanging_sign"
   ]
 }
