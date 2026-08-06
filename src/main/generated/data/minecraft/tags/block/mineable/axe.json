@@ -1,0 +1,17 @@
+{
+  "values": [
+    "dwm:ash_planks",
+    "dwm:ash_log",
+    "dwm:ash_wood",
+    "dwm:stripped_ash_log",
+    "dwm:stripped_ash_wood",
+    "dwm:ash_stairs",
+    "dwm:ash_slab",
+    "dwm:ash_fence",
+    "dwm:ash_fence_gate",
+    "dwm:ash_button",
+    "dwm:ash_pressure_plate",
+    "dwm:ash_sign",
+    "dwm:ash_wall_sign"
+  ]
+}

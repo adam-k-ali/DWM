@@ -1,6 +1,7 @@
 package com.adamkali.dwm;
 
 import com.adamkali.dwm.network.ClientPayloadTypeRegistry;
+import com.adamkali.dwm.client.DWMEntityRenderers;
 import com.adamkali.dwm.render.ConsoleControlHud;
 import com.adamkali.dwm.render.ConsoleHitboxDebugRenderer;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
@@ -13,6 +14,7 @@ public class DWMClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         DWMRenderLayerManager.initialize();
+        DWMEntityRenderers.initialize();
         ClientAnalyticsManager.initialize();
         DWMBlockEntityRendererFactories.initialize();
         ClientPayloadTypeRegistry.initialize();

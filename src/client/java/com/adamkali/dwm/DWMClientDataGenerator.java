@@ -3,10 +3,13 @@ package com.adamkali.dwm;
 import com.adamkali.dwm.datagen.DWMBlockTagProvider;
 import com.adamkali.dwm.datagen.DWMItemTagProvider;
 import com.adamkali.dwm.datagen.DWMLanguageProvider;
+import com.adamkali.dwm.datagen.DWMLootTableProvider;
 import com.adamkali.dwm.datagen.DWMModelProvider;
 import com.adamkali.dwm.datagen.DWMRecipeProvider;
+import com.adamkali.dwm.datagen.DWMWorldgenProvider;
 import com.adamkali.dwm.item.DWMItemTags;
 import com.adamkali.dwm.item.DWMItems;
+import com.adamkali.dwm.world.DWMConfiguredFeatureBootstrap;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
@@ -17,6 +20,7 @@ import net.minecraft.advancement.AdvancementFrame;
 import net.minecraft.advancement.criterion.InventoryChangedCriterion;
 import net.minecraft.item.Item;
 import net.minecraft.predicate.item.ItemPredicate;
+import net.minecraft.registry.RegistryBuilder;
 import net.minecraft.registry.RegistryEntryLookup;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
@@ -41,6 +45,13 @@ public class DWMClientDataGenerator implements DataGeneratorEntrypoint {
         DWMBlockTagProvider blockTagProvider = pack.addProvider(DWMBlockTagProvider::new);
         pack.addProvider((output, registries) -> new DWMItemTagProvider(output, registries, blockTagProvider));
         pack.addProvider(DWMModelProvider::new);
+        pack.addProvider(DWMLootTableProvider::new);
+        pack.addProvider(DWMWorldgenProvider::new);
+    }
+
+    @Override
+    public void buildRegistry(RegistryBuilder registryBuilder) {
+        registryBuilder.addRegistry(RegistryKeys.CONFIGURED_FEATURE, DWMConfiguredFeatureBootstrap::bootstrap);
     }
 
     static class AdvancementsProvider extends FabricAdvancementProvider {
