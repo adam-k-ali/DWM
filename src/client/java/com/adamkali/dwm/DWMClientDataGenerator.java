@@ -3,6 +3,7 @@ package com.adamkali.dwm;
 import com.adamkali.dwm.datagen.DWMBlockTagProvider;
 import com.adamkali.dwm.datagen.DWMItemTagProvider;
 import com.adamkali.dwm.datagen.DWMLanguageProvider;
+import com.adamkali.dwm.datagen.DWMLootTableProvider;
 import com.adamkali.dwm.datagen.DWMModelProvider;
 import com.adamkali.dwm.datagen.DWMRecipeProvider;
 import com.adamkali.dwm.item.DWMItemTags;
@@ -41,6 +42,7 @@ public class DWMClientDataGenerator implements DataGeneratorEntrypoint {
         DWMBlockTagProvider blockTagProvider = pack.addProvider(DWMBlockTagProvider::new);
         pack.addProvider((output, registries) -> new DWMItemTagProvider(output, registries, blockTagProvider));
         pack.addProvider(DWMModelProvider::new);
+        pack.addProvider(DWMLootTableProvider::new);
     }
 
     static class AdvancementsProvider extends FabricAdvancementProvider {
