@@ -43,8 +43,6 @@ public class DWMMain implements ModInitializer {
         });
 
         LOGGER.info("Doctor Who Mod initialized");
-
-        DWMVersion.checkVersion();
     }
 
 }
