@@ -79,6 +79,12 @@
   - `./gradlew runDatagen` (only when data-driven assets/providers are touched)
 - If a command fails, surface the failure clearly and fix root causes before handoff where possible.
 
+## Releases / CI
+- CI runs on GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)); CircleCI is retired.
+- Releases are intentional git tags `v{minecraft}-{mod}` — see [docs/release-policy.md](docs/release-policy.md).
+- Do not bump `mod_version` or `version.json` promos except when cutting a release; use `./gradlew syncVersionJson` at cut time.
+- The release workflow publishes the GitHub Release and uploads `version.json` to S3; Modrinth + Discord `#releases` stay manual per the policy.
+
 ## Change Scope & Safety
 - Keep unrelated files untouched.
 - Do not change dependency versions/tooling unless the task requires it.

@@ -1,0 +1,105 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Resolve mod version
+        id: version
+        run: |
+          MOD_VERSION=$(./gradlew properties -q | awk '/^mod_version:/ { print $2; exit }')
+          echo "mod_version=${MOD_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        run: |
+          chmod +x ./gradlew
+          ./gradlew build
+        env:
+          _JAVA_OPTIONS: -Xmx3200m
+          GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+      - name: Generate release notes
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          tag = os.environ["TAG"]
+          version = tag[1:] if tag.startswith("v") else tag
+          match = re.fullmatch(r"(\d+\.\d+(?:\.\d+)?)-(\d+\.\d+\.\d+)", version)
+          if not match:
+              raise SystemExit(f"Tag {tag!r} does not match v{{minecraft}}-{{mod}} (e.g. v1.21.4-1.2.0)")
+
+          minecraft_version, mod_version = match.group(1), match.group(2)
+          root = json.loads(Path("version.json").read_text(encoding="utf-8"))
+          entry = root.get(minecraft_version, {}).get(mod_version)
+          lines = [f"## {version}", ""]
+
+          if not entry:
+              lines.append("_No changelog entry found in version.json for this release._")
+          else:
+              for section, heading in (
+                  ("added", "Added"),
+                  ("changed", "Changed"),
+                  ("removed", "Removed"),
+              ):
+                  items = entry.get(section) or []
+                  if not items:
+                      continue
+                  lines.append(f"### {heading}")
+                  lines.extend(f"- {item}" for item in items)
+                  lines.append("")
+
+          Path("release-notes.md").write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+          print(Path("release-notes.md").read_text(encoding="utf-8"))
+          PY
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          body_path: release-notes.md
+          files: |
+            build/libs/dwm-${{ steps.version.outputs.mod_version }}.jar
+            build/libs/dwm-${{ steps.version.outputs.mod_version }}-sources.jar
+          fail_on_unmatched_files: true
+          draft: false
+          prerelease: false
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-1
+
+      - name: Upload version.json to S3
+        run: aws s3 cp version.json s3://modding/dwm/version.json
