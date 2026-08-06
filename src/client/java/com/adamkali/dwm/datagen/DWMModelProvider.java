@@ -1,6 +1,7 @@
 package com.adamkali.dwm.datagen;
 
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.item.DWMItems;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.minecraft.block.Block;
@@ -11,8 +12,21 @@ import net.minecraft.client.data.Models;
 import net.minecraft.client.data.TextureKey;
 import net.minecraft.client.data.TextureMap;
 import net.minecraft.client.data.TexturedModel;
+import net.minecraft.data.family.BlockFamily;
 
 public class DWMModelProvider extends FabricModelProvider {
+    private static final BlockFamily ASH_FAMILY = new BlockFamily.Builder(DWMBlocks.ASH_PLANKS)
+            .stairs(DWMBlocks.ASH_STAIRS)
+            .slab(DWMBlocks.ASH_SLAB)
+            .fence(DWMBlocks.ASH_FENCE)
+            .fenceGate(DWMBlocks.ASH_FENCE_GATE)
+            .button(DWMBlocks.ASH_BUTTON)
+            .pressurePlate(DWMBlocks.ASH_PRESSURE_PLATE)
+            .sign(DWMBlocks.ASH_SIGN, DWMBlocks.ASH_WALL_SIGN)
+            .group("wooden")
+            .unlockCriterionName("has_planks")
+            .build();
+
     public DWMModelProvider(FabricDataOutput output) {
         super(output);
     }
@@ -34,11 +48,24 @@ public class DWMModelProvider extends FabricModelProvider {
         registerSandstone(blockStateModelGenerator, DWMBlocks.GALLIFREY_SANDSTONE);
         registerCutSandstone(blockStateModelGenerator, DWMBlocks.GALLIFREY_CUT_SANDSTONE, DWMBlocks.GALLIFREY_SANDSTONE);
         registerChiseledSandstone(blockStateModelGenerator, DWMBlocks.GALLIFREY_CHISELED_SANDSTONE, DWMBlocks.GALLIFREY_SANDSTONE);
+
+        blockStateModelGenerator.registerLog(DWMBlocks.ASH_LOG).log(DWMBlocks.ASH_LOG).wood(DWMBlocks.ASH_WOOD);
+        blockStateModelGenerator.registerLog(DWMBlocks.STRIPPED_ASH_LOG)
+                .log(DWMBlocks.STRIPPED_ASH_LOG)
+                .wood(DWMBlocks.STRIPPED_ASH_WOOD);
+        blockStateModelGenerator.registerSingleton(DWMBlocks.ASH_LEAVES, TexturedModel.LEAVES);
+        blockStateModelGenerator.registerParentedItemModel(DWMBlocks.ASH_LEAVES, ModelIds.getBlockModelId(DWMBlocks.ASH_LEAVES));
+        blockStateModelGenerator.registerFlowerPotPlantAndItem(
+                DWMBlocks.ASH_SAPLING,
+                DWMBlocks.POTTED_ASH_SAPLING,
+                BlockStateModelGenerator.CrossType.NOT_TINTED
+        );
+        blockStateModelGenerator.registerCubeAllModelTexturePool(DWMBlocks.ASH_PLANKS).family(ASH_FAMILY);
     }
 
     @Override
     public void generateItemModels(ItemModelGenerator itemModelGenerator) {
-        // Block items parent to block models via BlockStateModelGenerator registration.
+        itemModelGenerator.register(DWMItems.ASH_BOAT, Models.GENERATED);
     }
 
     private static void registerCubeAll(BlockStateModelGenerator generator, Block block) {

@@ -242,7 +242,7 @@ fabricApi {
 }
 
 // Fabric ModelProvider auto-emits item models for every BlockItem; existing families already
-// live under src/client/resources. Keep only Gallifrey (datagen-owned) item models in generated.
+// live under src/client/resources. Keep only Gallifrey/ash (datagen-owned) item models in generated.
 tasks.register("pruneDatagenItemModels") {
     group = "fabric"
     description = "Remove generated item models that duplicate hand-maintained client assets"
@@ -252,7 +252,7 @@ tasks.register("pruneDatagenItemModels") {
             return
         }
         itemsDir.eachFile { f ->
-            if (f.name.contains("gallifrey")) {
+            if (f.name.contains("gallifrey") || f.name.contains("ash")) {
                 return
             }
             f.delete()

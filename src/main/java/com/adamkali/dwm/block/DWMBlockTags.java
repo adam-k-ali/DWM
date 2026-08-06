@@ -12,6 +12,11 @@ public final class DWMBlockTags {
             Identifier.of(DWMReference.MOD_ID, "gallifrey_stone")
     );
 
+    public static final TagKey<Block> ASH_LOGS = TagKey.of(
+            RegistryKeys.BLOCK,
+            Identifier.of(DWMReference.MOD_ID, "ash_logs")
+    );
+
     private DWMBlockTags() {
     }
 }
