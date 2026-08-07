@@ -9,6 +9,9 @@ import net.minecraft.client.render.RenderLayer;
 public class DWMRenderLayerManager {
     private static void registerBlockRenderLayers() {
         BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.WHITE_ROUNDEL_B, RenderLayer.getCutoutMipped());
+        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.ASH_LEAVES, RenderLayer.getCutoutMipped());
+        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.ASH_SAPLING, RenderLayer.getCutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.POTTED_ASH_SAPLING, RenderLayer.getCutout());
     }
 
     private static void registerEntityRenderLayers() {

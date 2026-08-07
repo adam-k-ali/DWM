@@ -1,6 +1,7 @@
 package com.adamkali.dwm.datagen;
 
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.item.DWMItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricLanguageProvider;
@@ -20,6 +21,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItems(translationBuilder);
         addBuildingBlocks(translationBuilder);
         addGallifreyStoneFamily(translationBuilder);
+        addAshWoodFamily(translationBuilder);
         addMisc(translationBuilder);
     }
 
@@ -160,6 +162,29 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addBlockAndItem(t, DWMBlocks.GALLIFREY_SAND, "Gallifrey Sand");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_DIRT, "Gallifrey Dirt");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_COARSE_DIRT, "Gallifrey Coarse Dirt");
+    }
+
+    private static void addAshWoodFamily(TranslationBuilder t) {
+        addBlockAndItem(t, DWMBlocks.ASH_PLANKS, "Ash Planks");
+        addBlockAndItem(t, DWMBlocks.ASH_LOG, "Ash Log");
+        addBlockAndItem(t, DWMBlocks.ASH_WOOD, "Ash Wood");
+        addBlockAndItem(t, DWMBlocks.STRIPPED_ASH_LOG, "Stripped Ash Log");
+        addBlockAndItem(t, DWMBlocks.STRIPPED_ASH_WOOD, "Stripped Ash Wood");
+        addBlockAndItem(t, DWMBlocks.ASH_LEAVES, "Ash Leaves");
+        addBlockAndItem(t, DWMBlocks.ASH_SAPLING, "Ash Sapling");
+        addBlockAndItem(t, DWMBlocks.ASH_STAIRS, "Ash Stairs");
+        addBlockAndItem(t, DWMBlocks.ASH_SLAB, "Ash Slab");
+        addBlockAndItem(t, DWMBlocks.ASH_FENCE, "Ash Fence");
+        addBlockAndItem(t, DWMBlocks.ASH_FENCE_GATE, "Ash Fence Gate");
+        addBlockAndItem(t, DWMBlocks.ASH_BUTTON, "Ash Button");
+        addBlockAndItem(t, DWMBlocks.ASH_PRESSURE_PLATE, "Ash Pressure Plate");
+        t.add(DWMBlocks.ASH_SIGN, "Ash Sign");
+        t.add(DWMItems.ASH_SIGN, "Ash Sign");
+        t.add(DWMBlocks.ASH_HANGING_SIGN, "Ash Hanging Sign");
+        t.add(DWMItems.ASH_HANGING_SIGN, "Ash Hanging Sign");
+        t.add(DWMBlocks.POTTED_ASH_SAPLING, "Potted Ash Sapling");
+        addItem(t, DWMItems.ASH_BOAT, "Ash Boat");
+        t.add(DWMEntityTypes.ASH_BOAT, "Ash Boat");
     }
 
     private static void addMisc(TranslationBuilder t) {

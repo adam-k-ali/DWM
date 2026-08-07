@@ -1,11 +1,14 @@
 package com.adamkali.dwm.datagen;
 
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.item.DWMItemTags;
+import com.adamkali.dwm.item.DWMItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.data.recipe.RecipeExporter;
 import net.minecraft.data.recipe.RecipeGenerator;
 import net.minecraft.item.Items;
+import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.book.RecipeCategory;
 import net.minecraft.registry.RegistryWrapper;
 
@@ -84,6 +87,29 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         200,
                         "cracked_gallifrey_stone_bricks"
                 );
+
+                offerPlanksRecipe(DWMBlocks.ASH_PLANKS, DWMItemTags.ASH_LOGS, 4);
+                offerBarkBlockRecipe(DWMBlocks.ASH_WOOD, DWMBlocks.ASH_LOG);
+                offerBarkBlockRecipe(DWMBlocks.STRIPPED_ASH_WOOD, DWMBlocks.STRIPPED_ASH_LOG);
+                createStairsRecipe(DWMBlocks.ASH_STAIRS, Ingredient.ofItem(DWMBlocks.ASH_PLANKS))
+                        .criterion(hasItem(DWMBlocks.ASH_PLANKS), conditionsFromItem(DWMBlocks.ASH_PLANKS))
+                        .offerTo(exporter);
+                offerSlabRecipe(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.ASH_SLAB, DWMBlocks.ASH_PLANKS);
+                createFenceRecipe(DWMBlocks.ASH_FENCE, Ingredient.ofItem(DWMBlocks.ASH_PLANKS))
+                        .criterion(hasItem(DWMBlocks.ASH_PLANKS), conditionsFromItem(DWMBlocks.ASH_PLANKS))
+                        .offerTo(exporter);
+                createFenceGateRecipe(DWMBlocks.ASH_FENCE_GATE, Ingredient.ofItem(DWMBlocks.ASH_PLANKS))
+                        .criterion(hasItem(DWMBlocks.ASH_PLANKS), conditionsFromItem(DWMBlocks.ASH_PLANKS))
+                        .offerTo(exporter);
+                offerPressurePlateRecipe(DWMBlocks.ASH_PRESSURE_PLATE, DWMBlocks.ASH_PLANKS);
+                createButtonRecipe(DWMBlocks.ASH_BUTTON, Ingredient.ofItem(DWMBlocks.ASH_PLANKS))
+                        .criterion(hasItem(DWMBlocks.ASH_PLANKS), conditionsFromItem(DWMBlocks.ASH_PLANKS))
+                        .offerTo(exporter);
+                createSignRecipe(DWMItems.ASH_SIGN, Ingredient.ofItem(DWMBlocks.ASH_PLANKS))
+                        .criterion(hasItem(DWMBlocks.ASH_PLANKS), conditionsFromItem(DWMBlocks.ASH_PLANKS))
+                        .offerTo(exporter);
+                offerHangingSignRecipe(DWMItems.ASH_HANGING_SIGN, DWMBlocks.STRIPPED_ASH_LOG);
+                offerBoatRecipe(DWMItems.ASH_BOAT, DWMBlocks.ASH_PLANKS);
             }
         };
     }
