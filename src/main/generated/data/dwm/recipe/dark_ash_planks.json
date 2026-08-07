@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "group": "planks",
+  "ingredients": [
+    "#dwm:dark_ash_logs"
+  ],
+  "result": {
+    "count": 4,
+    "id": "dwm:dark_ash_planks"
+  }
+}

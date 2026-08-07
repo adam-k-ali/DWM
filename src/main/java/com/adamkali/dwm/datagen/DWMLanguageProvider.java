@@ -22,6 +22,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addBuildingBlocks(translationBuilder);
         addGallifreyStoneFamily(translationBuilder);
         addAshWoodFamily(translationBuilder);
+        addDarkAshWoodFamily(translationBuilder);
         addMisc(translationBuilder);
     }
 
@@ -185,6 +186,30 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add(DWMBlocks.POTTED_ASH_SAPLING, "Potted Ash Sapling");
         addItem(t, DWMItems.ASH_BOAT, "Ash Boat");
         t.add(DWMEntityTypes.ASH_BOAT, "Ash Boat");
+    }
+
+    private static void addDarkAshWoodFamily(TranslationBuilder t) {
+        addBlockAndItem(t, DWMBlocks.DARK_ASH_PLANKS, "Dark Ash Planks");
+        addBlockAndItem(t, DWMBlocks.DARK_ASH_LOG, "Dark Ash Log");
+        addBlockAndItem(t, DWMBlocks.DARK_ASH_WOOD, "Dark Ash Wood");
+        addBlockAndItem(t, DWMBlocks.STRIPPED_DARK_ASH_LOG, "Stripped Dark Ash Log");
+        addBlockAndItem(t, DWMBlocks.STRIPPED_DARK_ASH_WOOD, "Stripped Dark Ash Wood");
+        addBlockAndItem(t, DWMBlocks.DARK_ASH_LEAVES, "Dark Ash Leaves");
+        addBlockAndItem(t, DWMBlocks.DARK_ASH_SAPLING, "Dark Ash Sapling");
+        addBlockAndItem(t, DWMBlocks.DARK_ASH_STAIRS, "Dark Ash Stairs");
+        addBlockAndItem(t, DWMBlocks.DARK_ASH_SLAB, "Dark Ash Slab");
+        addBlockAndItem(t, DWMBlocks.DARK_ASH_FENCE, "Dark Ash Fence");
+        addBlockAndItem(t, DWMBlocks.DARK_ASH_FENCE_GATE, "Dark Ash Fence Gate");
+        addBlockAndItem(t, DWMBlocks.DARK_ASH_BUTTON, "Dark Ash Button");
+        addBlockAndItem(t, DWMBlocks.DARK_ASH_PRESSURE_PLATE, "Dark Ash Pressure Plate");
+        addBlockAndItem(t, DWMBlocks.DARK_ASH_TRAPDOOR, "Dark Ash Trapdoor");
+        t.add(DWMBlocks.DARK_ASH_SIGN, "Dark Ash Sign");
+        t.add(DWMItems.DARK_ASH_SIGN, "Dark Ash Sign");
+        t.add(DWMBlocks.DARK_ASH_HANGING_SIGN, "Dark Ash Hanging Sign");
+        t.add(DWMItems.DARK_ASH_HANGING_SIGN, "Dark Ash Hanging Sign");
+        t.add(DWMBlocks.POTTED_DARK_ASH_SAPLING, "Potted Dark Ash Sapling");
+        addItem(t, DWMItems.DARK_ASH_BOAT, "Dark Ash Boat");
+        t.add(DWMEntityTypes.DARK_ASH_BOAT, "Dark Ash Boat");
     }
 
     private static void addMisc(TranslationBuilder t) {

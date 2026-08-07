@@ -13,6 +13,13 @@ public final class DWMSaplingGenerators {
             Optional.empty()
     );
 
+    public static final SaplingGenerator DARK_ASH = new SaplingGenerator(
+            "dark_ash",
+            Optional.empty(),
+            Optional.of(DWMConfiguredFeatures.DARK_ASH),
+            Optional.empty()
+    );
+
     private DWMSaplingGenerators() {
     }
 }

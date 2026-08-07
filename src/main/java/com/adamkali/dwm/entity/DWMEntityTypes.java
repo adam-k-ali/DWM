@@ -13,18 +13,24 @@ import net.minecraft.util.Identifier;
 
 public final class DWMEntityTypes {
     public static EntityType<BoatEntity> ASH_BOAT;
+    public static EntityType<BoatEntity> DARK_ASH_BOAT;
 
     private DWMEntityTypes() {
     }
 
     public static void initialize() {
-        Identifier id = Identifier.of(DWMReference.MOD_ID, "ash_boat");
+        ASH_BOAT = registerBoat("ash_boat", () -> DWMItems.ASH_BOAT);
+        DARK_ASH_BOAT = registerBoat("dark_ash_boat", () -> DWMItems.DARK_ASH_BOAT);
+    }
+
+    private static EntityType<BoatEntity> registerBoat(String path, java.util.function.Supplier<net.minecraft.item.Item> boatItem) {
+        Identifier id = Identifier.of(DWMReference.MOD_ID, path);
         RegistryKey<EntityType<?>> key = RegistryKey.of(RegistryKeys.ENTITY_TYPE, id);
-        ASH_BOAT = Registry.register(
+        return Registry.register(
                 Registries.ENTITY_TYPE,
                 key,
                 EntityType.Builder.<BoatEntity>create(
-                                (entityType, world) -> new BoatEntity(entityType, world, () -> DWMItems.ASH_BOAT),
+                                (entityType, world) -> new BoatEntity(entityType, world, boatItem),
                                 SpawnGroup.MISC
                         )
                         .dropsNothing()

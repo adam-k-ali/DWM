@@ -1,5 +1,6 @@
 {
   "values": [
-    "dwm:ash_button"
+    "dwm:ash_button",
+    "dwm:dark_ash_button"
   ]
 }

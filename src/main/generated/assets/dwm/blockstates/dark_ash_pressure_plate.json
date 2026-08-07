@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "powered=false": {
+      "model": "dwm:block/dark_ash_pressure_plate"
+    },
+    "powered=true": {
+      "model": "dwm:block/dark_ash_pressure_plate_down"
+    }
+  }
+}

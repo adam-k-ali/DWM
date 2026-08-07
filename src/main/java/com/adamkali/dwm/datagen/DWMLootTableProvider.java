@@ -39,6 +39,27 @@ public class DWMLootTableProvider extends FabricBlockLootTableProvider {
                 leavesDrops(DWMBlocks.ASH_LEAVES, DWMBlocks.ASH_SAPLING, SAPLING_DROP_CHANCE)
         );
 
+        addDrop(DWMBlocks.DARK_ASH_PLANKS);
+        addDrop(DWMBlocks.DARK_ASH_LOG);
+        addDrop(DWMBlocks.DARK_ASH_WOOD);
+        addDrop(DWMBlocks.STRIPPED_DARK_ASH_LOG);
+        addDrop(DWMBlocks.STRIPPED_DARK_ASH_WOOD);
+        addDrop(DWMBlocks.DARK_ASH_STAIRS);
+        addDrop(DWMBlocks.DARK_ASH_SLAB, slabDrops(DWMBlocks.DARK_ASH_SLAB));
+        addDrop(DWMBlocks.DARK_ASH_FENCE);
+        addDrop(DWMBlocks.DARK_ASH_FENCE_GATE);
+        addDrop(DWMBlocks.DARK_ASH_BUTTON);
+        addDrop(DWMBlocks.DARK_ASH_PRESSURE_PLATE);
+        addDrop(DWMBlocks.DARK_ASH_TRAPDOOR);
+        addDrop(DWMBlocks.DARK_ASH_SIGN);
+        addDrop(DWMBlocks.DARK_ASH_HANGING_SIGN);
+        addDrop(DWMBlocks.DARK_ASH_SAPLING);
+        addPottedPlantDrops(DWMBlocks.POTTED_DARK_ASH_SAPLING);
+        addDrop(
+                DWMBlocks.DARK_ASH_LEAVES,
+                leavesDrops(DWMBlocks.DARK_ASH_LEAVES, DWMBlocks.DARK_ASH_SAPLING, SAPLING_DROP_CHANCE)
+        );
+
         // Existing building blocks that previously had no loot tables.
         addDrop(DWMBlocks.BLACK_ROUNDEL_A);
         addDrop(DWMBlocks.BLUE_ROUNDEL_A);
@@ -156,5 +177,7 @@ public class DWMLootTableProvider extends FabricBlockLootTableProvider {
         excludeFromStrictValidation(DWMBlocks.FIRST_DOCTOR_CONSOLE);
         excludeFromStrictValidation(DWMBlocks.ASH_WALL_SIGN);
         excludeFromStrictValidation(DWMBlocks.ASH_WALL_HANGING_SIGN);
+        excludeFromStrictValidation(DWMBlocks.DARK_ASH_WALL_SIGN);
+        excludeFromStrictValidation(DWMBlocks.DARK_ASH_WALL_HANGING_SIGN);
     }
 }

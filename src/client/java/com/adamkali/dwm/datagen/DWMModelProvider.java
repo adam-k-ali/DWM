@@ -27,6 +27,19 @@ public class DWMModelProvider extends FabricModelProvider {
             .unlockCriterionName("has_planks")
             .build();
 
+    private static final BlockFamily DARK_ASH_FAMILY = new BlockFamily.Builder(DWMBlocks.DARK_ASH_PLANKS)
+            .stairs(DWMBlocks.DARK_ASH_STAIRS)
+            .slab(DWMBlocks.DARK_ASH_SLAB)
+            .fence(DWMBlocks.DARK_ASH_FENCE)
+            .fenceGate(DWMBlocks.DARK_ASH_FENCE_GATE)
+            .button(DWMBlocks.DARK_ASH_BUTTON)
+            .pressurePlate(DWMBlocks.DARK_ASH_PRESSURE_PLATE)
+            .trapdoor(DWMBlocks.DARK_ASH_TRAPDOOR)
+            .sign(DWMBlocks.DARK_ASH_SIGN, DWMBlocks.DARK_ASH_WALL_SIGN)
+            .group("wooden")
+            .unlockCriterionName("has_planks")
+            .build();
+
     public DWMModelProvider(FabricDataOutput output) {
         super(output);
     }
@@ -66,11 +79,30 @@ public class DWMModelProvider extends FabricModelProvider {
                 DWMBlocks.ASH_HANGING_SIGN,
                 DWMBlocks.ASH_WALL_HANGING_SIGN
         );
+
+        blockStateModelGenerator.registerLog(DWMBlocks.DARK_ASH_LOG).log(DWMBlocks.DARK_ASH_LOG).wood(DWMBlocks.DARK_ASH_WOOD);
+        blockStateModelGenerator.registerLog(DWMBlocks.STRIPPED_DARK_ASH_LOG)
+                .log(DWMBlocks.STRIPPED_DARK_ASH_LOG)
+                .wood(DWMBlocks.STRIPPED_DARK_ASH_WOOD);
+        blockStateModelGenerator.registerSingleton(DWMBlocks.DARK_ASH_LEAVES, TexturedModel.LEAVES);
+        blockStateModelGenerator.registerParentedItemModel(DWMBlocks.DARK_ASH_LEAVES, ModelIds.getBlockModelId(DWMBlocks.DARK_ASH_LEAVES));
+        blockStateModelGenerator.registerFlowerPotPlantAndItem(
+                DWMBlocks.DARK_ASH_SAPLING,
+                DWMBlocks.POTTED_DARK_ASH_SAPLING,
+                BlockStateModelGenerator.CrossType.NOT_TINTED
+        );
+        blockStateModelGenerator.registerCubeAllModelTexturePool(DWMBlocks.DARK_ASH_PLANKS).family(DARK_ASH_FAMILY);
+        blockStateModelGenerator.registerHangingSign(
+                DWMBlocks.STRIPPED_DARK_ASH_LOG,
+                DWMBlocks.DARK_ASH_HANGING_SIGN,
+                DWMBlocks.DARK_ASH_WALL_HANGING_SIGN
+        );
     }
 
     @Override
     public void generateItemModels(ItemModelGenerator itemModelGenerator) {
         itemModelGenerator.register(DWMItems.ASH_BOAT, Models.GENERATED);
+        itemModelGenerator.register(DWMItems.DARK_ASH_BOAT, Models.GENERATED);
     }
 
     private static void registerCubeAll(BlockStateModelGenerator generator, Block block) {

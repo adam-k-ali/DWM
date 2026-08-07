@@ -30,6 +30,7 @@
       "com.adamkali.dwm.gametest.TardisDoorGameTests",
       "com.adamkali.dwm.gametest.TardisInteriorGameTests",
       "com.adamkali.dwm.gametest.AshWoodFamilyGameTests",
+      "com.adamkali.dwm.gametest.DarkAshWoodFamilyGameTests",
       "com.adamkali.dwm.network.ChameleonGameTests"
     ]
   },

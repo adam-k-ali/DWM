@@ -110,6 +110,32 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         .offerTo(exporter);
                 offerHangingSignRecipe(DWMItems.ASH_HANGING_SIGN, DWMBlocks.STRIPPED_ASH_LOG);
                 offerBoatRecipe(DWMItems.ASH_BOAT, DWMBlocks.ASH_PLANKS);
+
+                offerPlanksRecipe(DWMBlocks.DARK_ASH_PLANKS, DWMItemTags.DARK_ASH_LOGS, 4);
+                offerBarkBlockRecipe(DWMBlocks.DARK_ASH_WOOD, DWMBlocks.DARK_ASH_LOG);
+                offerBarkBlockRecipe(DWMBlocks.STRIPPED_DARK_ASH_WOOD, DWMBlocks.STRIPPED_DARK_ASH_LOG);
+                createStairsRecipe(DWMBlocks.DARK_ASH_STAIRS, Ingredient.ofItem(DWMBlocks.DARK_ASH_PLANKS))
+                        .criterion(hasItem(DWMBlocks.DARK_ASH_PLANKS), conditionsFromItem(DWMBlocks.DARK_ASH_PLANKS))
+                        .offerTo(exporter);
+                offerSlabRecipe(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.DARK_ASH_SLAB, DWMBlocks.DARK_ASH_PLANKS);
+                createFenceRecipe(DWMBlocks.DARK_ASH_FENCE, Ingredient.ofItem(DWMBlocks.DARK_ASH_PLANKS))
+                        .criterion(hasItem(DWMBlocks.DARK_ASH_PLANKS), conditionsFromItem(DWMBlocks.DARK_ASH_PLANKS))
+                        .offerTo(exporter);
+                createFenceGateRecipe(DWMBlocks.DARK_ASH_FENCE_GATE, Ingredient.ofItem(DWMBlocks.DARK_ASH_PLANKS))
+                        .criterion(hasItem(DWMBlocks.DARK_ASH_PLANKS), conditionsFromItem(DWMBlocks.DARK_ASH_PLANKS))
+                        .offerTo(exporter);
+                offerPressurePlateRecipe(DWMBlocks.DARK_ASH_PRESSURE_PLATE, DWMBlocks.DARK_ASH_PLANKS);
+                createButtonRecipe(DWMBlocks.DARK_ASH_BUTTON, Ingredient.ofItem(DWMBlocks.DARK_ASH_PLANKS))
+                        .criterion(hasItem(DWMBlocks.DARK_ASH_PLANKS), conditionsFromItem(DWMBlocks.DARK_ASH_PLANKS))
+                        .offerTo(exporter);
+                createTrapdoorRecipe(DWMBlocks.DARK_ASH_TRAPDOOR, Ingredient.ofItem(DWMBlocks.DARK_ASH_PLANKS))
+                        .criterion(hasItem(DWMBlocks.DARK_ASH_PLANKS), conditionsFromItem(DWMBlocks.DARK_ASH_PLANKS))
+                        .offerTo(exporter);
+                createSignRecipe(DWMItems.DARK_ASH_SIGN, Ingredient.ofItem(DWMBlocks.DARK_ASH_PLANKS))
+                        .criterion(hasItem(DWMBlocks.DARK_ASH_PLANKS), conditionsFromItem(DWMBlocks.DARK_ASH_PLANKS))
+                        .offerTo(exporter);
+                offerHangingSignRecipe(DWMItems.DARK_ASH_HANGING_SIGN, DWMBlocks.STRIPPED_DARK_ASH_LOG);
+                offerBoatRecipe(DWMItems.DARK_ASH_BOAT, DWMBlocks.DARK_ASH_PLANKS);
             }
         };
     }

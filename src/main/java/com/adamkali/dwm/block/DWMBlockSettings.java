@@ -120,7 +120,85 @@ public class DWMBlockSettings {
             .nonOpaque()
             .pistonBehavior(PistonBehavior.DESTROY);
 
+    public static final MapColor DARK_ASH_PLANKS_COLOR = MapColor.TERRACOTTA_BROWN;
+    public static final MapColor DARK_ASH_BARK_COLOR = MapColor.TERRACOTTA_GRAY;
+
+    public static final AbstractBlock.Settings DARK_ASH_PLANKS = AbstractBlock.Settings.create()
+            .mapColor(DARK_ASH_PLANKS_COLOR)
+            .instrument(NoteBlockInstrument.BASS)
+            .strength(2.0F, 3.0F)
+            .sounds(BlockSoundGroup.WOOD)
+            .burnable();
+
+    public static final AbstractBlock.Settings DARK_ASH_LEAVES = AbstractBlock.Settings.create()
+            .mapColor(MapColor.DARK_GREEN)
+            .strength(0.2F)
+            .ticksRandomly()
+            .sounds(BlockSoundGroup.GRASS)
+            .nonOpaque()
+            .allowsSpawning(DWMBlockSettings::canSpawnOnLeaves)
+            .suffocates(DWMBlockSettings::never)
+            .blockVision(DWMBlockSettings::never)
+            .burnable()
+            .pistonBehavior(PistonBehavior.DESTROY)
+            .solidBlock(DWMBlockSettings::never);
+
+    public static final AbstractBlock.Settings DARK_ASH_SAPLING = AbstractBlock.Settings.create()
+            .mapColor(MapColor.DARK_GREEN)
+            .noCollision()
+            .ticksRandomly()
+            .breakInstantly()
+            .sounds(BlockSoundGroup.GRASS)
+            .pistonBehavior(PistonBehavior.DESTROY);
+
+    public static final AbstractBlock.Settings DARK_ASH_SIGN = AbstractBlock.Settings.create()
+            .mapColor(DARK_ASH_PLANKS_COLOR)
+            .solid()
+            .instrument(NoteBlockInstrument.BASS)
+            .noCollision()
+            .strength(1.0F)
+            .burnable();
+
+    public static final AbstractBlock.Settings DARK_ASH_HANGING_SIGN = AbstractBlock.Settings.create()
+            .mapColor(DARK_ASH_PLANKS_COLOR)
+            .solid()
+            .instrument(NoteBlockInstrument.BASS)
+            .noCollision()
+            .strength(1.0F)
+            .burnable();
+
+    public static final AbstractBlock.Settings DARK_ASH_BUTTON = AbstractBlock.Settings.create()
+            .noCollision()
+            .strength(0.5F)
+            .pistonBehavior(PistonBehavior.DESTROY);
+
+    public static final AbstractBlock.Settings DARK_ASH_PRESSURE_PLATE = AbstractBlock.Settings.create()
+            .mapColor(DARK_ASH_PLANKS_COLOR)
+            .solid()
+            .instrument(NoteBlockInstrument.BASS)
+            .noCollision()
+            .strength(0.5F)
+            .burnable()
+            .pistonBehavior(PistonBehavior.DESTROY);
+
+    public static final AbstractBlock.Settings DARK_ASH_FLOWER_POT = AbstractBlock.Settings.create()
+            .breakInstantly()
+            .nonOpaque()
+            .pistonBehavior(PistonBehavior.DESTROY);
+
+    public static final AbstractBlock.Settings DARK_ASH_TRAPDOOR = AbstractBlock.Settings.create()
+            .mapColor(DARK_ASH_PLANKS_COLOR)
+            .instrument(NoteBlockInstrument.BASS)
+            .strength(3.0F)
+            .nonOpaque()
+            .allowsSpawning(DWMBlockSettings::neverSpawn)
+            .burnable();
+
     private static boolean never(BlockState state, BlockView world, BlockPos pos) {
+        return false;
+    }
+
+    private static Boolean neverSpawn(BlockState state, BlockView world, BlockPos pos, EntityType<?> type) {
         return false;
     }
 

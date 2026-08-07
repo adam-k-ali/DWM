@@ -20,6 +20,7 @@ import net.minecraft.block.HangingSignBlock;
 import net.minecraft.block.SignBlock;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.StairsBlock;
+import net.minecraft.block.TrapdoorBlock;
 import net.minecraft.block.WallHangingSignBlock;
 import net.minecraft.block.WallSignBlock;
 import net.minecraft.block.entity.BlockEntityType;
@@ -266,6 +267,104 @@ public class DWMBlocks {
             "ash_wall_hanging_sign"
     );
 
+    public static final Block DARK_ASH_PLANKS = register(Block::new, DWMBlockSettings.DARK_ASH_PLANKS, "dark_ash_planks");
+    public static final Block DARK_ASH_LOG = register(
+            PillarBlock::new,
+            DWMBlockSettings.ashLog(DWMBlockSettings.DARK_ASH_PLANKS_COLOR, DWMBlockSettings.DARK_ASH_BARK_COLOR),
+            "dark_ash_log"
+    );
+    public static final Block DARK_ASH_WOOD = register(
+            PillarBlock::new,
+            DWMBlockSettings.ashLog(DWMBlockSettings.DARK_ASH_BARK_COLOR, DWMBlockSettings.DARK_ASH_BARK_COLOR),
+            "dark_ash_wood"
+    );
+    public static final Block STRIPPED_DARK_ASH_LOG = register(
+            PillarBlock::new,
+            DWMBlockSettings.ashLog(DWMBlockSettings.DARK_ASH_PLANKS_COLOR, DWMBlockSettings.DARK_ASH_PLANKS_COLOR),
+            "stripped_dark_ash_log"
+    );
+    public static final Block STRIPPED_DARK_ASH_WOOD = register(
+            PillarBlock::new,
+            DWMBlockSettings.ashLog(DWMBlockSettings.DARK_ASH_PLANKS_COLOR, DWMBlockSettings.DARK_ASH_PLANKS_COLOR),
+            "stripped_dark_ash_wood"
+    );
+    public static final Block DARK_ASH_LEAVES = register(LeavesBlock::new, DWMBlockSettings.DARK_ASH_LEAVES, "dark_ash_leaves");
+    public static final Block DARK_ASH_SAPLING = register(
+            settings -> new SaplingBlock(DWMSaplingGenerators.DARK_ASH, settings),
+            DWMBlockSettings.DARK_ASH_SAPLING,
+            "dark_ash_sapling"
+    );
+    public static final Block POTTED_DARK_ASH_SAPLING = registerWithoutItem(
+            settings -> new FlowerPotBlock(DARK_ASH_SAPLING, settings),
+            DWMBlockSettings.DARK_ASH_FLOWER_POT,
+            "potted_dark_ash_sapling"
+    );
+    public static final Block DARK_ASH_STAIRS = register(
+            settings -> new StairsBlock(DARK_ASH_PLANKS.getDefaultState(), settings),
+            AbstractBlock.Settings.copyShallow(DARK_ASH_PLANKS),
+            "dark_ash_stairs"
+    );
+    public static final Block DARK_ASH_SLAB = register(
+            SlabBlock::new, AbstractBlock.Settings.copyShallow(DARK_ASH_PLANKS), "dark_ash_slab");
+    public static final Block DARK_ASH_FENCE = register(
+            FenceBlock::new, AbstractBlock.Settings.copyShallow(DARK_ASH_PLANKS), "dark_ash_fence");
+    public static final Block DARK_ASH_FENCE_GATE = register(
+            settings -> new FenceGateBlock(DWMWoodTypes.DARK_ASH, settings),
+            AbstractBlock.Settings.copyShallow(DARK_ASH_PLANKS),
+            "dark_ash_fence_gate"
+    );
+    public static final Block DARK_ASH_BUTTON = register(
+            settings -> new ButtonBlock(DWMWoodTypes.DARK_ASH_SET, 30, settings),
+            DWMBlockSettings.DARK_ASH_BUTTON,
+            "dark_ash_button"
+    );
+    public static final Block DARK_ASH_PRESSURE_PLATE = register(
+            settings -> new PressurePlateBlock(DWMWoodTypes.DARK_ASH_SET, settings),
+            DWMBlockSettings.DARK_ASH_PRESSURE_PLATE,
+            "dark_ash_pressure_plate"
+    );
+    public static final Block DARK_ASH_TRAPDOOR = register(
+            settings -> new TrapdoorBlock(DWMWoodTypes.DARK_ASH_SET, settings),
+            DWMBlockSettings.DARK_ASH_TRAPDOOR,
+            "dark_ash_trapdoor"
+    );
+    public static final Block DARK_ASH_SIGN = registerWithoutItem(
+            settings -> new SignBlock(DWMWoodTypes.DARK_ASH, settings),
+            DWMBlockSettings.DARK_ASH_SIGN,
+            "dark_ash_sign"
+    );
+    public static final Block DARK_ASH_WALL_SIGN = registerWithoutItem(
+            settings -> new WallSignBlock(DWMWoodTypes.DARK_ASH, settings),
+            AbstractBlock.Settings.create()
+                    .mapColor(DWMBlockSettings.DARK_ASH_PLANKS_COLOR)
+                    .solid()
+                    .instrument(NoteBlockInstrument.BASS)
+                    .noCollision()
+                    .strength(1.0F)
+                    .burnable()
+                    .lootTable(Optional.of(DARK_ASH_SIGN.getLootTableKey().orElseThrow()))
+                    .overrideTranslationKey(DARK_ASH_SIGN.getTranslationKey()),
+            "dark_ash_wall_sign"
+    );
+    public static final Block DARK_ASH_HANGING_SIGN = registerWithoutItem(
+            settings -> new HangingSignBlock(DWMWoodTypes.DARK_ASH, settings),
+            DWMBlockSettings.DARK_ASH_HANGING_SIGN,
+            "dark_ash_hanging_sign"
+    );
+    public static final Block DARK_ASH_WALL_HANGING_SIGN = registerWithoutItem(
+            settings -> new WallHangingSignBlock(DWMWoodTypes.DARK_ASH, settings),
+            AbstractBlock.Settings.create()
+                    .mapColor(DWMBlockSettings.DARK_ASH_PLANKS_COLOR)
+                    .solid()
+                    .instrument(NoteBlockInstrument.BASS)
+                    .noCollision()
+                    .strength(1.0F)
+                    .burnable()
+                    .lootTable(Optional.of(DARK_ASH_HANGING_SIGN.getLootTableKey().orElseThrow()))
+                    .overrideTranslationKey(DARK_ASH_HANGING_SIGN.getTranslationKey()),
+            "dark_ash_wall_hanging_sign"
+    );
+
     /** Building / stone-like Gallifrey blocks (excludes dirt/sand terrain). */
     public static final List<Block> GALLIFREY_STONE_BUILDING_BLOCKS = List.of(
             GALLIFREY_STONE,
@@ -341,6 +440,50 @@ public class DWMBlocks {
             ASH_WALL_HANGING_SIGN
     );
 
+    public static final List<Block> DARK_ASH_LOGS = List.of(
+            DARK_ASH_LOG,
+            DARK_ASH_WOOD,
+            STRIPPED_DARK_ASH_LOG,
+            STRIPPED_DARK_ASH_WOOD
+    );
+
+    public static final List<Block> DARK_ASH_WOOD_BUILDING_BLOCKS = List.of(
+            DARK_ASH_PLANKS,
+            DARK_ASH_LOG,
+            DARK_ASH_WOOD,
+            STRIPPED_DARK_ASH_LOG,
+            STRIPPED_DARK_ASH_WOOD,
+            DARK_ASH_STAIRS,
+            DARK_ASH_SLAB,
+            DARK_ASH_FENCE,
+            DARK_ASH_FENCE_GATE,
+            DARK_ASH_BUTTON,
+            DARK_ASH_PRESSURE_PLATE,
+            DARK_ASH_TRAPDOOR
+    );
+
+    public static final List<Block> DARK_ASH_WOOD_FAMILY = List.of(
+            DARK_ASH_PLANKS,
+            DARK_ASH_LOG,
+            DARK_ASH_WOOD,
+            STRIPPED_DARK_ASH_LOG,
+            STRIPPED_DARK_ASH_WOOD,
+            DARK_ASH_LEAVES,
+            DARK_ASH_SAPLING,
+            POTTED_DARK_ASH_SAPLING,
+            DARK_ASH_STAIRS,
+            DARK_ASH_SLAB,
+            DARK_ASH_FENCE,
+            DARK_ASH_FENCE_GATE,
+            DARK_ASH_BUTTON,
+            DARK_ASH_PRESSURE_PLATE,
+            DARK_ASH_TRAPDOOR,
+            DARK_ASH_SIGN,
+            DARK_ASH_WALL_SIGN,
+            DARK_ASH_HANGING_SIGN,
+            DARK_ASH_WALL_HANGING_SIGN
+    );
+
     public static void initialize() {
         DWMWoodTypes.initialize();
 
@@ -356,6 +499,8 @@ public class DWMBlocks {
 
         StrippableBlockRegistry.register(ASH_LOG, STRIPPED_ASH_LOG);
         StrippableBlockRegistry.register(ASH_WOOD, STRIPPED_ASH_WOOD);
+        StrippableBlockRegistry.register(DARK_ASH_LOG, STRIPPED_DARK_ASH_LOG);
+        StrippableBlockRegistry.register(DARK_ASH_WOOD, STRIPPED_DARK_ASH_WOOD);
 
         FlammableBlockRegistry flammable = FlammableBlockRegistry.getDefaultInstance();
         flammable.add(ASH_PLANKS, 5, 20);
@@ -369,10 +514,26 @@ public class DWMBlocks {
         flammable.add(STRIPPED_ASH_WOOD, 5, 5);
         flammable.add(ASH_LEAVES, 30, 60);
 
+        flammable.add(DARK_ASH_PLANKS, 5, 20);
+        flammable.add(DARK_ASH_SLAB, 5, 20);
+        flammable.add(DARK_ASH_FENCE_GATE, 5, 20);
+        flammable.add(DARK_ASH_FENCE, 5, 20);
+        flammable.add(DARK_ASH_STAIRS, 5, 20);
+        flammable.add(DARK_ASH_TRAPDOOR, 5, 20);
+        flammable.add(DARK_ASH_LOG, 5, 5);
+        flammable.add(STRIPPED_DARK_ASH_LOG, 5, 5);
+        flammable.add(DARK_ASH_WOOD, 5, 5);
+        flammable.add(STRIPPED_DARK_ASH_WOOD, 5, 5);
+        flammable.add(DARK_ASH_LEAVES, 30, 60);
+
         BlockEntityType.SIGN.addSupportedBlock(ASH_SIGN);
         BlockEntityType.SIGN.addSupportedBlock(ASH_WALL_SIGN);
         BlockEntityType.HANGING_SIGN.addSupportedBlock(ASH_HANGING_SIGN);
         BlockEntityType.HANGING_SIGN.addSupportedBlock(ASH_WALL_HANGING_SIGN);
+        BlockEntityType.SIGN.addSupportedBlock(DARK_ASH_SIGN);
+        BlockEntityType.SIGN.addSupportedBlock(DARK_ASH_WALL_SIGN);
+        BlockEntityType.HANGING_SIGN.addSupportedBlock(DARK_ASH_HANGING_SIGN);
+        BlockEntityType.HANGING_SIGN.addSupportedBlock(DARK_ASH_WALL_HANGING_SIGN);
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> {
             content.add(BLACK_ROUNDEL_A);
@@ -490,6 +651,10 @@ public class DWMBlocks {
             for (Block block : ASH_WOOD_BUILDING_BLOCKS) {
                 content.add(block);
             }
+
+            for (Block block : DARK_ASH_WOOD_BUILDING_BLOCKS) {
+                content.add(block);
+            }
         });
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.NATURAL).register(content -> {
@@ -502,12 +667,18 @@ public class DWMBlocks {
             content.add(ASH_LOG);
             content.add(ASH_LEAVES);
             content.add(ASH_SAPLING);
+            content.add(DARK_ASH_LOG);
+            content.add(DARK_ASH_LEAVES);
+            content.add(DARK_ASH_SAPLING);
         });
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(content -> {
             content.add(TARDIS_DOOR_BUTTON);
             content.add(ASH_BUTTON);
             content.add(ASH_PRESSURE_PLATE);
+            content.add(DARK_ASH_BUTTON);
+            content.add(DARK_ASH_PRESSURE_PLATE);
+            content.add(DARK_ASH_TRAPDOOR);
         });
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(content -> {
