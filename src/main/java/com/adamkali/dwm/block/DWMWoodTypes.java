@@ -18,6 +18,11 @@ public final class DWMWoodTypes {
     public static final WoodType ASH = new WoodTypeBuilder()
             .register(Identifier.of(DWMReference.MOD_ID, "ash"), ASH_SET);
 
+    public static final BlockSetType DARK_ASH_SET = new BlockSetTypeBuilder()
+            .register(Identifier.of(DWMReference.MOD_ID, "dark_ash"));
+    public static final WoodType DARK_ASH = new WoodTypeBuilder()
+            .register(Identifier.of(DWMReference.MOD_ID, "dark_ash"), DARK_ASH_SET);
+
     private DWMWoodTypes() {
     }
 

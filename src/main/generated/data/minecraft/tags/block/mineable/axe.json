@@ -14,6 +14,22 @@
     "dwm:ash_sign",
     "dwm:ash_wall_sign",
     "dwm:ash_hanging_sign",
-    "dwm:ash_wall_hanging_sign"
+    "dwm:ash_wall_hanging_sign",
+    "dwm:dark_ash_planks",
+    "dwm:dark_ash_log",
+    "dwm:dark_ash_wood",
+    "dwm:stripped_dark_ash_log",
+    "dwm:stripped_dark_ash_wood",
+    "dwm:dark_ash_stairs",
+    "dwm:dark_ash_slab",
+    "dwm:dark_ash_fence",
+    "dwm:dark_ash_fence_gate",
+    "dwm:dark_ash_button",
+    "dwm:dark_ash_pressure_plate",
+    "dwm:dark_ash_trapdoor",
+    "dwm:dark_ash_sign",
+    "dwm:dark_ash_wall_sign",
+    "dwm:dark_ash_hanging_sign",
+    "dwm:dark_ash_wall_hanging_sign"
   ]
 }

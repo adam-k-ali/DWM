@@ -14,6 +14,10 @@ public final class DWMEntityRenderers {
             Identifier.of(DWMReference.MOD_ID, "boat/ash"),
             "main"
     );
+    public static final EntityModelLayer DARK_ASH_BOAT_LAYER = new EntityModelLayer(
+            Identifier.of(DWMReference.MOD_ID, "boat/dark_ash"),
+            "main"
+    );
 
     private DWMEntityRenderers() {
     }
@@ -23,6 +27,11 @@ public final class DWMEntityRenderers {
         EntityRendererRegistry.register(
                 DWMEntityTypes.ASH_BOAT,
                 context -> new BoatEntityRenderer(context, ASH_BOAT_LAYER)
+        );
+        EntityModelLayerRegistry.registerModelLayer(DARK_ASH_BOAT_LAYER, BoatEntityModel::getTexturedModelData);
+        EntityRendererRegistry.register(
+                DWMEntityTypes.DARK_ASH_BOAT,
+                context -> new BoatEntityRenderer(context, DARK_ASH_BOAT_LAYER)
         );
     }
 }

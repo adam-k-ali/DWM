@@ -24,6 +24,7 @@ public class DWMItemTagProvider extends FabricTagProvider.ItemTagProvider {
     protected void configure(RegistryWrapper.WrapperLookup wrapperLookup) {
         copy(DWMBlockTags.GALLIFREY_STONE, DWMItemTags.GALLIFREY_STONE);
         copy(DWMBlockTags.ASH_LOGS, DWMItemTags.ASH_LOGS);
+        copy(DWMBlockTags.DARK_ASH_LOGS, DWMItemTags.DARK_ASH_LOGS);
         copy(BlockTags.LOGS_THAT_BURN, ItemTags.LOGS_THAT_BURN);
         copy(BlockTags.LOGS, ItemTags.LOGS);
         copy(BlockTags.PLANKS, ItemTags.PLANKS);
@@ -33,16 +34,20 @@ public class DWMItemTagProvider extends FabricTagProvider.ItemTagProvider {
         copy(BlockTags.FENCE_GATES, ItemTags.FENCE_GATES);
         copy(BlockTags.WOODEN_BUTTONS, ItemTags.WOODEN_BUTTONS);
         copy(BlockTags.WOODEN_PRESSURE_PLATES, ItemTags.WOODEN_PRESSURE_PLATES);
+        copy(BlockTags.WOODEN_TRAPDOORS, ItemTags.WOODEN_TRAPDOORS);
         copy(BlockTags.LEAVES, ItemTags.LEAVES);
         copy(BlockTags.SAPLINGS, ItemTags.SAPLINGS);
 
         getOrCreateTagBuilder(ItemTags.SIGNS)
-                .add(DWMItems.ASH_SIGN);
+                .add(DWMItems.ASH_SIGN)
+                .add(DWMItems.DARK_ASH_SIGN);
 
         getOrCreateTagBuilder(ItemTags.HANGING_SIGNS)
-                .add(DWMItems.ASH_HANGING_SIGN);
+                .add(DWMItems.ASH_HANGING_SIGN)
+                .add(DWMItems.DARK_ASH_HANGING_SIGN);
 
         getOrCreateTagBuilder(ItemTags.BOATS)
-                .add(DWMItems.ASH_BOAT);
+                .add(DWMItems.ASH_BOAT)
+                .add(DWMItems.DARK_ASH_BOAT);
     }
 }

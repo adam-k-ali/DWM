@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "redstone",
+  "ingredients": [
+    "dwm:dark_ash_planks"
+  ],
+  "result": {
+    "count": 1,
+    "id": "dwm:dark_ash_button"
+  }
+}

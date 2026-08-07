@@ -12,6 +12,11 @@ public final class DWMConfiguredFeatures {
             Identifier.of(DWMReference.MOD_ID, "ash")
     );
 
+    public static final RegistryKey<ConfiguredFeature<?, ?>> DARK_ASH = RegistryKey.of(
+            RegistryKeys.CONFIGURED_FEATURE,
+            Identifier.of(DWMReference.MOD_ID, "dark_ash")
+    );
+
     private DWMConfiguredFeatures() {
     }
 }

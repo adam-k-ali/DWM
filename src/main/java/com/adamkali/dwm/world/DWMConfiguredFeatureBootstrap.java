@@ -1,8 +1,10 @@
 package com.adamkali.dwm.world;
 
 import com.adamkali.dwm.block.DWMBlocks;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.registry.Registerable;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.math.intprovider.ConstantIntProvider;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
 import net.minecraft.world.gen.feature.Feature;
@@ -17,10 +19,20 @@ public final class DWMConfiguredFeatureBootstrap {
     }
 
     public static void bootstrap(Registerable<ConfiguredFeature<?, ?>> registerable) {
-        BlockState log = DWMBlocks.ASH_LOG.getDefaultState();
-        BlockState leaves = DWMBlocks.ASH_LEAVES.getDefaultState();
+        registerTree(registerable, DWMConfiguredFeatures.ASH, DWMBlocks.ASH_LOG, DWMBlocks.ASH_LEAVES);
+        registerTree(registerable, DWMConfiguredFeatures.DARK_ASH, DWMBlocks.DARK_ASH_LOG, DWMBlocks.DARK_ASH_LEAVES);
+    }
+
+    private static void registerTree(
+            Registerable<ConfiguredFeature<?, ?>> registerable,
+            RegistryKey<ConfiguredFeature<?, ?>> key,
+            Block logBlock,
+            Block leavesBlock
+    ) {
+        BlockState log = logBlock.getDefaultState();
+        BlockState leaves = leavesBlock.getDefaultState();
         registerable.register(
-                DWMConfiguredFeatures.ASH,
+                key,
                 new ConfiguredFeature<>(
                         Feature.TREE,
                         new TreeFeatureConfig.Builder(

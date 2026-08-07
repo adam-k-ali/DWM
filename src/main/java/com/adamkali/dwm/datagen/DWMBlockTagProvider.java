@@ -63,57 +63,6 @@ public class DWMBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(DWMBlocks.STRIPPED_ASH_LOG)
                 .add(DWMBlocks.STRIPPED_ASH_WOOD);
 
-        getOrCreateTagBuilder(BlockTags.LOGS_THAT_BURN)
-                .addTag(DWMBlockTags.ASH_LOGS);
-
-        getOrCreateTagBuilder(BlockTags.LOGS)
-                .addTag(DWMBlockTags.ASH_LOGS);
-
-        getOrCreateTagBuilder(BlockTags.OVERWORLD_NATURAL_LOGS)
-                .add(DWMBlocks.ASH_LOG);
-
-        getOrCreateTagBuilder(BlockTags.PLANKS)
-                .add(DWMBlocks.ASH_PLANKS);
-
-        getOrCreateTagBuilder(BlockTags.WOODEN_STAIRS)
-                .add(DWMBlocks.ASH_STAIRS);
-
-        getOrCreateTagBuilder(BlockTags.WOODEN_SLABS)
-                .add(DWMBlocks.ASH_SLAB);
-
-        getOrCreateTagBuilder(BlockTags.WOODEN_FENCES)
-                .add(DWMBlocks.ASH_FENCE);
-
-        getOrCreateTagBuilder(BlockTags.FENCE_GATES)
-                .add(DWMBlocks.ASH_FENCE_GATE);
-
-        getOrCreateTagBuilder(BlockTags.WOODEN_BUTTONS)
-                .add(DWMBlocks.ASH_BUTTON);
-
-        getOrCreateTagBuilder(BlockTags.WOODEN_PRESSURE_PLATES)
-                .add(DWMBlocks.ASH_PRESSURE_PLATE);
-
-        getOrCreateTagBuilder(BlockTags.STANDING_SIGNS)
-                .add(DWMBlocks.ASH_SIGN);
-
-        getOrCreateTagBuilder(BlockTags.WALL_SIGNS)
-                .add(DWMBlocks.ASH_WALL_SIGN);
-
-        getOrCreateTagBuilder(BlockTags.CEILING_HANGING_SIGNS)
-                .add(DWMBlocks.ASH_HANGING_SIGN);
-
-        getOrCreateTagBuilder(BlockTags.WALL_HANGING_SIGNS)
-                .add(DWMBlocks.ASH_WALL_HANGING_SIGN);
-
-        getOrCreateTagBuilder(BlockTags.LEAVES)
-                .add(DWMBlocks.ASH_LEAVES);
-
-        getOrCreateTagBuilder(BlockTags.SAPLINGS)
-                .add(DWMBlocks.ASH_SAPLING);
-
-        getOrCreateTagBuilder(BlockTags.FLOWER_POTS)
-                .add(DWMBlocks.POTTED_ASH_SAPLING);
-
         getOrCreateTagBuilder(BlockTags.AXE_MINEABLE)
                 .add(DWMBlocks.ASH_PLANKS)
                 .add(DWMBlocks.ASH_LOG)
@@ -129,6 +78,99 @@ public class DWMBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(DWMBlocks.ASH_SIGN)
                 .add(DWMBlocks.ASH_WALL_SIGN)
                 .add(DWMBlocks.ASH_HANGING_SIGN)
-                .add(DWMBlocks.ASH_WALL_HANGING_SIGN);
+                .add(DWMBlocks.ASH_WALL_HANGING_SIGN)
+                .add(DWMBlocks.DARK_ASH_PLANKS)
+                .add(DWMBlocks.DARK_ASH_LOG)
+                .add(DWMBlocks.DARK_ASH_WOOD)
+                .add(DWMBlocks.STRIPPED_DARK_ASH_LOG)
+                .add(DWMBlocks.STRIPPED_DARK_ASH_WOOD)
+                .add(DWMBlocks.DARK_ASH_STAIRS)
+                .add(DWMBlocks.DARK_ASH_SLAB)
+                .add(DWMBlocks.DARK_ASH_FENCE)
+                .add(DWMBlocks.DARK_ASH_FENCE_GATE)
+                .add(DWMBlocks.DARK_ASH_BUTTON)
+                .add(DWMBlocks.DARK_ASH_PRESSURE_PLATE)
+                .add(DWMBlocks.DARK_ASH_TRAPDOOR)
+                .add(DWMBlocks.DARK_ASH_SIGN)
+                .add(DWMBlocks.DARK_ASH_WALL_SIGN)
+                .add(DWMBlocks.DARK_ASH_HANGING_SIGN)
+                .add(DWMBlocks.DARK_ASH_WALL_HANGING_SIGN);
+
+        getOrCreateTagBuilder(DWMBlockTags.DARK_ASH_LOGS)
+                .add(DWMBlocks.DARK_ASH_LOG)
+                .add(DWMBlocks.DARK_ASH_WOOD)
+                .add(DWMBlocks.STRIPPED_DARK_ASH_LOG)
+                .add(DWMBlocks.STRIPPED_DARK_ASH_WOOD);
+
+        getOrCreateTagBuilder(BlockTags.LOGS_THAT_BURN)
+                .addTag(DWMBlockTags.ASH_LOGS)
+                .addTag(DWMBlockTags.DARK_ASH_LOGS);
+
+        getOrCreateTagBuilder(BlockTags.LOGS)
+                .addTag(DWMBlockTags.ASH_LOGS)
+                .addTag(DWMBlockTags.DARK_ASH_LOGS);
+
+        getOrCreateTagBuilder(BlockTags.OVERWORLD_NATURAL_LOGS)
+                .add(DWMBlocks.ASH_LOG)
+                .add(DWMBlocks.DARK_ASH_LOG);
+
+        getOrCreateTagBuilder(BlockTags.PLANKS)
+                .add(DWMBlocks.ASH_PLANKS)
+                .add(DWMBlocks.DARK_ASH_PLANKS);
+
+        getOrCreateTagBuilder(BlockTags.WOODEN_STAIRS)
+                .add(DWMBlocks.ASH_STAIRS)
+                .add(DWMBlocks.DARK_ASH_STAIRS);
+
+        getOrCreateTagBuilder(BlockTags.WOODEN_SLABS)
+                .add(DWMBlocks.ASH_SLAB)
+                .add(DWMBlocks.DARK_ASH_SLAB);
+
+        getOrCreateTagBuilder(BlockTags.WOODEN_FENCES)
+                .add(DWMBlocks.ASH_FENCE)
+                .add(DWMBlocks.DARK_ASH_FENCE);
+
+        getOrCreateTagBuilder(BlockTags.FENCE_GATES)
+                .add(DWMBlocks.ASH_FENCE_GATE)
+                .add(DWMBlocks.DARK_ASH_FENCE_GATE);
+
+        getOrCreateTagBuilder(BlockTags.WOODEN_BUTTONS)
+                .add(DWMBlocks.ASH_BUTTON)
+                .add(DWMBlocks.DARK_ASH_BUTTON);
+
+        getOrCreateTagBuilder(BlockTags.WOODEN_PRESSURE_PLATES)
+                .add(DWMBlocks.ASH_PRESSURE_PLATE)
+                .add(DWMBlocks.DARK_ASH_PRESSURE_PLATE);
+
+        getOrCreateTagBuilder(BlockTags.WOODEN_TRAPDOORS)
+                .add(DWMBlocks.DARK_ASH_TRAPDOOR);
+
+        getOrCreateTagBuilder(BlockTags.STANDING_SIGNS)
+                .add(DWMBlocks.ASH_SIGN)
+                .add(DWMBlocks.DARK_ASH_SIGN);
+
+        getOrCreateTagBuilder(BlockTags.WALL_SIGNS)
+                .add(DWMBlocks.ASH_WALL_SIGN)
+                .add(DWMBlocks.DARK_ASH_WALL_SIGN);
+
+        getOrCreateTagBuilder(BlockTags.CEILING_HANGING_SIGNS)
+                .add(DWMBlocks.ASH_HANGING_SIGN)
+                .add(DWMBlocks.DARK_ASH_HANGING_SIGN);
+
+        getOrCreateTagBuilder(BlockTags.WALL_HANGING_SIGNS)
+                .add(DWMBlocks.ASH_WALL_HANGING_SIGN)
+                .add(DWMBlocks.DARK_ASH_WALL_HANGING_SIGN);
+
+        getOrCreateTagBuilder(BlockTags.LEAVES)
+                .add(DWMBlocks.ASH_LEAVES)
+                .add(DWMBlocks.DARK_ASH_LEAVES);
+
+        getOrCreateTagBuilder(BlockTags.SAPLINGS)
+                .add(DWMBlocks.ASH_SAPLING)
+                .add(DWMBlocks.DARK_ASH_SAPLING);
+
+        getOrCreateTagBuilder(BlockTags.FLOWER_POTS)
+                .add(DWMBlocks.POTTED_ASH_SAPLING)
+                .add(DWMBlocks.POTTED_DARK_ASH_SAPLING);
     }
 }

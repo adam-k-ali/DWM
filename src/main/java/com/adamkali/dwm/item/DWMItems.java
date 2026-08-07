@@ -36,6 +36,9 @@ public class DWMItems {
     public static Item ASH_SIGN;
     public static Item ASH_HANGING_SIGN;
     public static Item ASH_BOAT;
+    public static Item DARK_ASH_SIGN;
+    public static Item DARK_ASH_HANGING_SIGN;
+    public static Item DARK_ASH_BOAT;
 
     public static void initialize() {
         ASH_SIGN = register(
@@ -54,6 +57,22 @@ public class DWMItems {
                 new Item.Settings().maxCount(1),
                 "ash_boat"
         );
+        DARK_ASH_SIGN = register(
+                settings -> new SignItem(DWMBlocks.DARK_ASH_SIGN, DWMBlocks.DARK_ASH_WALL_SIGN, settings),
+                new Item.Settings().maxCount(16),
+                "dark_ash_sign"
+        );
+        DARK_ASH_HANGING_SIGN = register(
+                settings -> new HangingSignItem(
+                        DWMBlocks.DARK_ASH_HANGING_SIGN, DWMBlocks.DARK_ASH_WALL_HANGING_SIGN, settings),
+                new Item.Settings().maxCount(16),
+                "dark_ash_hanging_sign"
+        );
+        DARK_ASH_BOAT = register(
+                settings -> new BoatItem(DWMEntityTypes.DARK_ASH_BOAT, settings),
+                new Item.Settings().maxCount(1),
+                "dark_ash_boat"
+        );
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(content -> {
             content.add(SONIC_SECOND_DOCTOR);
@@ -61,11 +80,14 @@ public class DWMItems {
             content.add(SONIC_FOURTH_DOCTOR);
             content.add(SONIC_FIFTH_DOCTOR);
             content.add(ASH_BOAT);
+            content.add(DARK_ASH_BOAT);
         });
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(content -> {
             content.add(ASH_SIGN);
             content.add(ASH_HANGING_SIGN);
+            content.add(DARK_ASH_SIGN);
+            content.add(DARK_ASH_HANGING_SIGN);
         });
     }
 

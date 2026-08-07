@@ -10,4 +10,5 @@ public class DWMItemTags {
     public static final TagKey<Item> SONIC_SCREWDRIVERS = TagKey.of(RegistryKeys.ITEM, Identifier.of(DWMReference.MOD_ID, "sonic_screwdrivers"));
     public static final TagKey<Item> GALLIFREY_STONE = TagKey.of(RegistryKeys.ITEM, Identifier.of(DWMReference.MOD_ID, "gallifrey_stone"));
     public static final TagKey<Item> ASH_LOGS = TagKey.of(RegistryKeys.ITEM, Identifier.of(DWMReference.MOD_ID, "ash_logs"));
+    public static final TagKey<Item> DARK_ASH_LOGS = TagKey.of(RegistryKeys.ITEM, Identifier.of(DWMReference.MOD_ID, "dark_ash_logs"));
 }

@@ -12,6 +12,10 @@ public class DWMRenderLayerManager {
         BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.ASH_LEAVES, RenderLayer.getCutoutMipped());
         BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.ASH_SAPLING, RenderLayer.getCutout());
         BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.POTTED_ASH_SAPLING, RenderLayer.getCutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.DARK_ASH_LEAVES, RenderLayer.getCutoutMipped());
+        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.DARK_ASH_SAPLING, RenderLayer.getCutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.POTTED_DARK_ASH_SAPLING, RenderLayer.getCutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.DARK_ASH_TRAPDOOR, RenderLayer.getCutout());
     }
 
     private static void registerEntityRenderLayers() {
