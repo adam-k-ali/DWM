@@ -173,7 +173,7 @@ public class DWMBlocks {
                     DWMSaplingGenerators.ASH,
                     DWMBlockTags.ASH_LOGS,
                     DWMItemTags.ASH_LOGS,
-                    EnumSet.noneOf(WoodFamilyFeature.class)
+                    EnumSet.of(WoodFamilyFeature.DOOR, WoodFamilyFeature.TRAPDOOR)
             )
     );
     public static final Block ASH_PLANKS = ASH.blocks().planks();
@@ -190,6 +190,8 @@ public class DWMBlocks {
     public static final Block ASH_FENCE_GATE = ASH.blocks().fenceGate();
     public static final Block ASH_BUTTON = ASH.blocks().button();
     public static final Block ASH_PRESSURE_PLATE = ASH.blocks().pressurePlate();
+    public static final Block ASH_DOOR = ASH.requireDoor();
+    public static final Block ASH_TRAPDOOR = ASH.requireTrapdoor();
     public static final Block ASH_SIGN = ASH.blocks().sign();
     public static final Block ASH_WALL_SIGN = ASH.blocks().wallSign();
     public static final Block ASH_HANGING_SIGN = ASH.blocks().hangingSign();
@@ -206,7 +208,7 @@ public class DWMBlocks {
                     DWMSaplingGenerators.DARK_ASH,
                     DWMBlockTags.DARK_ASH_LOGS,
                     DWMItemTags.DARK_ASH_LOGS,
-                    EnumSet.of(WoodFamilyFeature.TRAPDOOR)
+                    EnumSet.of(WoodFamilyFeature.DOOR, WoodFamilyFeature.TRAPDOOR)
             )
     );
     public static final Block DARK_ASH_PLANKS = DARK_ASH.blocks().planks();
@@ -223,6 +225,7 @@ public class DWMBlocks {
     public static final Block DARK_ASH_FENCE_GATE = DARK_ASH.blocks().fenceGate();
     public static final Block DARK_ASH_BUTTON = DARK_ASH.blocks().button();
     public static final Block DARK_ASH_PRESSURE_PLATE = DARK_ASH.blocks().pressurePlate();
+    public static final Block DARK_ASH_DOOR = DARK_ASH.requireDoor();
     public static final Block DARK_ASH_TRAPDOOR = DARK_ASH.requireTrapdoor();
     public static final Block DARK_ASH_SIGN = DARK_ASH.blocks().sign();
     public static final Block DARK_ASH_WALL_SIGN = DARK_ASH.blocks().wallSign();

@@ -89,6 +89,14 @@ public class AshWoodFamilyGameTests implements FabricGameTest {
                 DWMBlocks.STRIPPED_ASH_LOG, DWMBlocks.STRIPPED_ASH_LOG, DWMBlocks.STRIPPED_ASH_LOG,
                 DWMBlocks.STRIPPED_ASH_LOG, DWMBlocks.STRIPPED_ASH_LOG, DWMBlocks.STRIPPED_ASH_LOG),
                 DWMItems.ASH_HANGING_SIGN, 6);
+        assertCrafts(context, "ash_door", grid(3, 3,
+                DWMBlocks.ASH_PLANKS, DWMBlocks.ASH_PLANKS, Items.AIR,
+                DWMBlocks.ASH_PLANKS, DWMBlocks.ASH_PLANKS, Items.AIR,
+                DWMBlocks.ASH_PLANKS, DWMBlocks.ASH_PLANKS, Items.AIR), DWMBlocks.ASH_DOOR.asItem(), 3);
+        assertCrafts(context, "ash_trapdoor", grid(3, 2,
+                DWMBlocks.ASH_PLANKS, DWMBlocks.ASH_PLANKS, DWMBlocks.ASH_PLANKS,
+                DWMBlocks.ASH_PLANKS, DWMBlocks.ASH_PLANKS, DWMBlocks.ASH_PLANKS),
+                DWMBlocks.ASH_TRAPDOOR.asItem(), 2);
 
         context.complete();
     }
@@ -107,6 +115,8 @@ public class AshWoodFamilyGameTests implements FabricGameTest {
         assertSelfDrop(context, player, DWMBlocks.ASH_FENCE_GATE, DWMBlocks.ASH_FENCE_GATE.asItem());
         assertSelfDrop(context, player, DWMBlocks.ASH_BUTTON, DWMBlocks.ASH_BUTTON.asItem());
         assertSelfDrop(context, player, DWMBlocks.ASH_PRESSURE_PLATE, DWMBlocks.ASH_PRESSURE_PLATE.asItem());
+        assertSelfDrop(context, player, DWMBlocks.ASH_DOOR, DWMBlocks.ASH_DOOR.asItem());
+        assertSelfDrop(context, player, DWMBlocks.ASH_TRAPDOOR, DWMBlocks.ASH_TRAPDOOR.asItem());
         assertSelfDrop(context, player, DWMBlocks.ASH_SIGN, DWMItems.ASH_SIGN);
         assertSelfDrop(context, player, DWMBlocks.ASH_HANGING_SIGN, DWMItems.ASH_HANGING_SIGN);
         assertSelfDrop(context, player, DWMBlocks.ASH_SAPLING, DWMBlocks.ASH_SAPLING.asItem());

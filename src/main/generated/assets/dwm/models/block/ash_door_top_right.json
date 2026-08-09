@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/door_top_right",
+  "textures": {
+    "bottom": "dwm:block/ash_door_bottom",
+    "top": "dwm:block/ash_door_top"
+  }
+}
