@@ -17,6 +17,7 @@ import net.minecraft.block.SaplingBlock;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.StairsBlock;
 import net.minecraft.block.WallMountedBlock;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.HangingSignBlockEntity;
 import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.block.entity.SignText;
@@ -280,6 +281,31 @@ public class CardinalWoodFamilyGameTests implements FabricGameTest {
     }
 
     @GameTest(templateName = EMPTY_STRUCTURE)
+    public void tallDoorBreakDropsExactlyOnce(TestContext context) {
+        Item doorItem = DWMBlocks.CARDINAL_DOOR.asItem();
+
+        for (TallDoorSegment breakSegment : TallDoorSegment.values()) {
+            BlockPos origin = placeTallDoorColumn(context, 1 + breakSegment.index() * 3, 1, 1);
+            PlayerEntity creative = context.createMockPlayer(GameMode.CREATIVE);
+            breakAsPlayer(context, creative, origin.up(breakSegment.index()));
+            expectTallDoorColumnGone(context, origin);
+            context.expectItemsAt(doorItem, origin, 1.5, 0);
+        }
+
+        BlockPos survivalBottomOrigin = placeTallDoorColumn(context, 1, 1, 5);
+        breakAsPlayer(context, context.createMockPlayer(GameMode.SURVIVAL), survivalBottomOrigin);
+        expectTallDoorColumnGone(context, survivalBottomOrigin);
+        context.expectItemsAt(doorItem, survivalBottomOrigin, 1.5, 1);
+
+        BlockPos survivalTopOrigin = placeTallDoorColumn(context, 5, 1, 5);
+        breakAsPlayer(context, context.createMockPlayer(GameMode.SURVIVAL), survivalTopOrigin.up(2));
+        expectTallDoorColumnGone(context, survivalTopOrigin);
+        context.expectItemsAt(doorItem, survivalTopOrigin, 1.5, 1);
+
+        context.complete();
+    }
+
+    @GameTest(templateName = EMPTY_STRUCTURE)
     public void boatPlacesOnWater(TestContext context) {
         for (int x = 2; x <= 4; x++) {
             for (int z = 2; z <= 4; z++) {
@@ -336,7 +362,7 @@ public class CardinalWoodFamilyGameTests implements FabricGameTest {
         context.setBlockState(rightSupport, Blocks.STONE);
         placeItemOnBlock(context, player, DWMItems.CARDINAL_HANGING_SIGN, leftSupport, Direction.EAST);
         context.expectBlock(DWMBlocks.CARDINAL_WALL_HANGING_SIGN, wallHangingRel);
-        assertHangingSignText(context, wallHangingRel, "Dark Cardinal wall hang");
+        assertHangingSignText(context, wallHangingRel, "Cardinal wall hang");
 
         context.complete();
     }
@@ -445,6 +471,49 @@ public class CardinalWoodFamilyGameTests implements FabricGameTest {
         BlockPos pos = new BlockPos(1, 1, 1);
         context.setBlockState(pos, block.getDefaultState());
         assertDropsContain(context, player, pos, ItemStack.EMPTY, expected, 1);
+    }
+
+    private static BlockPos placeTallDoorColumn(TestContext context, int x, int y, int z) {
+        context.setBlockState(x, y - 1, z, Blocks.STONE);
+        BlockPos origin = new BlockPos(x, y, z);
+        BlockState base = DWMBlocks.CARDINAL_DOOR.getDefaultState()
+                .with(TallDoorBlock.FACING, Direction.NORTH)
+                .with(TallDoorBlock.HINGE, DoorHinge.LEFT)
+                .with(TallDoorBlock.OPEN, false)
+                .with(TallDoorBlock.POWERED, false);
+        for (TallDoorSegment segment : TallDoorSegment.values()) {
+            context.setBlockState(origin.up(segment.index()), base.with(TallDoorBlock.SEGMENT, segment));
+        }
+        return origin;
+    }
+
+    private static void expectTallDoorColumnGone(TestContext context, BlockPos origin) {
+        for (TallDoorSegment segment : TallDoorSegment.values()) {
+            context.expectBlock(Blocks.AIR, origin.up(segment.index()));
+        }
+    }
+
+    /**
+     * Mirrors {@code ServerPlayerInteractionManager#tryBreakBlock} for mock players
+     * (which have no interaction manager).
+     */
+    private static void breakAsPlayer(TestContext context, PlayerEntity player, BlockPos relativePos) {
+        BlockPos abs = context.getAbsolutePos(relativePos);
+        ServerWorld world = context.getWorld();
+        BlockState state = world.getBlockState(abs);
+        if (state.isAir()) {
+            throw new AssertionError("Expected a block to break at " + relativePos);
+        }
+        Block block = state.getBlock();
+        BlockEntity blockEntity = world.getBlockEntity(abs);
+        BlockState brokenState = block.onBreak(world, abs, state, player);
+        boolean removed = world.removeBlock(abs, false);
+        if (removed) {
+            block.onBroken(world, abs, brokenState);
+        }
+        if (!player.isCreative() && removed && player.canHarvest(brokenState)) {
+            block.afterBreak(world, player, abs, brokenState, blockEntity, player.getMainHandStack().copy());
+        }
     }
 
     private static void assertDropsContain(

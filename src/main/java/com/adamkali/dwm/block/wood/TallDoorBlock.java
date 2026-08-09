@@ -32,6 +32,7 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldEvents;
 import net.minecraft.world.WorldView;
 import net.minecraft.world.block.WireOrientation;
 import net.minecraft.world.event.GameEvent;
@@ -108,6 +109,14 @@ public class TallDoorBlock extends Block {
         return poweredNow != currentlyPowered;
     }
 
+    /**
+     * Whether creative / non-harvest breaks of this segment must destroy the origin first
+     * with {@link Block#SKIP_DROPS} (vanilla {@code DoorBlock} / {@code TallPlantBlock} pattern).
+     */
+    public static boolean shouldPreventCreativeDropFromOrigin(TallDoorSegment segment) {
+        return segment != TallDoorSegment.BOTTOM;
+    }
+
     @Override
     protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
         Direction direction = state.get(FACING);
@@ -151,20 +160,27 @@ public class TallDoorBlock extends Block {
 
     @Override
     public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (!world.isClient) {
-            BlockPos origin = originPos(pos, state);
-            for (TallDoorSegment segment : TallDoorSegment.values()) {
-                BlockPos cell = cellPos(origin, segment);
-                if (cell.equals(pos)) {
-                    continue;
-                }
-                BlockState cellState = world.getBlockState(cell);
-                if (cellState.isOf(this)) {
-                    world.setBlockState(cell, Blocks.AIR.getDefaultState(), Block.NOTIFY_ALL);
-                }
-            }
+        if (!world.isClient && (player.isCreative() || !player.canHarvest(state))) {
+            preventCreativeDropFromOrigin(world, pos, state, player);
         }
         return super.onBreak(world, pos, state, player);
+    }
+
+    /**
+     * Destroys the bottom segment without dropping when a non-bottom segment is broken in creative
+     * (or when the player cannot harvest). Neighbor updates then clear the remaining column;
+     * loot only drops from {@link TallDoorSegment#BOTTOM}.
+     */
+    private void preventCreativeDropFromOrigin(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        if (!shouldPreventCreativeDropFromOrigin(state.get(SEGMENT))) {
+            return;
+        }
+        BlockPos origin = originPos(pos, state);
+        BlockState bottomState = world.getBlockState(origin);
+        if (bottomState.isOf(this) && bottomState.get(SEGMENT) == TallDoorSegment.BOTTOM) {
+            world.setBlockState(origin, Blocks.AIR.getDefaultState(), Block.NOTIFY_ALL | Block.SKIP_DROPS);
+            world.syncWorldEvent(player, WorldEvents.BLOCK_BROKEN, origin, Block.getRawIdFromState(bottomState));
+        }
     }
 
     @Override

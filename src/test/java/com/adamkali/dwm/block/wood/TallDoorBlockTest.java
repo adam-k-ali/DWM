@@ -55,4 +55,11 @@ class TallDoorBlockTest {
         assertTrue(TallDoorBlock.isOrigin(bottom));
         assertFalse(TallDoorBlock.isOrigin(middle));
     }
+
+    @Test
+    void shouldPreventCreativeDropFromOriginOnlyForNonBottom() {
+        assertFalse(TallDoorBlock.shouldPreventCreativeDropFromOrigin(TallDoorSegment.BOTTOM));
+        assertTrue(TallDoorBlock.shouldPreventCreativeDropFromOrigin(TallDoorSegment.MIDDLE));
+        assertTrue(TallDoorBlock.shouldPreventCreativeDropFromOrigin(TallDoorSegment.TOP));
+    }
 }
