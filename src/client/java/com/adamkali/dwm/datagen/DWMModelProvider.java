@@ -32,6 +32,11 @@ public class DWMModelProvider extends FabricModelProvider {
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_DIRT);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_COARSE_DIRT);
 
+        registerCubeAll(blockStateModelGenerator, DWMBlocks.CITADEL_WALL);
+        registerCubeAll(blockStateModelGenerator, DWMBlocks.CITADEL_PANEL);
+        registerCubeAll(blockStateModelGenerator, DWMBlocks.CITADEL_TILE);
+        registerCubeAll(blockStateModelGenerator, DWMBlocks.CITADEL_GLASS);
+
         registerSandstone(blockStateModelGenerator, DWMBlocks.GALLIFREY_SANDSTONE);
         registerCutSandstone(blockStateModelGenerator, DWMBlocks.GALLIFREY_CUT_SANDSTONE, DWMBlocks.GALLIFREY_SANDSTONE);
         registerChiseledSandstone(blockStateModelGenerator, DWMBlocks.GALLIFREY_CHISELED_SANDSTONE, DWMBlocks.GALLIFREY_SANDSTONE);

@@ -20,6 +20,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItems(translationBuilder);
         addBuildingBlocks(translationBuilder);
         addGallifreyStoneFamily(translationBuilder);
+        addCitadelFamily(translationBuilder);
         for (var family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.addTranslations(new WoodFamilyDatagen.LangSink() {
                 @Override
@@ -183,6 +184,13 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addBlockAndItem(t, DWMBlocks.GALLIFREY_SAND, "Gallifrey Sand");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_DIRT, "Gallifrey Dirt");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_COARSE_DIRT, "Gallifrey Coarse Dirt");
+    }
+
+    private static void addCitadelFamily(TranslationBuilder t) {
+        addBlockAndItem(t, DWMBlocks.CITADEL_WALL, "Citadel Wall");
+        addBlockAndItem(t, DWMBlocks.CITADEL_PANEL, "Citadel Panel");
+        addBlockAndItem(t, DWMBlocks.CITADEL_TILE, "Citadel Tile");
+        addBlockAndItem(t, DWMBlocks.CITADEL_GLASS, "Citadel Glass");
     }
 
     private static void addMisc(TranslationBuilder t) {

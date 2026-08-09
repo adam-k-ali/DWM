@@ -10,6 +10,9 @@
     "dwm:gallifrey_smooth_stone",
     "dwm:gallifrey_sandstone",
     "dwm:gallifrey_cut_sandstone",
-    "dwm:gallifrey_chiseled_sandstone"
+    "dwm:gallifrey_chiseled_sandstone",
+    "dwm:citadel_wall",
+    "dwm:citadel_panel",
+    "dwm:citadel_tile"
   ]
 }

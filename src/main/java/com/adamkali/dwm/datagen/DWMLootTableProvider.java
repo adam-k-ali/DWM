@@ -19,6 +19,11 @@ public class DWMLootTableProvider extends FabricBlockLootTableProvider {
             addDrop(block);
         }
 
+        for (Block block : DWMBlocks.CITADEL_BUILDING_BLOCKS) {
+            addDrop(block);
+        }
+        addDrop(DWMBlocks.CITADEL_GLASS, dropsWithSilkTouch(DWMBlocks.CITADEL_GLASS));
+
         for (var family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.generateLoot(new WoodFamilyDatagen.LootDropSink() {
                 @Override

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_citadel_tile": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dwm:citadel_tile"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "minecraft:citadel_panel_from_citadel_tile_stonecutting"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_citadel_tile"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "minecraft:citadel_panel_from_citadel_tile_stonecutting"
+    ]
+  }
+}

@@ -243,7 +243,7 @@ fabricApi {
 
 // Fabric ModelProvider auto-emits item models for every BlockItem; hand-maintained items
 // (roundels, sonic, TARDIS, …) live under src/client/resources. Keep only datagen-owned
-// Gallifrey / wood-family item models in generated (ash covers dark_ash via substring).
+// Gallifrey / wood-family / citadel item models in generated (ash covers dark_ash via substring).
 tasks.register("pruneDatagenItemModels") {
     group = "fabric"
     description = "Remove generated item models that duplicate hand-maintained client assets"
@@ -253,7 +253,7 @@ tasks.register("pruneDatagenItemModels") {
             return
         }
         itemsDir.eachFile { f ->
-            if (f.name.contains("gallifrey") || f.name.contains("ash") || f.name.contains("cardinal")) {
+            if (f.name.contains("gallifrey") || f.name.contains("ash") || f.name.contains("cardinal") || f.name.contains("citadel")) {
                 return
             }
             f.delete()
