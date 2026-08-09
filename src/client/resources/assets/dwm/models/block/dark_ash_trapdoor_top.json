@@ -1,0 +1,6 @@
+{
+  "parent": "dwm:block/template_ash_trapdoor_top",
+  "textures": {
+    "trapdoor": "dwm:block/dark_ash_trapdoor"
+  }
+}
