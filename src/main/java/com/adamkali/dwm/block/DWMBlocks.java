@@ -173,7 +173,7 @@ public class DWMBlocks {
                     DWMSaplingGenerators.ASH,
                     DWMBlockTags.ASH_LOGS,
                     DWMItemTags.ASH_LOGS,
-                    EnumSet.of(WoodFamilyFeature.DOOR, WoodFamilyFeature.TRAPDOOR)
+                    EnumSet.of(WoodFamilyFeature.DOOR, WoodFamilyFeature.CUSTOM_DOOR_MODEL, WoodFamilyFeature.TRAPDOOR)
             )
     );
     public static final Block ASH_PLANKS = ASH.blocks().planks();
@@ -208,7 +208,7 @@ public class DWMBlocks {
                     DWMSaplingGenerators.DARK_ASH,
                     DWMBlockTags.DARK_ASH_LOGS,
                     DWMItemTags.DARK_ASH_LOGS,
-                    EnumSet.of(WoodFamilyFeature.DOOR, WoodFamilyFeature.TRAPDOOR)
+                    EnumSet.of(WoodFamilyFeature.DOOR, WoodFamilyFeature.CUSTOM_DOOR_MODEL, WoodFamilyFeature.TRAPDOOR)
             )
     );
     public static final Block DARK_ASH_PLANKS = DARK_ASH.blocks().planks();

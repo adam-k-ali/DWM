@@ -2,6 +2,7 @@ package com.adamkali.dwm.datagen;
 
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.block.wood.WoodFamilyBlocks;
+import com.adamkali.dwm.block.wood.WoodFamilyFeature;
 import net.minecraft.client.data.BlockStateModelGenerator;
 import net.minecraft.client.data.ItemModelGenerator;
 import net.minecraft.client.data.ModelIds;
@@ -29,5 +30,8 @@ public final class WoodFamilyClientDatagen {
 
     public static void generateItemModels(ItemModelGenerator generator, RegisteredWoodFamily family) {
         generator.register(family.boatItem(), Models.GENERATED);
+        if (family.has(WoodFamilyFeature.CUSTOM_DOOR_MODEL) && family.doorOrNull() != null) {
+            generator.register(family.doorOrNull().asItem(), Models.GENERATED);
+        }
     }
 }

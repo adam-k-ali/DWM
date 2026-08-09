@@ -1,0 +1,6 @@
+{
+  "parent": "dwm:block/template_ash_door_top_right",
+  "textures": {
+    "door": "dwm:block/ash_door"
+  }
+}

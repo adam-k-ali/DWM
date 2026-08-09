@@ -38,4 +38,26 @@ public class ResourceValidationTests {
                 "Fabric HangingSignEditScreen expects assets/dwm/textures/gui/hanging_signs/dark_ash.png for wood type dwm:dark_ash"
         );
     }
+
+    /**
+     * Custom softetch door models use a single block atlas ({@code block/<id>_door}) plus an
+     * inventory icon ({@code item/<id>_door}). Missing PNGs render as purple/black placeholders.
+     */
+    @Test
+    public void ashAndDarkAshDoorTexturesExist() throws Exception {
+        String[] required = {
+                "textures/item/ash_door.png",
+                "textures/item/dark_ash_door.png",
+                "textures/block/ash_door.png",
+                "textures/block/dark_ash_door.png",
+        };
+        Path root = Path.of("src/client/resources/assets/dwm");
+        for (String relative : required) {
+            Path texture = root.resolve(relative);
+            assertTrue(
+                    Files.isRegularFile(texture) && Files.size(texture) > 0,
+                    "Door models require assets/dwm/" + relative
+            );
+        }
+    }
 }

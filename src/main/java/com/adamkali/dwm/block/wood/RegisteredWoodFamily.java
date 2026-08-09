@@ -153,7 +153,7 @@ public final class RegisteredWoodFamily {
                 .button(blocks.button())
                 .pressurePlate(blocks.pressurePlate())
                 .sign(blocks.sign(), blocks.wallSign());
-        if (blocks.door() != null) {
+        if (blocks.door() != null && !has(WoodFamilyFeature.CUSTOM_DOOR_MODEL)) {
             builder.door(blocks.door());
         }
         if (blocks.trapdoor() != null) {
