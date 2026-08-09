@@ -1,6 +1,9 @@
 package com.adamkali.dwm;
 
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
+import com.adamkali.dwm.block.wood.WoodFamilyBlocks;
+import com.adamkali.dwm.block.wood.WoodFamilyFeature;
 import com.adamkali.dwm.model.tileentity.*;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
@@ -9,13 +12,18 @@ import net.minecraft.client.render.RenderLayer;
 public class DWMRenderLayerManager {
     private static void registerBlockRenderLayers() {
         BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.WHITE_ROUNDEL_B, RenderLayer.getCutoutMipped());
-        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.ASH_LEAVES, RenderLayer.getCutoutMipped());
-        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.ASH_SAPLING, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.POTTED_ASH_SAPLING, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.DARK_ASH_LEAVES, RenderLayer.getCutoutMipped());
-        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.DARK_ASH_SAPLING, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.POTTED_DARK_ASH_SAPLING, RenderLayer.getCutout());
-        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.DARK_ASH_TRAPDOOR, RenderLayer.getCutout());
+        for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
+            WoodFamilyBlocks blocks = family.blocks();
+            BlockRenderLayerMap.INSTANCE.putBlock(blocks.leaves(), RenderLayer.getCutoutMipped());
+            BlockRenderLayerMap.INSTANCE.putBlock(blocks.sapling(), RenderLayer.getCutout());
+            BlockRenderLayerMap.INSTANCE.putBlock(blocks.pottedSapling(), RenderLayer.getCutout());
+            if (family.has(WoodFamilyFeature.DOOR)) {
+                BlockRenderLayerMap.INSTANCE.putBlock(family.requireDoor(), RenderLayer.getCutout());
+            }
+            if (family.has(WoodFamilyFeature.TRAPDOOR)) {
+                BlockRenderLayerMap.INSTANCE.putBlock(family.requireTrapdoor(), RenderLayer.getCutout());
+            }
+        }
     }
 
     private static void registerEntityRenderLayers() {

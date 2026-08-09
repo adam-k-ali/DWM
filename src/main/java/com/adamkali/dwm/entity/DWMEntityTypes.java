@@ -1,7 +1,9 @@
 package com.adamkali.dwm.entity;
 
 import com.adamkali.dwm.DWMReference;
-import com.adamkali.dwm.item.DWMItems;
+import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
+import com.adamkali.dwm.block.wood.WoodFamilyRegistrar;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.entity.vehicle.BoatEntity;
@@ -19,11 +21,14 @@ public final class DWMEntityTypes {
     }
 
     public static void initialize() {
-        ASH_BOAT = registerBoat("ash_boat", () -> DWMItems.ASH_BOAT);
-        DARK_ASH_BOAT = registerBoat("dark_ash_boat", () -> DWMItems.DARK_ASH_BOAT);
+        for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
+            WoodFamilyRegistrar.registerBoatEntity(family);
+        }
+        ASH_BOAT = DWMBlocks.ASH.boatEntity();
+        DARK_ASH_BOAT = DWMBlocks.DARK_ASH.boatEntity();
     }
 
-    private static EntityType<BoatEntity> registerBoat(String path, java.util.function.Supplier<net.minecraft.item.Item> boatItem) {
+    public static EntityType<BoatEntity> registerBoat(String path, java.util.function.Supplier<net.minecraft.item.Item> boatItem) {
         Identifier id = Identifier.of(DWMReference.MOD_ID, path);
         RegistryKey<EntityType<?>> key = RegistryKey.of(RegistryKeys.ENTITY_TYPE, id);
         return Registry.register(
