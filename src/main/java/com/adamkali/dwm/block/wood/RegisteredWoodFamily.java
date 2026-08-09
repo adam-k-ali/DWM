@@ -62,6 +62,11 @@ public final class RegisteredWoodFamily {
         return definition.has(feature);
     }
 
+    /** True when either a vanilla or tall door was registered for this family. */
+    public boolean hasDoor() {
+        return has(WoodFamilyFeature.DOOR) || has(WoodFamilyFeature.TALL_DOOR);
+    }
+
     public Block requireDoor() {
         return Objects.requireNonNull(blocks.door(), "door not registered for " + definition.id());
     }

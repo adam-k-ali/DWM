@@ -1,0 +1,6 @@
+{
+  "parent": "dwm:block/template_cardinal_trapdoor_top",
+  "textures": {
+    "trapdoor": "dwm:block/cardinal_trapdoor"
+  }
+}

@@ -37,7 +37,7 @@ public final class WoodFamilyDatagen {
         generator.createButtonRecipe(blocks.button(), Ingredient.ofItem(blocks.planks()))
                 .criterion(generator.hasItem(blocks.planks()), generator.conditionsFromItem(blocks.planks()))
                 .offerTo(exporter);
-        if (family.has(WoodFamilyFeature.DOOR)) {
+        if (family.hasDoor()) {
             generator.createDoorRecipe(family.requireDoor(), Ingredient.ofItem(blocks.planks()))
                     .criterion(generator.hasItem(blocks.planks()), generator.conditionsFromItem(blocks.planks()))
                     .offerTo(exporter);
@@ -65,6 +65,8 @@ public final class WoodFamilyDatagen {
 
         LootTable.Builder leavesDrops(net.minecraft.block.Block leaves, net.minecraft.block.Block sapling, float... chances);
 
+        LootTable.Builder tallDoorDrops(net.minecraft.block.Block door);
+
         void excludeFromStrictValidation(net.minecraft.block.Block block);
     }
 
@@ -81,7 +83,9 @@ public final class WoodFamilyDatagen {
         loot.addDrop(blocks.fenceGate());
         loot.addDrop(blocks.button());
         loot.addDrop(blocks.pressurePlate());
-        if (family.has(WoodFamilyFeature.DOOR)) {
+        if (family.has(WoodFamilyFeature.TALL_DOOR)) {
+            loot.addDrop(family.requireDoor(), loot.tallDoorDrops(family.requireDoor()));
+        } else if (family.has(WoodFamilyFeature.DOOR)) {
             loot.addDrop(family.requireDoor());
         }
         if (family.has(WoodFamilyFeature.TRAPDOOR)) {
@@ -122,7 +126,7 @@ public final class WoodFamilyDatagen {
         lang.addBlockAndItem(blocks.fenceGate(), name + " Fence Gate");
         lang.addBlockAndItem(blocks.button(), name + " Button");
         lang.addBlockAndItem(blocks.pressurePlate(), name + " Pressure Plate");
-        if (family.has(WoodFamilyFeature.DOOR)) {
+        if (family.hasDoor()) {
             lang.addBlockAndItem(family.requireDoor(), name + " Door");
         }
         if (family.has(WoodFamilyFeature.TRAPDOOR)) {
@@ -161,7 +165,7 @@ public final class WoodFamilyDatagen {
         tags.addToTag(BlockTags.FENCE_GATES, blocks.fenceGate());
         tags.addToTag(BlockTags.WOODEN_BUTTONS, blocks.button());
         tags.addToTag(BlockTags.WOODEN_PRESSURE_PLATES, blocks.pressurePlate());
-        if (family.has(WoodFamilyFeature.DOOR)) {
+        if (family.hasDoor()) {
             tags.addToTag(BlockTags.WOODEN_DOORS, family.requireDoor());
             tags.addToTag(BlockTags.DOORS, family.requireDoor());
         }

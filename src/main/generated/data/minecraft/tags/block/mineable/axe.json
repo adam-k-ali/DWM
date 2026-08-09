@@ -33,6 +33,23 @@
     "dwm:dark_ash_sign",
     "dwm:dark_ash_wall_sign",
     "dwm:dark_ash_hanging_sign",
-    "dwm:dark_ash_wall_hanging_sign"
+    "dwm:dark_ash_wall_hanging_sign",
+    "dwm:cardinal_planks",
+    "dwm:cardinal_log",
+    "dwm:cardinal_wood",
+    "dwm:stripped_cardinal_log",
+    "dwm:stripped_cardinal_wood",
+    "dwm:cardinal_stairs",
+    "dwm:cardinal_slab",
+    "dwm:cardinal_fence",
+    "dwm:cardinal_fence_gate",
+    "dwm:cardinal_button",
+    "dwm:cardinal_pressure_plate",
+    "dwm:cardinal_door",
+    "dwm:cardinal_trapdoor",
+    "dwm:cardinal_sign",
+    "dwm:cardinal_wall_sign",
+    "dwm:cardinal_hanging_sign",
+    "dwm:cardinal_wall_hanging_sign"
   ]
 }

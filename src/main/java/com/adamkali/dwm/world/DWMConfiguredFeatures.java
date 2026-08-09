@@ -17,6 +17,11 @@ public final class DWMConfiguredFeatures {
             Identifier.of(DWMReference.MOD_ID, "dark_ash")
     );
 
+    public static final RegistryKey<ConfiguredFeature<?, ?>> CARDINAL = RegistryKey.of(
+            RegistryKeys.CONFIGURED_FEATURE,
+            Identifier.of(DWMReference.MOD_ID, "cardinal")
+    );
+
     private DWMConfiguredFeatures() {
     }
 }

@@ -97,7 +97,13 @@ public final class WoodFamilyRegistrar {
         );
 
         Block door = null;
-        if (definition.has(WoodFamilyFeature.DOOR)) {
+        if (definition.has(WoodFamilyFeature.TALL_DOOR)) {
+            door = DWMBlocks.registerBlock(
+                    s -> new TallDoorBlock(definition.blockSetType(), s),
+                    settings.door(),
+                    id + "_door"
+            );
+        } else if (definition.has(WoodFamilyFeature.DOOR)) {
             door = DWMBlocks.registerBlock(
                     s -> new DoorBlock(definition.blockSetType(), s),
                     settings.door(),

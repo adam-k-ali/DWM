@@ -22,6 +22,11 @@ public final class DWMBlockTags {
             Identifier.of(DWMReference.MOD_ID, "dark_ash_logs")
     );
 
+    public static final TagKey<Block> CARDINAL_LOGS = TagKey.of(
+            RegistryKeys.BLOCK,
+            Identifier.of(DWMReference.MOD_ID, "cardinal_logs")
+    );
+
     private DWMBlockTags() {
     }
 }

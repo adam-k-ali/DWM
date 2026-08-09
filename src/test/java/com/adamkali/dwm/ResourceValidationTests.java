@@ -4,91 +4,101 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class ResourceValidationTests {
+    /** Wood type path ids registered in {@link com.adamkali.dwm.block.DWMWoodTypes}. */
+    private static final String[] WOOD_TYPE_IDS = {"ash", "dark_ash", "cardinal"};
+
+    /** Suffixes for datagen-owned wood family item defs under {@code assets/dwm/items/}. */
+    private static final String[] WOOD_ITEM_SUFFIXES = {
+            "boat",
+            "button",
+            "door",
+            "fence",
+            "fence_gate",
+            "hanging_sign",
+            "leaves",
+            "log",
+            "planks",
+            "pressure_plate",
+            "sapling",
+            "sign",
+            "slab",
+            "stairs",
+            "trapdoor",
+            "wood",
+    };
+
     @Test
     public void validateItemModels() {
-        assertTrue(JsonValidationHelpers.validateJsonFiles("src/test/resources/schemas/item_model.schema.json", "src/client/resources/assets/dwm/models/item"));
+        assertTrue(JsonValidationHelpers.validateJsonFiles(
+                "src/test/resources/schemas/item_model.schema.json",
+                "src/client/resources/assets/dwm/models/item"
+        ));
     }
 
     /**
-     * Fabric remaps modded wood type {@code dwm:ash} hanging-sign edit UI to
-     * {@code dwm:textures/gui/hanging_signs/ash.png} (not the entity atlas).
+     * Every concrete {@code dwm:} texture in block/item model {@code textures} maps must
+     * resolve to a non-empty PNG under client assets. Scans hand-maintained and datagen models.
      */
     @Test
-    public void ashHangingSignGuiTextureExists() throws Exception {
-        Path texture = Path.of("src/client/resources/assets/dwm/textures/gui/hanging_signs/ash.png");
-        assertTrue(
-                Files.isRegularFile(texture) && Files.size(texture) > 0,
-                "Fabric HangingSignEditScreen expects assets/dwm/textures/gui/hanging_signs/ash.png for wood type dwm:ash"
-        );
+    public void modelDefinedTexturesExist() throws Exception {
+        Path textureRoot = Path.of("src/client/resources/assets/dwm/textures");
+        List<ModelTextureValidationHelpers.MissingTexture> missing =
+                ModelTextureValidationHelpers.collectMissingModelTextures(
+                        textureRoot,
+                        Path.of("src/client/resources/assets/dwm/models"),
+                        Path.of("src/main/generated/assets/dwm/models")
+                );
+        if (!missing.isEmpty()) {
+            fail(ModelTextureValidationHelpers.formatMissingReport(missing));
+        }
     }
 
     /**
-     * Fabric remaps modded wood type {@code dwm:dark_ash} hanging-sign edit UI to
-     * {@code dwm:textures/gui/hanging_signs/dark_ash.png} (not the entity atlas).
+     * Fabric remaps modded wood types to {@code dwm:textures/gui/hanging_signs/<id>.png}
+     * for hanging-sign edit UI (not referenced from model JSON).
      */
     @Test
-    public void darkAshHangingSignGuiTextureExists() throws Exception {
-        Path texture = Path.of("src/client/resources/assets/dwm/textures/gui/hanging_signs/dark_ash.png");
-        assertTrue(
-                Files.isRegularFile(texture) && Files.size(texture) > 0,
-                "Fabric HangingSignEditScreen expects assets/dwm/textures/gui/hanging_signs/dark_ash.png for wood type dwm:dark_ash"
-        );
-    }
-
-    /**
-     * Custom softetch door models use a single block atlas ({@code block/<id>_door}) plus an
-     * inventory icon ({@code item/<id>_door}). Missing PNGs render as purple/black placeholders.
-     */
-    @Test
-    public void ashAndDarkAshDoorTexturesExist() throws Exception {
-        String[] required = {
-                "textures/item/ash_door.png",
-                "textures/item/dark_ash_door.png",
-                "textures/block/ash_door.png",
-                "textures/block/dark_ash_door.png",
-        };
-        Path root = Path.of("src/client/resources/assets/dwm");
-        for (String relative : required) {
-            Path texture = root.resolve(relative);
+    public void hangingSignGuiTexturesExist() throws Exception {
+        Path root = Path.of("src/client/resources/assets/dwm/textures/gui/hanging_signs");
+        for (String woodTypeId : WOOD_TYPE_IDS) {
+            Path texture = root.resolve(woodTypeId + ".png");
             assertTrue(
                     Files.isRegularFile(texture) && Files.size(texture) > 0,
-                    "Door models require assets/dwm/" + relative
+                    "Fabric HangingSignEditScreen expects assets/dwm/textures/gui/hanging_signs/"
+                            + woodTypeId + ".png for wood type dwm:" + woodTypeId
             );
         }
     }
 
     /**
-     * Custom softetch trapdoor models use shared {@code template_ash_trapdoor_*} geometry plus
-     * per-wood wrappers and block atlases. Inventory icons parent the bottom block model.
+     * Datagen emits wood-family item defs under {@code src/main/generated/assets/dwm/items/}.
+     * Guards against {@code pruneDatagenItemModels} deleting a newly registered family.
      */
     @Test
-    public void ashAndDarkAshTrapdoorAssetsExist() throws Exception {
-        String[] required = {
-                "textures/block/ash_trapdoor.png",
-                "textures/block/dark_ash_trapdoor.png",
-                "blockstates/ash_trapdoor.json",
-                "blockstates/dark_ash_trapdoor.json",
-                "models/block/template_ash_trapdoor_bottom.json",
-                "models/block/template_ash_trapdoor_top.json",
-                "models/block/template_ash_trapdoor_open.json",
-                "models/block/ash_trapdoor_bottom.json",
-                "models/block/ash_trapdoor_top.json",
-                "models/block/ash_trapdoor_open.json",
-                "models/block/dark_ash_trapdoor_bottom.json",
-                "models/block/dark_ash_trapdoor_top.json",
-                "models/block/dark_ash_trapdoor_open.json",
-        };
-        Path root = Path.of("src/client/resources/assets/dwm");
-        for (String relative : required) {
-            Path asset = root.resolve(relative);
-            assertTrue(
-                    Files.isRegularFile(asset) && Files.size(asset) > 0,
-                    "Trapdoor models require assets/dwm/" + relative
-            );
+    public void generatedWoodFamilyItemModelsExist() throws Exception {
+        Path itemsDir = Path.of("src/main/generated/assets/dwm/items");
+        assertTrue(Files.isDirectory(itemsDir), "Expected generated items dir at " + itemsDir);
+        for (String woodTypeId : WOOD_TYPE_IDS) {
+            for (String suffix : WOOD_ITEM_SUFFIXES) {
+                Path item = itemsDir.resolve(woodTypeId + "_" + suffix + ".json");
+                assertTrue(
+                        Files.isRegularFile(item) && Files.size(item) > 0,
+                        "Missing generated wood item model: " + item
+                );
+            }
+            for (String stripped : List.of("stripped_" + woodTypeId + "_log", "stripped_" + woodTypeId + "_wood")) {
+                Path item = itemsDir.resolve(stripped + ".json");
+                assertTrue(
+                        Files.isRegularFile(item) && Files.size(item) > 0,
+                        "Missing generated wood item model: " + item
+                );
+            }
         }
     }
 }

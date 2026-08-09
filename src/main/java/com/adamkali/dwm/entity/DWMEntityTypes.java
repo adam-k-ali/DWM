@@ -16,6 +16,7 @@ import net.minecraft.util.Identifier;
 public final class DWMEntityTypes {
     public static EntityType<BoatEntity> ASH_BOAT;
     public static EntityType<BoatEntity> DARK_ASH_BOAT;
+    public static EntityType<BoatEntity> CARDINAL_BOAT;
 
     private DWMEntityTypes() {
     }
@@ -26,6 +27,7 @@ public final class DWMEntityTypes {
         }
         ASH_BOAT = DWMBlocks.ASH.boatEntity();
         DARK_ASH_BOAT = DWMBlocks.DARK_ASH.boatEntity();
+        CARDINAL_BOAT = DWMBlocks.CARDINAL.boatEntity();
     }
 
     public static EntityType<BoatEntity> registerBoat(String path, java.util.function.Supplier<net.minecraft.item.Item> boatItem) {

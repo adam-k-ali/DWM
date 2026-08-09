@@ -1,0 +1,6 @@
+{
+  "parent": "dwm:block/template_cardinal_door_top_right",
+  "textures": {
+    "door": "dwm:block/cardinal_door"
+  }
+}

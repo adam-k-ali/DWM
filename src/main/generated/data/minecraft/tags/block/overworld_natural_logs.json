@@ -1,6 +1,7 @@
 {
   "values": [
     "dwm:ash_log",
-    "dwm:dark_ash_log"
+    "dwm:dark_ash_log",
+    "dwm:cardinal_log"
   ]
 }

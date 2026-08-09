@@ -21,6 +21,7 @@ public final class DWMConfiguredFeatureBootstrap {
     public static void bootstrap(Registerable<ConfiguredFeature<?, ?>> registerable) {
         registerTree(registerable, DWMConfiguredFeatures.ASH, DWMBlocks.ASH_LOG, DWMBlocks.ASH_LEAVES);
         registerTree(registerable, DWMConfiguredFeatures.DARK_ASH, DWMBlocks.DARK_ASH_LOG, DWMBlocks.DARK_ASH_LEAVES);
+        registerTree(registerable, DWMConfiguredFeatures.CARDINAL, DWMBlocks.CARDINAL_LOG, DWMBlocks.CARDINAL_LEAVES);
     }
 
     private static void registerTree(

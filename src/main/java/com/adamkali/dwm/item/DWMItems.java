@@ -36,6 +36,10 @@ public class DWMItems {
     public static Item DARK_ASH_SIGN;
     public static Item DARK_ASH_HANGING_SIGN;
     public static Item DARK_ASH_BOAT;
+    public static Item CARDINAL_SIGN;
+    public static Item CARDINAL_HANGING_SIGN;
+    public static Item CARDINAL_BOAT;
+
     public static void initialize() {
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyRegistrar.registerItems(family);
@@ -47,6 +51,10 @@ public class DWMItems {
         DARK_ASH_SIGN = DWMBlocks.DARK_ASH.signItem();
         DARK_ASH_HANGING_SIGN = DWMBlocks.DARK_ASH.hangingSignItem();
         DARK_ASH_BOAT = DWMBlocks.DARK_ASH.boatItem();
+        CARDINAL_SIGN = DWMBlocks.CARDINAL.signItem();
+        CARDINAL_HANGING_SIGN = DWMBlocks.CARDINAL.hangingSignItem();
+        CARDINAL_BOAT = DWMBlocks.CARDINAL.boatItem();
+
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(content -> {
             content.add(SONIC_SECOND_DOCTOR);
             content.add(SONIC_THIRD_DOCTOR);

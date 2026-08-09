@@ -5,6 +5,7 @@ import com.adamkali.dwm.block.wood.WoodFamilyDefinition;
 import com.adamkali.dwm.block.wood.WoodFamilyFeature;
 import com.adamkali.dwm.block.wood.WoodFamilyRegistrar;
 import com.adamkali.dwm.item.DWMItemTags;
+import net.minecraft.block.MapColor;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
@@ -242,7 +243,47 @@ public class DWMBlocks {
     public static final Block DARK_ASH_HANGING_SIGN = DARK_ASH.blocks().hangingSign();
     public static final Block DARK_ASH_WALL_HANGING_SIGN = DARK_ASH.blocks().wallHangingSign();
 
-    public static final List<RegisteredWoodFamily> WOOD_FAMILIES = List.of(ASH, DARK_ASH);
+    public static final RegisteredWoodFamily CARDINAL = WoodFamilyRegistrar.registerBlocks(
+            new WoodFamilyDefinition(
+                    "cardinal",
+                    "Cardinal",
+                    MapColor.TERRACOTTA_RED,
+                    MapColor.TERRACOTTA_GRAY,
+                    DWMWoodTypes.CARDINAL,
+                    DWMWoodTypes.CARDINAL_SET,
+                    DWMSaplingGenerators.CARDINAL,
+                    DWMBlockTags.CARDINAL_LOGS,
+                    DWMItemTags.CARDINAL_LOGS,
+                    EnumSet.of(
+                            WoodFamilyFeature.TALL_DOOR,
+                            WoodFamilyFeature.CUSTOM_DOOR_MODEL,
+                            WoodFamilyFeature.TRAPDOOR,
+                            WoodFamilyFeature.CUSTOM_TRAPDOOR_MODEL
+                    )
+            )
+    );
+    public static final Block CARDINAL_PLANKS = CARDINAL.blocks().planks();
+    public static final Block CARDINAL_LOG = CARDINAL.blocks().log();
+    public static final Block CARDINAL_WOOD = CARDINAL.blocks().wood();
+    public static final Block STRIPPED_CARDINAL_LOG = CARDINAL.blocks().strippedLog();
+    public static final Block STRIPPED_CARDINAL_WOOD = CARDINAL.blocks().strippedWood();
+    public static final Block CARDINAL_LEAVES = CARDINAL.blocks().leaves();
+    public static final Block CARDINAL_SAPLING = CARDINAL.blocks().sapling();
+    public static final Block POTTED_CARDINAL_SAPLING = CARDINAL.blocks().pottedSapling();
+    public static final Block CARDINAL_STAIRS = CARDINAL.blocks().stairs();
+    public static final Block CARDINAL_SLAB = CARDINAL.blocks().slab();
+    public static final Block CARDINAL_FENCE = CARDINAL.blocks().fence();
+    public static final Block CARDINAL_FENCE_GATE = CARDINAL.blocks().fenceGate();
+    public static final Block CARDINAL_BUTTON = CARDINAL.blocks().button();
+    public static final Block CARDINAL_PRESSURE_PLATE = CARDINAL.blocks().pressurePlate();
+    public static final Block CARDINAL_DOOR = CARDINAL.requireDoor();
+    public static final Block CARDINAL_TRAPDOOR = CARDINAL.requireTrapdoor();
+    public static final Block CARDINAL_SIGN = CARDINAL.blocks().sign();
+    public static final Block CARDINAL_WALL_SIGN = CARDINAL.blocks().wallSign();
+    public static final Block CARDINAL_HANGING_SIGN = CARDINAL.blocks().hangingSign();
+    public static final Block CARDINAL_WALL_HANGING_SIGN = CARDINAL.blocks().wallHangingSign();
+
+    public static final List<RegisteredWoodFamily> WOOD_FAMILIES = List.of(ASH, DARK_ASH, CARDINAL);
 
     public static final List<Block> ASH_LOGS = ASH.logs();
     public static final List<Block> ASH_WOOD_BUILDING_BLOCKS = ASH.buildingBlocks();
@@ -250,6 +291,9 @@ public class DWMBlocks {
     public static final List<Block> DARK_ASH_LOGS = DARK_ASH.logs();
     public static final List<Block> DARK_ASH_WOOD_BUILDING_BLOCKS = DARK_ASH.buildingBlocks();
     public static final List<Block> DARK_ASH_WOOD_FAMILY = DARK_ASH.familyBlocks();
+    public static final List<Block> CARDINAL_LOGS = CARDINAL.logs();
+    public static final List<Block> CARDINAL_WOOD_BUILDING_BLOCKS = CARDINAL.buildingBlocks();
+    public static final List<Block> CARDINAL_WOOD_FAMILY = CARDINAL.familyBlocks();
 
     /** Building / stone-like Gallifrey blocks (excludes dirt/sand terrain). */
     public static final List<Block> GALLIFREY_STONE_BUILDING_BLOCKS = List.of(
