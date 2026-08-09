@@ -35,6 +35,12 @@ public class DWMBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(DWMBlocks.GALLIFREY_DIRT)
                 .add(DWMBlocks.GALLIFREY_COARSE_DIRT);
 
+        getOrCreateTagBuilder(DWMBlockTags.CITADEL)
+                .add(DWMBlocks.CITADEL_WALL)
+                .add(DWMBlocks.CITADEL_PANEL)
+                .add(DWMBlocks.CITADEL_TILE)
+                .add(DWMBlocks.CITADEL_GLASS);
+
         getOrCreateTagBuilder(BlockTags.PICKAXE_MINEABLE)
                 .add(DWMBlocks.GALLIFREY_STONE)
                 .add(DWMBlocks.GALLIFREY_STONE_BRICKS)
@@ -46,7 +52,13 @@ public class DWMBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 .add(DWMBlocks.GALLIFREY_SMOOTH_STONE)
                 .add(DWMBlocks.GALLIFREY_SANDSTONE)
                 .add(DWMBlocks.GALLIFREY_CUT_SANDSTONE)
-                .add(DWMBlocks.GALLIFREY_CHISELED_SANDSTONE);
+                .add(DWMBlocks.GALLIFREY_CHISELED_SANDSTONE)
+                .add(DWMBlocks.CITADEL_WALL)
+                .add(DWMBlocks.CITADEL_PANEL)
+                .add(DWMBlocks.CITADEL_TILE);
+
+        getOrCreateTagBuilder(BlockTags.IMPERMEABLE)
+                .add(DWMBlocks.CITADEL_GLASS);
 
         getOrCreateTagBuilder(BlockTags.SHOVEL_MINEABLE)
                 .add(DWMBlocks.GALLIFREY_SAND)

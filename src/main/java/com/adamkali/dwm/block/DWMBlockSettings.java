@@ -37,6 +37,24 @@ public class DWMBlockSettings {
             .strength(0.5F)
             .sounds(BlockSoundGroup.GRAVEL);
 
+    public static final AbstractBlock.Settings CITADEL = AbstractBlock.Settings.create()
+            .mapColor(MapColor.STONE_GRAY)
+            .instrument(NoteBlockInstrument.BASEDRUM)
+            .requiresTool()
+            .strength(1.5F, 6.0F)
+            .sounds(BlockSoundGroup.STONE);
+
+    public static final AbstractBlock.Settings CITADEL_GLASS = AbstractBlock.Settings.create()
+            .mapColor(MapColor.BLACK)
+            .instrument(NoteBlockInstrument.HAT)
+            .strength(0.3F)
+            .sounds(BlockSoundGroup.GLASS)
+            .nonOpaque()
+            .allowsSpawning((state, world, pos, type) -> false)
+            .solidBlock((state, world, pos) -> false)
+            .suffocates((state, world, pos) -> false)
+            .blockVision((state, world, pos) -> false);
+
     public static final MapColor ASH_PLANKS_COLOR = MapColor.TERRACOTTA_WHITE;
     public static final MapColor ASH_BARK_COLOR = MapColor.TERRACOTTA_GRAY;
     public static final MapColor DARK_ASH_PLANKS_COLOR = MapColor.TERRACOTTA_BROWN;

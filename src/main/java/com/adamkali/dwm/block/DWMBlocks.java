@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.ColoredFallingBlock;
+import net.minecraft.block.TransparentBlock;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
@@ -162,6 +163,11 @@ public class DWMBlocks {
     );
     public static final Block GALLIFREY_DIRT = register(Block::new, DWMBlockSettings.GALLIFREY_DIRT, "gallifrey_dirt");
     public static final Block GALLIFREY_COARSE_DIRT = register(Block::new, DWMBlockSettings.GALLIFREY_DIRT, "gallifrey_coarse_dirt");
+
+    public static final Block CITADEL_WALL = register(Block::new, DWMBlockSettings.CITADEL, "citadel_wall");
+    public static final Block CITADEL_PANEL = register(Block::new, DWMBlockSettings.CITADEL, "citadel_panel");
+    public static final Block CITADEL_TILE = register(Block::new, DWMBlockSettings.CITADEL, "citadel_tile");
+    public static final Block CITADEL_GLASS = register(TransparentBlock::new, DWMBlockSettings.CITADEL_GLASS, "citadel_glass");
 
     public static final RegisteredWoodFamily ASH = WoodFamilyRegistrar.registerBlocks(
             new WoodFamilyDefinition(
@@ -328,6 +334,21 @@ public class DWMBlocks {
             GALLIFREY_COARSE_DIRT
     );
 
+    /** Citadel decorative solids (excludes glass). */
+    public static final List<Block> CITADEL_BUILDING_BLOCKS = List.of(
+            CITADEL_WALL,
+            CITADEL_PANEL,
+            CITADEL_TILE
+    );
+
+    /** Full citadel set including glass. */
+    public static final List<Block> CITADEL_FAMILY = List.of(
+            CITADEL_WALL,
+            CITADEL_PANEL,
+            CITADEL_TILE,
+            CITADEL_GLASS
+    );
+
     public static void initialize() {
         DWMWoodTypes.initialize();
 
@@ -455,6 +476,10 @@ public class DWMBlocks {
             content.add(TEAL_CHRONOPLASM_POWDER);
 
             for (Block block : GALLIFREY_STONE_BUILDING_BLOCKS) {
+                content.add(block);
+            }
+
+            for (Block block : CITADEL_FAMILY) {
                 content.add(block);
             }
 

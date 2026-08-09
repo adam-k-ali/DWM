@@ -12,6 +12,7 @@ import net.minecraft.client.render.RenderLayer;
 public class DWMRenderLayerManager {
     private static void registerBlockRenderLayers() {
         BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.WHITE_ROUNDEL_B, RenderLayer.getCutoutMipped());
+        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.CITADEL_GLASS, RenderLayer.getTranslucent());
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyBlocks blocks = family.blocks();
             BlockRenderLayerMap.INSTANCE.putBlock(blocks.leaves(), RenderLayer.getCutoutMipped());

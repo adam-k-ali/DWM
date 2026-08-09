@@ -86,6 +86,22 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         "cracked_gallifrey_stone_bricks"
                 );
 
+                offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.CITADEL_PANEL, DWMBlocks.CITADEL_WALL);
+                offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.CITADEL_TILE, DWMBlocks.CITADEL_WALL);
+                offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.CITADEL_WALL, DWMBlocks.CITADEL_PANEL);
+                offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.CITADEL_TILE, DWMBlocks.CITADEL_PANEL);
+                offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.CITADEL_WALL, DWMBlocks.CITADEL_TILE);
+                offerStonecuttingRecipe(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.CITADEL_PANEL, DWMBlocks.CITADEL_TILE);
+
+                createShaped(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.CITADEL_GLASS, 8)
+                        .input('#', DWMBlocks.CITADEL_WALL)
+                        .input('G', Items.GLASS)
+                        .pattern("###")
+                        .pattern("#G#")
+                        .pattern("###")
+                        .criterion(hasItem(DWMBlocks.CITADEL_WALL), conditionsFromItem(DWMBlocks.CITADEL_WALL))
+                        .offerTo(exporter);
+
                 for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
                     WoodFamilyDatagen.generateRecipes(this, exporter, family);
                 }

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "dwm:citadel_wall",
+  "result": {
+    "count": 1,
+    "id": "dwm:citadel_tile"
+  }
+}
