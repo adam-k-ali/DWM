@@ -20,6 +20,13 @@ public final class DWMSaplingGenerators {
             Optional.empty()
     );
 
+    public static final SaplingGenerator CARDINAL = new SaplingGenerator(
+            "cardinal",
+            Optional.empty(),
+            Optional.of(DWMConfiguredFeatures.CARDINAL),
+            Optional.empty()
+    );
+
     private DWMSaplingGenerators() {
     }
 }

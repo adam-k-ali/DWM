@@ -38,4 +38,17 @@ public class ResourceValidationTests {
                 "Fabric HangingSignEditScreen expects assets/dwm/textures/gui/hanging_signs/dark_ash.png for wood type dwm:dark_ash"
         );
     }
+
+    /**
+     * Fabric remaps modded wood type {@code dwm:cardinal} hanging-sign edit UI to
+     * {@code dwm:textures/gui/hanging_signs/cardinal.png} (not the entity atlas).
+     */
+    @Test
+    public void cardinalHangingSignGuiTextureExists() throws Exception {
+        Path texture = Path.of("src/client/resources/assets/dwm/textures/gui/hanging_signs/cardinal.png");
+        assertTrue(
+                Files.isRegularFile(texture) && Files.size(texture) > 0,
+                "Fabric HangingSignEditScreen expects assets/dwm/textures/gui/hanging_signs/cardinal.png for wood type dwm:cardinal"
+        );
+    }
 }

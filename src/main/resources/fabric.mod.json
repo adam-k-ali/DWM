@@ -31,6 +31,7 @@
       "com.adamkali.dwm.gametest.TardisInteriorGameTests",
       "com.adamkali.dwm.gametest.AshWoodFamilyGameTests",
       "com.adamkali.dwm.gametest.DarkAshWoodFamilyGameTests",
+      "com.adamkali.dwm.gametest.CardinalWoodFamilyGameTests",
       "com.adamkali.dwm.network.ChameleonGameTests"
     ]
   },
@@ -47,8 +48,7 @@
     "java": ">=21",
     "fabric-api": "*"
   },
-  "suggests": {
-  },
+  "suggests": {},
   "custom": {
     "modmenu": {
       "links": {

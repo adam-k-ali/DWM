@@ -2,7 +2,9 @@
   "values": [
     "dwm:ash_trapdoor",
     "dwm:dark_ash_trapdoor",
+    "dwm:cardinal_trapdoor",
     "dwm:ash_trapdoor",
-    "dwm:dark_ash_trapdoor"
+    "dwm:dark_ash_trapdoor",
+    "dwm:cardinal_trapdoor"
   ]
 }

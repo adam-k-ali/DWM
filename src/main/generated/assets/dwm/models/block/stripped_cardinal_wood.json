@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "dwm:block/stripped_cardinal_log",
+    "side": "dwm:block/stripped_cardinal_log"
+  }
+}

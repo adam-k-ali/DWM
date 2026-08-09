@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "group": "planks",
+  "ingredients": [
+    "#dwm:cardinal_logs"
+  ],
+  "result": {
+    "count": 4,
+    "id": "dwm:cardinal_planks"
+  }
+}
