@@ -189,13 +189,5 @@ public final class WoodFamilyDatagen {
         tags.addToTag(ItemTags.SIGNS, family.signItem());
         tags.addToTag(ItemTags.HANGING_SIGNS, family.hangingSignItem());
         tags.addToTag(ItemTags.BOATS, family.boatItem());
-        if (family.has(WoodFamilyFeature.DOOR)) {
-            tags.addToTag(ItemTags.WOODEN_DOORS, family.requireDoor().asItem());
-            tags.addToTag(ItemTags.DOORS, family.requireDoor().asItem());
-        }
-        if (family.has(WoodFamilyFeature.TRAPDOOR)) {
-            tags.addToTag(ItemTags.WOODEN_TRAPDOORS, family.requireTrapdoor().asItem());
-            tags.addToTag(ItemTags.TRAPDOORS, family.requireTrapdoor().asItem());
-        }
     }
 }
