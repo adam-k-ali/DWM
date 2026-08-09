@@ -19,46 +19,39 @@ public class DWMLootTableProvider extends FabricBlockLootTableProvider {
             addDrop(block);
         }
 
-        addDrop(DWMBlocks.ASH_PLANKS);
-        addDrop(DWMBlocks.ASH_LOG);
-        addDrop(DWMBlocks.ASH_WOOD);
-        addDrop(DWMBlocks.STRIPPED_ASH_LOG);
-        addDrop(DWMBlocks.STRIPPED_ASH_WOOD);
-        addDrop(DWMBlocks.ASH_STAIRS);
-        addDrop(DWMBlocks.ASH_SLAB, slabDrops(DWMBlocks.ASH_SLAB));
-        addDrop(DWMBlocks.ASH_FENCE);
-        addDrop(DWMBlocks.ASH_FENCE_GATE);
-        addDrop(DWMBlocks.ASH_BUTTON);
-        addDrop(DWMBlocks.ASH_PRESSURE_PLATE);
-        addDrop(DWMBlocks.ASH_SIGN);
-        addDrop(DWMBlocks.ASH_HANGING_SIGN);
-        addDrop(DWMBlocks.ASH_SAPLING);
-        addPottedPlantDrops(DWMBlocks.POTTED_ASH_SAPLING);
-        addDrop(
-                DWMBlocks.ASH_LEAVES,
-                leavesDrops(DWMBlocks.ASH_LEAVES, DWMBlocks.ASH_SAPLING, SAPLING_DROP_CHANCE)
-        );
+        for (var family : DWMBlocks.WOOD_FAMILIES) {
+            WoodFamilyDatagen.generateLoot(new WoodFamilyDatagen.LootDropSink() {
+                @Override
+                public void addDrop(Block block) {
+                    DWMLootTableProvider.this.addDrop(block);
+                }
 
-        addDrop(DWMBlocks.DARK_ASH_PLANKS);
-        addDrop(DWMBlocks.DARK_ASH_LOG);
-        addDrop(DWMBlocks.DARK_ASH_WOOD);
-        addDrop(DWMBlocks.STRIPPED_DARK_ASH_LOG);
-        addDrop(DWMBlocks.STRIPPED_DARK_ASH_WOOD);
-        addDrop(DWMBlocks.DARK_ASH_STAIRS);
-        addDrop(DWMBlocks.DARK_ASH_SLAB, slabDrops(DWMBlocks.DARK_ASH_SLAB));
-        addDrop(DWMBlocks.DARK_ASH_FENCE);
-        addDrop(DWMBlocks.DARK_ASH_FENCE_GATE);
-        addDrop(DWMBlocks.DARK_ASH_BUTTON);
-        addDrop(DWMBlocks.DARK_ASH_PRESSURE_PLATE);
-        addDrop(DWMBlocks.DARK_ASH_TRAPDOOR);
-        addDrop(DWMBlocks.DARK_ASH_SIGN);
-        addDrop(DWMBlocks.DARK_ASH_HANGING_SIGN);
-        addDrop(DWMBlocks.DARK_ASH_SAPLING);
-        addPottedPlantDrops(DWMBlocks.POTTED_DARK_ASH_SAPLING);
-        addDrop(
-                DWMBlocks.DARK_ASH_LEAVES,
-                leavesDrops(DWMBlocks.DARK_ASH_LEAVES, DWMBlocks.DARK_ASH_SAPLING, SAPLING_DROP_CHANCE)
-        );
+                @Override
+                public void addDrop(Block block, net.minecraft.loot.LootTable.Builder builder) {
+                    DWMLootTableProvider.this.addDrop(block, builder);
+                }
+
+                @Override
+                public void addPottedPlantDrops(Block block) {
+                    DWMLootTableProvider.this.addPottedPlantDrops(block);
+                }
+
+                @Override
+                public net.minecraft.loot.LootTable.Builder slabDrops(Block block) {
+                    return DWMLootTableProvider.this.slabDrops(block);
+                }
+
+                @Override
+                public net.minecraft.loot.LootTable.Builder leavesDrops(Block leaves, Block sapling, float... chances) {
+                    return DWMLootTableProvider.this.leavesDrops(leaves, sapling, chances);
+                }
+
+                @Override
+                public void excludeFromStrictValidation(Block block) {
+                    DWMLootTableProvider.this.excludeFromStrictValidation(block);
+                }
+            }, family, SAPLING_DROP_CHANCE);
+        }
 
         // Existing building blocks that previously had no loot tables.
         addDrop(DWMBlocks.BLACK_ROUNDEL_A);
@@ -175,9 +168,5 @@ public class DWMLootTableProvider extends FabricBlockLootTableProvider {
         excludeFromStrictValidation(DWMBlocks.TARDIS_BLOCK);
         excludeFromStrictValidation(DWMBlocks.TARDIS_INTERIOR_DOOR);
         excludeFromStrictValidation(DWMBlocks.FIRST_DOCTOR_CONSOLE);
-        excludeFromStrictValidation(DWMBlocks.ASH_WALL_SIGN);
-        excludeFromStrictValidation(DWMBlocks.ASH_WALL_HANGING_SIGN);
-        excludeFromStrictValidation(DWMBlocks.DARK_ASH_WALL_SIGN);
-        excludeFromStrictValidation(DWMBlocks.DARK_ASH_WALL_HANGING_SIGN);
     }
 }
