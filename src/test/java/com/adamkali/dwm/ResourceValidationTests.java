@@ -13,6 +13,26 @@ public class ResourceValidationTests {
     /** Wood type path ids registered in {@link com.adamkali.dwm.block.DWMWoodTypes}. */
     private static final String[] WOOD_TYPE_IDS = {"ash", "dark_ash", "cardinal"};
 
+    /** Suffixes for datagen-owned wood family item defs under {@code assets/dwm/items/}. */
+    private static final String[] WOOD_ITEM_SUFFIXES = {
+            "boat",
+            "button",
+            "door",
+            "fence",
+            "fence_gate",
+            "hanging_sign",
+            "leaves",
+            "log",
+            "planks",
+            "pressure_plate",
+            "sapling",
+            "sign",
+            "slab",
+            "stairs",
+            "trapdoor",
+            "wood",
+    };
+
     @Test
     public void validateItemModels() {
         assertTrue(JsonValidationHelpers.validateJsonFiles(
@@ -53,6 +73,32 @@ public class ResourceValidationTests {
                     "Fabric HangingSignEditScreen expects assets/dwm/textures/gui/hanging_signs/"
                             + woodTypeId + ".png for wood type dwm:" + woodTypeId
             );
+        }
+    }
+
+    /**
+     * Datagen emits wood-family item defs under {@code src/main/generated/assets/dwm/items/}.
+     * Guards against {@code pruneDatagenItemModels} deleting a newly registered family.
+     */
+    @Test
+    public void generatedWoodFamilyItemModelsExist() throws Exception {
+        Path itemsDir = Path.of("src/main/generated/assets/dwm/items");
+        assertTrue(Files.isDirectory(itemsDir), "Expected generated items dir at " + itemsDir);
+        for (String woodTypeId : WOOD_TYPE_IDS) {
+            for (String suffix : WOOD_ITEM_SUFFIXES) {
+                Path item = itemsDir.resolve(woodTypeId + "_" + suffix + ".json");
+                assertTrue(
+                        Files.isRegularFile(item) && Files.size(item) > 0,
+                        "Missing generated wood item model: " + item
+                );
+            }
+            for (String stripped : List.of("stripped_" + woodTypeId + "_log", "stripped_" + woodTypeId + "_wood")) {
+                Path item = itemsDir.resolve(stripped + ".json");
+                assertTrue(
+                        Files.isRegularFile(item) && Files.size(item) > 0,
+                        "Missing generated wood item model: " + item
+                );
+            }
         }
     }
 }

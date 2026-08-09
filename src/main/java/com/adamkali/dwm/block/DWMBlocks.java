@@ -254,7 +254,11 @@ public class DWMBlocks {
                     DWMSaplingGenerators.CARDINAL,
                     DWMBlockTags.CARDINAL_LOGS,
                     DWMItemTags.CARDINAL_LOGS,
-                    EnumSet.of(WoodFamilyFeature.DOOR, WoodFamilyFeature.TRAPDOOR)
+                    EnumSet.of(
+                            WoodFamilyFeature.DOOR,
+                            WoodFamilyFeature.CUSTOM_DOOR_MODEL,
+                            WoodFamilyFeature.TRAPDOOR
+                    )
             )
     );
     public static final Block CARDINAL_PLANKS = CARDINAL.blocks().planks();
