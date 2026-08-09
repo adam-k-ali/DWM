@@ -47,6 +47,15 @@ public class DWMLootTableProvider extends FabricBlockLootTableProvider {
                 }
 
                 @Override
+                public net.minecraft.loot.LootTable.Builder tallDoorDrops(Block door) {
+                    return DWMLootTableProvider.this.dropsWithProperty(
+                            door,
+                            com.adamkali.dwm.block.wood.TallDoorBlock.SEGMENT,
+                            com.adamkali.dwm.block.wood.TallDoorSegment.BOTTOM
+                    );
+                }
+
+                @Override
                 public void excludeFromStrictValidation(Block block) {
                     DWMLootTableProvider.this.excludeFromStrictValidation(block);
                 }

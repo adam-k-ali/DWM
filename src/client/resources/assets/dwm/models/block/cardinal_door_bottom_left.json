@@ -1,5 +1,5 @@
 {
-  "parent": "dwm:block/template_ash_door_bottom_left",
+  "parent": "dwm:block/template_cardinal_door_bottom_left",
   "textures": {
     "door": "dwm:block/cardinal_door"
   }

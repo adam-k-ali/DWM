@@ -255,9 +255,10 @@ public class DWMBlocks {
                     DWMBlockTags.CARDINAL_LOGS,
                     DWMItemTags.CARDINAL_LOGS,
                     EnumSet.of(
-                            WoodFamilyFeature.DOOR,
+                            WoodFamilyFeature.TALL_DOOR,
                             WoodFamilyFeature.CUSTOM_DOOR_MODEL,
-                            WoodFamilyFeature.TRAPDOOR
+                            WoodFamilyFeature.TRAPDOOR,
+                            WoodFamilyFeature.CUSTOM_TRAPDOOR_MODEL
                     )
             )
     );

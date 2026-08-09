@@ -13,7 +13,7 @@ public final class WoodFamilyGameTestSupport {
     }
 
     public static boolean hasDoor(RegisteredWoodFamily family) {
-        return family.has(WoodFamilyFeature.DOOR);
+        return family.hasDoor();
     }
 
     public static boolean hasTrapdoor(RegisteredWoodFamily family) {

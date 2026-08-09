@@ -11,6 +11,15 @@
       "entries": [
         {
           "type": "minecraft:item",
+          "conditions": [
+            {
+              "block": "dwm:cardinal_door",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "segment": "bottom"
+              }
+            }
+          ],
           "name": "dwm:cardinal_door"
         }
       ],

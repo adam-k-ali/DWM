@@ -1,122 +1,362 @@
 {
   "variants": {
-    "facing=east,half=lower,hinge=left,open=false": {
+    "facing=east,hinge=left,open=false,powered=false,segment=bottom": {
       "model": "dwm:block/cardinal_door_bottom_left"
     },
-    "facing=east,half=lower,hinge=left,open=true": {
-      "model": "dwm:block/cardinal_door_bottom_left_open",
-      "y": 90
+    "facing=east,hinge=left,open=false,powered=false,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_left"
     },
-    "facing=east,half=lower,hinge=right,open=false": {
-      "model": "dwm:block/cardinal_door_bottom_right"
-    },
-    "facing=east,half=lower,hinge=right,open=true": {
-      "model": "dwm:block/cardinal_door_bottom_right_open",
-      "y": 270
-    },
-    "facing=east,half=upper,hinge=left,open=false": {
+    "facing=east,hinge=left,open=false,powered=false,segment=top": {
       "model": "dwm:block/cardinal_door_top_left"
     },
-    "facing=east,half=upper,hinge=left,open=true": {
+    "facing=east,hinge=left,open=false,powered=true,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_left"
+    },
+    "facing=east,hinge=left,open=false,powered=true,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_left"
+    },
+    "facing=east,hinge=left,open=false,powered=true,segment=top": {
+      "model": "dwm:block/cardinal_door_top_left"
+    },
+    "facing=east,hinge=left,open=true,powered=false,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_left_open",
+      "y": 90
+    },
+    "facing=east,hinge=left,open=true,powered=false,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_left_open",
+      "y": 90
+    },
+    "facing=east,hinge=left,open=true,powered=false,segment=top": {
       "model": "dwm:block/cardinal_door_top_left_open",
       "y": 90
     },
-    "facing=east,half=upper,hinge=right,open=false": {
+    "facing=east,hinge=left,open=true,powered=true,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_left_open",
+      "y": 90
+    },
+    "facing=east,hinge=left,open=true,powered=true,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_left_open",
+      "y": 90
+    },
+    "facing=east,hinge=left,open=true,powered=true,segment=top": {
+      "model": "dwm:block/cardinal_door_top_left_open",
+      "y": 90
+    },
+    "facing=east,hinge=right,open=false,powered=false,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_right"
+    },
+    "facing=east,hinge=right,open=false,powered=false,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_right"
+    },
+    "facing=east,hinge=right,open=false,powered=false,segment=top": {
       "model": "dwm:block/cardinal_door_top_right"
     },
-    "facing=east,half=upper,hinge=right,open=true": {
+    "facing=east,hinge=right,open=false,powered=true,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_right"
+    },
+    "facing=east,hinge=right,open=false,powered=true,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_right"
+    },
+    "facing=east,hinge=right,open=false,powered=true,segment=top": {
+      "model": "dwm:block/cardinal_door_top_right"
+    },
+    "facing=east,hinge=right,open=true,powered=false,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_right_open",
+      "y": 270
+    },
+    "facing=east,hinge=right,open=true,powered=false,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_right_open",
+      "y": 270
+    },
+    "facing=east,hinge=right,open=true,powered=false,segment=top": {
       "model": "dwm:block/cardinal_door_top_right_open",
       "y": 270
     },
-    "facing=north,half=lower,hinge=left,open=false": {
+    "facing=east,hinge=right,open=true,powered=true,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_right_open",
+      "y": 270
+    },
+    "facing=east,hinge=right,open=true,powered=true,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_right_open",
+      "y": 270
+    },
+    "facing=east,hinge=right,open=true,powered=true,segment=top": {
+      "model": "dwm:block/cardinal_door_top_right_open",
+      "y": 270
+    },
+    "facing=north,hinge=left,open=false,powered=false,segment=bottom": {
       "model": "dwm:block/cardinal_door_bottom_left",
       "y": 270
     },
-    "facing=north,half=lower,hinge=left,open=true": {
+    "facing=north,hinge=left,open=false,powered=false,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_left",
+      "y": 270
+    },
+    "facing=north,hinge=left,open=false,powered=false,segment=top": {
+      "model": "dwm:block/cardinal_door_top_left",
+      "y": 270
+    },
+    "facing=north,hinge=left,open=false,powered=true,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_left",
+      "y": 270
+    },
+    "facing=north,hinge=left,open=false,powered=true,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_left",
+      "y": 270
+    },
+    "facing=north,hinge=left,open=false,powered=true,segment=top": {
+      "model": "dwm:block/cardinal_door_top_left",
+      "y": 270
+    },
+    "facing=north,hinge=left,open=true,powered=false,segment=bottom": {
       "model": "dwm:block/cardinal_door_bottom_left_open"
     },
-    "facing=north,half=lower,hinge=right,open=false": {
+    "facing=north,hinge=left,open=true,powered=false,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_left_open"
+    },
+    "facing=north,hinge=left,open=true,powered=false,segment=top": {
+      "model": "dwm:block/cardinal_door_top_left_open"
+    },
+    "facing=north,hinge=left,open=true,powered=true,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_left_open"
+    },
+    "facing=north,hinge=left,open=true,powered=true,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_left_open"
+    },
+    "facing=north,hinge=left,open=true,powered=true,segment=top": {
+      "model": "dwm:block/cardinal_door_top_left_open"
+    },
+    "facing=north,hinge=right,open=false,powered=false,segment=bottom": {
       "model": "dwm:block/cardinal_door_bottom_right",
       "y": 270
     },
-    "facing=north,half=lower,hinge=right,open=true": {
-      "model": "dwm:block/cardinal_door_bottom_right_open",
-      "y": 180
-    },
-    "facing=north,half=upper,hinge=left,open=false": {
-      "model": "dwm:block/cardinal_door_top_left",
+    "facing=north,hinge=right,open=false,powered=false,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_right",
       "y": 270
     },
-    "facing=north,half=upper,hinge=left,open=true": {
-      "model": "dwm:block/cardinal_door_top_left_open"
-    },
-    "facing=north,half=upper,hinge=right,open=false": {
+    "facing=north,hinge=right,open=false,powered=false,segment=top": {
       "model": "dwm:block/cardinal_door_top_right",
       "y": 270
     },
-    "facing=north,half=upper,hinge=right,open=true": {
+    "facing=north,hinge=right,open=false,powered=true,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_right",
+      "y": 270
+    },
+    "facing=north,hinge=right,open=false,powered=true,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_right",
+      "y": 270
+    },
+    "facing=north,hinge=right,open=false,powered=true,segment=top": {
+      "model": "dwm:block/cardinal_door_top_right",
+      "y": 270
+    },
+    "facing=north,hinge=right,open=true,powered=false,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_right_open",
+      "y": 180
+    },
+    "facing=north,hinge=right,open=true,powered=false,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_right_open",
+      "y": 180
+    },
+    "facing=north,hinge=right,open=true,powered=false,segment=top": {
       "model": "dwm:block/cardinal_door_top_right_open",
       "y": 180
     },
-    "facing=south,half=lower,hinge=left,open=false": {
+    "facing=north,hinge=right,open=true,powered=true,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_right_open",
+      "y": 180
+    },
+    "facing=north,hinge=right,open=true,powered=true,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_right_open",
+      "y": 180
+    },
+    "facing=north,hinge=right,open=true,powered=true,segment=top": {
+      "model": "dwm:block/cardinal_door_top_right_open",
+      "y": 180
+    },
+    "facing=south,hinge=left,open=false,powered=false,segment=bottom": {
       "model": "dwm:block/cardinal_door_bottom_left",
       "y": 90
     },
-    "facing=south,half=lower,hinge=left,open=true": {
-      "model": "dwm:block/cardinal_door_bottom_left_open",
-      "y": 180
-    },
-    "facing=south,half=lower,hinge=right,open=false": {
-      "model": "dwm:block/cardinal_door_bottom_right",
+    "facing=south,hinge=left,open=false,powered=false,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_left",
       "y": 90
     },
-    "facing=south,half=lower,hinge=right,open=true": {
-      "model": "dwm:block/cardinal_door_bottom_right_open"
-    },
-    "facing=south,half=upper,hinge=left,open=false": {
+    "facing=south,hinge=left,open=false,powered=false,segment=top": {
       "model": "dwm:block/cardinal_door_top_left",
       "y": 90
     },
-    "facing=south,half=upper,hinge=left,open=true": {
+    "facing=south,hinge=left,open=false,powered=true,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_left",
+      "y": 90
+    },
+    "facing=south,hinge=left,open=false,powered=true,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_left",
+      "y": 90
+    },
+    "facing=south,hinge=left,open=false,powered=true,segment=top": {
+      "model": "dwm:block/cardinal_door_top_left",
+      "y": 90
+    },
+    "facing=south,hinge=left,open=true,powered=false,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_left_open",
+      "y": 180
+    },
+    "facing=south,hinge=left,open=true,powered=false,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_left_open",
+      "y": 180
+    },
+    "facing=south,hinge=left,open=true,powered=false,segment=top": {
       "model": "dwm:block/cardinal_door_top_left_open",
       "y": 180
     },
-    "facing=south,half=upper,hinge=right,open=false": {
+    "facing=south,hinge=left,open=true,powered=true,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_left_open",
+      "y": 180
+    },
+    "facing=south,hinge=left,open=true,powered=true,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_left_open",
+      "y": 180
+    },
+    "facing=south,hinge=left,open=true,powered=true,segment=top": {
+      "model": "dwm:block/cardinal_door_top_left_open",
+      "y": 180
+    },
+    "facing=south,hinge=right,open=false,powered=false,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_right",
+      "y": 90
+    },
+    "facing=south,hinge=right,open=false,powered=false,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_right",
+      "y": 90
+    },
+    "facing=south,hinge=right,open=false,powered=false,segment=top": {
       "model": "dwm:block/cardinal_door_top_right",
       "y": 90
     },
-    "facing=south,half=upper,hinge=right,open=true": {
+    "facing=south,hinge=right,open=false,powered=true,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_right",
+      "y": 90
+    },
+    "facing=south,hinge=right,open=false,powered=true,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_right",
+      "y": 90
+    },
+    "facing=south,hinge=right,open=false,powered=true,segment=top": {
+      "model": "dwm:block/cardinal_door_top_right",
+      "y": 90
+    },
+    "facing=south,hinge=right,open=true,powered=false,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_right_open"
+    },
+    "facing=south,hinge=right,open=true,powered=false,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_right_open"
+    },
+    "facing=south,hinge=right,open=true,powered=false,segment=top": {
       "model": "dwm:block/cardinal_door_top_right_open"
     },
-    "facing=west,half=lower,hinge=left,open=false": {
+    "facing=south,hinge=right,open=true,powered=true,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_right_open"
+    },
+    "facing=south,hinge=right,open=true,powered=true,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_right_open"
+    },
+    "facing=south,hinge=right,open=true,powered=true,segment=top": {
+      "model": "dwm:block/cardinal_door_top_right_open"
+    },
+    "facing=west,hinge=left,open=false,powered=false,segment=bottom": {
       "model": "dwm:block/cardinal_door_bottom_left",
       "y": 180
     },
-    "facing=west,half=lower,hinge=left,open=true": {
+    "facing=west,hinge=left,open=false,powered=false,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_left",
+      "y": 180
+    },
+    "facing=west,hinge=left,open=false,powered=false,segment=top": {
+      "model": "dwm:block/cardinal_door_top_left",
+      "y": 180
+    },
+    "facing=west,hinge=left,open=false,powered=true,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_left",
+      "y": 180
+    },
+    "facing=west,hinge=left,open=false,powered=true,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_left",
+      "y": 180
+    },
+    "facing=west,hinge=left,open=false,powered=true,segment=top": {
+      "model": "dwm:block/cardinal_door_top_left",
+      "y": 180
+    },
+    "facing=west,hinge=left,open=true,powered=false,segment=bottom": {
       "model": "dwm:block/cardinal_door_bottom_left_open",
       "y": 270
     },
-    "facing=west,half=lower,hinge=right,open=false": {
+    "facing=west,hinge=left,open=true,powered=false,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_left_open",
+      "y": 270
+    },
+    "facing=west,hinge=left,open=true,powered=false,segment=top": {
+      "model": "dwm:block/cardinal_door_top_left_open",
+      "y": 270
+    },
+    "facing=west,hinge=left,open=true,powered=true,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_left_open",
+      "y": 270
+    },
+    "facing=west,hinge=left,open=true,powered=true,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_left_open",
+      "y": 270
+    },
+    "facing=west,hinge=left,open=true,powered=true,segment=top": {
+      "model": "dwm:block/cardinal_door_top_left_open",
+      "y": 270
+    },
+    "facing=west,hinge=right,open=false,powered=false,segment=bottom": {
       "model": "dwm:block/cardinal_door_bottom_right",
       "y": 180
     },
-    "facing=west,half=lower,hinge=right,open=true": {
+    "facing=west,hinge=right,open=false,powered=false,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_right",
+      "y": 180
+    },
+    "facing=west,hinge=right,open=false,powered=false,segment=top": {
+      "model": "dwm:block/cardinal_door_top_right",
+      "y": 180
+    },
+    "facing=west,hinge=right,open=false,powered=true,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_right",
+      "y": 180
+    },
+    "facing=west,hinge=right,open=false,powered=true,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_right",
+      "y": 180
+    },
+    "facing=west,hinge=right,open=false,powered=true,segment=top": {
+      "model": "dwm:block/cardinal_door_top_right",
+      "y": 180
+    },
+    "facing=west,hinge=right,open=true,powered=false,segment=bottom": {
       "model": "dwm:block/cardinal_door_bottom_right_open",
       "y": 90
     },
-    "facing=west,half=upper,hinge=left,open=false": {
-      "model": "dwm:block/cardinal_door_top_left",
-      "y": 180
+    "facing=west,hinge=right,open=true,powered=false,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_right_open",
+      "y": 90
     },
-    "facing=west,half=upper,hinge=left,open=true": {
-      "model": "dwm:block/cardinal_door_top_left_open",
-      "y": 270
+    "facing=west,hinge=right,open=true,powered=false,segment=top": {
+      "model": "dwm:block/cardinal_door_top_right_open",
+      "y": 90
     },
-    "facing=west,half=upper,hinge=right,open=false": {
-      "model": "dwm:block/cardinal_door_top_right",
-      "y": 180
+    "facing=west,hinge=right,open=true,powered=true,segment=bottom": {
+      "model": "dwm:block/cardinal_door_bottom_right_open",
+      "y": 90
     },
-    "facing=west,half=upper,hinge=right,open=true": {
+    "facing=west,hinge=right,open=true,powered=true,segment=middle": {
+      "model": "dwm:block/cardinal_door_middle_right_open",
+      "y": 90
+    },
+    "facing=west,hinge=right,open=true,powered=true,segment=top": {
       "model": "dwm:block/cardinal_door_top_right_open",
       "y": 90
     }

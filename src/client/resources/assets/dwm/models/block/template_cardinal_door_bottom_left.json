@@ -1,0 +1,216 @@
+{
+  "credit": "Made with Blockbench (converted from cardinal_door.bbmodel)",
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "#door"
+  },
+  "elements": [
+    {
+      "name": "cube",
+      "from": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        4.0,
+        16.0,
+        16.0
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0.75,
+            0.75,
+            4.75,
+            12.75
+          ],
+          "texture": "#door"
+        },
+        "south": {
+          "uv": [
+            0.0,
+            0.75,
+            0.75,
+            12.75
+          ],
+          "texture": "#door"
+        },
+        "west": {
+          "uv": [
+            5.5,
+            0.75,
+            9.5,
+            12.75
+          ],
+          "texture": "#door"
+        },
+        "north": {
+          "uv": [
+            4.75,
+            0.75,
+            5.5,
+            12.75
+          ],
+          "texture": "#door"
+        },
+        "up": {
+          "uv": [
+            4.75,
+            0.75,
+            0.75,
+            0.0
+          ],
+          "texture": "#door"
+        },
+        "down": {
+          "uv": [
+            8.75,
+            0.0,
+            4.75,
+            0.75
+          ],
+          "texture": "#door"
+        }
+      }
+    },
+    {
+      "name": "cube",
+      "from": [
+        0.9,
+        6.0,
+        -0.1
+      ],
+      "to": [
+        1.9,
+        8.0,
+        0.9
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            9.75,
+            12.0,
+            10.0,
+            12.5
+          ],
+          "texture": "#door"
+        },
+        "south": {
+          "uv": [
+            9.5,
+            12.0,
+            9.75,
+            12.5
+          ],
+          "texture": "#door"
+        },
+        "west": {
+          "uv": [
+            10.25,
+            12.0,
+            10.5,
+            12.5
+          ],
+          "texture": "#door"
+        },
+        "north": {
+          "uv": [
+            10.0,
+            12.0,
+            10.25,
+            12.5
+          ],
+          "texture": "#door"
+        },
+        "up": {
+          "uv": [
+            10.0,
+            12.0,
+            9.75,
+            11.75
+          ],
+          "texture": "#door"
+        },
+        "down": {
+          "uv": [
+            10.25,
+            11.75,
+            10.0,
+            12.0
+          ],
+          "texture": "#door"
+        }
+      }
+    },
+    {
+      "name": "cube",
+      "from": [
+        3.1,
+        6.0,
+        -0.1
+      ],
+      "to": [
+        4.1,
+        8.0,
+        0.9
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            11.75,
+            8.75,
+            12.0,
+            9.25
+          ],
+          "texture": "#door"
+        },
+        "south": {
+          "uv": [
+            11.5,
+            8.75,
+            11.75,
+            9.25
+          ],
+          "texture": "#door"
+        },
+        "west": {
+          "uv": [
+            12.25,
+            8.75,
+            12.5,
+            9.25
+          ],
+          "texture": "#door"
+        },
+        "north": {
+          "uv": [
+            12.0,
+            8.75,
+            12.25,
+            9.25
+          ],
+          "texture": "#door"
+        },
+        "up": {
+          "uv": [
+            12.0,
+            8.75,
+            11.75,
+            8.5
+          ],
+          "texture": "#door"
+        },
+        "down": {
+          "uv": [
+            12.25,
+            8.5,
+            12.0,
+            8.75
+          ],
+          "texture": "#door"
+        }
+      }
+    }
+  ]
+}

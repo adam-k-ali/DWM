@@ -2,6 +2,8 @@ package com.adamkali.dwm.gametest;
 
 import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.block.wood.TallDoorBlock;
+import com.adamkali.dwm.block.wood.TallDoorSegment;
 import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.item.DWMItems;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
@@ -19,6 +21,7 @@ import net.minecraft.block.entity.HangingSignBlockEntity;
 import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.block.entity.SignText;
 import net.minecraft.block.enums.BlockFace;
+import net.minecraft.block.enums.DoorHinge;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -222,6 +225,55 @@ public class CardinalWoodFamilyGameTests implements FabricGameTest {
                     .with(net.minecraft.block.TrapdoorBlock.FACING, facing)
                     .with(net.minecraft.block.TrapdoorBlock.OPEN, false));
             context.expectBlockProperty(pos, net.minecraft.block.TrapdoorBlock.FACING, facing);
+        }
+
+        context.complete();
+    }
+
+    @GameTest(templateName = EMPTY_STRUCTURE)
+    public void tallDoorPlacesTogglesAndRespondsToRedstone(TestContext context) {
+        context.setBlockState(2, 0, 2, Blocks.STONE);
+        BlockPos origin = new BlockPos(2, 1, 2);
+        BlockState base = DWMBlocks.CARDINAL_DOOR.getDefaultState()
+                .with(TallDoorBlock.FACING, Direction.NORTH)
+                .with(TallDoorBlock.HINGE, DoorHinge.LEFT)
+                .with(TallDoorBlock.OPEN, false)
+                .with(TallDoorBlock.POWERED, false);
+        for (TallDoorSegment segment : TallDoorSegment.values()) {
+            context.setBlockState(origin.up(segment.index()), base.with(TallDoorBlock.SEGMENT, segment));
+        }
+
+        context.expectBlock(DWMBlocks.CARDINAL_DOOR, origin);
+        context.expectBlock(DWMBlocks.CARDINAL_DOOR, origin.up());
+        context.expectBlock(DWMBlocks.CARDINAL_DOOR, origin.up(2));
+        context.expectBlockProperty(origin, TallDoorBlock.SEGMENT, TallDoorSegment.BOTTOM);
+        context.expectBlockProperty(origin.up(), TallDoorBlock.SEGMENT, TallDoorSegment.MIDDLE);
+        context.expectBlockProperty(origin.up(2), TallDoorBlock.SEGMENT, TallDoorSegment.TOP);
+
+        context.useBlock(origin);
+        for (TallDoorSegment segment : TallDoorSegment.values()) {
+            context.expectBlockProperty(origin.up(segment.index()), TallDoorBlock.OPEN, true);
+            context.expectBlockProperty(origin.up(segment.index()), TallDoorBlock.POWERED, false);
+        }
+
+        context.setBlockState(origin.east(), Blocks.REDSTONE_BLOCK);
+        for (TallDoorSegment segment : TallDoorSegment.values()) {
+            context.expectBlockProperty(origin.up(segment.index()), TallDoorBlock.OPEN, true);
+            context.expectBlockProperty(origin.up(segment.index()), TallDoorBlock.POWERED, true);
+        }
+
+        context.setBlockState(origin.east(), Blocks.AIR);
+        for (TallDoorSegment segment : TallDoorSegment.values()) {
+            context.expectBlockProperty(origin.up(segment.index()), TallDoorBlock.OPEN, false);
+            context.expectBlockProperty(origin.up(segment.index()), TallDoorBlock.POWERED, false);
+        }
+
+        PlayerEntity player = context.createMockPlayer(GameMode.SURVIVAL);
+        List<ItemStack> bottomDrops = getDrops(context, player, origin, ItemStack.EMPTY);
+        assertHasItem(bottomDrops, DWMBlocks.CARDINAL_DOOR.asItem(), 1, "tall door bottom");
+        List<ItemStack> middleDrops = getDrops(context, player, origin.up(), ItemStack.EMPTY);
+        if (countItem(middleDrops, DWMBlocks.CARDINAL_DOOR.asItem()) != 0) {
+            throw new AssertionError("Middle tall-door segment must not drop an item");
         }
 
         context.complete();

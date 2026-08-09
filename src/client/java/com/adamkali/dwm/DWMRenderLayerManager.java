@@ -17,7 +17,7 @@ public class DWMRenderLayerManager {
             BlockRenderLayerMap.INSTANCE.putBlock(blocks.leaves(), RenderLayer.getCutoutMipped());
             BlockRenderLayerMap.INSTANCE.putBlock(blocks.sapling(), RenderLayer.getCutout());
             BlockRenderLayerMap.INSTANCE.putBlock(blocks.pottedSapling(), RenderLayer.getCutout());
-            if (family.has(WoodFamilyFeature.DOOR)) {
+            if (family.hasDoor()) {
                 BlockRenderLayerMap.INSTANCE.putBlock(family.requireDoor(), RenderLayer.getCutout());
             }
             if (family.has(WoodFamilyFeature.TRAPDOOR)) {
