@@ -1,5 +1,6 @@
 package com.adamkali.dwm.datagen;
 
+import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.block.wood.WoodFamilyBlocks;
 import com.adamkali.dwm.block.wood.WoodFamilyFeature;
@@ -8,6 +9,7 @@ import net.minecraft.client.data.ItemModelGenerator;
 import net.minecraft.client.data.ModelIds;
 import net.minecraft.client.data.Models;
 import net.minecraft.client.data.TexturedModel;
+import net.minecraft.util.Identifier;
 
 public final class WoodFamilyClientDatagen {
     private WoodFamilyClientDatagen() {
@@ -26,6 +28,13 @@ public final class WoodFamilyClientDatagen {
         );
         generator.registerCubeAllModelTexturePool(blocks.planks()).family(family.vanillaModelFamily());
         generator.registerHangingSign(blocks.strippedLog(), blocks.hangingSign(), blocks.wallHangingSign());
+        if (family.has(WoodFamilyFeature.CUSTOM_TRAPDOOR_MODEL) && blocks.trapdoor() != null) {
+            Identifier bottomModel = Identifier.of(
+                    DWMReference.MOD_ID,
+                    "block/" + family.definition().id() + "_trapdoor_bottom"
+            );
+            generator.registerParentedItemModel(blocks.trapdoor(), bottomModel);
+        }
     }
 
     public static void generateItemModels(ItemModelGenerator generator, RegisteredWoodFamily family) {

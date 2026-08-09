@@ -156,7 +156,7 @@ public final class RegisteredWoodFamily {
         if (blocks.door() != null && !has(WoodFamilyFeature.CUSTOM_DOOR_MODEL)) {
             builder.door(blocks.door());
         }
-        if (blocks.trapdoor() != null) {
+        if (blocks.trapdoor() != null && !has(WoodFamilyFeature.CUSTOM_TRAPDOOR_MODEL)) {
             builder.trapdoor(blocks.trapdoor());
         }
         return builder.group("wooden").unlockCriterionName("has_planks").build();

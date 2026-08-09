@@ -60,4 +60,35 @@ public class ResourceValidationTests {
             );
         }
     }
+
+    /**
+     * Custom softetch trapdoor models use shared {@code template_ash_trapdoor_*} geometry plus
+     * per-wood wrappers and block atlases. Inventory icons parent the bottom block model.
+     */
+    @Test
+    public void ashAndDarkAshTrapdoorAssetsExist() throws Exception {
+        String[] required = {
+                "textures/block/ash_trapdoor.png",
+                "textures/block/dark_ash_trapdoor.png",
+                "blockstates/ash_trapdoor.json",
+                "blockstates/dark_ash_trapdoor.json",
+                "models/block/template_ash_trapdoor_bottom.json",
+                "models/block/template_ash_trapdoor_top.json",
+                "models/block/template_ash_trapdoor_open.json",
+                "models/block/ash_trapdoor_bottom.json",
+                "models/block/ash_trapdoor_top.json",
+                "models/block/ash_trapdoor_open.json",
+                "models/block/dark_ash_trapdoor_bottom.json",
+                "models/block/dark_ash_trapdoor_top.json",
+                "models/block/dark_ash_trapdoor_open.json",
+        };
+        Path root = Path.of("src/client/resources/assets/dwm");
+        for (String relative : required) {
+            Path asset = root.resolve(relative);
+            assertTrue(
+                    Files.isRegularFile(asset) && Files.size(asset) > 0,
+                    "Trapdoor models require assets/dwm/" + relative
+            );
+        }
+    }
 }

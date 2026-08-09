@@ -1,0 +1,354 @@
+{
+  "credit": "Made with Blockbench (converted from ash_trapdoor.bbmodel)",
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "#trapdoor"
+  },
+  "elements": [
+    {
+      "name": "cube",
+      "from": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "to": [
+        16.0,
+        2.0,
+        16.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4.0,
+            4.0,
+            8.0,
+            4.5
+          ],
+          "texture": "#trapdoor"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            4.0,
+            4.0,
+            4.5
+          ],
+          "texture": "#trapdoor"
+        },
+        "south": {
+          "uv": [
+            12.0,
+            4.0,
+            16.0,
+            4.5
+          ],
+          "texture": "#trapdoor"
+        },
+        "west": {
+          "uv": [
+            8.0,
+            4.0,
+            12.0,
+            4.5
+          ],
+          "texture": "#trapdoor"
+        },
+        "up": {
+          "uv": [
+            8.0,
+            4.0,
+            4.0,
+            0.0
+          ],
+          "texture": "#trapdoor"
+        },
+        "down": {
+          "uv": [
+            12.0,
+            0.0,
+            8.0,
+            4.0
+          ],
+          "texture": "#trapdoor"
+        }
+      }
+    },
+    {
+      "name": "cube",
+      "from": [
+        13.0,
+        -0.5,
+        3.0
+      ],
+      "to": [
+        14.0,
+        2.5,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.5,
+            7.75,
+            5.75,
+            8.5
+          ],
+          "texture": "#trapdoor"
+        },
+        "east": {
+          "uv": [
+            3.0,
+            7.75,
+            5.5,
+            8.5
+          ],
+          "texture": "#trapdoor"
+        },
+        "south": {
+          "uv": [
+            8.25,
+            7.75,
+            8.5,
+            8.5
+          ],
+          "texture": "#trapdoor"
+        },
+        "west": {
+          "uv": [
+            5.75,
+            7.75,
+            8.25,
+            8.5
+          ],
+          "texture": "#trapdoor"
+        },
+        "up": {
+          "uv": [
+            5.75,
+            7.75,
+            5.5,
+            5.25
+          ],
+          "texture": "#trapdoor"
+        },
+        "down": {
+          "uv": [
+            6.0,
+            5.25,
+            5.75,
+            7.75
+          ],
+          "texture": "#trapdoor"
+        }
+      }
+    },
+    {
+      "name": "cube",
+      "from": [
+        2.0,
+        -0.5,
+        3.0
+      ],
+      "to": [
+        3.0,
+        2.5,
+        13.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.5,
+            7.0,
+            2.75,
+            7.75
+          ],
+          "texture": "#trapdoor"
+        },
+        "east": {
+          "uv": [
+            0.0,
+            7.0,
+            2.5,
+            7.75
+          ],
+          "texture": "#trapdoor"
+        },
+        "south": {
+          "uv": [
+            5.25,
+            7.0,
+            5.5,
+            7.75
+          ],
+          "texture": "#trapdoor"
+        },
+        "west": {
+          "uv": [
+            2.75,
+            7.0,
+            5.25,
+            7.75
+          ],
+          "texture": "#trapdoor"
+        },
+        "up": {
+          "uv": [
+            2.75,
+            7.0,
+            2.5,
+            4.5
+          ],
+          "texture": "#trapdoor"
+        },
+        "down": {
+          "uv": [
+            3.0,
+            4.5,
+            2.75,
+            7.0
+          ],
+          "texture": "#trapdoor"
+        }
+      }
+    },
+    {
+      "name": "cube",
+      "from": [
+        3.0,
+        -0.5,
+        13.0
+      ],
+      "to": [
+        13.0,
+        2.5,
+        14.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.25,
+            4.75,
+            8.75,
+            5.5
+          ],
+          "texture": "#trapdoor"
+        },
+        "east": {
+          "uv": [
+            6.0,
+            4.75,
+            6.25,
+            5.5
+          ],
+          "texture": "#trapdoor"
+        },
+        "south": {
+          "uv": [
+            9.0,
+            4.75,
+            11.5,
+            5.5
+          ],
+          "texture": "#trapdoor"
+        },
+        "west": {
+          "uv": [
+            8.75,
+            4.75,
+            9.0,
+            5.5
+          ],
+          "texture": "#trapdoor"
+        },
+        "up": {
+          "uv": [
+            8.75,
+            4.75,
+            6.25,
+            4.5
+          ],
+          "texture": "#trapdoor"
+        },
+        "down": {
+          "uv": [
+            11.25,
+            4.5,
+            8.75,
+            4.75
+          ],
+          "texture": "#trapdoor"
+        }
+      }
+    },
+    {
+      "name": "cube",
+      "from": [
+        3.0,
+        -0.5,
+        2.0
+      ],
+      "to": [
+        13.0,
+        2.5,
+        3.0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.25,
+            6.25,
+            8.75,
+            7.0
+          ],
+          "texture": "#trapdoor"
+        },
+        "east": {
+          "uv": [
+            6.0,
+            6.25,
+            6.25,
+            7.0
+          ],
+          "texture": "#trapdoor"
+        },
+        "south": {
+          "uv": [
+            9.0,
+            6.25,
+            11.5,
+            7.0
+          ],
+          "texture": "#trapdoor"
+        },
+        "west": {
+          "uv": [
+            8.75,
+            6.25,
+            9.0,
+            7.0
+          ],
+          "texture": "#trapdoor"
+        },
+        "up": {
+          "uv": [
+            8.75,
+            6.25,
+            6.25,
+            6.0
+          ],
+          "texture": "#trapdoor"
+        },
+        "down": {
+          "uv": [
+            11.25,
+            6.0,
+            8.75,
+            6.25
+          ],
+          "texture": "#trapdoor"
+        }
+      }
+    }
+  ]
+}
