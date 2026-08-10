@@ -1,4 +1,15 @@
 {
+  "26.2": {
+    "1.2.0": {
+      "summary": "Port to Minecraft 26.2 (Java 25) — Fabric Loader 0.19 / Loom 1.17, with BOTI/SOTO rendering re-hooked for the new client APIs.",
+      "added": [],
+      "changed": [
+        "Misc: Minecraft 26.2 / Java 25 runtime baseline",
+        "Misc: Updated Fabric Loader, Loom, Fabric API, Cloth Config, and Mod Menu for 26.2"
+      ],
+      "removed": []
+    }
+  },
   "1.21.4": {
     "1.2.0": {
       "summary": "Flyable TARDIS with First Doctor console and Gallifrey destination — plus Ash, Dark Ash, and Cardinal woods, Gallifrey stone, and Citadel building blocks.",
@@ -224,7 +235,7 @@
     }
   },
   "promos": {
-    "latest": "1.21.4-1.2.0",
-    "recommended": "1.21.4-1.2.0"
+    "latest": "26.2-1.2.0",
+    "recommended": "26.2-1.2.0"
   }
 }
