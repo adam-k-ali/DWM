@@ -1,5 +1,7 @@
 package com.adamkali.dwm.tardis.logic;
 
+import com.adamkali.dwm.world.DWMBiomeTags;
+import com.adamkali.dwm.world.GallifreyDimensions;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -41,6 +43,9 @@ public final class BiomeSelectorLogic {
         }
         if (World.END.getValue().equals(id)) {
             return Optional.of(BiomeTags.IS_END);
+        }
+        if (GallifreyDimensions.DIMENSION_ID.equals(id)) {
+            return Optional.of(DWMBiomeTags.IS_GALLIFREY);
         }
         return Optional.empty();
     }

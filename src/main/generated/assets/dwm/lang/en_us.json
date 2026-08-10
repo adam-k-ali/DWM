@@ -1,6 +1,9 @@
 {
   "advancements.dwm.sonic_screwdriver": "Sonic Screwdriver",
   "advancements.dwm.sonic_screwdriver.description": "Obtain a Sonic Screwdriver",
+  "biome.dwm.gallifrey_forest": "Gallifrey Forest",
+  "biome.dwm.gallifrey_plains": "Gallifrey Plains",
+  "biome.dwm.gallifrey_wastes": "Gallifrey Wastes",
   "block.dwm.ash_button": "Ash Button",
   "block.dwm.ash_door": "Ash Door",
   "block.dwm.ash_fence": "Ash Fence",
@@ -74,6 +77,7 @@
   "block.dwm.stripped_dark_ash_log": "Stripped Dark Ash Log",
   "block.dwm.stripped_dark_ash_wood": "Stripped Dark Ash Wood",
   "config.dwm.title": "Doctor Who Mod",
+  "dimension.dwm.gallifrey": "Gallifrey",
   "dwm.config.category.experimental": "Experimental",
   "dwm.config.option.chameleon_gui": "Enable Chameleon GUI",
   "dwm.config.option.enable_boti": "Bigger on the Inside (exterior)",

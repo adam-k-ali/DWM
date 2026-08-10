@@ -1,9 +1,9 @@
 # Feature: Gallifrey Building
 
-See also: [Docs Index](./index.md), [Building Content System](./feature-building-content.md)
+See also: [Docs Index](./index.md), [Building Content System](./feature-building-content.md), [Gallifrey Dimension](./feature-gallifrey-dimension.md)
 
 ## Product Intent
-Give players a Gallifrey-themed terrain and builder kit—stone, woods, and Citadel surfaces—so builds and future destination-world work share a coherent material language without custom texturing.
+Give players a Gallifrey-themed terrain and builder kit—stone, woods, and Citadel surfaces—so builds and the Gallifrey destination dimension share a coherent material language without custom texturing.
 
 ## Player Outcomes
 - Build Gallifrey-inspired structures from stone, sandstone, and themed woods.
@@ -35,3 +35,4 @@ Give players a Gallifrey-themed terrain and builder kit—stone, woods, and Cita
 - Gallifrey decorative plants.
 - Orange sand and sandstone variants (distinct from Gallifrey sand).
 - Gallifrey grass block when archive textures allow.
+- Richer Gallifrey destination content (mobs, villages) on top of the shipped dimension.

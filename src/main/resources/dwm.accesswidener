@@ -1,0 +1,2 @@
+accessWidener	v2	named
+accessible	method	net/minecraft/world/gen/densityfunction/DensityFunctions	createSurfaceNoiseRouter	(Lnet/minecraft/registry/RegistryEntryLookup;Lnet/minecraft/registry/RegistryEntryLookup;ZZ)Lnet/minecraft/world/gen/noise/NoiseRouter;

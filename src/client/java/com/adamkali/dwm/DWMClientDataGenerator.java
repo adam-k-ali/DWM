@@ -9,7 +9,10 @@ import com.adamkali.dwm.datagen.DWMRecipeProvider;
 import com.adamkali.dwm.datagen.DWMWorldgenProvider;
 import com.adamkali.dwm.item.DWMItemTags;
 import com.adamkali.dwm.item.DWMItems;
+import com.adamkali.dwm.world.DWMBiomeBootstrap;
+import com.adamkali.dwm.world.DWMChunkGeneratorSettingsBootstrap;
 import com.adamkali.dwm.world.DWMConfiguredFeatureBootstrap;
+import com.adamkali.dwm.world.DWMPlacedFeatureBootstrap;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
@@ -52,6 +55,9 @@ public class DWMClientDataGenerator implements DataGeneratorEntrypoint {
     @Override
     public void buildRegistry(RegistryBuilder registryBuilder) {
         registryBuilder.addRegistry(RegistryKeys.CONFIGURED_FEATURE, DWMConfiguredFeatureBootstrap::bootstrap);
+        registryBuilder.addRegistry(RegistryKeys.PLACED_FEATURE, DWMPlacedFeatureBootstrap::bootstrap);
+        registryBuilder.addRegistry(RegistryKeys.BIOME, DWMBiomeBootstrap::bootstrap);
+        registryBuilder.addRegistry(RegistryKeys.CHUNK_GENERATOR_SETTINGS, DWMChunkGeneratorSettingsBootstrap::bootstrap);
     }
 
     static class AdvancementsProvider extends FabricAdvancementProvider {
