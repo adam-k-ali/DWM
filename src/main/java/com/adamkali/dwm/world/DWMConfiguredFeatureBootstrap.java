@@ -1,12 +1,12 @@
 package com.adamkali.dwm.world;
 
 import com.adamkali.dwm.block.DWMBlocks;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.TreeConfiguration;
@@ -43,7 +43,9 @@ public final class DWMConfiguredFeatureBootstrap {
                                 BlockStateProvider.simple(leaves),
                                 new BlobFoliagePlacer(ConstantInt.of(2), ConstantInt.of(0), 3),
                                 new TwoLayersFeatureSize(1, 0, 1),
-                                BlockStateProvider.simple(Blocks.DIRT)
+                                TreeConfiguration.defaultPlaceBelowTreeTrunkProvider(
+                                        registerable.lookup(Registries.BIOME)
+                                )
                         ).ignoreVines().build()
                 )
         );
