@@ -3,7 +3,6 @@ package com.adamkali.dwm.tardis.logic;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
-import net.minecraft.util.ActionResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +10,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.util.UUID;
+import net.minecraft.world.InteractionResult;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,14 +36,14 @@ class TardisTravelServiceTest {
         try (MockedStatic<TardisDataLoader> loader = Mockito.mockStatic(TardisDataLoader.class)) {
             loader.when(() -> TardisDataLoader.get(tardisId)).thenReturn(model);
 
-            assertEquals(ActionResult.FAIL, TardisTravelService.startTravel(tardisId, null));
+            assertEquals(InteractionResult.FAIL, TardisTravelService.startTravel(tardisId, null));
 
             model.setExteriorLocation("minecraft:overworld", 0, 64, 0, 0);
-            assertEquals(ActionResult.FAIL, TardisTravelService.startTravel(tardisId, null));
+            assertEquals(InteractionResult.FAIL, TardisTravelService.startTravel(tardisId, null));
 
             model.selectedBiome = "minecraft:plains";
             // server null still fails
-            assertEquals(ActionResult.FAIL, TardisTravelService.startTravel(tardisId, null));
+            assertEquals(InteractionResult.FAIL, TardisTravelService.startTravel(tardisId, null));
         }
     }
 
@@ -55,7 +55,7 @@ class TardisTravelServiceTest {
             model.selectedBiome = "minecraft:plains";
             model.setTravelPhase(TardisTravelPhase.IN_FLIGHT);
 
-            assertEquals(ActionResult.PASS, TardisTravelService.startTravel(tardisId, null));
+            assertEquals(InteractionResult.PASS, TardisTravelService.startTravel(tardisId, null));
             assertTrue(TardisTravelService.isTraveling(tardisId));
         }
     }
@@ -76,13 +76,13 @@ class TardisTravelServiceTest {
         try (MockedStatic<TardisDataLoader> loader = Mockito.mockStatic(TardisDataLoader.class)) {
             loader.when(() -> TardisDataLoader.get(tardisId)).thenReturn(model);
 
-            assertEquals(ActionResult.PASS, TardisTravelService.requestMaterialise(tardisId, null));
+            assertEquals(InteractionResult.PASS, TardisTravelService.requestMaterialise(tardisId, null));
 
             model.setTravelPhase(TardisTravelPhase.DEMATERIALISING);
-            assertEquals(ActionResult.PASS, TardisTravelService.requestMaterialise(tardisId, null));
+            assertEquals(InteractionResult.PASS, TardisTravelService.requestMaterialise(tardisId, null));
 
             model.setTravelPhase(TardisTravelPhase.MATERIALISING);
-            assertEquals(ActionResult.PASS, TardisTravelService.requestMaterialise(tardisId, null));
+            assertEquals(InteractionResult.PASS, TardisTravelService.requestMaterialise(tardisId, null));
         }
     }
 
@@ -92,7 +92,7 @@ class TardisTravelServiceTest {
             loader.when(() -> TardisDataLoader.get(tardisId)).thenReturn(model);
             model.setTravelPhase(TardisTravelPhase.IN_FLIGHT);
 
-            assertEquals(ActionResult.FAIL, TardisTravelService.requestMaterialise(tardisId, null));
+            assertEquals(InteractionResult.FAIL, TardisTravelService.requestMaterialise(tardisId, null));
             assertEquals(TardisTravelPhase.IN_FLIGHT, model.getTravelPhase());
         }
     }
@@ -105,7 +105,7 @@ class TardisTravelServiceTest {
             model.setTravelPhase(TardisTravelPhase.IN_FLIGHT);
 
             // server non-null check happens before world resolution; null server → FAIL first
-            assertEquals(ActionResult.FAIL, TardisTravelService.requestMaterialise(tardisId, null));
+            assertEquals(InteractionResult.FAIL, TardisTravelService.requestMaterialise(tardisId, null));
         }
     }
 

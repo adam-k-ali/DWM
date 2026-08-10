@@ -36,7 +36,7 @@ public class ClientPayloadTypeRegistry {
 
     private static void openTardisChameleonScreen(OpenTardisChameleonScreen payload, ClientPlayNetworking.Context context) {
         context.client().execute(() -> {
-            if (context.client().world == null) {
+            if (context.client().level == null) {
                 LOGGER.warn("Received OpenTardisChameleonScreen payload but client or world is null");
                 return;
             }

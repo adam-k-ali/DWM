@@ -3,19 +3,18 @@ package com.adamkali.dwm.network;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSnapshot;
 import com.adamkali.dwm.tardis.boti.BotiRelativePosCodec;
-import net.minecraft.block.BlockState;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.math.BlockPos;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * S2C full BOTI footprint snapshot. formatVersion 3 = blocks + BE NBT + entities.
@@ -27,14 +26,14 @@ public record SyncBotiInteriorS2CPayload(
         List<Entry> blocks,
         List<BlockEntityEntry> blockEntities,
         List<EntityEntry> entities
-) implements CustomPayload {
-    public static final CustomPayload.Id<SyncBotiInteriorS2CPayload> ID =
-            new CustomPayload.Id<>(DWMPacketIds.SYNC_BOTI_INTERIOR_PACKET_ID);
+) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<SyncBotiInteriorS2CPayload> ID =
+            new CustomPacketPayload.Type<>(DWMPacketIds.SYNC_BOTI_INTERIOR_PACKET_ID);
 
     public record Entry(short packedPos, int stateId) {
     }
 
-    public record BlockEntityEntry(short packedPos, NbtCompound nbt) {
+    public record BlockEntityEntry(short packedPos, CompoundTag nbt) {
     }
 
     public record EntityEntry(
@@ -43,39 +42,39 @@ public record SyncBotiInteriorS2CPayload(
             float relZ,
             float yaw,
             float pitch,
-            NbtCompound nbt
+            CompoundTag nbt
     ) {
     }
 
-    public static final PacketCodec<RegistryByteBuf, Entry> ENTRY_CODEC = PacketCodec.tuple(
-            PacketCodecs.SHORT, Entry::packedPos,
-            PacketCodecs.VAR_INT, Entry::stateId,
+    public static final StreamCodec<RegistryFriendlyByteBuf, Entry> ENTRY_CODEC = StreamCodec.composite(
+            ByteBufCodecs.SHORT, Entry::packedPos,
+            ByteBufCodecs.VAR_INT, Entry::stateId,
             Entry::new
     );
 
-    public static final PacketCodec<RegistryByteBuf, BlockEntityEntry> BLOCK_ENTITY_ENTRY_CODEC = PacketCodec.tuple(
-            PacketCodecs.SHORT, BlockEntityEntry::packedPos,
-            PacketCodecs.NBT_COMPOUND, BlockEntityEntry::nbt,
+    public static final StreamCodec<RegistryFriendlyByteBuf, BlockEntityEntry> BLOCK_ENTITY_ENTRY_CODEC = StreamCodec.composite(
+            ByteBufCodecs.SHORT, BlockEntityEntry::packedPos,
+            ByteBufCodecs.COMPOUND_TAG, BlockEntityEntry::nbt,
             BlockEntityEntry::new
     );
 
-    public static final PacketCodec<RegistryByteBuf, EntityEntry> ENTITY_ENTRY_CODEC = PacketCodec.tuple(
-            PacketCodecs.FLOAT, EntityEntry::relX,
-            PacketCodecs.FLOAT, EntityEntry::relY,
-            PacketCodecs.FLOAT, EntityEntry::relZ,
-            PacketCodecs.FLOAT, EntityEntry::yaw,
-            PacketCodecs.FLOAT, EntityEntry::pitch,
-            PacketCodecs.NBT_COMPOUND, EntityEntry::nbt,
+    public static final StreamCodec<RegistryFriendlyByteBuf, EntityEntry> ENTITY_ENTRY_CODEC = StreamCodec.composite(
+            ByteBufCodecs.FLOAT, EntityEntry::relX,
+            ByteBufCodecs.FLOAT, EntityEntry::relY,
+            ByteBufCodecs.FLOAT, EntityEntry::relZ,
+            ByteBufCodecs.FLOAT, EntityEntry::yaw,
+            ByteBufCodecs.FLOAT, EntityEntry::pitch,
+            ByteBufCodecs.COMPOUND_TAG, EntityEntry::nbt,
             EntityEntry::new
     );
 
-    public static final PacketCodec<RegistryByteBuf, SyncBotiInteriorS2CPayload> CODEC = PacketCodec.tuple(
-            PacketCodecs.BYTE, SyncBotiInteriorS2CPayload::formatVersion,
+    public static final StreamCodec<RegistryFriendlyByteBuf, SyncBotiInteriorS2CPayload> CODEC = StreamCodec.composite(
+            ByteBufCodecs.BYTE, SyncBotiInteriorS2CPayload::formatVersion,
             DWMPacketCodecs.UUID_PACKET_CODEC, SyncBotiInteriorS2CPayload::tardisId,
-            PacketCodecs.VAR_INT, SyncBotiInteriorS2CPayload::revision,
-            ENTRY_CODEC.collect(PacketCodecs.toList()), SyncBotiInteriorS2CPayload::blocks,
-            BLOCK_ENTITY_ENTRY_CODEC.collect(PacketCodecs.toList()), SyncBotiInteriorS2CPayload::blockEntities,
-            ENTITY_ENTRY_CODEC.collect(PacketCodecs.toList()), SyncBotiInteriorS2CPayload::entities,
+            ByteBufCodecs.VAR_INT, SyncBotiInteriorS2CPayload::revision,
+            ENTRY_CODEC.apply(ByteBufCodecs.list()), SyncBotiInteriorS2CPayload::blocks,
+            BLOCK_ENTITY_ENTRY_CODEC.apply(ByteBufCodecs.list()), SyncBotiInteriorS2CPayload::blockEntities,
+            ENTITY_ENTRY_CODEC.apply(ByteBufCodecs.list()), SyncBotiInteriorS2CPayload::entities,
             SyncBotiInteriorS2CPayload::new
     );
 
@@ -85,7 +84,7 @@ public record SyncBotiInteriorS2CPayload(
             entries.add(new Entry(BotiRelativePosCodec.pack(e.getKey()), BotiRelativePosCodec.stateId(e.getValue())));
         }
         List<BlockEntityEntry> beEntries = new ArrayList<>(snapshot.blockEntities().size());
-        for (Map.Entry<BlockPos, NbtCompound> e : snapshot.blockEntities().entrySet()) {
+        for (Map.Entry<BlockPos, CompoundTag> e : snapshot.blockEntities().entrySet()) {
             beEntries.add(new BlockEntityEntry(BotiRelativePosCodec.pack(e.getKey()), e.getValue().copy()));
         }
         List<EntityEntry> entityEntries = new ArrayList<>(snapshot.entities().size());
@@ -120,8 +119,8 @@ public record SyncBotiInteriorS2CPayload(
         return map;
     }
 
-    public Map<BlockPos, NbtCompound> toBlockEntityMap() {
-        Map<BlockPos, NbtCompound> map = new HashMap<>(blockEntities.size());
+    public Map<BlockPos, CompoundTag> toBlockEntityMap() {
+        Map<BlockPos, CompoundTag> map = new HashMap<>(blockEntities.size());
         for (BlockEntityEntry entry : blockEntities) {
             if (entry.nbt() != null) {
                 map.put(BotiRelativePosCodec.unpack(entry.packedPos()), entry.nbt().copy());
@@ -148,7 +147,7 @@ public record SyncBotiInteriorS2CPayload(
     }
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 }

@@ -7,21 +7,21 @@ import com.adamkali.dwm.tardis.data.model.TardisSotoAperture;
 import com.adamkali.dwm.tardis.interior.TardisSotoGate;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gl.ShaderProgramKeys;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import java.util.UUID;
+import net.minecraft.client.renderer.CoreShaders;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 
 /**
  * Stencil-masked interior SOTO: composites a portal exterior view through open interior doors.
@@ -71,8 +71,8 @@ public final class TardisSotoRenderer {
      * door {@code applyTransforms}). Flushes {@code vertexConsumers} when Immediate.
      */
     public void render(
-            MatrixStack matrices,
-            VertexConsumerProvider vertexConsumers,
+            PoseStack matrices,
+            MultiBufferSource vertexConsumers,
             float tickDelta,
             UUID tardisId,
             BlockPos interiorDoorPos,
@@ -84,7 +84,7 @@ public final class TardisSotoRenderer {
         TardisSotoAperture aperture = TardisSotoAperture.CLASSIC_INTERIOR_DOORS;
         flush(vertexConsumers);
 
-        matrices.push();
+        matrices.pushPose();
         try {
             writeStencilMask(matrices, aperture);
             clearDepthInMaskToFar(matrices, aperture);
@@ -109,12 +109,12 @@ public final class TardisSotoRenderer {
             SotoPortalSupport.disableForSession("Portal render failed", t);
         } finally {
             restoreGlState();
-            matrices.pop();
+            matrices.popPose();
         }
     }
 
     private void drawExterior(
-            MatrixStack matrices,
+            PoseStack matrices,
             float tickDelta,
             UUID tardisId,
             BlockPos interiorDoorPos,
@@ -137,7 +137,7 @@ public final class TardisSotoRenderer {
      * edge wrap/smudge. Geometry still clips the draw to the doorway.
      */
     private static void drawPortalComposite(
-            MatrixStack matrices,
+            PoseStack matrices,
             TardisSotoAperture aperture,
             SotoPortalRenderer.PortalTexture portalTexture
     ) {
@@ -145,7 +145,7 @@ public final class TardisSotoRenderer {
         if (textureId <= 0) {
             return;
         }
-        Matrix4f model = matrices.peek().getPositionMatrix();
+        Matrix4f model = matrices.last().pose();
 
         float x0 = aperture.x0();
         float x1 = aperture.x1();
@@ -192,17 +192,17 @@ public final class TardisSotoRenderer {
         GL11.glDisable(GL11.GL_STENCIL_TEST);
 
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
+        RenderSystem.setShader(CoreShaders.POSITION_TEX);
         RenderSystem.setShaderTexture(0, textureId);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
 
         BufferBuilder buffer =
-                Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
+                Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
         for (int i = 0; i < 4; i++) {
-            buffer.vertex(model, xs[i], ys[i], z).texture(us[i], vs[i]);
+            buffer.addVertex(model, xs[i], ys[i], z).setUv(us[i], vs[i]);
         }
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
 
         if (stencilWasEnabled) {
             GL11.glEnable(GL11.GL_STENCIL_TEST);
@@ -218,7 +218,7 @@ public final class TardisSotoRenderer {
         RenderSystem.depthMask(true);
     }
 
-    private static void writeStencilMask(MatrixStack matrices, TardisSotoAperture aperture) {
+    private static void writeStencilMask(PoseStack matrices, TardisSotoAperture aperture) {
         GL11.glEnable(GL11.GL_STENCIL_TEST);
         RenderSystem.stencilMask(0xFF);
         RenderSystem.clearStencil(0);
@@ -241,7 +241,7 @@ public final class TardisSotoRenderer {
         RenderSystem.stencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_KEEP);
     }
 
-    private static void clearDepthInMaskToFar(MatrixStack matrices, TardisSotoAperture aperture) {
+    private static void clearDepthInMaskToFar(PoseStack matrices, TardisSotoAperture aperture) {
         RenderSystem.enableDepthTest();
         RenderSystem.depthFunc(GL11.GL_ALWAYS);
         RenderSystem.depthMask(true);
@@ -253,7 +253,7 @@ public final class TardisSotoRenderer {
         RenderSystem.depthFunc(GL11.GL_LEQUAL);
     }
 
-    private static void sealApertureDepth(MatrixStack matrices, TardisSotoAperture aperture) {
+    private static void sealApertureDepth(PoseStack matrices, TardisSotoAperture aperture) {
         RenderSystem.colorMask(false, false, false, false);
         RenderSystem.depthMask(true);
         RenderSystem.depthFunc(GL11.GL_ALWAYS);
@@ -279,22 +279,22 @@ public final class TardisSotoRenderer {
         RenderSystem.colorMask(true, true, true, true);
     }
 
-    private static void drawApertureQuad(MatrixStack matrices, TardisSotoAperture aperture) {
-        Matrix4f matrix = matrices.peek().getPositionMatrix();
-        RenderSystem.setShader(ShaderProgramKeys.POSITION);
-        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
+    private static void drawApertureQuad(PoseStack matrices, TardisSotoAperture aperture) {
+        Matrix4f matrix = matrices.last().pose();
+        RenderSystem.setShader(CoreShaders.POSITION);
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
         // Same winding as BOTI: local −Z normal. After BER X-180 that becomes world +Z
         // (toward the console room), so the front face is visible to a player looking out.
-        buffer.vertex(matrix, aperture.x0(), aperture.y0(), aperture.z());
-        buffer.vertex(matrix, aperture.x0(), aperture.y1(), aperture.z());
-        buffer.vertex(matrix, aperture.x1(), aperture.y1(), aperture.z());
-        buffer.vertex(matrix, aperture.x1(), aperture.y0(), aperture.z());
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        buffer.addVertex(matrix, aperture.x0(), aperture.y0(), aperture.z());
+        buffer.addVertex(matrix, aperture.x0(), aperture.y1(), aperture.z());
+        buffer.addVertex(matrix, aperture.x1(), aperture.y1(), aperture.z());
+        buffer.addVertex(matrix, aperture.x1(), aperture.y0(), aperture.z());
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
-    private static void flush(VertexConsumerProvider vertexConsumers) {
-        if (vertexConsumers instanceof VertexConsumerProvider.Immediate immediate) {
-            immediate.draw();
+    private static void flush(MultiBufferSource vertexConsumers) {
+        if (vertexConsumers instanceof MultiBufferSource.BufferSource immediate) {
+            immediate.endBatch();
         }
     }
 }

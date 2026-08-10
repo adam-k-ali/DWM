@@ -3,13 +3,13 @@ package com.adamkali.dwm.render.soto.ghost;
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.network.SyncSotoExteriorChunkS2CPayload;
 import com.adamkali.dwm.tardis.boti.BotiRelativePosCodec;
-import net.minecraft.block.Blocks;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.UUID;
+import net.minecraft.world.level.block.Blocks;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -61,7 +61,7 @@ class SotoGhostMeshCacheTest {
                 64,
                 200,
                 List.of(new SyncSotoExteriorChunkS2CPayload.BlockEntry(
-                        2, 1, 3, BotiRelativePosCodec.stateId(Blocks.DIRT.getDefaultState())
+                        2, 1, 3, BotiRelativePosCodec.stateId(Blocks.DIRT.defaultBlockState())
                 )),
                 List.of()
         );

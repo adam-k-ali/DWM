@@ -1,7 +1,7 @@
 package com.adamkali.dwm.tardis.soto;
 
-import net.minecraft.util.Identifier;
-import net.minecraft.world.dimension.DimensionTypes;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 
 /**
  * Synced exterior atmosphere for SOTO sky/fog. Single biome sample at the exterior TARDIS pos.
@@ -16,7 +16,7 @@ public record SotoAtmosphere(
 ) {
     /** Overworld noon-ish fallback when no snapshot atmosphere is available. */
     public static final SotoAtmosphere DEFAULT = new SotoAtmosphere(
-            DimensionTypes.OVERWORLD_ID,
+            BuiltinDimensionTypes.OVERWORLD.identifier(),
             6000L,
             0.0f,
             0.0f,
@@ -26,7 +26,7 @@ public record SotoAtmosphere(
 
     public SotoAtmosphere {
         if (dimensionEffectsId == null) {
-            dimensionEffectsId = DimensionTypes.OVERWORLD_ID;
+            dimensionEffectsId = BuiltinDimensionTypes.OVERWORLD.identifier();
         }
         rainGradient = clamp01(rainGradient);
         thunderGradient = clamp01(thunderGradient);

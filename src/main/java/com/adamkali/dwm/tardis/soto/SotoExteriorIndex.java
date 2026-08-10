@@ -1,9 +1,6 @@
 package com.adamkali.dwm.tardis.soto;
 
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -11,12 +8,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 
 /**
  * Tracks exterior footprint locations so world edits / entity occupancy can dirty SOTO snapshots.
  */
 public final class SotoExteriorIndex {
-    private record ExteriorKey(RegistryKey<World> worldKey, BlockPos exteriorPos) {
+    private record ExteriorKey(ResourceKey<Level> worldKey, BlockPos exteriorPos) {
     }
 
     private static final Map<UUID, ExteriorKey> BY_TARDIS = new ConcurrentHashMap<>();
@@ -44,11 +44,11 @@ public final class SotoExteriorIndex {
         }
     }
 
-    public static void register(UUID tardisId, RegistryKey<World> worldKey, BlockPos exteriorPos) {
+    public static void register(UUID tardisId, ResourceKey<Level> worldKey, BlockPos exteriorPos) {
         if (tardisId == null || worldKey == null || exteriorPos == null) {
             return;
         }
-        ExteriorKey previous = BY_TARDIS.put(tardisId, new ExteriorKey(worldKey, exteriorPos.toImmutable()));
+        ExteriorKey previous = BY_TARDIS.put(tardisId, new ExteriorKey(worldKey, exteriorPos.immutable()));
         if (previous != null) {
             BY_EXTERIOR_BLOCK.remove(blockKey(previous.worldKey(), previous.exteriorPos()));
         }
@@ -59,9 +59,9 @@ public final class SotoExteriorIndex {
         if (tardisId == null || model == null || !model.hasExteriorLocation || model.exteriorDimension == null) {
             return;
         }
-        RegistryKey<World> worldKey = RegistryKey.of(
-                net.minecraft.registry.RegistryKeys.WORLD,
-                net.minecraft.util.Identifier.of(model.exteriorDimension)
+        ResourceKey<Level> worldKey = ResourceKey.create(
+                net.minecraft.core.registries.Registries.DIMENSION,
+                net.minecraft.resources.Identifier.parse(model.exteriorDimension)
         );
         register(tardisId, worldKey, new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ));
     }
@@ -79,7 +79,7 @@ public final class SotoExteriorIndex {
         return key == null ? null : key.exteriorPos();
     }
 
-    public static @Nullable RegistryKey<World> getWorldKey(UUID tardisId) {
+    public static @Nullable ResourceKey<Level> getWorldKey(UUID tardisId) {
         ExteriorKey key = BY_TARDIS.get(tardisId);
         return key == null ? null : key.worldKey();
     }
@@ -87,7 +87,7 @@ public final class SotoExteriorIndex {
     /**
      * Resolves the TARDIS whose exterior footprint contains {@code worldPos} in {@code worldKey}.
      */
-    public static @Nullable UUID resolve(RegistryKey<World> worldKey, BlockPos worldPos) {
+    public static @Nullable UUID resolve(ResourceKey<Level> worldKey, BlockPos worldPos) {
         if (worldKey == null || worldPos == null) {
             return null;
         }
@@ -104,7 +104,7 @@ public final class SotoExteriorIndex {
         return null;
     }
 
-    private static String blockKey(RegistryKey<World> worldKey, BlockPos pos) {
-        return worldKey.getValue() + "|" + pos.getX() + "," + pos.getY() + "," + pos.getZ();
+    private static String blockKey(ResourceKey<Level> worldKey, BlockPos pos) {
+        return  + "|" + pos.getX() + "," + pos.getY() + "," + pos.getZ();
     }
 }

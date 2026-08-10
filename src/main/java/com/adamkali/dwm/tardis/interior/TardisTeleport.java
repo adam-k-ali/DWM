@@ -1,25 +1,25 @@
 package com.adamkali.dwm.tardis.interior;
 
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.TeleportTarget;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.portal.TeleportTransition;
+import net.minecraft.world.phys.Vec3;
 
 public final class TardisTeleport {
     private TardisTeleport() {
     }
 
-    public static void teleport(ServerPlayerEntity player, ServerWorld destination, BlockPos feetPos, float yaw) {
-        Vec3d pos = new Vec3d(feetPos.getX() + 0.5, feetPos.getY(), feetPos.getZ() + 0.5);
-        TeleportTarget target = new TeleportTarget(
+    public static void teleport(ServerPlayer player, ServerLevel destination, BlockPos feetPos, float yaw) {
+        Vec3 pos = new Vec3(feetPos.getX() + 0.5, feetPos.getY(), feetPos.getZ() + 0.5);
+        TeleportTransition target = new TeleportTransition(
                 destination,
                 pos,
-                Vec3d.ZERO,
+                Vec3.ZERO,
                 yaw,
-                player.getPitch(),
-                TeleportTarget.NO_OP
+                player.getXRot(),
+                TeleportTransition.DO_NOTHING
         );
-        player.teleportTo(target);
+        player.teleport(target);
     }
 }

@@ -1,25 +1,25 @@
 package com.adamkali.dwm.world;
 
 import com.adamkali.dwm.DWMReference;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.gen.feature.ConfiguredFeature;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 
 public final class DWMConfiguredFeatures {
-    public static final RegistryKey<ConfiguredFeature<?, ?>> ASH = RegistryKey.of(
-            RegistryKeys.CONFIGURED_FEATURE,
-            Identifier.of(DWMReference.MOD_ID, "ash")
+    public static final ResourceKey<ConfiguredFeature<?, ?>> ASH = ResourceKey.create(
+            Registries.CONFIGURED_FEATURE,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "ash")
     );
 
-    public static final RegistryKey<ConfiguredFeature<?, ?>> DARK_ASH = RegistryKey.of(
-            RegistryKeys.CONFIGURED_FEATURE,
-            Identifier.of(DWMReference.MOD_ID, "dark_ash")
+    public static final ResourceKey<ConfiguredFeature<?, ?>> DARK_ASH = ResourceKey.create(
+            Registries.CONFIGURED_FEATURE,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "dark_ash")
     );
 
-    public static final RegistryKey<ConfiguredFeature<?, ?>> CARDINAL = RegistryKey.of(
-            RegistryKeys.CONFIGURED_FEATURE,
-            Identifier.of(DWMReference.MOD_ID, "cardinal")
+    public static final ResourceKey<ConfiguredFeature<?, ?>> CARDINAL = ResourceKey.create(
+            Registries.CONFIGURED_FEATURE,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "cardinal")
     );
 
     private DWMConfiguredFeatures() {

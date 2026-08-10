@@ -10,16 +10,15 @@ import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.level.Level;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,17 +44,17 @@ public final class BotiInteriorSyncService {
 
     public static void initialize() {
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockEntity) -> {
-            if (!world.isClient() && world.getRegistryKey().equals(TardisDimensions.TARDIS_WORLD_KEY)) {
+            if (!world.isClientSide() && world.dimension().equals(TardisDimensions.TARDIS_WORLD_KEY)) {
                 markDirtyAt(pos);
             }
         });
 
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-            if (!world.isClient() && world.getRegistryKey().equals(TardisDimensions.TARDIS_WORLD_KEY)) {
+            if (!world.isClientSide() && world.dimension().equals(TardisDimensions.TARDIS_WORLD_KEY)) {
                 markDirtyAt(hitResult.getBlockPos());
-                markDirtyAt(hitResult.getBlockPos().offset(hitResult.getSide()));
+                markDirtyAt(hitResult.getBlockPos().relative(hitResult.getDirection()));
             }
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         });
 
         ServerTickEvents.END_SERVER_TICK.register(BotiInteriorSyncService::onEndTick);
@@ -70,7 +69,7 @@ public final class BotiInteriorSyncService {
         });
     }
 
-    public static void markDirty(UUID tardisId) {
+    public static void setChanged(UUID tardisId) {
         if (tardisId != null) {
             DIRTY.add(tardisId);
         }
@@ -91,7 +90,7 @@ public final class BotiInteriorSyncService {
      * Builds (or returns cached) snapshot and sends it to {@code player}.
      * Skips send when the footprint has no visible blocks (interior not generated yet).
      */
-    public static boolean sendToPlayer(ServerPlayerEntity player, UUID tardisId) {
+    public static boolean sendToPlayer(ServerPlayer player, UUID tardisId) {
         MinecraftServer server = player.getServer();
         if (server == null || tardisId == null) {
             return false;
@@ -140,14 +139,14 @@ public final class BotiInteriorSyncService {
      * so clients clear the last rendered entities.
      */
     private static void markEntityOccupiedPlotsDirty(MinecraftServer server) {
-        ServerWorld interiorWorld = server.getWorld(TardisDimensions.TARDIS_WORLD_KEY);
+        ServerLevel interiorWorld = server.getLevel(TardisDimensions.TARDIS_WORLD_KEY);
         if (interiorWorld == null) {
             return;
         }
         for (UUID tardisId : BotiPlotIndex.registeredIds()) {
             boolean hasEntities = BotiInteriorSampler.hasEntities(interiorWorld, tardisId);
             if (hasEntities || ENTITY_ACTIVE.contains(tardisId)) {
-                markDirty(tardisId);
+                setChanged(tardisId);
                 if (hasEntities) {
                     ENTITY_ACTIVE.add(tardisId);
                     // Keep wander AI alive for exterior BOTI while the interior has no players.
@@ -160,14 +159,14 @@ public final class BotiInteriorSyncService {
     }
 
     private static BotiInteriorSnapshot buildSnapshot(MinecraftServer server, UUID tardisId) {
-        ServerWorld interiorWorld = server.getWorld(TardisDimensions.TARDIS_WORLD_KEY);
+        ServerLevel interiorWorld = server.getLevel(TardisDimensions.TARDIS_WORLD_KEY);
         if (interiorWorld == null) {
             return null;
         }
         BotiPlotIndex.register(tardisId);
         int revision = REVISIONS.merge(tardisId, 1, Integer::sum);
-        Map<BlockPos, net.minecraft.block.BlockState> blocks = BotiInteriorSampler.sample(interiorWorld, tardisId);
-        Map<BlockPos, net.minecraft.nbt.NbtCompound> blockEntities =
+        Map<BlockPos, net.minecraft.world.level.block.state.BlockState> blocks = BotiInteriorSampler.sample(interiorWorld, tardisId);
+        Map<BlockPos, net.minecraft.nbt.CompoundTag> blockEntities =
                 BotiInteriorSampler.sampleBlockEntities(interiorWorld, tardisId);
         List<BotiEntitySample> entities = BotiInteriorSampler.sampleEntities(interiorWorld, tardisId);
         BotiInteriorSnapshot snapshot = BotiInteriorSnapshot.of(tardisId, revision, blocks, blockEntities, entities);
@@ -180,14 +179,14 @@ public final class BotiInteriorSyncService {
         if (model == null || !model.hasExteriorLocation || model.exteriorDimension == null) {
             return;
         }
-        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(model.exteriorDimension));
-        ServerWorld exteriorWorld = server.getWorld(worldKey);
+        ResourceKey<Level> worldKey = ResourceKey.create(Registries.DIMENSION, Identifier.parse(model.exteriorDimension));
+        ServerLevel exteriorWorld = server.getLevel(worldKey);
         if (exteriorWorld == null) {
             return;
         }
         BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
         SyncBotiInteriorS2CPayload payload = SyncBotiInteriorS2CPayload.fromSnapshot(snapshot);
-        for (ServerPlayerEntity player : PlayerLookup.tracking(exteriorWorld, exteriorPos)) {
+        for (ServerPlayer player : PlayerLookup.tracking(exteriorWorld, exteriorPos)) {
             ServerPlayNetworking.send(player, payload);
         }
     }

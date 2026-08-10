@@ -1,11 +1,9 @@
 package com.adamkali.dwm.render.soto.portal;
 
-import com.mojang.blaze3d.systems.ProjectionType;
+import com.mojang.blaze3d.ProjectionType;
+import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.gl.SimpleFramebuffer;
-import net.minecraft.client.render.Fog;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 import org.lwjgl.BufferUtils;
@@ -21,6 +19,8 @@ import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.FogParameters;
 
 /**
  * Owns the full-window color/depth target used by the SOTO portal pass.
@@ -30,14 +30,14 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
 
     /**
      * While true, {@link com.adamkali.dwm.mixin.client.FramebufferMixin} redirects the client
-     * main framebuffer's {@code beginWrite} to this portal target. RenderLayer MAIN_TARGET
+     * main framebuffer's {@code bindWrite} to this portal target. RenderLayer MAIN_TARGET
      * otherwise steals the draw buffer mid-pass.
      */
     private static boolean portalPassActive;
     private static boolean redirectingMainWrite;
 
     private final Map<UUID, Long> renderedFrameByTardis = new HashMap<>();
-    private SimpleFramebuffer framebuffer;
+    private TextureTarget framebuffer;
     private int width;
     private int height;
     private long clientFrame;
@@ -72,7 +72,7 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
         }
         redirectingMainWrite = true;
         try {
-            INSTANCE.framebuffer.beginWrite(setViewport);
+            INSTANCE.framebuffer.bindWrite(setViewport);
         } finally {
             redirectingMainWrite = false;
         }
@@ -96,19 +96,19 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
         INSTANCE.close();
     }
 
-    public boolean ensureReady(MinecraftClient client) {
+    public boolean ensureReady(Minecraft client) {
         if (client == null || !RenderSystem.isOnRenderThread()) {
             return false;
         }
-        Framebuffer main = client.getFramebuffer();
-        if (main == null || main.textureWidth <= 0 || main.textureHeight <= 0) {
+        RenderTarget main = client.getMainRenderTarget();
+        if (main == null || main.width <= 0 || main.height <= 0) {
             return false;
         }
-        int requiredWidth = main.textureWidth;
-        int requiredHeight = main.textureHeight;
+        int requiredWidth = main.width;
+        int requiredHeight = main.height;
         try {
             if (framebuffer == null) {
-                framebuffer = new SimpleFramebuffer(requiredWidth, requiredHeight, true);
+                framebuffer = new TextureTarget(requiredWidth, requiredHeight, true);
                 framebuffer.setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
                 width = requiredWidth;
                 height = requiredHeight;
@@ -118,9 +118,9 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
                 height = requiredHeight;
                 renderedFrameByTardis.clear();
             }
-            return framebuffer.fbo > 0
-                    && framebuffer.getColorAttachment() > 0
-                    && framebuffer.getDepthAttachment() > 0;
+            return framebuffer.frameBufferId > 0
+                    && framebuffer.getColorTextureId() > 0
+                    && framebuffer.getDepthTextureId() > 0;
         } catch (Throwable failure) {
             close();
             return false;
@@ -129,9 +129,9 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
 
     public boolean isReady() {
         return framebuffer != null
-                && framebuffer.fbo > 0
-                && framebuffer.getColorAttachment() > 0
-                && framebuffer.getDepthAttachment() > 0;
+                && framebuffer.frameBufferId > 0
+                && framebuffer.getColorTextureId() > 0
+                && framebuffer.getDepthTextureId() > 0;
     }
 
     public boolean shouldRenderThisFrame(UUID tardisId) {
@@ -159,10 +159,10 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
             throw new IllegalStateException("SOTO portal framebuffer is not ready");
         }
         framebuffer.setClearColor(r, g, b, a);
-        framebuffer.beginWrite(true);
+        framebuffer.bindWrite(true);
         // clear() ends with endWrite() (FBO 0). Re-bind so the portal pass stays offscreen.
         framebuffer.clear();
-        framebuffer.beginWrite(true);
+        framebuffer.bindWrite(true);
     }
 
     /**
@@ -172,15 +172,15 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
         if (!isReady()) {
             throw new IllegalStateException("SOTO portal framebuffer is not ready");
         }
-        framebuffer.beginWrite(true);
+        framebuffer.bindWrite(true);
     }
 
     public int colorTextureId() {
-        return isReady() ? framebuffer.getColorAttachment() : -1;
+        return isReady() ? framebuffer.getColorTextureId() : -1;
     }
 
     int framebufferFbo() {
-        return framebuffer == null ? -1 : framebuffer.fbo;
+        return framebuffer == null ? -1 : framebuffer.frameBufferId;
     }
 
     public int width() {
@@ -195,7 +195,7 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
     public void close() {
         renderedFrameByTardis.clear();
         if (framebuffer != null) {
-            framebuffer.delete();
+            framebuffer.destroyBuffers();
             framebuffer = null;
         }
         width = 0;
@@ -242,7 +242,7 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
         private final Matrix4f projection;
         private final ProjectionType projectionType;
         private final Matrix4f modelView;
-        private final Fog fog;
+        private final FogParameters fog;
         private final float[] shaderColor;
         private boolean closed;
 

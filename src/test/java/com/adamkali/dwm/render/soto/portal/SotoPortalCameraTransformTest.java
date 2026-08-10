@@ -3,9 +3,9 @@ package com.adamkali.dwm.render.soto.portal;
 import com.adamkali.dwm.render.soto.TardisSotoRenderer;
 import com.adamkali.dwm.tardis.TardisExteriorFacing;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.junit.jupiter.api.Test;
 
@@ -18,8 +18,8 @@ class SotoPortalCameraTransformTest {
 
     @Test
     void pinsEyeAtExteriorHitchLookingOutwardForEveryFacing() {
-        for (Direction interiorFacing : Direction.Type.HORIZONTAL) {
-            Vec3d camera = new Vec3d(
+        for (Direction interiorFacing : Direction.Plane.HORIZONTAL) {
+            Vec3 camera = new Vec3(
                     DOOR_POS.getX() + 2.5,
                     DOOR_POS.getY() + 1.6,
                     DOOR_POS.getZ() - 3.0
@@ -27,7 +27,7 @@ class SotoPortalCameraTransformTest {
 
             for (int exteriorRotation : new int[]{0, 4, 8, 12}) {
                 Direction exteriorOutwardDirection = TardisExteriorFacing.doorDirection(exteriorRotation);
-                Vec3d exteriorOutward = vector(exteriorOutwardDirection);
+                Vec3 exteriorOutward = vector(exteriorOutwardDirection);
                 SotoPortalCameraTransform.Result result = SotoPortalCameraTransform.map(
                         camera,
                         45.0f,
@@ -52,8 +52,8 @@ class SotoPortalCameraTransformTest {
     @Test
     void ignoresInteriorCameraTranslation() {
         Direction interiorFacing = Direction.SOUTH;
-        Vec3d nearDoor = new Vec3d(DOOR_POS.getX() + 0.5, DOOR_POS.getY() + 1.5, DOOR_POS.getZ() + 1.0);
-        Vec3d farLeft = nearDoor.add(4.0, 0.5, 3.0);
+        Vec3 nearDoor = new Vec3(DOOR_POS.getX() + 0.5, DOOR_POS.getY() + 1.5, DOOR_POS.getZ() + 1.0);
+        Vec3 farLeft = nearDoor.add(4.0, 0.5, 3.0);
 
         SotoPortalCameraTransform.Result near = SotoPortalCameraTransform.map(
                 nearDoor,
@@ -85,7 +85,7 @@ class SotoPortalCameraTransformTest {
     @Test
     void buildsInverseViewMatrixAtHitch() {
         SotoPortalCameraTransform.Result result = SotoPortalCameraTransform.map(
-                new Vec3d(0.0, 0.0, 0.0),
+                new Vec3(0.0, 0.0, 0.0),
                 -45.0f,
                 -25.0f,
                 DOOR_POS,
@@ -109,7 +109,7 @@ class SotoPortalCameraTransformTest {
     @Test
     void reportsExteriorWorldPositionFromFootprintOrigin() {
         SotoPortalCameraTransform.Result result = SotoPortalCameraTransform.map(
-                new Vec3d(DOOR_POS.getX(), DOOR_POS.getY() + 1.0, DOOR_POS.getZ()),
+                new Vec3(DOOR_POS.getX(), DOOR_POS.getY() + 1.0, DOOR_POS.getZ()),
                 0.0f,
                 12.0f,
                 DOOR_POS,
@@ -129,13 +129,13 @@ class SotoPortalCameraTransformTest {
         );
     }
 
-    private static Vec3d destinationCenter(Vec3d exteriorOutward) {
+    private static Vec3 destinationCenter(Vec3 exteriorOutward) {
         BlockPos relative = SotoExteriorSampler.RELATIVE_TARDIS_POS;
-        return new Vec3d(
+        return new Vec3(
                 relative.getX() + 0.5,
                 relative.getY() + TardisSotoRenderer.PREVIEW_EYE_HEIGHT,
                 relative.getZ() + 0.5
-        ).add(exteriorOutward.multiply(0.5 + TardisSotoRenderer.PREVIEW_FORWARD_OFFSET));
+        ).add(exteriorOutward.scale(0.5 + TardisSotoRenderer.PREVIEW_FORWARD_OFFSET));
     }
 
     private static float yawFor(Direction direction) {
@@ -159,11 +159,11 @@ class SotoPortalCameraTransformTest {
         return wrapped;
     }
 
-    private static Vec3d vector(Direction direction) {
-        return new Vec3d(direction.getOffsetX(), direction.getOffsetY(), direction.getOffsetZ());
+    private static Vec3 vector(Direction direction) {
+        return new Vec3(direction.getStepX(), direction.getStepY(), direction.getStepZ());
     }
 
-    private static void assertVec(Vec3d expected, Vec3d actual) {
+    private static void assertVec(Vec3 expected, Vec3 actual) {
         assertEquals(expected.x, actual.x, EPSILON);
         assertEquals(expected.y, actual.y, EPSILON);
         assertEquals(expected.z, actual.z, EPSILON);

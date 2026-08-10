@@ -3,30 +3,30 @@ package com.adamkali.dwm.tardis.boti;
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.network.SyncBotiInteriorS2CPayload;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.ChestBlockEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.BuiltinRegistries;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.data.registries.VanillaRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class BotiRelativePosCodecTest {
 
-    private static RegistryWrapper.WrapperLookup registries;
+    private static HolderLookup.Provider registries;
 
     @BeforeAll
     static void bootstrap() {
         MinecraftTestBootstrap.ensure();
-        registries = BuiltinRegistries.createWrapperLookup();
+        registries = VanillaRegistries.createLookup();
     }
 
     @Test
@@ -45,8 +45,8 @@ class BotiRelativePosCodecTest {
     void snapshotPayload_RoundTripsBlockMap() {
         UUID tardisId = UUID.randomUUID();
         Map<BlockPos, BlockState> blocks = Map.of(
-                new BlockPos(0, 0, 0), DWMBlocks.WHITE_TARDIS_WALL.getDefaultState(),
-                new BlockPos(5, 1, 5), DWMBlocks.TEAL_BIG_ROUNDEL_A.getDefaultState()
+                new BlockPos(0, 0, 0), DWMBlocks.WHITE_TARDIS_WALL.defaultBlockState(),
+                new BlockPos(5, 1, 5), DWMBlocks.TEAL_BIG_ROUNDEL_A.defaultBlockState()
         );
         BotiInteriorSnapshot snapshot = BotiInteriorSnapshot.of(tardisId, 7, blocks);
         SyncBotiInteriorS2CPayload payload = SyncBotiInteriorS2CPayload.fromSnapshot(snapshot);
@@ -61,30 +61,30 @@ class BotiRelativePosCodecTest {
         Map<BlockPos, BlockState> decoded = payload.toBlockMap();
         assertEquals(blocks.get(new BlockPos(0, 0, 0)), decoded.get(new BlockPos(0, 0, 0)));
         assertEquals(blocks.get(new BlockPos(5, 1, 5)), decoded.get(new BlockPos(5, 1, 5)));
-        assertFalse(decoded.containsValue(Blocks.AIR.getDefaultState()));
+        assertFalse(decoded.containsValue(Blocks.AIR.defaultBlockState()));
     }
 
     @Test
     void snapshotPayload_RoundTripsBlockEntityNbt() {
         UUID tardisId = UUID.randomUUID();
         BlockPos chestPos = new BlockPos(3, 1, 4);
-        BlockState chestState = Blocks.CHEST.getDefaultState();
+        BlockState chestState = Blocks.CHEST.defaultBlockState();
         ChestBlockEntity chest = new ChestBlockEntity(chestPos, chestState);
-        NbtCompound nbt = BotiInteriorSampler.captureSyncNbt(chest, registries);
+        CompoundTag nbt = BotiInteriorSampler.captureSyncNbt(chest, registries);
 
         assertTrue(nbt.contains("id"));
 
         Map<BlockPos, BlockState> blocks = Map.of(chestPos, chestState);
-        Map<BlockPos, NbtCompound> blockEntities = Map.of(chestPos, nbt);
+        Map<BlockPos, CompoundTag> blockEntities = Map.of(chestPos, nbt);
         BotiInteriorSnapshot snapshot = BotiInteriorSnapshot.of(tardisId, 2, blocks, blockEntities);
         SyncBotiInteriorS2CPayload payload = SyncBotiInteriorS2CPayload.fromSnapshot(snapshot);
 
         assertEquals(1, payload.blockEntities().size());
-        Map<BlockPos, NbtCompound> decoded = payload.toBlockEntityMap();
+        Map<BlockPos, CompoundTag> decoded = payload.toBlockEntityMap();
         assertEquals(1, decoded.size());
         assertEquals("minecraft:chest", decoded.get(chestPos).getString("id"));
 
-        BlockEntity rebuilt = BlockEntity.createFromNbt(chestPos, chestState, decoded.get(chestPos), registries);
+        BlockEntity rebuilt = BlockEntity.loadStatic(chestPos, chestState, decoded.get(chestPos), registries);
         assertNotNull(rebuilt);
         assertInstanceOf(ChestBlockEntity.class, rebuilt);
     }
@@ -92,8 +92,8 @@ class BotiRelativePosCodecTest {
     @Test
     void captureSyncNbt_IncludesTypeIdForChest() {
         BlockPos pos = new BlockPos(1, 1, 1);
-        ChestBlockEntity chest = new ChestBlockEntity(pos, Blocks.CHEST.getDefaultState());
-        NbtCompound nbt = BotiInteriorSampler.captureSyncNbt(chest, registries);
+        ChestBlockEntity chest = new ChestBlockEntity(pos, Blocks.CHEST.defaultBlockState());
+        CompoundTag nbt = BotiInteriorSampler.captureSyncNbt(chest, registries);
         assertEquals("minecraft:chest", nbt.getString("id"));
     }
 
@@ -101,11 +101,11 @@ class BotiRelativePosCodecTest {
     void snapshotPayload_RoundTripsEntitySamples() {
         UUID tardisId = UUID.randomUUID();
         Map<BlockPos, BlockState> blocks = Map.of(
-                new BlockPos(0, 0, 0), DWMBlocks.WHITE_TARDIS_WALL.getDefaultState()
+                new BlockPos(0, 0, 0), DWMBlocks.WHITE_TARDIS_WALL.defaultBlockState()
         );
-        NbtCompound entityNbt = new NbtCompound();
+        CompoundTag entityNbt = new CompoundTag();
         entityNbt.putString("id", "minecraft:armor_stand");
-        entityNbt.putUuid(BotiEntitySample.BOTI_PROFILE_ID, UUID.randomUUID()); // ignored for non-players
+        entityNbt.putUUID(BotiEntitySample.BOTI_PROFILE_ID, UUID.randomUUID()); // ignored for non-players
         BotiInteriorSampler.writeRelativePos(entityNbt, 5.5f, 1.0f, 2.25f);
 
         BotiEntitySample sample = new BotiEntitySample(5.5f, 1.0f, 2.25f, 90f, 10f, entityNbt);
@@ -134,7 +134,7 @@ class BotiRelativePosCodecTest {
 
     @Test
     void isBotiVisible_ExcludesInteriorDoorEvenWithBlockEntity() {
-        assertFalse(BotiInteriorSampler.isBotiVisible(DWMBlocks.TARDIS_INTERIOR_DOOR.getDefaultState()));
-        assertTrue(BotiInteriorSampler.isBotiVisible(Blocks.CHEST.getDefaultState()));
+        assertFalse(BotiInteriorSampler.isBotiVisible(DWMBlocks.TARDIS_INTERIOR_DOOR.defaultBlockState()));
+        assertTrue(BotiInteriorSampler.isBotiVisible(Blocks.CHEST.defaultBlockState()));
     }
 }

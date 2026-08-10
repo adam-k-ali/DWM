@@ -1,13 +1,12 @@
 package com.adamkali.dwm.sound;
 
 import com.adamkali.dwm.network.TravelAudioS2CPayload;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.math.BlockPos;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 
 /**
  * Starts and stops {@link TardisTravelLoopSound} instances from S2C travel audio cues.
@@ -19,12 +18,12 @@ public final class TardisTravelSoundController {
     }
 
     public static void handle(TravelAudioS2CPayload payload) {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         client.execute(() -> apply(client, payload));
     }
 
     public static void stopAll() {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         client.execute(() -> {
             for (Iterator<Map.Entry<UUID, TardisTravelLoopSound>> it = ACTIVE.entrySet().iterator(); it.hasNext(); ) {
                 Map.Entry<UUID, TardisTravelLoopSound> entry = it.next();
@@ -34,7 +33,7 @@ public final class TardisTravelSoundController {
         });
     }
 
-    private static void apply(MinecraftClient client, TravelAudioS2CPayload payload) {
+    private static void apply(Minecraft client, TravelAudioS2CPayload payload) {
         if (payload.action() == TravelAudioS2CPayload.STOP) {
             TardisTravelLoopSound existing = ACTIVE.remove(payload.tardisId());
             stopSound(client, existing);
@@ -45,8 +44,8 @@ public final class TardisTravelSoundController {
                 && payload.action() != TravelAudioS2CPayload.START_FLIGHT) {
             return;
         }
-        if (client.world == null
-                || !client.world.getRegistryKey().getValue().equals(payload.dimensionId())) {
+        if (client.level == null
+                || !client.level.dimension().identifier().equals(payload.dimensionId())) {
             return;
         }
 
@@ -63,7 +62,7 @@ public final class TardisTravelSoundController {
         client.getSoundManager().play(next);
     }
 
-    private static void stopSound(MinecraftClient client, TardisTravelLoopSound sound) {
+    private static void stopSound(Minecraft client, TardisTravelLoopSound sound) {
         if (sound == null) {
             return;
         }

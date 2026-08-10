@@ -17,7 +17,7 @@ import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.minecraft.util.WorldSavePath;
+import net.minecraft.world.level.storage.LevelResource;
 import org.slf4j.Logger;
 
 public class DWMMain implements ModInitializer {
@@ -40,7 +40,7 @@ public class DWMMain implements ModInitializer {
         SotoGhostSyncService.initialize();
         TardisTravelService.initialize();
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            TardisDataLoader.tardisSaveDirectory = server.getSavePath(WorldSavePath.ROOT).resolve("tardis_data");
+            TardisDataLoader.tardisSaveDirectory = server.getWorldPath(LevelResource.ROOT).resolve("tardis_data");
         });
         ServerLifecycleEvents.AFTER_SAVE.register((server, flush, force) -> {
             TardisDataLoader.save();

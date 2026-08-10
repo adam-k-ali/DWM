@@ -1,7 +1,6 @@
 package com.adamkali.dwm.tardis.boti;
 
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
-import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -9,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import net.minecraft.core.BlockPos;
 
 /**
  * Maps allocated interior plot grid cells to TARDIS ids so block edits can dirty the right snapshot.

@@ -2,20 +2,20 @@ package com.adamkali.dwm.tardis.logic;
 
 import com.adamkali.dwm.world.DWMBiomeTags;
 import com.adamkali.dwm.world.GallifreyDimensions;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.tag.BiomeTags;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.BiomeTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
 
 /**
  * Pure helpers for cycling biomes tagged for the TARDIS exterior dimension.
@@ -35,13 +35,13 @@ public final class BiomeSelectorLogic {
         if (id == null) {
             return Optional.empty();
         }
-        if (World.OVERWORLD.getValue().equals(id)) {
+        if (Level.OVERWORLD.identifier().equals(id)) {
             return Optional.of(BiomeTags.IS_OVERWORLD);
         }
-        if (World.NETHER.getValue().equals(id)) {
+        if (Level.NETHER.identifier().equals(id)) {
             return Optional.of(BiomeTags.IS_NETHER);
         }
-        if (World.END.getValue().equals(id)) {
+        if (Level.END.identifier().equals(id)) {
             return Optional.of(BiomeTags.IS_END);
         }
         if (GallifreyDimensions.DIMENSION_ID.equals(id)) {
@@ -53,7 +53,7 @@ public final class BiomeSelectorLogic {
     /**
      * Sorted biome registry keys belonging to the dimension's biome tag.
      */
-    public static List<RegistryKey<Biome>> biomesForDimension(
+    public static List<ResourceKey<Biome>> biomesForDimension(
             Registry<Biome> biomeRegistry,
             @Nullable String exteriorDimensionId
     ) {
@@ -61,11 +61,11 @@ public final class BiomeSelectorLogic {
         if (tag.isEmpty()) {
             return List.of();
         }
-        List<RegistryKey<Biome>> keys = new ArrayList<>();
-        for (RegistryEntry<Biome> entry : biomeRegistry.iterateEntries(tag.get())) {
-            entry.getKey().ifPresent(keys::add);
+        List<ResourceKey<Biome>> keys = new ArrayList<>();
+        for (Holder<Biome> entry : biomeRegistry.getTagOrEmpty(tag.get())) {
+            entry.unwrapKey().ifPresent(keys::add);
         }
-        keys.sort(Comparator.comparing(k -> k.getValue().toString()));
+        keys.sort(Comparator.comparing(k -> k.identifier().toString()));
         return List.copyOf(keys);
     }
 
@@ -75,25 +75,25 @@ public final class BiomeSelectorLogic {
      */
     public static Optional<Identifier> nextBiome(
             @Nullable String currentId,
-            List<RegistryKey<Biome>> biomes
+            List<ResourceKey<Biome>> biomes
     ) {
         if (biomes.isEmpty()) {
             return Optional.empty();
         }
         if (currentId == null || currentId.isBlank()) {
-            return Optional.of(biomes.getFirst().getValue());
+            return Optional.of(biomes.getFirst().identifier());
         }
         Identifier current = Identifier.tryParse(currentId);
         int index = -1;
         if (current != null) {
             for (int i = 0; i < biomes.size(); i++) {
-                if (biomes.get(i).getValue().equals(current)) {
+                if (biomes.get(i).identifier().equals(current)) {
                     index = i;
                     break;
                 }
             }
         }
         int next = index < 0 ? 0 : (index + 1) % biomes.size();
-        return Optional.of(biomes.get(next).getValue());
+        return Optional.of(biomes.get(next).identifier());
     }
 }

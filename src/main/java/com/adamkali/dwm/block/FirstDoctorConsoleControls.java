@@ -1,10 +1,10 @@
 package com.adamkali.dwm.block;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Hit geometry for First Doctor console controls. Coordinates match
@@ -77,21 +77,21 @@ public final class FirstDoctorConsoleControls {
      * Block-local AABB of the biome selector for the given console facing
      * (relative to the block's min corner).
      */
-    public static Box biomeSelectorBox(Direction facing) {
+    public static AABB biomeSelectorBox(Direction facing) {
         return controlBox(facing, PANEL3_YAW_RAD, SELECTOR_SCALE, BIOME_SELECTOR_MOUNT_X_PX,
                 SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
     }
 
-    public static Box biomeSelectorWorldBox(BlockPos pos, Direction facing) {
-        return biomeSelectorBox(facing).offset(pos.getX(), pos.getY(), pos.getZ());
+    public static AABB biomeSelectorWorldBox(BlockPos pos, Direction facing) {
+        return biomeSelectorBox(facing).move(pos.getX(), pos.getY(), pos.getZ());
     }
 
-    public static boolean isBiomeSelectorHit(Direction facing, Vec3d blockLocalHit) {
+    public static boolean isBiomeSelectorHit(Direction facing, Vec3 blockLocalHit) {
         return biomeSelectorBox(facing).contains(blockLocalHit);
     }
 
-    public static boolean isBiomeSelectorHit(Direction facing, BlockPos pos, Vec3d worldHit) {
-        Vec3d local = worldHit.subtract(pos.getX(), pos.getY(), pos.getZ());
+    public static boolean isBiomeSelectorHit(Direction facing, BlockPos pos, Vec3 worldHit) {
+        Vec3 local = worldHit.subtract(pos.getX(), pos.getY(), pos.getZ());
         return isBiomeSelectorHit(facing, local);
     }
 
@@ -99,67 +99,67 @@ public final class FirstDoctorConsoleControls {
      * True when the player's look ray intersects the biome-selector AABB.
      * Prefer this over block-outline hit positions (those land on the coarse console box).
      */
-    public static boolean isBiomeSelectorLookHit(Direction facing, BlockPos pos, PlayerEntity player) {
-        Vec3d eye = player.getEyePos();
-        Vec3d look = player.getRotationVec(1.0F);
+    public static boolean isBiomeSelectorLookHit(Direction facing, BlockPos pos, Player player) {
+        Vec3 eye = player.getEyePosition();
+        Vec3 look = player.getViewVector(1.0F);
         return isBiomeSelectorLookHit(facing, pos, eye, look, REACH);
     }
 
     public static boolean isBiomeSelectorLookHit(
             Direction facing,
             BlockPos pos,
-            Vec3d eyePos,
-            Vec3d lookDir,
+            Vec3 eyePos,
+            Vec3 lookDir,
             double reach
     ) {
         return lookHitsBox(biomeSelectorWorldBox(pos, facing), eyePos, lookDir, reach);
     }
 
-    public static Box planetLocatorBox(Direction facing) {
+    public static AABB planetLocatorBox(Direction facing) {
         return controlBox(facing, PANEL3_YAW_RAD, SELECTOR_SCALE, PLANET_LOCATOR_MOUNT_X_PX,
                 SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
     }
 
-    public static Box planetLocatorWorldBox(BlockPos pos, Direction facing) {
-        return planetLocatorBox(facing).offset(pos.getX(), pos.getY(), pos.getZ());
+    public static AABB planetLocatorWorldBox(BlockPos pos, Direction facing) {
+        return planetLocatorBox(facing).move(pos.getX(), pos.getY(), pos.getZ());
     }
 
-    public static boolean isPlanetLocatorLookHit(Direction facing, BlockPos pos, PlayerEntity player) {
-        Vec3d eye = player.getEyePos();
-        Vec3d look = player.getRotationVec(1.0F);
+    public static boolean isPlanetLocatorLookHit(Direction facing, BlockPos pos, Player player) {
+        Vec3 eye = player.getEyePosition();
+        Vec3 look = player.getViewVector(1.0F);
         return isPlanetLocatorLookHit(facing, pos, eye, look, REACH);
     }
 
     public static boolean isPlanetLocatorLookHit(
             Direction facing,
             BlockPos pos,
-            Vec3d eyePos,
-            Vec3d lookDir,
+            Vec3 eyePos,
+            Vec3 lookDir,
             double reach
     ) {
         return lookHitsBox(planetLocatorWorldBox(pos, facing), eyePos, lookDir, reach);
     }
 
-    public static Box materialisationLeverBox(Direction facing) {
+    public static AABB materialisationLeverBox(Direction facing) {
         return controlBox(facing, PANEL6_YAW_RAD, LEVER_SCALE, LEVER_MOUNT_X_PX,
                 LEV_MIN_X, LEV_MIN_Y, LEV_MIN_Z, LEV_MAX_X, LEV_MAX_Y, LEV_MAX_Z);
     }
 
-    public static Box materialisationLeverWorldBox(BlockPos pos, Direction facing) {
-        return materialisationLeverBox(facing).offset(pos.getX(), pos.getY(), pos.getZ());
+    public static AABB materialisationLeverWorldBox(BlockPos pos, Direction facing) {
+        return materialisationLeverBox(facing).move(pos.getX(), pos.getY(), pos.getZ());
     }
 
-    public static boolean isMaterialisationLeverLookHit(Direction facing, BlockPos pos, PlayerEntity player) {
-        Vec3d eye = player.getEyePos();
-        Vec3d look = player.getRotationVec(1.0F);
+    public static boolean isMaterialisationLeverLookHit(Direction facing, BlockPos pos, Player player) {
+        Vec3 eye = player.getEyePosition();
+        Vec3 look = player.getViewVector(1.0F);
         return isMaterialisationLeverLookHit(facing, pos, eye, look, REACH);
     }
 
     public static boolean isMaterialisationLeverLookHit(
             Direction facing,
             BlockPos pos,
-            Vec3d eyePos,
-            Vec3d lookDir,
+            Vec3 eyePos,
+            Vec3 lookDir,
             double reach
     ) {
         return lookHitsBox(materialisationLeverWorldBox(pos, facing), eyePos, lookDir, reach);
@@ -171,8 +171,8 @@ public final class FirstDoctorConsoleControls {
     public static boolean preferBiomeOverPlanet(
             Direction facing,
             BlockPos pos,
-            Vec3d eyePos,
-            Vec3d lookDir,
+            Vec3 eyePos,
+            Vec3 lookDir,
             double reach
     ) {
         double biomeDist = lookHitDistance(biomeSelectorWorldBox(pos, facing), eyePos, lookDir, reach);
@@ -186,62 +186,62 @@ public final class FirstDoctorConsoleControls {
         return biomeDist <= planetDist;
     }
 
-    public static boolean preferBiomeOverPlanet(Direction facing, BlockPos pos, PlayerEntity player) {
-        return preferBiomeOverPlanet(facing, pos, player.getEyePos(), player.getRotationVec(1.0F), REACH);
+    public static boolean preferBiomeOverPlanet(Direction facing, BlockPos pos, Player player) {
+        return preferBiomeOverPlanet(facing, pos, player.getEyePosition(), player.getViewVector(1.0F), REACH);
     }
 
     /**
      * Transforms a point in biome-selector-local model pixels into block-local space (Panel3).
      */
-    static Vec3d selectorLocalToBlockLocal(double px, double py, double pz, Direction facing) {
+    static Vec3 selectorLocalToBlockLocal(double px, double py, double pz, Direction facing) {
         return controlLocalToBlockLocal(px, py, pz, facing, PANEL3_YAW_RAD, SELECTOR_SCALE, BIOME_SELECTOR_MOUNT_X_PX);
     }
 
     /**
      * Transforms a point in planet-locator-local model pixels into block-local space (Panel3).
      */
-    static Vec3d planetLocatorLocalToBlockLocal(double px, double py, double pz, Direction facing) {
+    static Vec3 planetLocatorLocalToBlockLocal(double px, double py, double pz, Direction facing) {
         return controlLocalToBlockLocal(px, py, pz, facing, PANEL3_YAW_RAD, SELECTOR_SCALE, PLANET_LOCATOR_MOUNT_X_PX);
     }
 
     /**
      * Transforms a point in lever-local model pixels into block-local space (Panel6).
      */
-    static Vec3d leverLocalToBlockLocal(double px, double py, double pz, Direction facing) {
+    static Vec3 leverLocalToBlockLocal(double px, double py, double pz, Direction facing) {
         return controlLocalToBlockLocal(px, py, pz, facing, PANEL6_YAW_RAD, LEVER_SCALE, LEVER_MOUNT_X_PX);
     }
 
     /** Horizontal distance from block center to biome selector center (for tests / tuning). */
     public static double selectorDistanceFromCenter(Direction facing) {
-        Vec3d c = biomeSelectorBox(facing).getCenter();
+        Vec3 c = biomeSelectorBox(facing).getCenter();
         return Math.hypot(c.x - 0.5, c.z - 0.5);
     }
 
     /** Horizontal distance from block center to planet locator center (for tests / tuning). */
     public static double planetLocatorDistanceFromCenter(Direction facing) {
-        Vec3d c = planetLocatorBox(facing).getCenter();
+        Vec3 c = planetLocatorBox(facing).getCenter();
         return Math.hypot(c.x - 0.5, c.z - 0.5);
     }
 
     /** Horizontal distance from block center to lever center (for tests / tuning). */
     public static double leverDistanceFromCenter(Direction facing) {
-        Vec3d c = materialisationLeverBox(facing).getCenter();
+        Vec3 c = materialisationLeverBox(facing).getCenter();
         return Math.hypot(c.x - 0.5, c.z - 0.5);
     }
 
-    private static boolean lookHitsBox(Box box, Vec3d eyePos, Vec3d lookDir, double reach) {
+    private static boolean lookHitsBox(AABB box, Vec3 eyePos, Vec3 lookDir, double reach) {
         return lookHitDistance(box, eyePos, lookDir, reach) >= 0.0;
     }
 
     /** Distance along the look ray to the hit, or {@code -1} when missing. */
-    private static double lookHitDistance(Box box, Vec3d eyePos, Vec3d lookDir, double reach) {
-        Vec3d end = eyePos.add(lookDir.normalize().multiply(reach));
-        return box.raycast(eyePos, end)
+    private static double lookHitDistance(AABB box, Vec3 eyePos, Vec3 lookDir, double reach) {
+        Vec3 end = eyePos.add(lookDir.normalize().scale(reach));
+        return box.clip(eyePos, end)
                 .map(hit -> hit.distanceTo(eyePos))
                 .orElse(-1.0);
     }
 
-    private static Box controlBox(
+    private static AABB controlBox(
             Direction facing,
             float panelYawRad,
             float scale,
@@ -266,7 +266,7 @@ public final class FirstDoctorConsoleControls {
         for (float x : xs) {
             for (float y : ys) {
                 for (float z : zs) {
-                    Vec3d p = controlLocalToBlockLocal(x, y, z, facing, panelYawRad, scale, mountXPx);
+                    Vec3 p = controlLocalToBlockLocal(x, y, z, facing, panelYawRad, scale, mountXPx);
                     outMinX = Math.min(outMinX, p.x);
                     outMinY = Math.min(outMinY, p.y);
                     outMinZ = Math.min(outMinZ, p.z);
@@ -277,13 +277,13 @@ public final class FirstDoctorConsoleControls {
             }
         }
         final double pad = 0.08;
-        return new Box(
+        return new AABB(
                 outMinX - pad, outMinY - pad, outMinZ - pad,
                 outMaxX + pad, outMaxY + pad, outMaxZ + pad
         );
     }
 
-    static Vec3d controlLocalToBlockLocal(
+    static Vec3 controlLocalToBlockLocal(
             double px,
             double py,
             double pz,
@@ -314,12 +314,12 @@ public final class FirstDoctorConsoleControls {
         y2 *= PX * Y_SCALE;
         z2 *= PX;
 
-        float yawRad = (float) Math.toRadians(-Direction.getHorizontalDegreesOrThrow(facing));
+        float yawRad = (float) Math.toRadians(-Direction.getYRot(facing));
         double cosF = Math.cos(yawRad);
         double sinF = Math.sin(yawRad);
         double x3 = x2 * cosF + z2 * sinF;
         double z3 = -x2 * sinF + z2 * cosF;
 
-        return new Vec3d(x3 + 0.5, y2, z3 + 0.5);
+        return new Vec3(x3 + 0.5, y2, z3 + 0.5);
     }
 }

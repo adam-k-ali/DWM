@@ -1,7 +1,7 @@
 package com.adamkali.dwm;
 
-import net.minecraft.Bootstrap;
 import net.minecraft.SharedConstants;
+import net.minecraft.server.Bootstrap;
 
 /**
  * Ensures Minecraft registries are bootstrapped for unit tests that touch blocks/items.
@@ -16,8 +16,8 @@ public final class MinecraftTestBootstrap {
         if (bootstrapped) {
             return;
         }
-        SharedConstants.createGameVersion();
-        Bootstrap.initialize();
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
         bootstrapped = true;
     }
 }

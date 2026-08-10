@@ -3,13 +3,13 @@ package com.adamkali.dwm.render.soto.portal;
 import com.adamkali.dwm.render.soto.TardisSotoRenderer;
 import com.adamkali.dwm.tardis.TardisExteriorFacing;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
-import net.minecraft.client.render.Camera;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 
 import java.util.Objects;
+import net.minecraft.client.Camera;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Pure geometry for the SOTO portal exterior camera.
@@ -32,9 +32,9 @@ public final class SotoPortalCameraTransform {
     ) {
         Objects.requireNonNull(camera, "camera");
         return map(
-                camera.getPos(),
-                camera.getYaw(),
-                camera.getPitch(),
+                camera.getPosition(),
+                camera.getYRot(),
+                camera.getXRot(),
                 interiorDoorPos,
                 interiorDoorFacing,
                 ghostFootprintOrigin,
@@ -44,7 +44,7 @@ public final class SotoPortalCameraTransform {
     }
 
     static Result map(
-            Vec3d cameraPosition,
+            Vec3 cameraPosition,
             float cameraYaw,
             float cameraPitch,
             BlockPos interiorDoorPos,
@@ -63,13 +63,13 @@ public final class SotoPortalCameraTransform {
         }
 
         Direction exteriorOutwardDirection = TardisExteriorFacing.doorDirection(exteriorRotation);
-        Vec3d exteriorOutward = vector(exteriorOutwardDirection);
-        Vec3d ghostRelativePosition = destinationDoorCenter(relativeTardisPos, exteriorOutward);
+        Vec3 exteriorOutward = vector(exteriorOutwardDirection);
+        Vec3 ghostRelativePosition = destinationDoorCenter(relativeTardisPos, exteriorOutward);
         float mappedYaw = yawFromDirection(exteriorOutward);
         float mappedPitch = 0.0f;
         Matrix4f viewMatrix = createViewMatrix(ghostRelativePosition, exteriorOutward, mappedYaw);
 
-        Vec3d exteriorWorldPosition = ghostRelativePosition.add(
+        Vec3 exteriorWorldPosition = ghostRelativePosition.add(
                 ghostFootprintOrigin.getX(),
                 ghostFootprintOrigin.getY(),
                 ghostFootprintOrigin.getZ()
@@ -84,23 +84,23 @@ public final class SotoPortalCameraTransform {
         );
     }
 
-    private static Vec3d destinationDoorCenter(BlockPos relativeTardisPos, Vec3d exteriorOutward) {
-        return new Vec3d(
+    private static Vec3 destinationDoorCenter(BlockPos relativeTardisPos, Vec3 exteriorOutward) {
+        return new Vec3(
                 relativeTardisPos.getX() + 0.5,
                 relativeTardisPos.getY() + TardisSotoRenderer.PREVIEW_EYE_HEIGHT,
                 relativeTardisPos.getZ() + 0.5
-        ).add(exteriorOutward.multiply(0.5 + TardisSotoRenderer.PREVIEW_FORWARD_OFFSET));
+        ).add(exteriorOutward.scale(0.5 + TardisSotoRenderer.PREVIEW_FORWARD_OFFSET));
     }
 
-    private static float yawFromDirection(Vec3d direction) {
+    private static float yawFromDirection(Vec3 direction) {
         return wrapDegrees((float) Math.toDegrees(Math.atan2(-direction.x, direction.z)));
     }
 
-    private static Matrix4f createViewMatrix(Vec3d position, Vec3d look, float yaw) {
+    private static Matrix4f createViewMatrix(Vec3 position, Vec3 look, float yaw) {
         double yawRadians = Math.toRadians(yaw);
-        Vec3d right = new Vec3d(Math.cos(yawRadians), 0.0, Math.sin(yawRadians));
-        Vec3d up = look.crossProduct(right).normalize();
-        Vec3d center = position.add(look);
+        Vec3 right = new Vec3(Math.cos(yawRadians), 0.0, Math.sin(yawRadians));
+        Vec3 up = look.cross(right).normalize();
+        Vec3 center = position.add(look);
         return new Matrix4f().lookAt(
                 (float) position.x,
                 (float) position.y,
@@ -114,8 +114,8 @@ public final class SotoPortalCameraTransform {
         );
     }
 
-    private static Vec3d vector(Direction direction) {
-        return new Vec3d(direction.getOffsetX(), direction.getOffsetY(), direction.getOffsetZ());
+    private static Vec3 vector(Direction direction) {
+        return new Vec3(direction.getStepX(), direction.getStepY(), direction.getStepZ());
     }
 
     private static float wrapDegrees(float degrees) {
@@ -130,9 +130,9 @@ public final class SotoPortalCameraTransform {
     }
 
     public record Result(
-            Vec3d ghostRelativePosition,
-            Vec3d exteriorWorldPosition,
-            Vec3d lookDirection,
+            Vec3 ghostRelativePosition,
+            Vec3 exteriorWorldPosition,
+            Vec3 lookDirection,
             float yaw,
             float pitch,
             Matrix4f viewMatrix

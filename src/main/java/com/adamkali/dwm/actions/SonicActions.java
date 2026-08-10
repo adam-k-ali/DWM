@@ -3,25 +3,30 @@ package com.adamkali.dwm.actions;
 import com.adamkali.dwm.analytics.AnalyticsManager;
 import com.adamkali.dwm.analytics.DWMStatistics;
 import com.adamkali.dwm.sound.DWMSounds;
-import net.minecraft.block.*;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.damage.DamageType;
-import net.minecraft.entity.damage.DamageTypes;
-import net.minecraft.entity.passive.SheepEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
-import net.minecraft.world.event.GameEvent;
-
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.sheep.Sheep;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.TntBlock;
+import net.minecraft.world.level.block.TrapDoorBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -34,79 +39,79 @@ public class SonicActions {
 
     private SonicActions() {
         this.blockActions.put(Blocks.TNT, (level, blockPos, blockState, player) -> {
-            level.setBlockState(blockPos, Blocks.AIR.getDefaultState());
-            TntBlock.primeTnt(level, blockPos);
+            level.setBlockAndUpdate(blockPos, Blocks.AIR.defaultBlockState());
+            TntBlock.explode(level, blockPos);
         });
         this.blockActions.put(Blocks.IRON_DOOR, (level, blockPos, blockState, player) -> {
             BlockState newState = blockState.cycle(DoorBlock.OPEN);
             DoorBlock block = (DoorBlock) blockState.getBlock();
-            boolean open = newState.get(DoorBlock.OPEN);
-            level.setBlockState(blockPos, newState, 10);
-            level.playSound(player, blockPos, open ? block.getBlockSetType().doorOpen() : block.getBlockSetType().doorClose(), SoundCategory.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.1F + 0.9F);
-            level.emitGameEvent(player, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, blockPos);
+            boolean open = newState.getValue(DoorBlock.OPEN);
+            level.setBlock(blockPos, newState, 10);
+            level.playSound(player, blockPos, open ? block.type().doorOpen() : block.type().doorClose(), SoundSource.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.1F + 0.9F);
+            level.gameEvent(player, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, blockPos);
         });
         this.blockActions.put(Blocks.IRON_TRAPDOOR, (level, blockPos, blockState, player) -> {
-            BlockState newState = blockState.cycle(TrapdoorBlock.OPEN);
-            TrapdoorBlock block = (TrapdoorBlock) blockState.getBlock();
-            boolean open = newState.get(TrapdoorBlock.OPEN);
-            level.setBlockState(blockPos, newState, 10);
-            level.playSound(player, blockPos, open ? SoundEvents.BLOCK_IRON_TRAPDOOR_OPEN : SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE, SoundCategory.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.1F + 0.9F);
-            level.emitGameEvent(player, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, blockPos);
+            BlockState newState = blockState.cycle(TrapDoorBlock.OPEN);
+            TrapDoorBlock block = (TrapDoorBlock) blockState.getBlock();
+            boolean open = newState.getValue(TrapDoorBlock.OPEN);
+            level.setBlock(blockPos, newState, 10);
+            level.playSound(player, blockPos, open ? SoundEvents.IRON_TRAPDOOR_OPEN : SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.1F + 0.9F);
+            level.gameEvent(player, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, blockPos);
         });
 
         this.entityActions.put(EntityType.SLIME, (entity, player, level, hand) -> {
-            RegistryEntry<DamageType> damageType = level.getRegistryManager().getOrThrow(RegistryKeys.DAMAGE_TYPE).getEntry(DamageTypes.PLAYER_ATTACK.getValue()).orElseThrow();
+            Holder<DamageType> damageType = level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).get().orElseThrow();
             DamageSource damageSource = new DamageSource(damageType, player, entity);
-            entity.damage(level, damageSource, 1.0F);
+            entity.hurtServer(level, damageSource, 1.0F);
         });
 
-        this.entityActions.put(EntityType.SHEEP, (entity, player, level, hand) -> {
-            SheepEntity sheepEntity = (SheepEntity) entity;
-            if (!sheepEntity.isShearable()) {
+        this.entityActions.put(EntityTypes.SHEEP, (entity, player, level, hand) -> {
+            Sheep sheepEntity = (Sheep) entity;
+            if (!sheepEntity.readyForShearing()) {
                 return;
             }
 
-            sheepEntity.sheared(level, SoundCategory.PLAYERS, player.getStackInHand(hand));
+            sheepEntity.shear(level, SoundSource.PLAYERS, player.getItemInHand(hand));
         });
 
         BlockModificationAction blockBreakAction = (level, blockPos, blockState, player) -> {
-            level.breakBlock(blockPos, false, player);
+            level.destroyBlock(blockPos, false, player);
         };
 
         this.blockActions.put(Blocks.GLASS, blockBreakAction);
         this.blockActions.put(Blocks.GLASS_PANE, blockBreakAction);
-        this.blockActions.put(Blocks.WHITE_STAINED_GLASS, blockBreakAction);
-        this.blockActions.put(Blocks.ORANGE_STAINED_GLASS, blockBreakAction);
-        this.blockActions.put(Blocks.MAGENTA_STAINED_GLASS, blockBreakAction);
-        this.blockActions.put(Blocks.LIGHT_BLUE_STAINED_GLASS, blockBreakAction);
-        this.blockActions.put(Blocks.YELLOW_STAINED_GLASS, blockBreakAction);
-        this.blockActions.put(Blocks.LIME_STAINED_GLASS, blockBreakAction);
-        this.blockActions.put(Blocks.PINK_STAINED_GLASS, blockBreakAction);
-        this.blockActions.put(Blocks.GRAY_STAINED_GLASS, blockBreakAction);
-        this.blockActions.put(Blocks.LIGHT_GRAY_STAINED_GLASS, blockBreakAction);
-        this.blockActions.put(Blocks.CYAN_STAINED_GLASS, blockBreakAction);
-        this.blockActions.put(Blocks.PURPLE_STAINED_GLASS, blockBreakAction);
-        this.blockActions.put(Blocks.BLUE_STAINED_GLASS, blockBreakAction);
-        this.blockActions.put(Blocks.BROWN_STAINED_GLASS, blockBreakAction);
-        this.blockActions.put(Blocks.GREEN_STAINED_GLASS, blockBreakAction);
-        this.blockActions.put(Blocks.RED_STAINED_GLASS, blockBreakAction);
-        this.blockActions.put(Blocks.BLACK_STAINED_GLASS, blockBreakAction);
-        this.blockActions.put(Blocks.WHITE_STAINED_GLASS_PANE, blockBreakAction);
-        this.blockActions.put(Blocks.ORANGE_STAINED_GLASS_PANE, blockBreakAction);
-        this.blockActions.put(Blocks.MAGENTA_STAINED_GLASS_PANE, blockBreakAction);
-        this.blockActions.put(Blocks.LIGHT_BLUE_STAINED_GLASS_PANE, blockBreakAction);
-        this.blockActions.put(Blocks.YELLOW_STAINED_GLASS_PANE, blockBreakAction);
-        this.blockActions.put(Blocks.LIME_STAINED_GLASS_PANE, blockBreakAction);
-        this.blockActions.put(Blocks.PINK_STAINED_GLASS_PANE, blockBreakAction);
-        this.blockActions.put(Blocks.GRAY_STAINED_GLASS_PANE, blockBreakAction);
-        this.blockActions.put(Blocks.LIGHT_GRAY_STAINED_GLASS_PANE, blockBreakAction);
-        this.blockActions.put(Blocks.CYAN_STAINED_GLASS_PANE, blockBreakAction);
-        this.blockActions.put(Blocks.PURPLE_STAINED_GLASS_PANE, blockBreakAction);
-        this.blockActions.put(Blocks.BLUE_STAINED_GLASS_PANE, blockBreakAction);
-        this.blockActions.put(Blocks.BROWN_STAINED_GLASS_PANE, blockBreakAction);
-        this.blockActions.put(Blocks.GREEN_STAINED_GLASS_PANE, blockBreakAction);
-        this.blockActions.put(Blocks.RED_STAINED_GLASS_PANE, blockBreakAction);
-        this.blockActions.put(Blocks.BLACK_STAINED_GLASS_PANE, blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS.white(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS.orange(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS.magenta(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS.lightBlue(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS.yellow(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS.lime(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS.pink(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS.gray(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS.lightGray(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS.cyan(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS.purple(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS.blue(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS.brown(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS.green(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS.red(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS.black(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS_PANE.white(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS_PANE.orange(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS_PANE.magenta(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS_PANE.lightBlue(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS_PANE.yellow(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS_PANE.lime(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS_PANE.pink(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS_PANE.gray(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS_PANE.lightGray(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS_PANE.cyan(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS_PANE.purple(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS_PANE.blue(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS_PANE.brown(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS_PANE.green(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS_PANE.red(), blockBreakAction);
+        this.blockActions.put(Blocks.STAINED_GLASS_PANE.black(), blockBreakAction);
     }
 
     public static SonicActions getInstance() {
@@ -117,31 +122,31 @@ public class SonicActions {
         return INSTANCE;
     }
 
-    public void interactWithBlock(ItemUsageContext context) {
-        context.getWorld().playSoundAtBlockCenter(context.getBlockPos(), DWMSounds.SONIC_SCREWDRIVER, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
-        Block blockClicked = context.getWorld().getBlockState(context.getBlockPos()).getBlock();
+    public void interactWithBlock(UseOnContext context) {
+        context.getLevel().playLocalSound(context.getClickedPos(), DWMSounds.SONIC_SCREWDRIVER, SoundSource.BLOCKS, 1.0F, 1.0F, false);
+        Block blockClicked = context.getLevel().getBlockState(context.getClickedPos()).getBlock();
         boolean actionExists = this.blockActions.containsKey(blockClicked);
-        AnalyticsManager.trackEvent(AnalyticsManager.EVENT_SONIC_SCREWDRIVER_USE, "item_name", context.getStack().getItem().getName(), "action_exists", actionExists, "block", blockClicked.getName().toString());
+        AnalyticsManager.trackEvent(AnalyticsManager.EVENT_SONIC_SCREWDRIVER_USE, "item_name", context.getItemInHand().getItem().getName(), "action_exists", actionExists, "block", blockClicked.getName().toString());
         if (actionExists) {
             if (context.getPlayer() != null) {
-                context.getPlayer().incrementStat(DWMStatistics.SONIC_SCREWDRIVER_USE);
+                context.getPlayer().awardStat(DWMStatistics.SONIC_SCREWDRIVER_USE);
             }
-            this.blockActions.get(blockClicked).perform(context.getWorld(), context.getBlockPos(), context.getWorld().getBlockState(context.getBlockPos()), context.getPlayer());
+            this.blockActions.get(blockClicked).perform(context.getLevel(), context.getClickedPos(), context.getLevel().getBlockState(context.getClickedPos()), context.getPlayer());
         }
     }
 
-    public void interactWithEntity(ItemStack itemStack, LivingEntity entity, PlayerEntity player, Hand hand) {
-        World level = entity.getEntityWorld();
-        level.playSoundAtBlockCenter(player.getBlockPos(), DWMSounds.SONIC_SCREWDRIVER, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
-        if (level.isClient) {
+    public void interactWithEntity(ItemStack itemStack, LivingEntity entity, Player player, InteractionHand hand) {
+        Level level = entity.getCommandSenderWorld();
+        level.playLocalSound(player.blockPosition(), DWMSounds.SONIC_SCREWDRIVER, SoundSource.BLOCKS, 1.0F, 1.0F, false);
+        if (level.isClientSide()) {
             return;
         }
 
-        ServerWorld serverWorld = Objects.requireNonNull(level.getServer()).getWorld(level.getRegistryKey());
+        ServerLevel serverWorld = Objects.requireNonNull(level.getServer()).getLevel(level.dimension());
         boolean actionExists = this.entityActions.containsKey(entity.getType());
         AnalyticsManager.trackEvent(AnalyticsManager.EVENT_SONIC_SCREWDRIVER_USE, "item_name", itemStack.getItem().getName(), "action_exists", actionExists, "entity_type", entity.getType().toString());
         if (actionExists) {
-            player.incrementStat(DWMStatistics.SONIC_SCREWDRIVER_USE);
+            player.awardStat(DWMStatistics.SONIC_SCREWDRIVER_USE);
             this.entityActions.get(entity.getType()).perform(entity, player, serverWorld, hand);
         }
     }

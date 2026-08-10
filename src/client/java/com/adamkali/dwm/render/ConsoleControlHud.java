@@ -3,15 +3,15 @@ package com.adamkali.dwm.render;
 import com.adamkali.dwm.block.FirstDoctorConsoleBlock;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.text.Text;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 
 /**
  * Crosshair tooltip for First Doctor console controls.
@@ -24,45 +24,45 @@ public final class ConsoleControlHud {
         HudRenderCallback.EVENT.register(ConsoleControlHud::render);
     }
 
-    private static void render(DrawContext context, RenderTickCounter tickCounter) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player == null || client.world == null || client.options.hudHidden) {
+    private static void render(GuiGraphics context, DeltaTracker tickCounter) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.player == null || client.level == null || client.options.hideGui) {
             return;
         }
-        HitResult hit = client.crosshairTarget;
+        HitResult hit = client.hitResult;
         if (!(hit instanceof BlockHitResult blockHit) || blockHit.getType() != HitResult.Type.BLOCK) {
             return;
         }
 
         BlockPos pos = blockHit.getBlockPos();
-        BlockState state = client.world.getBlockState(pos);
+        BlockState state = client.level.getBlockState(pos);
         if (!(state.getBlock() instanceof FirstDoctorConsoleBlock)) {
             return;
         }
 
-        Direction facing = state.get(FirstDoctorConsoleBlock.FACING, Direction.NORTH);
-        Text label;
+        Direction facing = state.getValueOrElse(FirstDoctorConsoleBlock.FACING, Direction.NORTH);
+        Component label;
         if (FirstDoctorConsoleControls.isMaterialisationLeverLookHit(facing, pos, client.player)) {
-            label = Text.translatable("dwm.console.materialisation_lever");
+            label = Component.translatable("dwm.console.materialisation_lever");
         } else {
             boolean biomeHit = FirstDoctorConsoleControls.isBiomeSelectorLookHit(facing, pos, client.player);
             boolean planetHit = FirstDoctorConsoleControls.isPlanetLocatorLookHit(facing, pos, client.player);
             if (biomeHit && planetHit) {
                 label = FirstDoctorConsoleControls.preferBiomeOverPlanet(facing, pos, client.player)
-                        ? Text.translatable("dwm.console.biome_selector")
-                        : Text.translatable("dwm.console.planet_locator");
+                        ? Component.translatable("dwm.console.biome_selector")
+                        : Component.translatable("dwm.console.planet_locator");
             } else if (planetHit) {
-                label = Text.translatable("dwm.console.planet_locator");
+                label = Component.translatable("dwm.console.planet_locator");
             } else if (biomeHit) {
-                label = Text.translatable("dwm.console.biome_selector");
+                label = Component.translatable("dwm.console.biome_selector");
             } else {
                 return;
             }
         }
 
-        int textWidth = client.textRenderer.getWidth(label);
-        int x = (context.getScaledWindowWidth() - textWidth) / 2;
-        int y = context.getScaledWindowHeight() / 2 - 15;
-        context.drawTextWithShadow(client.textRenderer, label, x, y, 0xFFFFFF);
+        int textWidth = client.font.width(label);
+        int x = (context.guiWidth() - textWidth) / 2;
+        int y = context.guiHeight() / 2 - 15;
+        context.drawString(client.font, label, x, y, 0xFFFFFF);
     }
 }

@@ -1,8 +1,7 @@
 package com.adamkali.dwm.tardis.interior;
 
-import net.minecraft.util.math.BlockPos;
-
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
 
 /**
  * Assigns each TARDIS a deterministic, non-overlapping plot origin in the shared interior dimension.

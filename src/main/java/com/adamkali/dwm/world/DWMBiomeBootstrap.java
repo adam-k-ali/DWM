@@ -1,17 +1,17 @@
 package com.adamkali.dwm.world;
 
-import net.minecraft.registry.Registerable;
-import net.minecraft.registry.RegistryEntryLookup;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.sound.BiomeMoodSound;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeEffects;
-import net.minecraft.world.biome.GenerationSettings;
-import net.minecraft.world.biome.SpawnSettings;
-import net.minecraft.world.gen.GenerationStep;
-import net.minecraft.world.gen.carver.ConfiguredCarver;
-import net.minecraft.world.gen.feature.DefaultBiomeFeatures;
-import net.minecraft.world.gen.feature.PlacedFeature;
+import net.minecraft.core.HolderGetter;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.data.worldgen.BiomeDefaultFeatures;
+import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.world.attribute.AmbientMoodSettings;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeGenerationSettings;
+import net.minecraft.world.level.biome.BiomeSpecialEffects;
+import net.minecraft.world.level.biome.MobSpawnSettings;
+import net.minecraft.world.level.levelgen.GenerationStep;
+import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
+import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
 /**
  * Gallifrey destination biomes — orange-red atmosphere, Phase 1 terrain/wood features.
@@ -29,9 +29,9 @@ public final class DWMBiomeBootstrap {
     private DWMBiomeBootstrap() {
     }
 
-    public static void bootstrap(Registerable<Biome> registerable) {
-        RegistryEntryLookup<PlacedFeature> features = registerable.getRegistryLookup(RegistryKeys.PLACED_FEATURE);
-        RegistryEntryLookup<ConfiguredCarver<?>> carvers = registerable.getRegistryLookup(RegistryKeys.CONFIGURED_CARVER);
+    public static void bootstrap(BootstrapContext<Biome> registerable) {
+        HolderGetter<PlacedFeature> features = registerable.lookup(Registries.PLACED_FEATURE);
+        HolderGetter<ConfiguredWorldCarver<?>> carvers = registerable.lookup(Registries.CONFIGURED_CARVER);
 
         registerable.register(DWMBiomeKeys.GALLIFREY_PLAINS, createPlains(features, carvers));
         registerable.register(DWMBiomeKeys.GALLIFREY_FOREST, createForest(features, carvers));
@@ -39,82 +39,82 @@ public final class DWMBiomeBootstrap {
     }
 
     private static Biome createPlains(
-            RegistryEntryLookup<PlacedFeature> features,
-            RegistryEntryLookup<ConfiguredCarver<?>> carvers
+            HolderGetter<PlacedFeature> features,
+            HolderGetter<ConfiguredWorldCarver<?>> carvers
     ) {
-        SpawnSettings.Builder spawns = new SpawnSettings.Builder();
-        DefaultBiomeFeatures.addBatsAndMonsters(spawns);
+        MobSpawnSettings.Builder spawns = new MobSpawnSettings.Builder();
+        BiomeDefaultFeatures.commonSpawns(spawns);
 
-        GenerationSettings.LookupBackedBuilder generation = new GenerationSettings.LookupBackedBuilder(features, carvers);
+        BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(features, carvers);
         addBasicFeatures(generation);
-        generation.feature(GenerationStep.Feature.VEGETAL_DECORATION, DWMPlacedFeatures.ASH_PLAINS);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.ASH_PLAINS);
 
         return buildBiome(true, 0.9F, 0.3F, spawns, generation);
     }
 
     private static Biome createForest(
-            RegistryEntryLookup<PlacedFeature> features,
-            RegistryEntryLookup<ConfiguredCarver<?>> carvers
+            HolderGetter<PlacedFeature> features,
+            HolderGetter<ConfiguredWorldCarver<?>> carvers
     ) {
-        SpawnSettings.Builder spawns = new SpawnSettings.Builder();
-        DefaultBiomeFeatures.addBatsAndMonsters(spawns);
+        MobSpawnSettings.Builder spawns = new MobSpawnSettings.Builder();
+        BiomeDefaultFeatures.commonSpawns(spawns);
 
-        GenerationSettings.LookupBackedBuilder generation = new GenerationSettings.LookupBackedBuilder(features, carvers);
+        BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(features, carvers);
         addBasicFeatures(generation);
-        generation.feature(GenerationStep.Feature.VEGETAL_DECORATION, DWMPlacedFeatures.ASH_FOREST);
-        generation.feature(GenerationStep.Feature.VEGETAL_DECORATION, DWMPlacedFeatures.DARK_ASH_FOREST);
-        generation.feature(GenerationStep.Feature.VEGETAL_DECORATION, DWMPlacedFeatures.CARDINAL_FOREST);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.ASH_FOREST);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.DARK_ASH_FOREST);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.CARDINAL_FOREST);
 
         return buildBiome(true, 0.85F, 0.6F, spawns, generation);
     }
 
     private static Biome createWastes(
-            RegistryEntryLookup<PlacedFeature> features,
-            RegistryEntryLookup<ConfiguredCarver<?>> carvers
+            HolderGetter<PlacedFeature> features,
+            HolderGetter<ConfiguredWorldCarver<?>> carvers
     ) {
-        SpawnSettings.Builder spawns = new SpawnSettings.Builder();
-        DefaultBiomeFeatures.addBatsAndMonsters(spawns);
+        MobSpawnSettings.Builder spawns = new MobSpawnSettings.Builder();
+        BiomeDefaultFeatures.commonSpawns(spawns);
 
-        GenerationSettings.LookupBackedBuilder generation = new GenerationSettings.LookupBackedBuilder(features, carvers);
+        BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(features, carvers);
         addBasicFeatures(generation);
 
         return buildBiome(false, 1.2F, 0.0F, spawns, generation);
     }
 
-    private static void addBasicFeatures(GenerationSettings.LookupBackedBuilder generation) {
-        DefaultBiomeFeatures.addLandCarvers(generation);
-        DefaultBiomeFeatures.addAmethystGeodes(generation);
-        DefaultBiomeFeatures.addDungeons(generation);
-        DefaultBiomeFeatures.addMineables(generation);
-        DefaultBiomeFeatures.addDefaultOres(generation);
-        DefaultBiomeFeatures.addDefaultDisks(generation);
-        DefaultBiomeFeatures.addSprings(generation);
-        DefaultBiomeFeatures.addFrozenTopLayer(generation);
+    private static void addBasicFeatures(BiomeGenerationSettings.Builder generation) {
+        BiomeDefaultFeatures.addDefaultCarversAndLakes(generation);
+        BiomeDefaultFeatures.addDefaultCrystalFormations(generation);
+        BiomeDefaultFeatures.addDefaultMonsterRoom(generation);
+        BiomeDefaultFeatures.addDefaultUndergroundVariety(generation);
+        BiomeDefaultFeatures.addDefaultOres(generation);
+        BiomeDefaultFeatures.addDefaultSoftDisks(generation);
+        BiomeDefaultFeatures.addDefaultSprings(generation);
+        BiomeDefaultFeatures.addSurfaceFreezing(generation);
     }
 
     private static Biome buildBiome(
             boolean precipitation,
             float temperature,
             float downfall,
-            SpawnSettings.Builder spawns,
-            GenerationSettings.LookupBackedBuilder generation
+            MobSpawnSettings.Builder spawns,
+            BiomeGenerationSettings.Builder generation
     ) {
-        BiomeEffects effects = new BiomeEffects.Builder()
+        BiomeSpecialEffects effects = new BiomeSpecialEffects.Builder()
                 .waterColor(WATER_COLOR)
                 .waterFogColor(WATER_FOG_COLOR)
                 .fogColor(FOG_COLOR)
                 .skyColor(SKY_COLOR)
-                .foliageColor(FOLIAGE_COLOR)
-                .grassColor(GRASS_COLOR)
-                .moodSound(BiomeMoodSound.CAVE)
+                .foliageColorOverride(FOLIAGE_COLOR)
+                .grassColorOverride(GRASS_COLOR)
+                .ambientMoodSound(AmbientMoodSettings.LEGACY_CAVE_SETTINGS)
                 .build();
 
-        return new Biome.Builder()
-                .precipitation(precipitation)
+        return new Biome.BiomeBuilder()
+                .hasPrecipitation(precipitation)
                 .temperature(temperature)
                 .downfall(downfall)
-                .effects(effects)
-                .spawnSettings(spawns.build())
+                .specialEffects(effects)
+                .mobSpawnSettings(spawns.build())
                 .generationSettings(generation.build())
                 .build();
     }

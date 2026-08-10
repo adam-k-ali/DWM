@@ -4,7 +4,7 @@ import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.EntityInterpState;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.LerpedPose;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.CompoundTag;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -82,8 +82,8 @@ class BotiEntityMotionTest {
 
     @Test
     void advanceTo_MovesPreviousTargetToFrom() {
-        BotiEntitySample first = new BotiEntitySample(1.0f, 2.0f, 3.0f, 10.0f, 0.0f, new NbtCompound());
-        BotiEntitySample second = new BotiEntitySample(4.0f, 5.0f, 6.0f, 40.0f, 5.0f, new NbtCompound());
+        BotiEntitySample first = new BotiEntitySample(1.0f, 2.0f, 3.0f, 10.0f, 0.0f, new CompoundTag());
+        BotiEntitySample second = new BotiEntitySample(4.0f, 5.0f, 6.0f, 40.0f, 5.0f, new CompoundTag());
         EntityInterpState identity = EntityInterpState.identity(first, 100L);
         EntityInterpState advanced = identity.advanceTo(second, 150L);
         assertEquals(1.0f, advanced.fromX(), 0.0f);

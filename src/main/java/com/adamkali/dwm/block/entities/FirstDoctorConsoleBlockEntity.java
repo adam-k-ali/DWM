@@ -1,16 +1,19 @@
 package com.adamkali.dwm.block.entities;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 /**
  * Block entity for the First Doctor console. Holds {@code tardisId} for control interactions;
@@ -25,7 +28,7 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
 
     public void setTardisId(@Nullable UUID tardisId) {
         this.tardisId = tardisId;
-        markDirty();
+        setChanged();
     }
 
     public @Nullable UUID getTardisId() {
@@ -33,31 +36,27 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
-        super.writeNbt(nbt, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
         if (tardisId != null) {
-            nbt.putUuid("tardisId", tardisId);
+            output.store("tardisId", UUIDUtil.CODEC, tardisId);
         }
     }
 
     @Override
-    protected void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
-        super.readNbt(nbt, registries);
-        if (nbt.containsUuid("tardisId")) {
-            tardisId = nbt.getUuid("tardisId");
-        } else {
-            tardisId = null;
-        }
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        tardisId = input.read("tardisId", UUIDUtil.CODEC).orElse(null);
     }
 
     @Override
-    public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registries) {
-        return createNbt(registries);
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
 
     @Nullable
     @Override
-    public Packet<ClientPlayPacketListener> toUpdatePacket() {
-        return BlockEntityUpdateS2CPacket.create(this);
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 }

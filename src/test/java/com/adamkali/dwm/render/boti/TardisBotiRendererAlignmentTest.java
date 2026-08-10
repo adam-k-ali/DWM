@@ -2,7 +2,7 @@ package com.adamkali.dwm.render.boti;
 
 import com.adamkali.dwm.tardis.data.model.TardisBotiAperture;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
-import net.minecraft.client.util.math.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.junit.jupiter.api.Test;
@@ -87,9 +87,9 @@ class TardisBotiRendererAlignmentTest {
     }
 
     private static Vector3f transform(float x, float y, float z) {
-        MatrixStack matrices = new MatrixStack();
+        PoseStack matrices = new PoseStack();
         TardisBotiRenderer.applyInteriorAlignment(matrices, FIRST_DOCTOR_APERTURE);
-        Matrix4f matrix = matrices.peek().getPositionMatrix();
+        Matrix4f matrix = matrices.last().pose();
         return matrix.transformPosition(x, y, z, new Vector3f());
     }
 }

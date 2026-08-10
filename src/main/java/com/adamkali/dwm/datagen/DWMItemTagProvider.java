@@ -2,33 +2,32 @@ package com.adamkali.dwm.datagen;
 
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
-import net.minecraft.item.Item;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.registry.tag.ItemTags;
-import net.minecraft.registry.tag.TagKey;
-
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import java.util.concurrent.CompletableFuture;
 
-public class DWMItemTagProvider extends FabricTagProvider.ItemTagProvider {
+public class DWMItemTagProvider extends FabricTagsProvider.ItemTagProvider {
     public DWMItemTagProvider(
-            FabricDataOutput output,
-            CompletableFuture<RegistryWrapper.WrapperLookup> completableFuture,
-            FabricTagProvider.BlockTagProvider blockTagProvider
+            FabricPackOutput output,
+            CompletableFuture<HolderLookup.Provider> completableFuture,
+            FabricTagsProvider.BlockTagProvider blockTagProvider
     ) {
         super(output, completableFuture, blockTagProvider);
     }
 
     @Override
-    protected void configure(RegistryWrapper.WrapperLookup wrapperLookup) {
+    protected void addTags(HolderLookup.Provider wrapperLookup) {
         copy(com.adamkali.dwm.block.DWMBlockTags.GALLIFREY_STONE, com.adamkali.dwm.item.DWMItemTags.GALLIFREY_STONE);
         copy(com.adamkali.dwm.block.DWMBlockTags.CITADEL, com.adamkali.dwm.item.DWMItemTags.CITADEL);
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.generateItemTags(new WoodFamilyDatagen.ItemTagSink() {
                 @Override
-                public void copy(TagKey<net.minecraft.block.Block> blockTag, TagKey<Item> itemTag) {
+                public void copy(TagKey<net.minecraft.world.level.block.Block> blockTag, TagKey<Item> itemTag) {
                     DWMItemTagProvider.this.copy(blockTag, itemTag);
                 }
 

@@ -2,9 +2,8 @@ package com.adamkali.dwm.mixin.client;
 
 import com.adamkali.dwm.render.boti.BotiStencilSupport;
 import com.adamkali.dwm.render.soto.portal.SotoPortalRenderTarget;
+import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.Framebuffer;
 import org.lwjgl.opengl.GL30;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.nio.IntBuffer;
+import net.minecraft.client.Minecraft;
 
 /**
  * Upgrades depth attachments to depth+stencil so exterior BOTI can mask the door aperture.
@@ -21,28 +21,28 @@ import java.nio.IntBuffer;
  * zero stencil bits; attaching the same packed texture to both depth and stencil slots is more
  * reliable.
  * <p>
- * During the SOTO portal offscreen pass, redirects the main framebuffer's {@code beginWrite} to
+ * During the SOTO portal offscreen pass, redirects the main framebuffer's {@code bindWrite} to
  * the portal target. {@code RenderPhase.MAIN_TARGET} otherwise steals the draw buffer before each
  * ghost mesh / entity draw.
  */
-@Mixin(Framebuffer.class)
+@Mixin(RenderTarget.class)
 public abstract class FramebufferMixin {
     private static final int GL_DEPTH_COMPONENT = 6402;
 
-    @Inject(method = "beginWrite", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "bindWrite", at = @At("HEAD"), cancellable = true)
     private void dwm$redirectMainToPortalDuringPass(boolean setViewport, CallbackInfo ci) {
         if (!SotoPortalRenderTarget.isPortalPassActive() || SotoPortalRenderTarget.isRedirectingMainWrite()) {
             return;
         }
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client != null && client.getFramebuffer() == (Object) this) {
+        Minecraft client = Minecraft.getInstance();
+        if (client != null && client.getMainRenderTarget() == (Object) this) {
             SotoPortalRenderTarget.redirectMainBeginWrite(setViewport);
             ci.cancel();
         }
     }
 
     @Redirect(
-            method = "initFbo",
+            method = "createBuffers",
             at = @At(
                     value = "INVOKE",
                     target = "Lcom/mojang/blaze3d/platform/GlStateManager;_texImage2D(IIIIIIIILjava/nio/IntBuffer;)V"
@@ -83,7 +83,7 @@ public abstract class FramebufferMixin {
     }
 
     @Redirect(
-            method = "initFbo",
+            method = "createBuffers",
             at = @At(
                     value = "INVOKE",
                     target = "Lcom/mojang/blaze3d/platform/GlStateManager;_glFramebufferTexture2D(IIIII)V"

@@ -15,17 +15,16 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.Entity;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
-
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +67,7 @@ public final class SotoGhostSyncService {
         tickCounter = 0;
     }
 
-    public static boolean subscribe(ServerPlayerEntity player, UUID tardisId) {
+    public static boolean subscribe(ServerPlayer player, UUID tardisId) {
         if (player == null || tardisId == null) {
             return false;
         }
@@ -80,18 +79,18 @@ public final class SotoGhostSyncService {
         if (ctx == null) {
             return false;
         }
-        SUBSCRIBERS.computeIfAbsent(tardisId, id -> ConcurrentHashMap.newKeySet()).add(player.getUuid());
+        SUBSCRIBERS.computeIfAbsent(tardisId, id -> ConcurrentHashMap.newKeySet()).add(player.getUUID());
         LEAVE_GRACE.remove(tardisId);
         sendFullState(player, ctx);
         return true;
     }
 
-    public static void markChunkDirtyAt(RegistryKey<World> worldKey, BlockPos worldPos) {
+    public static void markChunkDirtyAt(ResourceKey<Level> worldKey, BlockPos worldPos) {
         if (worldKey == null || worldPos == null) {
             return;
         }
         for (UUID tardisId : SotoExteriorIndex.registeredIds()) {
-            RegistryKey<World> key = SotoExteriorIndex.getWorldKey(tardisId);
+            ResourceKey<Level> key = SotoExteriorIndex.getWorldKey(tardisId);
             BlockPos exteriorPos = SotoExteriorIndex.getExteriorPos(tardisId);
             if (key == null || exteriorPos == null || !key.equals(worldKey)) {
                 continue;
@@ -99,7 +98,7 @@ public final class SotoGhostSyncService {
             if (!SotoExteriorSampler.isInsideStreamRadius(worldPos, exteriorPos)) {
                 continue;
             }
-            long packed = ChunkPos.toLong(
+            long packed = ChunkPos.asLong(
                     worldPos.getX() >> 4,
                     worldPos.getZ() >> 4
             );
@@ -109,7 +108,7 @@ public final class SotoGhostSyncService {
 
     private static void onEndTick(MinecraftServer server) {
         tickCounter++;
-        ServerWorld interiorWorld = server.getWorld(TardisDimensions.TARDIS_WORLD_KEY);
+        ServerLevel interiorWorld = server.getLevel(TardisDimensions.TARDIS_WORLD_KEY);
         if (interiorWorld == null) {
             return;
         }
@@ -117,7 +116,7 @@ public final class SotoGhostSyncService {
         Set<UUID> activeTardises = new HashSet<>();
         Set<UUID> dirtyFlushed = new HashSet<>();
         for (UUID tardisId : SotoExteriorIndex.registeredIds()) {
-            Set<ServerPlayerEntity> viewers = collectViewers(server, interiorWorld, tardisId);
+            Set<ServerPlayer> viewers = collectViewers(server, interiorWorld, tardisId);
             if (viewers.isEmpty()) {
                 handleNoViewers(server, tardisId);
                 continue;
@@ -131,13 +130,13 @@ public final class SotoGhostSyncService {
             SotoExteriorSampler.addStreamTickets(ctx.world(), ctx.exteriorPos());
             SotoExteriorSampler.keepMobAiActive(ctx.world(), ctx.exteriorPos());
 
-            for (ServerPlayerEntity viewer : viewers) {
+            for (ServerPlayer viewer : viewers) {
                 ensureChunks(viewer, ctx);
                 flushDirtyChunks(viewer, ctx);
             }
             dirtyFlushed.add(tardisId);
             if (tickCounter % ENTITY_UPDATE_INTERVAL_TICKS == 0) {
-                for (ServerPlayerEntity viewer : viewers) {
+                for (ServerPlayer viewer : viewers) {
                     syncEntities(viewer, ctx);
                 }
             }
@@ -174,12 +173,12 @@ public final class SotoGhostSyncService {
             }
         }
         for (ViewerKey key : keys) {
-            ServerPlayerEntity player = server.getPlayerManager().getPlayer(key.playerId);
+            ServerPlayer player = server.getPlayerList().getPlayer(key.playerId);
             if (player != null) {
                 Set<Long> chunks = SENT_CHUNKS.getOrDefault(key, Set.of());
                 for (long packed : chunks) {
                     ServerPlayNetworking.send(player, new UnloadSotoExteriorChunkS2CPayload(
-                            tardisId, ChunkPos.getPackedX(packed), ChunkPos.getPackedZ(packed)
+                            tardisId, ChunkPos.getX(packed), ChunkPos.getZ(packed)
                     ));
                 }
                 Set<UUID> entities = TRACKED_ENTITIES.getOrDefault(key, Set.of());
@@ -192,19 +191,19 @@ public final class SotoGhostSyncService {
         }
     }
 
-    private static Set<ServerPlayerEntity> collectViewers(
+    private static Set<ServerPlayer> collectViewers(
             MinecraftServer server,
-            ServerWorld interiorWorld,
+            ServerLevel interiorWorld,
             UUID tardisId
     ) {
-        Set<ServerPlayerEntity> viewers = ConcurrentHashMap.newKeySet();
+        Set<ServerPlayer> viewers = ConcurrentHashMap.newKeySet();
         BlockPos doorOrigin = TardisPlotAllocator.plotOrigin(tardisId)
-                .add(FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN);
+                .offset(FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN);
         viewers.addAll(PlayerLookup.tracking(interiorWorld, doorOrigin));
         Set<UUID> subscribers = SUBSCRIBERS.get(tardisId);
         if (subscribers != null) {
             for (UUID playerId : subscribers) {
-                ServerPlayerEntity player = server.getPlayerManager().getPlayer(playerId);
+                ServerPlayer player = server.getPlayerList().getPlayer(playerId);
                 if (player != null) {
                     viewers.add(player);
                 }
@@ -213,9 +212,9 @@ public final class SotoGhostSyncService {
         return viewers;
     }
 
-    private static void sendFullState(ServerPlayerEntity player, ExteriorContext ctx) {
+    private static void sendFullState(ServerPlayer player, ExteriorContext ctx) {
         int[] bounds = SotoExteriorSampler.streamChunkBounds(ctx.exteriorPos());
-        ViewerKey key = new ViewerKey(ctx.tardisId(), player.getUuid());
+        ViewerKey key = new ViewerKey(ctx.tardisId(), player.getUUID());
         Set<Long> sent = SENT_CHUNKS.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet());
         for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
             for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
@@ -225,28 +224,28 @@ public final class SotoGhostSyncService {
                         player,
                         SyncSotoExteriorChunkS2CPayload.fromSample(ctx.tardisId(), ctx.footprintOrigin(), sample)
                 );
-                sent.add(ChunkPos.toLong(cx, cz));
+                sent.add(ChunkPos.asLong(cx, cz));
             }
         }
         TRACKED_ENTITIES.put(key, ConcurrentHashMap.newKeySet());
         syncEntities(player, ctx);
     }
 
-    private static void ensureChunks(ServerPlayerEntity player, ExteriorContext ctx) {
-        ViewerKey key = new ViewerKey(ctx.tardisId(), player.getUuid());
+    private static void ensureChunks(ServerPlayer player, ExteriorContext ctx) {
+        ViewerKey key = new ViewerKey(ctx.tardisId(), player.getUUID());
         Set<Long> sent = SENT_CHUNKS.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet());
         int[] bounds = SotoExteriorSampler.streamChunkBounds(ctx.exteriorPos());
         Set<Long> desired = new HashSet<>();
         for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
             for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
-                desired.add(ChunkPos.toLong(cx, cz));
+                desired.add(ChunkPos.asLong(cx, cz));
             }
         }
         for (long packed : Set.copyOf(sent)) {
             if (!desired.contains(packed)) {
                 sent.remove(packed);
                 ServerPlayNetworking.send(player, new UnloadSotoExteriorChunkS2CPayload(
-                        ctx.tardisId(), ChunkPos.getPackedX(packed), ChunkPos.getPackedZ(packed)
+                        ctx.tardisId(), ChunkPos.getX(packed), ChunkPos.getZ(packed)
                 ));
             }
         }
@@ -254,8 +253,8 @@ public final class SotoGhostSyncService {
             if (sent.contains(packed)) {
                 continue;
             }
-            int cx = ChunkPos.getPackedX(packed);
-            int cz = ChunkPos.getPackedZ(packed);
+            int cx = ChunkPos.getX(packed);
+            int cz = ChunkPos.getZ(packed);
             SotoExteriorSampler.StreamChunkSample sample =
                     SotoExteriorSampler.sampleStreamChunk(ctx.world(), ctx.exteriorPos(), cx, cz);
             ServerPlayNetworking.send(
@@ -266,12 +265,12 @@ public final class SotoGhostSyncService {
         }
     }
 
-    private static void flushDirtyChunks(ServerPlayerEntity player, ExteriorContext ctx) {
+    private static void flushDirtyChunks(ServerPlayer player, ExteriorContext ctx) {
         Set<Long> dirty = DIRTY_CHUNKS.get(ctx.tardisId());
         if (dirty == null || dirty.isEmpty()) {
             return;
         }
-        ViewerKey key = new ViewerKey(ctx.tardisId(), player.getUuid());
+        ViewerKey key = new ViewerKey(ctx.tardisId(), player.getUUID());
         Set<Long> sent = SENT_CHUNKS.get(key);
         if (sent == null) {
             return;
@@ -280,8 +279,8 @@ public final class SotoGhostSyncService {
             if (!sent.contains(packed)) {
                 continue;
             }
-            int cx = ChunkPos.getPackedX(packed);
-            int cz = ChunkPos.getPackedZ(packed);
+            int cx = ChunkPos.getX(packed);
+            int cz = ChunkPos.getZ(packed);
             SotoExteriorSampler.StreamChunkSample sample =
                     SotoExteriorSampler.sampleStreamChunk(ctx.world(), ctx.exteriorPos(), cx, cz);
             ServerPlayNetworking.send(
@@ -291,17 +290,17 @@ public final class SotoGhostSyncService {
         }
     }
 
-    private static void syncEntities(ServerPlayerEntity player, ExteriorContext ctx) {
-        ViewerKey key = new ViewerKey(ctx.tardisId(), player.getUuid());
+    private static void syncEntities(ServerPlayer player, ExteriorContext ctx) {
+        ViewerKey key = new ViewerKey(ctx.tardisId(), player.getUUID());
         Set<UUID> tracked = TRACKED_ENTITIES.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet());
         List<Entity> live = SotoExteriorSampler.collectStreamEntities(ctx.world(), ctx.exteriorPos());
         Set<UUID> liveIds = new HashSet<>();
         for (Entity entity : live) {
-            if (BotiInteriorSampler.captureEntityNbt(entity) == null && !(entity instanceof net.minecraft.entity.player.PlayerEntity)) {
+            if (BotiInteriorSampler.captureEntityNbt(entity) == null && !(entity instanceof net.minecraft.world.entity.player.Player)) {
                 continue;
             }
-            liveIds.add(entity.getUuid());
-            if (tracked.contains(entity.getUuid())) {
+            liveIds.add(entity.getUUID());
+            if (tracked.contains(entity.getUUID())) {
                 ServerPlayNetworking.send(
                         player,
                         SyncSotoExteriorEntityUpdateS2CPayload.fromEntity(ctx.tardisId(), entity, ctx.footprintOrigin())
@@ -313,7 +312,7 @@ public final class SotoGhostSyncService {
                     continue;
                 }
                 ServerPlayNetworking.send(player, spawn);
-                tracked.add(entity.getUuid());
+                tracked.add(entity.getUUID());
             }
         }
         for (UUID id : Set.copyOf(tracked)) {
@@ -329,8 +328,8 @@ public final class SotoGhostSyncService {
         if (model == null || !model.hasExteriorLocation || model.exteriorDimension == null) {
             return null;
         }
-        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(model.exteriorDimension));
-        ServerWorld world = server.getWorld(worldKey);
+        ResourceKey<Level> worldKey = ResourceKey.create(Registries.DIMENSION, Identifier.parse(model.exteriorDimension));
+        ServerLevel world = server.getLevel(worldKey);
         if (world == null) {
             return null;
         }
@@ -342,6 +341,6 @@ public final class SotoGhostSyncService {
     private record ViewerKey(UUID tardisId, UUID playerId) {
     }
 
-    private record ExteriorContext(UUID tardisId, ServerWorld world, BlockPos exteriorPos, BlockPos footprintOrigin) {
+    private record ExteriorContext(UUID tardisId, ServerLevel world, BlockPos exteriorPos, BlockPos footprintOrigin) {
     }
 }

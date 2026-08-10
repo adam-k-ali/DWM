@@ -4,30 +4,32 @@ import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtDouble;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.server.world.ChunkTicketType;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.ChunkSectionPos;
-
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.SectionPos;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.DoubleTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.TicketType;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.phys.AABB;
 
 /**
  * Samples the First Doctor console-room footprint for BOTI sync.
@@ -42,8 +44,7 @@ public final class BotiInteriorSampler {
      * Keeps footprint chunks entity-accessible briefly after the player leaves the TARDIS
      * dimension so BOTI can still sample live entities for the exterior preview.
      */
-    private static final ChunkTicketType<ChunkPos> BOTI_TICKET =
-            ChunkTicketType.create("dwm_boti", Comparator.comparingLong(ChunkPos::toLong), 80);
+    private static final TicketType BOTI_TICKET = new TicketType(80, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION);
 
     private BotiInteriorSampler() {
     }
@@ -56,8 +57,8 @@ public final class BotiInteriorSampler {
     public static boolean isBotiVisible(BlockState state) {
         return state != null
                 && !state.isAir()
-                && !state.isOf(Blocks.LIGHT)
-                && !state.isOf(DWMBlocks.TARDIS_INTERIOR_DOOR);
+                && !state.is(Blocks.LIGHT)
+                && !state.is(DWMBlocks.TARDIS_INTERIOR_DOOR);
     }
 
     /**
@@ -76,10 +77,10 @@ public final class BotiInteriorSampler {
     /**
      * Samples the live plot for {@code tardisId} into relative structure coordinates.
      */
-    public static Map<BlockPos, BlockState> sample(ServerWorld interiorWorld, UUID tardisId) {
+    public static Map<BlockPos, BlockState> sample(ServerLevel interiorWorld, UUID tardisId) {
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
         Map<BlockPos, BlockState> visible = new HashMap<>();
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
         for (int x = 0; x < SIZE_X; x++) {
             for (int y = 0; y < SIZE_Y; y++) {
                 for (int z = 0; z < SIZE_Z; z++) {
@@ -99,11 +100,11 @@ public final class BotiInteriorSampler {
      * ({@link #isBotiVisible} — interior doors excluded).
      * Each compound includes the BE type {@code id} for client reconstruction.
      */
-    public static Map<BlockPos, NbtCompound> sampleBlockEntities(ServerWorld interiorWorld, UUID tardisId) {
+    public static Map<BlockPos, CompoundTag> sampleBlockEntities(ServerLevel interiorWorld, UUID tardisId) {
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
-        RegistryWrapper.WrapperLookup registries = interiorWorld.getRegistryManager();
-        Map<BlockPos, NbtCompound> entities = new HashMap<>();
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
+        HolderLookup.Provider registries = interiorWorld.registryAccess();
+        Map<BlockPos, CompoundTag> entities = new HashMap<>();
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
         for (int x = 0; x < SIZE_X; x++) {
             for (int y = 0; y < SIZE_Y; y++) {
                 for (int z = 0; z < SIZE_Z; z++) {
@@ -124,17 +125,22 @@ public final class BotiInteriorSampler {
     }
 
     /**
-     * Chunk-sync NBT plus type {@code id} for client {@link BlockEntity#createFromNbt} reconstruction.
+     * Chunk-sync NBT plus type {@code id} for client {@link BlockEntity#loadStatic} reconstruction.
      */
-    public static NbtCompound captureSyncNbt(BlockEntity blockEntity, RegistryWrapper.WrapperLookup registries) {
-        NbtCompound nbt = blockEntity.toInitialChunkDataNbt(registries);
-        BlockEntity.writeIdToNbt(nbt, blockEntity.getType());
+    public static CompoundTag captureSyncNbt(BlockEntity blockEntity, HolderLookup.Provider registries) {
+        CompoundTag nbt = blockEntity.getUpdateTag(registries);
+        TagValueOutput typeOut = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, registries);
+        BlockEntity.addEntityType(typeOut, blockEntity.getType());
+        CompoundTag typeTag = typeOut.buildResult();
+        for (String key : typeTag.keySet()) {
+            nbt.put(key, typeTag.get(key));
+        }
         return nbt;
     }
 
     /** Axis-aligned footprint box in world space for entity queries. */
-    public static Box footprintBox(BlockPos plotOrigin) {
-        return new Box(
+    public static AABB footprintBox(BlockPos plotOrigin) {
+        return new AABB(
                 plotOrigin.getX(),
                 plotOrigin.getY(),
                 plotOrigin.getZ(),
@@ -150,10 +156,10 @@ public final class BotiInteriorSampler {
      */
     public static int[] footprintChunkBounds(BlockPos plotOrigin) {
         return new int[]{
-                ChunkSectionPos.getSectionCoord(plotOrigin.getX()),
-                ChunkSectionPos.getSectionCoord(plotOrigin.getX() + SIZE_X - 1),
-                ChunkSectionPos.getSectionCoord(plotOrigin.getZ()),
-                ChunkSectionPos.getSectionCoord(plotOrigin.getZ() + SIZE_Z - 1)
+                SectionPos.blockToSectionCoord(plotOrigin.getX()),
+                SectionPos.blockToSectionCoord(plotOrigin.getX() + SIZE_X - 1),
+                SectionPos.blockToSectionCoord(plotOrigin.getZ()),
+                SectionPos.blockToSectionCoord(plotOrigin.getZ() + SIZE_Z - 1)
         };
     }
 
@@ -161,26 +167,26 @@ public final class BotiInteriorSampler {
      * Ensures footprint chunks are loaded (and briefly ticketed) so entity queries work even when
      * no player is in {@code dwm:tardis}.
      */
-    public static void ensureFootprintChunksLoaded(ServerWorld world, BlockPos plotOrigin) {
+    public static void ensureFootprintChunksLoaded(ServerLevel world, BlockPos plotOrigin) {
         if (world == null || plotOrigin == null) {
             return;
         }
         int[] bounds = footprintChunkBounds(plotOrigin);
-        var chunkManager = world.getChunkManager();
+        var chunkManager = world.getChunkSource();
         for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
             for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
                 ChunkPos chunkPos = new ChunkPos(cx, cz);
-                chunkManager.addTicket(BOTI_TICKET, chunkPos, 2, chunkPos);
+                chunkManager.addTicketWithRadius(BOTI_TICKET, chunkPos, 2);
                 world.getChunk(cx, cz);
             }
         }
     }
 
     /** True if any non-removed entity intersects the plot footprint. */
-    public static boolean hasEntities(ServerWorld interiorWorld, UUID tardisId) {
+    public static boolean hasEntities(ServerLevel interiorWorld, UUID tardisId) {
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
         ensureFootprintChunksLoaded(interiorWorld, origin);
-        return !interiorWorld.getOtherEntities(null, footprintBox(origin), entity -> !entity.isRemoved()).isEmpty();
+        return !interiorWorld.getEntities((Entity) null, footprintBox(origin), entity -> !entity.isRemoved()).isEmpty();
     }
 
     /**
@@ -188,31 +194,31 @@ public final class BotiInteriorSampler {
      * {@code dwm:tardis}. Without a nearby player the counter climbs past 100 and
      * {@code WanderAroundGoal} refuses to start — BOTI then shows frozen livestock.
      */
-    public static void keepMobAiActive(ServerWorld interiorWorld, UUID tardisId) {
+    public static void keepMobAiActive(ServerLevel interiorWorld, UUID tardisId) {
         if (interiorWorld == null || tardisId == null) {
             return;
         }
         // Players in-dimension already reset the counter via MobEntity#checkDespawn.
-        if (!interiorWorld.getPlayers().isEmpty()) {
+        if (!interiorWorld.players().isEmpty()) {
             return;
         }
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
         ensureFootprintChunksLoaded(interiorWorld, origin);
-        for (Entity entity : interiorWorld.getOtherEntities(null, footprintBox(origin), e -> !e.isRemoved())) {
-            if (entity instanceof MobEntity mob && mob.getDespawnCounter() != 0) {
-                mob.setDespawnCounter(0);
+        for (Entity entity : interiorWorld.getEntities((Entity) null, footprintBox(origin), e -> !e.isRemoved())) {
+            if (entity instanceof Mob mob && mob.getNoActionTime() != 0) {
+                mob.setNoActionTime(0);
             }
         }
     }
 
     /**
      * Samples entities intersecting the footprint into relative structure coordinates.
-     * Uses {@link Entity#saveSelfNbt}; players are special-cased ({@code EntityType.PLAYER} is not saveable).
+     * Uses {@link Entity#saveAsPassenger}; players are special-cased ({@code EntityTypes.PLAYER} is not saveable).
      */
-    public static List<BotiEntitySample> sampleEntities(ServerWorld interiorWorld, UUID tardisId) {
+    public static List<BotiEntitySample> sampleEntities(ServerLevel interiorWorld, UUID tardisId) {
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
         ensureFootprintChunksLoaded(interiorWorld, origin);
-        List<Entity> found = interiorWorld.getOtherEntities(null, footprintBox(origin), entity -> !entity.isRemoved());
+        List<Entity> found = interiorWorld.getEntities((Entity) null, footprintBox(origin), entity -> !entity.isRemoved());
         if (found.isEmpty()) {
             return List.of();
         }
@@ -233,7 +239,7 @@ public final class BotiInteriorSampler {
         if (entity == null || entity.isRemoved() || plotOrigin == null) {
             return null;
         }
-        NbtCompound nbt = captureEntityNbt(entity);
+        CompoundTag nbt = captureEntityNbt(entity);
         if (nbt == null) {
             return null;
         }
@@ -242,33 +248,36 @@ public final class BotiInteriorSampler {
         float relZ = (float) (entity.getZ() - plotOrigin.getZ());
         writeRelativePos(nbt, relX, relY, relZ);
         writeRelativeAttachment(nbt, plotOrigin);
-        return new BotiEntitySample(relX, relY, relZ, entity.getYaw(), entity.getPitch(), nbt);
+        return new BotiEntitySample(relX, relY, relZ, entity.getYRot(), entity.getXRot(), nbt);
     }
 
     /**
      * Entity NBT with type {@code id}. Players get profile tags for client {@code OtherClientPlayerEntity}.
      */
-    public static NbtCompound captureEntityNbt(Entity entity) {
-        NbtCompound nbt = new NbtCompound();
-        if (entity instanceof PlayerEntity player) {
-            nbt.putString("id", EntityType.getId(EntityType.PLAYER).toString());
+    public static CompoundTag captureEntityNbt(Entity entity) {
+        if (entity instanceof Player player) {
+            TagValueOutput output = TagValueOutput.createWithContext(
+                    ProblemReporter.DISCARDING, entity.registryAccess());
+            output.putString("id", EntityType.getKey(EntityTypes.PLAYER).toString());
             GameProfile profile = player.getGameProfile();
-            nbt.putUuid(BotiEntitySample.BOTI_PROFILE_ID, profile.getId());
-            nbt.putString(BotiEntitySample.BOTI_PROFILE_NAME, profile.getName() == null ? "" : profile.getName());
-            player.writeNbt(nbt);
-            return nbt;
+            output.store(BotiEntitySample.BOTI_PROFILE_ID, UUIDUtil.CODEC, profile.id());
+            output.putString(BotiEntitySample.BOTI_PROFILE_NAME, profile.name() == null ? "" : profile.name());
+            player.saveWithoutId(output);
+            return output.buildResult();
         }
-        if (!entity.saveSelfNbt(nbt)) {
+        TagValueOutput output = TagValueOutput.createWithContext(
+                ProblemReporter.DISCARDING, entity.registryAccess());
+        if (!entity.saveAsPassenger(output)) {
             return null;
         }
-        return nbt;
+        return output.buildResult();
     }
 
-    static void writeRelativePos(NbtCompound nbt, float relX, float relY, float relZ) {
-        NbtList pos = new NbtList();
-        pos.add(NbtDouble.of(relX));
-        pos.add(NbtDouble.of(relY));
-        pos.add(NbtDouble.of(relZ));
+    static void writeRelativePos(CompoundTag nbt, float relX, float relY, float relZ) {
+        ListTag pos = new ListTag();
+        pos.add(DoubleTag.valueOf(relX));
+        pos.add(DoubleTag.valueOf(relY));
+        pos.add(DoubleTag.valueOf(relZ));
         nbt.put("Pos", pos);
     }
 
@@ -276,13 +285,13 @@ public final class BotiInteriorSampler {
      * Rewrites decoration {@code TileX/Y/Z} into plot-relative coords so client reconstruction
      * does not trip {@code BlockAttachedEntity}'s absolute-vs-Pos distance check.
      */
-    static void writeRelativeAttachment(NbtCompound nbt, BlockPos plotOrigin) {
+    static void writeRelativeAttachment(CompoundTag nbt, BlockPos plotOrigin) {
         if (nbt == null || plotOrigin == null || !nbt.contains("TileX")) {
             return;
         }
-        nbt.putInt("TileX", nbt.getInt("TileX") - plotOrigin.getX());
-        nbt.putInt("TileY", nbt.getInt("TileY") - plotOrigin.getY());
-        nbt.putInt("TileZ", nbt.getInt("TileZ") - plotOrigin.getZ());
+        nbt.putInt("TileX", nbt.getIntOr("TileX", 0) - plotOrigin.getX());
+        nbt.putInt("TileY", nbt.getIntOr("TileY", 0) - plotOrigin.getY());
+        nbt.putInt("TileZ", nbt.getIntOr("TileZ", 0) - plotOrigin.getZ());
     }
 
     public static boolean isInsideFootprint(BlockPos worldPos, BlockPos plotOrigin) {

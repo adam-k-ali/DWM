@@ -4,15 +4,15 @@ import com.adamkali.dwm.block.entities.DWMBlockEntities;
 import com.adamkali.dwm.render.FirstDoctorConsoleBlockEntityRenderer;
 import com.adamkali.dwm.render.TardisBlockEntityRenderer;
 import com.adamkali.dwm.render.TardisInteriorDoorBlockEntityRenderer;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 
 public class DWMBlockEntityRendererFactories {
     public static void initialize() {
-        BlockEntityRendererFactories.register(DWMBlockEntities.TARDIS_BLOCK_ENTITY, TardisBlockEntityRenderer::new);
-        BlockEntityRendererFactories.register(
+        BlockEntityRenderers.register(DWMBlockEntities.TARDIS_BLOCK_ENTITY, TardisBlockEntityRenderer::new);
+        BlockEntityRenderers.register(
                 DWMBlockEntities.TARDIS_INTERIOR_DOOR_BLOCK_ENTITY,
                 TardisInteriorDoorBlockEntityRenderer::new);
-        BlockEntityRendererFactories.register(
+        BlockEntityRenderers.register(
                 DWMBlockEntities.FIRST_DOCTOR_CONSOLE_BLOCK_ENTITY,
                 FirstDoctorConsoleBlockEntityRenderer::new);
     }

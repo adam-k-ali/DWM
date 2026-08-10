@@ -1,15 +1,14 @@
 package com.adamkali.dwm.tardis.boti;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.math.BlockPos;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Server-built BOTI placement snapshot. formatVersion 3 includes block states,
@@ -20,7 +19,7 @@ public record BotiInteriorSnapshot(
         UUID tardisId,
         int revision,
         Map<BlockPos, BlockState> blocks,
-        Map<BlockPos, NbtCompound> blockEntities,
+        Map<BlockPos, CompoundTag> blockEntities,
         List<BotiEntitySample> entities
 ) {
     /** @deprecated Prefer {@link #FORMAT_VERSION_BLOCKS_BES_AND_ENTITIES}; kept for test comparisons. */
@@ -41,7 +40,7 @@ public record BotiInteriorSnapshot(
             UUID tardisId,
             int revision,
             Map<BlockPos, BlockState> blocks,
-            Map<BlockPos, NbtCompound> blockEntities,
+            Map<BlockPos, CompoundTag> blockEntities,
             List<BotiEntitySample> entities
     ) {
         return new BotiInteriorSnapshot(
@@ -58,7 +57,7 @@ public record BotiInteriorSnapshot(
             UUID tardisId,
             int revision,
             Map<BlockPos, BlockState> blocks,
-            Map<BlockPos, NbtCompound> blockEntities
+            Map<BlockPos, CompoundTag> blockEntities
     ) {
         return of(tardisId, revision, blocks, blockEntities, List.of());
     }
@@ -71,7 +70,7 @@ public record BotiInteriorSnapshot(
         return Collections.unmodifiableMap(blocks);
     }
 
-    public Map<BlockPos, NbtCompound> blockEntitiesView() {
+    public Map<BlockPos, CompoundTag> blockEntitiesView() {
         return Collections.unmodifiableMap(blockEntities);
     }
 
@@ -79,12 +78,12 @@ public record BotiInteriorSnapshot(
         return Collections.unmodifiableList(entities);
     }
 
-    private static Map<BlockPos, NbtCompound> copyNbtMap(Map<BlockPos, NbtCompound> source) {
+    private static Map<BlockPos, CompoundTag> copyNbtMap(Map<BlockPos, CompoundTag> source) {
         if (source == null || source.isEmpty()) {
             return Map.of();
         }
-        Map<BlockPos, NbtCompound> copy = new HashMap<>(source.size());
-        for (Map.Entry<BlockPos, NbtCompound> entry : source.entrySet()) {
+        Map<BlockPos, CompoundTag> copy = new HashMap<>(source.size());
+        for (Map.Entry<BlockPos, CompoundTag> entry : source.entrySet()) {
             if (entry.getKey() != null && entry.getValue() != null) {
                 copy.put(entry.getKey(), entry.getValue().copy());
             }

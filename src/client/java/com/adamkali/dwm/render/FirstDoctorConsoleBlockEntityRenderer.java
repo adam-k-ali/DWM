@@ -10,16 +10,16 @@ import com.adamkali.dwm.model.tileentity.PlanetLocatorModel;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.RotationAxis;
-import net.minecraft.world.World;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class FirstDoctorConsoleBlockEntityRenderer implements BlockEntityRenderer<FirstDoctorConsoleBlockEntity> {
     private static final float PX = 1.0f / 16.0f;
@@ -29,83 +29,83 @@ public class FirstDoctorConsoleBlockEntityRenderer implements BlockEntityRendere
     private final PlanetLocatorModel planetLocatorModel;
     private final MaterialisationLeverModel materialisationLeverModel;
 
-    public FirstDoctorConsoleBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
+    public FirstDoctorConsoleBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         this.model = new FirstDoctorConsoleModel(
-                context.getLayerModelPart(FirstDoctorConsoleModel.LAYER_LOCATION));
+                context.bakeLayer(FirstDoctorConsoleModel.LAYER_LOCATION));
         this.biomeSelectorModel = new BiomeSelectorModel(
-                context.getLayerModelPart(BiomeSelectorModel.LAYER_LOCATION));
+                context.bakeLayer(BiomeSelectorModel.LAYER_LOCATION));
         this.planetLocatorModel = new PlanetLocatorModel(
-                context.getLayerModelPart(PlanetLocatorModel.LAYER_LOCATION));
+                context.bakeLayer(PlanetLocatorModel.LAYER_LOCATION));
         this.materialisationLeverModel = new MaterialisationLeverModel(
-                context.getLayerModelPart(MaterialisationLeverModel.LAYER_LOCATION));
+                context.bakeLayer(MaterialisationLeverModel.LAYER_LOCATION));
     }
 
     @Override
     public void render(
             FirstDoctorConsoleBlockEntity entity,
             float tickDelta,
-            MatrixStack matrices,
-            VertexConsumerProvider vertexConsumers,
+            PoseStack matrices,
+            MultiBufferSource vertexConsumers,
             int light,
             int overlay
     ) {
-        BlockState state = entity.getCachedState();
-        Direction facing = state.get(FirstDoctorConsoleBlock.FACING, Direction.NORTH);
+        BlockState state = entity.getBlockState();
+        Direction facing = state.getValueOrElse(FirstDoctorConsoleBlock.FACING, Direction.NORTH);
 
         TardisRenderState renderState = new TardisRenderState();
         TardisTravelPhase phase = TardisLogic.getTravelPhase(entity.getTardisId());
-        World world = entity.getWorld();
-        float timeTicks = world == null ? tickDelta : world.getTime() + tickDelta;
+        Level world = entity.getLevel();
+        float timeTicks = world == null ? tickDelta : world.getGameTime() + tickDelta;
         renderState.setRotorBobOffset(FirstDoctorConsoleModel.rotorBobOffset(timeTicks, phase.isTraveling()));
-        model.setAngles(renderState);
-        biomeSelectorModel.setAngles(renderState);
-        planetLocatorModel.setAngles(renderState);
-        materialisationLeverModel.setAngles(renderState);
+        model.setupAnim(renderState);
+        biomeSelectorModel.setupAnim(renderState);
+        planetLocatorModel.setupAnim(renderState);
+        materialisationLeverModel.setupAnim(renderState);
 
-        matrices.push();
+        matrices.pushPose();
         applyTransforms(matrices, facing);
         VertexConsumer consoleVertices = vertexConsumers.getBuffer(
-                RenderLayer.getEntityTranslucent(FirstDoctorConsoleModel.TEXTURE_LOCATION));
-        model.render(matrices, consoleVertices, light, overlay);
+                RenderType.entityTranslucent(FirstDoctorConsoleModel.TEXTURE_LOCATION));
+        model.renderToBuffer(matrices, consoleVertices, light, overlay);
 
-        matrices.push();
+        matrices.pushPose();
         applyPanel3BiomeSelectorTransforms(matrices);
         VertexConsumer selectorVertices = vertexConsumers.getBuffer(
-                RenderLayer.getEntityCutout(BiomeSelectorModel.TEXTURE_LOCATION));
-        biomeSelectorModel.render(matrices, selectorVertices, light, overlay);
-        matrices.pop();
+                RenderType.entityCutout(BiomeSelectorModel.TEXTURE_LOCATION));
+        biomeSelectorModel.renderToBuffer(matrices, selectorVertices, light, overlay);
+        matrices.popPose();
 
-        matrices.push();
+        matrices.pushPose();
         applyPanel3PlanetLocatorTransforms(matrices);
         VertexConsumer planetVertices = vertexConsumers.getBuffer(
-                RenderLayer.getEntityCutout(PlanetLocatorModel.TEXTURE_LOCATION));
-        planetLocatorModel.render(matrices, planetVertices, light, overlay);
-        matrices.pop();
+                RenderType.entityCutout(PlanetLocatorModel.TEXTURE_LOCATION));
+        planetLocatorModel.renderToBuffer(matrices, planetVertices, light, overlay);
+        matrices.popPose();
 
-        matrices.push();
+        matrices.pushPose();
         applyPanel6LeverTransforms(matrices);
         VertexConsumer leverVertices = vertexConsumers.getBuffer(
-                RenderLayer.getEntityCutout(MaterialisationLeverModel.TEXTURE_LOCATION));
-        materialisationLeverModel.render(matrices, leverVertices, light, overlay);
-        matrices.pop();
+                RenderType.entityCutout(MaterialisationLeverModel.TEXTURE_LOCATION));
+        materialisationLeverModel.renderToBuffer(matrices, leverVertices, light, overlay);
+        matrices.popPose();
 
-        matrices.pop();
+        matrices.popPose();
     }
 
     /**
      * Console model keeps Blockbench Y-up cuboids (unlike Java-entity door exports),
      * so no X-180 flip — only center on the block, scale, and yaw for facing.
      */
-    static void applyTransforms(MatrixStack matrices, Direction facing) {
+    static void applyTransforms(PoseStack matrices, Direction facing) {
         matrices.translate(0.5, 0.0, 0.5);
         matrices.scale(1.0f, 0.8f, 1.0f);
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-Direction.getHorizontalDegreesOrThrow(facing)));
+        matrices.mulPose(Axis.YP.rotationDegrees(-Direction.getYRot(facing)));
     }
 
     /**
      * Panel3 → deck → biome mount + scale, matching {@link FirstDoctorConsoleControls}.
      */
-    static void applyPanel3BiomeSelectorTransforms(MatrixStack matrices) {
+    static void applyPanel3BiomeSelectorTransforms(PoseStack matrices) {
         applyPanelControlTransforms(
                 matrices,
                 FirstDoctorConsoleControls.PANEL3_YAW_RAD,
@@ -117,7 +117,7 @@ public class FirstDoctorConsoleBlockEntityRenderer implements BlockEntityRendere
     /**
      * Panel3 → deck → planet locator mount + scale, matching {@link FirstDoctorConsoleControls}.
      */
-    static void applyPanel3PlanetLocatorTransforms(MatrixStack matrices) {
+    static void applyPanel3PlanetLocatorTransforms(PoseStack matrices) {
         applyPanelControlTransforms(
                 matrices,
                 FirstDoctorConsoleControls.PANEL3_YAW_RAD,
@@ -129,7 +129,7 @@ public class FirstDoctorConsoleBlockEntityRenderer implements BlockEntityRendere
     /**
      * Panel6 → deck → mount + scale, matching {@link FirstDoctorConsoleControls}.
      */
-    static void applyPanel6LeverTransforms(MatrixStack matrices) {
+    static void applyPanel6LeverTransforms(PoseStack matrices) {
         applyPanelControlTransforms(
                 matrices,
                 FirstDoctorConsoleControls.PANEL6_YAW_RAD,
@@ -139,20 +139,20 @@ public class FirstDoctorConsoleBlockEntityRenderer implements BlockEntityRendere
     }
 
     private static void applyPanelControlTransforms(
-            MatrixStack matrices,
+            PoseStack matrices,
             float panelYawRad,
             float scale,
             float mountXPx
     ) {
         matrices.translate(0.0, FirstDoctorConsoleControls.PANEL_PIVOT_Y_PX * PX, 0.0);
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotation(panelYawRad));
+        matrices.mulPose(Axis.YP.rotation(panelYawRad));
 
         matrices.translate(
                 0.0,
                 FirstDoctorConsoleControls.DECK_PIVOT_Y_PX * PX,
                 FirstDoctorConsoleControls.DECK_PIVOT_Z_PX * PX
         );
-        matrices.multiply(RotationAxis.POSITIVE_X.rotation(FirstDoctorConsoleControls.DECK_PITCH_RAD));
+        matrices.mulPose(Axis.XP.rotation(FirstDoctorConsoleControls.DECK_PITCH_RAD));
 
         matrices.translate(
                 mountXPx * PX,
@@ -163,7 +163,7 @@ public class FirstDoctorConsoleBlockEntityRenderer implements BlockEntityRendere
     }
 
     @Override
-    public int getRenderDistance() {
+    public int getViewDistance() {
         return 64;
     }
 }

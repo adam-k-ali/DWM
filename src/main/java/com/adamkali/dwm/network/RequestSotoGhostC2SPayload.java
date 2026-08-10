@@ -1,23 +1,22 @@
 package com.adamkali.dwm.network;
 
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-
 import java.util.UUID;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 /** C2S subscribe / refresh for Phase 1 ghost exterior stream (fixed stream radius). */
-public record RequestSotoGhostC2SPayload(UUID tardisId) implements CustomPayload {
-    public static final CustomPayload.Id<RequestSotoGhostC2SPayload> ID =
-            new CustomPayload.Id<>(DWMPacketIds.REQUEST_SOTO_GHOST_PACKET_ID);
+public record RequestSotoGhostC2SPayload(UUID tardisId) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<RequestSotoGhostC2SPayload> ID =
+            new CustomPacketPayload.Type<>(DWMPacketIds.REQUEST_SOTO_GHOST_PACKET_ID);
 
-    public static final PacketCodec<RegistryByteBuf, RequestSotoGhostC2SPayload> CODEC = PacketCodec.tuple(
+    public static final StreamCodec<RegistryFriendlyByteBuf, RequestSotoGhostC2SPayload> CODEC = StreamCodec.composite(
             DWMPacketCodecs.UUID_PACKET_CODEC, RequestSotoGhostC2SPayload::tardisId,
             RequestSotoGhostC2SPayload::new
     );
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 }

@@ -6,8 +6,8 @@ import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.GraphicsMode;
+import net.minecraft.client.GraphicsStatus;
+import net.minecraft.client.Minecraft;
 import org.slf4j.Logger;
 
 import java.util.UUID;
@@ -39,12 +39,12 @@ public final class SotoPortalSupport {
     }
 
     public static boolean isGraphicsModeSupported() {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         if (client == null || client.options == null) {
             return false;
         }
-        GraphicsMode mode = client.options.getGraphicsMode().getValue();
-        return mode == GraphicsMode.FAST || mode == GraphicsMode.FANCY;
+        GraphicsStatus mode = client.options.graphicsMode().get();
+        return mode == GraphicsStatus.FAST || mode == GraphicsStatus.FANCY;
     }
 
     public static boolean hasGhostMeshes(UUID tardisId) {
@@ -53,10 +53,10 @@ public final class SotoPortalSupport {
     }
 
     public static boolean isReadyFor(UUID tardisId) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        GraphicsMode graphicsMode = client == null || client.options == null
+        Minecraft client = Minecraft.getInstance();
+        GraphicsStatus graphicsMode = client == null || client.options == null
                 ? null
-                : client.options.getGraphicsMode().getValue();
+                : client.options.graphicsMode().get();
         return isReady(
                 sessionAvailable,
                 BotiStencilSupport.isAvailable(),
@@ -69,13 +69,13 @@ public final class SotoPortalSupport {
     static boolean isReady(
             boolean session,
             boolean stencil,
-            GraphicsMode graphicsMode,
+            GraphicsStatus graphicsMode,
             boolean targetReady,
             boolean ghostReady
     ) {
         return session
                 && stencil
-                && (graphicsMode == GraphicsMode.FAST || graphicsMode == GraphicsMode.FANCY)
+                && (graphicsMode == GraphicsStatus.FAST || graphicsMode == GraphicsStatus.FANCY)
                 && targetReady
                 && ghostReady;
     }

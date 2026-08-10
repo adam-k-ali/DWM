@@ -3,20 +3,20 @@ package com.adamkali.dwm.render;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.FirstDoctorConsoleBlock;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexRendering;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.ShapeRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Debug wireframes for First Doctor console hit regions, shown when entity hitboxes are
@@ -52,24 +52,24 @@ public final class ConsoleHitboxDebugRenderer {
     }
 
     private static void render(WorldRenderContext context) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        World world = client.world;
+        Minecraft client = Minecraft.getInstance();
+        Level world = client.level;
         if (world == null || client.player == null || context.consumers() == null || context.matrixStack() == null) {
             return;
         }
-        if (!client.getEntityRenderDispatcher().shouldRenderHitboxes()) {
+        if (!client.getEntityRenderDispatcher().shouldRenderHitBoxes()) {
             return;
         }
 
-        VertexConsumerProvider consumers = context.consumers();
-        VertexConsumer lines = consumers.getBuffer(RenderLayer.getLines());
-        MatrixStack matrices = context.matrixStack();
-        Vec3d cam = context.camera().getPos();
+        MultiBufferSource consumers = context.consumers();
+        VertexConsumer lines = consumers.getBuffer(RenderType.lines());
+        PoseStack matrices = context.matrixStack();
+        Vec3 cam = context.camera().getPosition();
 
-        BlockPos playerPos = client.player.getBlockPos();
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
+        BlockPos playerPos = client.player.blockPosition();
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 
-        matrices.push();
+        matrices.pushPose();
         matrices.translate(-cam.x, -cam.y, -cam.z);
 
         for (int dx = -RANGE; dx <= RANGE; dx++) {
@@ -77,13 +77,13 @@ public final class ConsoleHitboxDebugRenderer {
                 for (int dz = -RANGE; dz <= RANGE; dz++) {
                     mutable.set(playerPos.getX() + dx, playerPos.getY() + dy, playerPos.getZ() + dz);
                     BlockState state = world.getBlockState(mutable);
-                    if (!state.isOf(DWMBlocks.FIRST_DOCTOR_CONSOLE)) {
+                    if (!state.is(DWMBlocks.FIRST_DOCTOR_CONSOLE)) {
                         continue;
                     }
 
-                    Direction facing = state.get(FirstDoctorConsoleBlock.FACING, Direction.NORTH);
+                    Direction facing = state.getValueOrElse(FirstDoctorConsoleBlock.FACING, Direction.NORTH);
 
-                    VertexRendering.drawOutline(
+                    ShapeRenderer.renderShape(
                             matrices,
                             lines,
                             FirstDoctorConsoleBlock.COLLISION_SHAPE,
@@ -93,8 +93,8 @@ public final class ConsoleHitboxDebugRenderer {
                             COLLISION_COLOR
                     );
 
-                    Box selector = FirstDoctorConsoleControls.biomeSelectorWorldBox(mutable, facing);
-                    VertexRendering.drawBox(
+                    AABB selector = FirstDoctorConsoleControls.biomeSelectorWorldBox(mutable, facing);
+                    ShapeRenderer.renderLineBox(
                             matrices,
                             lines,
                             selector,
@@ -104,8 +104,8 @@ public final class ConsoleHitboxDebugRenderer {
                             SELECTOR_A
                     );
 
-                    Box planet = FirstDoctorConsoleControls.planetLocatorWorldBox(mutable, facing);
-                    VertexRendering.drawBox(
+                    AABB planet = FirstDoctorConsoleControls.planetLocatorWorldBox(mutable, facing);
+                    ShapeRenderer.renderLineBox(
                             matrices,
                             lines,
                             planet,
@@ -115,8 +115,8 @@ public final class ConsoleHitboxDebugRenderer {
                             PLANET_A
                     );
 
-                    Box lever = FirstDoctorConsoleControls.materialisationLeverWorldBox(mutable, facing);
-                    VertexRendering.drawBox(
+                    AABB lever = FirstDoctorConsoleControls.materialisationLeverWorldBox(mutable, facing);
+                    ShapeRenderer.renderLineBox(
                             matrices,
                             lines,
                             lever,
@@ -129,6 +129,6 @@ public final class ConsoleHitboxDebugRenderer {
             }
         }
 
-        matrices.pop();
+        matrices.popPose();
     }
 }

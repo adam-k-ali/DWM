@@ -1,21 +1,21 @@
 package com.adamkali.dwm.tardis.logic;
 
 import com.adamkali.dwm.world.DWMBiomeTags;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.tag.BiomeTags;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.biome.Biome;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.BiomeTags;
+import net.minecraft.world.level.biome.Biome;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class BiomeSelectorLogicTest {
-    private static RegistryKey<Biome> biome(String path) {
-        return RegistryKey.of(RegistryKeys.BIOME, Identifier.of("minecraft", path));
+    private static ResourceKey<Biome> biome(String path) {
+        return ResourceKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath("minecraft", path));
     }
 
     @Test
@@ -31,26 +31,26 @@ class BiomeSelectorLogicTest {
 
     @Test
     void nextBiome_wrapsAndHandlesMissingCurrent() {
-        List<RegistryKey<Biome>> biomes = List.of(biome("plains"), biome("forest"), biome("desert"));
+        List<ResourceKey<Biome>> biomes = List.of(biome("plains"), biome("forest"), biome("desert"));
 
         assertEquals(
-                Optional.of(Identifier.of("minecraft", "plains")),
+                Optional.of(Identifier.fromNamespaceAndPath("minecraft", "plains")),
                 BiomeSelectorLogic.nextBiome(null, biomes)
         );
         assertEquals(
-                Optional.of(Identifier.of("minecraft", "forest")),
+                Optional.of(Identifier.fromNamespaceAndPath("minecraft", "forest")),
                 BiomeSelectorLogic.nextBiome("minecraft:plains", biomes)
         );
         assertEquals(
-                Optional.of(Identifier.of("minecraft", "desert")),
+                Optional.of(Identifier.fromNamespaceAndPath("minecraft", "desert")),
                 BiomeSelectorLogic.nextBiome("minecraft:forest", biomes)
         );
         assertEquals(
-                Optional.of(Identifier.of("minecraft", "plains")),
+                Optional.of(Identifier.fromNamespaceAndPath("minecraft", "plains")),
                 BiomeSelectorLogic.nextBiome("minecraft:desert", biomes)
         );
         assertEquals(
-                Optional.of(Identifier.of("minecraft", "plains")),
+                Optional.of(Identifier.fromNamespaceAndPath("minecraft", "plains")),
                 BiomeSelectorLogic.nextBiome("minecraft:jungle", biomes)
         );
     }

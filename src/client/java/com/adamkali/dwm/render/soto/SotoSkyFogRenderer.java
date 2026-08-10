@@ -4,19 +4,19 @@ import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors.EffectsKind;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
+import com.mojang.blaze3d.shaders.FogShape;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gl.ShaderProgramKeys;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.Fog;
-import net.minecraft.client.render.FogShape;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.ColorHelper;
-import net.minecraft.util.math.Vec3d;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.client.renderer.CoreShaders;
+import net.minecraft.client.renderer.FogParameters;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.util.ARGB;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
@@ -43,8 +43,8 @@ public final class SotoSkyFogRenderer {
      * Cull must be off: the backdrop is a cube viewed from the inside.
      */
     public static void renderPortalSky(
-            MatrixStack matrices,
-            VertexConsumerProvider ignoredVertexConsumers,
+            PoseStack matrices,
+            MultiBufferSource ignoredVertexConsumers,
             SotoAtmosphere atmosphere
     ) {
         if (atmosphere == null) {
@@ -52,9 +52,9 @@ public final class SotoSkyFogRenderer {
         }
         EffectsKind kind = SotoAtmosphereColors.effectsKind(atmosphere.dimensionEffectsId());
         float skyAngle = SotoAtmosphereColors.skyAngle(atmosphere.timeOfDay());
-        Fog skyFog = buildFog(atmosphere, kind, PORTAL_FOG_START, PORTAL_FOG_END);
+        FogParameters skyFog = buildFog(atmosphere, kind, PORTAL_FOG_START, PORTAL_FOG_END);
         int skyRgb = portalBackdropRgb(atmosphere, kind, skyAngle);
-        Fog previous = RenderSystem.getShaderFog();
+        FogParameters previous = RenderSystem.getShaderFog();
         RenderSystem.setShaderFog(skyFog);
 
         boolean depthWasEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
@@ -64,7 +64,7 @@ public final class SotoSkyFogRenderer {
         RenderSystem.depthFunc(GL11.GL_LEQUAL);
         RenderSystem.disableCull();
 
-        matrices.push();
+        matrices.pushPose();
         try {
             double cx = SotoExteriorSampler.RELATIVE_TARDIS_POS.getX() + 0.5;
             double cy = SotoExteriorSampler.RELATIVE_TARDIS_POS.getY() + 1.0;
@@ -76,7 +76,7 @@ public final class SotoSkyFogRenderer {
             // rebind the main FBO.
             renderSolidBackdropRgb(matrices, skyRgb);
         } finally {
-            matrices.pop();
+            matrices.popPose();
             RenderSystem.depthMask(true);
             if (cullWasEnabled) {
                 RenderSystem.enableCull();
@@ -109,36 +109,36 @@ public final class SotoSkyFogRenderer {
                     atmosphere.thunderGradient()
             );
             case NETHER, END -> {
-                Fog fog = buildFog(atmosphere, kind, PORTAL_FOG_START, PORTAL_FOG_END);
-                yield ColorHelper.fromFloats(1.0F, fog.red(), fog.green(), fog.blue());
+                FogParameters fog = buildFog(atmosphere, kind, PORTAL_FOG_START, PORTAL_FOG_END);
+                yield ARGB.colorFromFloat(1.0F, fog.red(), fog.green(), fog.blue());
             }
         };
     }
 
-    public static Fog applyPortalTerrainFog(SotoAtmosphere atmosphere) {
+    public static FogParameters applyPortalTerrainFog(SotoAtmosphere atmosphere) {
         if (atmosphere == null) {
             atmosphere = SotoAtmosphere.DEFAULT;
         }
         EffectsKind kind = SotoAtmosphereColors.effectsKind(atmosphere.dimensionEffectsId());
-        Fog previous = RenderSystem.getShaderFog();
+        FogParameters previous = RenderSystem.getShaderFog();
         RenderSystem.setShaderFog(buildFog(atmosphere, kind, PORTAL_FOG_START, PORTAL_FOG_END));
         return previous;
     }
 
-    public static void restoreFog(Fog previous) {
-        RenderSystem.setShaderFog(previous == null ? Fog.DUMMY : previous);
+    public static void restoreFog(FogParameters previous) {
+        RenderSystem.setShaderFog(previous == null ? FogParameters.NO_FOG : previous);
     }
 
-    static Fog buildFog(SotoAtmosphere atmosphere, EffectsKind kind, float start, float end) {
+    static FogParameters buildFog(SotoAtmosphere atmosphere, EffectsKind kind, float start, float end) {
         float skyAngle = SotoAtmosphereColors.skyAngle(atmosphere.timeOfDay());
-        Vec3d color = SotoAtmosphereColors.fogColor(
+        Vec3 color = SotoAtmosphereColors.fogColor(
                 atmosphere.biomeFogColor(),
                 kind,
                 skyAngle,
                 atmosphere.rainGradient(),
                 atmosphere.thunderGradient()
         );
-        return new Fog(
+        return new FogParameters(
                 start,
                 end,
                 FogShape.SPHERE,
@@ -149,43 +149,43 @@ public final class SotoSkyFogRenderer {
         );
     }
 
-    private static void renderSolidBackdropRgb(MatrixStack matrices, int argb) {
-        Matrix4f matrix = matrices.peek().getPositionMatrix();
-        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+    private static void renderSolidBackdropRgb(PoseStack matrices, int argb) {
+        Matrix4f matrix = matrices.last().pose();
+        RenderSystem.setShader(CoreShaders.POSITION_COLOR);
         float size = VANILLA_SKY_RADIUS;
-        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         // Six faces of a large cube centered at origin (sky-space), wound for outside normals;
         // callers must disable cull so the interior view sees them.
         // -Z
-        buffer.vertex(matrix, -size, -size, -size).color(argb);
-        buffer.vertex(matrix, -size, size, -size).color(argb);
-        buffer.vertex(matrix, size, size, -size).color(argb);
-        buffer.vertex(matrix, size, -size, -size).color(argb);
+        buffer.addVertex(matrix, -size, -size, -size).setColor(argb);
+        buffer.addVertex(matrix, -size, size, -size).setColor(argb);
+        buffer.addVertex(matrix, size, size, -size).setColor(argb);
+        buffer.addVertex(matrix, size, -size, -size).setColor(argb);
         // +Z
-        buffer.vertex(matrix, size, -size, size).color(argb);
-        buffer.vertex(matrix, size, size, size).color(argb);
-        buffer.vertex(matrix, -size, size, size).color(argb);
-        buffer.vertex(matrix, -size, -size, size).color(argb);
+        buffer.addVertex(matrix, size, -size, size).setColor(argb);
+        buffer.addVertex(matrix, size, size, size).setColor(argb);
+        buffer.addVertex(matrix, -size, size, size).setColor(argb);
+        buffer.addVertex(matrix, -size, -size, size).setColor(argb);
         // -X
-        buffer.vertex(matrix, -size, -size, size).color(argb);
-        buffer.vertex(matrix, -size, size, size).color(argb);
-        buffer.vertex(matrix, -size, size, -size).color(argb);
-        buffer.vertex(matrix, -size, -size, -size).color(argb);
+        buffer.addVertex(matrix, -size, -size, size).setColor(argb);
+        buffer.addVertex(matrix, -size, size, size).setColor(argb);
+        buffer.addVertex(matrix, -size, size, -size).setColor(argb);
+        buffer.addVertex(matrix, -size, -size, -size).setColor(argb);
         // +X
-        buffer.vertex(matrix, size, -size, -size).color(argb);
-        buffer.vertex(matrix, size, size, -size).color(argb);
-        buffer.vertex(matrix, size, size, size).color(argb);
-        buffer.vertex(matrix, size, -size, size).color(argb);
+        buffer.addVertex(matrix, size, -size, -size).setColor(argb);
+        buffer.addVertex(matrix, size, size, -size).setColor(argb);
+        buffer.addVertex(matrix, size, size, size).setColor(argb);
+        buffer.addVertex(matrix, size, -size, size).setColor(argb);
         // -Y
-        buffer.vertex(matrix, -size, -size, -size).color(argb);
-        buffer.vertex(matrix, size, -size, -size).color(argb);
-        buffer.vertex(matrix, size, -size, size).color(argb);
-        buffer.vertex(matrix, -size, -size, size).color(argb);
+        buffer.addVertex(matrix, -size, -size, -size).setColor(argb);
+        buffer.addVertex(matrix, size, -size, -size).setColor(argb);
+        buffer.addVertex(matrix, size, -size, size).setColor(argb);
+        buffer.addVertex(matrix, -size, -size, size).setColor(argb);
         // +Y
-        buffer.vertex(matrix, -size, size, size).color(argb);
-        buffer.vertex(matrix, size, size, size).color(argb);
-        buffer.vertex(matrix, size, size, -size).color(argb);
-        buffer.vertex(matrix, -size, size, -size).color(argb);
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        buffer.addVertex(matrix, -size, size, size).setColor(argb);
+        buffer.addVertex(matrix, size, size, size).setColor(argb);
+        buffer.addVertex(matrix, size, size, -size).setColor(argb);
+        buffer.addVertex(matrix, -size, size, -size).setColor(argb);
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 }

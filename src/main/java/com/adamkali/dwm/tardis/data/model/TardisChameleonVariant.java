@@ -1,17 +1,17 @@
 package com.adamkali.dwm.tardis.data.model;
 
 import com.adamkali.dwm.DWMReference;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 public enum TardisChameleonVariant {
-    TT_CAPSULE(Identifier.of(DWMReference.MOD_ID, "tt_capsule"), TardisBotiAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -7.5f)),
-    FIRST_DOCTOR_BOX(Identifier.of(DWMReference.MOD_ID, "first_doctor_box"), TardisBotiAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -5.5f)),
-    SECOND_DOCTOR_BOX(Identifier.of(DWMReference.MOD_ID, "second_doctor_box"), TardisBotiAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -6.0f)),
-    THIRD_DOCTOR_BOX(Identifier.of(DWMReference.MOD_ID, "third_doctor_box"), TardisBotiAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -6.0f)),
-    FOURTH_DOCTOR_BOX(Identifier.of(DWMReference.MOD_ID, "fourth_doctor_box"), TardisBotiAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -6.0f)),
-    FIFTH_DOCTOR_BOX(Identifier.of(DWMReference.MOD_ID, "fifth_doctor_box"), TardisBotiAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -6.0f)),
-    SIXTH_DOCTOR_BOX(Identifier.of(DWMReference.MOD_ID, "sixth_doctor_box"), TardisBotiAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -6.0f)),
-    SEVENTH_DOCTOR_BOX(Identifier.of(DWMReference.MOD_ID, "seventh_doctor_box"), TardisBotiAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -6.0f));
+    TT_CAPSULE(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "tt_capsule"), TardisBotiAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -7.5f)),
+    FIRST_DOCTOR_BOX(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "first_doctor_box"), TardisBotiAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -5.5f)),
+    SECOND_DOCTOR_BOX(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "second_doctor_box"), TardisBotiAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -6.0f)),
+    THIRD_DOCTOR_BOX(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "third_doctor_box"), TardisBotiAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -6.0f)),
+    FOURTH_DOCTOR_BOX(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "fourth_doctor_box"), TardisBotiAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -6.0f)),
+    FIFTH_DOCTOR_BOX(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "fifth_doctor_box"), TardisBotiAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -6.0f)),
+    SIXTH_DOCTOR_BOX(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sixth_doctor_box"), TardisBotiAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -6.0f)),
+    SEVENTH_DOCTOR_BOX(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "seventh_doctor_box"), TardisBotiAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -6.0f));
 
     private final Identifier id;
     private final TardisBotiAperture aperture;

@@ -1,26 +1,26 @@
 package com.adamkali.dwm.render.soto.ghost;
 
+import com.mojang.blaze3d.buffers.BufferUsage;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexBuffer;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
-import net.minecraft.client.gl.GlUsage;
-import net.minecraft.client.gl.VertexBuffer;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BuiltBuffer;
-import net.minecraft.client.render.LightmapTextureManager;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderLayers;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.render.block.BlockRenderManager;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.util.BufferAllocator;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 
@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Phase 2: per-chunk GPU meshes baked from {@link SotoGhostExterior} on chunk apply.
  */
 public final class SotoGhostMeshCache {
-    private static final int FULLBRIGHT = LightmapTextureManager.pack(15, 15);
+    private static final int FULLBRIGHT = LightTexture.pack(15, 15);
 
     private static final Map<UUID, Map<Long, ChunkMesh>> MESHES = new ConcurrentHashMap<>();
 
@@ -62,7 +62,7 @@ public final class SotoGhostMeshCache {
         if (tardisId == null || ghost == null) {
             return;
         }
-        long key = ChunkPos.toLong(chunkX, chunkZ);
+        long key = ChunkPos.asLong(chunkX, chunkZ);
         Map<BlockPos, BlockState> blocks = ghost.blocksInChunk(key);
         ChunkMesh baked = bakeChunk(blocks);
         Map<Long, ChunkMesh> byChunk = MESHES.computeIfAbsent(tardisId, ignored -> new ConcurrentHashMap<>());
@@ -83,7 +83,7 @@ public final class SotoGhostMeshCache {
         if (byChunk == null) {
             return;
         }
-        ChunkMesh removed = byChunk.remove(ChunkPos.toLong(chunkX, chunkZ));
+        ChunkMesh removed = byChunk.remove(ChunkPos.asLong(chunkX, chunkZ));
         if (removed != null) {
             removed.close();
         }
@@ -119,7 +119,7 @@ public final class SotoGhostMeshCache {
         if (tardisId == null) {
             return;
         }
-        long key = ChunkPos.toLong(chunkX, chunkZ);
+        long key = ChunkPos.asLong(chunkX, chunkZ);
         Map<Long, ChunkMesh> byChunk = MESHES.computeIfAbsent(tardisId, ignored -> new ConcurrentHashMap<>());
         ChunkMesh previous = byChunk.put(key, ChunkMesh.MARKER);
         if (previous != null && previous != ChunkMesh.MARKER) {
@@ -159,11 +159,11 @@ public final class SotoGhostMeshCache {
         if (blocks == null || blocks.isEmpty()) {
             return ChunkMesh.EMPTY;
         }
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         if (client == null) {
             return ChunkMesh.EMPTY;
         }
-        BlockRenderManager blockRenderManager = client.getBlockRenderManager();
+        BlockRenderDispatcher blockRenderManager = client.getBlockRenderer();
         BlockColors blockColors = client.getBlockColors();
         if (blockRenderManager == null || blockColors == null) {
             return ChunkMesh.EMPTY;
@@ -172,10 +172,10 @@ public final class SotoGhostMeshCache {
         Map<LayerKey, List<Map.Entry<BlockPos, BlockState>>> byLayer = new HashMap<>();
         for (Map.Entry<BlockPos, BlockState> entry : blocks.entrySet()) {
             BlockState state = entry.getValue();
-            if (state == null || state.getRenderType() == BlockRenderType.INVISIBLE) {
+            if (state == null || state.getRenderShape() == RenderShape.INVISIBLE) {
                 continue;
             }
-            RenderLayer layer = RenderLayers.getEntityBlockLayer(state);
+            RenderType layer = ItemBlockRenderTypes.getRenderType(state);
             TerrainPass pass = TerrainPass.forBlockState(state);
             byLayer.computeIfAbsent(new LayerKey(pass, layer), ignored -> new ArrayList<>()).add(entry);
         }
@@ -184,7 +184,7 @@ public final class SotoGhostMeshCache {
         }
 
         List<LayerBuffer> uploaded = new ArrayList<>(byLayer.size());
-        MatrixStack matrices = new MatrixStack();
+        PoseStack matrices = new PoseStack();
         try {
             for (Map.Entry<LayerKey, List<Map.Entry<BlockPos, BlockState>>> layerEntry : byLayer.entrySet()) {
                 LayerBuffer layerBuffer = bakeLayer(
@@ -210,33 +210,33 @@ public final class SotoGhostMeshCache {
 
     private static LayerBuffer bakeLayer(
             TerrainPass pass,
-            RenderLayer layer,
+            RenderType layer,
             List<Map.Entry<BlockPos, BlockState>> entries,
-            BlockRenderManager blockRenderManager,
+            BlockRenderDispatcher blockRenderManager,
             BlockColors blockColors,
-            MatrixStack matrices
+            PoseStack matrices
     ) {
-        BufferAllocator allocator = new BufferAllocator(Math.max(256 * 1024, entries.size() * 512));
+        ByteBufferBuilder allocator = new ByteBufferBuilder(Math.max(256 * 1024, entries.size() * 512));
         BufferBuilder bufferBuilder = new BufferBuilder(
                 allocator,
-                VertexFormat.DrawMode.QUADS,
-                VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL
+                VertexFormat.Mode.QUADS,
+                DefaultVertexFormat.NEW_ENTITY
         );
         boolean wrote = false;
         try {
             for (Map.Entry<BlockPos, BlockState> entry : entries) {
                 BlockPos pos = entry.getKey();
                 BlockState state = entry.getValue();
-                BakedModel model = blockRenderManager.getModel(state);
+                BakedModel model = blockRenderManager.getBlockModel(state);
                 int color = blockColors.getColor(state, null, null, 0);
                 float red = (float) (color >> 16 & 0xFF) / 255.0F;
                 float green = (float) (color >> 8 & 0xFF) / 255.0F;
                 float blue = (float) (color & 0xFF) / 255.0F;
 
-                matrices.push();
+                matrices.pushPose();
                 matrices.translate(pos.getX(), pos.getY(), pos.getZ());
-                blockRenderManager.getModelRenderer().render(
-                        matrices.peek(),
+                blockRenderManager.getModelRenderer().renderModel(
+                        matrices.last(),
                         bufferBuilder,
                         state,
                         model,
@@ -244,19 +244,19 @@ public final class SotoGhostMeshCache {
                         green,
                         blue,
                         FULLBRIGHT,
-                        OverlayTexture.DEFAULT_UV
+                        OverlayTexture.NO_OVERLAY
                 );
-                matrices.pop();
+                matrices.popPose();
                 wrote = true;
             }
             if (!wrote) {
                 return null;
             }
-            BuiltBuffer built = bufferBuilder.endNullable();
+            MeshData built = bufferBuilder.build();
             if (built == null) {
                 return null;
             }
-            VertexBuffer vertexBuffer = new VertexBuffer(GlUsage.STATIC_WRITE);
+            VertexBuffer vertexBuffer = new VertexBuffer(BufferUsage.STATIC_WRITE);
             vertexBuffer.bind();
             vertexBuffer.upload(built);
             VertexBuffer.unbind();
@@ -295,8 +295,8 @@ public final class SotoGhostMeshCache {
                 return;
             }
             for (LayerBuffer layerBuffer : layers) {
-                if (layerBuffer.pass() == pass && !layerBuffer.buffer().isClosed()) {
-                    layerBuffer.buffer().draw(layerBuffer.layer());
+                if (layerBuffer.pass() == pass && !layerBuffer.buffer().isInvalid()) {
+                    layerBuffer.buffer().drawWithRenderType(layerBuffer.layer());
                 }
             }
         }
@@ -313,13 +313,13 @@ public final class SotoGhostMeshCache {
         }
     }
 
-    private record LayerKey(TerrainPass pass, RenderLayer layer) {
+    private record LayerKey(TerrainPass pass, RenderType layer) {
     }
 
-    private record LayerBuffer(TerrainPass pass, RenderLayer layer, VertexBuffer buffer) implements AutoCloseable {
+    private record LayerBuffer(TerrainPass pass, RenderType layer, VertexBuffer buffer) implements AutoCloseable {
         @Override
         public void close() {
-            if (!buffer.isClosed()) {
+            if (!buffer.isInvalid()) {
                 buffer.close();
             }
         }
@@ -331,11 +331,11 @@ public final class SotoGhostMeshCache {
         TRANSLUCENT;
 
         static TerrainPass forBlockState(BlockState state) {
-            RenderLayer layer = RenderLayers.getBlockLayer(state);
-            if (layer == RenderLayer.getTranslucent() || layer == RenderLayer.getTripwire()) {
+            RenderType layer = ItemBlockRenderTypes.getChunkRenderType(state);
+            if (layer == RenderType.translucent() || layer == RenderType.tripwire()) {
                 return TRANSLUCENT;
             }
-            if (layer == RenderLayer.getCutout() || layer == RenderLayer.getCutoutMipped()) {
+            if (layer == RenderType.cutout() || layer == RenderType.cutoutMipped()) {
                 return CUTOUT;
             }
             return OPAQUE;

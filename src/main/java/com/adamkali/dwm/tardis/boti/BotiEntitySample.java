@@ -1,6 +1,6 @@
 package com.adamkali.dwm.tardis.boti;
 
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.CompoundTag;
 
 /**
  * One entity sampled from a TARDIS interior footprint for BOTI sync.
@@ -12,14 +12,14 @@ public record BotiEntitySample(
         float relZ,
         float yaw,
         float pitch,
-        NbtCompound nbt
+        CompoundTag nbt
 ) {
-    /** GameProfile UUID for player samples ({@code EntityType.PLAYER} is not saveable). */
+    /** GameProfile UUID for player samples ({@code EntityTypes.PLAYER} is not saveable). */
     public static final String BOTI_PROFILE_ID = "BotiProfileId";
     /** GameProfile name for player samples. */
     public static final String BOTI_PROFILE_NAME = "BotiProfileName";
 
     public BotiEntitySample {
-        nbt = nbt == null ? new NbtCompound() : nbt.copy();
+        nbt = nbt == null ? new CompoundTag() : nbt.copy();
     }
 }

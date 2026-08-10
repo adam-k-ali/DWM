@@ -4,23 +4,26 @@ import com.adamkali.dwm.sound.DWMSounds;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityTicker;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<TardisBlockEntity> {
     private UUID tardisId;
@@ -37,62 +40,55 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
     }
 
     public void toggleDoor() {
-        ActionResult result = TardisLogic.toggleDoor(this.getTardisId());
-        if (result == ActionResult.SUCCESS) {
+        InteractionResult result = TardisLogic.toggleDoor(this.getTardisId());
+        if (result == InteractionResult.SUCCESS) {
             boolean isDoorOpen = Objects.requireNonNull(TardisLogic.getDoorState(this.getTardisId())).isOpen;
-            World world = this.getWorld();
-            if (world != null && !world.isClient()) {
+            Level world = this.getLevel();
+            if (world != null && !world.isClientSide()) {
                 SoundEvent soundEvent = isDoorOpen ? DWMSounds.TARDIS_DOOR_OPEN : DWMSounds.TARDIS_DOOR_CLOSE;
-                world.playSound(null, getPos(), soundEvent, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                world.playSound(null, getBlockPos(), soundEvent, SoundSource.BLOCKS, 1.0F, 1.0F);
             }
         }
     }
 
     @Override
-    public void tick(World world, BlockPos pos, BlockState state, TardisBlockEntity blockEntity) {
+    public void tick(Level world, BlockPos pos, BlockState state, TardisBlockEntity blockEntity) {
         if (this.tardisId != null) {
             TardisLogic.updateDoorState(this.tardisId);
-            if (!world.isClient() && this.interiorGenerated && !BotiPlotIndex.isRegistered(this.tardisId)) {
+            if (!world.isClientSide() && this.interiorGenerated && !BotiPlotIndex.isRegistered(this.tardisId)) {
                 BotiPlotIndex.register(this.tardisId);
             }
         }
     }
 
     @Override
-    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
+    protected void saveAdditional(ValueOutput output) {
         if (this.tardisId == null) {
             this.tardisId = TardisDataLoader.create().uuid;
         }
 
-        nbt.putUuid("tardisId", this.tardisId);
-        nbt.putBoolean("interiorGenerated", this.interiorGenerated);
+        output.store("tardisId", UUIDUtil.CODEC, this.tardisId);
+        output.putBoolean("interiorGenerated", this.interiorGenerated);
         if (this.interiorEntrance != null) {
-            nbt.putInt("interiorEntranceX", this.interiorEntrance.getX());
-            nbt.putInt("interiorEntranceY", this.interiorEntrance.getY());
-            nbt.putInt("interiorEntranceZ", this.interiorEntrance.getZ());
+            output.putInt("interiorEntranceX", this.interiorEntrance.getX());
+            output.putInt("interiorEntranceY", this.interiorEntrance.getY());
+            output.putInt("interiorEntranceZ", this.interiorEntrance.getZ());
         }
 
-        super.writeNbt(nbt, registries);
+        super.saveAdditional(output);
     }
 
     @Override
-    protected void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
-        super.readNbt(nbt, registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
 
-        if (nbt.containsUuid("tardisId")) {
-            this.tardisId = nbt.getUuid("tardisId");
-        } else {
-            // Structure / empty NBT: leave null and allocate lazily via getTardisId().
-            // Calling getUuid() when missing throws NPE in 1.21.4 (not IllegalArgumentException).
-            this.tardisId = null;
-        }
-
-        this.interiorGenerated = nbt.getBoolean("interiorGenerated");
-        if (nbt.contains("interiorEntranceX")) {
+        this.tardisId = input.read("tardisId", UUIDUtil.CODEC).orElse(null);
+        this.interiorGenerated = input.getBooleanOr("interiorGenerated", false);
+        if (input.getInt("interiorEntranceX").isPresent()) {
             this.interiorEntrance = new BlockPos(
-                    nbt.getInt("interiorEntranceX"),
-                    nbt.getInt("interiorEntranceY"),
-                    nbt.getInt("interiorEntranceZ")
+                    input.getIntOr("interiorEntranceX", 0),
+                    input.getIntOr("interiorEntranceY", 0),
+                    input.getIntOr("interiorEntranceZ", 0)
             );
         } else {
             this.interiorEntrance = null;
@@ -102,7 +98,7 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
     public UUID getTardisId() {
         if (tardisId == null) {
             tardisId = TardisDataLoader.create().uuid;
-            markDirty();
+            setChanged();
         }
         return tardisId;
     }
@@ -117,7 +113,7 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
 
     public void setInteriorEntrance(@Nullable BlockPos interiorEntrance) {
         this.interiorEntrance = interiorEntrance;
-        markDirty();
+        setChanged();
     }
 
     public boolean isInteriorGenerated() {
@@ -126,7 +122,7 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
 
     public void setInteriorGenerated(boolean interiorGenerated) {
         this.interiorGenerated = interiorGenerated;
-        markDirty();
+        setChanged();
     }
 
     /**
@@ -136,17 +132,17 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
         this.tardisId = tardisId;
         this.interiorEntrance = interiorEntrance;
         this.interiorGenerated = interiorGenerated;
-        markDirty();
+        setChanged();
     }
 
     @Override
-    public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registries) {
-        return createNbt(registries);
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
 
     @Nullable
     @Override
-    public Packet<ClientPlayPacketListener> toUpdatePacket() {
-        return BlockEntityUpdateS2CPacket.create(this);
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 }

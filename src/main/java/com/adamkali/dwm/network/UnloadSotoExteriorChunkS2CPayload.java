@@ -1,26 +1,25 @@
 package com.adamkali.dwm.network;
 
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-
 import java.util.UUID;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 /** S2C unload one ghost exterior chunk column. */
-public record UnloadSotoExteriorChunkS2CPayload(UUID tardisId, int chunkX, int chunkZ) implements CustomPayload {
-    public static final CustomPayload.Id<UnloadSotoExteriorChunkS2CPayload> ID =
-            new CustomPayload.Id<>(DWMPacketIds.UNLOAD_SOTO_EXTERIOR_CHUNK_PACKET_ID);
+public record UnloadSotoExteriorChunkS2CPayload(UUID tardisId, int chunkX, int chunkZ) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<UnloadSotoExteriorChunkS2CPayload> ID =
+            new CustomPacketPayload.Type<>(DWMPacketIds.UNLOAD_SOTO_EXTERIOR_CHUNK_PACKET_ID);
 
-    public static final PacketCodec<RegistryByteBuf, UnloadSotoExteriorChunkS2CPayload> CODEC = PacketCodec.tuple(
+    public static final StreamCodec<RegistryFriendlyByteBuf, UnloadSotoExteriorChunkS2CPayload> CODEC = StreamCodec.composite(
             DWMPacketCodecs.UUID_PACKET_CODEC, UnloadSotoExteriorChunkS2CPayload::tardisId,
-            PacketCodecs.VAR_INT, UnloadSotoExteriorChunkS2CPayload::chunkX,
-            PacketCodecs.VAR_INT, UnloadSotoExteriorChunkS2CPayload::chunkZ,
+            ByteBufCodecs.VAR_INT, UnloadSotoExteriorChunkS2CPayload::chunkX,
+            ByteBufCodecs.VAR_INT, UnloadSotoExteriorChunkS2CPayload::chunkZ,
             UnloadSotoExteriorChunkS2CPayload::new
     );
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 }

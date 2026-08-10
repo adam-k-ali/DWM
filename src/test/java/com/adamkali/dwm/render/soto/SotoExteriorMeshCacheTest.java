@@ -3,12 +3,12 @@ package com.adamkali.dwm.render.soto;
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
-import net.minecraft.world.dimension.DimensionTypes;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
+import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -58,7 +58,7 @@ class SotoExteriorMeshCacheTest {
     void applySnapshot_storesAtmosphere() {
         UUID id = UUID.randomUUID();
         SotoAtmosphere atmosphere = new SotoAtmosphere(
-                DimensionTypes.THE_END_ID,
+                BuiltinDimensionTypes.END.identifier(),
                 18000L,
                 0.0f,
                 0.0f,
@@ -77,7 +77,7 @@ class SotoExteriorMeshCacheTest {
 
         SotoAtmosphere cached = SotoExteriorMeshCache.getAtmosphere(id);
         assertNotNull(cached);
-        assertEquals(DimensionTypes.THE_END_ID, cached.dimensionEffectsId());
+        assertEquals(BuiltinDimensionTypes.END.identifier(), cached.dimensionEffectsId());
         assertEquals(18000L, cached.timeOfDay());
         assertEquals(0xA080FF, cached.biomeFogColor());
     }

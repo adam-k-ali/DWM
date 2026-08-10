@@ -6,27 +6,27 @@ import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.Fog;
-import net.minecraft.client.render.LightmapTextureManager;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
-import net.minecraft.client.render.entity.EntityRenderDispatcher;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ColorHelper;
-import net.minecraft.util.math.Direction;
+import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix4fStack;
 import org.lwjgl.opengl.GL11;
 
 import java.util.UUID;
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.FogParameters;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.ARGB;
 
 /**
  * Renders the streamed ghost exterior into the managed full-window portal target.
  */
 public final class SotoPortalRenderer {
-    private static final int FULLBRIGHT = LightmapTextureManager.pack(15, 15);
+    private static final int FULLBRIGHT = LightTexture.pack(15, 15);
 
     private final SotoPortalRenderTarget target;
     private final PortalCamera portalCamera = new PortalCamera();
@@ -58,11 +58,11 @@ public final class SotoPortalRenderer {
             return PortalTexture.UNAVAILABLE;
         }
 
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client == null || client.world == null || client.gameRenderer == null) {
+        Minecraft client = Minecraft.getInstance();
+        if (client == null || client.level == null || client.gameRenderer == null) {
             return PortalTexture.UNAVAILABLE;
         }
-        Camera mainCamera = client.gameRenderer.getCamera();
+        Camera mainCamera = client.gameRenderer.getMainCamera();
         SotoPortalCameraTransform.Result portalView = SotoPortalCameraTransform.map(
                 mainCamera,
                 interiorDoorPos,
@@ -94,7 +94,7 @@ public final class SotoPortalRenderer {
     }
 
     private void renderScene(
-            MinecraftClient client,
+            Minecraft client,
             UUID tardisId,
             float tickDelta,
             SotoPortalCameraTransform.Result portalView
@@ -107,9 +107,9 @@ public final class SotoPortalRenderer {
         SotoPortalRenderTarget.beginPortalPass();
         try {
             target.bindAndClear(
-                    ColorHelper.getRedFloat(clearRgb),
-                    ColorHelper.getGreenFloat(clearRgb),
-                    ColorHelper.getBlueFloat(clearRgb),
+                    ARGB.redFloat(clearRgb),
+                    ARGB.greenFloat(clearRgb),
+                    ARGB.blueFloat(clearRgb),
                     1.0f
             );
             GL11.glDisable(GL11.GL_STENCIL_TEST);
@@ -124,16 +124,16 @@ public final class SotoPortalRenderer {
             Matrix4fStack modelViewStack = RenderSystem.getModelViewStack();
             modelViewStack.set(portalView.viewMatrix());
 
-            VertexConsumerProvider.Immediate vertexConsumers =
-                    client.getBufferBuilders().getEntityVertexConsumers();
-            MatrixStack sceneMatrices = new MatrixStack();
+            MultiBufferSource.BufferSource vertexConsumers =
+                    client.renderBuffers().bufferSource();
+            PoseStack sceneMatrices = new PoseStack();
 
             EntityRenderDispatcher entityDispatcher = client.getEntityRenderDispatcher();
             BlockEntityRenderDispatcher blockEntityDispatcher = client.getBlockEntityRenderDispatcher();
             try {
                 SotoSkyFogRenderer.renderPortalSky(sceneMatrices, vertexConsumers, atmosphere);
                 target.bindForWrite();
-                Fog previousFog = SotoSkyFogRenderer.applyPortalTerrainFog(atmosphere);
+                FogParameters previousFog = SotoSkyFogRenderer.applyPortalTerrainFog(atmosphere);
                 try {
                     target.bindForWrite();
                     SotoGhostMeshCache.drawLayer(
@@ -173,18 +173,18 @@ public final class SotoPortalRenderer {
                             portalCamera
                     );
                     target.bindForWrite();
-                    vertexConsumers.draw();
+                    vertexConsumers.endBatch();
                     target.bindForWrite();
                 } finally {
                     SotoSkyFogRenderer.restoreFog(previousFog);
                 }
             } finally {
-                if (client.world != null) {
-                    entityDispatcher.configure(client.world, client.gameRenderer.getCamera(), client.player);
-                    blockEntityDispatcher.configure(
-                            client.world,
-                            client.gameRenderer.getCamera(),
-                            client.crosshairTarget
+                if (client.level != null) {
+                    entityDispatcher.prepare(client.level, client.gameRenderer.getMainCamera(), client.player);
+                    blockEntityDispatcher.prepare(
+                            client.level,
+                            client.gameRenderer.getMainCamera(),
+                            client.hitResult
                     );
                 }
             }
@@ -205,7 +205,7 @@ public final class SotoPortalRenderer {
 
     private static final class PortalCamera extends Camera {
         void apply(SotoPortalCameraTransform.Result result) {
-            setPos(result.ghostRelativePosition());
+            setPosition(result.ghostRelativePosition());
             setRotation(result.yaw(), result.pitch());
         }
     }

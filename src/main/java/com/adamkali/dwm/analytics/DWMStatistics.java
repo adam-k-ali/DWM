@@ -1,9 +1,9 @@
 package com.adamkali.dwm.analytics;
 
 import com.adamkali.dwm.DWMReference;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 
 public class DWMStatistics {
     public static final Identifier SONIC_SCREWDRIVER_USE = register("sonic_screwdriver_use");
@@ -13,8 +13,8 @@ public class DWMStatistics {
 
 
     private static Identifier register(String key) {
-        Identifier identifier = Identifier.of(DWMReference.MOD_ID, key);
-        Registry.register(Registries.CUSTOM_STAT, identifier, identifier);
+        Identifier identifier = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, key);
+        Registry.register(BuiltInRegistries.CUSTOM_STAT, identifier, identifier);
 
         return identifier;
     }

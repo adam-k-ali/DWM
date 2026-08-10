@@ -3,14 +3,14 @@ package com.adamkali.dwm.render.soto.ghost;
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.network.SyncSotoExteriorChunkS2CPayload;
 import com.adamkali.dwm.tardis.boti.BotiRelativePosCodec;
-import net.minecraft.block.Blocks;
-import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Blocks;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -41,7 +41,7 @@ class SotoGhostExteriorTest {
                         rel.getX(),
                         rel.getY(),
                         rel.getZ(),
-                        BotiRelativePosCodec.stateId(Blocks.DIRT.getDefaultState())
+                        BotiRelativePosCodec.stateId(Blocks.DIRT.defaultBlockState())
                 )),
                 List.of()
         );

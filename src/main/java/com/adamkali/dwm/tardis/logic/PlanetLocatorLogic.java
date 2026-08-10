@@ -1,11 +1,11 @@
 package com.adamkali.dwm.tardis.logic;
 
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
-import net.minecraft.registry.RegistryKey;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -23,19 +23,19 @@ public final class PlanetLocatorLogic {
     /**
      * Sorted loaded world keys excluding {@link TardisDimensions#TARDIS_WORLD_KEY}.
      */
-    public static List<RegistryKey<World>> dimensions(@Nullable MinecraftServer server) {
+    public static List<ResourceKey<Level>> dimensions(@Nullable MinecraftServer server) {
         if (server == null) {
             return List.of();
         }
-        List<RegistryKey<World>> keys = new ArrayList<>();
-        for (ServerWorld world : server.getWorlds()) {
-            RegistryKey<World> key = world.getRegistryKey();
+        List<ResourceKey<Level>> keys = new ArrayList<>();
+        for (ServerLevel world : server.getAllLevels()) {
+            ResourceKey<Level> key = world.dimension();
             if (TardisDimensions.isTardisWorld(key)) {
                 continue;
             }
             keys.add(key);
         }
-        keys.sort(Comparator.comparing(k -> k.getValue().toString()));
+        keys.sort(Comparator.comparing(k -> k.identifier().toString()));
         return List.copyOf(keys);
     }
 
@@ -43,20 +43,20 @@ public final class PlanetLocatorLogic {
      * Filters and sorts an arbitrary world-key list, excluding the TARDIS interior.
      * Useful for unit tests without a live server.
      */
-    public static List<RegistryKey<World>> filterTravelDimensions(
-            @Nullable List<RegistryKey<World>> keys
+    public static List<ResourceKey<Level>> filterTravelDimensions(
+            @Nullable List<ResourceKey<Level>> keys
     ) {
         if (keys == null || keys.isEmpty()) {
             return List.of();
         }
-        List<RegistryKey<World>> filtered = new ArrayList<>();
-        for (RegistryKey<World> key : keys) {
+        List<ResourceKey<Level>> filtered = new ArrayList<>();
+        for (ResourceKey<Level> key : keys) {
             if (key == null || TardisDimensions.isTardisWorld(key)) {
                 continue;
             }
             filtered.add(key);
         }
-        filtered.sort(Comparator.comparing(k -> k.getValue().toString()));
+        filtered.sort(Comparator.comparing(k -> k.identifier().toString()));
         return List.copyOf(filtered);
     }
 
@@ -66,25 +66,25 @@ public final class PlanetLocatorLogic {
      */
     public static Optional<Identifier> nextDimension(
             @Nullable String currentId,
-            List<RegistryKey<World>> dimensions
+            List<ResourceKey<Level>> dimensions
     ) {
         if (dimensions == null || dimensions.isEmpty()) {
             return Optional.empty();
         }
         if (currentId == null || currentId.isBlank()) {
-            return Optional.of(dimensions.getFirst().getValue());
+            return Optional.of(dimensions.getFirst().identifier());
         }
         Identifier current = Identifier.tryParse(currentId);
         int index = -1;
         if (current != null) {
             for (int i = 0; i < dimensions.size(); i++) {
-                if (dimensions.get(i).getValue().equals(current)) {
+                if (dimensions.get(i).identifier().equals(current)) {
                     index = i;
                     break;
                 }
             }
         }
         int next = index < 0 ? 0 : (index + 1) % dimensions.size();
-        return Optional.of(dimensions.get(next).getValue());
+        return Optional.of(dimensions.get(next).identifier());
     }
 }

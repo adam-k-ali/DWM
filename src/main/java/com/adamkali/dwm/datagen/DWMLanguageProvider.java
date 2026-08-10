@@ -2,21 +2,20 @@ package com.adamkali.dwm.datagen;
 
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.item.DWMItems;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricLanguageProvider;
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
-import net.minecraft.registry.RegistryWrapper;
-
+import net.minecraft.core.HolderLookup;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import java.util.concurrent.CompletableFuture;
 
 public class DWMLanguageProvider extends FabricLanguageProvider {
-    public DWMLanguageProvider(FabricDataOutput dataOutput, CompletableFuture<RegistryWrapper.WrapperLookup> registryLookup) {
+    public DWMLanguageProvider(FabricPackOutput dataOutput, CompletableFuture<HolderLookup.Provider> registryLookup) {
         super(dataOutput, registryLookup);
     }
 
     @Override
-    public void generateTranslations(RegistryWrapper.WrapperLookup registryLookup, TranslationBuilder translationBuilder) {
+    public void generateTranslations(HolderLookup.Provider registryLookup, TranslationBuilder translationBuilder) {
         addItems(translationBuilder);
         addBuildingBlocks(translationBuilder);
         addGallifreyStoneFamily(translationBuilder);
@@ -24,22 +23,22 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         for (var family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.addTranslations(new WoodFamilyDatagen.LangSink() {
                 @Override
-                public void addBlockAndItem(net.minecraft.block.Block block, String name) {
+                public void addBlockAndItem(net.minecraft.world.level.block.Block block, String name) {
                     DWMLanguageProvider.addBlockAndItem(translationBuilder, block, name);
                 }
 
                 @Override
-                public void add(net.minecraft.block.Block block, String name) {
+                public void add(net.minecraft.world.level.block.Block block, String name) {
                     translationBuilder.add(block, name);
                 }
 
                 @Override
-                public void add(net.minecraft.item.Item item, String name) {
+                public void add(net.minecraft.world.item.Item item, String name) {
                     translationBuilder.add(item, name);
                 }
 
                 @Override
-                public void add(net.minecraft.entity.EntityType<?> type, String name) {
+                public void add(net.minecraft.world.entity.EntityType<?> type, String name) {
                     translationBuilder.add(type, name);
                 }
             }, family);

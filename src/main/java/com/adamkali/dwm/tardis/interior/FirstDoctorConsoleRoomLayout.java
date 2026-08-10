@@ -3,15 +3,14 @@ package com.adamkali.dwm.tardis.interior;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
 /**
  * Pure First Doctor console-room block layout shared by world placement and client BOTI fallback.
@@ -52,13 +51,13 @@ public final class FirstDoctorConsoleRoomLayout {
 
     static Map<BlockPos, BlockState> buildPlacements() {
         Map<BlockPos, BlockState> placements = new HashMap<>();
-        BlockState floor = DWMBlocks.WHITE_TARDIS_WALL.getDefaultState();
-        BlockState wall = DWMBlocks.WHITE_ROUNDEL_A.getDefaultState();
-        BlockState roundel = DWMBlocks.WHITE_BIG_ROUNDEL_A.getDefaultState();
-        BlockState ceiling = DWMBlocks.LIGHT_GRAY_TARDIS_WALL.getDefaultState();
-        BlockState console = DWMBlocks.FIRST_DOCTOR_CONSOLE.getDefaultState();
-        BlockState air = Blocks.AIR.getDefaultState();
-        BlockState light = Blocks.LIGHT.getDefaultState();
+        BlockState floor = DWMBlocks.WHITE_TARDIS_WALL.defaultBlockState();
+        BlockState wall = DWMBlocks.WHITE_ROUNDEL_A.defaultBlockState();
+        BlockState roundel = DWMBlocks.WHITE_BIG_ROUNDEL_A.defaultBlockState();
+        BlockState ceiling = DWMBlocks.LIGHT_GRAY_TARDIS_WALL.defaultBlockState();
+        BlockState console = DWMBlocks.FIRST_DOCTOR_CONSOLE.defaultBlockState();
+        BlockState air = Blocks.AIR.defaultBlockState();
+        BlockState light = Blocks.LIGHT.defaultBlockState();
         for (int x = 0; x < SIZE_X; x++) {
             for (int z = 0; z < SIZE_Z; z++) {
                 placements.put(new BlockPos(x, 0, z), floor);

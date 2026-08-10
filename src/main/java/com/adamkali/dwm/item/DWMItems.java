@@ -1,18 +1,17 @@
 package com.adamkali.dwm.item;
 
+
 import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.block.wood.WoodFamilyRegistrar;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroups;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
-
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import java.util.function.Function;
 
 public class DWMItems {
@@ -55,33 +54,33 @@ public class DWMItems {
         CARDINAL_HANGING_SIGN = DWMBlocks.CARDINAL.hangingSignItem();
         CARDINAL_BOAT = DWMBlocks.CARDINAL.boatItem();
 
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(content -> {
-            content.add(SONIC_SECOND_DOCTOR);
-            content.add(SONIC_THIRD_DOCTOR);
-            content.add(SONIC_FOURTH_DOCTOR);
-            content.add(SONIC_FIFTH_DOCTOR);
+        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.TOOLS_AND_UTILITIES).register(content -> {
+            content.accept(SONIC_SECOND_DOCTOR);
+            content.accept(SONIC_THIRD_DOCTOR);
+            content.accept(SONIC_FOURTH_DOCTOR);
+            content.accept(SONIC_FIFTH_DOCTOR);
             for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
-                content.add(family.boatItem());
+                content.accept(family.boatItem());
             }
         });
 
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(content -> {
+        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.FUNCTIONAL_BLOCKS).register(content -> {
             for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
-                content.add(family.signItem());
-                content.add(family.hangingSignItem());
+                content.accept(family.signItem());
+                content.accept(family.hangingSignItem());
             }
         });
     }
 
-    public static Item register(Function<Item.Settings, Item> item, String id) {
-        return register(item, new Item.Settings(), id);
+    public static Item register(Function<Item.Properties, Item> item, String id) {
+        return register(item, new Item.Properties(), id);
     }
 
-    public static Item register(Function<Item.Settings, Item> factory, Item.Settings settings, String id) {
-        Identifier itemID = Identifier.of(DWMReference.MOD_ID, id);
-        RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, itemID);
-        Item item = factory.apply(settings.registryKey(itemKey));
+    public static Item register(Function<Item.Properties, Item> factory, Item.Properties settings, String id) {
+        Identifier itemID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, id);
+        ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, itemID);
+        Item item = factory.apply(settings.setId(itemKey));
 
-        return Registry.register(Registries.ITEM, itemID, item);
+        return Registry.register(BuiltInRegistries.ITEM, itemID, item);
     }
 }

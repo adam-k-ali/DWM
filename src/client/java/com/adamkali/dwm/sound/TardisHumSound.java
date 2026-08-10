@@ -1,33 +1,33 @@
 package com.adamkali.dwm.sound;
 
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.sound.MovingSoundInstance;
-import net.minecraft.client.sound.SoundInstance;
-import net.minecraft.sound.SoundCategory;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
+import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.sounds.SoundSource;
 
 /**
  * Looping ambient mechanical hum while the local player is in {@code dwm:tardis}.
  */
-public class TardisHumSound extends MovingSoundInstance {
+public class TardisHumSound extends AbstractTickableSoundInstance {
     private static final float HUM_VOLUME = 0.25f;
 
-    private final ClientPlayerEntity player;
+    private final LocalPlayer player;
 
-    public TardisHumSound(ClientPlayerEntity player) {
-        super(DWMSounds.TARDIS_HUM, SoundCategory.AMBIENT, SoundInstance.createRandom());
+    public TardisHumSound(LocalPlayer player) {
+        super(DWMSounds.TARDIS_HUM, SoundSource.AMBIENT, SoundInstance.createUnseededRandom());
         this.player = player;
-        this.repeat = true;
-        this.repeatDelay = 0;
+        this.looping = true;
+        this.delay = 0;
         this.volume = HUM_VOLUME;
         this.relative = true;
-        this.attenuationType = SoundInstance.AttenuationType.NONE;
+        this.attenuation = SoundInstance.Attenuation.NONE;
     }
 
     @Override
     public void tick() {
-        if (this.player.isRemoved() || !TardisDimensions.isTardisWorld(this.player.getWorld())) {
-            this.setDone();
+        if (this.player.isRemoved() || !TardisDimensions.isTardisWorld(this.player.level())) {
+            this.stop();
         }
     }
 }

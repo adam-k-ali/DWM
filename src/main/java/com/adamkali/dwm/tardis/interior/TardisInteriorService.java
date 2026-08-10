@@ -12,15 +12,15 @@ import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.adamkali.dwm.tardis.soto.SotoExteriorIndex;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSyncService;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -34,14 +34,14 @@ public final class TardisInteriorService {
      *
      * @return entrance feet position in the TARDIS dimension, or null on failure
      */
-    public static @Nullable BlockPos ensureInterior(ServerWorld exteriorWorld, TardisBlockEntity exteriorEntity) {
+    public static @Nullable BlockPos ensureInterior(ServerLevel exteriorWorld, TardisBlockEntity exteriorEntity) {
         UUID tardisId = exteriorEntity.getTardisId();
         if (tardisId == null) {
             return null;
         }
 
         MinecraftServer server = exteriorWorld.getServer();
-        ServerWorld interiorWorld = server.getWorld(TardisDimensions.TARDIS_WORLD_KEY);
+        ServerLevel interiorWorld = server.getLevel(TardisDimensions.TARDIS_WORLD_KEY);
         if (interiorWorld == null) {
             return null;
         }
@@ -52,7 +52,7 @@ public final class TardisInteriorService {
         if (exteriorEntity.isInteriorGenerated() && exteriorEntity.getInteriorEntrance() != null) {
             // Recover from a prior empty place (e.g. unloaded chunks) by regenerating if the floor is missing.
             BlockPos entrance = exteriorEntity.getInteriorEntrance();
-            if (!interiorWorld.getBlockState(entrance.down()).isAir()) {
+            if (!interiorWorld.getBlockState(entrance.below()).isAir()) {
                 BotiPlotIndex.register(tardisId);
                 return entrance;
             }
@@ -62,11 +62,11 @@ public final class TardisInteriorService {
         exteriorEntity.setInteriorEntrance(entrance);
         exteriorEntity.setInteriorGenerated(true);
         BotiPlotIndex.register(tardisId);
-        BotiInteriorSyncService.markDirty(tardisId);
+        BotiInteriorSyncService.setChanged(tardisId);
         return entrance;
     }
 
-    public static boolean tryEnterFromExterior(ServerPlayerEntity player, ServerWorld exteriorWorld, TardisBlockEntity exteriorEntity) {
+    public static boolean tryEnterFromExterior(ServerPlayer player, ServerLevel exteriorWorld, TardisBlockEntity exteriorEntity) {
         if (TardisTravelService.isTraveling(exteriorEntity.getTardisIdOrNull())) {
             return false;
         }
@@ -77,7 +77,7 @@ public final class TardisInteriorService {
         if (entrance == null) {
             return false;
         }
-        ServerWorld interiorWorld = exteriorWorld.getServer().getWorld(TardisDimensions.TARDIS_WORLD_KEY);
+        ServerLevel interiorWorld = exteriorWorld.getServer().getLevel(TardisDimensions.TARDIS_WORLD_KEY);
         if (interiorWorld == null) {
             return false;
         }
@@ -85,7 +85,7 @@ public final class TardisInteriorService {
         return true;
     }
 
-    public static boolean tryExitToExterior(ServerPlayerEntity player, TardisInteriorDoorBlockEntity doorEntity) {
+    public static boolean tryExitToExterior(ServerPlayer player, TardisInteriorDoorBlockEntity doorEntity) {
         UUID tardisId = doorEntity.getTardisId();
         if (tardisId == null) {
             return false;
@@ -102,36 +102,36 @@ public final class TardisInteriorService {
         if (server == null) {
             return false;
         }
-        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(model.exteriorDimension));
-        ServerWorld exteriorWorld = server.getWorld(worldKey);
+        ResourceKey<Level> worldKey = ResourceKey.create(Registries.DIMENSION, Identifier.parse(model.exteriorDimension));
+        ServerLevel exteriorWorld = server.getLevel(worldKey);
         if (exteriorWorld == null) {
             return false;
         }
 
         BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
         Direction doorFacing = TardisExteriorFacing.doorDirection(model.exteriorRotation);
-        BlockPos exitPos = exteriorPos.offset(doorFacing);
-        float yaw = Direction.getHorizontalDegreesOrThrow(doorFacing);
+        BlockPos exitPos = exteriorPos.relative(doorFacing);
+        float yaw = Direction.getYRot(doorFacing);
         TardisTeleport.teleport(player, exteriorWorld, exitPos, yaw);
         return true;
     }
 
-    private static void updateExteriorLocation(ServerWorld exteriorWorld, TardisBlockEntity exteriorEntity) {
+    private static void updateExteriorLocation(ServerLevel exteriorWorld, TardisBlockEntity exteriorEntity) {
         UUID tardisId = exteriorEntity.getTardisId();
         TardisDataModel model = TardisDataLoader.getOrCreate(tardisId);
         int rotation = 0;
-        if (exteriorWorld.getBlockState(exteriorEntity.getPos()).contains(TardisBlock.FACING_ROTATION)) {
-            rotation = exteriorWorld.getBlockState(exteriorEntity.getPos()).get(TardisBlock.FACING_ROTATION);
+        if (exteriorWorld.getBlockState(exteriorEntity.getBlockPos()).hasProperty(TardisBlock.FACING_ROTATION)) {
+            rotation = exteriorWorld.getBlockState(exteriorEntity.getBlockPos()).getValue(TardisBlock.FACING_ROTATION);
         }
-        BlockPos pos = exteriorEntity.getPos();
+        BlockPos pos = exteriorEntity.getBlockPos();
         model.setExteriorLocation(
-                exteriorWorld.getRegistryKey().getValue().toString(),
+                exteriorWorld.dimension().identifier().toString(),
                 pos.getX(),
                 pos.getY(),
                 pos.getZ(),
                 rotation
         );
         SotoExteriorIndex.register(tardisId, model);
-        SotoExteriorSyncService.markDirty(tardisId);
+        SotoExteriorSyncService.setChanged(tardisId);
     }
 }

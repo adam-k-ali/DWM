@@ -32,6 +32,7 @@
       "com.adamkali.dwm.gametest.AshWoodFamilyGameTests",
       "com.adamkali.dwm.gametest.DarkAshWoodFamilyGameTests",
       "com.adamkali.dwm.gametest.CardinalWoodFamilyGameTests",
+      "com.adamkali.dwm.gametest.SonicInteractionGameTests",
       "com.adamkali.dwm.network.ChameleonGameTests"
     ]
   },
@@ -44,9 +45,9 @@
   ],
   "accessWidener": "dwm.accesswidener",
   "depends": {
-    "fabricloader": ">=0.16.9",
-    "minecraft": "~1.21.4",
-    "java": ">=21",
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~26.2",
+    "java": ">=25",
     "fabric-api": "*"
   },
   "suggests": {},

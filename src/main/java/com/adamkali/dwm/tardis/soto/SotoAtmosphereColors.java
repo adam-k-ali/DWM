@@ -1,10 +1,10 @@
 package com.adamkali.dwm.tardis.soto;
 
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.ColorHelper;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.dimension.DimensionTypes;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Pure atmosphere color helpers mirroring essential vanilla ClientWorld / DimensionEffects math
@@ -21,10 +21,10 @@ public final class SotoAtmosphereColors {
     }
 
     public static EffectsKind effectsKind(Identifier dimensionEffectsId) {
-        if (DimensionTypes.THE_NETHER_ID.equals(dimensionEffectsId)) {
+        if (BuiltinDimensionTypes.NETHER.identifier().equals(dimensionEffectsId)) {
             return EffectsKind.NETHER;
         }
-        if (DimensionTypes.THE_END_ID.equals(dimensionEffectsId)) {
+        if (BuiltinDimensionTypes.END.identifier().equals(dimensionEffectsId)) {
             return EffectsKind.END;
         }
         return EffectsKind.OVERWORLD;
@@ -34,7 +34,7 @@ public final class SotoAtmosphereColors {
      * Same curve as {@code DimensionType.getSkyAngle(long)} without fixed-time override.
      */
     public static float skyAngle(long timeOfDay) {
-        double d = MathHelper.fractionalPart((double) timeOfDay / 24000.0 - 0.25);
+        double d = Mth.frac((double) timeOfDay / 24000.0 - 0.25);
         double e = 0.5 - Math.cos(d * Math.PI) / 2.0;
         return (float) (d * 2.0 + e) / 3.0F;
     }
@@ -49,23 +49,24 @@ public final class SotoAtmosphereColors {
 
     /** Sun height factor used by overworld fog darkening (0 at night, 1 at noon). */
     public static float sunHeight(float skyAngle) {
-        float cos = MathHelper.cos(skyAngle * ((float) Math.PI * 2.0F)) * 2.0F + 0.5F;
-        return MathHelper.clamp(cos, 0.0F, 1.0F);
+        float cos = Mth.cos(skyAngle * ((float) Math.PI * 2.0F)) * 2.0F + 0.5F;
+        return Mth.clamp(cos, 0.0F, 1.0F);
     }
 
     /**
      * Mirrors {@code ClientWorld.getSkyColor} without cubic biome blend or lightning.
      */
     public static int skyColor(int biomeSkyColor, float skyAngle, float rainGradient, float thunderGradient) {
-        Vec3d base = Vec3d.unpackRgb(biomeSkyColor).multiply(sunHeight(skyAngle));
-        int color = ColorHelper.getArgb(base);
+        var rgb = ARGB.vector3fFromRGB24(biomeSkyColor);
+        Vec3 base = new Vec3(rgb.x, rgb.y, rgb.z).scale(sunHeight(skyAngle));
+        int color = ARGB.color(base);
         if (rainGradient > 0.0F) {
-            int gray = ColorHelper.scaleRgb(ColorHelper.grayscale(color), 0.6F);
-            color = ColorHelper.lerp(rainGradient * 0.75F, color, gray);
+            int gray = ARGB.scaleRGB(ARGB.greyscale(color), 0.6F);
+            color = ARGB.srgbLerp(rainGradient * 0.75F, color, gray);
         }
         if (thunderGradient > 0.0F) {
-            int gray = ColorHelper.scaleRgb(ColorHelper.grayscale(color), 0.2F);
-            color = ColorHelper.lerp(thunderGradient * 0.75F, color, gray);
+            int gray = ARGB.scaleRGB(ARGB.greyscale(color), 0.2F);
+            color = ARGB.srgbLerp(thunderGradient * 0.75F, color, gray);
         }
         return color;
     }
@@ -74,32 +75,33 @@ public final class SotoAtmosphereColors {
      * Mirrors essential {@code BackgroundRenderer.getFogColor} + DimensionEffects.adjustFogColor
      * for air (no water/lava submersion).
      */
-    public static Vec3d fogColor(
+    public static Vec3 fogColor(
             int biomeFogColor,
             EffectsKind kind,
             float skyAngle,
             float rainGradient,
             float thunderGradient
     ) {
-        Vec3d color = Vec3d.unpackRgb(biomeFogColor);
+        var rgb = ARGB.vector3fFromRGB24(biomeFogColor);
+        Vec3 color = new Vec3(rgb.x, rgb.y, rgb.z);
         float height = sunHeight(skyAngle);
         color = adjustFogColor(color, kind, height);
 
         if (rainGradient > 0.0F) {
             float g = 1.0F - rainGradient * 0.5F;
             float h = 1.0F - rainGradient * 0.4F;
-            color = new Vec3d(color.x * g, color.y * g, color.z * h);
+            color = new Vec3(color.x * g, color.y * g, color.z * h);
         }
         if (thunderGradient > 0.0F) {
             float g = 1.0F - thunderGradient * 0.5F;
-            color = color.multiply(g);
+            color = color.scale(g);
         }
         return color;
     }
 
-    public static Vec3d adjustFogColor(Vec3d color, EffectsKind kind, float sunHeight) {
+    public static Vec3 adjustFogColor(Vec3 color, EffectsKind kind, float sunHeight) {
         return switch (kind) {
-            case END -> color.multiply(0.15F);
+            case END -> color.scale(0.15F);
             case NETHER -> color;
             case OVERWORLD -> color.multiply(
                     sunHeight * 0.94F + 0.06F,
@@ -111,21 +113,21 @@ public final class SotoAtmosphereColors {
 
     /** Mirrors {@code ClientWorld.getStarBrightness}. */
     public static float starBrightness(float skyAngle) {
-        float g = 1.0F - (MathHelper.cos(skyAngle * ((float) Math.PI * 2.0F)) * 2.0F + 0.25F);
-        g = MathHelper.clamp(g, 0.0F, 1.0F);
+        float g = 1.0F - (Mth.cos(skyAngle * ((float) Math.PI * 2.0F)) * 2.0F + 0.25F);
+        g = Mth.clamp(g, 0.0F, 1.0F);
         return g * g * 0.5F;
     }
 
     public static boolean isSunRisingOrSetting(float skyAngle) {
-        float f = MathHelper.cos(skyAngle * ((float) Math.PI * 2.0F));
+        float f = Mth.cos(skyAngle * ((float) Math.PI * 2.0F));
         return f >= -0.4F && f <= 0.4F;
     }
 
     /** Sunrise/sunset band color from DimensionEffects.Overworld.getSkyColor. */
     public static int sunriseSunsetColor(float skyAngle) {
-        float f = MathHelper.cos(skyAngle * ((float) Math.PI * 2.0F));
+        float f = Mth.cos(skyAngle * ((float) Math.PI * 2.0F));
         float g = f / 0.4F * 0.5F + 0.5F;
-        float h = MathHelper.square(1.0F - (1.0F - MathHelper.sin(g * (float) Math.PI)) * 0.99F);
-        return ColorHelper.fromFloats(h, g * 0.3F + 0.7F, g * g * 0.7F + 0.2F, 0.2F);
+        float h = Mth.square(1.0F - (1.0F - Mth.sin(g * (float) Math.PI)) * 0.99F);
+        return ARGB.colorFromFloat(h, g * 0.3F + 0.7F, g * g * 0.7F + 0.2F, 0.2F);
     }
 }

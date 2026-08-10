@@ -14,16 +14,15 @@ import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.level.Level;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -47,17 +46,17 @@ public final class SotoExteriorSyncService {
 
     public static void initialize() {
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockEntity) -> {
-            if (!world.isClient()) {
-                markDirtyAt(world.getRegistryKey(), pos);
+            if (!world.isClientSide()) {
+                markDirtyAt(world.dimension(), pos);
             }
         });
 
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-            if (!world.isClient()) {
-                markDirtyAt(world.getRegistryKey(), hitResult.getBlockPos());
-                markDirtyAt(world.getRegistryKey(), hitResult.getBlockPos().offset(hitResult.getSide()));
+            if (!world.isClientSide()) {
+                markDirtyAt(world.dimension(), hitResult.getBlockPos());
+                markDirtyAt(world.dimension(), hitResult.getBlockPos().relative(hitResult.getDirection()));
             }
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         });
 
         ServerTickEvents.END_SERVER_TICK.register(SotoExteriorSyncService::onEndTick);
@@ -71,13 +70,13 @@ public final class SotoExteriorSyncService {
         });
     }
 
-    public static void markDirty(UUID tardisId) {
+    public static void setChanged(UUID tardisId) {
         if (tardisId != null) {
             DIRTY.add(tardisId);
         }
     }
 
-    public static void markDirtyAt(RegistryKey<World> worldKey, BlockPos worldPos) {
+    public static void markDirtyAt(ResourceKey<Level> worldKey, BlockPos worldPos) {
         UUID tardisId = SotoExteriorIndex.resolve(worldKey, worldPos);
         if (tardisId != null) {
             DIRTY.add(tardisId);
@@ -100,7 +99,7 @@ public final class SotoExteriorSyncService {
      * Builds (or returns cached) snapshot and sends it to {@code player}.
      * Skips send when the TARDIS has no exterior location.
      */
-    public static boolean sendToPlayer(ServerPlayerEntity player, UUID tardisId) {
+    public static boolean sendToPlayer(ServerPlayer player, UUID tardisId) {
         MinecraftServer server = player.getServer();
         if (server == null || tardisId == null) {
             return false;
@@ -139,7 +138,7 @@ public final class SotoExteriorSyncService {
      * Does not dirty snapshots for entity occupancy.
      */
     private static void maintainExteriorKeepAlive(MinecraftServer server) {
-        ServerWorld interiorWorld = server.getWorld(TardisDimensions.TARDIS_WORLD_KEY);
+        ServerLevel interiorWorld = server.getLevel(TardisDimensions.TARDIS_WORLD_KEY);
         if (interiorWorld == null) {
             return;
         }
@@ -147,12 +146,12 @@ public final class SotoExteriorSyncService {
             if (!hasInteriorDoorTrackers(interiorWorld, tardisId)) {
                 continue;
             }
-            RegistryKey<World> worldKey = SotoExteriorIndex.getWorldKey(tardisId);
+            ResourceKey<Level> worldKey = SotoExteriorIndex.getWorldKey(tardisId);
             BlockPos exteriorPos = SotoExteriorIndex.getExteriorPos(tardisId);
             if (worldKey == null || exteriorPos == null) {
                 continue;
             }
-            ServerWorld exteriorWorld = server.getWorld(worldKey);
+            ServerLevel exteriorWorld = server.getLevel(worldKey);
             if (exteriorWorld == null) {
                 continue;
             }
@@ -161,12 +160,12 @@ public final class SotoExteriorSyncService {
         }
     }
 
-    static boolean hasInteriorDoorTrackers(ServerWorld interiorWorld, UUID tardisId) {
+    static boolean hasInteriorDoorTrackers(ServerLevel interiorWorld, UUID tardisId) {
         if (interiorWorld == null || tardisId == null) {
             return false;
         }
         BlockPos doorOrigin = TardisPlotAllocator.plotOrigin(tardisId)
-                .add(FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN);
+                .offset(FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN);
         return !PlayerLookup.tracking(interiorWorld, doorOrigin).isEmpty();
     }
 
@@ -179,7 +178,7 @@ public final class SotoExteriorSyncService {
             }
             float swing = model.doorState.doorSwing;
             if (swing > 0.0f && swing < 1.0f) {
-                markDirty(tardisId);
+                setChanged(tardisId);
             }
         }
     }
@@ -189,8 +188,8 @@ public final class SotoExteriorSyncService {
         if (model == null || !model.hasExteriorLocation || model.exteriorDimension == null) {
             return null;
         }
-        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(model.exteriorDimension));
-        ServerWorld exteriorWorld = server.getWorld(worldKey);
+        ResourceKey<Level> worldKey = ResourceKey.create(Registries.DIMENSION, Identifier.parse(model.exteriorDimension));
+        ServerLevel exteriorWorld = server.getLevel(worldKey);
         if (exteriorWorld == null) {
             return null;
         }
@@ -218,14 +217,14 @@ public final class SotoExteriorSyncService {
     }
 
     private static void pushToInteriorTrackers(MinecraftServer server, SotoExteriorSnapshot snapshot) {
-        ServerWorld interiorWorld = server.getWorld(TardisDimensions.TARDIS_WORLD_KEY);
+        ServerLevel interiorWorld = server.getLevel(TardisDimensions.TARDIS_WORLD_KEY);
         if (interiorWorld == null) {
             return;
         }
         BlockPos doorOrigin = TardisPlotAllocator.plotOrigin(snapshot.tardisId())
-                .add(FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN);
+                .offset(FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN);
         SyncSotoExteriorS2CPayload payload = SyncSotoExteriorS2CPayload.fromSnapshot(snapshot);
-        for (ServerPlayerEntity player : PlayerLookup.tracking(interiorWorld, doorOrigin)) {
+        for (ServerPlayer player : PlayerLookup.tracking(interiorWorld, doorOrigin)) {
             ServerPlayNetworking.send(player, payload);
         }
     }

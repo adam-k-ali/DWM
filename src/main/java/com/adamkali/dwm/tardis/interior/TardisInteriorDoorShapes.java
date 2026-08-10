@@ -1,14 +1,14 @@
 package com.adamkali.dwm.tardis.interior;
 
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.util.function.BooleanBiFunction;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.phys.shapes.BooleanOp;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
  * Outline/collision shapes for the classic interior double-door mesh.
@@ -44,9 +44,9 @@ public final class TardisInteriorDoorShapes {
     }
 
     public static VoxelShape outline(BlockState state) {
-        Direction facing = state.get(TardisInteriorDoorBlock.FACING);
-        DoubleBlockHalf half = state.get(TardisInteriorDoorBlock.HALF);
-        int slot = state.get(TardisInteriorDoorBlock.SLOT);
+        Direction facing = state.getValue(TardisInteriorDoorBlock.FACING);
+        DoubleBlockHalf half = state.getValue(TardisInteriorDoorBlock.HALF);
+        int slot = state.getValue(TardisInteriorDoorBlock.SLOT);
         return forCell(facing, half, slot);
     }
 
@@ -55,12 +55,12 @@ public final class TardisInteriorDoorShapes {
      */
     public static VoxelShape forCell(Direction facing, DoubleBlockHalf half, int slot) {
         float[] model = modelAabbRelativeToPrimary(facing);
-        Direction alongBank = facing.rotateYCounterclockwise();
-        int dx = alongBank.getOffsetX() * slot;
+        Direction alongBank = facing.getCounterClockWise();
+        int dx = alongBank.getStepX() * slot;
         int dy = half == DoubleBlockHalf.UPPER ? 1 : 0;
-        int dz = alongBank.getOffsetZ() * slot;
+        int dz = alongBank.getStepZ() * slot;
 
-        VoxelShape fullInCell = Block.createCuboidShape(
+        VoxelShape fullInCell = Block.box(
                 (model[0] - dx) * 16.0,
                 (model[1] - dy) * 16.0,
                 (model[2] - dz) * 16.0,
@@ -68,7 +68,7 @@ public final class TardisInteriorDoorShapes {
                 (model[4] - dy) * 16.0,
                 (model[5] - dz) * 16.0
         );
-        return VoxelShapes.combineAndSimplify(fullInCell, VoxelShapes.fullCube(), BooleanBiFunction.AND);
+        return Shapes.join(fullInCell, Shapes.block(), BooleanOp.AND);
     }
 
     /**
@@ -83,9 +83,9 @@ public final class TardisInteriorDoorShapes {
         float maxY = Float.NEGATIVE_INFINITY;
         float maxZ = Float.NEGATIVE_INFINITY;
 
-        float yawRad = -Direction.getHorizontalDegreesOrThrow(facing) * MathHelper.RADIANS_PER_DEGREE;
-        float cos = MathHelper.cos(yawRad);
-        float sin = MathHelper.sin(yawRad);
+        float yawRad = -Direction.getYRot(facing) * Mth.DEG_TO_RAD;
+        float cos = Mth.cos(yawRad);
+        float sin = Mth.sin(yawRad);
 
         for (float px : new float[]{MODEL_MIN_X_PX, MODEL_MAX_X_PX}) {
             for (float py : new float[]{MODEL_MIN_Y_PX, MODEL_MAX_Y_PX}) {

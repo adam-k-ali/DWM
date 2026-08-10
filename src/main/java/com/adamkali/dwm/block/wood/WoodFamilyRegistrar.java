@@ -1,37 +1,39 @@
 package com.adamkali.dwm.block.wood;
 
+import com.adamkali.dwm.item.DWMCreativeTabs;
+
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.item.DWMItems;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
 import net.fabricmc.fabric.api.registry.StrippableBlockRegistry;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.ButtonBlock;
-import net.minecraft.block.DoorBlock;
-import net.minecraft.block.FenceBlock;
-import net.minecraft.block.FenceGateBlock;
-import net.minecraft.block.FlowerPotBlock;
-import net.minecraft.block.HangingSignBlock;
-import net.minecraft.block.LeavesBlock;
-import net.minecraft.block.PillarBlock;
-import net.minecraft.block.PressurePlateBlock;
-import net.minecraft.block.SaplingBlock;
-import net.minecraft.block.SignBlock;
-import net.minecraft.block.SlabBlock;
-import net.minecraft.block.StairsBlock;
-import net.minecraft.block.TrapdoorBlock;
-import net.minecraft.block.WallHangingSignBlock;
-import net.minecraft.block.WallSignBlock;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.vehicle.BoatEntity;
-import net.minecraft.item.BoatItem;
-import net.minecraft.item.HangingSignItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroups;
-import net.minecraft.item.SignItem;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.item.BoatItem;
+import net.minecraft.world.item.HangingSignItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.SignItem;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.ButtonBlock;
+import net.minecraft.world.level.block.CeilingHangingSignBlock;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.FenceBlock;
+import net.minecraft.world.level.block.FenceGateBlock;
+import net.minecraft.world.level.block.FlowerPotBlock;
+import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.level.block.PressurePlateBlock;
+import net.minecraft.world.level.block.RotatedPillarBlock;
+import net.minecraft.world.level.block.SaplingBlock;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.StandingSignBlock;
+import net.minecraft.world.level.block.TrapDoorBlock;
+import net.minecraft.world.level.block.WallHangingSignBlock;
+import net.minecraft.world.level.block.WallSignBlock;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 
 public final class WoodFamilyRegistrar {
     private WoodFamilyRegistrar() {
@@ -43,22 +45,22 @@ public final class WoodFamilyRegistrar {
 
         Block planks = DWMBlocks.registerBlock(Block::new, settings.planks(), id + "_planks");
         Block log = DWMBlocks.registerBlock(
-                PillarBlock::new,
+                RotatedPillarBlock::new,
                 settings.log(definition.planksColor(), definition.barkColor()),
                 id + "_log"
         );
         Block wood = DWMBlocks.registerBlock(
-                PillarBlock::new,
+                RotatedPillarBlock::new,
                 settings.log(definition.barkColor(), definition.barkColor()),
                 id + "_wood"
         );
         Block strippedLog = DWMBlocks.registerBlock(
-                PillarBlock::new,
+                RotatedPillarBlock::new,
                 settings.log(definition.planksColor(), definition.planksColor()),
                 "stripped_" + id + "_log"
         );
         Block strippedWood = DWMBlocks.registerBlock(
-                PillarBlock::new,
+                RotatedPillarBlock::new,
                 settings.log(definition.planksColor(), definition.planksColor()),
                 "stripped_" + id + "_wood"
         );
@@ -74,15 +76,15 @@ public final class WoodFamilyRegistrar {
                 "potted_" + id + "_sapling"
         );
         Block stairs = DWMBlocks.registerBlock(
-                s -> new StairsBlock(planks.getDefaultState(), s),
-                AbstractBlock.Settings.copyShallow(planks),
+                s -> new StairBlock(planks.defaultBlockState(), s),
+                BlockBehaviour.Properties.ofLegacyCopy(planks),
                 id + "_stairs"
         );
-        Block slab = DWMBlocks.registerBlock(SlabBlock::new, AbstractBlock.Settings.copyShallow(planks), id + "_slab");
-        Block fence = DWMBlocks.registerBlock(FenceBlock::new, AbstractBlock.Settings.copyShallow(planks), id + "_fence");
+        Block slab = DWMBlocks.registerBlock(SlabBlock::new, BlockBehaviour.Properties.ofLegacyCopy(planks), id + "_slab");
+        Block fence = DWMBlocks.registerBlock(FenceBlock::new, BlockBehaviour.Properties.ofLegacyCopy(planks), id + "_fence");
         Block fenceGate = DWMBlocks.registerBlock(
                 s -> new FenceGateBlock(definition.woodType(), s),
-                AbstractBlock.Settings.copyShallow(planks),
+                BlockBehaviour.Properties.ofLegacyCopy(planks),
                 id + "_fence_gate"
         );
         Block button = DWMBlocks.registerBlock(
@@ -114,14 +116,14 @@ public final class WoodFamilyRegistrar {
         Block trapdoor = null;
         if (definition.has(WoodFamilyFeature.TRAPDOOR)) {
             trapdoor = DWMBlocks.registerBlock(
-                    s -> new TrapdoorBlock(definition.blockSetType(), s),
+                    s -> new TrapDoorBlock(definition.blockSetType(), s),
                     settings.trapdoor(),
                     id + "_trapdoor"
             );
         }
 
         Block sign = DWMBlocks.registerBlockWithoutItem(
-                s -> new SignBlock(definition.woodType(), s),
+                s -> new StandingSignBlock(definition.woodType(), s),
                 settings.sign(),
                 id + "_sign"
         );
@@ -131,7 +133,7 @@ public final class WoodFamilyRegistrar {
                 id + "_wall_sign"
         );
         Block hangingSign = DWMBlocks.registerBlockWithoutItem(
-                s -> new HangingSignBlock(definition.woodType(), s),
+                s -> new CeilingHangingSignBlock(definition.woodType(), s),
                 settings.hangingSign(),
                 id + "_hanging_sign"
         );
@@ -158,17 +160,17 @@ public final class WoodFamilyRegistrar {
         WoodFamilyBlocks blocks = family.blocks();
         Item sign = DWMItems.register(
                 settings -> new SignItem(blocks.sign(), blocks.wallSign(), settings),
-                new Item.Settings().maxCount(16),
+                new Item.Properties().stacksTo(16),
                 id + "_sign"
         );
         Item hangingSign = DWMItems.register(
                 settings -> new HangingSignItem(blocks.hangingSign(), blocks.wallHangingSign(), settings),
-                new Item.Settings().maxCount(16),
+                new Item.Properties().stacksTo(16),
                 id + "_hanging_sign"
         );
         Item boat = DWMItems.register(
                 settings -> new BoatItem(family.boatEntity(), settings),
-                new Item.Settings().maxCount(1),
+                new Item.Properties().stacksTo(1),
                 id + "_boat"
         );
         family.setItems(sign, hangingSign, boat);
@@ -178,8 +180,8 @@ public final class WoodFamilyRegistrar {
      * Register the boat entity before {@link #registerItems}; the item supplier is only
      * invoked when a boat spawns (after items exist).
      */
-    public static EntityType<BoatEntity> registerBoatEntity(RegisteredWoodFamily family) {
-        EntityType<BoatEntity> boatEntity = DWMEntityTypes.registerBoat(
+    public static EntityType<Boat> registerBoatEntity(RegisteredWoodFamily family) {
+        EntityType<Boat> boatEntity = DWMEntityTypes.registerBoat(
                 family.definition().id() + "_boat",
                 family::boatItem
         );
@@ -219,30 +221,30 @@ public final class WoodFamilyRegistrar {
 
     public static void addCreativeTabs(RegisteredWoodFamily family) {
         WoodFamilyBlocks blocks = family.blocks();
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> {
+        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.BUILDING_BLOCKS).register(content -> {
             for (Block block : family.buildingBlocks()) {
-                content.add(block);
+                content.accept(block);
             }
         });
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.NATURAL).register(content -> {
-            content.add(blocks.log());
-            content.add(blocks.leaves());
-            content.add(blocks.sapling());
+        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.NATURAL_BLOCKS).register(content -> {
+            content.accept(blocks.log());
+            content.accept(blocks.leaves());
+            content.accept(blocks.sapling());
         });
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(content -> {
-            content.add(blocks.button());
-            content.add(blocks.pressurePlate());
+        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.REDSTONE_BLOCKS).register(content -> {
+            content.accept(blocks.button());
+            content.accept(blocks.pressurePlate());
             if (blocks.trapdoor() != null) {
-                content.add(blocks.trapdoor());
+                content.accept(blocks.trapdoor());
             }
             if (blocks.door() != null) {
-                content.add(blocks.door());
+                content.accept(blocks.door());
             }
         });
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(content -> content.add(family.boatItem()));
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(content -> {
-            content.add(family.signItem());
-            content.add(family.hangingSignItem());
+        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.TOOLS_AND_UTILITIES).register(content -> content.accept(family.boatItem()));
+        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.FUNCTIONAL_BLOCKS).register(content -> {
+            content.accept(family.signItem());
+            content.accept(family.hangingSignItem());
         });
     }
 }

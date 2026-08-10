@@ -1,15 +1,16 @@
 package com.adamkali.dwm.block.wood;
 
-import net.minecraft.block.Block;
-import net.minecraft.data.family.BlockFamily;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.vehicle.BoatEntity;
-import net.minecraft.item.Item;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import net.minecraft.data.BlockFamily;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 
 public final class RegisteredWoodFamily {
     private final WoodFamilyDefinition definition;
@@ -17,7 +18,7 @@ public final class RegisteredWoodFamily {
     private Item signItem;
     private Item hangingSignItem;
     private Item boatItem;
-    private EntityType<BoatEntity> boatEntity;
+    private EntityType<Boat> boatEntity;
 
     public RegisteredWoodFamily(WoodFamilyDefinition definition, WoodFamilyBlocks blocks) {
         this.definition = definition;
@@ -44,7 +45,7 @@ public final class RegisteredWoodFamily {
         return Objects.requireNonNull(boatItem, "boat item not registered for " + definition.id());
     }
 
-    public EntityType<BoatEntity> boatEntity() {
+    public EntityType<Boat> boatEntity() {
         return Objects.requireNonNull(boatEntity, "boat entity not registered for " + definition.id());
     }
 
@@ -54,7 +55,7 @@ public final class RegisteredWoodFamily {
         this.boatItem = boatItem;
     }
 
-    void setBoatEntity(EntityType<BoatEntity> boatEntity) {
+    void setBoatEntity(EntityType<Boat> boatEntity) {
         this.boatEntity = boatEntity;
     }
 
@@ -164,6 +165,6 @@ public final class RegisteredWoodFamily {
         if (blocks.trapdoor() != null && !has(WoodFamilyFeature.CUSTOM_TRAPDOOR_MODEL)) {
             builder.trapdoor(blocks.trapdoor());
         }
-        return builder.group("wooden").unlockCriterionName("has_planks").build();
+        return builder.recipeGroupPrefix("wooden").recipeUnlockedBy("has_planks").getFamily();
     }
 }

@@ -1,21 +1,21 @@
 package com.adamkali.dwm.tardis.logic;
 
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.biome.Biome;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.biome.Biome;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class LandingSiteLogicTest {
     @Test
     void parseBiome_acceptsValidId() {
-        Optional<RegistryKey<Biome>> key = LandingSiteLogic.parseBiome("minecraft:plains");
+        Optional<ResourceKey<Biome>> key = LandingSiteLogic.parseBiome("minecraft:plains");
         assertTrue(key.isPresent());
-        assertEquals(RegistryKey.of(RegistryKeys.BIOME, Identifier.of("minecraft:plains")), key.get());
+        assertEquals(ResourceKey.create(Registries.BIOME, Identifier.parse("minecraft:plains")), key.get());
     }
 
     @Test

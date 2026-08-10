@@ -7,22 +7,22 @@ import com.adamkali.dwm.block.wood.WoodFamilyFeature;
 import com.adamkali.dwm.model.tileentity.*;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
-import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.renderer.RenderType;
 
 public class DWMRenderLayerManager {
     private static void registerBlockRenderLayers() {
-        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.WHITE_ROUNDEL_B, RenderLayer.getCutoutMipped());
-        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.CITADEL_GLASS, RenderLayer.getTranslucent());
+        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.WHITE_ROUNDEL_B, RenderType.cutoutMipped());
+        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.CITADEL_GLASS, RenderType.translucent());
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyBlocks blocks = family.blocks();
-            BlockRenderLayerMap.INSTANCE.putBlock(blocks.leaves(), RenderLayer.getCutoutMipped());
-            BlockRenderLayerMap.INSTANCE.putBlock(blocks.sapling(), RenderLayer.getCutout());
-            BlockRenderLayerMap.INSTANCE.putBlock(blocks.pottedSapling(), RenderLayer.getCutout());
+            BlockRenderLayerMap.INSTANCE.putBlock(blocks.leaves(), RenderType.cutoutMipped());
+            BlockRenderLayerMap.INSTANCE.putBlock(blocks.sapling(), RenderType.cutout());
+            BlockRenderLayerMap.INSTANCE.putBlock(blocks.pottedSapling(), RenderType.cutout());
             if (family.hasDoor()) {
-                BlockRenderLayerMap.INSTANCE.putBlock(family.requireDoor(), RenderLayer.getCutout());
+                BlockRenderLayerMap.INSTANCE.putBlock(family.requireDoor(), RenderType.cutout());
             }
             if (family.has(WoodFamilyFeature.TRAPDOOR)) {
-                BlockRenderLayerMap.INSTANCE.putBlock(family.requireTrapdoor(), RenderLayer.getCutout());
+                BlockRenderLayerMap.INSTANCE.putBlock(family.requireTrapdoor(), RenderType.cutout());
             }
         }
     }

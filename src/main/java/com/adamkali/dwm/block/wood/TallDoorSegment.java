@@ -1,8 +1,8 @@
 package com.adamkali.dwm.block.wood;
 
-import net.minecraft.util.StringIdentifiable;
+import net.minecraft.util.StringRepresentable;
 
-public enum TallDoorSegment implements StringIdentifiable {
+public enum TallDoorSegment implements StringRepresentable {
     BOTTOM("bottom", 0),
     MIDDLE("middle", 1),
     TOP("top", 2);
@@ -28,7 +28,7 @@ public enum TallDoorSegment implements StringIdentifiable {
     }
 
     @Override
-    public String asString() {
+    public String getSerializedName() {
         return name;
     }
 }

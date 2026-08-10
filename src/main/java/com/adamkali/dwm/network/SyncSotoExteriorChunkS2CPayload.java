@@ -2,19 +2,18 @@ package com.adamkali.dwm.network;
 
 import com.adamkali.dwm.tardis.boti.BotiRelativePosCodec;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
-import net.minecraft.block.BlockState;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.math.BlockPos;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * S2C sparse chunk column for the Phase 1 ghost exterior store.
@@ -29,67 +28,67 @@ public record SyncSotoExteriorChunkS2CPayload(
         int footprintOriginZ,
         List<BlockEntry> blocks,
         List<BlockEntityEntry> blockEntities
-) implements CustomPayload {
-    public static final CustomPayload.Id<SyncSotoExteriorChunkS2CPayload> ID =
-            new CustomPayload.Id<>(DWMPacketIds.SYNC_SOTO_EXTERIOR_CHUNK_PACKET_ID);
+) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<SyncSotoExteriorChunkS2CPayload> ID =
+            new CustomPacketPayload.Type<>(DWMPacketIds.SYNC_SOTO_EXTERIOR_CHUNK_PACKET_ID);
 
-    public static final PacketCodec<RegistryByteBuf, SyncSotoExteriorChunkS2CPayload> CODEC =
-            PacketCodec.of(SyncSotoExteriorChunkS2CPayload::encode, SyncSotoExteriorChunkS2CPayload::decode);
+    public static final StreamCodec<RegistryFriendlyByteBuf, SyncSotoExteriorChunkS2CPayload> CODEC =
+            StreamCodec.ofMember(SyncSotoExteriorChunkS2CPayload::encode, SyncSotoExteriorChunkS2CPayload::decode);
 
     public record BlockEntry(int relX, int relY, int relZ, int stateId) {
     }
 
-    public record BlockEntityEntry(int relX, int relY, int relZ, NbtCompound nbt) {
+    public record BlockEntityEntry(int relX, int relY, int relZ, CompoundTag nbt) {
     }
 
-    private static void encode(SyncSotoExteriorChunkS2CPayload payload, RegistryByteBuf buf) {
+    private static void encode(SyncSotoExteriorChunkS2CPayload payload, RegistryFriendlyByteBuf buf) {
         DWMPacketCodecs.UUID_PACKET_CODEC.encode(buf, payload.tardisId);
-        PacketCodecs.VAR_INT.encode(buf, payload.chunkX);
-        PacketCodecs.VAR_INT.encode(buf, payload.chunkZ);
-        PacketCodecs.VAR_INT.encode(buf, payload.footprintOriginX);
-        PacketCodecs.VAR_INT.encode(buf, payload.footprintOriginY);
-        PacketCodecs.VAR_INT.encode(buf, payload.footprintOriginZ);
-        PacketCodecs.VAR_INT.encode(buf, payload.blocks.size());
+        ByteBufCodecs.VAR_INT.encode(buf, payload.chunkX);
+        ByteBufCodecs.VAR_INT.encode(buf, payload.chunkZ);
+        ByteBufCodecs.VAR_INT.encode(buf, payload.footprintOriginX);
+        ByteBufCodecs.VAR_INT.encode(buf, payload.footprintOriginY);
+        ByteBufCodecs.VAR_INT.encode(buf, payload.footprintOriginZ);
+        ByteBufCodecs.VAR_INT.encode(buf, payload.blocks.size());
         for (BlockEntry entry : payload.blocks) {
-            PacketCodecs.VAR_INT.encode(buf, entry.relX());
-            PacketCodecs.VAR_INT.encode(buf, entry.relY());
-            PacketCodecs.VAR_INT.encode(buf, entry.relZ());
-            PacketCodecs.VAR_INT.encode(buf, entry.stateId());
+            ByteBufCodecs.VAR_INT.encode(buf, entry.relX());
+            ByteBufCodecs.VAR_INT.encode(buf, entry.relY());
+            ByteBufCodecs.VAR_INT.encode(buf, entry.relZ());
+            ByteBufCodecs.VAR_INT.encode(buf, entry.stateId());
         }
-        PacketCodecs.VAR_INT.encode(buf, payload.blockEntities.size());
+        ByteBufCodecs.VAR_INT.encode(buf, payload.blockEntities.size());
         for (BlockEntityEntry entry : payload.blockEntities) {
-            PacketCodecs.VAR_INT.encode(buf, entry.relX());
-            PacketCodecs.VAR_INT.encode(buf, entry.relY());
-            PacketCodecs.VAR_INT.encode(buf, entry.relZ());
-            PacketCodecs.NBT_COMPOUND.encode(buf, entry.nbt());
+            ByteBufCodecs.VAR_INT.encode(buf, entry.relX());
+            ByteBufCodecs.VAR_INT.encode(buf, entry.relY());
+            ByteBufCodecs.VAR_INT.encode(buf, entry.relZ());
+            ByteBufCodecs.COMPOUND_TAG.encode(buf, entry.nbt());
         }
     }
 
-    private static SyncSotoExteriorChunkS2CPayload decode(RegistryByteBuf buf) {
+    private static SyncSotoExteriorChunkS2CPayload decode(RegistryFriendlyByteBuf buf) {
         UUID tardisId = DWMPacketCodecs.UUID_PACKET_CODEC.decode(buf);
-        int chunkX = PacketCodecs.VAR_INT.decode(buf);
-        int chunkZ = PacketCodecs.VAR_INT.decode(buf);
-        int originX = PacketCodecs.VAR_INT.decode(buf);
-        int originY = PacketCodecs.VAR_INT.decode(buf);
-        int originZ = PacketCodecs.VAR_INT.decode(buf);
-        int blockCount = PacketCodecs.VAR_INT.decode(buf);
+        int chunkX = ByteBufCodecs.VAR_INT.decode(buf);
+        int chunkZ = ByteBufCodecs.VAR_INT.decode(buf);
+        int originX = ByteBufCodecs.VAR_INT.decode(buf);
+        int originY = ByteBufCodecs.VAR_INT.decode(buf);
+        int originZ = ByteBufCodecs.VAR_INT.decode(buf);
+        int blockCount = ByteBufCodecs.VAR_INT.decode(buf);
         List<BlockEntry> blocks = new ArrayList<>(blockCount);
         for (int i = 0; i < blockCount; i++) {
             blocks.add(new BlockEntry(
-                    PacketCodecs.VAR_INT.decode(buf),
-                    PacketCodecs.VAR_INT.decode(buf),
-                    PacketCodecs.VAR_INT.decode(buf),
-                    PacketCodecs.VAR_INT.decode(buf)
+                    ByteBufCodecs.VAR_INT.decode(buf),
+                    ByteBufCodecs.VAR_INT.decode(buf),
+                    ByteBufCodecs.VAR_INT.decode(buf),
+                    ByteBufCodecs.VAR_INT.decode(buf)
             ));
         }
-        int beCount = PacketCodecs.VAR_INT.decode(buf);
+        int beCount = ByteBufCodecs.VAR_INT.decode(buf);
         List<BlockEntityEntry> blockEntities = new ArrayList<>(beCount);
         for (int i = 0; i < beCount; i++) {
             blockEntities.add(new BlockEntityEntry(
-                    PacketCodecs.VAR_INT.decode(buf),
-                    PacketCodecs.VAR_INT.decode(buf),
-                    PacketCodecs.VAR_INT.decode(buf),
-                    PacketCodecs.NBT_COMPOUND.decode(buf)
+                    ByteBufCodecs.VAR_INT.decode(buf),
+                    ByteBufCodecs.VAR_INT.decode(buf),
+                    ByteBufCodecs.VAR_INT.decode(buf),
+                    ByteBufCodecs.COMPOUND_TAG.decode(buf)
             ));
         }
         return new SyncSotoExteriorChunkS2CPayload(
@@ -113,7 +112,7 @@ public record SyncSotoExteriorChunkS2CPayload(
             ));
         }
         List<BlockEntityEntry> bes = new ArrayList<>(sample.blockEntities().size());
-        for (Map.Entry<BlockPos, NbtCompound> entry : sample.blockEntities().entrySet()) {
+        for (Map.Entry<BlockPos, CompoundTag> entry : sample.blockEntities().entrySet()) {
             BlockPos world = entry.getKey();
             bes.add(new BlockEntityEntry(
                     world.getX() - footprintOrigin.getX(),
@@ -142,8 +141,8 @@ public record SyncSotoExteriorChunkS2CPayload(
         return map;
     }
 
-    public Map<BlockPos, NbtCompound> toBlockEntityMap() {
-        Map<BlockPos, NbtCompound> map = new HashMap<>(blockEntities.size());
+    public Map<BlockPos, CompoundTag> toBlockEntityMap() {
+        Map<BlockPos, CompoundTag> map = new HashMap<>(blockEntities.size());
         for (BlockEntityEntry entry : blockEntities) {
             map.put(new BlockPos(entry.relX(), entry.relY(), entry.relZ()), entry.nbt().copy());
         }
@@ -155,7 +154,7 @@ public record SyncSotoExteriorChunkS2CPayload(
     }
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 }

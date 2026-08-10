@@ -1,7 +1,7 @@
 package com.adamkali.dwm.render.boti;
 
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 /**
  * Pure pose math for BOTI synthetic-entity interpolation between sync samples.
@@ -21,7 +21,7 @@ public final class BotiEntityMotion {
         if (expectedIntervalMs <= 0L) {
             return 1.0f;
         }
-        return MathHelper.clamp((nowMs - receiveTimeMs) / (float) expectedIntervalMs, 0.0f, 1.0f);
+        return Mth.clamp((nowMs - receiveTimeMs) / (float) expectedIntervalMs, 0.0f, 1.0f);
     }
 
     public static float lerp(float from, float to, float t) {
@@ -34,7 +34,7 @@ public final class BotiEntityMotion {
 
     /** Shortest-path yaw/pitch lerp in degrees. */
     public static float lerpAngleDegrees(float from, float to, float t) {
-        return MathHelper.lerpAngleDegrees(t, from, to);
+        return Mth.rotLerp(t, from, to);
     }
 
     public static LerpedPose lerpPose(EntityInterpState state, long nowMs) {
@@ -58,7 +58,7 @@ public final class BotiEntityMotion {
     public static float limbSpeed(float fromX, float fromZ, float toX, float toZ) {
         float dx = toX - fromX;
         float dz = toZ - fromZ;
-        float dist = MathHelper.sqrt(dx * dx + dz * dz);
+        float dist = Mth.sqrt(dx * dx + dz * dz);
         return Math.min(dist * 4.0f, 1.0f);
     }
 

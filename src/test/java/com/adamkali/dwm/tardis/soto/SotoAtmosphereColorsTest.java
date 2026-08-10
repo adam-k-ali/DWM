@@ -1,9 +1,9 @@
 package com.adamkali.dwm.tardis.soto;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
-import net.minecraft.util.math.ColorHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.dimension.DimensionTypes;
+import net.minecraft.util.ARGB;
+import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
+import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -19,11 +19,11 @@ class SotoAtmosphereColorsTest {
     @Test
     void effectsKind_mapsVanillaIds() {
         assertEquals(SotoAtmosphereColors.EffectsKind.OVERWORLD,
-                SotoAtmosphereColors.effectsKind(DimensionTypes.OVERWORLD_ID));
+                SotoAtmosphereColors.effectsKind(BuiltinDimensionTypes.OVERWORLD.identifier()));
         assertEquals(SotoAtmosphereColors.EffectsKind.NETHER,
-                SotoAtmosphereColors.effectsKind(DimensionTypes.THE_NETHER_ID));
+                SotoAtmosphereColors.effectsKind(BuiltinDimensionTypes.NETHER.identifier()));
         assertEquals(SotoAtmosphereColors.EffectsKind.END,
-                SotoAtmosphereColors.effectsKind(DimensionTypes.THE_END_ID));
+                SotoAtmosphereColors.effectsKind(BuiltinDimensionTypes.END.identifier()));
     }
 
     @Test
@@ -31,8 +31,8 @@ class SotoAtmosphereColorsTest {
         int biomeSky = 0x78A7FF;
         int day = SotoAtmosphereColors.skyColor(biomeSky, SotoAtmosphereColors.skyAngle(6000L), 0.0f, 0.0f);
         int night = SotoAtmosphereColors.skyColor(biomeSky, SotoAtmosphereColors.skyAngle(18000L), 0.0f, 0.0f);
-        int dayLum = ColorHelper.getRed(day) + ColorHelper.getGreen(day) + ColorHelper.getBlue(day);
-        int nightLum = ColorHelper.getRed(night) + ColorHelper.getGreen(night) + ColorHelper.getBlue(night);
+        int dayLum = ARGB.red(day) + ARGB.green(day) + ARGB.blue(day);
+        int nightLum = ARGB.red(night) + ARGB.green(night) + ARGB.blue(night);
         assertTrue(dayLum > nightLum, "day sky should be brighter than night");
     }
 
@@ -42,21 +42,21 @@ class SotoAtmosphereColorsTest {
         float skyAngle = SotoAtmosphereColors.skyAngle(6000L);
         int clear = SotoAtmosphereColors.skyColor(biomeSky, skyAngle, 0.0f, 0.0f);
         int rainy = SotoAtmosphereColors.skyColor(biomeSky, skyAngle, 1.0f, 0.0f);
-        int clearLum = ColorHelper.getRed(clear) + ColorHelper.getGreen(clear) + ColorHelper.getBlue(clear);
-        int rainLum = ColorHelper.getRed(rainy) + ColorHelper.getGreen(rainy) + ColorHelper.getBlue(rainy);
+        int clearLum = ARGB.red(clear) + ARGB.green(clear) + ARGB.blue(clear);
+        int rainLum = ARGB.red(rainy) + ARGB.green(rainy) + ARGB.blue(rainy);
         assertTrue(rainLum < clearLum, "rain should darken sky");
     }
 
     @Test
     void fogColor_endIsDarkened() {
-        Vec3d base = SotoAtmosphereColors.fogColor(
+        Vec3 base = SotoAtmosphereColors.fogColor(
                 0xC0D8FF,
                 SotoAtmosphereColors.EffectsKind.OVERWORLD,
                 SotoAtmosphereColors.skyAngle(6000L),
                 0.0f,
                 0.0f
         );
-        Vec3d end = SotoAtmosphereColors.fogColor(
+        Vec3 end = SotoAtmosphereColors.fogColor(
                 0xC0D8FF,
                 SotoAtmosphereColors.EffectsKind.END,
                 SotoAtmosphereColors.skyAngle(6000L),
@@ -68,14 +68,14 @@ class SotoAtmosphereColorsTest {
 
     @Test
     void fogColor_overworldNightDarkerThanDay() {
-        Vec3d day = SotoAtmosphereColors.fogColor(
+        Vec3 day = SotoAtmosphereColors.fogColor(
                 0xC0D8FF,
                 SotoAtmosphereColors.EffectsKind.OVERWORLD,
                 SotoAtmosphereColors.skyAngle(6000L),
                 0.0f,
                 0.0f
         );
-        Vec3d night = SotoAtmosphereColors.fogColor(
+        Vec3 night = SotoAtmosphereColors.fogColor(
                 0xC0D8FF,
                 SotoAtmosphereColors.EffectsKind.OVERWORLD,
                 SotoAtmosphereColors.skyAngle(18000L),
@@ -87,13 +87,13 @@ class SotoAtmosphereColorsTest {
 
     @Test
     void fogColor_netherUnadjustedBySun() {
-        Vec3d day = SotoAtmosphereColors.adjustFogColor(
-                Vec3d.unpackRgb(0x330808),
+        Vec3 day = SotoAtmosphereColors.adjustFogColor(
+                Vec3.fromRGB24(0x330808),
                 SotoAtmosphereColors.EffectsKind.NETHER,
                 1.0f
         );
-        Vec3d night = SotoAtmosphereColors.adjustFogColor(
-                Vec3d.unpackRgb(0x330808),
+        Vec3 night = SotoAtmosphereColors.adjustFogColor(
+                Vec3.fromRGB24(0x330808),
                 SotoAtmosphereColors.EffectsKind.NETHER,
                 0.0f
         );

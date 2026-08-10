@@ -1,11 +1,11 @@
 package com.adamkali.dwm.tardis.boti;
 
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
-import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,7 +24,7 @@ class BotiPlotIndexTest {
 
         assertTrue(BotiPlotIndex.isRegistered(id));
         assertEquals(origin, BotiPlotIndex.getOrigin(id));
-        assertEquals(id, BotiPlotIndex.resolve(origin.add(5, 1, 5)));
+        assertEquals(id, BotiPlotIndex.resolve(origin.offset(5, 1, 5)));
     }
 
     @Test
@@ -33,14 +33,14 @@ class BotiPlotIndexTest {
         BotiPlotIndex.register(id);
         BlockPos origin = TardisPlotAllocator.plotOrigin(id);
 
-        assertNull(BotiPlotIndex.resolve(origin.add(TardisPlotAllocator.PLOT_SPACING / 2, 0, 0)));
-        assertNull(BotiPlotIndex.resolve(origin.add(0, BotiInteriorSampler.SIZE_Y + 2, 0)));
+        assertNull(BotiPlotIndex.resolve(origin.offset(TardisPlotAllocator.PLOT_SPACING / 2, 0, 0)));
+        assertNull(BotiPlotIndex.resolve(origin.offset(0, BotiInteriorSampler.SIZE_Y + 2, 0)));
     }
 
     @Test
     void resolve_UnregisteredPlotReturnsNull() {
         UUID id = UUID.fromString("11111111-2222-3333-4444-555555555555");
         BlockPos origin = TardisPlotAllocator.plotOrigin(id);
-        assertNull(BotiPlotIndex.resolve(origin.add(1, 1, 1)));
+        assertNull(BotiPlotIndex.resolve(origin.offset(1, 1, 1)));
     }
 }
