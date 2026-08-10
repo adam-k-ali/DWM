@@ -7,21 +7,26 @@ import com.adamkali.dwm.model.tileentity.BiomeSelectorModel;
 import com.adamkali.dwm.model.tileentity.FirstDoctorConsoleModel;
 import com.adamkali.dwm.model.tileentity.MaterialisationLeverModel;
 import com.adamkali.dwm.model.tileentity.PlanetLocatorModel;
+import com.adamkali.dwm.render.state.FirstDoctorConsoleBlockEntityRenderState;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
-public class FirstDoctorConsoleBlockEntityRenderer implements BlockEntityRenderer<FirstDoctorConsoleBlockEntity> {
+public class FirstDoctorConsoleBlockEntityRenderer
+        implements BlockEntityRenderer<FirstDoctorConsoleBlockEntity, FirstDoctorConsoleBlockEntityRenderState> {
     private static final float PX = 1.0f / 16.0f;
 
     private final FirstDoctorConsoleModel model;
@@ -41,55 +46,92 @@ public class FirstDoctorConsoleBlockEntityRenderer implements BlockEntityRendere
     }
 
     @Override
-    public void render(
-            FirstDoctorConsoleBlockEntity entity,
-            float tickDelta,
-            PoseStack matrices,
-            MultiBufferSource vertexConsumers,
-            int light,
-            int overlay
-    ) {
-        BlockState state = entity.getBlockState();
-        Direction facing = state.getValueOrElse(FirstDoctorConsoleBlock.FACING, Direction.NORTH);
+    public FirstDoctorConsoleBlockEntityRenderState createRenderState() {
+        return new FirstDoctorConsoleBlockEntityRenderState();
+    }
 
-        TardisRenderState renderState = new TardisRenderState();
+    @Override
+    public void extractRenderState(
+            FirstDoctorConsoleBlockEntity entity,
+            FirstDoctorConsoleBlockEntityRenderState state,
+            float partialTicks,
+            Vec3 cameraPosition,
+            ModelFeatureRenderer.CrumblingOverlay breakProgress
+    ) {
+        BlockEntityRenderer.super.extractRenderState(entity, state, partialTicks, cameraPosition, breakProgress);
+
+        BlockState blockState = entity.getBlockState();
+        state.facing = blockState.getValueOrElse(FirstDoctorConsoleBlock.FACING, Direction.NORTH);
+
         TardisTravelPhase phase = TardisLogic.getTravelPhase(entity.getTardisId());
         Level world = entity.getLevel();
-        float timeTicks = world == null ? tickDelta : world.getGameTime() + tickDelta;
-        renderState.setRotorBobOffset(FirstDoctorConsoleModel.rotorBobOffset(timeTicks, phase.isTraveling()));
-        model.setupAnim(renderState);
-        biomeSelectorModel.setupAnim(renderState);
-        planetLocatorModel.setupAnim(renderState);
-        materialisationLeverModel.setupAnim(renderState);
+        float timeTicks = world == null ? partialTicks : world.getGameTime() + partialTicks;
+        state.rotorBobOffset = FirstDoctorConsoleModel.rotorBobOffset(timeTicks, phase.isTraveling());
+    }
 
-        matrices.pushPose();
-        applyTransforms(matrices, facing);
-        VertexConsumer consoleVertices = vertexConsumers.getBuffer(
-                RenderType.entityTranslucent(FirstDoctorConsoleModel.TEXTURE_LOCATION));
-        model.renderToBuffer(matrices, consoleVertices, light, overlay);
+    @Override
+    public void submit(
+            FirstDoctorConsoleBlockEntityRenderState state,
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            CameraRenderState camera
+    ) {
+        TardisRenderState animState = new TardisRenderState();
+        animState.setRotorBobOffset(state.rotorBobOffset);
 
-        matrices.pushPose();
-        applyPanel3BiomeSelectorTransforms(matrices);
-        VertexConsumer selectorVertices = vertexConsumers.getBuffer(
-                RenderType.entityCutout(BiomeSelectorModel.TEXTURE_LOCATION));
-        biomeSelectorModel.renderToBuffer(matrices, selectorVertices, light, overlay);
-        matrices.popPose();
+        poseStack.pushPose();
+        applyTransforms(poseStack, state.facing);
 
-        matrices.pushPose();
-        applyPanel3PlanetLocatorTransforms(matrices);
-        VertexConsumer planetVertices = vertexConsumers.getBuffer(
-                RenderType.entityCutout(PlanetLocatorModel.TEXTURE_LOCATION));
-        planetLocatorModel.renderToBuffer(matrices, planetVertices, light, overlay);
-        matrices.popPose();
+        submitNodeCollector.submitModel(
+                model,
+                animState,
+                poseStack,
+                RenderTypes.entityTranslucent(FirstDoctorConsoleModel.TEXTURE_LOCATION),
+                state.lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                0,
+                state.breakProgress);
 
-        matrices.pushPose();
-        applyPanel6LeverTransforms(matrices);
-        VertexConsumer leverVertices = vertexConsumers.getBuffer(
-                RenderType.entityCutout(MaterialisationLeverModel.TEXTURE_LOCATION));
-        materialisationLeverModel.renderToBuffer(matrices, leverVertices, light, overlay);
-        matrices.popPose();
+        poseStack.pushPose();
+        applyPanel3BiomeSelectorTransforms(poseStack);
+        submitNodeCollector.submitModel(
+                biomeSelectorModel,
+                animState,
+                poseStack,
+                RenderTypes.entityCutout(BiomeSelectorModel.TEXTURE_LOCATION),
+                state.lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                0,
+                state.breakProgress);
+        poseStack.popPose();
 
-        matrices.popPose();
+        poseStack.pushPose();
+        applyPanel3PlanetLocatorTransforms(poseStack);
+        submitNodeCollector.submitModel(
+                planetLocatorModel,
+                animState,
+                poseStack,
+                RenderTypes.entityCutout(PlanetLocatorModel.TEXTURE_LOCATION),
+                state.lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                0,
+                state.breakProgress);
+        poseStack.popPose();
+
+        poseStack.pushPose();
+        applyPanel6LeverTransforms(poseStack);
+        submitNodeCollector.submitModel(
+                materialisationLeverModel,
+                animState,
+                poseStack,
+                RenderTypes.entityCutout(MaterialisationLeverModel.TEXTURE_LOCATION),
+                state.lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                0,
+                state.breakProgress);
+        poseStack.popPose();
+
+        poseStack.popPose();
     }
 
     /**
