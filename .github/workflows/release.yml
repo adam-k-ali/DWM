@@ -45,8 +45,10 @@ jobs:
           GRADLE_OPTS: -Dorg.gradle.daemon=false
 
       - name: Generate release notes
+        id: notes
         env:
           TAG: ${{ github.ref_name }}
+          MOD_VERSION: ${{ steps.version.outputs.mod_version }}
         run: |
           python3 <<'PY'
           import json
@@ -55,19 +57,34 @@ jobs:
           from pathlib import Path
 
           tag = os.environ["TAG"]
+          mod_version_prop = os.environ["MOD_VERSION"]
           version = tag[1:] if tag.startswith("v") else tag
           match = re.fullmatch(r"(\d+\.\d+(?:\.\d+)?)-(\d+\.\d+\.\d+)", version)
           if not match:
               raise SystemExit(f"Tag {tag!r} does not match v{{minecraft}}-{{mod}} (e.g. v1.21.4-1.2.0)")
 
           minecraft_version, mod_version = match.group(1), match.group(2)
+          if mod_version != mod_version_prop:
+              raise SystemExit(
+                  f"Tag mod version {mod_version!r} does not match gradle mod_version {mod_version_prop!r}"
+              )
+
           root = json.loads(Path("version.json").read_text(encoding="utf-8"))
           entry = root.get(minecraft_version, {}).get(mod_version)
           lines = [f"## {version}", ""]
+          detail_lines = []
+          summary = ""
 
           if not entry:
               lines.append("_No changelog entry found in version.json for this release._")
           else:
+              summary = (entry.get("summary") or "").strip()
+              if not summary:
+                  raise SystemExit(
+                      f"version.json entry for {minecraft_version}/{mod_version} is missing a non-blank summary"
+                  )
+              lines.append(summary)
+              lines.append("")
               for section, heading in (
                   ("added", "Added"),
                   ("changed", "Changed"),
@@ -76,12 +93,42 @@ jobs:
                   items = entry.get(section) or []
                   if not items:
                       continue
-                  lines.append(f"### {heading}")
-                  lines.extend(f"- {item}" for item in items)
-                  lines.append("")
+                  detail_lines.append(f"### {heading}")
+                  detail_lines.extend(f"- {item}" for item in items)
+                  detail_lines.append("")
+              lines.extend(detail_lines)
 
           Path("release-notes.md").write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
           print(Path("release-notes.md").read_text(encoding="utf-8"))
+
+          changelog_body = "\n".join([summary, ""] + detail_lines).strip() if entry else ""
+          modrinth_data = {
+              "name": version,
+              "version_number": version,
+              "changelog": changelog_body,
+              "dependencies": [
+                  {"project_id": "P7dR8mSH", "dependency_type": "required"},
+              ],
+              "game_versions": [minecraft_version],
+              "version_type": "release",
+              "loaders": ["fabric"],
+              "featured": False,
+              "status": "listed",
+              "project_id": "CY3ponKT",
+              "file_parts": ["primary", "sources"],
+              "primary_file": "primary",
+          }
+          Path("modrinth-data.json").write_text(
+              json.dumps(modrinth_data, indent=2) + "\n",
+              encoding="utf-8",
+          )
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"minecraft_version={minecraft_version}\n")
+              out.write(f"release_version={version}\n")
+              out.write("summary<<EOF\n")
+              out.write(f"{summary}\n")
+              out.write("EOF\n")
           PY
 
       - name: Create GitHub Release
@@ -96,3 +143,91 @@ jobs:
           fail_on_unmatched_files: true
           draft: false
           prerelease: false
+
+      - name: Publish to Modrinth
+        id: modrinth
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          MOD_VERSION: ${{ steps.version.outputs.mod_version }}
+        run: |
+          set -euo pipefail
+          if [ -z "${MODRINTH_TOKEN:-}" ]; then
+            echo "MODRINTH_TOKEN secret is not set" >&2
+            exit 1
+          fi
+          JAR="build/libs/dwm-${MOD_VERSION}.jar"
+          SOURCES="build/libs/dwm-${MOD_VERSION}-sources.jar"
+          if [ ! -f "$JAR" ] || [ ! -f "$SOURCES" ]; then
+            echo "Missing build artifacts: $JAR and/or $SOURCES" >&2
+            exit 1
+          fi
+          RESPONSE=$(curl -fsS -X POST "https://api.modrinth.com/v2/version" \
+            -H "Authorization: ${MODRINTH_TOKEN}" \
+            -H "User-Agent: adam-k-ali/DWM (https://github.com/adam-k-ali/DWM)" \
+            -F "data=@modrinth-data.json;type=application/json" \
+            -F "primary=@${JAR}" \
+            -F "sources=@${SOURCES}")
+          echo "$RESPONSE" | tee modrinth-response.json
+          VERSION_ID=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])' <<<"$RESPONSE")
+          VERSION_URL="https://modrinth.com/mod/the-doctor-who-mod/version/${VERSION_ID}"
+          echo "modrinth_version_id=${VERSION_ID}" >> "$GITHUB_OUTPUT"
+          echo "modrinth_version_url=${VERSION_URL}" >> "$GITHUB_OUTPUT"
+          echo "Published Modrinth version: ${VERSION_URL}"
+
+      - name: Announce on Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RELEASE_VERSION: ${{ steps.notes.outputs.release_version }}
+          MINECRAFT_VERSION: ${{ steps.notes.outputs.minecraft_version }}
+          SUMMARY: ${{ steps.notes.outputs.summary }}
+          MODRINTH_VERSION_URL: ${{ steps.modrinth.outputs.modrinth_version_url }}
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+          import urllib.error
+          import urllib.request
+
+          webhook = os.environ.get("DISCORD_WEBHOOK_URL", "").strip()
+          if not webhook:
+              raise SystemExit("DISCORD_WEBHOOK_URL secret is not set")
+
+          release_version = os.environ["RELEASE_VERSION"]
+          minecraft_version = os.environ["MINECRAFT_VERSION"]
+          summary = os.environ["SUMMARY"].strip()
+          modrinth_url = os.environ["MODRINTH_VERSION_URL"]
+          if not summary:
+              raise SystemExit("Release summary is empty")
+
+          # Discord embed description max length
+          if len(summary) > 4096:
+              summary = summary[:4093] + "..."
+
+          payload = {
+              "embeds": [
+                  {
+                      "title": f"New Release: {release_version}",
+                      "url": modrinth_url,
+                      "description": summary,
+                      "color": 1911355,
+                      "footer": {"text": f"Fabric · Minecraft {minecraft_version}"},
+                      "thumbnail": {
+                          "url": "https://cdn.modrinth.com/data/CY3ponKT/03858742885c853698edb03ac20d719e38575f8e_96.webp"
+                      },
+                  }
+              ]
+          }
+          data = json.dumps(payload).encode("utf-8")
+          req = urllib.request.Request(
+              webhook,
+              data=data,
+              headers={"Content-Type": "application/json"},
+              method="POST",
+          )
+          try:
+              with urllib.request.urlopen(req) as resp:
+                  print(f"Discord webhook status: {resp.status}")
+          except urllib.error.HTTPError as exc:
+              body = exc.read().decode("utf-8", errors="replace")
+              raise SystemExit(f"Discord webhook failed ({exc.code}): {body}") from exc
+          PY

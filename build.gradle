@@ -89,7 +89,8 @@ def versionJsonFile = file("version.json")
 
 /**
  * Rewrites version.json promos from gradle.properties and stubs an empty changelog
- * section for the current mod_version when missing. Changelog bullets stay hand-written.
+ * section for the current mod_version when missing (summary + added/changed/removed).
+ * Changelog bullets and summary stay hand-written.
  * Run after bumping mod_version / minecraft_version: ./gradlew syncVersionJson
  */
 tasks.register("syncVersionJson") {
@@ -121,7 +122,7 @@ tasks.register("syncVersionJson") {
 
         def mcMap = root[mc] as Map
         if (!mcMap.containsKey(mv)) {
-            def stub = [added: [], changed: [], removed: []] as LinkedHashMap
+            def stub = [summary: "", added: [], changed: [], removed: []] as LinkedHashMap
             def reorderedMc = new LinkedHashMap()
             reorderedMc[mv] = stub
             mcMap.each { k, v -> reorderedMc[k] = v }
@@ -172,7 +173,15 @@ tasks.register("checkVersionSync") {
         if (!(root[mc] instanceof Map) || !((root[mc] as Map).containsKey(mv))) {
             throw new GradleException(
                     "version.json is missing changelog for ${mc}/${mv}. " +
-                            "Run ./gradlew syncVersionJson and fill in added/changed/removed."
+                            "Run ./gradlew syncVersionJson and fill in summary/added/changed/removed."
+            )
+        }
+        def entry = (root[mc] as Map)[mv]
+        def summary = entry instanceof Map ? entry.summary : null
+        if (!(summary instanceof String) || summary.trim().isEmpty()) {
+            throw new GradleException(
+                    "version.json changelog for ${mc}/${mv} is missing a non-blank summary. " +
+                            "Fill in summary for Discord/GitHub/Modrinth release notes."
             )
         }
         def promos = root.promos instanceof Map ? root.promos as Map : null
