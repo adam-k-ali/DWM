@@ -1,5 +1,6 @@
 package com.adamkali.dwm.tardis.logic;
 
+import com.adamkali.dwm.world.DWMBiomeTags;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.BiomeTags;
@@ -22,6 +23,7 @@ class BiomeSelectorLogicTest {
         assertEquals(Optional.of(BiomeTags.IS_OVERWORLD), BiomeSelectorLogic.tagForDimension("minecraft:overworld"));
         assertEquals(Optional.of(BiomeTags.IS_NETHER), BiomeSelectorLogic.tagForDimension("minecraft:the_nether"));
         assertEquals(Optional.of(BiomeTags.IS_END), BiomeSelectorLogic.tagForDimension("minecraft:the_end"));
+        assertEquals(Optional.of(DWMBiomeTags.IS_GALLIFREY), BiomeSelectorLogic.tagForDimension("dwm:gallifrey"));
         assertTrue(BiomeSelectorLogic.tagForDimension("dwm:tardis").isEmpty());
         assertTrue(BiomeSelectorLogic.tagForDimension(null).isEmpty());
         assertTrue(BiomeSelectorLogic.tagForDimension("").isEmpty());

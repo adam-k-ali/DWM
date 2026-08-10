@@ -194,6 +194,10 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
     }
 
     private static void addMisc(TranslationBuilder t) {
+        t.add("dimension.dwm.gallifrey", "Gallifrey");
+        t.add("biome.dwm.gallifrey_plains", "Gallifrey Plains");
+        t.add("biome.dwm.gallifrey_forest", "Gallifrey Forest");
+        t.add("biome.dwm.gallifrey_wastes", "Gallifrey Wastes");
         t.add("dwm.console.biome_selector", "Biome selector");
         t.add("dwm.console.biome_selected", "Biome: %s");
         t.add("dwm.console.biome_unavailable", "No biomes available for this dimension");
