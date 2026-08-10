@@ -2,7 +2,6 @@ package com.adamkali.dwm.render;
 
 import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
-import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.model.tileentity.FifthDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.FirstDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.FourthDoctorTardisModel;
@@ -12,11 +11,11 @@ import com.adamkali.dwm.model.tileentity.SixthDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.TTCapsuleModel;
 import com.adamkali.dwm.model.tileentity.TardisModel;
 import com.adamkali.dwm.model.tileentity.ThirdDoctorTardisModel;
+import com.adamkali.dwm.render.boti.TardisBotiRenderer;
 import com.adamkali.dwm.render.state.TardisBlockEntityRenderState;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
-import com.adamkali.dwm.tardis.interior.TardisBotiGate;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -78,7 +77,7 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         state.rotationDegrees = RotationSegment.convertToDegrees(rotation);
         state.partialTicks = partialTicks;
         state.tardisId = entity.getTardisId();
-        state.shouldRenderBoti = shouldRenderBoti(doorState);
+        state.shouldRenderBoti = TardisBotiRenderer.shouldRender(doorState);
     }
 
     @Override
@@ -97,11 +96,26 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         TardisRenderState animState = new TardisRenderState();
         animState.setDoorSwingProgress(state.doorSwing);
 
-        if (state.shouldRenderBoti) {
-            // TODO(boti): restore shell → BOTI → doors once TardisBotiRenderer accepts SubmitNodeCollector.
-            submitBotiPlaceholder(state, poseStack, submitNodeCollector);
+        if (state.shouldRenderBoti && state.tardisId != null) {
+            // Shell → BOTI → doors so swung doors draw over the interior preview.
+            submitShell(model, animState, poseStack, submitNodeCollector, texture, state);
+
+            poseStack.pushPose();
+            applyExteriorTransforms(poseStack, state.rotationDegrees);
+            TardisBotiRenderer.render(
+                    poseStack,
+                    submitNodeCollector,
+                    camera,
+                    state.partialTicks,
+                    state.tardisId,
+                    state.variant
+            );
+            poseStack.popPose();
+
+            submitDoors(model, animState, poseStack, submitNodeCollector, texture, state);
+        } else {
+            submitExterior(model, animState, poseStack, submitNodeCollector, texture, state);
         }
-        submitExterior(model, animState, poseStack, submitNodeCollector, texture, state);
     }
 
     @Override
@@ -127,29 +141,62 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
                 RenderTypes.entityCutout(texture),
                 state.lightCoords,
                 OverlayTexture.NO_OVERLAY,
-                0,
+                -1,
                 state.breakProgress);
         poseStack.popPose();
     }
 
     /**
-     * Compile-safe BOTI stand-in. Sibling agents own {@code render/boti/**}; re-hook when their
-     * submit-era API is ready.
+     * Shell without door leaves. Uses {@link SubmitNodeCollector#submitCustomGeometry} so door
+     * visibility can be toggled at flush time (deferred {@code submitModel} would see restored parts).
      */
-    // TODO(boti): call TardisBotiRenderer with SubmitNodeCollector once available.
-    private static void submitBotiPlaceholder(
-            TardisBlockEntityRenderState state,
+    private void submitShell(
+            TardisModel model,
+            TardisRenderState animState,
             PoseStack poseStack,
-            SubmitNodeCollector submitNodeCollector
+            SubmitNodeCollector submitNodeCollector,
+            Identifier texture,
+            TardisBlockEntityRenderState state
     ) {
-        // no-op: MultiBufferSource / immediate flush path removed in 26.2 submit pipeline
+        poseStack.pushPose();
+        applyExteriorTransforms(poseStack, state.rotationDegrees);
+        int light = state.lightCoords;
+        submitNodeCollector.submitCustomGeometry(
+                poseStack,
+                RenderTypes.entityCutout(texture),
+                (pose, consumer) -> {
+                    PoseStack local = new PoseStack();
+                    local.last().set(pose);
+                    model.setupAnim(animState);
+                    model.renderShell(local, consumer, light, OverlayTexture.NO_OVERLAY);
+                });
+        poseStack.popPose();
     }
 
     /**
-     * Stencil support lives in the BOTI package (sibling-owned); gate on config + door state only here.
+     * Door leaves only, drawn after BOTI so open doors sit over the interior preview.
      */
-    private static boolean shouldRenderBoti(TardisDoorState doorState) {
-        return DWMConfig.getBoolean(DWMConfig.ENABLE_BOTI) && TardisBotiGate.shouldShow(doorState);
+    private void submitDoors(
+            TardisModel model,
+            TardisRenderState animState,
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            Identifier texture,
+            TardisBlockEntityRenderState state
+    ) {
+        poseStack.pushPose();
+        applyExteriorTransforms(poseStack, state.rotationDegrees);
+        int light = state.lightCoords;
+        submitNodeCollector.submitCustomGeometry(
+                poseStack,
+                RenderTypes.entityCutout(texture),
+                (pose, consumer) -> {
+                    PoseStack local = new PoseStack();
+                    local.last().set(pose);
+                    model.setupAnim(animState);
+                    model.renderDoors(local, consumer, light, OverlayTexture.NO_OVERLAY);
+                });
+        poseStack.popPose();
     }
 
     private static void applyExteriorTransforms(PoseStack matrices, float rotationDegrees) {

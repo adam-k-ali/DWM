@@ -57,7 +57,7 @@ public abstract class TardisModel extends EntityModel<TardisRenderState> {
             door.visible = false;
         }
         try {
-            this.renderToBuffer(matrices, vertices, light, overlay);
+            this.renderToBuffer(matrices, vertices, light, overlay, -1);
         } finally {
             for (ModelPart door : doors) {
                 door.visible = true;
