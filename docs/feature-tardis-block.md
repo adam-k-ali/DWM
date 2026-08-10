@@ -25,7 +25,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - `TardisBlockEntity` stores `interiorEntrance` / `interiorGenerated`.
 - Exterior return coordinates stored on `TardisDataModel` for exit teleports.
 - Collision entry when the exterior door is open (`doorSwing >= 0.9`); exit via open interior doors.
-- Config toggles `enableBoti` and `enableSoto` (default on) via Mod Menu / Cloth Config.
+- Config toggles `enableBoti` (default on) and experimental `enableSoto` (default off) via Mod Menu / Cloth Config.
 - Interior doors use an invisible block + dedicated BER (`TardisClassicInteriorDoorModel`) with swing animation.
 - Materialisation lever travel: first pull dematerialises the exterior; after a short hold the TARDIS enters `IN_FLIGHT`; a second pull materialises at the selected dimension/biome landing site.
 - First Doctor console Panel3 hosts a biome selector and planet locator (shared dial mesh); planet locator cycles loaded worlds except `dwm:tardis` and drives cross-dimension travel.
@@ -49,7 +49,8 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - May not work with Fabulous graphics or some Sodium / shader setups; disable via config if needed.
 
 ## SOTO Notes
-- Visual illusion: portal-composites a synced exterior footprint through the interior door aperture (not a live world stream); requires stencil + vanilla Fast/Fancy, disable via `enableSoto` if needed.
+- Experimental and opt-in via `enableSoto` (default off).
+- Visual illusion: portal-composites a synced exterior footprint through the interior door aperture (not a live world stream); requires stencil + vanilla Fast/Fancy.
 
 ## Known Constraints
 - Interior visuals use existing roundel/wall blocks; console props are simplified.

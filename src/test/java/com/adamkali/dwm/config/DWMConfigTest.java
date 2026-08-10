@@ -24,7 +24,7 @@ class DWMConfigTest {
     }
 
     @Test
-    void init_whenConfigIsEmpty_marksFirstStartTrueAndKeepsChameleonDisabledByDefault() {
+    void init_whenConfigIsEmpty_marksFirstStartTrueAndKeepsExperimentalFeaturesDisabledByDefault() {
         try (MockedStatic<DWMConfigManager> configManager = Mockito.mockStatic(DWMConfigManager.class)) {
             configManager.when(DWMConfigManager::load).thenReturn(new HashMap<>());
 
@@ -33,7 +33,7 @@ class DWMConfigTest {
             assertTrue(DWMConfig.getBoolean(DWMConfig.IS_FIRST_START));
             assertFalse(DWMConfig.getBoolean(DWMConfig.ENABLE_CHAMELEON_GUI));
             assertTrue(DWMConfig.getBoolean(DWMConfig.ENABLE_BOTI));
-            assertTrue(DWMConfig.getBoolean(DWMConfig.ENABLE_SOTO));
+            assertFalse(DWMConfig.getBoolean(DWMConfig.ENABLE_SOTO));
         }
     }
 
