@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.level.block.Blocks;
@@ -110,10 +109,11 @@ class BotiInteriorSamplerTest {
     void writeRelativePos_OverwritesPosList() {
         CompoundTag nbt = new CompoundTag();
         BotiInteriorSampler.writeRelativePos(nbt, 1.5f, 2.25f, 3.75f);
-        assertTrue(nbt.contains("Pos", Tag.TAG_LIST));
-        assertEquals(1.5, nbt.getList("Pos", Tag.TAG_DOUBLE).getDouble(0), 0.0001);
-        assertEquals(2.25, nbt.getList("Pos", Tag.TAG_DOUBLE).getDouble(1), 0.0001);
-        assertEquals(3.75, nbt.getList("Pos", Tag.TAG_DOUBLE).getDouble(2), 0.0001);
+        assertTrue(nbt.contains("Pos"));
+        var pos = nbt.getListOrEmpty("Pos");
+        assertEquals(1.5, pos.getDoubleOr(0, 0), 0.0001);
+        assertEquals(2.25, pos.getDoubleOr(1, 0), 0.0001);
+        assertEquals(3.75, pos.getDoubleOr(2, 0), 0.0001);
     }
 
     @Test
@@ -124,9 +124,9 @@ class BotiInteriorSamplerTest {
         nbt.putInt("TileY", 66);
         nbt.putInt("TileZ", 151171);
         BotiInteriorSampler.writeRelativeAttachment(nbt, origin);
-        assertEquals(6, nbt.getInt("TileX"));
-        assertEquals(2, nbt.getInt("TileY"));
-        assertEquals(3, nbt.getInt("TileZ"));
+        assertEquals(6, nbt.getIntOr("TileX", 0));
+        assertEquals(2, nbt.getIntOr("TileY", 0));
+        assertEquals(3, nbt.getIntOr("TileZ", 0));
     }
 
     @Test

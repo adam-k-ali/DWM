@@ -29,9 +29,9 @@ class PlanetLocatorLogicTest {
         List<ResourceKey<Level>> filtered = PlanetLocatorLogic.filterTravelDimensions(input);
 
         assertEquals(3, filtered.size());
-        assertEquals("minecraft:overworld", filtered.get(0).location().toString());
-        assertEquals("minecraft:the_end", filtered.get(1).location().toString());
-        assertEquals("minecraft:the_nether", filtered.get(2).location().toString());
+        assertEquals("minecraft:overworld", filtered.get(0).identifier().toString());
+        assertEquals("minecraft:the_end", filtered.get(1).identifier().toString());
+        assertEquals("minecraft:the_nether", filtered.get(2).identifier().toString());
         assertFalse(filtered.contains(TardisDimensions.TARDIS_WORLD_KEY));
     }
 
@@ -51,23 +51,23 @@ class PlanetLocatorLogicTest {
         );
 
         assertEquals(
-                Optional.of(),
+                Optional.of(Level.OVERWORLD.identifier()),
                 PlanetLocatorLogic.nextDimension(null, dims)
         );
         assertEquals(
-                Optional.of(),
+                Optional.of(Level.NETHER.identifier()),
                 PlanetLocatorLogic.nextDimension("minecraft:overworld", dims)
         );
         assertEquals(
-                Optional.of(),
+                Optional.of(Level.END.identifier()),
                 PlanetLocatorLogic.nextDimension("minecraft:the_nether", dims)
         );
         assertEquals(
-                Optional.of(),
+                Optional.of(Level.OVERWORLD.identifier()),
                 PlanetLocatorLogic.nextDimension("minecraft:the_end", dims)
         );
         assertEquals(
-                Optional.of(),
+                Optional.of(Level.OVERWORLD.identifier()),
                 PlanetLocatorLogic.nextDimension("minecraft:unknown", dims)
         );
     }

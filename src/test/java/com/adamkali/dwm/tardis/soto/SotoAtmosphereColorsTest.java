@@ -88,12 +88,12 @@ class SotoAtmosphereColorsTest {
     @Test
     void fogColor_netherUnadjustedBySun() {
         Vec3 day = SotoAtmosphereColors.adjustFogColor(
-                Vec3.fromRGB24(0x330808),
+                new Vec3(ARGB.vector3fFromRGB24(0x330808)),
                 SotoAtmosphereColors.EffectsKind.NETHER,
                 1.0f
         );
         Vec3 night = SotoAtmosphereColors.adjustFogColor(
-                Vec3.fromRGB24(0x330808),
+                new Vec3(ARGB.vector3fFromRGB24(0x330808)),
                 SotoAtmosphereColors.EffectsKind.NETHER,
                 0.0f
         );

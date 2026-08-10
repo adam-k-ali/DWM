@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.Blocks;
@@ -82,7 +83,7 @@ class BotiRelativePosCodecTest {
         assertEquals(1, payload.blockEntities().size());
         Map<BlockPos, CompoundTag> decoded = payload.toBlockEntityMap();
         assertEquals(1, decoded.size());
-        assertEquals("minecraft:chest", decoded.get(chestPos).getString("id"));
+        assertEquals("minecraft:chest", decoded.get(chestPos).getString("id").orElseThrow());
 
         BlockEntity rebuilt = BlockEntity.loadStatic(chestPos, chestState, decoded.get(chestPos), registries);
         assertNotNull(rebuilt);
@@ -94,7 +95,7 @@ class BotiRelativePosCodecTest {
         BlockPos pos = new BlockPos(1, 1, 1);
         ChestBlockEntity chest = new ChestBlockEntity(pos, Blocks.CHEST.defaultBlockState());
         CompoundTag nbt = BotiInteriorSampler.captureSyncNbt(chest, registries);
-        assertEquals("minecraft:chest", nbt.getString("id"));
+        assertEquals("minecraft:chest", nbt.getString("id").orElseThrow());
     }
 
     @Test
@@ -105,7 +106,7 @@ class BotiRelativePosCodecTest {
         );
         CompoundTag entityNbt = new CompoundTag();
         entityNbt.putString("id", "minecraft:armor_stand");
-        entityNbt.putUUID(BotiEntitySample.BOTI_PROFILE_ID, UUID.randomUUID()); // ignored for non-players
+        entityNbt.store(BotiEntitySample.BOTI_PROFILE_ID, UUIDUtil.CODEC, UUID.randomUUID()); // ignored for non-players
         BotiInteriorSampler.writeRelativePos(entityNbt, 5.5f, 1.0f, 2.25f);
 
         BotiEntitySample sample = new BotiEntitySample(5.5f, 1.0f, 2.25f, 90f, 10f, entityNbt);
@@ -129,7 +130,7 @@ class BotiRelativePosCodecTest {
         assertEquals(2.25f, roundTrip.relZ(), 0.0001f);
         assertEquals(90f, roundTrip.yaw(), 0.0001f);
         assertEquals(10f, roundTrip.pitch(), 0.0001f);
-        assertEquals("minecraft:armor_stand", roundTrip.nbt().getString("id"));
+        assertEquals("minecraft:armor_stand", roundTrip.nbt().getString("id").orElseThrow());
     }
 
     @Test
