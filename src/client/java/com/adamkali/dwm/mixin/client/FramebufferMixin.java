@@ -1,107 +1,65 @@
 package com.adamkali.dwm.mixin.client;
 
 import com.adamkali.dwm.render.boti.BotiStencilSupport;
-import com.adamkali.dwm.render.soto.portal.SotoPortalRenderTarget;
+import com.mojang.blaze3d.GpuFormat;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.platform.GlStateManager;
-import org.lwjgl.opengl.GL30;
+import com.mojang.blaze3d.systems.GpuDevice;
+import com.mojang.blaze3d.textures.GpuTexture;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.nio.IntBuffer;
-import net.minecraft.client.Minecraft;
+import java.util.function.Supplier;
 
 /**
  * Upgrades depth attachments to depth+stencil so exterior BOTI can mask the door aperture.
  * <p>
- * Some drivers (notably macOS) accept {@code GL_DEPTH_STENCIL_ATTACHMENT} but still report
- * zero stencil bits; attaching the same packed texture to both depth and stencil slots is more
- * reliable.
+ * Minecraft 26.2 allocates framebuffer depth via {@link GpuDevice#createTexture} with
+ * {@link GpuFormat#D32_FLOAT}. This mixin swaps that format for {@link GpuFormat#D24_UNORM_S8_UINT}
+ * so the default OpenGL backend still exposes a stencil aspect.
  * <p>
- * During the SOTO portal offscreen pass, redirects the main framebuffer's {@code bindWrite} to
- * the portal target. {@code RenderPhase.MAIN_TARGET} otherwise steals the draw buffer before each
- * ghost mesh / entity draw.
+ * <b>SOTO sibling note:</b> the previous {@code bindWrite} redirect for portal MAIN_TARGET
+ * theft is gone — {@link RenderTarget} no longer has {@code bindWrite}. Portal offscreen
+ * redirect must be re-homed onto the 26.2 texture-view / RenderPass MAIN_TARGET path in
+ * {@code render/soto/portal/**}; do not reintroduce a broken {@code bindWrite} inject here.
  */
 @Mixin(RenderTarget.class)
 public abstract class FramebufferMixin {
-    private static final int GL_DEPTH_COMPONENT = 6402;
-
-    @Inject(method = "bindWrite", at = @At("HEAD"), cancellable = true)
-    private void dwm$redirectMainToPortalDuringPass(boolean setViewport, CallbackInfo ci) {
-        if (!SotoPortalRenderTarget.isPortalPassActive() || SotoPortalRenderTarget.isRedirectingMainWrite()) {
-            return;
-        }
-        Minecraft client = Minecraft.getInstance();
-        if (client != null && client.getMainRenderTarget() == (Object) this) {
-            SotoPortalRenderTarget.redirectMainBeginWrite(setViewport);
-            ci.cancel();
-        }
-    }
-
     @Redirect(
             method = "createBuffers",
             at = @At(
                     value = "INVOKE",
-                    target = "Lcom/mojang/blaze3d/platform/GlStateManager;_texImage2D(IIIIIIIILjava/nio/IntBuffer;)V"
+                    target = "Lcom/mojang/blaze3d/systems/GpuDevice;createTexture(Ljava/util/function/Supplier;ILcom/mojang/blaze3d/GpuFormat;IIII)Lcom/mojang/blaze3d/textures/GpuTexture;"
             )
     )
-    private void dwm$depthStencilTexImage(
-            int target,
-            int level,
-            int internalFormat,
+    private GpuTexture dwm$depthStencilTexture(
+            GpuDevice device,
+            Supplier<String> label,
+            int usage,
+            GpuFormat format,
             int width,
             int height,
-            int border,
-            int format,
-            int type,
-            IntBuffer pixels
+            int depth,
+            int mipLevels
     ) {
-        if (internalFormat == GL_DEPTH_COMPONENT && format == GL_DEPTH_COMPONENT) {
+        if (format == GpuFormat.D32_FLOAT) {
             BotiStencilSupport.clearDepthStencilTextureReady();
             try {
-                GlStateManager._texImage2D(
-                        target,
-                        level,
-                        GL30.GL_DEPTH24_STENCIL8,
+                GpuTexture texture = device.createTexture(
+                        label,
+                        usage,
+                        GpuFormat.D24_UNORM_S8_UINT,
                         width,
                         height,
-                        border,
-                        GL30.GL_DEPTH_STENCIL,
-                        GL30.GL_UNSIGNED_INT_24_8,
-                        null
+                        depth,
+                        mipLevels
                 );
                 BotiStencilSupport.markDepthStencilTextureReady();
-                return;
+                return texture;
             } catch (Throwable t) {
                 BotiStencilSupport.disableForSession("Failed to allocate depth+stencil texture", t);
             }
         }
-        GlStateManager._texImage2D(target, level, internalFormat, width, height, border, format, type, pixels);
-    }
-
-    @Redirect(
-            method = "createBuffers",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lcom/mojang/blaze3d/platform/GlStateManager;_glFramebufferTexture2D(IIIII)V"
-            )
-    )
-    private void dwm$depthStencilAttachment(int target, int attachment, int textureTarget, int texture, int level) {
-        if (attachment == GL30.GL_DEPTH_ATTACHMENT && BotiStencilSupport.isDepthStencilTextureReady()) {
-            try {
-                // Dual-attach packed depth+stencil texture (more reliable than DEPTH_STENCIL_ATTACHMENT alone).
-                GlStateManager._glFramebufferTexture2D(
-                        target, GL30.GL_DEPTH_ATTACHMENT, textureTarget, texture, level);
-                GlStateManager._glFramebufferTexture2D(
-                        target, GL30.GL_STENCIL_ATTACHMENT, textureTarget, texture, level);
-                return;
-            } catch (Throwable t) {
-                BotiStencilSupport.disableForSession("Failed to attach depth+stencil buffer", t);
-            }
-        }
-        GlStateManager._glFramebufferTexture2D(target, attachment, textureTarget, texture, level);
+        return device.createTexture(label, usage, format, width, height, depth, mipLevels);
     }
 }

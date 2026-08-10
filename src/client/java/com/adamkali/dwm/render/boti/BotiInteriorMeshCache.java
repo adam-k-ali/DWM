@@ -8,35 +8,41 @@ import com.adamkali.dwm.render.boti.BotiEntityMotion.LerpedPose;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.mojang.authlib.GameProfile;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.RemotePlayer;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.MovingBlockRenderState;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EntityTypes;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.EntitySpawnReason;
-import net.minecraft.world.entity.decoration.BlockAttachedEntity;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.Util;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.util.Util;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityProcessor;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntitySpawnRequest;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.decoration.BlockAttachedEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.ValueInput;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -209,42 +215,60 @@ public final class BotiInteriorMeshCache {
         blueprintBlockEntities = null;
     }
 
+    /**
+     * Submits BOTI interior blocks / block entities / entities into the BER collector.
+     */
     public static void render(
             PoseStack matrices,
-            MultiBufferSource vertexConsumers,
+            SubmitNodeCollector submitNodeCollector,
+            CameraRenderState cameraState,
             int light,
             float tickDelta,
             UUID tardisId
     ) {
-        BlockRenderDispatcher blockRenderManager = Minecraft.getInstance().getBlockRenderer();
+        Minecraft client = Minecraft.getInstance();
+        Level world = client.level;
+
         for (Map.Entry<BlockPos, BlockState> entry : getVisibleBlocks(tardisId).entrySet()) {
             BlockPos pos = entry.getKey();
             matrices.pushPose();
             matrices.translate(pos.getX(), pos.getY(), pos.getZ());
-            blockRenderManager.renderSingleBlock(entry.getValue(), matrices, vertexConsumers, light, OverlayTexture.NO_OVERLAY);
+            MovingBlockRenderState moving = new MovingBlockRenderState();
+            moving.randomSeedPos = pos;
+            moving.blockPos = pos;
+            moving.blockState = entry.getValue();
+            if (world instanceof ClientLevel clientLevel) {
+                moving.biome = clientLevel.getBiome(pos);
+                moving.cardinalLighting = clientLevel.cardinalLighting();
+                moving.lightEngine = clientLevel.getLightEngine();
+            }
+            submitNodeCollector.submitMovingBlock(matrices, moving, 0);
             matrices.popPose();
         }
 
-        BlockEntityRenderDispatcher beDispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
+        BlockEntityRenderDispatcher beDispatcher = client.getBlockEntityRenderDispatcher();
         for (BlockEntity blockEntity : getBlockEntities(tardisId)) {
             @SuppressWarnings("unchecked")
-            BlockEntityRenderer<BlockEntity> renderer =
-                    (BlockEntityRenderer<BlockEntity>) beDispatcher.getRenderer(blockEntity);
+            BlockEntityRenderer<BlockEntity, BlockEntityRenderState> renderer =
+                    (BlockEntityRenderer<BlockEntity, BlockEntityRenderState>) beDispatcher.getRenderer(blockEntity);
             if (renderer == null) {
                 continue;
             }
+            BlockEntityRenderState state = beDispatcher.tryExtractRenderState(blockEntity, tickDelta, null, false);
+            if (state == null) {
+                continue;
+            }
+            state.lightCoords = light;
             BlockPos pos = blockEntity.getBlockPos();
             matrices.pushPose();
             matrices.translate(pos.getX(), pos.getY(), pos.getZ());
-            renderer.render(blockEntity, tickDelta, matrices, vertexConsumers, light, OverlayTexture.NO_OVERLAY);
+            beDispatcher.submit(state, matrices, submitNodeCollector, cameraState);
             matrices.popPose();
         }
 
-        Minecraft client = Minecraft.getInstance();
         EntityRenderDispatcher entityDispatcher = client.getEntityRenderDispatcher();
-        Level world = client.level;
         if (world != null) {
-            entityDispatcher.prepare(world, client.gameRenderer.getMainCamera(), client.player);
+            entityDispatcher.prepare(client.gameRenderer.mainCamera(), client.player);
         }
         List<Entity> entities = getEntities(tardisId);
         CachedSnapshot cached = tardisId == null ? null : SNAPSHOTS.get(tardisId);
@@ -266,15 +290,18 @@ public final class BotiInteriorMeshCache {
                     snapLivingYaw(living, pose.yaw());
                 }
             }
-            entityDispatcher.render(
-                    entity,
+            EntityRenderState entityState = entityDispatcher.extractEntity(entity, tickDelta);
+            if (entityState == null) {
+                continue;
+            }
+            entityDispatcher.submit(
+                    entityState,
+                    cameraState,
                     x,
                     y,
                     z,
-                    tickDelta,
                     matrices,
-                    vertexConsumers,
-                    light
+                    submitNodeCollector
             );
         }
     }
@@ -360,13 +387,15 @@ public final class BotiInteriorMeshCache {
             return null;
         }
         CompoundTag nbt = sample.nbt();
-        if (nbt.hasUUID("UUID")) {
-            return nbt.getUUID("UUID");
+        UUID uuid = readUuid(nbt, "UUID");
+        if (uuid != null) {
+            return uuid;
         }
-        if (nbt.hasUUID(BotiEntitySample.BOTI_PROFILE_ID)) {
-            return nbt.getUUID(BotiEntitySample.BOTI_PROFILE_ID);
-        }
-        return null;
+        return readUuid(nbt, BotiEntitySample.BOTI_PROFILE_ID);
+    }
+
+    private static UUID readUuid(CompoundTag nbt, String key) {
+        return nbt.read(key, UUIDUtil.CODEC).orElse(null);
     }
 
     private static void updateSyntheticPose(
@@ -392,7 +421,7 @@ public final class BotiInteriorMeshCache {
             float speed = BotiEntityMotion.limbSpeed(next.fromX(), next.fromZ(), next.toX(), next.toZ());
             living.walkAnimation.update(speed, 0.4f, living.isBaby() ? 3.0f : 1.0f);
         }
-        entity.moveTo(sample.relX(), sample.relY(), sample.relZ(), sample.yaw(), sample.pitch());
+        entity.snapTo(sample.relX(), sample.relY(), sample.relZ(), sample.yaw(), sample.pitch());
         if (entity instanceof LivingEntity living) {
             snapLivingYaw(living, sample.yaw());
         }
@@ -415,24 +444,32 @@ public final class BotiInteriorMeshCache {
         }
         try {
             CompoundTag nbt = sample.nbt();
-            String id = nbt.getString("id");
+            String id = nbt.getStringOr("id", "");
             Entity entity;
             if (PLAYER_ENTITY_ID.equals(id)) {
-                if (!(world instanceof ClientLevel clientWorld) || !nbt.hasUUID(BotiEntitySample.BOTI_PROFILE_ID)) {
+                if (!(world instanceof ClientLevel clientWorld)) {
                     return null;
                 }
-                UUID profileId = nbt.getUUID(BotiEntitySample.BOTI_PROFILE_ID);
-                String name = nbt.getString(BotiEntitySample.BOTI_PROFILE_NAME);
-                GameProfile profile = new GameProfile(profileId, name == null ? "" : name);
+                UUID profileId = readUuid(nbt, BotiEntitySample.BOTI_PROFILE_ID);
+                if (profileId == null) {
+                    return null;
+                }
+                String name = nbt.getStringOr(BotiEntitySample.BOTI_PROFILE_NAME, "");
+                GameProfile profile = new GameProfile(profileId, name);
                 RemotePlayer player = new RemotePlayer(clientWorld, profile);
-                player.load(nbt);
+                ValueInput input = TagValueInput.create(ProblemReporter.DISCARDING, world.registryAccess(), nbt);
+                player.load(input);
                 entity = player;
             } else {
-                Optional<Entity> loaded = EntityType.create(nbt, world, EntitySpawnReason.LOAD);
-                if (loaded.isEmpty()) {
+                entity = EntityType.loadEntityRecursive(
+                        nbt,
+                        world,
+                        new EntitySpawnRequest(EntitySpawnReason.LOAD, true),
+                        EntityProcessor.NOP
+                );
+                if (entity == null) {
                     return null;
                 }
-                entity = loaded.get();
             }
             if (entity instanceof BlockAttachedEntity) {
                 // Pos/Tile already plot-relative; refreshPositionAndAngles → setPosition would
@@ -441,7 +478,7 @@ public final class BotiInteriorMeshCache {
                 entity.setXRot(sample.pitch());
                 entity.setOldPosAndRot();
             } else {
-                entity.moveTo(sample.relX(), sample.relY(), sample.relZ(), sample.yaw(), sample.pitch());
+                entity.snapTo(sample.relX(), sample.relY(), sample.relZ(), sample.yaw(), sample.pitch());
                 if (entity instanceof LivingEntity living) {
                     snapLivingYaw(living, sample.yaw());
                 }

@@ -6,28 +6,37 @@ import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisBotiGate;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
 import java.util.UUID;
-import net.minecraft.client.renderer.CoreShaders;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.util.LightCoordsUtil;
 
 /**
  * Stencil-masked exterior BOTI: draws a synced (or blueprint-fallback) console room through the open door.
+ * <p>
+ * <b>Public BER API (Minecraft 26.2):</b>
+ * {@code TardisBotiRenderer.render(PoseStack, SubmitNodeCollector, CameraRenderState, float, UUID, TardisChameleonVariant)}
+ * <p>
+ * Immediate RenderSystem stencil/depth helpers are gone; depth/cull/color use
+ * {@link GlStateManager}, stencil uses LWJGL {@link GL11}. Aperture quads and interior geometry
+ * are submitted through {@link SubmitNodeCollector} ({@code submitCustomGeometry} /
+ * moving-block / BE / entity submit). Visual stencil ordering against deferred feature phases
+ * is deferred to MCP verification.
  */
 public final class TardisBotiRenderer {
     private static final int STENCIL_REF = 1;
-    private static final int FULLBRIGHT = LightTexture.pack(15, 15);
+    private static final int FULLBRIGHT = LightCoordsUtil.pack(15, 15);
+    /** RGBA write enable mask for {@code GlStateManager._colorMask(int)}. */
+    private static final int COLOR_MASK_ALL = 0xF;
+    private static final int COLOR_MASK_NONE = 0x0;
 
     /** Interior door opening center (local structure coords). */
     static final double INTERIOR_DOOR_CENTER_X = 5.5;
@@ -46,33 +55,32 @@ public final class TardisBotiRenderer {
 
     /**
      * Renders BOTI into the current BER matrix stack (caller must already have applied exterior
-     * model transforms). Flushes {@code vertexConsumers} when it is an Immediate provider.
+     * model transforms). Submits aperture + interior into {@code submitNodeCollector}.
      */
     public static void render(
             PoseStack matrices,
-            MultiBufferSource vertexConsumers,
+            SubmitNodeCollector submitNodeCollector,
+            CameraRenderState cameraState,
             float tickDelta,
             UUID tardisId,
             TardisChameleonVariant variant
     ) {
         TardisBotiAperture aperture = variant.getAperture();
-        flush(vertexConsumers);
 
         matrices.pushPose();
         try {
-            writeStencilMask(matrices, aperture);
+            writeStencilMask(matrices, submitNodeCollector, aperture);
             // Far depth in the mask so block-layer LEQUAL draws accept interior behind the door.
-            clearDepthInMaskToFar(matrices, aperture);
+            clearDepthInMaskToFar(matrices, submitNodeCollector, aperture);
 
             GL11.glEnable(GL11.GL_STENCIL_TEST);
-            RenderSystem.stencilFunc(GL11.GL_EQUAL, STENCIL_REF, 0xFF);
-            RenderSystem.stencilMask(0x00);
-            RenderSystem.enableDepthTest();
-            RenderSystem.depthFunc(GL11.GL_LEQUAL);
-            RenderSystem.depthMask(true);
-            drawInterior(matrices, vertexConsumers, tickDelta, tardisId, aperture);
-            flush(vertexConsumers);
-            sealApertureDepth(matrices, aperture);
+            GL11.glStencilFunc(GL11.GL_EQUAL, STENCIL_REF, 0xFF);
+            GL11.glStencilMask(0x00);
+            GlStateManager._enableDepthTest();
+            GlStateManager._depthFunc(GL11.GL_LEQUAL);
+            GlStateManager._depthMask(true);
+            drawInterior(matrices, submitNodeCollector, cameraState, tickDelta, tardisId, aperture);
+            sealApertureDepth(matrices, submitNodeCollector, aperture);
         } catch (Throwable t) {
             BotiStencilSupport.disableForSession("BOTI render failed", t);
         } finally {
@@ -81,77 +89,88 @@ public final class TardisBotiRenderer {
         }
     }
 
-    private static void writeStencilMask(PoseStack matrices, TardisBotiAperture aperture) {
+    private static void writeStencilMask(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            TardisBotiAperture aperture
+    ) {
         GL11.glEnable(GL11.GL_STENCIL_TEST);
-        RenderSystem.stencilMask(0xFF);
-        RenderSystem.clearStencil(0);
+        GL11.glStencilMask(0xFF);
+        GL11.glClearStencil(0);
         GL11.glClear(GL11.GL_STENCIL_BUFFER_BIT);
 
-        RenderSystem.stencilFunc(GL11.GL_ALWAYS, STENCIL_REF, 0xFF);
+        GL11.glStencilFunc(GL11.GL_ALWAYS, STENCIL_REF, 0xFF);
         // Only stamp stencil where the aperture passes the existing depth buffer (shell/world).
         // REPLACE on depth-fail would x-ray through the exterior from behind.
-        RenderSystem.stencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_REPLACE);
-        // Keep colorMask true: some drivers skip stencil updates when color+depth writes are off.
-        RenderSystem.colorMask(true, true, true, true);
-        RenderSystem.depthMask(false);
-        RenderSystem.enableDepthTest();
-        RenderSystem.depthFunc(GL11.GL_LEQUAL);
+        GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_REPLACE);
+        // Keep color writes on: some drivers skip stencil updates when color+depth writes are off.
+        GlStateManager._colorMask(COLOR_MASK_ALL);
+        GlStateManager._depthMask(false);
+        GlStateManager._enableDepthTest();
+        GlStateManager._depthFunc(GL11.GL_LEQUAL);
         // Keep cull on so the back-facing aperture (rear / inside-looking-out) does not stamp.
 
-        RenderSystem.setShaderColor(0.0f, 0.0f, 0.0f, 0.0f);
-        drawApertureQuad(matrices, aperture);
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+        drawApertureQuad(matrices, submitNodeCollector, aperture, 0x00000000);
 
-        RenderSystem.depthMask(true);
-        RenderSystem.stencilMask(0x00);
-        RenderSystem.stencilFunc(GL11.GL_EQUAL, STENCIL_REF, 0xFF);
-        RenderSystem.stencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_KEEP);
+        GlStateManager._depthMask(true);
+        GL11.glStencilMask(0x00);
+        GL11.glStencilFunc(GL11.GL_EQUAL, STENCIL_REF, 0xFF);
+        GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_KEEP);
     }
 
     /**
      * Clears depth in the stencil mask to the far plane so subsequent LEQUAL draws (block layers)
      * can render interior geometry behind the door aperture.
      */
-    private static void clearDepthInMaskToFar(PoseStack matrices, TardisBotiAperture aperture) {
-        RenderSystem.enableDepthTest();
-        RenderSystem.depthFunc(GL11.GL_ALWAYS);
-        RenderSystem.depthMask(true);
-        RenderSystem.colorMask(false, false, false, false);
+    private static void clearDepthInMaskToFar(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            TardisBotiAperture aperture
+    ) {
+        GlStateManager._enableDepthTest();
+        GlStateManager._depthFunc(GL11.GL_ALWAYS);
+        GlStateManager._depthMask(true);
+        GlStateManager._colorMask(COLOR_MASK_NONE);
         // Force written depth to 1.0 (far) regardless of aperture clip-space Z.
         // Restricted by stencil EQUAL from writeStencilMask — cull stays on.
         GL11.glDepthRange(1.0, 1.0);
-        drawApertureQuad(matrices, aperture);
+        drawApertureQuad(matrices, submitNodeCollector, aperture, 0x00000000);
         GL11.glDepthRange(0.0, 1.0);
-        RenderSystem.colorMask(true, true, true, true);
-        RenderSystem.depthFunc(GL11.GL_LEQUAL);
+        GlStateManager._colorMask(COLOR_MASK_ALL);
+        GlStateManager._depthFunc(GL11.GL_LEQUAL);
     }
 
-    private static void sealApertureDepth(PoseStack matrices, TardisBotiAperture aperture) {
-        RenderSystem.colorMask(false, false, false, false);
-        RenderSystem.depthMask(true);
-        RenderSystem.depthFunc(GL11.GL_ALWAYS);
+    private static void sealApertureDepth(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            TardisBotiAperture aperture
+    ) {
+        GlStateManager._colorMask(COLOR_MASK_NONE);
+        GlStateManager._depthMask(true);
+        GlStateManager._depthFunc(GL11.GL_ALWAYS);
         boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
         if (cullWasEnabled) {
-            RenderSystem.disableCull();
+            GlStateManager._disableCull();
         }
-        drawApertureQuad(matrices, aperture);
+        drawApertureQuad(matrices, submitNodeCollector, aperture, 0x00000000);
         if (cullWasEnabled) {
-            RenderSystem.enableCull();
+            GlStateManager._enableCull();
         }
-        RenderSystem.depthFunc(GL11.GL_LEQUAL);
-        RenderSystem.colorMask(true, true, true, true);
+        GlStateManager._depthFunc(GL11.GL_LEQUAL);
+        GlStateManager._colorMask(COLOR_MASK_ALL);
     }
 
     private static void drawInterior(
             PoseStack matrices,
-            MultiBufferSource vertexConsumers,
+            SubmitNodeCollector submitNodeCollector,
+            CameraRenderState cameraState,
             float tickDelta,
             UUID tardisId,
             TardisBotiAperture aperture
     ) {
         matrices.pushPose();
         applyInteriorAlignment(matrices, aperture);
-        BotiInteriorMeshCache.render(matrices, vertexConsumers, FULLBRIGHT, tickDelta, tardisId);
+        BotiInteriorMeshCache.render(matrices, submitNodeCollector, cameraState, FULLBRIGHT, tickDelta, tardisId);
         matrices.popPose();
     }
 
@@ -172,30 +191,32 @@ public final class TardisBotiRenderer {
 
     private static void restoreGlState() {
         GL11.glDisable(GL11.GL_STENCIL_TEST);
-        RenderSystem.stencilMask(0xFF);
-        RenderSystem.stencilFunc(GL11.GL_ALWAYS, 0, 0xFF);
-        RenderSystem.stencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_KEEP);
-        RenderSystem.depthFunc(GL11.GL_LEQUAL);
-        RenderSystem.depthMask(true);
-        RenderSystem.colorMask(true, true, true, true);
+        GL11.glStencilMask(0xFF);
+        GL11.glStencilFunc(GL11.GL_ALWAYS, 0, 0xFF);
+        GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_KEEP);
+        GlStateManager._depthFunc(GL11.GL_LEQUAL);
+        GlStateManager._depthMask(true);
+        GlStateManager._colorMask(COLOR_MASK_ALL);
     }
 
-    private static void drawApertureQuad(PoseStack matrices, TardisBotiAperture aperture) {
-        Matrix4f matrix = matrices.last().pose();
-        RenderSystem.setShader(CoreShaders.POSITION);
-        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-        // Winding so the front face normals toward model -Z (player outside the doors).
-        buffer.addVertex(matrix, aperture.x0(), aperture.y0(), aperture.z());
-        buffer.addVertex(matrix, aperture.x0(), aperture.y1(), aperture.z());
-        buffer.addVertex(matrix, aperture.x1(), aperture.y1(), aperture.z());
-        buffer.addVertex(matrix, aperture.x1(), aperture.y0(), aperture.z());
-        BufferUploader.drawWithShader(buffer.buildOrThrow());
-    }
-
-    private static void flush(MultiBufferSource vertexConsumers) {
-        if (vertexConsumers instanceof MultiBufferSource.BufferSource immediate) {
-            immediate.endBatch();
-        }
+    private static void drawApertureQuad(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            TardisBotiAperture aperture,
+            int argb
+    ) {
+        submitNodeCollector.submitCustomGeometry(
+                matrices,
+                RenderTypes.debugQuads(),
+                (PoseStack.Pose pose, VertexConsumer consumer) -> {
+                    Matrix4f matrix = pose.pose();
+                    // Winding so the front face normals toward model -Z (player outside the doors).
+                    consumer.addVertex(matrix, aperture.x0(), aperture.y0(), aperture.z()).setColor(argb);
+                    consumer.addVertex(matrix, aperture.x0(), aperture.y1(), aperture.z()).setColor(argb);
+                    consumer.addVertex(matrix, aperture.x1(), aperture.y1(), aperture.z()).setColor(argb);
+                    consumer.addVertex(matrix, aperture.x1(), aperture.y0(), aperture.z()).setColor(argb);
+                }
+        );
     }
 
     /** Expose layout size for tests / debug. */
