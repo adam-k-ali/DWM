@@ -100,7 +100,7 @@ public final class SotoExteriorSyncService {
      * Skips send when the TARDIS has no exterior location.
      */
     public static boolean sendToPlayer(ServerPlayer player, UUID tardisId) {
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.level().getServer();
         if (server == null || tardisId == null) {
             return false;
         }

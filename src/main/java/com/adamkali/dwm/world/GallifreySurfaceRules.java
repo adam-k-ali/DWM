@@ -1,6 +1,8 @@
 package com.adamkali.dwm.world;
 
 import com.adamkali.dwm.block.DWMBlocks;
+import net.minecraft.core.HolderGetter;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.Noises;
@@ -21,15 +23,15 @@ public final class GallifreySurfaceRules {
     private GallifreySurfaceRules() {
     }
 
-    public static SurfaceRules.RuleSource create() {
-        SurfaceRules.ConditionSource isWastes = SurfaceRules.isBiome(DWMBiomeKeys.GALLIFREY_WASTES);
+    public static SurfaceRules.RuleSource create(HolderGetter<Biome> biomes) {
+        SurfaceRules.ConditionSource isWastes = SurfaceRules.isBiome(biomes, DWMBiomeKeys.GALLIFREY_WASTES);
         SurfaceRules.ConditionSource atOrAboveWater = SurfaceRules.waterBlockCheck(-1, 0);
         SurfaceRules.ConditionSource aboveWater = SurfaceRules.waterBlockCheck(0, 0);
 
         SurfaceRules.RuleSource wastesTop = SurfaceRules.sequence(
                 SurfaceRules.ifTrue(SurfaceRules.ON_CEILING, GALLIFREY_SANDSTONE),
                 SurfaceRules.ifTrue(
-                        SurfaceRules.noiseCondition(Noises.SURFACE, -0.95, -0.4),
+                        SurfaceRules.noiseCondition2d(Noises.SURFACE, -0.95, -0.4),
                         GALLIFREY_COARSE_DIRT
                 ),
                 GALLIFREY_SAND
@@ -37,7 +39,7 @@ public final class GallifreySurfaceRules {
 
         SurfaceRules.RuleSource dirtTop = SurfaceRules.sequence(
                 SurfaceRules.ifTrue(
-                        SurfaceRules.noiseCondition(Noises.SURFACE, 0.45, 1.0),
+                        SurfaceRules.noiseCondition2d(Noises.SURFACE, 0.45, 1.0),
                         GALLIFREY_COARSE_DIRT
                 ),
                 GALLIFREY_DIRT

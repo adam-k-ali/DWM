@@ -22,8 +22,8 @@ import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.FenceBlock;
 import net.minecraft.world.level.block.FenceGateBlock;
 import net.minecraft.world.level.block.FlowerPotBlock;
-import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.PressurePlateBlock;
+import net.minecraft.world.level.block.UntintedParticleLeavesBlock;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.SaplingBlock;
 import net.minecraft.world.level.block.SlabBlock;
@@ -32,7 +32,8 @@ import net.minecraft.world.level.block.StandingSignBlock;
 import net.minecraft.world.level.block.TrapDoorBlock;
 import net.minecraft.world.level.block.WallHangingSignBlock;
 import net.minecraft.world.level.block.WallSignBlock;
-import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.level.block.entity.BlockEntityTypes;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
 public final class WoodFamilyRegistrar {
@@ -64,7 +65,11 @@ public final class WoodFamilyRegistrar {
                 settings.log(definition.planksColor(), definition.planksColor()),
                 "stripped_" + id + "_wood"
         );
-        Block leaves = DWMBlocks.registerBlock(LeavesBlock::new, settings.leaves(), id + "_leaves");
+        Block leaves = DWMBlocks.registerBlock(
+                props -> new UntintedParticleLeavesBlock(0.01F, ParticleTypes.CHERRY_LEAVES, props),
+                settings.leaves(),
+                id + "_leaves"
+        );
         Block sapling = DWMBlocks.registerBlock(
                 s -> new SaplingBlock(definition.saplingGenerator(), s),
                 settings.sapling(),
@@ -213,10 +218,10 @@ public final class WoodFamilyRegistrar {
             flammable.add(blocks.trapdoor(), 5, 20);
         }
 
-        BlockEntityType.SIGN.addSupportedBlock(blocks.sign());
-        BlockEntityType.SIGN.addSupportedBlock(blocks.wallSign());
-        BlockEntityType.HANGING_SIGN.addSupportedBlock(blocks.hangingSign());
-        BlockEntityType.HANGING_SIGN.addSupportedBlock(blocks.wallHangingSign());
+        BlockEntityTypes.SIGN.addValidBlock(blocks.sign());
+        BlockEntityTypes.SIGN.addValidBlock(blocks.wallSign());
+        BlockEntityTypes.HANGING_SIGN.addValidBlock(blocks.hangingSign());
+        BlockEntityTypes.HANGING_SIGN.addValidBlock(blocks.wallHangingSign());
     }
 
     public static void addCreativeTabs(RegisteredWoodFamily family) {

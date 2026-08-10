@@ -98,7 +98,7 @@ public final class TardisInteriorService {
             return false;
         }
 
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.level().getServer();
         if (server == null) {
             return false;
         }

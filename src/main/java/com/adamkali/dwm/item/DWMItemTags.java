@@ -13,4 +13,8 @@ public class DWMItemTags {
     public static final TagKey<Item> ASH_LOGS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "ash_logs"));
     public static final TagKey<Item> DARK_ASH_LOGS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "dark_ash_logs"));
     public static final TagKey<Item> CARDINAL_LOGS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "cardinal_logs"));
+
+    /** Vanilla still ships item tag JSON; ItemTags no longer exposes constants in 26.2. */
+    public static final TagKey<Item> DOORS = TagKey.create(Registries.ITEM, Identifier.withDefaultNamespace("doors"));
+    public static final TagKey<Item> TRAPDOORS = TagKey.create(Registries.ITEM, Identifier.withDefaultNamespace("trapdoors"));
 }

@@ -91,7 +91,7 @@ public final class BotiInteriorSyncService {
      * Skips send when the footprint has no visible blocks (interior not generated yet).
      */
     public static boolean sendToPlayer(ServerPlayer player, UUID tardisId) {
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.level().getServer();
         if (server == null || tardisId == null) {
             return false;
         }

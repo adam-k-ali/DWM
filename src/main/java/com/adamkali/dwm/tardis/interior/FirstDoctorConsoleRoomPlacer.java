@@ -51,14 +51,14 @@ public final class FirstDoctorConsoleRoomPlacer {
         Optional<StructureTemplate> structure = world.getServer()
                 .getStructureManager()
                 .get(TardisDimensions.CONSOLE_ROOM_STRUCTURE_ID);
-        if (template.isEmpty()) {
+        if (structure.isEmpty()) {
             return false;
         }
         StructurePlaceSettings data = new StructurePlaceSettings()
                 .setMirror(Mirror.NONE)
                 .setRotation(Rotation.NONE)
                 .setIgnoreEntities(true);
-        template.get().placeInWorld(world, origin, origin, data, RandomSource.create(), Block.UPDATE_CLIENTS);
+        structure.get().placeInWorld(world, origin, origin, data, RandomSource.create(), Block.UPDATE_CLIENTS);
         return true;
     }
 

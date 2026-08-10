@@ -1,7 +1,9 @@
 package com.adamkali.dwm.datagen;
 
+import com.adamkali.dwm.block.DWMBlockTags;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
+import com.adamkali.dwm.item.DWMItemTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.core.HolderLookup;
@@ -11,11 +13,11 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import java.util.concurrent.CompletableFuture;
 
-public class DWMItemTagProvider extends FabricTagsProvider.ItemTagProvider {
+public class DWMItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
     public DWMItemTagProvider(
             FabricPackOutput output,
             CompletableFuture<HolderLookup.Provider> completableFuture,
-            FabricTagsProvider.BlockTagProvider blockTagProvider
+            FabricTagsProvider.BlockTagsProvider blockTagProvider
     ) {
         super(output, completableFuture, blockTagProvider);
     }
@@ -33,11 +35,11 @@ public class DWMItemTagProvider extends FabricTagsProvider.ItemTagProvider {
 
                 @Override
                 public void addToTag(TagKey<Item> tag, Item item) {
-                    getOrCreateTagBuilder(tag).add(item);
+                    builder(tag).add(item.builtInRegistryHolder().key());
                 }
             }, family);
         }
-        copy(BlockTags.LOGS_THAT_BURN, ItemTags.LOGS_THAT_BURN);
+        copy(DWMBlockTags.LOGS_THAT_BURN, ItemTags.LOGS_THAT_BURN);
         copy(BlockTags.LOGS, ItemTags.LOGS);
         copy(BlockTags.PLANKS, ItemTags.PLANKS);
         copy(BlockTags.WOODEN_STAIRS, ItemTags.WOODEN_STAIRS);
@@ -48,9 +50,9 @@ public class DWMItemTagProvider extends FabricTagsProvider.ItemTagProvider {
         copy(BlockTags.WOODEN_PRESSURE_PLATES, ItemTags.WOODEN_PRESSURE_PLATES);
         copy(BlockTags.WOODEN_DOORS, ItemTags.WOODEN_DOORS);
         copy(BlockTags.WOODEN_TRAPDOORS, ItemTags.WOODEN_TRAPDOORS);
-        copy(BlockTags.DOORS, ItemTags.DOORS);
-        copy(BlockTags.TRAPDOORS, ItemTags.TRAPDOORS);
+        copy(BlockTags.DOORS, DWMItemTags.DOORS);
+        copy(BlockTags.TRAPDOORS, DWMItemTags.TRAPDOORS);
         copy(BlockTags.LEAVES, ItemTags.LEAVES);
-        copy(BlockTags.SAPLINGS, ItemTags.SAPLINGS);
+        copy(DWMBlockTags.SAPLINGS, ItemTags.SAPLINGS);
     }
 }

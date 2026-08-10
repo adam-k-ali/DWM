@@ -315,7 +315,7 @@ public class CardinalWoodFamilyGameTests {
         BlockPos playerRel = new BlockPos(3, 3, 3);
         BlockPos playerAbs = context.absolutePos(playerRel);
         Player player = context.makeMockPlayer(GameType.SURVIVAL);
-        player.moveTo(playerAbs.getX() + 0.5, playerAbs.getY(), playerAbs.getZ() + 0.5, 0.0F, 90.0F);
+        player.snapTo(playerAbs.getX() + 0.5, playerAbs.getY(), playerAbs.getZ() + 0.5, 0.0F, 90.0F);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(DWMItems.CARDINAL_BOAT));
 
         var result = DWMItems.CARDINAL_BOAT.use(context.getLevel(), player, InteractionHand.MAIN_HAND);
@@ -429,7 +429,7 @@ public class CardinalWoodFamilyGameTests {
             throw new AssertionError("No crafting match for dwm:" + recipePath);
         }
 
-        ItemStack result = craftingRecipe.assemble(input, world.registryAccess());
+        ItemStack result = craftingRecipe.assemble(input);
         if (!result.is(expected) || result.getCount() != count) {
             throw new AssertionError(
                     "Recipe dwm:" + recipePath + " expected " + count + "x " + expected

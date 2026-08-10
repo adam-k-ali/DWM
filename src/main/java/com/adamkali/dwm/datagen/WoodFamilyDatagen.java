@@ -50,7 +50,9 @@ public final class WoodFamilyDatagen {
         generator.signBuilder(family.signItem(), Ingredient.of(blocks.planks()))
                 .unlockedBy(generator.getHasName(blocks.planks()), generator.has(blocks.planks()))
                 .save(exporter);
-        generator.hangingSign(family.hangingSignItem(), blocks.strippedLog());
+        generator.hangingSignBuilder(family.hangingSignItem(), Ingredient.of(blocks.strippedLog()))
+                .unlockedBy(generator.getHasName(blocks.strippedLog()), generator.has(blocks.strippedLog()))
+                .save(exporter);
         generator.woodenBoat(family.boatItem(), blocks.planks());
     }
 
@@ -155,7 +157,7 @@ public final class WoodFamilyDatagen {
         for (net.minecraft.world.level.block.Block block : family.axeMineableBlocks()) {
             tags.addToTag(BlockTags.MINEABLE_WITH_AXE, block);
         }
-        tags.addTagToTag(BlockTags.LOGS_THAT_BURN, family.definition().logBlockTag());
+        tags.addTagToTag(com.adamkali.dwm.block.DWMBlockTags.LOGS_THAT_BURN, family.definition().logBlockTag());
         tags.addTagToTag(BlockTags.LOGS, family.definition().logBlockTag());
         tags.addToTag(BlockTags.OVERWORLD_NATURAL_LOGS, blocks.log());
         tags.addToTag(BlockTags.PLANKS, blocks.planks());
@@ -178,7 +180,7 @@ public final class WoodFamilyDatagen {
         tags.addToTag(BlockTags.CEILING_HANGING_SIGNS, blocks.hangingSign());
         tags.addToTag(BlockTags.WALL_HANGING_SIGNS, blocks.wallHangingSign());
         tags.addToTag(BlockTags.LEAVES, blocks.leaves());
-        tags.addToTag(BlockTags.SAPLINGS, blocks.sapling());
+        tags.addToTag(com.adamkali.dwm.block.DWMBlockTags.SAPLINGS, blocks.sapling());
         tags.addToTag(BlockTags.FLOWER_POTS, blocks.pottedSapling());
     }
 

@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.TreeConfiguration;
@@ -41,7 +42,8 @@ public final class DWMConfiguredFeatureBootstrap {
                                 new StraightTrunkPlacer(4, 2, 0),
                                 BlockStateProvider.simple(leaves),
                                 new BlobFoliagePlacer(ConstantInt.of(2), ConstantInt.of(0), 3),
-                                new TwoLayersFeatureSize(1, 0, 1)
+                                new TwoLayersFeatureSize(1, 0, 1),
+                                BlockStateProvider.simple(Blocks.DIRT)
                         ).ignoreVines().build()
                 )
         );

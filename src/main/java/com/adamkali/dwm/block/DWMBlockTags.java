@@ -32,6 +32,24 @@ public final class DWMBlockTags {
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "cardinal_logs")
     );
 
+    /**
+     * Vanilla still ships {@code data/minecraft/tags/block/logs_that_burn.json}, but
+     * {@link net.minecraft.tags.BlockTags} no longer exposes a constant in 26.2.
+     */
+    public static final TagKey<Block> LOGS_THAT_BURN = TagKey.create(
+            Registries.BLOCK,
+            Identifier.withDefaultNamespace("logs_that_burn")
+    );
+
+    /**
+     * Vanilla still ships {@code data/minecraft/tags/block/saplings.json}, but
+     * {@link net.minecraft.tags.BlockTags} no longer exposes a constant in 26.2.
+     */
+    public static final TagKey<Block> SAPLINGS = TagKey.create(
+            Registries.BLOCK,
+            Identifier.withDefaultNamespace("saplings")
+    );
+
     private DWMBlockTags() {
     }
 }

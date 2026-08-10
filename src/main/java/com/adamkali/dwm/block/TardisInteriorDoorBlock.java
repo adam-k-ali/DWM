@@ -184,7 +184,14 @@ public class TardisInteriorDoorBlock extends Block implements EntityBlock {
     }
 
     @Override
-    protected void entityInside(BlockState state, Level world, BlockPos pos, Entity entity) {
+    protected void entityInside(
+            BlockState state,
+            Level world,
+            BlockPos pos,
+            Entity entity,
+            net.minecraft.world.entity.InsideBlockEffectApplier effectApplier,
+            boolean firstTick
+    ) {
         if (world.isClientSide() || !(entity instanceof ServerPlayer player)) {
             return;
         }

@@ -4,7 +4,8 @@ import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BiomeDefaultFeatures;
 import net.minecraft.data.worldgen.BootstrapContext;
-import net.minecraft.world.attribute.AmbientMoodSettings;
+import net.minecraft.world.attribute.AmbientSounds;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeGenerationSettings;
 import net.minecraft.world.level.biome.BiomeSpecialEffects;
@@ -101,18 +102,18 @@ public final class DWMBiomeBootstrap {
     ) {
         BiomeSpecialEffects effects = new BiomeSpecialEffects.Builder()
                 .waterColor(WATER_COLOR)
-                .waterFogColor(WATER_FOG_COLOR)
-                .fogColor(FOG_COLOR)
-                .skyColor(SKY_COLOR)
                 .foliageColorOverride(FOLIAGE_COLOR)
                 .grassColorOverride(GRASS_COLOR)
-                .ambientMoodSound(AmbientMoodSettings.LEGACY_CAVE_SETTINGS)
                 .build();
 
         return new Biome.BiomeBuilder()
                 .hasPrecipitation(precipitation)
                 .temperature(temperature)
                 .downfall(downfall)
+                .setAttribute(EnvironmentAttributes.WATER_FOG_COLOR, WATER_FOG_COLOR)
+                .setAttribute(EnvironmentAttributes.FOG_COLOR, FOG_COLOR)
+                .setAttribute(EnvironmentAttributes.SKY_COLOR, SKY_COLOR)
+                .setAttribute(EnvironmentAttributes.AMBIENT_SOUNDS, AmbientSounds.LEGACY_CAVE_SETTINGS)
                 .specialEffects(effects)
                 .mobSpawnSettings(spawns.build())
                 .generationSettings(generation.build())

@@ -105,6 +105,6 @@ public final class SotoExteriorIndex {
     }
 
     private static String blockKey(ResourceKey<Level> worldKey, BlockPos pos) {
-        return  + "|" + pos.getX() + "," + pos.getY() + "," + pos.getZ();
+        return worldKey.identifier() + "|" + pos.getX() + "," + pos.getY() + "," + pos.getZ();
     }
 }

@@ -3,15 +3,10 @@ package com.adamkali.dwm.actions;
 import com.adamkali.dwm.analytics.AnalyticsManager;
 import com.adamkali.dwm.analytics.DWMStatistics;
 import com.adamkali.dwm.sound.DWMSounds;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageType;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
@@ -40,7 +35,7 @@ public class SonicActions {
     private SonicActions() {
         this.blockActions.put(Blocks.TNT, (level, blockPos, blockState, player) -> {
             level.setBlockAndUpdate(blockPos, Blocks.AIR.defaultBlockState());
-            TntBlock.explode(level, blockPos);
+            TntBlock.prime(level, blockPos);
         });
         this.blockActions.put(Blocks.IRON_DOOR, (level, blockPos, blockState, player) -> {
             BlockState newState = blockState.cycle(DoorBlock.OPEN);
@@ -59,10 +54,8 @@ public class SonicActions {
             level.gameEvent(player, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, blockPos);
         });
 
-        this.entityActions.put(EntityType.SLIME, (entity, player, level, hand) -> {
-            Holder<DamageType> damageType = level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).get().orElseThrow();
-            DamageSource damageSource = new DamageSource(damageType, player, entity);
-            entity.hurtServer(level, damageSource, 1.0F);
+        this.entityActions.put(EntityTypes.SLIME, (entity, player, level, hand) -> {
+            entity.hurtServer(level, level.damageSources().playerAttack(player), 1.0F);
         });
 
         this.entityActions.put(EntityTypes.SHEEP, (entity, player, level, hand) -> {
@@ -126,7 +119,7 @@ public class SonicActions {
         context.getLevel().playLocalSound(context.getClickedPos(), DWMSounds.SONIC_SCREWDRIVER, SoundSource.BLOCKS, 1.0F, 1.0F, false);
         Block blockClicked = context.getLevel().getBlockState(context.getClickedPos()).getBlock();
         boolean actionExists = this.blockActions.containsKey(blockClicked);
-        AnalyticsManager.trackEvent(AnalyticsManager.EVENT_SONIC_SCREWDRIVER_USE, "item_name", context.getItemInHand().getItem().getName(), "action_exists", actionExists, "block", blockClicked.getName().toString());
+        AnalyticsManager.trackEvent(AnalyticsManager.EVENT_SONIC_SCREWDRIVER_USE, "item_name", context.getItemInHand().getHoverName().getString(), "action_exists", actionExists, "block", blockClicked.getName().toString());
         if (actionExists) {
             if (context.getPlayer() != null) {
                 context.getPlayer().awardStat(DWMStatistics.SONIC_SCREWDRIVER_USE);
@@ -136,7 +129,7 @@ public class SonicActions {
     }
 
     public void interactWithEntity(ItemStack itemStack, LivingEntity entity, Player player, InteractionHand hand) {
-        Level level = entity.getCommandSenderWorld();
+        Level level = entity.level();
         level.playLocalSound(player.blockPosition(), DWMSounds.SONIC_SCREWDRIVER, SoundSource.BLOCKS, 1.0F, 1.0F, false);
         if (level.isClientSide()) {
             return;
@@ -144,7 +137,7 @@ public class SonicActions {
 
         ServerLevel serverWorld = Objects.requireNonNull(level.getServer()).getLevel(level.dimension());
         boolean actionExists = this.entityActions.containsKey(entity.getType());
-        AnalyticsManager.trackEvent(AnalyticsManager.EVENT_SONIC_SCREWDRIVER_USE, "item_name", itemStack.getItem().getName(), "action_exists", actionExists, "entity_type", entity.getType().toString());
+        AnalyticsManager.trackEvent(AnalyticsManager.EVENT_SONIC_SCREWDRIVER_USE, "item_name", itemStack.getHoverName().getString(), "action_exists", actionExists, "entity_type", entity.getType().toString());
         if (actionExists) {
             player.awardStat(DWMStatistics.SONIC_SCREWDRIVER_USE);
             this.entityActions.get(entity.getType()).perform(entity, player, serverWorld, hand);

@@ -30,7 +30,7 @@ public class DWMWorldgenProvider extends FabricDynamicRegistryProvider {
     ) {
         HolderLookup.RegistryLookup<T> registry = registries.lookupOrThrow(registryKey);
         for (Holder.Reference<T> entry : registry.listElements().toList()) {
-            if (entry.key().location().getNamespace().equals(DWMReference.MOD_ID)) {
+            if (entry.key().identifier().getNamespace().equals(DWMReference.MOD_ID)) {
                 entries.add(entry.key(), entry.value());
             }
         }

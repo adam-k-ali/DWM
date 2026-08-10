@@ -71,7 +71,7 @@ public final class SotoGhostSyncService {
         if (player == null || tardisId == null) {
             return false;
         }
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.level().getServer();
         if (server == null) {
             return false;
         }
@@ -98,7 +98,7 @@ public final class SotoGhostSyncService {
             if (!SotoExteriorSampler.isInsideStreamRadius(worldPos, exteriorPos)) {
                 continue;
             }
-            long packed = ChunkPos.asLong(
+            long packed = ChunkPos.pack(
                     worldPos.getX() >> 4,
                     worldPos.getZ() >> 4
             );
@@ -224,7 +224,7 @@ public final class SotoGhostSyncService {
                         player,
                         SyncSotoExteriorChunkS2CPayload.fromSample(ctx.tardisId(), ctx.footprintOrigin(), sample)
                 );
-                sent.add(ChunkPos.asLong(cx, cz));
+                sent.add(ChunkPos.pack(cx, cz));
             }
         }
         TRACKED_ENTITIES.put(key, ConcurrentHashMap.newKeySet());
@@ -238,7 +238,7 @@ public final class SotoGhostSyncService {
         Set<Long> desired = new HashSet<>();
         for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
             for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
-                desired.add(ChunkPos.asLong(cx, cz));
+                desired.add(ChunkPos.pack(cx, cz));
             }
         }
         for (long packed : Set.copyOf(sent)) {

@@ -226,7 +226,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         }
 
         Component biomeName = Component.translatable(selected.get().toLanguageKey("biome"));
-        player.displayClientMessage(Component.translatable("dwm.console.biome_selected", biomeName), true);
+        player.sendOverlayMessage(Component.translatable("dwm.console.biome_selected", biomeName));
         world.playSound(
                 null,
                 pos,
@@ -257,7 +257,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         }
 
         Component dimensionName = Component.translatable(selected.get().toLanguageKey("dimension"));
-        player.displayClientMessage(Component.translatable("dwm.console.dimension_selected", dimensionName), true);
+        player.sendOverlayMessage(Component.translatable("dwm.console.dimension_selected", dimensionName));
         world.playSound(
                 null,
                 pos,

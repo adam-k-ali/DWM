@@ -83,7 +83,7 @@ public record SyncSotoExteriorEntitySpawnS2CPayload(
         if (nbt == null) {
             nbt = new CompoundTag();
         }
-        Identifier typeId = Identifier.parse(nbt.getString("id"));
+        Identifier typeId = Identifier.parse(nbt.getStringOr("id", "minecraft:pig"));
         if (entity instanceof Player) {
             typeId = Identifier.fromNamespaceAndPath("minecraft", "player");
         }

@@ -9,6 +9,7 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CookingBookCategory;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -63,6 +64,7 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 oreSmelting(
                         List.of(DWMBlocks.GALLIFREY_COBBLESTONE),
                         RecipeCategory.BUILDING_BLOCKS,
+                        CookingBookCategory.BLOCKS,
                         DWMBlocks.GALLIFREY_STONE,
                         0.1F,
                         200,
@@ -71,6 +73,7 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 oreSmelting(
                         List.of(DWMBlocks.GALLIFREY_STONE),
                         RecipeCategory.BUILDING_BLOCKS,
+                        CookingBookCategory.BLOCKS,
                         DWMBlocks.GALLIFREY_SMOOTH_STONE,
                         0.1F,
                         200,
@@ -79,6 +82,7 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 oreSmelting(
                         List.of(DWMBlocks.GALLIFREY_STONE_BRICKS),
                         RecipeCategory.BUILDING_BLOCKS,
+                        CookingBookCategory.BLOCKS,
                         DWMBlocks.CRACKED_GALLIFREY_STONE_BRICKS,
                         0.1F,
                         200,

@@ -26,7 +26,7 @@ public final class DWMChunkGeneratorSettingsBootstrap {
                                 false,
                                 false
                         ),
-                        GallifreySurfaceRules.create(),
+                        GallifreySurfaceRules.create(registerable.lookup(Registries.BIOME)),
                         new OverworldBiomeBuilder().spawnTarget(),
                         63,
                         false,
