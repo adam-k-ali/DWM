@@ -69,7 +69,7 @@ public class DWMModelProvider extends FabricModelProvider {
                 .put(TextureSlot.END, TextureMapping.getBlockTexture(sandstone, "_top"))
                 .put(TextureSlot.PARTICLE, TextureMapping.getBlockTexture(cutSandstone));
         var modelId = ModelTemplates.CUBE_COLUMN.create(cutSandstone, textures, generator.modelOutput);
-        generator.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(cutSandstone, modelId));
+        generator.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(cutSandstone, BlockModelGenerators.plainVariant(modelId)));
         generator.registerSimpleItemModel(cutSandstone, modelId);
     }
 
@@ -79,7 +79,7 @@ public class DWMModelProvider extends FabricModelProvider {
                 .put(TextureSlot.END, TextureMapping.getBlockTexture(sandstone, "_top"))
                 .put(TextureSlot.PARTICLE, TextureMapping.getBlockTexture(chiseledSandstone));
         var modelId = ModelTemplates.CUBE_COLUMN.create(chiseledSandstone, textures, generator.modelOutput);
-        generator.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(chiseledSandstone, modelId));
+        generator.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(chiseledSandstone, BlockModelGenerators.plainVariant(modelId)));
         generator.registerSimpleItemModel(chiseledSandstone, modelId);
     }
 }
