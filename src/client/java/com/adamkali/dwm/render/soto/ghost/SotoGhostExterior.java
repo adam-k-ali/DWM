@@ -10,20 +10,23 @@ import com.adamkali.dwm.render.boti.BotiEntityMotion.LerpedPose;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.Util;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityProcessor;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntitySpawnRequest;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.world.level.CardinalLighting;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.Level;
@@ -33,6 +36,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.ValueInput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -151,7 +156,7 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         }
         SotoGhostExterior ghost = getOrCreate(payload.tardisId());
         ghost.footprintOrigin = payload.footprintOrigin();
-        long key = ChunkPos.asLong(payload.chunkX(), payload.chunkZ());
+        long key = ChunkPos.pack(payload.chunkX(), payload.chunkZ());
         Map<BlockPos, BlockState> previousBlocks = ghost.chunkBlocks.put(key, new HashMap<>(payload.toBlockMap()));
         Map<BlockPos, CompoundTag> previousBes = ghost.chunkBlockEntities.put(key, new HashMap<>(payload.toBlockEntityMap()));
         if (previousBlocks != null) {
@@ -174,7 +179,7 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         if (ghost == null) {
             return;
         }
-        long key = ChunkPos.asLong(chunkX, chunkZ);
+        long key = ChunkPos.pack(chunkX, chunkZ);
         Map<BlockPos, BlockState> removedBlocks = ghost.chunkBlocks.remove(key);
         Map<BlockPos, CompoundTag> removedBes = ghost.chunkBlockEntities.remove(key);
         if (removedBlocks != null) {
@@ -346,28 +351,33 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         try {
             CompoundTag nbt = payload.nbt() == null ? new CompoundTag() : payload.nbt().copy();
             Identifier typeId = payload.typeId();
-            String id = typeId == null ? nbt.getString("id") : typeId.toString();
+            String id = typeId == null ? nbt.getStringOr("id", "") : typeId.toString();
             Entity entity;
             if (PLAYER_ENTITY_ID.equals(id)) {
-                UUID profileId = payload.entityUuid();
-                if (nbt.hasUUID(BotiEntitySample.BOTI_PROFILE_ID)) {
-                    profileId = nbt.getUUID(BotiEntitySample.BOTI_PROFILE_ID);
-                }
-                String name = nbt.contains(BotiEntitySample.BOTI_PROFILE_NAME)
-                        ? nbt.getString(BotiEntitySample.BOTI_PROFILE_NAME)
-                        : "";
+                UUID profileId = nbt.read(BotiEntitySample.BOTI_PROFILE_ID, UUIDUtil.CODEC)
+                        .orElse(payload.entityUuid());
+                String name = nbt.getStringOr(BotiEntitySample.BOTI_PROFILE_NAME, "");
                 RemotePlayer player = new RemotePlayer(clientWorld, new GameProfile(profileId, name));
-                player.load(nbt);
+                ValueInput input = TagValueInput.create(
+                        ProblemReporter.DISCARDING,
+                        clientWorld.registryAccess(),
+                        nbt
+                );
+                player.load(input);
                 entity = player;
             } else {
                 if (!nbt.contains("id") && typeId != null) {
                     nbt.putString("id", typeId.toString());
                 }
-                Optional<Entity> loaded = EntityType.create(nbt, clientWorld, EntitySpawnReason.LOAD);
-                if (loaded.isEmpty()) {
+                entity = EntityType.loadEntityRecursive(
+                        nbt,
+                        clientWorld,
+                        new EntitySpawnRequest(EntitySpawnReason.LOAD, true),
+                        EntityProcessor.NOP
+                );
+                if (entity == null) {
                     return null;
                 }
-                entity = loaded.get();
             }
             entity.setUUID(payload.entityUuid());
             return entity;
@@ -386,7 +396,7 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
             float headYaw,
             float bodyYaw
     ) {
-        entity.moveTo(relX, relY, relZ, yaw, pitch);
+        entity.snapTo(relX, relY, relZ, yaw, pitch);
         entity.setDeltaMovement(0.0, 0.0, 0.0);
         if (entity instanceof LivingEntity living) {
             living.setYBodyRot(bodyYaw);
@@ -426,8 +436,8 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
     }
 
     @Override
-    public float getShade(Direction direction, boolean shaded) {
-        return 1.0f;
+    public CardinalLighting cardinalLighting() {
+        return CardinalLighting.DEFAULT;
     }
 
     @Override

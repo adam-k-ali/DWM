@@ -1,38 +1,38 @@
 package com.adamkali.dwm.render.soto.portal;
 
-import com.mojang.blaze3d.ProjectionType;
+import com.mojang.blaze3d.GpuFormat;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.blaze3d.opengl.GlTexture;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
+import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.joml.Matrix4f;
-import org.joml.Matrix4fStack;
-import org.lwjgl.BufferUtils;
+import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.blaze3d.textures.GpuTextureView;
+import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL14;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
 
-import java.nio.ByteBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.FogParameters;
 
 /**
  * Owns the full-window color/depth target used by the SOTO portal pass.
+ * <p>
+ * Minecraft 26.2 removed {@code RenderTarget.bindWrite}/{@code clear}/{@code getColorTextureId}.
+ * Portal writes are routed by setting {@link RenderSystem#outputColorTextureOverride} and
+ * {@link RenderSystem#outputDepthTextureOverride} for the duration of the offscreen pass.
+ * <p>
+ * TODO(FramebufferMixin / BOTI): {@code bindWrite} no longer exists on {@link RenderTarget}.
+ * If feature renderers ignore texture overrides and rebind the main color/depth views mid-pass,
+ * the BOTI-owned {@code FramebufferMixin} needs a new redirect hook (not {@code bindWrite}).
+ * Do not restore the old mixin target until that API is identified.
  */
 public final class SotoPortalRenderTarget implements AutoCloseable {
     private static final SotoPortalRenderTarget INSTANCE = new SotoPortalRenderTarget();
+    private static final String LABEL = "dwm_soto_portal";
 
-    /**
-     * While true, {@link com.adamkali.dwm.mixin.client.FramebufferMixin} redirects the client
-     * main framebuffer's {@code bindWrite} to this portal target. RenderLayer MAIN_TARGET
-     * otherwise steals the draw buffer mid-pass.
-     */
     private static boolean portalPassActive;
     private static boolean redirectingMainWrite;
 
@@ -60,11 +60,12 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
     public static void endPortalPass() {
         portalPassActive = false;
         redirectingMainWrite = false;
+        clearOutputOverrides();
     }
 
     /**
-     * Called when vanilla code (e.g. {@code RenderPhase.MAIN_TARGET}) tries to bind the main
-     * framebuffer during the portal pass. Binds the portal target instead.
+     * Re-applies portal output overrides when vanilla code would otherwise bind the main target.
+     * Kept for mixin/call-site compatibility; 26.2 no longer has {@code bindWrite}.
      */
     public static void redirectMainBeginWrite(boolean setViewport) {
         if (!INSTANCE.isReady() || INSTANCE.framebuffer == null) {
@@ -72,7 +73,10 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
         }
         redirectingMainWrite = true;
         try {
-            INSTANCE.framebuffer.bindWrite(setViewport);
+            INSTANCE.bindForWrite();
+            if (setViewport) {
+                GL11.glViewport(0, 0, INSTANCE.width, INSTANCE.height);
+            }
         } finally {
             redirectingMainWrite = false;
         }
@@ -82,9 +86,6 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
         return redirectingMainWrite;
     }
 
-    /**
-     * Called once at the beginning of each world frame.
-     */
     public static void beginClientFrame() {
         INSTANCE.clientFrame++;
         if (INSTANCE.renderedFrameByTardis.size() > 64) {
@@ -100,7 +101,7 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
         if (client == null || !RenderSystem.isOnRenderThread()) {
             return false;
         }
-        RenderTarget main = client.getMainRenderTarget();
+        RenderTarget main = client.gameRenderer.mainRenderTarget();
         if (main == null || main.width <= 0 || main.height <= 0) {
             return false;
         }
@@ -108,8 +109,13 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
         int requiredHeight = main.height;
         try {
             if (framebuffer == null) {
-                framebuffer = new TextureTarget(requiredWidth, requiredHeight, true);
-                framebuffer.setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+                framebuffer = new TextureTarget(
+                        LABEL,
+                        requiredWidth,
+                        requiredHeight,
+                        true,
+                        GpuFormat.RGBA8_UNORM
+                );
                 width = requiredWidth;
                 height = requiredHeight;
             } else if (width != requiredWidth || height != requiredHeight) {
@@ -118,9 +124,7 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
                 height = requiredHeight;
                 renderedFrameByTardis.clear();
             }
-            return framebuffer.frameBufferId > 0
-                    && framebuffer.getColorTextureId() > 0
-                    && framebuffer.getDepthTextureId() > 0;
+            return isReady();
         } catch (Throwable failure) {
             close();
             return false;
@@ -129,9 +133,10 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
 
     public boolean isReady() {
         return framebuffer != null
-                && framebuffer.frameBufferId > 0
-                && framebuffer.getColorTextureId() > 0
-                && framebuffer.getDepthTextureId() > 0;
+                && framebuffer.getColorTexture() != null
+                && framebuffer.getDepthTexture() != null
+                && !framebuffer.getColorTexture().isClosed()
+                && !framebuffer.getDepthTexture().isClosed();
     }
 
     public boolean shouldRenderThisFrame(UUID tardisId) {
@@ -151,36 +156,52 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
     }
 
     /**
-     * Clears the portal target to {@code rgba} then leaves it bound for writing.
-     * {@code Framebuffer.clear()} ends with {@code endWrite()} (FBO 0); we re-bind afterward.
+     * Clears the portal target to {@code rgba} then leaves output overrides pointing at it.
      */
     public void bindAndClear(float r, float g, float b, float a) {
         if (!isReady()) {
             throw new IllegalStateException("SOTO portal framebuffer is not ready");
         }
-        framebuffer.setClearColor(r, g, b, a);
-        framebuffer.bindWrite(true);
-        // clear() ends with endWrite() (FBO 0). Re-bind so the portal pass stays offscreen.
-        framebuffer.clear();
-        framebuffer.bindWrite(true);
+        CommandEncoder encoder = RenderSystem.getDevice().createCommandEncoder();
+        encoder.clearColorAndDepthTextures(
+                framebuffer.getColorTexture(),
+                new Vector4f(r, g, b, a),
+                framebuffer.getDepthTexture(),
+                RenderSystem.DEFAULT_DEPTH_CLEAR_VALUE
+        );
+        bindForWrite();
+        GL11.glViewport(0, 0, width, height);
     }
 
     /**
-     * Re-bind the portal color/depth target after vanilla draws that may restore the main FBO.
+     * Point subsequent GPU draws at the portal color/depth attachments.
      */
     public void bindForWrite() {
         if (!isReady()) {
             throw new IllegalStateException("SOTO portal framebuffer is not ready");
         }
-        framebuffer.bindWrite(true);
+        RenderSystem.outputColorTextureOverride = framebuffer.getColorTextureView();
+        RenderSystem.outputDepthTextureOverride = framebuffer.getDepthTextureView();
     }
 
     public int colorTextureId() {
-        return isReady() ? framebuffer.getColorTextureId() : -1;
+        if (!isReady()) {
+            return -1;
+        }
+        GpuTexture color = framebuffer.getColorTexture();
+        if (color instanceof GlTexture glTexture) {
+            return glTexture.glId();
+        }
+        // Vulkan / non-GL backends: no legacy GL texture id for composite sampling.
+        return -1;
     }
 
-    int framebufferFbo() {
-        return framebuffer == null ? -1 : framebuffer.frameBufferId;
+    public GpuTextureView colorTextureView() {
+        return isReady() ? framebuffer.getColorTextureView() : null;
+    }
+
+    public GpuTextureView depthTextureView() {
+        return isReady() ? framebuffer.getDepthTextureView() : null;
     }
 
     public int width() {
@@ -194,6 +215,7 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
     @Override
     public void close() {
         renderedFrameByTardis.clear();
+        clearOutputOverrides();
         if (framebuffer != null) {
             framebuffer.destroyBuffers();
             framebuffer = null;
@@ -206,100 +228,39 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
         return clientFrame;
     }
 
+    private static void clearOutputOverrides() {
+        RenderSystem.outputColorTextureOverride = null;
+        RenderSystem.outputDepthTextureOverride = null;
+    }
+
     /**
      * Captures mutable render and GL state around the offscreen pass.
+     * <p>
+     * Slimmed for 26.2: projection/modelview/shader fog are GpuBufferSlice-based and no longer
+     * expose the old matrix/fog parameter APIs used by the 1.21.4 guard.
      */
     public static final class RenderStateGuard implements AutoCloseable {
-        private final int drawFramebuffer;
-        private final int readFramebuffer;
-        private final int[] viewport;
+        private final GpuTextureView previousColorOverride;
+        private final GpuTextureView previousDepthOverride;
+        private final GpuBufferSlice previousFog;
         private final boolean depthEnabled;
         private final boolean cullEnabled;
         private final boolean blendEnabled;
         private final boolean stencilEnabled;
         private final boolean depthMask;
-        private final boolean[] colorMask;
         private final int depthFunc;
-        private final int cullFace;
-        private final int blendSrcRgb;
-        private final int blendDstRgb;
-        private final int blendSrcAlpha;
-        private final int blendDstAlpha;
-        private final int blendEquationRgb;
-        private final int blendEquationAlpha;
-        private final int stencilFunc;
-        private final int stencilRef;
-        private final int stencilValueMask;
-        private final int stencilWriteMask;
-        private final int stencilFail;
-        private final int stencilDepthFail;
-        private final int stencilDepthPass;
-        private final double depthNear;
-        private final double depthFar;
-        private final int activeTexture;
-        private final int boundTexture2d;
-        private final int shaderTexture0;
-        private final Matrix4f projection;
-        private final ProjectionType projectionType;
-        private final Matrix4f modelView;
-        private final FogParameters fog;
-        private final float[] shaderColor;
         private boolean closed;
 
         private RenderStateGuard() {
-            drawFramebuffer = GL11.glGetInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
-            readFramebuffer = GL11.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
-
-            IntBuffer viewportBuffer = BufferUtils.createIntBuffer(4);
-            GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewportBuffer);
-            viewport = new int[]{
-                    viewportBuffer.get(0),
-                    viewportBuffer.get(1),
-                    viewportBuffer.get(2),
-                    viewportBuffer.get(3)
-            };
-
+            previousColorOverride = RenderSystem.outputColorTextureOverride;
+            previousDepthOverride = RenderSystem.outputDepthTextureOverride;
+            previousFog = RenderSystem.getShaderFog();
             depthEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
             cullEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
             blendEnabled = GL11.glIsEnabled(GL11.GL_BLEND);
             stencilEnabled = GL11.glIsEnabled(GL11.GL_STENCIL_TEST);
             depthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
-            ByteBuffer colorMaskBuffer = BufferUtils.createByteBuffer(4);
-            GL11.glGetBooleanv(GL11.GL_COLOR_WRITEMASK, colorMaskBuffer);
-            colorMask = new boolean[]{
-                    colorMaskBuffer.get(0) != 0,
-                    colorMaskBuffer.get(1) != 0,
-                    colorMaskBuffer.get(2) != 0,
-                    colorMaskBuffer.get(3) != 0
-            };
             depthFunc = GL11.glGetInteger(GL11.GL_DEPTH_FUNC);
-            cullFace = GL11.glGetInteger(GL11.GL_CULL_FACE_MODE);
-            blendSrcRgb = GL11.glGetInteger(GL14.GL_BLEND_SRC_RGB);
-            blendDstRgb = GL11.glGetInteger(GL14.GL_BLEND_DST_RGB);
-            blendSrcAlpha = GL11.glGetInteger(GL14.GL_BLEND_SRC_ALPHA);
-            blendDstAlpha = GL11.glGetInteger(GL14.GL_BLEND_DST_ALPHA);
-            blendEquationRgb = GL11.glGetInteger(GL20.GL_BLEND_EQUATION_RGB);
-            blendEquationAlpha = GL11.glGetInteger(GL20.GL_BLEND_EQUATION_ALPHA);
-            stencilFunc = GL11.glGetInteger(GL11.GL_STENCIL_FUNC);
-            stencilRef = GL11.glGetInteger(GL11.GL_STENCIL_REF);
-            stencilValueMask = GL11.glGetInteger(GL11.GL_STENCIL_VALUE_MASK);
-            stencilWriteMask = GL11.glGetInteger(GL11.GL_STENCIL_WRITEMASK);
-            stencilFail = GL11.glGetInteger(GL11.GL_STENCIL_FAIL);
-            stencilDepthFail = GL11.glGetInteger(GL11.GL_STENCIL_PASS_DEPTH_FAIL);
-            stencilDepthPass = GL11.glGetInteger(GL11.GL_STENCIL_PASS_DEPTH_PASS);
-            DoubleBuffer depthRange = BufferUtils.createDoubleBuffer(2);
-            GL11.glGetDoublev(GL11.GL_DEPTH_RANGE, depthRange);
-            depthNear = depthRange.get(0);
-            depthFar = depthRange.get(1);
-            activeTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
-            boundTexture2d = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
-            shaderTexture0 = RenderSystem.getShaderTexture(0);
-
-            projection = new Matrix4f(RenderSystem.getProjectionMatrix());
-            projectionType = RenderSystem.getProjectionType();
-            modelView = new Matrix4f(RenderSystem.getModelViewMatrix());
-            fog = RenderSystem.getShaderFog();
-            shaderColor = RenderSystem.getShaderColor().clone();
         }
 
         public static RenderStateGuard capture() {
@@ -313,46 +274,17 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
                 return;
             }
             closed = true;
-
-            GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, drawFramebuffer);
-            GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, readFramebuffer);
-            RenderSystem.viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
-            RenderSystem.setProjectionMatrix(projection, projectionType);
-            Matrix4fStack modelViewStack = RenderSystem.getModelViewStack();
-            modelViewStack.set(modelView);
-            RenderSystem.setShaderFog(fog);
-            RenderSystem.setShaderColor(shaderColor[0], shaderColor[1], shaderColor[2], shaderColor[3]);
-
-            if (depthEnabled) {
-                RenderSystem.enableDepthTest();
-            } else {
-                RenderSystem.disableDepthTest();
+            RenderSystem.outputColorTextureOverride = previousColorOverride;
+            RenderSystem.outputDepthTextureOverride = previousDepthOverride;
+            if (previousFog != null) {
+                RenderSystem.setShaderFog(previousFog);
             }
-            if (cullEnabled) {
-                RenderSystem.enableCull();
-            } else {
-                RenderSystem.disableCull();
-            }
-            if (blendEnabled) {
-                RenderSystem.enableBlend();
-            } else {
-                RenderSystem.disableBlend();
-            }
+            setEnabled(GL11.GL_DEPTH_TEST, depthEnabled);
+            setEnabled(GL11.GL_CULL_FACE, cullEnabled);
+            setEnabled(GL11.GL_BLEND, blendEnabled);
             setEnabled(GL11.GL_STENCIL_TEST, stencilEnabled);
-            RenderSystem.depthMask(depthMask);
-            RenderSystem.colorMask(colorMask[0], colorMask[1], colorMask[2], colorMask[3]);
-            RenderSystem.depthFunc(depthFunc);
-            GL11.glCullFace(cullFace);
-            RenderSystem.blendFuncSeparate(blendSrcRgb, blendDstRgb, blendSrcAlpha, blendDstAlpha);
-            GL20.glBlendEquationSeparate(blendEquationRgb, blendEquationAlpha);
-            RenderSystem.stencilFunc(stencilFunc, stencilRef, stencilValueMask);
-            RenderSystem.stencilMask(stencilWriteMask);
-            RenderSystem.stencilOp(stencilFail, stencilDepthFail, stencilDepthPass);
-            GL11.glDepthRange(depthNear, depthFar);
-
-            RenderSystem.activeTexture(activeTexture);
-            RenderSystem.bindTexture(boundTexture2d);
-            RenderSystem.setShaderTexture(0, shaderTexture0);
+            GL11.glDepthMask(depthMask);
+            GL11.glDepthFunc(depthFunc);
         }
 
         private static void setEnabled(int capability, boolean enabled) {

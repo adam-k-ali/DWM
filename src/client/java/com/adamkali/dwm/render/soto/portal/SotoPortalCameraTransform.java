@@ -32,9 +32,9 @@ public final class SotoPortalCameraTransform {
     ) {
         Objects.requireNonNull(camera, "camera");
         return map(
-                camera.getPosition(),
-                camera.getYRot(),
-                camera.getXRot(),
+                camera.position(),
+                camera.yRot(),
+                camera.xRot(),
                 interiorDoorPos,
                 interiorDoorFacing,
                 ghostFootprintOrigin,

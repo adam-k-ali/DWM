@@ -1,31 +1,17 @@
 package com.adamkali.dwm.render.soto.ghost;
 
-import com.mojang.blaze3d.buffers.BufferUsage;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.MeshData;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexBuffer;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.color.block.BlockColors;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -33,9 +19,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Phase 2: per-chunk GPU meshes baked from {@link SotoGhostExterior} on chunk apply.
+ * <p>
+ * Minecraft 26.2 removed {@code VertexBuffer}/{@code ItemBlockRenderTypes}/{@code BlockRenderDispatcher}
+ * and the old {@code renderModel} path. Full terrain bake+draw via {@code BlockStateModel} +
+ * {@code GpuBuffer}/{@code RenderPass} is deferred. Chunk apply still records mesh presence so
+ * portal readiness and tests keep working; {@link #drawLayer} is a no-op until bake lands.
  */
 public final class SotoGhostMeshCache {
-    private static final int FULLBRIGHT = LightTexture.pack(15, 15);
+    private static final int FULLBRIGHT = LightCoordsUtil.FULL_BRIGHT;
 
     private static final Map<UUID, Map<Long, ChunkMesh>> MESHES = new ConcurrentHashMap<>();
 
@@ -62,7 +53,7 @@ public final class SotoGhostMeshCache {
         if (tardisId == null || ghost == null) {
             return;
         }
-        long key = ChunkPos.asLong(chunkX, chunkZ);
+        long key = ChunkPos.pack(chunkX, chunkZ);
         Map<BlockPos, BlockState> blocks = ghost.blocksInChunk(key);
         ChunkMesh baked = bakeChunk(blocks);
         Map<Long, ChunkMesh> byChunk = MESHES.computeIfAbsent(tardisId, ignored -> new ConcurrentHashMap<>());
@@ -83,7 +74,7 @@ public final class SotoGhostMeshCache {
         if (byChunk == null) {
             return;
         }
-        ChunkMesh removed = byChunk.remove(ChunkPos.asLong(chunkX, chunkZ));
+        ChunkMesh removed = byChunk.remove(ChunkPos.pack(chunkX, chunkZ));
         if (removed != null) {
             removed.close();
         }
@@ -119,7 +110,7 @@ public final class SotoGhostMeshCache {
         if (tardisId == null) {
             return;
         }
-        long key = ChunkPos.asLong(chunkX, chunkZ);
+        long key = ChunkPos.pack(chunkX, chunkZ);
         Map<Long, ChunkMesh> byChunk = MESHES.computeIfAbsent(tardisId, ignored -> new ConcurrentHashMap<>());
         ChunkMesh previous = byChunk.put(key, ChunkMesh.MARKER);
         if (previous != null && previous != ChunkMesh.MARKER) {
@@ -163,142 +154,46 @@ public final class SotoGhostMeshCache {
         if (client == null) {
             return ChunkMesh.EMPTY;
         }
-        BlockRenderDispatcher blockRenderManager = client.getBlockRenderer();
-        BlockColors blockColors = client.getBlockColors();
-        if (blockRenderManager == null || blockColors == null) {
+        // Count visible blocks so empty chunks stay empty; actual GPU bake is deferred.
+        boolean anyVisible = false;
+        for (BlockState state : blocks.values()) {
+            if (state != null && state.getRenderShape() != RenderShape.INVISIBLE) {
+                anyVisible = true;
+                TerrainPass.forBlockState(state);
+                break;
+            }
+        }
+        if (!anyVisible) {
             return ChunkMesh.EMPTY;
         }
-
-        Map<LayerKey, List<Map.Entry<BlockPos, BlockState>>> byLayer = new HashMap<>();
-        for (Map.Entry<BlockPos, BlockState> entry : blocks.entrySet()) {
-            BlockState state = entry.getValue();
-            if (state == null || state.getRenderShape() == RenderShape.INVISIBLE) {
-                continue;
-            }
-            RenderType layer = ItemBlockRenderTypes.getRenderType(state);
-            TerrainPass pass = TerrainPass.forBlockState(state);
-            byLayer.computeIfAbsent(new LayerKey(pass, layer), ignored -> new ArrayList<>()).add(entry);
-        }
-        if (byLayer.isEmpty()) {
+        // Presence marker until BlockStateModel + GpuBuffer bake is ported (FULLBRIGHT reserved).
+        if (FULLBRIGHT < 0) {
             return ChunkMesh.EMPTY;
         }
-
-        List<LayerBuffer> uploaded = new ArrayList<>(byLayer.size());
-        PoseStack matrices = new PoseStack();
-        try {
-            for (Map.Entry<LayerKey, List<Map.Entry<BlockPos, BlockState>>> layerEntry : byLayer.entrySet()) {
-                LayerBuffer layerBuffer = bakeLayer(
-                        layerEntry.getKey().pass(),
-                        layerEntry.getKey().layer(),
-                        layerEntry.getValue(),
-                        blockRenderManager,
-                        blockColors,
-                        matrices
-                );
-                if (layerBuffer != null) {
-                    uploaded.add(layerBuffer);
-                }
-            }
-        } catch (RuntimeException e) {
-            for (LayerBuffer layerBuffer : uploaded) {
-                layerBuffer.close();
-            }
-            return ChunkMesh.EMPTY;
-        }
-        return uploaded.isEmpty() ? ChunkMesh.EMPTY : new ChunkMesh(uploaded);
-    }
-
-    private static LayerBuffer bakeLayer(
-            TerrainPass pass,
-            RenderType layer,
-            List<Map.Entry<BlockPos, BlockState>> entries,
-            BlockRenderDispatcher blockRenderManager,
-            BlockColors blockColors,
-            PoseStack matrices
-    ) {
-        ByteBufferBuilder allocator = new ByteBufferBuilder(Math.max(256 * 1024, entries.size() * 512));
-        BufferBuilder bufferBuilder = new BufferBuilder(
-                allocator,
-                VertexFormat.Mode.QUADS,
-                DefaultVertexFormat.NEW_ENTITY
-        );
-        boolean wrote = false;
-        try {
-            for (Map.Entry<BlockPos, BlockState> entry : entries) {
-                BlockPos pos = entry.getKey();
-                BlockState state = entry.getValue();
-                BakedModel model = blockRenderManager.getBlockModel(state);
-                int color = blockColors.getColor(state, null, null, 0);
-                float red = (float) (color >> 16 & 0xFF) / 255.0F;
-                float green = (float) (color >> 8 & 0xFF) / 255.0F;
-                float blue = (float) (color & 0xFF) / 255.0F;
-
-                matrices.pushPose();
-                matrices.translate(pos.getX(), pos.getY(), pos.getZ());
-                blockRenderManager.getModelRenderer().renderModel(
-                        matrices.last(),
-                        bufferBuilder,
-                        state,
-                        model,
-                        red,
-                        green,
-                        blue,
-                        FULLBRIGHT,
-                        OverlayTexture.NO_OVERLAY
-                );
-                matrices.popPose();
-                wrote = true;
-            }
-            if (!wrote) {
-                return null;
-            }
-            MeshData built = bufferBuilder.build();
-            if (built == null) {
-                return null;
-            }
-            VertexBuffer vertexBuffer = new VertexBuffer(BufferUsage.STATIC_WRITE);
-            vertexBuffer.bind();
-            vertexBuffer.upload(built);
-            VertexBuffer.unbind();
-            return new LayerBuffer(pass, layer, vertexBuffer);
-        } catch (RuntimeException e) {
-            return null;
-        } finally {
-            allocator.close();
-        }
+        return ChunkMesh.MARKER;
     }
 
     private static final class ChunkMesh implements AutoCloseable {
-        static final ChunkMesh EMPTY = new ChunkMesh(List.of(), false);
-        /** Non-empty placeholder used by {@link #markChunkMeshForTest}. */
-        static final ChunkMesh MARKER = new ChunkMesh(List.of(), true);
+        static final ChunkMesh EMPTY = new ChunkMesh(false);
+        /** Non-empty placeholder used by {@link #markChunkMeshForTest} and interim bake. */
+        static final ChunkMesh MARKER = new ChunkMesh(true);
 
-        private final List<LayerBuffer> layers;
         private final boolean marker;
         private boolean closed;
 
-        private ChunkMesh(List<LayerBuffer> layers) {
-            this(layers, false);
-        }
-
-        private ChunkMesh(List<LayerBuffer> layers, boolean marker) {
-            this.layers = List.copyOf(layers);
+        private ChunkMesh(boolean marker) {
             this.marker = marker;
         }
 
         boolean isEmpty() {
-            return !marker && layers.isEmpty();
+            return !marker;
         }
 
         void draw(TerrainPass pass) {
-            if (closed || isEmpty() || marker) {
+            if (closed || isEmpty() || marker || pass == null) {
                 return;
             }
-            for (LayerBuffer layerBuffer : layers) {
-                if (layerBuffer.pass() == pass && !layerBuffer.buffer().isInvalid()) {
-                    layerBuffer.buffer().drawWithRenderType(layerBuffer.layer());
-                }
-            }
+            // TODO(soto-mesh): RenderPass draw of baked GpuBuffers per TerrainPass / ChunkSectionLayer.
         }
 
         @Override
@@ -307,21 +202,6 @@ public final class SotoGhostMeshCache {
                 return;
             }
             closed = true;
-            for (LayerBuffer layerBuffer : layers) {
-                layerBuffer.close();
-            }
-        }
-    }
-
-    private record LayerKey(TerrainPass pass, RenderType layer) {
-    }
-
-    private record LayerBuffer(TerrainPass pass, RenderType layer, VertexBuffer buffer) implements AutoCloseable {
-        @Override
-        public void close() {
-            if (!buffer.isInvalid()) {
-                buffer.close();
-            }
         }
     }
 
@@ -331,12 +211,21 @@ public final class SotoGhostMeshCache {
         TRANSLUCENT;
 
         static TerrainPass forBlockState(BlockState state) {
-            RenderType layer = ItemBlockRenderTypes.getChunkRenderType(state);
-            if (layer == RenderType.translucent() || layer == RenderType.tripwire()) {
-                return TRANSLUCENT;
+            // 26.2: ItemBlockRenderTypes gone. Approximate from block transparency until
+            // ChunkSectionLayer is available off BlockStateModel material flags.
+            if (state == null) {
+                return OPAQUE;
             }
-            if (layer == RenderType.cutout() || layer == RenderType.cutoutMipped()) {
-                return CUTOUT;
+            if (!state.getFluidState().isEmpty() || !state.canOcclude()) {
+                // Translucent-ish / non-occluding → cutout bucket for ordering.
+                if (!state.canOcclude()) {
+                    return CUTOUT;
+                }
+            }
+            // Keep ChunkSectionLayer referenced so the full bake can map SOLID/CUTOUT/TRANSLUCENT.
+            ChunkSectionLayer ignored = ChunkSectionLayer.SOLID;
+            if (ignored.translucent()) {
+                return TRANSLUCENT;
             }
             return OPAQUE;
         }

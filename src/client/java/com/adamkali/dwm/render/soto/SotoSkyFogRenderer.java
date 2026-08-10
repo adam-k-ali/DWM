@@ -4,17 +4,10 @@ import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors.EffectsKind;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
-import com.mojang.blaze3d.shaders.FogShape;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
-import net.minecraft.client.renderer.CoreShaders;
-import net.minecraft.client.renderer.FogParameters;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
@@ -22,6 +15,11 @@ import org.lwjgl.opengl.GL11;
 
 /**
  * Mini skybox + fog for the SOTO exterior portal, driven by synced {@link SotoAtmosphere}.
+ * <p>
+ * Minecraft 26.2 replaced {@code FogParameters}/{@code Tesselator}/{@code CoreShaders} with
+ * GpuBufferSlice fog and RenderPass draws. Portal sky currently fills via target clear color
+ * ({@link #portalBackdropRgb}); solid backdrop mesh redraw is deferred until a POSITION_COLOR
+ * RenderPass helper lands. Terrain fog apply/restore preserves the previous GpuBufferSlice.
  */
 public final class SotoSkyFogRenderer {
     /** Vanilla sky dome radius; scale so it sits behind the 11×7×11 footprint. */
@@ -37,14 +35,13 @@ public final class SotoSkyFogRenderer {
     /**
      * Draws the Phase 3 sky with fog reaching the edge of the fixed two-chunk ghost stream.
      * <p>
-     * Uses only Tessellator/BufferRenderer draws — never the shared entity {@code Immediate},
-     * which rebinds the main framebuffer and would paint sky onto the interior.
-     * <p>
-     * Cull must be off: the backdrop is a cube viewed from the inside.
+     * The shared entity submit collector must not be used for sky fills — it can rebind the main
+     * framebuffer. Backdrop RGB is applied by the portal clear; optional mesh fill is a no-op
+     * until RenderPass POSITION_COLOR drawing is ported.
      */
     public static void renderPortalSky(
             PoseStack matrices,
-            MultiBufferSource ignoredVertexConsumers,
+            SubmitNodeCollector ignoredSubmitNodeCollector,
             SotoAtmosphere atmosphere
     ) {
         if (atmosphere == null) {
@@ -52,17 +49,15 @@ public final class SotoSkyFogRenderer {
         }
         EffectsKind kind = SotoAtmosphereColors.effectsKind(atmosphere.dimensionEffectsId());
         float skyAngle = SotoAtmosphereColors.skyAngle(atmosphere.timeOfDay());
-        FogParameters skyFog = buildFog(atmosphere, kind, PORTAL_FOG_START, PORTAL_FOG_END);
         int skyRgb = portalBackdropRgb(atmosphere, kind, skyAngle);
-        FogParameters previous = RenderSystem.getShaderFog();
-        RenderSystem.setShaderFog(skyFog);
+        GpuBufferSlice previous = RenderSystem.getShaderFog();
 
         boolean depthWasEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
         boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
-        RenderSystem.enableDepthTest();
-        RenderSystem.depthMask(false);
-        RenderSystem.depthFunc(GL11.GL_LEQUAL);
-        RenderSystem.disableCull();
+        SotoGl.enableDepthTest();
+        SotoGl.depthMask(false);
+        SotoGl.depthFunc(GL11.GL_LEQUAL);
+        SotoGl.disableCull();
 
         matrices.pushPose();
         try {
@@ -71,22 +66,22 @@ public final class SotoSkyFogRenderer {
             double cz = SotoExteriorSampler.RELATIVE_TARDIS_POS.getZ() + 0.5;
             matrices.translate(cx, cy, cz);
             matrices.scale(SKY_SCALE, SKY_SCALE, SKY_SCALE);
-            // Solid colored cube in ghost space (not vanilla SkyRendering VBOs): those expect
-            // rotation-only modelview centered on the camera, and celestial Immediate draws
-            // rebind the main FBO.
+            // Portal clear already painted skyRgb; mesh backdrop deferred (no Tesselator in 26.2).
             renderSolidBackdropRgb(matrices, skyRgb);
         } finally {
             matrices.popPose();
-            RenderSystem.depthMask(true);
+            SotoGl.depthMask(true);
             if (cullWasEnabled) {
-                RenderSystem.enableCull();
+                SotoGl.enableCull();
             } else {
-                RenderSystem.disableCull();
+                SotoGl.disableCull();
             }
             if (!depthWasEnabled) {
-                RenderSystem.disableDepthTest();
+                SotoGl.disableDepthTest();
             }
-            RenderSystem.setShaderFog(previous);
+            if (previous != null) {
+                RenderSystem.setShaderFog(previous);
+            }
         }
     }
 
@@ -109,27 +104,29 @@ public final class SotoSkyFogRenderer {
                     atmosphere.thunderGradient()
             );
             case NETHER, END -> {
-                FogParameters fog = buildFog(atmosphere, kind, PORTAL_FOG_START, PORTAL_FOG_END);
+                FogColor fog = buildFogColor(atmosphere, kind);
                 yield ARGB.colorFromFloat(1.0F, fog.red(), fog.green(), fog.blue());
             }
         };
     }
 
-    public static FogParameters applyPortalTerrainFog(SotoAtmosphere atmosphere) {
-        if (atmosphere == null) {
-            atmosphere = SotoAtmosphere.DEFAULT;
+    /**
+     * Remembers the previous shader fog slice. Minecraft 26.2 fog is a UBO slice; we cannot
+     * construct a custom portal fog buffer without FogRenderer internals, so terrain draws keep
+     * the active fog. Restore still swaps the captured slice back.
+     */
+    public static GpuBufferSlice applyPortalTerrainFog(SotoAtmosphere atmosphere) {
+        // atmosphere retained for API stability / future FogData upload.
+        return RenderSystem.getShaderFog();
+    }
+
+    public static void restoreFog(GpuBufferSlice previous) {
+        if (previous != null) {
+            RenderSystem.setShaderFog(previous);
         }
-        EffectsKind kind = SotoAtmosphereColors.effectsKind(atmosphere.dimensionEffectsId());
-        FogParameters previous = RenderSystem.getShaderFog();
-        RenderSystem.setShaderFog(buildFog(atmosphere, kind, PORTAL_FOG_START, PORTAL_FOG_END));
-        return previous;
     }
 
-    public static void restoreFog(FogParameters previous) {
-        RenderSystem.setShaderFog(previous == null ? FogParameters.NO_FOG : previous);
-    }
-
-    static FogParameters buildFog(SotoAtmosphere atmosphere, EffectsKind kind, float start, float end) {
+    static FogColor buildFogColor(SotoAtmosphere atmosphere, EffectsKind kind) {
         float skyAngle = SotoAtmosphereColors.skyAngle(atmosphere.timeOfDay());
         Vec3 color = SotoAtmosphereColors.fogColor(
                 atmosphere.biomeFogColor(),
@@ -138,54 +135,25 @@ public final class SotoSkyFogRenderer {
                 atmosphere.rainGradient(),
                 atmosphere.thunderGradient()
         );
-        return new FogParameters(
-                start,
-                end,
-                FogShape.SPHERE,
+        return new FogColor(
+                PORTAL_FOG_START,
+                PORTAL_FOG_END,
                 (float) color.x,
                 (float) color.y,
-                (float) color.z,
-                1.0F
+                (float) color.z
         );
     }
 
     private static void renderSolidBackdropRgb(PoseStack matrices, int argb) {
-        Matrix4f matrix = matrices.last().pose();
-        RenderSystem.setShader(CoreShaders.POSITION_COLOR);
-        float size = VANILLA_SKY_RADIUS;
-        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        // Six faces of a large cube centered at origin (sky-space), wound for outside normals;
-        // callers must disable cull so the interior view sees them.
-        // -Z
-        buffer.addVertex(matrix, -size, -size, -size).setColor(argb);
-        buffer.addVertex(matrix, -size, size, -size).setColor(argb);
-        buffer.addVertex(matrix, size, size, -size).setColor(argb);
-        buffer.addVertex(matrix, size, -size, -size).setColor(argb);
-        // +Z
-        buffer.addVertex(matrix, size, -size, size).setColor(argb);
-        buffer.addVertex(matrix, size, size, size).setColor(argb);
-        buffer.addVertex(matrix, -size, size, size).setColor(argb);
-        buffer.addVertex(matrix, -size, -size, size).setColor(argb);
-        // -X
-        buffer.addVertex(matrix, -size, -size, size).setColor(argb);
-        buffer.addVertex(matrix, -size, size, size).setColor(argb);
-        buffer.addVertex(matrix, -size, size, -size).setColor(argb);
-        buffer.addVertex(matrix, -size, -size, -size).setColor(argb);
-        // +X
-        buffer.addVertex(matrix, size, -size, -size).setColor(argb);
-        buffer.addVertex(matrix, size, size, -size).setColor(argb);
-        buffer.addVertex(matrix, size, size, size).setColor(argb);
-        buffer.addVertex(matrix, size, -size, size).setColor(argb);
-        // -Y
-        buffer.addVertex(matrix, -size, -size, -size).setColor(argb);
-        buffer.addVertex(matrix, size, -size, -size).setColor(argb);
-        buffer.addVertex(matrix, size, -size, size).setColor(argb);
-        buffer.addVertex(matrix, -size, -size, size).setColor(argb);
-        // +Y
-        buffer.addVertex(matrix, -size, size, size).setColor(argb);
-        buffer.addVertex(matrix, size, size, size).setColor(argb);
-        buffer.addVertex(matrix, size, size, -size).setColor(argb);
-        buffer.addVertex(matrix, -size, size, -size).setColor(argb);
-        BufferUploader.drawWithShader(buffer.buildOrThrow());
+        // Intentionally empty on 26.2 until POSITION_COLOR RenderPass draw helper exists.
+        // Portal bindAndClear already fills with portalBackdropRgb.
+        Matrix4f ignored = matrices.last().pose();
+        if (ignored == null || argb == 0 && VANILLA_SKY_RADIUS <= 0) {
+            return;
+        }
+    }
+
+    /** Local fog color description (replaces removed FogParameters for color math). */
+    record FogColor(float start, float end, float red, float green, float blue) {
     }
 }

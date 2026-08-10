@@ -10,12 +10,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -26,6 +23,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Per-TARDIS SOTO exterior cache for shell metadata and atmosphere (Phase 0).
  * Terrain and entities come from {@link SotoGhostExterior}.
+ * <p>
+ * Ghost entity / block-entity draws are stubs on 26.2 until extract+submit against
+ * {@link SubmitNodeCollector} and {@code CameraRenderState} is ported (old
+ * {@code MultiBufferSource} BER/entity {@code render} APIs are gone).
  */
 public final class SotoExteriorMeshCache {
     private static final long REQUEST_COOLDOWN_MS = 2000L;
@@ -115,7 +116,7 @@ public final class SotoExteriorMeshCache {
 
     public static void renderGhostBlockEntities(
             PoseStack matrices,
-            MultiBufferSource vertexConsumers,
+            SubmitNodeCollector submitNodeCollector,
             int light,
             float tickDelta,
             UUID tardisId,
@@ -127,25 +128,24 @@ public final class SotoExteriorMeshCache {
             return;
         }
         BlockEntityRenderDispatcher beDispatcher = client.getBlockEntityRenderDispatcher();
-        if (client.level != null && camera != null) {
-            beDispatcher.prepare(client.level, camera, client.hitResult);
+        if (camera != null) {
+            beDispatcher.prepare(camera.position());
         }
+        // TODO(soto-submit): extract+submit each BlockEntity via SubmitNodeCollector / CameraRenderState.
         for (BlockEntity blockEntity : ghost.buildRenderedBlockEntities()) {
-            BlockEntityRenderer<BlockEntity> renderer = beDispatcher.getRenderer(blockEntity);
-            if (renderer == null) {
+            if (beDispatcher.getRenderer(blockEntity) == null) {
                 continue;
             }
-            BlockPos pos = blockEntity.getBlockPos();
-            matrices.pushPose();
-            matrices.translate(pos.getX(), pos.getY(), pos.getZ());
-            renderer.render(blockEntity, tickDelta, matrices, vertexConsumers, light, OverlayTexture.NO_OVERLAY);
-            matrices.popPose();
+            // Matrices / light / tickDelta retained for the upcoming submit port.
+            if (matrices == null || submitNodeCollector == null && light < 0 && tickDelta < 0) {
+                break;
+            }
         }
     }
 
     public static void renderGhostEntities(
             PoseStack matrices,
-            MultiBufferSource vertexConsumers,
+            SubmitNodeCollector submitNodeCollector,
             int light,
             float tickDelta,
             UUID tardisId,
@@ -156,9 +156,10 @@ public final class SotoExteriorMeshCache {
             return;
         }
         EntityRenderDispatcher entityDispatcher = client.getEntityRenderDispatcher();
-        if (client.level != null && camera != null) {
-            entityDispatcher.prepare(client.level, camera, client.player);
+        if (camera != null) {
+            entityDispatcher.prepare(camera, client.player);
         }
+        // TODO(soto-submit): extractEntity + submit against SubmitNodeCollector.
         for (SotoGhostExterior.RenderableGhostEntity ghost : SotoGhostExterior.getRenderableEntities(tardisId)) {
             Entity entity = ghost.entity();
             LerpedPose pose = ghost.pose();
@@ -167,16 +168,9 @@ public final class SotoExteriorMeshCache {
             if (entity instanceof LivingEntity living) {
                 snapLivingYaw(living, pose.yaw());
             }
-            entityDispatcher.render(
-                    entity,
-                    pose.x(),
-                    pose.y(),
-                    pose.z(),
-                    tickDelta,
-                    matrices,
-                    vertexConsumers,
-                    light
-            );
+            if (matrices == null || submitNodeCollector == null && light < 0 && tickDelta < 0) {
+                break;
+            }
         }
     }
 

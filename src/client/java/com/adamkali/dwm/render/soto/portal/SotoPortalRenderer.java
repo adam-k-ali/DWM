@@ -1,10 +1,12 @@
 package com.adamkali.dwm.render.soto.portal;
 
 import com.adamkali.dwm.render.soto.SotoExteriorMeshCache;
+import com.adamkali.dwm.render.soto.SotoGl;
 import com.adamkali.dwm.render.soto.SotoSkyFogRenderer;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix4fStack;
@@ -13,20 +15,18 @@ import org.lwjgl.opengl.GL11;
 import java.util.UUID;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.FogParameters;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.ARGB;
+import net.minecraft.util.LightCoordsUtil;
 
 /**
  * Renders the streamed ghost exterior into the managed full-window portal target.
  */
 public final class SotoPortalRenderer {
-    private static final int FULLBRIGHT = LightTexture.pack(15, 15);
+    private static final int FULLBRIGHT = LightCoordsUtil.FULL_BRIGHT;
 
     private final SotoPortalRenderTarget target;
     private final PortalCamera portalCamera = new PortalCamera();
@@ -62,7 +62,7 @@ public final class SotoPortalRenderer {
         if (client == null || client.level == null || client.gameRenderer == null) {
             return PortalTexture.UNAVAILABLE;
         }
-        Camera mainCamera = client.gameRenderer.getMainCamera();
+        Camera mainCamera = client.gameRenderer.mainCamera();
         SotoPortalCameraTransform.Result portalView = SotoPortalCameraTransform.map(
                 mainCamera,
                 interiorDoorPos,
@@ -113,27 +113,26 @@ public final class SotoPortalRenderer {
                     1.0f
             );
             GL11.glDisable(GL11.GL_STENCIL_TEST);
-            RenderSystem.enableDepthTest();
-            RenderSystem.depthFunc(GL11.GL_LEQUAL);
-            RenderSystem.depthMask(true);
-            RenderSystem.colorMask(true, true, true, true);
-            RenderSystem.enableCull();
-            RenderSystem.disableBlend();
+            SotoGl.enableDepthTest();
+            SotoGl.depthFunc(GL11.GL_LEQUAL);
+            SotoGl.depthMask(true);
+            SotoGl.colorMask(true, true, true, true);
+            SotoGl.enableCull();
+            SotoGl.disableBlend();
 
             portalCamera.apply(portalView);
             Matrix4fStack modelViewStack = RenderSystem.getModelViewStack();
             modelViewStack.set(portalView.viewMatrix());
 
-            MultiBufferSource.BufferSource vertexConsumers =
-                    client.renderBuffers().bufferSource();
             PoseStack sceneMatrices = new PoseStack();
 
             EntityRenderDispatcher entityDispatcher = client.getEntityRenderDispatcher();
             BlockEntityRenderDispatcher blockEntityDispatcher = client.getBlockEntityRenderDispatcher();
             try {
-                SotoSkyFogRenderer.renderPortalSky(sceneMatrices, vertexConsumers, atmosphere);
+                // No Immediate buffer source in 26.2; sky fill is the portal clear color.
+                SotoSkyFogRenderer.renderPortalSky(sceneMatrices, null, atmosphere);
                 target.bindForWrite();
-                FogParameters previousFog = SotoSkyFogRenderer.applyPortalTerrainFog(atmosphere);
+                GpuBufferSlice previousFog = SotoSkyFogRenderer.applyPortalTerrainFog(atmosphere);
                 try {
                     target.bindForWrite();
                     SotoGhostMeshCache.drawLayer(
@@ -157,7 +156,7 @@ public final class SotoPortalRenderer {
                     target.bindForWrite();
                     SotoExteriorMeshCache.renderGhostBlockEntities(
                             sceneMatrices,
-                            vertexConsumers,
+                            null,
                             FULLBRIGHT,
                             tickDelta,
                             tardisId,
@@ -166,26 +165,20 @@ public final class SotoPortalRenderer {
                     target.bindForWrite();
                     SotoExteriorMeshCache.renderGhostEntities(
                             sceneMatrices,
-                            vertexConsumers,
+                            null,
                             FULLBRIGHT,
                             tickDelta,
                             tardisId,
                             portalCamera
                     );
                     target.bindForWrite();
-                    vertexConsumers.endBatch();
-                    target.bindForWrite();
                 } finally {
                     SotoSkyFogRenderer.restoreFog(previousFog);
                 }
             } finally {
                 if (client.level != null) {
-                    entityDispatcher.prepare(client.level, client.gameRenderer.getMainCamera(), client.player);
-                    blockEntityDispatcher.prepare(
-                            client.level,
-                            client.gameRenderer.getMainCamera(),
-                            client.hitResult
-                    );
+                    entityDispatcher.prepare(client.gameRenderer.mainCamera(), client.player);
+                    blockEntityDispatcher.prepare(client.gameRenderer.mainCamera().position());
                 }
             }
         } finally {

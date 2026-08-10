@@ -5,8 +5,8 @@ import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.GraphicsStatus;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
+import net.minecraft.client.GraphicsPreset;
 import net.minecraft.client.Minecraft;
 import org.slf4j.Logger;
 
@@ -30,7 +30,7 @@ public final class SotoPortalSupport {
             return;
         }
         initialized = true;
-        WorldRenderEvents.START.register(context -> SotoPortalRenderTarget.beginClientFrame());
+        LevelRenderEvents.START_MAIN.register(context -> SotoPortalRenderTarget.beginClientFrame());
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> SotoPortalRenderTarget.closeGlobal());
     }
 
@@ -43,8 +43,8 @@ public final class SotoPortalSupport {
         if (client == null || client.options == null) {
             return false;
         }
-        GraphicsStatus mode = client.options.graphicsMode().get();
-        return mode == GraphicsStatus.FAST || mode == GraphicsStatus.FANCY;
+        GraphicsPreset mode = client.options.graphicsPreset().get();
+        return mode == GraphicsPreset.FAST || mode == GraphicsPreset.FANCY;
     }
 
     public static boolean hasGhostMeshes(UUID tardisId) {
@@ -54,9 +54,9 @@ public final class SotoPortalSupport {
 
     public static boolean isReadyFor(UUID tardisId) {
         Minecraft client = Minecraft.getInstance();
-        GraphicsStatus graphicsMode = client == null || client.options == null
+        GraphicsPreset graphicsMode = client == null || client.options == null
                 ? null
-                : client.options.graphicsMode().get();
+                : client.options.graphicsPreset().get();
         return isReady(
                 sessionAvailable,
                 BotiStencilSupport.isAvailable(),
@@ -69,13 +69,13 @@ public final class SotoPortalSupport {
     static boolean isReady(
             boolean session,
             boolean stencil,
-            GraphicsStatus graphicsMode,
+            GraphicsPreset graphicsMode,
             boolean targetReady,
             boolean ghostReady
     ) {
         return session
                 && stencil
-                && (graphicsMode == GraphicsStatus.FAST || graphicsMode == GraphicsStatus.FANCY)
+                && (graphicsMode == GraphicsPreset.FAST || graphicsMode == GraphicsPreset.FANCY)
                 && targetReady
                 && ghostReady;
     }
