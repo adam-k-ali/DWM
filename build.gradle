@@ -61,7 +61,8 @@ dependencies {
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
     testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
-    testImplementation "org.mockito:mockito-core:5.11.0"
+    // 5.18+ bundles Byte Buddy with Java 25 classfile support (mockStatic / inline mocks)
+    testImplementation "org.mockito:mockito-core:5.20.0"
 
     implementation "org.json:json:20240303"
     implementation "com.github.erosb:everit-json-schema:1.14.4"
@@ -201,7 +202,9 @@ tasks.named("check").configure {
 
 ext.prettyPrintJsonTwoSpace = { Object data ->
     def pretty = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(data))
-    return pretty.replaceAll(/(?m)^(    )+/) { String indent ->
+    // Groovy Matcher.replaceAll may pass the full match as String or as List(group0, …)
+    return pretty.replaceAll(/(?m)^(    )+/) { Object match ->
+        String indent = match instanceof List ? match[0].toString() : match.toString()
         "  " * (indent.length() / 4)
     }
 }
