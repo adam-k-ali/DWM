@@ -1,14 +1,17 @@
 package com.adamkali.dwm.render;
 
+import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.FirstDoctorConsoleBlock;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -17,16 +20,19 @@ import net.minecraft.world.phys.HitResult;
  * Crosshair tooltip for First Doctor console controls.
  */
 public final class ConsoleControlHud {
+    private static final Identifier ELEMENT_ID =
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "console_control_hud");
+
     private ConsoleControlHud() {
     }
 
     public static void initialize() {
-        HudRenderCallback.EVENT.register(ConsoleControlHud::render);
+        HudElementRegistry.attachElementAfter(VanillaHudElements.CROSSHAIR, ELEMENT_ID, ConsoleControlHud::extract);
     }
 
-    private static void render(GuiGraphics context, DeltaTracker tickCounter) {
+    private static void extract(GuiGraphicsExtractor graphics, DeltaTracker tickCounter) {
         Minecraft client = Minecraft.getInstance();
-        if (client.player == null || client.level == null || client.options.hideGui) {
+        if (client.player == null || client.level == null) {
             return;
         }
         HitResult hit = client.hitResult;
@@ -61,8 +67,8 @@ public final class ConsoleControlHud {
         }
 
         int textWidth = client.font.width(label);
-        int x = (context.guiWidth() - textWidth) / 2;
-        int y = context.guiHeight() / 2 - 15;
-        context.drawString(client.font, label, x, y, 0xFFFFFF);
+        int x = (graphics.guiWidth() - textWidth) / 2;
+        int y = graphics.guiHeight() / 2 - 15;
+        graphics.text(client.font, label, x, y, 0xFFFFFF);
     }
 }

@@ -41,7 +41,7 @@ public class ClientPayloadTypeRegistry {
                 return;
             }
             ClientTardis clientTardis = new ClientTardis(payload.tardisId());
-            context.client().setScreen(new TardisChameleonGui(clientTardis));
+            context.client().setScreenAndShow(new TardisChameleonGui(clientTardis));
         });
     }
 

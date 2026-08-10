@@ -7,11 +7,11 @@ import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -42,7 +42,7 @@ public class TardisChameleonGui extends Screen {
         }
         currentVariantIndex = variantIndex;
         chameleonVariantName = variants[currentVariantIndex].getId().toLanguageKey();
-        
+
         downButton.active = currentVariantIndex != 0;
         upButton.active = currentVariantIndex != variants.length - 1;
         if (upButton.active) {
@@ -91,7 +91,6 @@ public class TardisChameleonGui extends Screen {
             onClose();
         }).bounds(width / 2 + 5, this.height / 2 + 50, 95, 20).build();
 
-
         addRenderableWidget(upButton);
         addRenderableWidget(downButton);
         addRenderableWidget(saveButton);
@@ -101,19 +100,30 @@ public class TardisChameleonGui extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         int contentWidth = 256;
         int contentHeight = 256;
 
         int x1 = (width - contentWidth) / 2;
         int x2 = x1 + contentWidth;
         int y1 = (height) / 2 - contentHeight / 3;
-        context.blit(RenderType::guiTextured, Identifier.withDefaultNamespace("textures/gui/demo_background.png"), x1, y1, 0, 0, 256, 256, 256, 256);
+        graphics.blit(
+                RenderPipelines.GUI_TEXTURED,
+                Identifier.withDefaultNamespace("textures/gui/demo_background.png"),
+                x1,
+                y1,
+                0,
+                0,
+                256,
+                256,
+                256,
+                256
+        );
 
-        super.render(context, mouseX, mouseY, delta);
+        super.extractRenderState(graphics, mouseX, mouseY, delta);
 
-        context.drawCenteredString(font, Component.translatable(this.chameleonVariantName), (x1 + x2) / 2, y1 + 45, 0xFFFFFF);
-        context.drawString(font, this.getTitle(), x1 + 10, y1 + 10, 0x404040, false);
+        graphics.centeredText(font, Component.translatable(this.chameleonVariantName), (x1 + x2) / 2, y1 + 45, 0xFFFFFF);
+        graphics.text(font, this.getTitle(), x1 + 10, y1 + 10, 0x404040, false);
     }
 
     @Override
