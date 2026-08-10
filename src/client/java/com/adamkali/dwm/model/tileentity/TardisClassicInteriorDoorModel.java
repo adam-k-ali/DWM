@@ -48,7 +48,7 @@ public class TardisClassicInteriorDoorModel extends EntityModel<TardisRenderStat
             door.visible = false;
         }
         try {
-            this.renderToBuffer(matrices, vertices, light, overlay);
+            this.renderToBuffer(matrices, vertices, light, overlay, -1);
         } finally {
             for (ModelPart door : doors) {
                 door.visible = true;

@@ -2,12 +2,11 @@ package com.adamkali.dwm.render;
 
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
-import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.model.tileentity.TardisClassicInteriorDoorModel;
+import com.adamkali.dwm.render.soto.TardisSotoRenderer;
 import com.adamkali.dwm.render.state.TardisInteriorDoorBlockEntityRenderState;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.interior.TardisInteriorDoorShapes;
-import com.adamkali.dwm.tardis.interior.TardisSotoGate;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -24,10 +23,12 @@ import net.minecraft.world.phys.Vec3;
 public class TardisInteriorDoorBlockEntityRenderer
         implements BlockEntityRenderer<TardisInteriorDoorBlockEntity, TardisInteriorDoorBlockEntityRenderState> {
     private final TardisClassicInteriorDoorModel model;
+    private final TardisSotoRenderer sotoRenderer;
 
     public TardisInteriorDoorBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         this.model = new TardisClassicInteriorDoorModel(
                 context.bakeLayer(TardisClassicInteriorDoorModel.LAYER_LOCATION));
+        this.sotoRenderer = new TardisSotoRenderer();
     }
 
     @Override
@@ -50,7 +51,7 @@ public class TardisInteriorDoorBlockEntityRenderer
         state.doorSwing = entity.getDoorSwing();
         state.partialTicks = partialTicks;
         state.tardisId = entity.getTardisId();
-        state.shouldRenderSoto = shouldRenderSoto(state.doorSwing);
+        state.shouldRenderSoto = TardisSotoRenderer.shouldRender(state.doorSwing);
     }
 
     @Override
@@ -67,11 +68,23 @@ public class TardisInteriorDoorBlockEntityRenderer
         applyTransforms(poseStack, state.facing);
 
         if (state.shouldRenderSoto) {
-            // TODO(soto): restore shell → SOTO → doors (depth override) once TardisSotoRenderer
-            // accepts SubmitNodeCollector.
-            submitSotoPlaceholder(state, poseStack, submitNodeCollector);
+            // Shell → SOTO → doors so frames establish depth before the aperture clear,
+            // and swung leaves still composite over the exterior preview.
+            submitShell(animState, poseStack, submitNodeCollector, state);
+
+            sotoRenderer.render(
+                    poseStack,
+                    submitNodeCollector,
+                    state.partialTicks,
+                    state.tardisId,
+                    state.blockPos,
+                    state.facing
+            );
+
+            submitDoors(animState, poseStack, submitNodeCollector, state);
+        } else {
+            submitFull(animState, poseStack, submitNodeCollector, state);
         }
-        submitFull(animState, poseStack, submitNodeCollector, state);
 
         poseStack.popPose();
     }
@@ -100,23 +113,46 @@ public class TardisInteriorDoorBlockEntityRenderer
     }
 
     /**
-     * Compile-safe SOTO stand-in. Sibling agents own {@code render/soto/**}; re-hook when their
-     * submit-era API is ready.
+     * Shell without door leaves. Uses {@link SubmitNodeCollector#submitCustomGeometry} so door
+     * visibility can be toggled at flush time (deferred {@code submitModel} would see restored parts).
      */
-    // TODO(soto): call TardisSotoRenderer with SubmitNodeCollector once available.
-    private static void submitSotoPlaceholder(
-            TardisInteriorDoorBlockEntityRenderState state,
+    private void submitShell(
+            TardisRenderState animState,
             PoseStack poseStack,
-            SubmitNodeCollector submitNodeCollector
+            SubmitNodeCollector submitNodeCollector,
+            TardisInteriorDoorBlockEntityRenderState state
     ) {
-        // no-op: MultiBufferSource / immediate flush / depth-func override path removed in 26.2
+        int light = state.lightCoords;
+        submitNodeCollector.submitCustomGeometry(
+                poseStack,
+                RenderTypes.entityCutout(TardisClassicInteriorDoorModel.TEXTURE_LOCATION),
+                (pose, consumer) -> {
+                    PoseStack local = new PoseStack();
+                    local.last().set(pose);
+                    model.setupAnim(animState);
+                    model.renderShell(local, consumer, light, OverlayTexture.NO_OVERLAY);
+                });
     }
 
     /**
-     * Portal support lives in the SOTO package (sibling-owned); gate on config + door swing only here.
+     * Door leaves only, drawn after SOTO so open doors sit over the exterior preview.
      */
-    private static boolean shouldRenderSoto(float doorSwing) {
-        return DWMConfig.getBoolean(DWMConfig.ENABLE_SOTO) && TardisSotoGate.shouldShow(doorSwing);
+    private void submitDoors(
+            TardisRenderState animState,
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            TardisInteriorDoorBlockEntityRenderState state
+    ) {
+        int light = state.lightCoords;
+        submitNodeCollector.submitCustomGeometry(
+                poseStack,
+                RenderTypes.entityCutout(TardisClassicInteriorDoorModel.TEXTURE_LOCATION),
+                (pose, consumer) -> {
+                    PoseStack local = new PoseStack();
+                    local.last().set(pose);
+                    model.setupAnim(animState);
+                    model.renderDoors(local, consumer, light, OverlayTexture.NO_OVERLAY);
+                });
     }
 
     /**
