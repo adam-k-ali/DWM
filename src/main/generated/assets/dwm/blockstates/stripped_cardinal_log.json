@@ -1,7 +1,7 @@
 {
   "variants": {
     "axis=x": {
-      "model": "dwm:block/stripped_cardinal_log_horizontal",
+      "model": "dwm:block/stripped_cardinal_log",
       "x": 90,
       "y": 90
     },
@@ -9,7 +9,7 @@
       "model": "dwm:block/stripped_cardinal_log"
     },
     "axis=z": {
-      "model": "dwm:block/stripped_cardinal_log_horizontal",
+      "model": "dwm:block/stripped_cardinal_log",
       "x": 90
     }
   }
