@@ -31,6 +31,12 @@ class VersionJsonSyncTest {
                 root.getJSONObject(minecraftVersion).has(modVersion),
                 "version.json must include changelog for " + minecraftVersion + "/" + modVersion
         );
+        JSONObject entry = root.getJSONObject(minecraftVersion).getJSONObject(modVersion);
+        assertTrue(
+                entry.has("summary") && !entry.getString("summary").isBlank(),
+                "version.json changelog for " + minecraftVersion + "/" + modVersion
+                        + " must include a non-blank summary"
+        );
     }
 
     private static Properties loadGradleProperties() throws IOException {

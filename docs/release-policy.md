@@ -24,7 +24,14 @@ Example: `v1.21.4-1.2.0` → Minecraft `1.21.4`, mod `1.2.0`.
 | --- | --- |
 | `minecraft_version` | [`gradle.properties`](../gradle.properties) |
 | `mod_version` | [`gradle.properties`](../gradle.properties) (SemVer piece only) |
-| Player changelog + promos | [`version.json`](../version.json) (source for GitHub Release notes) |
+| Player changelog + promos | [`version.json`](../version.json) (source for GitHub Release notes, Modrinth changelog, and Discord) |
+
+Each per-version entry under `version.json` → `{minecraft_version}` → `{mod_version}` includes:
+
+| Field | Purpose |
+| --- | --- |
+| `summary` | Short player-facing blurb (required, non-blank). Leads the GitHub Release body and Modrinth changelog; used as the Discord embed description. |
+| `added` / `changed` / `removed` | Detailed changelog bullets for GitHub and Modrinth. |
 
 ### SemVer meaning for `mod_version`
 
@@ -59,7 +66,7 @@ Ship a patch immediately for:
 ## Quality bar before cut
 
 - `./gradlew test` and `./gradlew build` green (includes `checkVersionSync`)
-- Player-facing notes filled in for the new entry under `version.json` → `{minecraft_version}` → `{mod_version}`
+- Player-facing notes filled in for the new entry under `version.json` → `{minecraft_version}` → `{mod_version}`: non-blank `summary` plus `added` / `changed` / `removed` as needed
 - `promos.latest` and `promos.recommended` match `{minecraft_version}-{mod_version}` (use `./gradlew syncVersionJson` at cut time)
 - Experimental features remain clearly labeled in docs and configs
 - Release notes describe **shipped behavior only** (no roadmap fluff)
@@ -71,22 +78,26 @@ Ship a patch immediately for:
 
 ## Source of truth
 
-- **[`version.json`](../version.json)** is the only release-notes and promo channel (GitHub Release body).
+- **[`version.json`](../version.json)** is the only release-notes and promo channel (GitHub Release body, Modrinth changelog, Discord summary).
 - Do not maintain a separate changelog file; dual ledgers drift.
 
 ## Distribution checklist
 
 1. On `main`, bump `mod_version` in `gradle.properties` (and `minecraft_version` if needed).
-2. Run `./gradlew syncVersionJson`, then fill `added` / `changed` / `removed` for the new version in `version.json`.
+2. Run `./gradlew syncVersionJson`, then fill `summary` and `added` / `changed` / `removed` for the new version in `version.json`.
 3. Confirm `./gradlew build` is green.
 4. Commit, merge to `main`, then create and push tag `v{minecraft_version}-{mod_version}` (manually, or via the **Create Release Tag** workflow, which tags `promos.latest` from `version.json` on `main` if that tag is missing).
 5. Confirm the **Release** GitHub Actions workflow succeeds:
-   - GitHub Release with remapped JAR (+ sources JAR)
-   - Release notes generated from `version.json`
-6. Upload the remapped JAR from the GitHub Release to **Modrinth** (correct Minecraft + Fabric loaders).
-7. Post in Discord **`#releases`**: short summary of shipped behavior + Modrinth link.
+   - GitHub Release with remapped JAR (+ sources JAR) and notes from `version.json` (`summary` + detailed lists)
+   - Modrinth version upload (Fabric + Minecraft from the tag; Fabric API dependency)
+   - Discord `#releases` embed (summary + Modrinth link)
 
-Modrinth upload and the Discord `#releases` post remain **manual** in this policy. Automating them (Modrinth token / Discord webhook) is a follow-up.
+### Required GitHub Actions secrets
+
+| Secret | Purpose |
+| --- | --- |
+| `MODRINTH_TOKEN` | Modrinth personal access token with `VERSION_CREATE` |
+| `DISCORD_WEBHOOK_URL` | Incoming webhook for Discord `#releases` |
 
 ## CI overview
 
@@ -94,6 +105,6 @@ Modrinth upload and the Discord `#releases` post remain **manual** in this polic
 | --- | --- | --- |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `pull_request`, push to `main` | `./gradlew build` (compile + unit tests + version sync check) |
 | [`.github/workflows/create-release-tag.yml`](../.github/workflows/create-release-tag.yml) | `workflow_dispatch` | Create and push `v*` tag from `version.json` `promos.latest` if missing; then dispatch Release |
-| [`.github/workflows/release.yml`](../.github/workflows/release.yml) | push of tags `v*`, or `workflow_dispatch` | Build, publish GitHub Release artifacts and notes from `version.json` |
+| [`.github/workflows/release.yml`](../.github/workflows/release.yml) | push of tags `v*`, or `workflow_dispatch` | Build; publish GitHub Release, Modrinth version, and Discord announcement from `version.json` |
 
 CircleCI is retired; do not add draft GitHub releases on every `main` merge.

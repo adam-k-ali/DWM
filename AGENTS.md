@@ -83,7 +83,7 @@
 - CI runs on GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)); CircleCI is retired.
 - Releases are intentional git tags `v{minecraft}-{mod}` — see [docs/release-policy.md](docs/release-policy.md).
 - Do not bump `mod_version` or `version.json` promos except when cutting a release; use `./gradlew syncVersionJson` at cut time.
-- The release workflow publishes the GitHub Release from `version.json` notes; Modrinth + Discord `#releases` stay manual per the policy.
+- The release workflow publishes the GitHub Release, Modrinth version, and Discord `#releases` announcement from `version.json` (`summary` + changelog lists). Requires `MODRINTH_TOKEN` and `DISCORD_WEBHOOK_URL` secrets.
 
 ## Change Scope & Safety
 - Keep unrelated files untouched.
