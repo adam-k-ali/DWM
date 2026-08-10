@@ -79,7 +79,7 @@ Ship a patch immediately for:
 1. On `main`, bump `mod_version` in `gradle.properties` (and `minecraft_version` if needed).
 2. Run `./gradlew syncVersionJson`, then fill `added` / `changed` / `removed` for the new version in `version.json`.
 3. Confirm `./gradlew build` is green.
-4. Commit, merge to `main`, tag `v{minecraft_version}-{mod_version}`, and push the tag.
+4. Commit, merge to `main`, then create and push tag `v{minecraft_version}-{mod_version}` (manually, or via the **Create Release Tag** workflow, which tags `promos.latest` from `version.json` on `main` if that tag is missing).
 5. Confirm the **Release** GitHub Actions workflow succeeds:
    - GitHub Release with remapped JAR (+ sources JAR)
    - Release notes generated from `version.json`
@@ -93,6 +93,7 @@ Modrinth upload and the Discord `#releases` post remain **manual** in this polic
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `pull_request`, push to `main` | `./gradlew build` (compile + unit tests + version sync check) |
-| [`.github/workflows/release.yml`](../.github/workflows/release.yml) | push of tags `v*` | Build, publish GitHub Release artifacts and notes from `version.json` |
+| [`.github/workflows/create-release-tag.yml`](../.github/workflows/create-release-tag.yml) | `workflow_dispatch` | Create and push `v*` tag from `version.json` `promos.latest` if missing; then dispatch Release |
+| [`.github/workflows/release.yml`](../.github/workflows/release.yml) | push of tags `v*`, or `workflow_dispatch` | Build, publish GitHub Release artifacts and notes from `version.json` |
 
 CircleCI is retired; do not add draft GitHub releases on every `main` merge.

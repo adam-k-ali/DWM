@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - "v*"
+  # Also allow explicit dispatch (e.g. after Create Release Tag pushes with GITHUB_TOKEN,
+  # which does not re-trigger workflows on tag push).
+  workflow_dispatch:
 
 permissions:
   contents: write

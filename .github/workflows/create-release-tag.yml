@@ -1,0 +1,76 @@
+name: Create Release Tag
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  create-tag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Resolve tag from version.json
+        id: resolve
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          root = json.loads(Path("version.json").read_text(encoding="utf-8"))
+          latest = (root.get("promos") or {}).get("latest")
+          if not latest or not isinstance(latest, str):
+              raise SystemExit("version.json promos.latest is missing or not a string")
+
+          if not re.fullmatch(r"\d+\.\d+(?:\.\d+)?-\d+\.\d+\.\d+", latest):
+              raise SystemExit(
+                  f"promos.latest {latest!r} does not match "
+                  "{minecraft}-{mod} (e.g. 1.21.4-1.2.0)"
+              )
+
+          tag = f"v{latest}"
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"latest={latest}\n")
+              out.write(f"tag={tag}\n")
+          print(f"Resolved tag {tag} from promos.latest={latest}")
+          PY
+
+      - name: Create and push tag if missing
+        id: tag
+        env:
+          TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if git ls-remote --tags origin "refs/tags/${TAG}" | grep -q .; then
+            echo "Tag ${TAG} already exists on origin; nothing to do."
+            echo "created=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${TAG}" -m "Release ${TAG}"
+          git push origin "${TAG}"
+          echo "Created and pushed tag ${TAG}."
+          echo "created=true" >> "$GITHUB_OUTPUT"
+
+      # GITHUB_TOKEN pushes do not trigger other workflows; dispatch Release explicitly.
+      - name: Trigger Release workflow
+        if: steps.tag.outputs.created == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          gh workflow run release.yml --ref "${TAG}"
+          echo "Dispatched Release workflow for ${TAG}."
