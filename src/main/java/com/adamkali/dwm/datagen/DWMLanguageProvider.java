@@ -235,8 +235,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.config.option.chameleon_gui", "Enable Chameleon GUI");
         t.add("dwm.config.option.enable_boti", "Bigger on the Inside (exterior)");
         t.add("dwm.config.option.enable_boti.tooltip", "Show the console room through open exterior doors. Requires stencil support; may not work with Fabulous graphics or some Sodium setups.");
-        t.add("dwm.config.option.enable_soto", "Smaller on the Outside (interior)");
-        t.add("dwm.config.option.enable_soto.tooltip", "Show the exterior world through open interior doors. Requires stencil support; may not work with Fabulous graphics or some Sodium setups.");
+        t.add("dwm.config.option.enable_soto", "Smaller on the Outside (interior) [Experimental]");
+        t.add("dwm.config.option.enable_soto.tooltip", "Experimental. Show the exterior world through open interior doors. Requires stencil support; may not work with Fabulous graphics or some Sodium setups.");
         t.add("dwm.config.category.experimental", "Experimental");
     }
 
