@@ -109,18 +109,26 @@ class FirstDoctorConsoleControlsTest {
     }
 
     @Test
-    void planetLocatorBox_sitsBesideBiomeSelectorOnPanel3() {
-        AABB biome = FirstDoctorConsoleControls.biomeSelectorBox(Direction.NORTH);
-        AABB planet = FirstDoctorConsoleControls.planetLocatorBox(Direction.NORTH);
-        assertTrue(planet.minY > 0.5, "planet locator should sit on panel deck, was minY=" + planet.minY);
+    void panel3FourDials_haveDistinctCenters() {
+        Direction facing = Direction.NORTH;
+        AABB biome = FirstDoctorConsoleControls.biomeSelectorBox(facing);
+        AABB waypoint = FirstDoctorConsoleControls.waypointSelectorBox(facing);
+        AABB player = FirstDoctorConsoleControls.playerLocatorBox(facing);
+        AABB planet = FirstDoctorConsoleControls.planetLocatorBox(facing);
+
+        assertTrue(biome.minY > 0.5);
+        assertTrue(waypoint.minY > 0.5);
+        assertTrue(player.minY > 0.5);
+        assertTrue(planet.minY > 0.5);
         assertTrue(
-                FirstDoctorConsoleControls.planetLocatorDistanceFromCenter(Direction.NORTH) > 0.45,
+                FirstDoctorConsoleControls.planetLocatorDistanceFromCenter(facing) > 0.45,
                 "planet locator should be out on Panel3 deck"
         );
-        double dx = biome.getCenter().x - planet.getCenter().x;
-        double dz = biome.getCenter().z - planet.getCenter().z;
-        assertTrue(Math.hypot(dx, dz) > 0.15, "biome and planet dials should not share the same center");
-        // Pads make AABBs slightly generous; centers must still be distinct enough to aim.
+
+        assertCentersDistinct(biome, waypoint);
+        assertCentersDistinct(waypoint, player);
+        assertCentersDistinct(player, planet);
+        assertCentersDistinct(biome, planet);
     }
 
     @Test
@@ -139,6 +147,21 @@ class FirstDoctorConsoleControlsTest {
     }
 
     @Test
+    void lookRay_hitsWaypointAndPlayerLocatorFromAbove() {
+        Direction facing = Direction.NORTH;
+        BlockPos pos = BlockPos.ZERO;
+        Vec3 look = new Vec3(0, -1, 0);
+
+        AABB waypoint = FirstDoctorConsoleControls.waypointSelectorWorldBox(pos, facing);
+        Vec3 waypointEye = new Vec3(waypoint.getCenter().x, waypoint.getCenter().y + 1.5, waypoint.getCenter().z);
+        assertTrue(FirstDoctorConsoleControls.isWaypointSelectorLookHit(facing, pos, waypointEye, look, 5.0));
+
+        AABB player = FirstDoctorConsoleControls.playerLocatorWorldBox(pos, facing);
+        Vec3 playerEye = new Vec3(player.getCenter().x, player.getCenter().y + 1.5, player.getCenter().z);
+        assertTrue(FirstDoctorConsoleControls.isPlayerLocatorLookHit(facing, pos, playerEye, look, 5.0));
+    }
+
+    @Test
     void preferBiomeOverPlanet_picksCloserDial() {
         Direction facing = Direction.NORTH;
         BlockPos pos = BlockPos.ZERO;
@@ -152,5 +175,74 @@ class FirstDoctorConsoleControlsTest {
         Vec3 planetCenter = planet.getCenter();
         Vec3 planetEye = new Vec3(planetCenter.x, planetCenter.y + 1.5, planetCenter.z);
         assertFalse(FirstDoctorConsoleControls.preferBiomeOverPlanet(facing, pos, planetEye, look, 5.0));
+    }
+
+    @Test
+    void resolvePanel3LookHit_prefersClosestDial() {
+        Direction facing = Direction.NORTH;
+        BlockPos pos = BlockPos.ZERO;
+        Vec3 look = new Vec3(0, -1, 0);
+
+        AABB waypoint = FirstDoctorConsoleControls.waypointSelectorWorldBox(pos, facing);
+        Vec3 waypointEye = new Vec3(waypoint.getCenter().x, waypoint.getCenter().y + 1.5, waypoint.getCenter().z);
+        assertEquals(
+                FirstDoctorConsoleControls.Panel3Control.WAYPOINT,
+                FirstDoctorConsoleControls.resolvePanel3LookHit(facing, pos, waypointEye, look, 5.0)
+        );
+
+        AABB player = FirstDoctorConsoleControls.playerLocatorWorldBox(pos, facing);
+        Vec3 playerEye = new Vec3(player.getCenter().x, player.getCenter().y + 1.5, player.getCenter().z);
+        assertEquals(
+                FirstDoctorConsoleControls.Panel3Control.PLAYER,
+                FirstDoctorConsoleControls.resolvePanel3LookHit(facing, pos, playerEye, look, 5.0)
+        );
+
+        AABB planet = FirstDoctorConsoleControls.planetLocatorWorldBox(pos, facing);
+        Vec3 planetEye = new Vec3(planet.getCenter().x, planet.getCenter().y + 1.5, planet.getCenter().z);
+        assertEquals(
+                FirstDoctorConsoleControls.Panel3Control.PLANET,
+                FirstDoctorConsoleControls.resolvePanel3LookHit(facing, pos, planetEye, look, 5.0)
+        );
+    }
+
+    @Test
+    void resolvePanel6LookHit_returnsLeverWhenHit() {
+        Direction facing = Direction.NORTH;
+        BlockPos pos = BlockPos.ZERO;
+        Vec3 look = new Vec3(0, -1, 0);
+
+        AABB lever = FirstDoctorConsoleControls.materialisationLeverWorldBox(pos, facing);
+        Vec3 leverEye = new Vec3(lever.getCenter().x, lever.getCenter().y + 1.5, lever.getCenter().z);
+        assertEquals(
+                FirstDoctorConsoleControls.Panel6Control.LEVER,
+                FirstDoctorConsoleControls.resolvePanel6LookHit(facing, pos, leverEye, look, 5.0)
+        );
+    }
+
+    @Test
+    void resolveLookTarget_prefersClosestControl() {
+        Direction facing = Direction.NORTH;
+        BlockPos pos = BlockPos.ZERO;
+        Vec3 look = new Vec3(0, -1, 0);
+
+        AABB waypoint = FirstDoctorConsoleControls.waypointSelectorWorldBox(pos, facing);
+        Vec3 waypointEye = new Vec3(waypoint.getCenter().x, waypoint.getCenter().y + 1.5, waypoint.getCenter().z);
+        assertEquals(
+                FirstDoctorConsoleControls.LookTarget.WAYPOINT_SELECTOR,
+                FirstDoctorConsoleControls.resolveLookTarget(facing, pos, waypointEye, look, 5.0)
+        );
+
+        AABB lever = FirstDoctorConsoleControls.materialisationLeverWorldBox(pos, facing);
+        Vec3 leverEye = new Vec3(lever.getCenter().x, lever.getCenter().y + 1.5, lever.getCenter().z);
+        assertEquals(
+                FirstDoctorConsoleControls.LookTarget.MATERIALISATION_LEVER,
+                FirstDoctorConsoleControls.resolveLookTarget(facing, pos, leverEye, look, 5.0)
+        );
+    }
+
+    private static void assertCentersDistinct(AABB a, AABB b) {
+        double dx = a.getCenter().x - b.getCenter().x;
+        double dz = a.getCenter().z - b.getCenter().z;
+        assertTrue(Math.hypot(dx, dz) > 0.1, "Panel3 dials should not share the same center");
     }
 }

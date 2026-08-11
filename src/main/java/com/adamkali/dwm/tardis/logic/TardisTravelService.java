@@ -5,8 +5,10 @@ import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.sound.DWMSounds;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
+import com.adamkali.dwm.tardis.data.model.DestinationMode;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
+import com.adamkali.dwm.tardis.data.model.TardisWaypoint;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.soto.SotoExteriorIndex;
 import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
@@ -17,6 +19,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.biome.Biome;
@@ -45,7 +48,25 @@ public final class TardisTravelService {
     private static final ConcurrentHashMap<UUID, ShellSnapshot> FLIGHT_SHELLS = new ConcurrentHashMap<>();
     private static final Set<UUID> SHELL_REMOVED = ConcurrentHashMap.newKeySet();
 
+    /**
+     * Reason code for the most recent {@link #requestMaterialise} failure that left the TARDIS in flight.
+     * Console/UI agents may map this to a player-facing overlay. Cleared on success or abort.
+     */
+    public static final String FAIL_PLAYER_OFFLINE = "player_offline";
+    public static final String FAIL_INVALID_LANDING = "invalid_landing";
+
+    private static @Nullable String lastMaterialiseFailureReason;
+
     private TardisTravelService() {
+    }
+
+    public static @Nullable String peekLastMaterialiseFailureReason() {
+        return lastMaterialiseFailureReason;
+    }
+
+    /** Test/helper: clear the last materialise failure reason. */
+    public static void clearLastMaterialiseFailureReason() {
+        lastMaterialiseFailureReason = null;
     }
 
     public static void initialize() {
@@ -53,7 +74,7 @@ public final class TardisTravelService {
     }
 
     /**
-     * Begins travel for {@code tardisId} toward its selected destination dimension and biome.
+     * Begins travel for {@code tardisId} toward its selected destination (biome, waypoint, or player).
      *
      * @return {@link InteractionResult#SUCCESS} when travel started,
      * {@link InteractionResult#FAIL} when preconditions fail,
@@ -76,23 +97,65 @@ public final class TardisTravelService {
         if (!model.hasExteriorLocation || model.exteriorDimension == null) {
             return InteractionResult.FAIL;
         }
-
-        String destinationDimension = TardisLogic.effectiveDestinationDimension(model);
-        if (destinationDimension == null || destinationDimension.isBlank()) {
+        if (!hasValidDestinationSelection(model)) {
             return InteractionResult.FAIL;
         }
+
+        DestinationMode mode = model.getDestinationMode();
+        String destinationDimension;
+        String destinationBiome = null;
+        UUID travelPlayerUuid = null;
+        int destX = 0;
+        int destY = 0;
+        int destZ = 0;
+        int destRotation = 0;
+
+        switch (mode) {
+            case WAYPOINT -> {
+                TardisWaypoint waypoint = WaypointLogic.find(model, model.selectedWaypointId).orElse(null);
+                if (waypoint == null || waypoint.dimension == null || waypoint.dimension.isBlank()) {
+                    return InteractionResult.FAIL;
+                }
+                destinationDimension = waypoint.dimension;
+                destX = waypoint.x;
+                destY = waypoint.y;
+                destZ = waypoint.z;
+                destRotation = waypoint.rotation;
+            }
+            case PLAYER -> {
+                if (!PlayerLocatorLogic.isOnline(server, model.selectedPlayerUuid)) {
+                    return InteractionResult.FAIL;
+                }
+                ServerPlayer target = PlayerLocatorLogic.resolve(server, model.selectedPlayerUuid).orElse(null);
+                if (target == null) {
+                    return InteractionResult.FAIL;
+                }
+                destinationDimension = target.level().dimension().identifier().toString();
+                travelPlayerUuid = model.selectedPlayerUuid;
+            }
+            case BIOME -> {
+                destinationDimension = TardisLogic.effectiveDestinationDimension(model);
+                if (destinationDimension == null || destinationDimension.isBlank()) {
+                    return InteractionResult.FAIL;
+                }
+                boolean requiresBiome = BiomeSelectorLogic.tagForDimension(destinationDimension).isPresent();
+                if (requiresBiome) {
+                    if (model.selectedBiome == null || model.selectedBiome.isBlank()) {
+                        return InteractionResult.FAIL;
+                    }
+                    if (LandingSiteLogic.parseBiome(model.selectedBiome).isEmpty()) {
+                        return InteractionResult.FAIL;
+                    }
+                }
+                destinationBiome = model.selectedBiome;
+            }
+            default -> {
+                return InteractionResult.FAIL;
+            }
+        }
+
         if (level(server, destinationDimension) == null) {
             return InteractionResult.FAIL;
-        }
-
-        boolean requiresBiome = BiomeSelectorLogic.tagForDimension(destinationDimension).isPresent();
-        if (requiresBiome) {
-            if (model.selectedBiome == null || model.selectedBiome.isBlank()) {
-                return InteractionResult.FAIL;
-            }
-            if (LandingSiteLogic.parseBiome(model.selectedBiome).isEmpty()) {
-                return InteractionResult.FAIL;
-            }
         }
 
         ServerLevel exteriorWorld = getExteriorWorld(server, model);
@@ -104,8 +167,14 @@ public final class TardisTravelService {
             return InteractionResult.FAIL;
         }
 
+        model.travelDestinationMode = mode;
         model.travelDestinationDimension = destinationDimension;
-        model.travelDestinationBiome = model.selectedBiome;
+        model.travelDestinationBiome = destinationBiome;
+        model.travelDestinationX = destX;
+        model.travelDestinationY = destY;
+        model.travelDestinationZ = destZ;
+        model.travelDestinationRotation = destRotation;
+        model.travelTargetPlayerUuid = travelPlayerUuid;
         model.travelPhaseTicks = 0;
         model.setTravelPhase(TardisTravelPhase.DEMATERIALISING);
         if (model.doorState.isOpen || model.doorState.doorSwing > 0.0f) {
@@ -113,6 +182,7 @@ public final class TardisTravelService {
             model.setChanged();
             PortalStreamSyncService.setMetaChanged(tardisId);
         }
+        lastMaterialiseFailureReason = null;
         ACTIVE.add(tardisId);
         return InteractionResult.SUCCESS;
     }
@@ -139,23 +209,58 @@ public final class TardisTravelService {
             return InteractionResult.FAIL;
         }
 
+        lastMaterialiseFailureReason = null;
         ShellSnapshot snapshot = FLIGHT_SHELLS.get(tardisId);
-        ServerLevel destinationWorld = getDestinationWorld(server, model);
-        if (destinationWorld == null || snapshot == null) {
+        if (snapshot == null) {
             abortToIdle(server, tardisId, model);
             return InteractionResult.FAIL;
         }
 
-        BlockPos oldPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
-        BlockPos landing = resolveLanding(destinationWorld, model, oldPos).orElse(oldPos);
+        DestinationMode mode = effectiveTravelMode(model);
+        ServerLevel destinationWorld;
+        BlockPos landing;
+        int facingRotation = snapshot.facingRotation();
 
-        placeShell(destinationWorld, landing, snapshot);
+        if (mode == DestinationMode.PLAYER) {
+            Optional<ServerPlayer> target = PlayerLocatorLogic.resolve(server, model.travelTargetPlayerUuid);
+            if (target.isEmpty()) {
+                // Stay in flight — do not silently land elsewhere.
+                lastMaterialiseFailureReason = FAIL_PLAYER_OFFLINE;
+                return InteractionResult.FAIL;
+            }
+            ServerPlayer player = target.get();
+            destinationWorld = (ServerLevel) player.level();
+            Optional<BlockPos> resolved = resolvePlayerLanding(destinationWorld, player.blockPosition());
+            if (resolved.isEmpty()) {
+                lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
+                return InteractionResult.FAIL;
+            }
+            landing = resolved.get();
+        } else {
+            destinationWorld = getDestinationWorld(server, model);
+            if (destinationWorld == null) {
+                abortToIdle(server, tardisId, model);
+                return InteractionResult.FAIL;
+            }
+            BlockPos oldPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
+            Optional<BlockPos> resolved = resolveLanding(destinationWorld, model, oldPos);
+            if (resolved.isEmpty() && mode == DestinationMode.WAYPOINT) {
+                lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
+                return InteractionResult.FAIL;
+            }
+            landing = resolved.orElse(oldPos);
+            if (mode == DestinationMode.WAYPOINT) {
+                facingRotation = model.travelDestinationRotation;
+            }
+        }
+
+        placeShell(destinationWorld, landing, snapshot, facingRotation);
         model.setExteriorLocation(
                 destinationWorld.dimension().identifier().toString(),
                 landing.getX(),
                 landing.getY(),
                 landing.getZ(),
-                snapshot.facingRotation()
+                facingRotation
         );
         SotoExteriorIndex.register(tardisId, model);
         PortalStreamSyncService.setMetaChanged(tardisId);
@@ -167,6 +272,7 @@ public final class TardisTravelService {
         model.setTravelPhase(TardisTravelPhase.MATERIALISING);
         FLIGHT_SHELLS.remove(tardisId);
         SHELL_REMOVED.remove(tardisId);
+        lastMaterialiseFailureReason = null;
         ACTIVE.add(tardisId);
         TardisTravelAudio.startMat(server, tardisId, destinationWorld, landing);
         return InteractionResult.SUCCESS;
@@ -219,8 +325,7 @@ public final class TardisTravelService {
                 return false;
             }
         }
-        model.travelDestinationBiome = null;
-        model.travelDestinationDimension = null;
+        model.clearTravelDestinationSnapshot();
         model.travelPhaseTicks = 0;
         model.setTravelPhase(TardisTravelPhase.IDLE);
         return true;
@@ -373,6 +478,11 @@ public final class TardisTravelService {
             TardisDataModel model,
             BlockPos searchOrigin
     ) {
+        DestinationMode mode = effectiveTravelMode(model);
+        if (mode == DestinationMode.WAYPOINT) {
+            return waypointTargetFromSnapshot(model)
+                    .flatMap(target -> LandingSiteLogic.findLandingAtOrNearby(world, target));
+        }
         Optional<ResourceKey<Biome>> biome = LandingSiteLogic.parseBiome(model.travelDestinationBiome);
         if (biome.isPresent()) {
             Optional<BlockPos> landing = LandingSiteLogic.findLanding(world, biome.get(), searchOrigin);
@@ -381,6 +491,62 @@ public final class TardisTravelService {
             }
         }
         return LandingSiteLogic.findSurfaceLanding(world, searchOrigin);
+    }
+
+    private static Optional<BlockPos> resolvePlayerLanding(ServerLevel world, BlockPos playerPos) {
+        return LandingSiteLogic.findLandingAtOrNearby(world, playerPos);
+    }
+
+    /**
+     * Pure destination-mode selection check (no exterior-block or loaded-world checks).
+     * Package-visible for unit tests.
+     */
+    static boolean hasValidDestinationSelection(@Nullable TardisDataModel model) {
+        if (model == null) {
+            return false;
+        }
+        return switch (model.getDestinationMode()) {
+            case BIOME -> {
+                String dim = TardisLogic.effectiveDestinationDimension(model);
+                if (dim == null || dim.isBlank()) {
+                    yield false;
+                }
+                boolean requiresBiome = BiomeSelectorLogic.tagForDimension(dim).isPresent();
+                if (!requiresBiome) {
+                    yield true;
+                }
+                yield model.selectedBiome != null
+                        && !model.selectedBiome.isBlank()
+                        && LandingSiteLogic.parseBiome(model.selectedBiome).isPresent();
+            }
+            case WAYPOINT -> WaypointLogic.find(model, model.selectedWaypointId).isPresent();
+            case PLAYER -> model.selectedPlayerUuid != null;
+        };
+    }
+
+    static DestinationMode effectiveTravelMode(@Nullable TardisDataModel model) {
+        if (model == null) {
+            return DestinationMode.BIOME;
+        }
+        if (model.travelDestinationMode != null) {
+            return model.travelDestinationMode;
+        }
+        return model.getDestinationMode();
+    }
+
+    /**
+     * Pure: BlockPos from flight waypoint snapshot fields.
+     * Package-visible for unit tests.
+     */
+    static Optional<BlockPos> waypointTargetFromSnapshot(@Nullable TardisDataModel model) {
+        if (model == null || effectiveTravelMode(model) != DestinationMode.WAYPOINT) {
+            return Optional.empty();
+        }
+        return Optional.of(new BlockPos(
+                model.travelDestinationX,
+                model.travelDestinationY,
+                model.travelDestinationZ
+        ));
     }
 
     private static void abortToIdle(MinecraftServer server, UUID tardisId, TardisDataModel model) {
@@ -398,17 +564,26 @@ public final class TardisTravelService {
                 PortalStreamSyncService.setMetaChanged(tardisId);
             }
         }
-        model.travelDestinationBiome = null;
-        model.travelDestinationDimension = null;
+        model.clearTravelDestinationSnapshot();
         model.travelPhaseTicks = 0;
         model.setTravelPhase(TardisTravelPhase.IDLE);
+        lastMaterialiseFailureReason = null;
         ACTIVE.remove(tardisId);
     }
 
     private static void placeShell(ServerLevel world, BlockPos pos, ShellSnapshot snapshot) {
+        placeShell(world, pos, snapshot, snapshot.facingRotation());
+    }
+
+    private static void placeShell(
+            ServerLevel world,
+            BlockPos pos,
+            ShellSnapshot snapshot,
+            int facingRotation
+    ) {
         world.getChunk(pos);
         BlockState state = DWMBlocks.TARDIS_BLOCK.defaultBlockState()
-                .setValue(TardisBlock.FACING_ROTATION, snapshot.facingRotation());
+                .setValue(TardisBlock.FACING_ROTATION, facingRotation);
         world.setBlock(pos, state, 3);
         if (world.getBlockEntity(pos) instanceof TardisBlockEntity be) {
             be.restoreTravelIdentity(snapshot.tardisId(), snapshot.interiorEntrance(), snapshot.interiorGenerated());
@@ -462,6 +637,7 @@ public final class TardisTravelService {
         ACTIVE.clear();
         FLIGHT_SHELLS.clear();
         SHELL_REMOVED.clear();
+        lastMaterialiseFailureReason = null;
     }
 
     /** Test helper: seed a flight shell snapshot without a world. */

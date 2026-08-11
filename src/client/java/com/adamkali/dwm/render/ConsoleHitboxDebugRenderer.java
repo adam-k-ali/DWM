@@ -20,14 +20,18 @@ import net.minecraft.world.phys.AABB;
  * enabled (F3 + B / {@link DebugScreenEntries#ENTITY_HITBOXES}).
  * <ul>
  *   <li>Cyan — {@link FirstDoctorConsoleBlock#COLLISION_SHAPE}</li>
- *   <li>Lime — biome selector look/click AABB</li>
- *   <li>Magenta — planet locator look/click AABB</li>
- *   <li>Orange — materialisation lever look/click AABB</li>
+ *   <li>Lime — biome selector</li>
+ *   <li>Yellow — waypoint selector</li>
+ *   <li>Sky — player locator</li>
+ *   <li>Magenta — planet locator</li>
+ *   <li>Orange — materialisation lever</li>
  * </ul>
  */
 public final class ConsoleHitboxDebugRenderer {
     private static final int COLLISION_COLOR = 0xFF00FFFF;
-    private static final int SELECTOR_COLOR = 0xFF33FF33;
+    private static final int BIOME_COLOR = 0xFF33FF33;
+    private static final int WAYPOINT_COLOR = 0xFFFFFF33;
+    private static final int PLAYER_COLOR = 0xFF33FFFF;
     private static final int PLANET_COLOR = 0xFFFF33FF;
     private static final int LEVER_COLOR = 0xFFFF8C1A;
     private static final int RANGE = 16;
@@ -73,7 +77,15 @@ public final class ConsoleHitboxDebugRenderer {
 
                         Gizmos.cuboid(
                                 FirstDoctorConsoleControls.biomeSelectorWorldBox(mutable, facing),
-                                GizmoStyle.stroke(SELECTOR_COLOR)
+                                GizmoStyle.stroke(BIOME_COLOR)
+                        );
+                        Gizmos.cuboid(
+                                FirstDoctorConsoleControls.waypointSelectorWorldBox(mutable, facing),
+                                GizmoStyle.stroke(WAYPOINT_COLOR)
+                        );
+                        Gizmos.cuboid(
+                                FirstDoctorConsoleControls.playerLocatorWorldBox(mutable, facing),
+                                GizmoStyle.stroke(PLAYER_COLOR)
                         );
                         Gizmos.cuboid(
                                 FirstDoctorConsoleControls.planetLocatorWorldBox(mutable, facing),

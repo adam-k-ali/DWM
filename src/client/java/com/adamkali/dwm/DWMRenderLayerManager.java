@@ -30,6 +30,12 @@ public class DWMRenderLayerManager {
                 PlanetLocatorModel.LAYER_LOCATION,
                 PlanetLocatorModel::getTexturedModelData);
         ModelLayerRegistry.registerModelLayer(
+                WaypointSelectorModel.LAYER_LOCATION,
+                WaypointSelectorModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(
+                PlayerLocatorModel.LAYER_LOCATION,
+                PlayerLocatorModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(
                 MaterialisationLeverModel.LAYER_LOCATION,
                 MaterialisationLeverModel::getTexturedModelData);
     }

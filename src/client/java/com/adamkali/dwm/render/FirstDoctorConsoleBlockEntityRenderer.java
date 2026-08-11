@@ -7,6 +7,8 @@ import com.adamkali.dwm.model.tileentity.BiomeSelectorModel;
 import com.adamkali.dwm.model.tileentity.FirstDoctorConsoleModel;
 import com.adamkali.dwm.model.tileentity.MaterialisationLeverModel;
 import com.adamkali.dwm.model.tileentity.PlanetLocatorModel;
+import com.adamkali.dwm.model.tileentity.PlayerLocatorModel;
+import com.adamkali.dwm.model.tileentity.WaypointSelectorModel;
 import com.adamkali.dwm.render.state.FirstDoctorConsoleBlockEntityRenderState;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
@@ -21,6 +23,7 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -31,6 +34,8 @@ public class FirstDoctorConsoleBlockEntityRenderer
 
     private final FirstDoctorConsoleModel model;
     private final BiomeSelectorModel biomeSelectorModel;
+    private final WaypointSelectorModel waypointSelectorModel;
+    private final PlayerLocatorModel playerLocatorModel;
     private final PlanetLocatorModel planetLocatorModel;
     private final MaterialisationLeverModel materialisationLeverModel;
 
@@ -39,10 +44,15 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 context.bakeLayer(FirstDoctorConsoleModel.LAYER_LOCATION));
         this.biomeSelectorModel = new BiomeSelectorModel(
                 context.bakeLayer(BiomeSelectorModel.LAYER_LOCATION));
+        this.waypointSelectorModel = new WaypointSelectorModel(
+                context.bakeLayer(WaypointSelectorModel.LAYER_LOCATION));
+        this.playerLocatorModel = new PlayerLocatorModel(
+                context.bakeLayer(PlayerLocatorModel.LAYER_LOCATION));
         this.planetLocatorModel = new PlanetLocatorModel(
                 context.bakeLayer(PlanetLocatorModel.LAYER_LOCATION));
         this.materialisationLeverModel = new MaterialisationLeverModel(
                 context.bakeLayer(MaterialisationLeverModel.LAYER_LOCATION));
+
     }
 
     @Override
@@ -92,31 +102,19 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 0,
                 state.breakProgress);
 
-        poseStack.pushPose();
-        applyPanel3BiomeSelectorTransforms(poseStack);
-        submitNodeCollector.submitModel(
-                biomeSelectorModel,
-                animState,
-                poseStack,
-                RenderTypes.entityCutout(BiomeSelectorModel.TEXTURE_LOCATION),
-                state.lightCoords,
-                OverlayTexture.NO_OVERLAY,
-                0,
-                state.breakProgress);
-        poseStack.popPose();
+        submitPanel3Dial(poseStack, submitNodeCollector, state, animState,
+                biomeSelectorModel, BiomeSelectorModel.TEXTURE_LOCATION,
+                FirstDoctorConsoleControls.BIOME_SELECTOR_MOUNT_X_PX);
+        submitPanel3Dial(poseStack, submitNodeCollector, state, animState,
+                waypointSelectorModel, WaypointSelectorModel.TEXTURE_LOCATION,
+                FirstDoctorConsoleControls.WAYPOINT_SELECTOR_MOUNT_X_PX);
+        submitPanel3Dial(poseStack, submitNodeCollector, state, animState,
+                playerLocatorModel, PlayerLocatorModel.TEXTURE_LOCATION,
+                FirstDoctorConsoleControls.PLAYER_LOCATOR_MOUNT_X_PX);
+        submitPanel3Dial(poseStack, submitNodeCollector, state, animState,
+                planetLocatorModel, PlanetLocatorModel.TEXTURE_LOCATION,
+                FirstDoctorConsoleControls.PLANET_LOCATOR_MOUNT_X_PX);
 
-        poseStack.pushPose();
-        applyPanel3PlanetLocatorTransforms(poseStack);
-        submitNodeCollector.submitModel(
-                planetLocatorModel,
-                animState,
-                poseStack,
-                RenderTypes.entityCutout(PlanetLocatorModel.TEXTURE_LOCATION),
-                state.lightCoords,
-                OverlayTexture.NO_OVERLAY,
-                0,
-                state.breakProgress);
-        poseStack.popPose();
 
         poseStack.pushPose();
         applyPanel6LeverTransforms(poseStack);
@@ -131,6 +129,34 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 state.breakProgress);
         poseStack.popPose();
 
+        poseStack.popPose();
+    }
+
+    private void submitPanel3Dial(
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            FirstDoctorConsoleBlockEntityRenderState state,
+            TardisRenderState animState,
+            net.minecraft.client.model.Model<? super TardisRenderState> dialModel,
+            Identifier texture,
+            float mountXPx
+    ) {
+        poseStack.pushPose();
+        applyPanelControlTransforms(
+                poseStack,
+                FirstDoctorConsoleControls.PANEL3_YAW_RAD,
+                FirstDoctorConsoleControls.SELECTOR_SCALE,
+                mountXPx
+        );
+        submitNodeCollector.submitModel(
+                dialModel,
+                animState,
+                poseStack,
+                RenderTypes.entityCutout(texture),
+                state.lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                0,
+                state.breakProgress);
         poseStack.popPose();
     }
 

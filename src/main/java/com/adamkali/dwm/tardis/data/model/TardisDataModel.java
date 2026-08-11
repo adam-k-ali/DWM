@@ -1,6 +1,10 @@
 package com.adamkali.dwm.tardis.data.model;
 
 
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -26,6 +30,18 @@ public class TardisDataModel {
      */
     public String selectedDimension;
 
+    /** How the next landing is resolved. Defaults to {@link DestinationMode#BIOME}. */
+    public DestinationMode destinationMode = DestinationMode.BIOME;
+
+    /** Saved exterior waypoints (cap enforced by {@code WaypointLogic}). */
+    public List<TardisWaypoint> waypoints = new ArrayList<>();
+
+    /** Selected waypoint id when {@link #destinationMode} is {@link DestinationMode#WAYPOINT}. */
+    public @Nullable UUID selectedWaypointId;
+
+    /** Selected player uuid when {@link #destinationMode} is {@link DestinationMode#PLAYER}. */
+    public @Nullable UUID selectedPlayerUuid;
+
     /** Current exterior travel phase name ({@link TardisTravelPhase}). */
     public String travelPhase = TardisTravelPhase.IDLE.name();
 
@@ -38,6 +54,18 @@ public class TardisDataModel {
     /** Dimension id snapshotted when travel starts; mid-flight dimension cycling is ignored. */
     public String travelDestinationDimension;
 
+    /** Destination mode snapshotted when travel starts. */
+    public @Nullable DestinationMode travelDestinationMode;
+
+    /** Waypoint/exact coords snapshotted at demat (meaningful for {@link DestinationMode#WAYPOINT}). */
+    public int travelDestinationX;
+    public int travelDestinationY;
+    public int travelDestinationZ;
+    public int travelDestinationRotation;
+
+    /** Player uuid snapshotted at demat (meaningful for {@link DestinationMode#PLAYER}). */
+    public @Nullable UUID travelTargetPlayerUuid;
+
     private transient boolean needsSaving = false;
 
     public TardisDataModel() {
@@ -45,6 +73,8 @@ public class TardisDataModel {
         this.doorState = new TardisDoorState();
         this.variant = TardisChameleonVariant.TT_CAPSULE;
         this.travelPhase = TardisTravelPhase.IDLE.name();
+        this.destinationMode = DestinationMode.BIOME;
+        this.waypoints = new ArrayList<>();
     }
 
     public TardisTravelPhase getTravelPhase() {
@@ -53,6 +83,48 @@ public class TardisDataModel {
 
     public void setTravelPhase(TardisTravelPhase phase) {
         this.travelPhase = phase == null ? TardisTravelPhase.IDLE.name() : phase.name();
+        setChanged();
+    }
+
+    public DestinationMode getDestinationMode() {
+        return destinationMode == null ? DestinationMode.BIOME : destinationMode;
+    }
+
+    public void setDestinationMode(DestinationMode mode) {
+        this.destinationMode = mode == null ? DestinationMode.BIOME : mode;
+        setChanged();
+    }
+
+    /**
+     * Ensures {@link #waypoints} is non-null after Gson load of older saves.
+     */
+    public List<TardisWaypoint> getWaypoints() {
+        if (waypoints == null) {
+            waypoints = new ArrayList<>();
+        }
+        return waypoints;
+    }
+
+    /**
+     * Clears waypoint/player selection and resets mode to {@link DestinationMode#BIOME}.
+     */
+    public void clearNonBiomeDestinationSelection() {
+        this.destinationMode = DestinationMode.BIOME;
+        this.selectedWaypointId = null;
+        this.selectedPlayerUuid = null;
+        setChanged();
+    }
+
+    /** Clears flight snapshot fields used by materialise resolution. */
+    public void clearTravelDestinationSnapshot() {
+        this.travelDestinationBiome = null;
+        this.travelDestinationDimension = null;
+        this.travelDestinationMode = null;
+        this.travelDestinationX = 0;
+        this.travelDestinationY = 0;
+        this.travelDestinationZ = 0;
+        this.travelDestinationRotation = 0;
+        this.travelTargetPlayerUuid = null;
         setChanged();
     }
 
@@ -80,9 +152,14 @@ public class TardisDataModel {
                 + ", exteriorDimension=" + exteriorDimension + ", hasExteriorLocation=" + hasExteriorLocation
                 + ", selectedBiome=" + selectedBiome
                 + ", selectedDimension=" + selectedDimension
+                + ", destinationMode=" + destinationMode
+                + ", waypoints=" + (waypoints == null ? 0 : waypoints.size())
+                + ", selectedWaypointId=" + selectedWaypointId
+                + ", selectedPlayerUuid=" + selectedPlayerUuid
                 + ", travelPhase=" + travelPhase + ", travelPhaseTicks=" + travelPhaseTicks
                 + ", travelDestinationBiome=" + travelDestinationBiome
-                + ", travelDestinationDimension=" + travelDestinationDimension + ']';
+                + ", travelDestinationDimension=" + travelDestinationDimension
+                + ", travelDestinationMode=" + travelDestinationMode + ']';
     }
 
     @Override
@@ -99,10 +176,20 @@ public class TardisDataModel {
                     && this.hasExteriorLocation == other.hasExteriorLocation
                     && Objects.equals(this.selectedBiome, other.selectedBiome)
                     && Objects.equals(this.selectedDimension, other.selectedDimension)
+                    && this.getDestinationMode() == other.getDestinationMode()
+                    && Objects.equals(this.getWaypoints(), other.getWaypoints())
+                    && Objects.equals(this.selectedWaypointId, other.selectedWaypointId)
+                    && Objects.equals(this.selectedPlayerUuid, other.selectedPlayerUuid)
                     && Objects.equals(this.travelPhase, other.travelPhase)
                     && this.travelPhaseTicks == other.travelPhaseTicks
                     && Objects.equals(this.travelDestinationBiome, other.travelDestinationBiome)
-                    && Objects.equals(this.travelDestinationDimension, other.travelDestinationDimension);
+                    && Objects.equals(this.travelDestinationDimension, other.travelDestinationDimension)
+                    && Objects.equals(this.travelDestinationMode, other.travelDestinationMode)
+                    && this.travelDestinationX == other.travelDestinationX
+                    && this.travelDestinationY == other.travelDestinationY
+                    && this.travelDestinationZ == other.travelDestinationZ
+                    && this.travelDestinationRotation == other.travelDestinationRotation
+                    && Objects.equals(this.travelTargetPlayerUuid, other.travelTargetPlayerUuid);
         }
         return false;
     }

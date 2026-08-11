@@ -78,9 +78,24 @@ public final class LandingSiteLogic {
     }
 
     /**
+     * Tries {@code target} if valid; otherwise spirals nearby for a valid shell cell.
+     * Used for waypoint exact-coordinate landings.
+     */
+    public static Optional<BlockPos> findLandingAtOrNearby(ServerLevel world, BlockPos target) {
+        if (world == null || target == null) {
+            return Optional.empty();
+        }
+        world.getChunk(target);
+        if (isValidLanding(world, target)) {
+            return Optional.of(target);
+        }
+        return findNearbyValidLanding(world, target.getX(), target.getZ());
+    }
+
+    /**
      * Tries a small spiral of columns around {@code originX/Z} after the chunk is loaded.
      */
-    private static Optional<BlockPos> findNearbyValidLanding(ServerLevel world, int originX, int originZ) {
+    public static Optional<BlockPos> findNearbyValidLanding(ServerLevel world, int originX, int originZ) {
         for (int radius = 1; radius <= 8; radius++) {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {

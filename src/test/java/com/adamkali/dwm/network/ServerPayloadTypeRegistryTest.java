@@ -83,7 +83,7 @@ class ServerPayloadTypeRegistryTest {
             boolean accepted = ServerPayloadTypeRegistry.safelyHandleChameleonUpdate(payload, "playerA");
 
             assertTrue(accepted);
-            logic.verify(() -> TardisLogic.setVariant(tardisId, variant));
+            logic.verify(() -> TardisLogic.setVariant(tardisId, variant, null));
         }
     }
 

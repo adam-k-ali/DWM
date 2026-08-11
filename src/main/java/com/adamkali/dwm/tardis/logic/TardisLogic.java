@@ -1,10 +1,12 @@
 package com.adamkali.dwm.tardis.logic;
 
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
+import com.adamkali.dwm.tardis.data.model.DestinationMode;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
+import com.adamkali.dwm.tardis.data.model.TardisWaypoint;
 import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
@@ -82,7 +84,8 @@ public class TardisLogic {
 
     /**
      * Cycles {@link TardisDataModel#selectedBiome} through biomes tagged for the effective
-     * destination dimension. Returns the newly selected biome id, or empty if none are available.
+     * destination dimension. Resets destination mode to {@link DestinationMode#BIOME}.
+     * Returns the newly selected biome id, or empty if none are available.
      */
     public static Optional<Identifier> cycleSelectedBiome(UUID tardisId, MinecraftServer server) {
         TardisDataModel tardis = TardisDataLoader.get(tardisId);
@@ -97,14 +100,15 @@ public class TardisLogic {
             return Optional.empty();
         }
         tardis.selectedBiome = next.get().toString();
-        tardis.setChanged();
+        tardis.clearNonBiomeDestinationSelection();
         return next;
     }
 
     /**
      * Cycles {@link TardisDataModel#selectedDimension} through loaded worlds (excluding the
      * TARDIS interior), then resets {@link TardisDataModel#selectedBiome} to the first biome
-     * tagged for that dimension (or {@code null} if none).
+     * tagged for that dimension (or {@code null} if none). Resets destination mode to
+     * {@link DestinationMode#BIOME}.
      */
     public static Optional<Identifier> cycleSelectedDimension(UUID tardisId, MinecraftServer server) {
         TardisDataModel tardis = TardisDataLoader.get(tardisId);
@@ -126,8 +130,69 @@ public class TardisLogic {
         } else {
             tardis.selectedBiome = biomeList.getFirst().identifier().toString();
         }
-        tardis.setChanged();
+        tardis.clearNonBiomeDestinationSelection();
         return next;
+    }
+
+    public static void setDestinationMode(UUID tardisId, DestinationMode mode) {
+        TardisDataModel tardis = TardisDataLoader.get(tardisId);
+        if (tardis == null) {
+            return;
+        }
+        tardis.setDestinationMode(mode);
+    }
+
+    public static boolean selectWaypoint(UUID tardisId, UUID waypointId) {
+        TardisDataModel tardis = TardisDataLoader.get(tardisId);
+        if (tardis == null) {
+            return false;
+        }
+        return WaypointLogic.select(tardis, waypointId);
+    }
+
+    /**
+     * Selects an online player as destination. Does not re-validate online status here —
+     * callers with a server should use {@link #selectPlayer(UUID, UUID, MinecraftServer)}.
+     */
+    public static boolean selectPlayer(UUID tardisId, UUID playerUuid) {
+        return selectPlayer(tardisId, playerUuid, null);
+    }
+
+    /**
+     * Selects a player destination. When {@code server} is non-null, requires the player to be online.
+     */
+    public static boolean selectPlayer(
+            UUID tardisId,
+            UUID playerUuid,
+            @Nullable MinecraftServer server
+    ) {
+        TardisDataModel tardis = TardisDataLoader.get(tardisId);
+        if (tardis == null || playerUuid == null) {
+            return false;
+        }
+        if (server != null && !PlayerLocatorLogic.isOnline(server, playerUuid)) {
+            return false;
+        }
+        tardis.selectedPlayerUuid = playerUuid;
+        tardis.selectedWaypointId = null;
+        tardis.setDestinationMode(DestinationMode.PLAYER);
+        return true;
+    }
+
+    public static Optional<TardisWaypoint> saveWaypoint(UUID tardisId, @Nullable String name) {
+        TardisDataModel tardis = TardisDataLoader.get(tardisId);
+        if (tardis == null) {
+            return Optional.empty();
+        }
+        return WaypointLogic.add(tardis, name);
+    }
+
+    public static boolean deleteWaypoint(UUID tardisId, UUID waypointId) {
+        TardisDataModel tardis = TardisDataLoader.get(tardisId);
+        if (tardis == null) {
+            return false;
+        }
+        return WaypointLogic.delete(tardis, waypointId);
     }
 
     /**
@@ -158,6 +223,22 @@ public class TardisLogic {
             return null;
         }
         return tardis.selectedDimension;
+    }
+
+    public static List<TardisWaypoint> getWaypoints(UUID tardisId) {
+        TardisDataModel tardis = TardisDataLoader.get(tardisId);
+        if (tardis == null) {
+            return List.of();
+        }
+        return List.copyOf(tardis.getWaypoints());
+    }
+
+    public static DestinationMode getDestinationMode(UUID tardisId) {
+        TardisDataModel tardis = TardisDataLoader.get(tardisId);
+        if (tardis == null) {
+            return DestinationMode.BIOME;
+        }
+        return tardis.getDestinationMode();
     }
 
     public static TardisTravelPhase getTravelPhase(@Nullable UUID tardisId) {
