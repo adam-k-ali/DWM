@@ -105,7 +105,6 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
             TardisBotiRenderer.render(
                     poseStack,
                     submitNodeCollector,
-                    camera,
                     state.partialTicks,
                     state.tardisId,
                     state.variant

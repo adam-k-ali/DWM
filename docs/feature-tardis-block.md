@@ -18,14 +18,14 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Persistent per-instance identity data (including UUID and variant metadata).
 - Interactive door state transitions with sound feedback.
 - Custom client rendering for TARDIS model presentation.
-- Exterior BOTI (bigger on the inside): stencil-masked door aperture draws a synced console-room preview when `doorSwing >= 0.15`.
-- Interior SOTO (smaller on the outside): stencil-masked interior door aperture draws a synced exterior world footprint when interior `doorSwing >= 0.15`.
+- Exterior BOTI (bigger on the inside): deferred portal FBO composites a hitch-fixed console-room look-in through the chameleon door aperture when `doorSwing >= 0.15`.
+- Interior SOTO (smaller on the outside): deferred portal FBO composites a hitch-fixed exterior look-out through the classic interior door aperture when interior `doorSwing >= 0.15`.
 - Shared empty dimension `dwm:tardis` hosting generated interiors.
 - Lazy placement of `first_doctor_console_room` structure template on first entry.
 - `TardisBlockEntity` stores `interiorEntrance` / `interiorGenerated`.
 - Exterior return coordinates stored on `TardisDataModel` for exit teleports.
 - Collision entry when the exterior door is open (`doorSwing >= 0.9`); exit via open interior doors.
-- Config toggles `enableBoti` (default on) and experimental `enableSoto` (default off) via Mod Menu / Cloth Config.
+- Single config toggle `enableDoorPortals` (default on) via Mod Menu / Cloth Config; legacy `enableBoti` / `enableSoto` migrate on load.
 - Interior doors use an invisible block + dedicated BER (`TardisClassicInteriorDoorModel`) with swing animation.
 - Materialisation lever travel: first pull dematerialises the exterior; after a short hold the TARDIS enters `IN_FLIGHT`; a second pull materialises at the selected dimension/biome landing site.
 - First Doctor console Panel3 hosts a biome selector and planet locator (shared dial mesh); planet locator cycles loaded worlds except `dwm:tardis` (including `dwm:gallifrey`) and drives cross-dimension travel.
@@ -45,17 +45,18 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Visual illusion: does not stream the live `dwm:tardis` dimension to the exterior client.
 - When the interior has been generated, the preview shows a synced BlockState + block-entity + entity snapshot of the 11×7×11 console-room footprint (near-live on interior edits; continuously refreshed while entities occupy the footprint). Until then (or if no snapshot yet), it falls back to `FirstDoctorConsoleRoomLayout` (blocks only).
 - Format version 3 includes chunk-sync block-entity NBT and live entity samples; the client reconstructs synthetic BEs/entities and best-effort renders via `BlockEntityRenderDispatcher` / `EntityRenderDispatcher` (vanilla + mods). Entity poses are client-interpolated between sync samples (with local limb advance) so motion stays smooth at the exterior doorway. Players use a dedicated `OtherClientPlayerEntity` path because `EntityType.PLAYER` is not saveable. Interior doors remain excluded from BOTI (no dedicated interior-door BER in the exterior preview yet).
-- Requires a stencil-capable framebuffer (mixin upgrades depth to depth+stencil). If stencil init/render fails, BOTI disables for the session and the exterior still renders.
-- May not work with Fabulous graphics or some Sodium / shader setups; disable via config if needed.
+- Uses the shared deferred portal FBO pipeline (`render.portal`) with a hitch-fixed look-in camera at the interior door plane; composite UV crop uses each chameleon's `PortalAperture`. No stencil framebuffer required.
+- May not work with Fabulous graphics / order-independent transparency; disable via `enableDoorPortals` if needed.
 
 ## SOTO Notes
-- Experimental and opt-in via `enableSoto` (default off).
-- Visual illusion: portal-composites a synced exterior footprint through the interior door aperture (not a live world stream); requires stencil + vanilla Fast/Fancy.
+- Uses the same deferred portal FBO pipeline as BOTI (shared `enableDoorPortals`, default on).
+- Visual illusion: portal-composites a synced exterior footprint through the classic interior door aperture (not a live world stream); hitch-fixed look-out at the shell door plane.
 
 ## Known Constraints
 - Interior visuals use existing roundel/wall blocks; console props are simplified.
 - Door open/closed for entry is server-authoritative; swing animation still updates locally on both sides.
-- Shared exterior BOTI door aperture table per chameleon variant; interior SOTO uses one classic 3×2 opening aperture.
+- Shared exterior BOTI door aperture table per chameleon variant (`PortalAperture`); interior SOTO uses one classic 3×2 opening aperture.
+- Shared single full-window portal FBO: last END_MAIN writer wins when multiple door portals render in one frame (no FBO pooling yet).
 - Exterior SOTO footprint is axis-aligned (not rotated with exterior facing). Exit teleport and SOTO look-out follow the chameleon shell door facing (`TardisExteriorFacing`), which is opposite the raw `FACING_ROTATION` skull/banner south=0 convention because of shell BER transforms.
 
 ## Future Opportunities

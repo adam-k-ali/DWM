@@ -1,4 +1,4 @@
-package com.adamkali.dwm.render.soto.portal;
+package com.adamkali.dwm.render.portal;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.AddressMode;
@@ -13,16 +13,16 @@ import net.minecraft.resources.Identifier;
 import java.util.OptionalDouble;
 
 /**
- * Samples the SOTO portal {@link SotoPortalRenderTarget} color attachment via TextureManager.
+ * Samples the portal {@link PortalRenderTarget} color attachment via TextureManager.
  * Does not own the underlying GPU textures (portal target does).
  */
-public final class SotoPortalSamplingTexture extends AbstractTexture {
-    public static final Identifier ID = Identifier.fromNamespaceAndPath("dwm", "soto_portal_fb");
+public final class PortalSamplingTexture extends AbstractTexture {
+    public static final Identifier ID = Identifier.fromNamespaceAndPath("dwm", "portal_fb");
 
-    private static SotoPortalSamplingTexture instance;
+    private static PortalSamplingTexture instance;
     private static GpuSampler clampSampler;
 
-    private SotoPortalSamplingTexture() {
+    private PortalSamplingTexture() {
     }
 
     public static void ensureRegistered() {
@@ -31,7 +31,7 @@ public final class SotoPortalSamplingTexture extends AbstractTexture {
             return;
         }
         if (instance == null) {
-            instance = new SotoPortalSamplingTexture();
+            instance = new PortalSamplingTexture();
             client.getTextureManager().register(ID, instance);
         }
         if (clampSampler == null) {
@@ -50,7 +50,7 @@ public final class SotoPortalSamplingTexture extends AbstractTexture {
         }
     }
 
-    public static void bindPortalColor(SotoPortalRenderTarget target) {
+    public static void bindPortalColor(PortalRenderTarget target) {
         ensureRegistered();
         if (instance == null || target == null || !target.isReady()) {
             return;

@@ -232,10 +232,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.seventh_doctor_box", "Seventh Doctor Box");
         t.add("dwm.gui.no_more_variants", "No more variants");
         t.add("dwm.config.option.chameleon_gui", "Enable Chameleon GUI");
-        t.add("dwm.config.option.enable_boti", "Bigger on the Inside (exterior)");
-        t.add("dwm.config.option.enable_boti.tooltip", "Show the console room through open exterior doors. Requires stencil support; may not work with Fabulous graphics or some Sodium setups.");
-        t.add("dwm.config.option.enable_soto", "Smaller on the Outside (interior) [Experimental]");
-        t.add("dwm.config.option.enable_soto.tooltip", "Experimental. Show the exterior world through open interior doors. Requires stencil support; may not work with Fabulous graphics or some Sodium setups.");
+        t.add("dwm.config.option.enable_door_portals", "Door portals (BOTI / SOTO)");
+        t.add("dwm.config.option.enable_door_portals.tooltip", "Show doorway previews through open exterior and interior doors using the shared portal renderer. Disabled on Fabulous graphics or when order-independent transparency is on.");
         t.add("dwm.config.category.experimental", "Experimental");
     }
 

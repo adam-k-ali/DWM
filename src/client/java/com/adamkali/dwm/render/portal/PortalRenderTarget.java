@@ -1,4 +1,4 @@
-package com.adamkali.dwm.render.soto.portal;
+package com.adamkali.dwm.render.portal;
 
 import com.mojang.blaze3d.GpuFormat;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
@@ -14,38 +14,33 @@ import org.lwjgl.opengl.GL11;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import net.minecraft.client.Minecraft;
 
 /**
- * Owns the full-window color/depth target used by the SOTO portal pass.
+ * Owns the full-window color/depth target used by the portal pass.
  * <p>
  * Minecraft 26.2 removed {@code RenderTarget.bindWrite}/{@code clear}/{@code getColorTextureId}.
  * Portal writes are routed by setting {@link RenderSystem#outputColorTextureOverride} and
  * {@link RenderSystem#outputDepthTextureOverride} for the duration of the offscreen pass.
- * <p>
- * TODO(FramebufferMixin / BOTI): {@code bindWrite} no longer exists on {@link RenderTarget}.
- * If feature renderers ignore texture overrides and rebind the main color/depth views mid-pass,
- * the BOTI-owned {@code FramebufferMixin} needs a new redirect hook (not {@code bindWrite}).
- * Do not restore the old mixin target until that API is identified.
+ * Shared single FBO: last END_MAIN writer wins when multiple portal keys render in one frame.
  */
-public final class SotoPortalRenderTarget implements AutoCloseable {
-    private static final SotoPortalRenderTarget INSTANCE = new SotoPortalRenderTarget();
-    private static final String LABEL = "dwm_soto_portal";
+public final class PortalRenderTarget implements AutoCloseable {
+    private static final PortalRenderTarget INSTANCE = new PortalRenderTarget();
+    private static final String LABEL = "dwm_portal";
 
     private static boolean portalPassActive;
     private static boolean redirectingMainWrite;
 
-    private final Map<UUID, Long> renderedFrameByTardis = new HashMap<>();
+    private final Map<PortalKey, Long> renderedFrameByKey = new HashMap<>();
     private TextureTarget framebuffer;
     private int width;
     private int height;
     private long clientFrame;
 
-    private SotoPortalRenderTarget() {
+    private PortalRenderTarget() {
     }
 
-    public static SotoPortalRenderTarget getInstance() {
+    public static PortalRenderTarget getInstance() {
         return INSTANCE;
     }
 
@@ -88,8 +83,8 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
 
     public static void beginClientFrame() {
         INSTANCE.clientFrame++;
-        if (INSTANCE.renderedFrameByTardis.size() > 64) {
-            INSTANCE.renderedFrameByTardis.entrySet().removeIf(entry -> entry.getValue() != INSTANCE.clientFrame);
+        if (INSTANCE.renderedFrameByKey.size() > 64) {
+            INSTANCE.renderedFrameByKey.entrySet().removeIf(entry -> entry.getValue() != INSTANCE.clientFrame);
         }
     }
 
@@ -122,7 +117,7 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
                 framebuffer.resize(requiredWidth, requiredHeight);
                 width = requiredWidth;
                 height = requiredHeight;
-                renderedFrameByTardis.clear();
+                renderedFrameByKey.clear();
             }
             return isReady();
         } catch (Throwable failure) {
@@ -139,15 +134,15 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
                 && !framebuffer.getDepthTexture().isClosed();
     }
 
-    public boolean shouldRenderThisFrame(UUID tardisId) {
-        if (tardisId == null) {
+    public boolean shouldRenderThisFrame(PortalKey key) {
+        if (key == null) {
             return false;
         }
-        Long renderedFrame = renderedFrameByTardis.get(tardisId);
+        Long renderedFrame = renderedFrameByKey.get(key);
         if (renderedFrame != null && renderedFrame == clientFrame) {
             return false;
         }
-        renderedFrameByTardis.put(tardisId, clientFrame);
+        renderedFrameByKey.put(key, clientFrame);
         return true;
     }
 
@@ -173,11 +168,11 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
      */
     public void clearViaRenderPass(float r, float g, float b, float a) {
         if (!isReady()) {
-            throw new IllegalStateException("SOTO portal framebuffer is not ready");
+            throw new IllegalStateException("portal framebuffer is not ready");
         }
         CommandEncoder encoder = RenderSystem.getDevice().createCommandEncoder();
         try (var ignored = encoder.createRenderPass(
-                () -> "dwm_soto_portal_clear",
+                () -> "dwm_portal_clear",
                 framebuffer.getColorTextureView(),
                 java.util.Optional.of(new Vector4f(r, g, b, a)),
                 framebuffer.getDepthTextureView(),
@@ -195,7 +190,7 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
      */
     public void clearOnly(float r, float g, float b, float a) {
         if (!isReady()) {
-            throw new IllegalStateException("SOTO portal framebuffer is not ready");
+            throw new IllegalStateException("portal framebuffer is not ready");
         }
         CommandEncoder encoder = RenderSystem.getDevice().createCommandEncoder();
         encoder.clearColorAndDepthTextures(
@@ -211,7 +206,7 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
      */
     public void bindForWrite() {
         if (!isReady()) {
-            throw new IllegalStateException("SOTO portal framebuffer is not ready");
+            throw new IllegalStateException("portal framebuffer is not ready");
         }
         RenderSystem.outputColorTextureOverride = framebuffer.getColorTextureView();
         RenderSystem.outputDepthTextureOverride = framebuffer.getDepthTextureView();
@@ -251,7 +246,7 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
 
     @Override
     public void close() {
-        renderedFrameByTardis.clear();
+        renderedFrameByKey.clear();
         clearOutputOverrides();
         if (framebuffer != null) {
             framebuffer.destroyBuffers();

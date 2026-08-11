@@ -38,6 +38,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -226,13 +227,51 @@ public final class BotiInteriorMeshCache {
             float tickDelta,
             UUID tardisId
     ) {
+        renderInternal(matrices, submitNodeCollector, cameraState, null, light, tickDelta, tardisId, false);
+    }
+
+    /**
+     * Portal FBO path: camera-relative submit positions + optional portal camera prepare.
+     * Vanilla features bake pose verts then multiply by viewRotation only.
+     */
+    public static void renderForPortal(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            CameraRenderState cameraState,
+            net.minecraft.client.Camera camera,
+            int light,
+            float tickDelta,
+            UUID tardisId
+    ) {
+        renderInternal(matrices, submitNodeCollector, cameraState, camera, light, tickDelta, tardisId, true);
+    }
+
+    private static void renderInternal(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            CameraRenderState cameraState,
+            net.minecraft.client.Camera camera,
+            int light,
+            float tickDelta,
+            UUID tardisId,
+            boolean cameraRelative
+    ) {
         Minecraft client = Minecraft.getInstance();
         Level world = client.level;
+        Vec3 cameraPos = cameraState != null ? cameraState.pos : Vec3.ZERO;
 
         for (Map.Entry<BlockPos, BlockState> entry : getVisibleBlocks(tardisId).entrySet()) {
             BlockPos pos = entry.getKey();
             matrices.pushPose();
-            matrices.translate(pos.getX(), pos.getY(), pos.getZ());
+            if (cameraRelative) {
+                matrices.translate(
+                        pos.getX() - cameraPos.x,
+                        pos.getY() - cameraPos.y,
+                        pos.getZ() - cameraPos.z
+                );
+            } else {
+                matrices.translate(pos.getX(), pos.getY(), pos.getZ());
+            }
             MovingBlockRenderState moving = new MovingBlockRenderState();
             moving.randomSeedPos = pos;
             moving.blockPos = pos;
@@ -247,6 +286,9 @@ public final class BotiInteriorMeshCache {
         }
 
         BlockEntityRenderDispatcher beDispatcher = client.getBlockEntityRenderDispatcher();
+        if (camera != null) {
+            beDispatcher.prepare(camera.position());
+        }
         for (BlockEntity blockEntity : getBlockEntities(tardisId)) {
             @SuppressWarnings("unchecked")
             BlockEntityRenderer<BlockEntity, BlockEntityRenderState> renderer =
@@ -261,13 +303,23 @@ public final class BotiInteriorMeshCache {
             state.lightCoords = light;
             BlockPos pos = blockEntity.getBlockPos();
             matrices.pushPose();
-            matrices.translate(pos.getX(), pos.getY(), pos.getZ());
+            if (cameraRelative) {
+                matrices.translate(
+                        pos.getX() - cameraPos.x,
+                        pos.getY() - cameraPos.y,
+                        pos.getZ() - cameraPos.z
+                );
+            } else {
+                matrices.translate(pos.getX(), pos.getY(), pos.getZ());
+            }
             beDispatcher.submit(state, matrices, submitNodeCollector, cameraState);
             matrices.popPose();
         }
 
         EntityRenderDispatcher entityDispatcher = client.getEntityRenderDispatcher();
-        if (world != null) {
+        if (camera != null) {
+            entityDispatcher.prepare(camera, client.player);
+        } else if (world != null) {
             entityDispatcher.prepare(client.gameRenderer.mainCamera(), client.player);
         }
         List<Entity> entities = getEntities(tardisId);
@@ -293,6 +345,11 @@ public final class BotiInteriorMeshCache {
             EntityRenderState entityState = entityDispatcher.extractEntity(entity, tickDelta);
             if (entityState == null) {
                 continue;
+            }
+            if (cameraRelative) {
+                x -= cameraPos.x;
+                y -= cameraPos.y;
+                z -= cameraPos.z;
             }
             entityDispatcher.submit(
                     entityState,

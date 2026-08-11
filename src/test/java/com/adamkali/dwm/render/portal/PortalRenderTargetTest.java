@@ -1,4 +1,4 @@
-package com.adamkali.dwm.render.soto.portal;
+package com.adamkali.dwm.render.portal;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -9,8 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class SotoPortalRenderTargetTest {
-    private final SotoPortalRenderTarget target = SotoPortalRenderTarget.getInstance();
+class PortalRenderTargetTest {
+    private final PortalRenderTarget target = PortalRenderTarget.getInstance();
 
     @AfterEach
     void tearDown() {
@@ -18,17 +18,29 @@ class SotoPortalRenderTargetTest {
     }
 
     @Test
-    void rendersEachTardisAtMostOncePerClientFrame() {
-        UUID first = UUID.randomUUID();
-        UUID second = UUID.randomUUID();
+    void rendersEachPortalKeyAtMostOncePerClientFrame() {
+        PortalKey first = PortalKey.boti(UUID.randomUUID());
+        PortalKey second = PortalKey.soto(UUID.randomUUID());
 
-        SotoPortalRenderTarget.beginClientFrame();
+        PortalRenderTarget.beginClientFrame();
         assertTrue(target.shouldRenderThisFrame(first));
         assertFalse(target.shouldRenderThisFrame(first));
         assertTrue(target.shouldRenderThisFrame(second));
 
-        SotoPortalRenderTarget.beginClientFrame();
+        PortalRenderTarget.beginClientFrame();
         assertTrue(target.shouldRenderThisFrame(first));
+    }
+
+    @Test
+    void botiAndSotoKeysAreIndependentPerFrame() {
+        UUID id = UUID.randomUUID();
+        PortalKey boti = PortalKey.boti(id);
+        PortalKey soto = PortalKey.soto(id);
+
+        PortalRenderTarget.beginClientFrame();
+        assertTrue(target.shouldRenderThisFrame(boti));
+        assertTrue(target.shouldRenderThisFrame(soto));
+        assertFalse(target.shouldRenderThisFrame(boti));
     }
 
     @Test

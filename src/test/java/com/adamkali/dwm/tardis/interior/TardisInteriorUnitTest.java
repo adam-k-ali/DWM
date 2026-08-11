@@ -74,15 +74,15 @@ class TardisInteriorUnitTest {
     void botiGate_ShowsEarlierThanEntry() {
         TardisDoorState closed = new TardisDoorState();
         closed.doorSwing = 0f;
-        assertFalse(TardisBotiGate.shouldShow(closed));
+        assertFalse(TardisPortalGate.shouldShow(closed));
 
         TardisDoorState ajar = new TardisDoorState();
         ajar.isOpen = true;
         ajar.doorSwing = TardisDimensions.BOTI_DOOR_SWING_THRESHOLD;
-        assertTrue(TardisBotiGate.shouldShow(ajar));
+        assertTrue(TardisPortalGate.shouldShow(ajar));
         assertFalse(TardisEntryGate.canEnter(ajar));
 
-        assertFalse(TardisBotiGate.shouldShow(null));
+        assertFalse(TardisPortalGate.shouldShow(null));
         assertTrue(TardisDimensions.BOTI_DOOR_SWING_THRESHOLD < TardisDimensions.ENTRY_DOOR_SWING_THRESHOLD);
     }
 
