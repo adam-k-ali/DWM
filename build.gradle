@@ -219,8 +219,11 @@ java {
     // If you remove this line, sources will not be generated.
     withSourcesJar()
 
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
+    // Require/provision JDK 25 so Gradle does not silently compile/run against an older JVM
+    // (Minecraft 26.2 is Java 25 bytecode / class file major version 69).
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
 }
 
 jar {
