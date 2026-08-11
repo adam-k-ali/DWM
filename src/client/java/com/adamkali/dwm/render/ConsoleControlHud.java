@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -66,9 +67,11 @@ public final class ConsoleControlHud {
             }
         }
 
+        // GuiGraphicsExtractor.text no-ops when ARGB alpha is 0; opaque white is required in 26.2.
+        int color = ARGB.opaque(0xFFFFFF);
         int textWidth = client.font.width(label);
         int x = (graphics.guiWidth() - textWidth) / 2;
         int y = graphics.guiHeight() / 2 - 15;
-        graphics.text(client.font, label, x, y, 0xFFFFFF);
+        graphics.text(client.font, label, x, y, color);
     }
 }
