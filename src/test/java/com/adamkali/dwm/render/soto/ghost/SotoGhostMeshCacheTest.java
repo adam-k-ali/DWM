@@ -1,8 +1,9 @@
 package com.adamkali.dwm.render.soto.ghost;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
-import com.adamkali.dwm.network.SyncSotoExteriorChunkS2CPayload;
+import com.adamkali.dwm.network.SyncPortalChunkS2CPayload;
 import com.adamkali.dwm.tardis.boti.BotiRelativePosCodec;
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -29,59 +30,59 @@ class SotoGhostMeshCacheTest {
     @Test
     void markChunkMesh_hasMeshesUntilInvalidate() {
         UUID id = UUID.randomUUID();
-        assertFalse(SotoGhostMeshCache.hasMeshes(id));
+        assertFalse(SotoGhostMeshCache.hasMeshes(PortalStreamKind.SOTO, id));
 
-        SotoGhostMeshCache.markChunkMeshForTest(id, 1, 2);
-        assertTrue(SotoGhostMeshCache.hasMeshes(id));
-        assertEquals(1, SotoGhostMeshCache.meshChunkCount(id));
+        SotoGhostMeshCache.markChunkMeshForTest(PortalStreamKind.SOTO, id, 1, 2);
+        assertTrue(SotoGhostMeshCache.hasMeshes(PortalStreamKind.SOTO, id));
+        assertEquals(1, SotoGhostMeshCache.meshChunkCount(PortalStreamKind.SOTO, id));
 
-        SotoGhostMeshCache.invalidate(id);
-        assertFalse(SotoGhostMeshCache.hasMeshes(id));
-        assertEquals(0, SotoGhostMeshCache.meshChunkCount(id));
+        SotoGhostMeshCache.invalidate(PortalStreamKind.SOTO, id);
+        assertFalse(SotoGhostMeshCache.hasMeshes(PortalStreamKind.SOTO, id));
+        assertEquals(0, SotoGhostMeshCache.meshChunkCount(PortalStreamKind.SOTO, id));
     }
 
     @Test
     void unloadChunk_clearsMeshMarker() {
         UUID id = UUID.randomUUID();
-        SotoGhostMeshCache.markChunkMeshForTest(id, 3, 4);
-        assertTrue(SotoGhostMeshCache.hasMeshes(id));
+        SotoGhostMeshCache.markChunkMeshForTest(PortalStreamKind.SOTO, id, 3, 4);
+        assertTrue(SotoGhostMeshCache.hasMeshes(PortalStreamKind.SOTO, id));
 
-        SotoGhostMeshCache.onChunkUnloaded(id, 3, 4);
-        assertFalse(SotoGhostMeshCache.hasMeshes(id));
+        SotoGhostMeshCache.onChunkUnloaded(PortalStreamKind.SOTO, id, 3, 4);
+        assertFalse(SotoGhostMeshCache.hasMeshes(PortalStreamKind.SOTO, id));
     }
 
     @Test
     void applyChunkUnload_clearsMeshViaGhostExterior() {
         UUID id = UUID.randomUUID();
-        SyncSotoExteriorChunkS2CPayload payload = new SyncSotoExteriorChunkS2CPayload(
+        SyncPortalChunkS2CPayload payload = new SyncPortalChunkS2CPayload(
+                PortalStreamKind.SOTO,
                 id,
                 1,
                 2,
                 100,
                 64,
                 200,
-                List.of(new SyncSotoExteriorChunkS2CPayload.BlockEntry(
+                List.of(new SyncPortalChunkS2CPayload.BlockEntry(
                         2, 1, 3, BotiRelativePosCodec.stateId(Blocks.DIRT.defaultBlockState())
                 )),
                 List.of()
         );
-        SotoGhostExterior.applyChunk(payload);
-        // Headless tests cannot bake VertexBuffers; seed a marker so unload wiring is observable.
-        SotoGhostMeshCache.markChunkMeshForTest(id, 1, 2);
-        assertTrue(SotoGhostMeshCache.hasMeshes(id));
+        SotoGhostExterior.applyChunk(PortalStreamKind.SOTO, payload);
+        SotoGhostMeshCache.markChunkMeshForTest(PortalStreamKind.SOTO, id, 1, 2);
+        assertTrue(SotoGhostMeshCache.hasMeshes(PortalStreamKind.SOTO, id));
 
-        SotoGhostExterior.unloadChunk(id, 1, 2);
-        assertFalse(SotoGhostMeshCache.hasMeshes(id));
+        SotoGhostExterior.unloadChunk(PortalStreamKind.SOTO, id, 1, 2);
+        assertFalse(SotoGhostMeshCache.hasMeshes(PortalStreamKind.SOTO, id));
     }
 
     @Test
     void invalidateAll_clearsAllMeshes() {
         UUID a = UUID.randomUUID();
         UUID b = UUID.randomUUID();
-        SotoGhostMeshCache.markChunkMeshForTest(a, 0, 0);
-        SotoGhostMeshCache.markChunkMeshForTest(b, 1, 1);
+        SotoGhostMeshCache.markChunkMeshForTest(PortalStreamKind.SOTO, a, 0, 0);
+        SotoGhostMeshCache.markChunkMeshForTest(PortalStreamKind.BOTI, b, 1, 1);
         SotoGhostMeshCache.invalidateAll();
-        assertFalse(SotoGhostMeshCache.hasMeshes(a));
-        assertFalse(SotoGhostMeshCache.hasMeshes(b));
+        assertFalse(SotoGhostMeshCache.hasMeshes(PortalStreamKind.SOTO, a));
+        assertFalse(SotoGhostMeshCache.hasMeshes(PortalStreamKind.BOTI, b));
     }
 }

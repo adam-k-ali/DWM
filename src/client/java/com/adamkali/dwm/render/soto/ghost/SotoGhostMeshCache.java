@@ -1,5 +1,7 @@
 package com.adamkali.dwm.render.soto.ghost;
 
+import com.adamkali.dwm.render.portal.PortalSceneStore;
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.mojang.blaze3d.IndexType;
 import com.mojang.blaze3d.PrimitiveTopology;
 import com.mojang.blaze3d.buffers.GpuBuffer;
@@ -35,44 +37,42 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Phase 2: per-chunk GPU meshes baked from {@link SotoGhostExterior} on chunk apply.
- * <p>
- * Minecraft 26.2: bake via {@link ModelBlockRenderer#tesselateBlock} into {@link MeshData},
- * upload {@link GpuBuffer}s, draw with moving-block {@link PreparedRenderType}s while the portal
- * output overrides are active.
+ * Per-chunk GPU meshes baked from {@link SotoGhostExterior} on chunk apply.
+ * Keyed by (PortalStreamKind, UUID) so BOTI and SOTO share the same mesh infrastructure.
  */
 public final class SotoGhostMeshCache {
     private static final int FULLBRIGHT = LightCoordsUtil.FULL_BRIGHT;
 
-    private static final Map<UUID, Map<Long, ChunkMesh>> MESHES = new ConcurrentHashMap<>();
+    private static final Map<PortalSceneStore.SceneKey, Map<Long, ChunkMesh>> MESHES = new ConcurrentHashMap<>();
 
     private SotoGhostMeshCache() {
     }
 
-    public static boolean hasMeshes(UUID tardisId) {
-        if (tardisId == null) {
+    public static boolean hasMeshes(PortalStreamKind kind, UUID tardisId) {
+        if (kind == null || tardisId == null) {
             return false;
         }
-        Map<Long, ChunkMesh> byChunk = MESHES.get(tardisId);
+        Map<Long, ChunkMesh> byChunk = MESHES.get(new PortalSceneStore.SceneKey(kind, tardisId));
         return byChunk != null && !byChunk.isEmpty();
     }
 
-    public static int meshChunkCount(UUID tardisId) {
-        if (tardisId == null) {
+    public static int meshChunkCount(PortalStreamKind kind, UUID tardisId) {
+        if (kind == null || tardisId == null) {
             return 0;
         }
-        Map<Long, ChunkMesh> byChunk = MESHES.get(tardisId);
+        Map<Long, ChunkMesh> byChunk = MESHES.get(new PortalSceneStore.SceneKey(kind, tardisId));
         return byChunk == null ? 0 : byChunk.size();
     }
 
-    public static void onChunkApplied(UUID tardisId, int chunkX, int chunkZ, SotoGhostExterior ghost) {
-        if (tardisId == null || ghost == null) {
+    public static void onChunkApplied(PortalStreamKind kind, UUID tardisId, int chunkX, int chunkZ, SotoGhostExterior ghost) {
+        if (kind == null || tardisId == null || ghost == null) {
             return;
         }
+        PortalSceneStore.SceneKey sceneKey = new PortalSceneStore.SceneKey(kind, tardisId);
         long key = ChunkPos.pack(chunkX, chunkZ);
         Map<BlockPos, BlockState> blocks = ghost.blocksInChunk(key);
         ChunkMesh baked = bakeChunk(blocks, ghost);
-        Map<Long, ChunkMesh> byChunk = MESHES.computeIfAbsent(tardisId, ignored -> new ConcurrentHashMap<>());
+        Map<Long, ChunkMesh> byChunk = MESHES.computeIfAbsent(sceneKey, ignored -> new ConcurrentHashMap<>());
         ChunkMesh previous = byChunk.put(key, baked);
         if (previous != null) {
             previous.close();
@@ -82,11 +82,12 @@ public final class SotoGhostMeshCache {
         }
     }
 
-    public static void onChunkUnloaded(UUID tardisId, int chunkX, int chunkZ) {
-        if (tardisId == null) {
+    public static void onChunkUnloaded(PortalStreamKind kind, UUID tardisId, int chunkX, int chunkZ) {
+        if (kind == null || tardisId == null) {
             return;
         }
-        Map<Long, ChunkMesh> byChunk = MESHES.get(tardisId);
+        PortalSceneStore.SceneKey sceneKey = new PortalSceneStore.SceneKey(kind, tardisId);
+        Map<Long, ChunkMesh> byChunk = MESHES.get(sceneKey);
         if (byChunk == null) {
             return;
         }
@@ -95,15 +96,16 @@ public final class SotoGhostMeshCache {
             removed.close();
         }
         if (byChunk.isEmpty()) {
-            MESHES.remove(tardisId, byChunk);
+            MESHES.remove(sceneKey, byChunk);
         }
     }
 
-    public static void invalidate(UUID tardisId) {
-        if (tardisId == null) {
+    public static void invalidate(PortalStreamKind kind, UUID tardisId) {
+        if (kind == null || tardisId == null) {
             return;
         }
-        Map<Long, ChunkMesh> byChunk = MESHES.remove(tardisId);
+        PortalSceneStore.SceneKey sceneKey = new PortalSceneStore.SceneKey(kind, tardisId);
+        Map<Long, ChunkMesh> byChunk = MESHES.remove(sceneKey);
         if (byChunk == null) {
             return;
         }
@@ -114,20 +116,21 @@ public final class SotoGhostMeshCache {
     }
 
     public static void invalidateAll() {
-        for (UUID id : List.copyOf(MESHES.keySet())) {
-            invalidate(id);
+        for (PortalSceneStore.SceneKey key : List.copyOf(MESHES.keySet())) {
+            invalidate(key.kind(), key.tardisId());
         }
     }
 
     /**
      * Test helper: records a chunk as having a drawable mesh without requiring a GPU bake.
      */
-    public static void markChunkMeshForTest(UUID tardisId, int chunkX, int chunkZ) {
-        if (tardisId == null) {
+    public static void markChunkMeshForTest(PortalStreamKind kind, UUID tardisId, int chunkX, int chunkZ) {
+        if (kind == null || tardisId == null) {
             return;
         }
+        PortalSceneStore.SceneKey sceneKey = new PortalSceneStore.SceneKey(kind, tardisId);
         long key = ChunkPos.pack(chunkX, chunkZ);
-        Map<Long, ChunkMesh> byChunk = MESHES.computeIfAbsent(tardisId, ignored -> new ConcurrentHashMap<>());
+        Map<Long, ChunkMesh> byChunk = MESHES.computeIfAbsent(sceneKey, ignored -> new ConcurrentHashMap<>());
         ChunkMesh previous = byChunk.put(key, ChunkMesh.MARKER);
         if (previous != null && previous != ChunkMesh.MARKER) {
             previous.close();
@@ -137,11 +140,11 @@ public final class SotoGhostMeshCache {
     /**
      * Draws one terrain pass across every chunk, preserving opaque → cutout → translucent order.
      */
-    public static void drawLayer(UUID tardisId, Matrix4f viewMatrix, TerrainPass pass) {
-        if (tardisId == null || viewMatrix == null || pass == null) {
+    public static void drawLayer(PortalStreamKind kind, UUID tardisId, Matrix4f viewMatrix, TerrainPass pass) {
+        if (kind == null || tardisId == null || viewMatrix == null || pass == null) {
             return;
         }
-        Map<Long, ChunkMesh> byChunk = MESHES.get(tardisId);
+        Map<Long, ChunkMesh> byChunk = MESHES.get(new PortalSceneStore.SceneKey(kind, tardisId));
         if (byChunk == null || byChunk.isEmpty()) {
             return;
         }
@@ -310,7 +313,6 @@ public final class SotoGhostMeshCache {
 
     private static final class ChunkMesh implements AutoCloseable {
         static final ChunkMesh EMPTY = new ChunkMesh(List.of(), false);
-        /** Non-empty placeholder used by {@link #markChunkMeshForTest} and interim bake. */
         static final ChunkMesh MARKER = new ChunkMesh(List.of(), true);
 
         private final List<LayerBuffer> layers;

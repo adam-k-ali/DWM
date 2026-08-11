@@ -1,7 +1,8 @@
 package com.adamkali.dwm.network;
 
 import com.adamkali.dwm.tardis.boti.BotiRelativePosCodec;
-import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
+import com.adamkali.dwm.tardis.portal.PortalStreamSample;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,10 +17,11 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * S2C sparse chunk column for the Phase 1 ghost exterior store.
- * Block positions are footprint-relative (same space as snapshot blocks).
+ * S2C sparse chunk column for the portal ghost store.
+ * Block positions are footprint-relative.
  */
-public record SyncSotoExteriorChunkS2CPayload(
+public record SyncPortalChunkS2CPayload(
+        PortalStreamKind kind,
         UUID tardisId,
         int chunkX,
         int chunkZ,
@@ -29,11 +31,11 @@ public record SyncSotoExteriorChunkS2CPayload(
         List<BlockEntry> blocks,
         List<BlockEntityEntry> blockEntities
 ) implements CustomPacketPayload {
-    public static final CustomPacketPayload.Type<SyncSotoExteriorChunkS2CPayload> ID =
-            new CustomPacketPayload.Type<>(DWMPacketIds.SYNC_SOTO_EXTERIOR_CHUNK_PACKET_ID);
+    public static final CustomPacketPayload.Type<SyncPortalChunkS2CPayload> ID =
+            new CustomPacketPayload.Type<>(DWMPacketIds.SYNC_PORTAL_CHUNK_PACKET_ID);
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, SyncSotoExteriorChunkS2CPayload> CODEC =
-            StreamCodec.ofMember(SyncSotoExteriorChunkS2CPayload::encode, SyncSotoExteriorChunkS2CPayload::decode);
+    public static final StreamCodec<RegistryFriendlyByteBuf, SyncPortalChunkS2CPayload> CODEC =
+            StreamCodec.ofMember(SyncPortalChunkS2CPayload::encode, SyncPortalChunkS2CPayload::decode);
 
     public record BlockEntry(int relX, int relY, int relZ, int stateId) {
     }
@@ -41,7 +43,8 @@ public record SyncSotoExteriorChunkS2CPayload(
     public record BlockEntityEntry(int relX, int relY, int relZ, CompoundTag nbt) {
     }
 
-    private static void encode(SyncSotoExteriorChunkS2CPayload payload, RegistryFriendlyByteBuf buf) {
+    private static void encode(SyncPortalChunkS2CPayload payload, RegistryFriendlyByteBuf buf) {
+        buf.writeByte(payload.kind.toWire());
         DWMPacketCodecs.UUID_PACKET_CODEC.encode(buf, payload.tardisId);
         ByteBufCodecs.VAR_INT.encode(buf, payload.chunkX);
         ByteBufCodecs.VAR_INT.encode(buf, payload.chunkZ);
@@ -64,7 +67,8 @@ public record SyncSotoExteriorChunkS2CPayload(
         }
     }
 
-    private static SyncSotoExteriorChunkS2CPayload decode(RegistryFriendlyByteBuf buf) {
+    private static SyncPortalChunkS2CPayload decode(RegistryFriendlyByteBuf buf) {
+        PortalStreamKind kind = PortalStreamKind.fromWire(buf.readByte());
         UUID tardisId = DWMPacketCodecs.UUID_PACKET_CODEC.decode(buf);
         int chunkX = ByteBufCodecs.VAR_INT.decode(buf);
         int chunkZ = ByteBufCodecs.VAR_INT.decode(buf);
@@ -91,15 +95,16 @@ public record SyncSotoExteriorChunkS2CPayload(
                     ByteBufCodecs.COMPOUND_TAG.decode(buf)
             ));
         }
-        return new SyncSotoExteriorChunkS2CPayload(
-                tardisId, chunkX, chunkZ, originX, originY, originZ, blocks, blockEntities
+        return new SyncPortalChunkS2CPayload(
+                kind, tardisId, chunkX, chunkZ, originX, originY, originZ, blocks, blockEntities
         );
     }
 
-    public static SyncSotoExteriorChunkS2CPayload fromSample(
+    public static SyncPortalChunkS2CPayload fromSample(
+            PortalStreamKind kind,
             UUID tardisId,
             BlockPos footprintOrigin,
-            SotoExteriorSampler.StreamChunkSample sample
+            PortalStreamSample sample
     ) {
         List<BlockEntry> blocks = new ArrayList<>(sample.blocks().size());
         for (Map.Entry<BlockPos, BlockState> entry : sample.blocks().entrySet()) {
@@ -121,7 +126,8 @@ public record SyncSotoExteriorChunkS2CPayload(
                     entry.getValue()
             ));
         }
-        return new SyncSotoExteriorChunkS2CPayload(
+        return new SyncPortalChunkS2CPayload(
+                kind,
                 tardisId,
                 sample.chunkX(),
                 sample.chunkZ(),

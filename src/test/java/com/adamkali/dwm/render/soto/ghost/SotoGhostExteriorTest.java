@@ -1,8 +1,9 @@
 package com.adamkali.dwm.render.soto.ghost;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
-import com.adamkali.dwm.network.SyncSotoExteriorChunkS2CPayload;
+import com.adamkali.dwm.network.SyncPortalChunkS2CPayload;
 import com.adamkali.dwm.tardis.boti.BotiRelativePosCodec;
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -30,14 +31,15 @@ class SotoGhostExteriorTest {
     void applyChunk_exposesBlockStateAndUnloadClears() {
         UUID id = UUID.randomUUID();
         BlockPos rel = new BlockPos(2, 1, 3);
-        SyncSotoExteriorChunkS2CPayload payload = new SyncSotoExteriorChunkS2CPayload(
+        SyncPortalChunkS2CPayload payload = new SyncPortalChunkS2CPayload(
+                PortalStreamKind.SOTO,
                 id,
                 1,
                 2,
                 100,
                 64,
                 200,
-                List.of(new SyncSotoExteriorChunkS2CPayload.BlockEntry(
+                List.of(new SyncPortalChunkS2CPayload.BlockEntry(
                         rel.getX(),
                         rel.getY(),
                         rel.getZ(),
@@ -46,15 +48,15 @@ class SotoGhostExteriorTest {
                 List.of()
         );
 
-        SotoGhostExterior.applyChunk(payload);
+        SotoGhostExterior.applyChunk(PortalStreamKind.SOTO, payload);
 
-        SotoGhostExterior ghost = SotoGhostExterior.get(id);
+        SotoGhostExterior ghost = SotoGhostExterior.get(PortalStreamKind.SOTO, id);
         assertNotNull(ghost);
         assertEquals(1, ghost.chunkCount());
         assertEquals(Blocks.DIRT, ghost.getBlockState(rel).getBlock());
         assertEquals(new BlockPos(100, 64, 200), ghost.footprintOrigin());
 
-        SotoGhostExterior.unloadChunk(id, 1, 2);
+        SotoGhostExterior.unloadChunk(PortalStreamKind.SOTO, id, 1, 2);
         assertEquals(0, ghost.chunkCount());
         assertTrue(ghost.getBlockState(rel).isAir());
     }
@@ -62,11 +64,11 @@ class SotoGhostExteriorTest {
     @Test
     void removeEntity_andInvalidateClearState() {
         UUID id = UUID.randomUUID();
-        SotoGhostExterior.getOrCreate(id);
-        assertNotNull(SotoGhostExterior.get(id));
-        SotoGhostExterior.removeEntity(id, UUID.randomUUID());
-        assertFalse(SotoGhostExterior.hasEntities(id));
-        SotoGhostExterior.invalidate(id);
-        assertNull(SotoGhostExterior.get(id));
+        SotoGhostExterior.getOrCreate(PortalStreamKind.SOTO, id);
+        assertNotNull(SotoGhostExterior.get(PortalStreamKind.SOTO, id));
+        SotoGhostExterior.removeEntity(PortalStreamKind.SOTO, id, UUID.randomUUID());
+        assertFalse(SotoGhostExterior.hasEntities(PortalStreamKind.SOTO, id));
+        SotoGhostExterior.invalidate(PortalStreamKind.SOTO, id);
+        assertNull(SotoGhostExterior.get(PortalStreamKind.SOTO, id));
     }
 }

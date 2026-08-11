@@ -2,11 +2,12 @@ package com.adamkali.dwm.render.boti;
 
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
-import com.adamkali.dwm.network.RequestBotiInteriorC2SPayload;
+import com.adamkali.dwm.network.RequestPortalStreamC2SPayload;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.EntityInterpState;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.LerpedPose;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -583,7 +584,7 @@ public final class BotiInteriorMeshCache {
             return;
         }
         LAST_REQUEST_MS.put(tardisId, now);
-        ClientPlayNetworking.send(new RequestBotiInteriorC2SPayload(tardisId));
+        ClientPlayNetworking.send(new RequestPortalStreamC2SPayload(PortalStreamKind.BOTI, tardisId));
     }
 
     private static Map<BlockPos, BlockState> blueprintVisibleBlocks() {

@@ -4,14 +4,13 @@ import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.tardis.TardisExteriorFacing;
-import com.adamkali.dwm.tardis.boti.BotiInteriorSyncService;
+import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.adamkali.dwm.tardis.soto.SotoExteriorIndex;
-import com.adamkali.dwm.tardis.soto.SotoExteriorSyncService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
@@ -62,7 +61,7 @@ public final class TardisInteriorService {
         exteriorEntity.setInteriorEntrance(entrance);
         exteriorEntity.setInteriorGenerated(true);
         BotiPlotIndex.register(tardisId);
-        BotiInteriorSyncService.setChanged(tardisId);
+        PortalStreamSyncService.setMetaChanged(tardisId);
         return entrance;
     }
 
@@ -132,6 +131,6 @@ public final class TardisInteriorService {
                 rotation
         );
         SotoExteriorIndex.register(tardisId, model);
-        SotoExteriorSyncService.setChanged(tardisId);
+        PortalStreamSyncService.setMetaChanged(tardisId);
     }
 }

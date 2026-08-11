@@ -1,8 +1,9 @@
 package com.adamkali.dwm.network;
 
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
-import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
-import com.adamkali.dwm.tardis.soto.SotoExteriorSnapshot;
+import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
+import com.adamkali.dwm.tardis.portal.PortalShellState;
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import java.util.UUID;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -12,27 +13,31 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 
 /**
- * S2C SOTO exterior shell + atmosphere snapshot.
- * formatVersion 5 = shell metadata + atmosphere (no footprint blocks/entities).
+ * S2C portal shell + atmosphere metadata (shared by BOTI and SOTO).
+ * formatVersion 1 = shell + atmosphere.
  */
-public record SyncSotoExteriorS2CPayload(
+public record SyncPortalMetaS2CPayload(
         byte formatVersion,
+        PortalStreamKind kind,
         UUID tardisId,
         int revision,
         Identifier variantId,
         float doorSwing,
         boolean isOpen,
         int exteriorRotation,
-        SotoAtmosphere atmosphere
+        PortalAtmosphere atmosphere
 ) implements CustomPacketPayload {
-    public static final CustomPacketPayload.Type<SyncSotoExteriorS2CPayload> ID =
-            new CustomPacketPayload.Type<>(DWMPacketIds.SYNC_SOTO_EXTERIOR_PACKET_ID);
+    public static final byte FORMAT_VERSION = 1;
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, SyncSotoExteriorS2CPayload> CODEC =
-            StreamCodec.ofMember(SyncSotoExteriorS2CPayload::encode, SyncSotoExteriorS2CPayload::decode);
+    public static final CustomPacketPayload.Type<SyncPortalMetaS2CPayload> ID =
+            new CustomPacketPayload.Type<>(DWMPacketIds.SYNC_PORTAL_META_PACKET_ID);
 
-    private static void encode(SyncSotoExteriorS2CPayload payload, RegistryFriendlyByteBuf buf) {
+    public static final StreamCodec<RegistryFriendlyByteBuf, SyncPortalMetaS2CPayload> CODEC =
+            StreamCodec.ofMember(SyncPortalMetaS2CPayload::encode, SyncPortalMetaS2CPayload::decode);
+
+    private static void encode(SyncPortalMetaS2CPayload payload, RegistryFriendlyByteBuf buf) {
         buf.writeByte(payload.formatVersion);
+        buf.writeByte(payload.kind.toWire());
         DWMPacketCodecs.UUID_PACKET_CODEC.encode(buf, payload.tardisId);
         ByteBufCodecs.VAR_INT.encode(buf, payload.revision);
         Identifier.STREAM_CODEC.encode(buf, payload.variantId);
@@ -42,17 +47,19 @@ public record SyncSotoExteriorS2CPayload(
         encodeAtmosphere(payload.atmosphere(), buf);
     }
 
-    private static SyncSotoExteriorS2CPayload decode(RegistryFriendlyByteBuf buf) {
+    private static SyncPortalMetaS2CPayload decode(RegistryFriendlyByteBuf buf) {
         byte formatVersion = buf.readByte();
+        PortalStreamKind kind = PortalStreamKind.fromWire(buf.readByte());
         UUID tardisId = DWMPacketCodecs.UUID_PACKET_CODEC.decode(buf);
         int revision = ByteBufCodecs.VAR_INT.decode(buf);
         Identifier variantId = Identifier.STREAM_CODEC.decode(buf);
         float doorSwing = buf.readFloat();
         boolean isOpen = buf.readBoolean();
         int exteriorRotation = ByteBufCodecs.VAR_INT.decode(buf);
-        SotoAtmosphere atmosphere = decodeAtmosphere(buf);
-        return new SyncSotoExteriorS2CPayload(
+        PortalAtmosphere atmosphere = decodeAtmosphere(buf);
+        return new SyncPortalMetaS2CPayload(
                 formatVersion,
+                kind,
                 tardisId,
                 revision,
                 variantId,
@@ -63,8 +70,8 @@ public record SyncSotoExteriorS2CPayload(
         );
     }
 
-    private static void encodeAtmosphere(SotoAtmosphere atmosphere, RegistryFriendlyByteBuf buf) {
-        SotoAtmosphere value = atmosphere == null ? SotoAtmosphere.DEFAULT : atmosphere;
+    private static void encodeAtmosphere(PortalAtmosphere atmosphere, RegistryFriendlyByteBuf buf) {
+        PortalAtmosphere value = atmosphere == null ? PortalAtmosphere.DEFAULT : atmosphere;
         Identifier.STREAM_CODEC.encode(buf, value.dimensionEffectsId());
         buf.writeLong(value.timeOfDay());
         buf.writeFloat(value.rainGradient());
@@ -73,12 +80,12 @@ public record SyncSotoExteriorS2CPayload(
         buf.writeInt(value.biomeFogColor());
     }
 
-    private static SotoAtmosphere decodeAtmosphere(RegistryFriendlyByteBuf buf) {
+    private static PortalAtmosphere decodeAtmosphere(RegistryFriendlyByteBuf buf) {
         Identifier effectsId = Identifier.STREAM_CODEC.decode(buf);
         if (effectsId == null) {
             effectsId = BuiltinDimensionTypes.OVERWORLD.identifier();
         }
-        return new SotoAtmosphere(
+        return new PortalAtmosphere(
                 effectsId,
                 buf.readLong(),
                 buf.readFloat(),
@@ -88,16 +95,23 @@ public record SyncSotoExteriorS2CPayload(
         );
     }
 
-    public static SyncSotoExteriorS2CPayload fromSnapshot(SotoExteriorSnapshot snapshot) {
-        return new SyncSotoExteriorS2CPayload(
-                (byte) snapshot.formatVersion(),
-                snapshot.tardisId(),
-                snapshot.revision(),
-                snapshot.variant().getId(),
-                snapshot.doorSwing(),
-                snapshot.isOpen(),
-                snapshot.exteriorRotation(),
-                snapshot.atmosphere()
+    public static SyncPortalMetaS2CPayload of(
+            PortalStreamKind kind,
+            UUID tardisId,
+            int revision,
+            PortalShellState shell,
+            PortalAtmosphere atmosphere
+    ) {
+        return new SyncPortalMetaS2CPayload(
+                FORMAT_VERSION,
+                kind,
+                tardisId,
+                revision,
+                shell.variant().getId(),
+                shell.doorSwing(),
+                shell.isOpen(),
+                shell.exteriorRotation(),
+                atmosphere == null ? PortalAtmosphere.DEFAULT : atmosphere
         );
     }
 
@@ -107,6 +121,10 @@ public record SyncSotoExteriorS2CPayload(
         } catch (IllegalArgumentException e) {
             return TardisChameleonVariant.TT_CAPSULE;
         }
+    }
+
+    public PortalShellState shellState() {
+        return new PortalShellState(variant(), doorSwing, isOpen, exteriorRotation);
     }
 
     @Override

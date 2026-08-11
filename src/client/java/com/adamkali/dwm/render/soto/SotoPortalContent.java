@@ -4,9 +4,13 @@ import com.adamkali.dwm.render.portal.PortalCameraTransform;
 import com.adamkali.dwm.render.portal.PortalContent;
 import com.adamkali.dwm.render.portal.PortalContentContext;
 import com.adamkali.dwm.render.portal.PortalFeatureFlush;
+import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
 import com.adamkali.dwm.tardis.TardisExteriorFacing;
+import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
+import com.adamkali.dwm.tardis.portal.PortalShellState;
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
@@ -34,7 +38,7 @@ public final class SotoPortalContent implements PortalContent {
     }
 
     public void requestSync() {
-        SotoGhostExterior.requestIfNeeded(tardisId);
+        PortalSceneStore.requestIfNeeded(PortalStreamKind.SOTO, tardisId);
     }
 
     @Override
@@ -42,28 +46,26 @@ public final class SotoPortalContent implements PortalContent {
         if (client == null || client.level == null) {
             return false;
         }
-        SotoGhostExterior.requestIfNeeded(tardisId);
-        SotoGhostExterior ghost = SotoGhostExterior.get(tardisId);
-        SotoExteriorMeshCache.ShellState shell = SotoExteriorMeshCache.getShellState(tardisId);
+        PortalSceneStore.requestIfNeeded(PortalStreamKind.SOTO, tardisId);
+        SotoGhostExterior ghost = SotoGhostExterior.get(PortalStreamKind.SOTO, tardisId);
+        PortalShellState shell = PortalSceneStore.getShell(PortalStreamKind.SOTO, tardisId);
         return ghost != null
                 && shell != null
                 && ghost.chunkCount() > 0
-                && SotoGhostMeshCache.hasMeshes(tardisId);
+                && SotoGhostMeshCache.hasMeshes(PortalStreamKind.SOTO, tardisId);
     }
 
     @Override
     public int clearRgb(Minecraft client) {
-        SotoAtmosphere atmosphere = SotoExteriorMeshCache.getAtmosphere(tardisId);
-        if (atmosphere == null) {
-            atmosphere = SotoAtmosphere.DEFAULT;
-        }
+        PortalAtmosphere portal = PortalSceneStore.getAtmosphere(PortalStreamKind.SOTO, tardisId);
+        SotoAtmosphere atmosphere = portal != null ? SotoAtmosphere.fromPortal(portal) : SotoAtmosphere.DEFAULT;
         return SotoSkyFogRenderer.portalBackdropRgb(atmosphere);
     }
 
     @Override
     public PortalCameraTransform.Result hitch(Minecraft client) {
-        SotoGhostExterior ghost = SotoGhostExterior.get(tardisId);
-        SotoExteriorMeshCache.ShellState shell = SotoExteriorMeshCache.getShellState(tardisId);
+        SotoGhostExterior ghost = SotoGhostExterior.get(PortalStreamKind.SOTO, tardisId);
+        PortalShellState shell = PortalSceneStore.getShell(PortalStreamKind.SOTO, tardisId);
         if (ghost == null || shell == null) {
             return null;
         }
@@ -83,10 +85,8 @@ public final class SotoPortalContent implements PortalContent {
         PortalCameraTransform.Result hitch = context.hitch();
         PoseStack sceneMatrices = context.sceneMatrices();
 
-        SotoAtmosphere atmosphere = SotoExteriorMeshCache.getAtmosphere(id);
-        if (atmosphere == null) {
-            atmosphere = SotoAtmosphere.DEFAULT;
-        }
+        PortalAtmosphere portal = PortalSceneStore.getAtmosphere(PortalStreamKind.SOTO, id);
+        SotoAtmosphere atmosphere = portal != null ? SotoAtmosphere.fromPortal(portal) : SotoAtmosphere.DEFAULT;
 
         SotoSkyFogRenderer.renderPortalSky(sceneMatrices, null, atmosphere);
         context.bindTarget();
@@ -94,18 +94,21 @@ public final class SotoPortalContent implements PortalContent {
         try {
             context.bindTarget();
             SotoGhostMeshCache.drawLayer(
+                    PortalStreamKind.SOTO,
                     id,
                     hitch.viewMatrix(),
                     SotoGhostMeshCache.TerrainPass.OPAQUE
             );
             context.bindTarget();
             SotoGhostMeshCache.drawLayer(
+                    PortalStreamKind.SOTO,
                     id,
                     hitch.viewMatrix(),
                     SotoGhostMeshCache.TerrainPass.CUTOUT
             );
             context.bindTarget();
             SotoGhostMeshCache.drawLayer(
+                    PortalStreamKind.SOTO,
                     id,
                     hitch.viewMatrix(),
                     SotoGhostMeshCache.TerrainPass.TRANSLUCENT
@@ -126,6 +129,7 @@ public final class SotoPortalContent implements PortalContent {
                                 cameraState,
                                 FULLBRIGHT,
                                 tickDelta,
+                                PortalStreamKind.SOTO,
                                 id,
                                 context.portalCamera()
                         );
@@ -134,6 +138,7 @@ public final class SotoPortalContent implements PortalContent {
                                 submitStorage,
                                 cameraState,
                                 tickDelta,
+                                PortalStreamKind.SOTO,
                                 id,
                                 context.portalCamera()
                         );
@@ -145,7 +150,6 @@ public final class SotoPortalContent implements PortalContent {
                     }
                 }
             } catch (Throwable ignored) {
-                // Keep terrain portal alive; entity/BE features are best-effort.
             }
         } finally {
             SotoSkyFogRenderer.restoreFog(previousFog);

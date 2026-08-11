@@ -1,13 +1,13 @@
 package com.adamkali.dwm.render.soto;
 
-import com.adamkali.dwm.network.RequestSotoExteriorC2SPayload;
-import com.adamkali.dwm.network.RequestSotoGhostC2SPayload;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.LerpedPose;
+import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
-import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
+import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
+import com.adamkali.dwm.tardis.portal.PortalShellState;
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -25,110 +25,64 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Per-TARDIS SOTO exterior cache for shell metadata and atmosphere (Phase 0).
- * Terrain and entities come from {@link SotoGhostExterior}.
+ * Per-TARDIS SOTO exterior cache for shell metadata and atmosphere.
+ * Now delegates meta storage to {@link PortalSceneStore} and terrain/entities
+ * to kind-keyed {@link SotoGhostExterior}.
  * <p>
  * Ghost entity / block-entity draws use extract+submit against {@link SubmitNodeCollector}
- * and {@link CameraRenderState}, matching {@link com.adamkali.dwm.render.boti.BotiInteriorMeshCache}.
+ * and {@link CameraRenderState}.
  */
 public final class SotoExteriorMeshCache {
-    private static final long REQUEST_COOLDOWN_MS = 2000L;
     private static final int FULLBRIGHT = LightCoordsUtil.FULL_BRIGHT;
-    /** Fallback ids for ghosts created before spawn-time setId (or if id was never assigned). */
     private static final AtomicInteger NEXT_FALLBACK_ENTITY_ID = new AtomicInteger(2_000_000);
-
-    private static final Map<UUID, CachedSnapshot> SNAPSHOTS = new ConcurrentHashMap<>();
-    private static final Map<UUID, Long> LAST_REQUEST_MS = new ConcurrentHashMap<>();
 
     private SotoExteriorMeshCache() {
     }
 
-    public record ShellState(
-            TardisChameleonVariant variant,
-            float doorSwing,
-            boolean isOpen,
-            int exteriorRotation
-    ) {
-    }
-
     public static boolean hasSnapshot(UUID tardisId) {
-        return tardisId != null && SNAPSHOTS.containsKey(tardisId);
+        return tardisId != null && PortalSceneStore.getShell(PortalStreamKind.SOTO, tardisId) != null;
     }
 
-    public static ShellState getShellState(UUID tardisId) {
+    public static PortalShellState getShellState(UUID tardisId) {
         if (tardisId == null) {
             return null;
         }
-        CachedSnapshot cached = SNAPSHOTS.get(tardisId);
-        if (cached == null) {
-            requestIfNeeded(tardisId);
-            return null;
+        PortalShellState shell = PortalSceneStore.getShell(PortalStreamKind.SOTO, tardisId);
+        if (shell == null) {
+            PortalSceneStore.requestIfNeeded(PortalStreamKind.SOTO, tardisId);
         }
-        return cached.shell();
+        return shell;
     }
 
     public static SotoAtmosphere getAtmosphere(UUID tardisId) {
         if (tardisId == null) {
             return null;
         }
-        CachedSnapshot cached = SNAPSHOTS.get(tardisId);
-        if (cached == null) {
-            requestIfNeeded(tardisId);
+        PortalAtmosphere portal = PortalSceneStore.getAtmosphere(PortalStreamKind.SOTO, tardisId);
+        if (portal == null) {
+            PortalSceneStore.requestIfNeeded(PortalStreamKind.SOTO, tardisId);
             return null;
         }
-        return cached.atmosphere();
-    }
-
-    public static void applySnapshot(
-            UUID tardisId,
-            int revision,
-            TardisChameleonVariant variant,
-            float doorSwing,
-            boolean isOpen,
-            int exteriorRotation,
-            SotoAtmosphere atmosphere
-    ) {
-        if (tardisId == null) {
-            return;
-        }
-        CachedSnapshot existing = SNAPSHOTS.get(tardisId);
-        if (existing != null && revision < existing.revision()) {
-            return;
-        }
-        ShellState shell = new ShellState(
-                variant == null ? TardisChameleonVariant.TT_CAPSULE : variant,
-                doorSwing,
-                isOpen,
-                exteriorRotation
-        );
-        SotoAtmosphere atm = atmosphere == null ? SotoAtmosphere.DEFAULT : atmosphere;
-        SNAPSHOTS.put(tardisId, new CachedSnapshot(revision, shell, atm));
-        LAST_REQUEST_MS.remove(tardisId);
+        return SotoAtmosphere.fromPortal(portal);
     }
 
     public static void invalidate(UUID tardisId) {
         if (tardisId != null) {
-            SNAPSHOTS.remove(tardisId);
-            LAST_REQUEST_MS.remove(tardisId);
-            SotoGhostExterior.invalidate(tardisId);
+            PortalSceneStore.invalidate(PortalStreamKind.SOTO, tardisId);
         }
     }
 
     public static void invalidateAll() {
-        SNAPSHOTS.clear();
-        LAST_REQUEST_MS.clear();
-        SotoGhostExterior.invalidateAll();
+        PortalSceneStore.invalidateAll();
     }
 
     /**
      * Submits ghost block entities into {@code submitNodeCollector}. Caller must flush
-     * (e.g. {@code FeatureRenderDispatcher#renderAllFeatures}) while the portal target is bound.
+     * while the portal target is bound.
      *
      * @return number of BEs successfully submitted
      */
@@ -141,8 +95,24 @@ public final class SotoExteriorMeshCache {
             UUID tardisId,
             Camera camera
     ) {
+        return renderGhostBlockEntities(
+                matrices, submitNodeCollector, cameraState, light, tickDelta,
+                PortalStreamKind.SOTO, tardisId, camera
+        );
+    }
+
+    public static int renderGhostBlockEntities(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            CameraRenderState cameraState,
+            int light,
+            float tickDelta,
+            PortalStreamKind kind,
+            UUID tardisId,
+            Camera camera
+    ) {
         Minecraft client = Minecraft.getInstance();
-        SotoGhostExterior ghost = SotoGhostExterior.get(tardisId);
+        SotoGhostExterior ghost = SotoGhostExterior.get(kind, tardisId);
         if (client == null || ghost == null || matrices == null || submitNodeCollector == null || cameraState == null) {
             return 0;
         }
@@ -194,9 +164,24 @@ public final class SotoExteriorMeshCache {
             UUID tardisId,
             Camera camera
     ) {
+        return renderGhostEntities(
+                matrices, submitNodeCollector, cameraState, tickDelta,
+                PortalStreamKind.SOTO, tardisId, camera
+        );
+    }
+
+    public static int renderGhostEntities(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            CameraRenderState cameraState,
+            float tickDelta,
+            PortalStreamKind kind,
+            UUID tardisId,
+            Camera camera
+    ) {
         Minecraft client = Minecraft.getInstance();
         if (client == null || matrices == null || submitNodeCollector == null || cameraState == null
-                || !SotoGhostExterior.hasEntities(tardisId)) {
+                || !SotoGhostExterior.hasEntities(kind, tardisId)) {
             return 0;
         }
         EntityRenderDispatcher entityDispatcher = client.getEntityRenderDispatcher();
@@ -204,7 +189,7 @@ public final class SotoExteriorMeshCache {
             entityDispatcher.prepare(camera, client.player);
         }
         List<SotoGhostExterior.RenderableGhostEntity> ghosts =
-                SotoGhostExterior.getRenderableEntities(tardisId);
+                SotoGhostExterior.getRenderableEntities(kind, tardisId);
         int submitted = 0;
         Vec3 cameraPos = cameraState.pos;
         for (SotoGhostExterior.RenderableGhostEntity ghost : ghosts) {
@@ -216,14 +201,11 @@ public final class SotoExteriorMeshCache {
                 snapLivingYaw(living, pose.yaw());
             }
             try {
-                // Client-created ghosts may still lack an id if spawned before setId was wired.
                 ensureGhostEntityId(entity);
                 EntityRenderState entityState = entityDispatcher.extractEntity(entity, tickDelta);
                 if (entityState == null) {
                     continue;
                 }
-                // Ghost entities sit at footprint-relative coords in the interior ClientLevel;
-                // packed light from that sample is usually 0 → solid black models.
                 entityState.lightCoords = FULLBRIGHT;
                 entityDispatcher.submit(
                         entityState,
@@ -236,7 +218,6 @@ public final class SotoExteriorMeshCache {
                 );
                 submitted++;
             } catch (RuntimeException ignored) {
-                // Skip one bad ghost rather than aborting the portal feature flush.
             }
         }
         return submitted;
@@ -255,32 +236,5 @@ public final class SotoExteriorMeshCache {
         living.setYHeadRot(yaw);
         living.yBodyRotO = yaw;
         living.yHeadRotO = yaw;
-    }
-
-    private static void requestIfNeeded(UUID tardisId) {
-        long now = System.currentTimeMillis();
-        Long last = LAST_REQUEST_MS.get(tardisId);
-        if (last != null && now - last < REQUEST_COOLDOWN_MS) {
-            return;
-        }
-        Minecraft client = Minecraft.getInstance();
-        if (client == null || client.getConnection() == null) {
-            return;
-        }
-        LAST_REQUEST_MS.put(tardisId, now);
-        ClientPlayNetworking.send(new RequestSotoExteriorC2SPayload(tardisId));
-        ClientPlayNetworking.send(new RequestSotoGhostC2SPayload(tardisId));
-    }
-
-    private record CachedSnapshot(
-            int revision,
-            ShellState shell,
-            SotoAtmosphere atmosphere
-    ) {
-        private CachedSnapshot {
-            if (atmosphere == null) {
-                atmosphere = SotoAtmosphere.DEFAULT;
-            }
-        }
     }
 }

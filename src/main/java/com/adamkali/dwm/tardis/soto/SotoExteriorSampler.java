@@ -2,6 +2,8 @@ package com.adamkali.dwm.tardis.soto;
 
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
+import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
+import com.adamkali.dwm.tardis.portal.PortalStreamSample;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +83,7 @@ public final class SotoExteriorSampler {
     /**
      * Samples exterior sky/fog atmosphere at the TARDIS block (single biome point).
      */
-    public static SotoAtmosphere sampleAtmosphere(ServerLevel exteriorWorld, BlockPos exteriorPos) {
+    public static PortalAtmosphere sampleAtmosphere(ServerLevel exteriorWorld, BlockPos exteriorPos) {
         Identifier effectsId = exteriorWorld.dimensionTypeRegistration()
                 .unwrapKey()
                 .map(ResourceKey::identifier)
@@ -90,7 +92,7 @@ public final class SotoExteriorSampler {
         float rain = exteriorWorld.getRainLevel(0.0f);
         float thunder = exteriorWorld.getThunderLevel(0.0f);
         var attrs = exteriorWorld.environmentAttributes();
-        return new SotoAtmosphere(
+        return new PortalAtmosphere(
                 effectsId,
                 timeOfDay,
                 rain,
@@ -189,6 +191,16 @@ public final class SotoExteriorSampler {
                 mob.setNoActionTime(0);
             }
         }
+    }
+
+    public static PortalStreamSample samplePortalStreamChunk(
+            ServerLevel exteriorWorld,
+            BlockPos exteriorPos,
+            int chunkX,
+            int chunkZ
+    ) {
+        StreamChunkSample sample = sampleStreamChunk(exteriorWorld, exteriorPos, chunkX, chunkZ);
+        return new PortalStreamSample(sample.chunkX(), sample.chunkZ(), sample.blocks(), sample.blockEntities());
     }
 
     /**

@@ -5,7 +5,7 @@ import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
-import com.adamkali.dwm.tardis.soto.SotoExteriorSyncService;
+import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -34,7 +34,7 @@ public class TardisLogic {
 
         tardis.doorState.isOpen = !tardis.doorState.isOpen;
         tardis.setChanged();
-        SotoExteriorSyncService.setChanged(tardisId);
+        PortalStreamSyncService.setMetaChanged(tardisId);
         return InteractionResult.SUCCESS;
     }
 
@@ -69,7 +69,7 @@ public class TardisLogic {
 
         tardis.variant = variant;
         tardis.setChanged();
-        SotoExteriorSyncService.setChanged(tardisId);
+        PortalStreamSyncService.setMetaChanged(tardisId);
     }
 
     public static TardisChameleonVariant getVariant(UUID tardisId) {

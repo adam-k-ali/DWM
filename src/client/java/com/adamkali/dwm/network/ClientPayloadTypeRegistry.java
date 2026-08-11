@@ -2,10 +2,8 @@ package com.adamkali.dwm.network;
 
 import com.adamkali.dwm.ClientTardis;
 import com.adamkali.dwm.gui.TardisChameleonGui;
-import com.adamkali.dwm.render.boti.BotiInteriorMeshCache;
-import com.adamkali.dwm.render.soto.SotoExteriorMeshCache;
-import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
 import com.adamkali.dwm.render.portal.PortalRenderTarget;
+import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.sound.TardisTravelSoundController;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -17,18 +15,15 @@ public class ClientPayloadTypeRegistry {
 
     public static void initialize() {
         ClientPlayNetworking.registerGlobalReceiver(OpenTardisChameleonScreen.ID, ClientPayloadTypeRegistry::openTardisChameleonScreen);
-        ClientPlayNetworking.registerGlobalReceiver(SyncBotiInteriorS2CPayload.ID, ClientPayloadTypeRegistry::syncBotiInterior);
-        ClientPlayNetworking.registerGlobalReceiver(SyncSotoExteriorS2CPayload.ID, ClientPayloadTypeRegistry::syncSotoExterior);
-        ClientPlayNetworking.registerGlobalReceiver(SyncSotoExteriorChunkS2CPayload.ID, ClientPayloadTypeRegistry::syncSotoChunk);
-        ClientPlayNetworking.registerGlobalReceiver(UnloadSotoExteriorChunkS2CPayload.ID, ClientPayloadTypeRegistry::unloadSotoChunk);
-        ClientPlayNetworking.registerGlobalReceiver(SyncSotoExteriorEntitySpawnS2CPayload.ID, ClientPayloadTypeRegistry::spawnSotoEntity);
-        ClientPlayNetworking.registerGlobalReceiver(SyncSotoExteriorEntityUpdateS2CPayload.ID, ClientPayloadTypeRegistry::updateSotoEntity);
-        ClientPlayNetworking.registerGlobalReceiver(SyncSotoExteriorEntityRemoveS2CPayload.ID, ClientPayloadTypeRegistry::removeSotoEntity);
+        ClientPlayNetworking.registerGlobalReceiver(SyncPortalMetaS2CPayload.ID, ClientPayloadTypeRegistry::syncPortalMeta);
+        ClientPlayNetworking.registerGlobalReceiver(SyncPortalChunkS2CPayload.ID, ClientPayloadTypeRegistry::syncPortalChunk);
+        ClientPlayNetworking.registerGlobalReceiver(UnloadPortalChunkS2CPayload.ID, ClientPayloadTypeRegistry::unloadPortalChunk);
+        ClientPlayNetworking.registerGlobalReceiver(SyncPortalEntitySpawnS2CPayload.ID, ClientPayloadTypeRegistry::spawnPortalEntity);
+        ClientPlayNetworking.registerGlobalReceiver(SyncPortalEntityUpdateS2CPayload.ID, ClientPayloadTypeRegistry::updatePortalEntity);
+        ClientPlayNetworking.registerGlobalReceiver(SyncPortalEntityRemoveS2CPayload.ID, ClientPayloadTypeRegistry::removePortalEntity);
         ClientPlayNetworking.registerGlobalReceiver(TravelAudioS2CPayload.ID, ClientPayloadTypeRegistry::travelAudio);
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
-            BotiInteriorMeshCache.invalidateAll();
-            SotoExteriorMeshCache.invalidateAll();
-            SotoGhostExterior.invalidateAll();
+            PortalSceneStore.invalidateAll();
             PortalRenderTarget.closeGlobal();
             TardisTravelSoundController.stopAll();
         });
@@ -45,50 +40,28 @@ public class ClientPayloadTypeRegistry {
         });
     }
 
-    private static void syncBotiInterior(SyncBotiInteriorS2CPayload payload, ClientPlayNetworking.Context context) {
-        context.client().execute(() -> {
-            BotiInteriorMeshCache.applySnapshot(
-                    payload.tardisId(),
-                    payload.revision(),
-                    payload.toBlockMap(),
-                    payload.toBlockEntityMap(),
-                    payload.toEntityList()
-            );
-        });
+    private static void syncPortalMeta(SyncPortalMetaS2CPayload payload, ClientPlayNetworking.Context context) {
+        context.client().execute(() -> PortalSceneStore.applyMeta(payload));
     }
 
-    private static void syncSotoExterior(SyncSotoExteriorS2CPayload payload, ClientPlayNetworking.Context context) {
-        context.client().execute(() -> {
-            SotoExteriorMeshCache.applySnapshot(
-                    payload.tardisId(),
-                    payload.revision(),
-                    payload.variant(),
-                    payload.doorSwing(),
-                    payload.isOpen(),
-                    payload.exteriorRotation(),
-                    payload.atmosphere()
-            );
-        });
+    private static void syncPortalChunk(SyncPortalChunkS2CPayload payload, ClientPlayNetworking.Context context) {
+        context.client().execute(() -> PortalSceneStore.applyChunk(payload));
     }
 
-    private static void syncSotoChunk(SyncSotoExteriorChunkS2CPayload payload, ClientPlayNetworking.Context context) {
-        context.client().execute(() -> SotoGhostExterior.applyChunk(payload));
+    private static void unloadPortalChunk(UnloadPortalChunkS2CPayload payload, ClientPlayNetworking.Context context) {
+        context.client().execute(() -> PortalSceneStore.unloadChunk(payload));
     }
 
-    private static void unloadSotoChunk(UnloadSotoExteriorChunkS2CPayload payload, ClientPlayNetworking.Context context) {
-        context.client().execute(() -> SotoGhostExterior.unloadChunk(payload.tardisId(), payload.chunkX(), payload.chunkZ()));
+    private static void spawnPortalEntity(SyncPortalEntitySpawnS2CPayload payload, ClientPlayNetworking.Context context) {
+        context.client().execute(() -> PortalSceneStore.applyEntitySpawn(payload));
     }
 
-    private static void spawnSotoEntity(SyncSotoExteriorEntitySpawnS2CPayload payload, ClientPlayNetworking.Context context) {
-        context.client().execute(() -> SotoGhostExterior.applyEntitySpawn(payload));
+    private static void updatePortalEntity(SyncPortalEntityUpdateS2CPayload payload, ClientPlayNetworking.Context context) {
+        context.client().execute(() -> PortalSceneStore.applyEntityUpdate(payload));
     }
 
-    private static void updateSotoEntity(SyncSotoExteriorEntityUpdateS2CPayload payload, ClientPlayNetworking.Context context) {
-        context.client().execute(() -> SotoGhostExterior.applyEntityUpdate(payload));
-    }
-
-    private static void removeSotoEntity(SyncSotoExteriorEntityRemoveS2CPayload payload, ClientPlayNetworking.Context context) {
-        context.client().execute(() -> SotoGhostExterior.removeEntity(payload.tardisId(), payload.entityUuid()));
+    private static void removePortalEntity(SyncPortalEntityRemoveS2CPayload payload, ClientPlayNetworking.Context context) {
+        context.client().execute(() -> PortalSceneStore.removeEntity(payload));
     }
 
     private static void travelAudio(TravelAudioS2CPayload payload, ClientPlayNetworking.Context context) {

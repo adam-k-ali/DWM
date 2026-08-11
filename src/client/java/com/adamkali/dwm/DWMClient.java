@@ -5,7 +5,7 @@ import com.adamkali.dwm.client.DWMEntityRenderers;
 import com.adamkali.dwm.render.ConsoleControlHud;
 import com.adamkali.dwm.render.ConsoleHitboxDebugRenderer;
 import com.adamkali.dwm.render.portal.PortalSupport;
-import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
+import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.sound.TardisHumController;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -22,6 +22,6 @@ public class DWMClient implements ClientModInitializer {
         ConsoleControlHud.initialize();
         ConsoleHitboxDebugRenderer.initialize();
         PortalSupport.initialize();
-        ClientTickEvents.END_CLIENT_TICK.register(client -> SotoGhostExterior.clientTick());
+        ClientTickEvents.END_CLIENT_TICK.register(client -> PortalSceneStore.clientTick());
     }
 }

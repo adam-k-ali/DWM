@@ -9,7 +9,7 @@ import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.soto.SotoExteriorIndex;
-import com.adamkali.dwm.tardis.soto.SotoExteriorSyncService;
+import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -111,7 +111,7 @@ public final class TardisTravelService {
         if (model.doorState.isOpen || model.doorState.doorSwing > 0.0f) {
             model.doorState.isOpen = false;
             model.setChanged();
-            SotoExteriorSyncService.setChanged(tardisId);
+            PortalStreamSyncService.setMetaChanged(tardisId);
         }
         ACTIVE.add(tardisId);
         return InteractionResult.SUCCESS;
@@ -158,7 +158,7 @@ public final class TardisTravelService {
                 snapshot.facingRotation()
         );
         SotoExteriorIndex.register(tardisId, model);
-        SotoExteriorSyncService.setChanged(tardisId);
+        PortalStreamSyncService.setMetaChanged(tardisId);
 
         model.doorState.isOpen = true;
         model.doorState.doorSwing = 0.0f;
@@ -281,7 +281,7 @@ public final class TardisTravelService {
         // Door-close prelude before the configurable demat/vworp window.
         TardisLogic.updateDoorState(tardisId);
         if (model.doorState.doorSwing > 0.0f) {
-            SotoExteriorSyncService.setChanged(tardisId);
+            PortalStreamSyncService.setMetaChanged(tardisId);
             return;
         }
 
@@ -315,14 +315,14 @@ public final class TardisTravelService {
             exteriorWorld.setBlock(exteriorPos, Blocks.AIR.defaultBlockState(), 3);
         }
         SotoExteriorIndex.unregister(tardisId);
-        SotoExteriorSyncService.setChanged(tardisId);
+        PortalStreamSyncService.setMetaChanged(tardisId);
         SHELL_REMOVED.add(tardisId);
         model.setChanged();
     }
 
     private static void tickMaterialising(MinecraftServer server, UUID tardisId, TardisDataModel model) {
         TardisLogic.updateDoorState(tardisId);
-        SotoExteriorSyncService.setChanged(tardisId);
+        PortalStreamSyncService.setMetaChanged(tardisId);
         boolean finished = advanceMaterialisingHold(model);
         if (!finished) {
             return;
@@ -395,7 +395,7 @@ public final class TardisTravelService {
             if (!(exteriorWorld.getBlockEntity(pos) instanceof TardisBlockEntity)) {
                 placeShell(exteriorWorld, pos, snapshot);
                 SotoExteriorIndex.register(tardisId, model);
-                SotoExteriorSyncService.setChanged(tardisId);
+                PortalStreamSyncService.setMetaChanged(tardisId);
             }
         }
         model.travelDestinationBiome = null;

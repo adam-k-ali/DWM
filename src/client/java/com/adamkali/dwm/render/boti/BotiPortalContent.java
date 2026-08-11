@@ -4,6 +4,13 @@ import com.adamkali.dwm.render.portal.PortalCameraTransform;
 import com.adamkali.dwm.render.portal.PortalContent;
 import com.adamkali.dwm.render.portal.PortalContentContext;
 import com.adamkali.dwm.render.portal.PortalFeatureFlush;
+import com.adamkali.dwm.render.portal.PortalSceneStore;
+import com.adamkali.dwm.render.soto.SotoExteriorMeshCache;
+import com.adamkali.dwm.render.soto.SotoSkyFogRenderer;
+import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
+import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
+import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix4fStack;
@@ -18,12 +25,12 @@ import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * BOTI portal content: hitch-fixed interior look-in with synced/blueprint console room.
+ * BOTI portal content: hitch-fixed interior look-in with synced ghost terrain (preferred)
+ * or blueprint console room fallback from {@link BotiInteriorMeshCache}.
  */
 public final class BotiPortalContent implements PortalContent {
     private static final int FULLBRIGHT = LightCoordsUtil.pack(15, 15);
-    /** Solid dark backdrop (no exterior sky/fog). */
-    private static final int CLEAR_RGB = 0x203040;
+    private static final int DEFAULT_CLEAR_RGB = 0x203040;
 
     private final UUID tardisId;
 
@@ -33,13 +40,21 @@ public final class BotiPortalContent implements PortalContent {
 
     @Override
     public boolean isReady(Minecraft client) {
-        // Blueprint fallback always supplies geometry; synced snapshot preferred when present.
-        return client != null && client.level != null && client.gameRenderer != null;
+        if (client == null || client.level == null || client.gameRenderer == null) {
+            return false;
+        }
+        PortalSceneStore.requestIfNeeded(PortalStreamKind.BOTI, tardisId);
+        return true;
     }
 
     @Override
     public int clearRgb(Minecraft client) {
-        return CLEAR_RGB;
+        PortalAtmosphere atmosphere = PortalSceneStore.getAtmosphere(PortalStreamKind.BOTI, tardisId);
+        if (atmosphere != null) {
+            SotoAtmosphere soto = SotoAtmosphere.fromPortal(atmosphere);
+            return SotoSkyFogRenderer.portalBackdropRgb(soto);
+        }
+        return DEFAULT_CLEAR_RGB;
     }
 
     @Override
@@ -49,12 +64,86 @@ public final class BotiPortalContent implements PortalContent {
                 TardisBotiRenderer.INTERIOR_DOOR_CENTER_Y,
                 TardisBotiRenderer.INTERIOR_DOOR_PLANE_Z
         );
-        // Look into the console room along +Z (door plane at z=0).
         return PortalCameraTransform.fromLookDirection(eye, Direction.SOUTH, 0.0f);
     }
 
     @Override
     public void renderInto(PortalContentContext context) {
+        if (SotoGhostMeshCache.hasMeshes(PortalStreamKind.BOTI, tardisId)) {
+            renderGhostInto(context);
+        } else {
+            renderBlueprintFallback(context);
+        }
+    }
+
+    private void renderGhostInto(PortalContentContext context) {
+        UUID id = tardisId;
+        float tickDelta = context.tickDelta();
+        PortalCameraTransform.Result hitch = context.hitch();
+        PoseStack sceneMatrices = context.sceneMatrices();
+
+        context.bindTarget();
+        SotoGhostMeshCache.drawLayer(
+                PortalStreamKind.BOTI,
+                id,
+                hitch.viewMatrix(),
+                SotoGhostMeshCache.TerrainPass.OPAQUE
+        );
+        context.bindTarget();
+        SotoGhostMeshCache.drawLayer(
+                PortalStreamKind.BOTI,
+                id,
+                hitch.viewMatrix(),
+                SotoGhostMeshCache.TerrainPass.CUTOUT
+        );
+        context.bindTarget();
+        SotoGhostMeshCache.drawLayer(
+                PortalStreamKind.BOTI,
+                id,
+                hitch.viewMatrix(),
+                SotoGhostMeshCache.TerrainPass.TRANSLUCENT
+        );
+        context.bindTarget();
+        try {
+            PortalFeatureFlush featureFlush = context.featureFlush();
+            if (featureFlush != null) {
+                SubmitNodeStorage submitStorage = context.submitStorage();
+                CameraRenderState cameraState = context.cameraState();
+                Matrix4fStack featureModelView = RenderSystem.getModelViewStack();
+                featureModelView.pushMatrix();
+                try {
+                    context.portalCamera().getViewRotationMatrix(featureModelView);
+                    SotoExteriorMeshCache.renderGhostBlockEntities(
+                            sceneMatrices,
+                            submitStorage,
+                            cameraState,
+                            FULLBRIGHT,
+                            tickDelta,
+                            PortalStreamKind.BOTI,
+                            id,
+                            context.portalCamera()
+                    );
+                    SotoExteriorMeshCache.renderGhostEntities(
+                            sceneMatrices,
+                            submitStorage,
+                            cameraState,
+                            tickDelta,
+                            PortalStreamKind.BOTI,
+                            id,
+                            context.portalCamera()
+                    );
+                    context.bindTarget();
+                    featureFlush.renderAllFeatures(submitStorage);
+                    context.bindTarget();
+                } finally {
+                    featureModelView.popMatrix();
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private void renderBlueprintFallback(PortalContentContext context) {
         PortalFeatureFlush featureFlush = context.featureFlush();
         if (featureFlush == null) {
             return;

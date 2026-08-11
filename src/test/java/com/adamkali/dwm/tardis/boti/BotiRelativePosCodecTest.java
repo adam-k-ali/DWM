@@ -2,7 +2,10 @@ package com.adamkali.dwm.tardis.boti;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.block.DWMBlocks;
-import com.adamkali.dwm.network.SyncBotiInteriorS2CPayload;
+import com.adamkali.dwm.network.SyncPortalChunkS2CPayload;
+import com.adamkali.dwm.network.SyncPortalEntitySpawnS2CPayload;
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
+import com.adamkali.dwm.tardis.portal.PortalStreamSample;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -13,6 +16,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
@@ -43,30 +47,36 @@ class BotiRelativePosCodecTest {
     }
 
     @Test
-    void snapshotPayload_RoundTripsBlockMap() {
+    void portalChunkPayload_RoundTripsBlockMap() {
         UUID tardisId = UUID.randomUUID();
-        Map<BlockPos, BlockState> blocks = Map.of(
-                new BlockPos(0, 0, 0), DWMBlocks.WHITE_TARDIS_WALL.defaultBlockState(),
-                new BlockPos(5, 1, 5), DWMBlocks.TEAL_BIG_ROUNDEL_A.defaultBlockState()
+        BlockPos footprintOrigin = BlockPos.ZERO;
+        BlockPos worldA = new BlockPos(0, 0, 0);
+        BlockPos worldB = new BlockPos(5, 1, 5);
+        PortalStreamSample sample = new PortalStreamSample(
+                0,
+                0,
+                Map.of(
+                        worldA, DWMBlocks.WHITE_TARDIS_WALL.defaultBlockState(),
+                        worldB, DWMBlocks.TEAL_BIG_ROUNDEL_A.defaultBlockState()
+                ),
+                Map.of()
         );
-        BotiInteriorSnapshot snapshot = BotiInteriorSnapshot.of(tardisId, 7, blocks);
-        SyncBotiInteriorS2CPayload payload = SyncBotiInteriorS2CPayload.fromSnapshot(snapshot);
+        SyncPortalChunkS2CPayload payload =
+                SyncPortalChunkS2CPayload.fromSample(PortalStreamKind.BOTI, tardisId, footprintOrigin, sample);
 
-        assertEquals(BotiInteriorSnapshot.FORMAT_VERSION_BLOCKS_BES_AND_ENTITIES, payload.formatVersion());
+        assertEquals(PortalStreamKind.BOTI, payload.kind());
         assertEquals(tardisId, payload.tardisId());
-        assertEquals(7, payload.revision());
         assertEquals(2, payload.blocks().size());
         assertTrue(payload.blockEntities().isEmpty());
-        assertTrue(payload.entities().isEmpty());
 
         Map<BlockPos, BlockState> decoded = payload.toBlockMap();
-        assertEquals(blocks.get(new BlockPos(0, 0, 0)), decoded.get(new BlockPos(0, 0, 0)));
-        assertEquals(blocks.get(new BlockPos(5, 1, 5)), decoded.get(new BlockPos(5, 1, 5)));
+        assertEquals(DWMBlocks.WHITE_TARDIS_WALL.defaultBlockState(), decoded.get(new BlockPos(0, 0, 0)));
+        assertEquals(DWMBlocks.TEAL_BIG_ROUNDEL_A.defaultBlockState(), decoded.get(new BlockPos(5, 1, 5)));
         assertFalse(decoded.containsValue(Blocks.AIR.defaultBlockState()));
     }
 
     @Test
-    void snapshotPayload_RoundTripsBlockEntityNbt() {
+    void portalChunkPayload_RoundTripsBlockEntityNbt() {
         UUID tardisId = UUID.randomUUID();
         BlockPos chestPos = new BlockPos(3, 1, 4);
         BlockState chestState = Blocks.CHEST.defaultBlockState();
@@ -75,10 +85,11 @@ class BotiRelativePosCodecTest {
 
         assertTrue(nbt.contains("id"));
 
-        Map<BlockPos, BlockState> blocks = Map.of(chestPos, chestState);
-        Map<BlockPos, CompoundTag> blockEntities = Map.of(chestPos, nbt);
-        BotiInteriorSnapshot snapshot = BotiInteriorSnapshot.of(tardisId, 2, blocks, blockEntities);
-        SyncBotiInteriorS2CPayload payload = SyncBotiInteriorS2CPayload.fromSnapshot(snapshot);
+        PortalStreamSample sample = new PortalStreamSample(
+                0, 0, Map.of(chestPos, chestState), Map.of(chestPos, nbt)
+        );
+        SyncPortalChunkS2CPayload payload =
+                SyncPortalChunkS2CPayload.fromSample(PortalStreamKind.SOTO, tardisId, BlockPos.ZERO, sample);
 
         assertEquals(1, payload.blockEntities().size());
         Map<BlockPos, CompoundTag> decoded = payload.toBlockEntityMap();
@@ -99,38 +110,39 @@ class BotiRelativePosCodecTest {
     }
 
     @Test
-    void snapshotPayload_RoundTripsEntitySamples() {
+    void portalEntitySpawn_RetainsPoseAndNbt() {
         UUID tardisId = UUID.randomUUID();
-        Map<BlockPos, BlockState> blocks = Map.of(
-                new BlockPos(0, 0, 0), DWMBlocks.WHITE_TARDIS_WALL.defaultBlockState()
-        );
+        UUID entityId = UUID.randomUUID();
         CompoundTag entityNbt = new CompoundTag();
         entityNbt.putString("id", "minecraft:armor_stand");
-        entityNbt.store(BotiEntitySample.BOTI_PROFILE_ID, UUIDUtil.CODEC, UUID.randomUUID()); // ignored for non-players
+        entityNbt.store(BotiEntitySample.BOTI_PROFILE_ID, UUIDUtil.CODEC, UUID.randomUUID());
         BotiInteriorSampler.writeRelativePos(entityNbt, 5.5f, 1.0f, 2.25f);
 
-        BotiEntitySample sample = new BotiEntitySample(5.5f, 1.0f, 2.25f, 90f, 10f, entityNbt);
-        BotiInteriorSnapshot snapshot = BotiInteriorSnapshot.of(
+        SyncPortalEntitySpawnS2CPayload spawn = new SyncPortalEntitySpawnS2CPayload(
+                PortalStreamKind.BOTI,
                 tardisId,
-                3,
-                blocks,
-                Map.of(),
-                java.util.List.of(sample)
+                entityId,
+                Identifier.fromNamespaceAndPath("minecraft", "armor_stand"),
+                5.5f,
+                1.0f,
+                2.25f,
+                90f,
+                10f,
+                90f,
+                90f,
+                0.0,
+                0.0,
+                0.0,
+                entityNbt
         );
-        SyncBotiInteriorS2CPayload payload = SyncBotiInteriorS2CPayload.fromSnapshot(snapshot);
 
-        assertEquals(BotiInteriorSnapshot.FORMAT_VERSION_BLOCKS_BES_AND_ENTITIES, payload.formatVersion());
-        assertEquals(1, payload.entities().size());
-
-        java.util.List<BotiEntitySample> decoded = payload.toEntityList();
-        assertEquals(1, decoded.size());
-        BotiEntitySample roundTrip = decoded.getFirst();
-        assertEquals(5.5f, roundTrip.relX(), 0.0001f);
-        assertEquals(1.0f, roundTrip.relY(), 0.0001f);
-        assertEquals(2.25f, roundTrip.relZ(), 0.0001f);
-        assertEquals(90f, roundTrip.yaw(), 0.0001f);
-        assertEquals(10f, roundTrip.pitch(), 0.0001f);
-        assertEquals("minecraft:armor_stand", roundTrip.nbt().getString("id").orElseThrow());
+        assertEquals(PortalStreamKind.BOTI, spawn.kind());
+        assertEquals(5.5f, spawn.relX(), 0.0001f);
+        assertEquals(1.0f, spawn.relY(), 0.0001f);
+        assertEquals(2.25f, spawn.relZ(), 0.0001f);
+        assertEquals(90f, spawn.yaw(), 0.0001f);
+        assertEquals(10f, spawn.pitch(), 0.0001f);
+        assertEquals("minecraft:armor_stand", spawn.nbt().getString("id").orElseThrow());
     }
 
     @Test

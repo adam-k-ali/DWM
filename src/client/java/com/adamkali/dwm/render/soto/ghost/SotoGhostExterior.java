@@ -1,20 +1,21 @@
 package com.adamkali.dwm.render.soto.ghost;
 
-import com.adamkali.dwm.network.RequestSotoGhostC2SPayload;
-import com.adamkali.dwm.network.SyncSotoExteriorChunkS2CPayload;
-import com.adamkali.dwm.network.SyncSotoExteriorEntitySpawnS2CPayload;
-import com.adamkali.dwm.network.SyncSotoExteriorEntityUpdateS2CPayload;
+import com.adamkali.dwm.network.SyncPortalChunkS2CPayload;
+import com.adamkali.dwm.network.SyncPortalEntitySpawnS2CPayload;
+import com.adamkali.dwm.network.SyncPortalEntityUpdateS2CPayload;
 import com.adamkali.dwm.render.boti.BotiEntityMotion;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.EntityInterpState;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.LerpedPose;
+import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.mojang.authlib.GameProfile;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.RemotePlayer;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
@@ -25,7 +26,6 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntitySpawnRequest;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.world.level.CardinalLighting;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ColorResolver;
@@ -38,36 +38,32 @@ import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.ValueInput;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Per-TARDIS Phase 1 ghost exterior: streamed chunks + live entities in footprint-relative space.
+ * Per-TARDIS ghost exterior: streamed chunks + live entities in footprint-relative space.
  * Entity poses are packet-interpolated (no client velocity integration) to avoid snap/jitter.
+ * Keyed by (PortalStreamKind, UUID) so BOTI and SOTO share the same store.
  */
 public final class SotoGhostExterior implements BlockAndTintGetter {
     private static final String PLAYER_ENTITY_ID = "minecraft:player";
-    private static final long REQUEST_COOLDOWN_MS = 2000L;
     /** Matches server ghost entity update cadence (every 2 ticks @ 20 TPS). */
     public static final long ENTITY_UPDATE_INTERVAL_MS = 100L;
     private static final int BOTTOM_Y = -64;
     private static final int HEIGHT = 384;
-    /**
-     * Client {@link Level#getNextEntityId()} always returns 0; extract/submit needs a non-zero id
-     * ({@code ItemModelResolver} etc.). Ghost entities are never added to the world.
-     */
     private static final AtomicInteger NEXT_GHOST_ENTITY_ID = new AtomicInteger(1_000_000);
 
-    private static final Map<UUID, SotoGhostExterior> BY_TARDIS = new ConcurrentHashMap<>();
-    private static final Map<UUID, Long> LAST_REQUEST_MS = new ConcurrentHashMap<>();
+    private static final Map<PortalSceneStore.SceneKey, SotoGhostExterior> BY_KEY = new ConcurrentHashMap<>();
 
+    private final PortalStreamKind kind;
     private final UUID tardisId;
     private BlockPos footprintOrigin = BlockPos.ZERO;
     private final Map<Long, Map<BlockPos, BlockState>> chunkBlocks = new ConcurrentHashMap<>();
@@ -76,34 +72,36 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
     private final Map<BlockPos, CompoundTag> blockEntitiesByRel = new ConcurrentHashMap<>();
     private final Map<UUID, GhostEntity> entities = new ConcurrentHashMap<>();
 
-    private SotoGhostExterior(UUID tardisId) {
+    private SotoGhostExterior(PortalStreamKind kind, UUID tardisId) {
+        this.kind = kind;
         this.tardisId = tardisId;
     }
 
-    public static SotoGhostExterior get(UUID tardisId) {
-        if (tardisId == null) {
+    public static SotoGhostExterior get(PortalStreamKind kind, UUID tardisId) {
+        if (kind == null || tardisId == null) {
             return null;
         }
-        return BY_TARDIS.get(tardisId);
+        return BY_KEY.get(new PortalSceneStore.SceneKey(kind, tardisId));
     }
 
-    public static SotoGhostExterior getOrCreate(UUID tardisId) {
-        if (tardisId == null) {
+    public static SotoGhostExterior getOrCreate(PortalStreamKind kind, UUID tardisId) {
+        if (kind == null || tardisId == null) {
             return null;
         }
-        return BY_TARDIS.computeIfAbsent(tardisId, SotoGhostExterior::new);
+        PortalSceneStore.SceneKey key = new PortalSceneStore.SceneKey(kind, tardisId);
+        return BY_KEY.computeIfAbsent(key, k -> new SotoGhostExterior(k.kind(), k.tardisId()));
     }
 
-    public static boolean hasEntities(UUID tardisId) {
-        SotoGhostExterior ghost = get(tardisId);
+    public static boolean hasEntities(PortalStreamKind kind, UUID tardisId) {
+        SotoGhostExterior ghost = get(kind, tardisId);
         return ghost != null && !ghost.entities.isEmpty();
     }
 
     /**
-     * Entities with packet-lerped poses for smooth SOTO rendering.
+     * Entities with packet-lerped poses for smooth portal rendering.
      */
-    public static List<RenderableGhostEntity> getRenderableEntities(UUID tardisId) {
-        SotoGhostExterior ghost = get(tardisId);
+    public static List<RenderableGhostEntity> getRenderableEntities(PortalStreamKind kind, UUID tardisId) {
+        SotoGhostExterior ghost = get(kind, tardisId);
         if (ghost == null || ghost.entities.isEmpty()) {
             return List.of();
         }
@@ -119,48 +117,31 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         return List.copyOf(result);
     }
 
-    public static void requestIfNeeded(UUID tardisId) {
-        if (tardisId == null) {
+    public static void invalidate(PortalStreamKind kind, UUID tardisId) {
+        if (kind == null || tardisId == null) {
             return;
         }
-        long now = System.currentTimeMillis();
-        Long last = LAST_REQUEST_MS.get(tardisId);
-        if (last != null && now - last < REQUEST_COOLDOWN_MS) {
-            return;
-        }
-        Minecraft client = Minecraft.getInstance();
-        if (client == null || client.getConnection() == null) {
-            return;
-        }
-        LAST_REQUEST_MS.put(tardisId, now);
-        ClientPlayNetworking.send(new RequestSotoGhostC2SPayload(tardisId));
-    }
-
-    public static void invalidate(UUID tardisId) {
-        if (tardisId != null) {
-            BY_TARDIS.remove(tardisId);
-            LAST_REQUEST_MS.remove(tardisId);
-            SotoGhostMeshCache.invalidate(tardisId);
-        }
+        PortalSceneStore.SceneKey key = new PortalSceneStore.SceneKey(kind, tardisId);
+        BY_KEY.remove(key);
+        SotoGhostMeshCache.invalidate(kind, tardisId);
     }
 
     public static void invalidateAll() {
-        BY_TARDIS.clear();
-        LAST_REQUEST_MS.clear();
+        BY_KEY.clear();
         SotoGhostMeshCache.invalidateAll();
     }
 
     public static void clientTick() {
-        for (SotoGhostExterior ghost : BY_TARDIS.values()) {
+        for (SotoGhostExterior ghost : BY_KEY.values()) {
             ghost.tickEntities();
         }
     }
 
-    public static void applyChunk(SyncSotoExteriorChunkS2CPayload payload) {
+    public static void applyChunk(PortalStreamKind kind, SyncPortalChunkS2CPayload payload) {
         if (payload == null || payload.tardisId() == null) {
             return;
         }
-        SotoGhostExterior ghost = getOrCreate(payload.tardisId());
+        SotoGhostExterior ghost = getOrCreate(kind, payload.tardisId());
         ghost.footprintOrigin = payload.footprintOrigin();
         long key = ChunkPos.pack(payload.chunkX(), payload.chunkZ());
         Map<BlockPos, BlockState> previousBlocks = ghost.chunkBlocks.put(key, new HashMap<>(payload.toBlockMap()));
@@ -177,11 +158,11 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         }
         ghost.blocksByRel.putAll(payload.toBlockMap());
         ghost.blockEntitiesByRel.putAll(payload.toBlockEntityMap());
-        SotoGhostMeshCache.onChunkApplied(payload.tardisId(), payload.chunkX(), payload.chunkZ(), ghost);
+        SotoGhostMeshCache.onChunkApplied(kind, payload.tardisId(), payload.chunkX(), payload.chunkZ(), ghost);
     }
 
-    public static void unloadChunk(UUID tardisId, int chunkX, int chunkZ) {
-        SotoGhostExterior ghost = get(tardisId);
+    public static void unloadChunk(PortalStreamKind kind, UUID tardisId, int chunkX, int chunkZ) {
+        SotoGhostExterior ghost = get(kind, tardisId);
         if (ghost == null) {
             return;
         }
@@ -198,14 +179,14 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
                 ghost.blockEntitiesByRel.remove(pos);
             }
         }
-        SotoGhostMeshCache.onChunkUnloaded(tardisId, chunkX, chunkZ);
+        SotoGhostMeshCache.onChunkUnloaded(kind, tardisId, chunkX, chunkZ);
     }
 
-    public static void applyEntitySpawn(SyncSotoExteriorEntitySpawnS2CPayload payload) {
+    public static void applyEntitySpawn(PortalStreamKind kind, SyncPortalEntitySpawnS2CPayload payload) {
         if (payload == null || payload.tardisId() == null || payload.entityUuid() == null) {
             return;
         }
-        SotoGhostExterior ghost = getOrCreate(payload.tardisId());
+        SotoGhostExterior ghost = getOrCreate(kind, payload.tardisId());
         Entity entity = ghost.createEntity(payload);
         if (entity == null) {
             return;
@@ -227,11 +208,11 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         ghost.entities.put(payload.entityUuid(), new GhostEntity(entity, interp));
     }
 
-    public static void applyEntityUpdate(SyncSotoExteriorEntityUpdateS2CPayload payload) {
+    public static void applyEntityUpdate(PortalStreamKind kind, SyncPortalEntityUpdateS2CPayload payload) {
         if (payload == null || payload.tardisId() == null || payload.entityUuid() == null) {
             return;
         }
-        SotoGhostExterior ghost = get(payload.tardisId());
+        SotoGhostExterior ghost = get(kind, payload.tardisId());
         if (ghost == null) {
             return;
         }
@@ -251,7 +232,6 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
             float speed = BotiEntityMotion.limbSpeed(next.fromX(), next.fromZ(), next.toX(), next.toZ());
             living.walkAnimation.update(speed, 0.4f, living.isBaby() ? 3.0f : 1.0f);
         }
-        // Keep entity at the latest sample target; render uses interp between samples.
         ghost.snapEntityPose(
                 entity,
                 payload.relX(),
@@ -265,12 +245,16 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         ghost.entities.put(payload.entityUuid(), new GhostEntity(entity, next));
     }
 
-    public static void removeEntity(UUID tardisId, UUID entityUuid) {
-        SotoGhostExterior ghost = get(tardisId);
+    public static void removeEntity(PortalStreamKind kind, UUID tardisId, UUID entityUuid) {
+        SotoGhostExterior ghost = get(kind, tardisId);
         if (ghost == null || entityUuid == null) {
             return;
         }
         ghost.entities.remove(entityUuid);
+    }
+
+    public PortalStreamKind kind() {
+        return kind;
     }
 
     public UUID tardisId() {
@@ -349,7 +333,7 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         }
     }
 
-    private Entity createEntity(SyncSotoExteriorEntitySpawnS2CPayload payload) {
+    private Entity createEntity(SyncPortalEntitySpawnS2CPayload payload) {
         Minecraft client = Minecraft.getInstance();
         if (client == null || !(client.level instanceof ClientLevel clientWorld)) {
             return null;
@@ -386,7 +370,6 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
                 }
             }
             entity.setUUID(payload.entityUuid());
-            // Client Level.getNextEntityId() is always 0; LivingEntity extract requires a real id.
             entity.setId(NEXT_GHOST_ENTITY_ID.getAndIncrement());
             return entity;
         } catch (RuntimeException ignored) {

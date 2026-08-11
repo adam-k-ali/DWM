@@ -3,6 +3,8 @@ package com.adamkali.dwm.tardis.boti;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
+import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
+import com.adamkali.dwm.tardis.portal.PortalStreamSample;
 import com.mojang.authlib.GameProfile;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,9 +18,12 @@ import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.TicketType;
 import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
@@ -28,6 +33,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.phys.AABB;
 
@@ -301,5 +307,83 @@ public final class BotiInteriorSampler {
         return localX >= 0 && localX < SIZE_X
                 && localY >= 0 && localY < SIZE_Y
                 && localZ >= 0 && localZ < SIZE_Z;
+    }
+
+    /** Samples interior sky/fog atmosphere at the plot origin. */
+    public static PortalAtmosphere sampleAtmosphere(ServerLevel interiorWorld, BlockPos plotOrigin) {
+        if (interiorWorld == null || plotOrigin == null) {
+            return PortalAtmosphere.DEFAULT;
+        }
+        Identifier effectsId = interiorWorld.dimensionTypeRegistration()
+                .unwrapKey()
+                .map(ResourceKey::identifier)
+                .orElseGet(BuiltinDimensionTypes.OVERWORLD::identifier);
+        long timeOfDay = interiorWorld.getOverworldClockTime();
+        float rain = interiorWorld.getRainLevel(0.0f);
+        float thunder = interiorWorld.getThunderLevel(0.0f);
+        var attrs = interiorWorld.environmentAttributes();
+        return new PortalAtmosphere(
+                effectsId,
+                timeOfDay,
+                rain,
+                thunder,
+                attrs.getValue(EnvironmentAttributes.SKY_COLOR, plotOrigin),
+                attrs.getValue(EnvironmentAttributes.FOG_COLOR, plotOrigin)
+        );
+    }
+
+    /**
+     * Collects visible block states (+ BE NBT) for one chunk column clipped to the footprint.
+     * Positions in the returned maps are world-absolute.
+     */
+    public static PortalStreamSample sampleStreamChunk(
+            ServerLevel interiorWorld,
+            UUID tardisId,
+            int chunkX,
+            int chunkZ
+    ) {
+        if (interiorWorld == null || tardisId == null) {
+            return new PortalStreamSample(chunkX, chunkZ, Map.of(), Map.of());
+        }
+        BlockPos plotOrigin = TardisPlotAllocator.plotOrigin(tardisId);
+        interiorWorld.getChunk(chunkX, chunkZ);
+        Map<BlockPos, BlockState> blocks = new HashMap<>();
+        Map<BlockPos, CompoundTag> blockEntities = new HashMap<>();
+        HolderLookup.Provider registries = interiorWorld.registryAccess();
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+        int baseX = chunkX << 4;
+        int baseZ = chunkZ << 4;
+        int minY = plotOrigin.getY();
+        int maxY = plotOrigin.getY() + SIZE_Y - 1;
+        for (int lx = 0; lx < 16; lx++) {
+            for (int lz = 0; lz < 16; lz++) {
+                for (int y = minY; y <= maxY; y++) {
+                    mutable.set(baseX + lx, y, baseZ + lz);
+                    if (!isInsideFootprint(mutable, plotOrigin)) {
+                        continue;
+                    }
+                    BlockState state = interiorWorld.getBlockState(mutable);
+                    if (!isBotiVisible(state)) {
+                        continue;
+                    }
+                    BlockPos immutable = mutable.immutable();
+                    blocks.put(immutable, state);
+                    BlockEntity blockEntity = interiorWorld.getBlockEntity(mutable);
+                    if (blockEntity != null) {
+                        blockEntities.put(immutable, captureSyncNbt(blockEntity, registries));
+                    }
+                }
+            }
+        }
+        return new PortalStreamSample(chunkX, chunkZ, Map.copyOf(blocks), Map.copyOf(blockEntities));
+    }
+
+    public static List<Entity> collectStreamEntities(ServerLevel interiorWorld, UUID tardisId) {
+        if (interiorWorld == null || tardisId == null) {
+            return List.of();
+        }
+        BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
+        ensureFootprintChunksLoaded(interiorWorld, origin);
+        return List.copyOf(interiorWorld.getEntities((Entity) null, footprintBox(origin), entity -> !entity.isRemoved()));
     }
 }
