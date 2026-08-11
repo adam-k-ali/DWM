@@ -4,6 +4,7 @@ import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.network.OpenPlayerLocatorScreen;
 import com.adamkali.dwm.network.OpenWaypointScreen;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
+import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.data.model.TardisWaypoint;
@@ -164,6 +165,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
 
         return switch (panel6) {
             case LEVER -> handleMaterialisationLever(world, pos, player, serverWorld, tardisId);
+            case CHAMELEON -> handleChameleonCircuit(world, pos, player, serverWorld, console, tardisId);
         };
     }
 
@@ -178,6 +180,9 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
                 case PLAYER -> "dwm.console.player_locator_unavailable";
                 case BIOME -> "dwm.console.biome_unavailable";
             };
+        }
+        if (panel6 == FirstDoctorConsoleControls.Panel6Control.CHAMELEON) {
+            return "dwm.console.chameleon_unavailable";
         }
         return "dwm.console.travel_unavailable";
     }
@@ -308,6 +313,28 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         List<PlayerLocatorLogic.PlayerEntry> players =
                 PlayerLocatorLogic.listOnlineExcluding(serverWorld.getServer(), player.getUUID());
         ServerPlayNetworking.send(player, OpenPlayerLocatorScreen.of(tardisId, players));
+        playClick(world, pos);
+        return InteractionResult.SUCCESS;
+    }
+
+    private static InteractionResult handleChameleonCircuit(
+            Level world,
+            BlockPos pos,
+            Player player,
+            ServerLevel serverWorld,
+            FirstDoctorConsoleBlockEntity console,
+            UUID tardisId
+    ) {
+        Optional<TardisChameleonVariant> next =
+                TardisLogic.cycleVariant(tardisId, serverWorld.getServer());
+        if (next.isEmpty()) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.chameleon_unavailable"));
+            return InteractionResult.CONSUME;
+        }
+        // cycleVariant already syncs via FirstDoctorConsoleSync; keep local BE fresh for same-tick hologram.
+        console.setSyncedVariant(next.get());
+        Component variantName = Component.translatable(next.get().getId().toLanguageKey());
+        player.sendOverlayMessage(Component.translatable("dwm.console.chameleon_selected", variantName));
         playClick(world, pos);
         return InteractionResult.SUCCESS;
     }

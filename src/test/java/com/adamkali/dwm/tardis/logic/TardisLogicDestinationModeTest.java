@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,6 +28,37 @@ class TardisLogicDestinationModeTest {
         model.uuid = tardisId;
         model.variant = TardisChameleonVariant.TT_CAPSULE;
         model.setExteriorLocation("minecraft:overworld", 0, 70, 0, 0);
+    }
+
+    @Test
+    void cycleVariant_wrapsFromLastToFirst() {
+        try (MockedStatic<TardisDataLoader> loader = Mockito.mockStatic(TardisDataLoader.class);
+             MockedStatic<FirstDoctorConsoleSync> sync = Mockito.mockStatic(FirstDoctorConsoleSync.class)) {
+            loader.when(() -> TardisDataLoader.get(tardisId)).thenReturn(model);
+            TardisChameleonVariant[] values = TardisChameleonVariant.values();
+            model.variant = values[values.length - 1];
+
+            Optional<TardisChameleonVariant> next = TardisLogic.cycleVariant(tardisId, null);
+
+            assertTrue(next.isPresent());
+            assertEquals(values[0], next.get());
+            assertEquals(values[0], model.variant);
+            sync.verify(() -> FirstDoctorConsoleSync.syncVariant(null, tardisId, values[0]));
+        }
+    }
+
+    @Test
+    void cycleVariant_advancesOrdinal() {
+        try (MockedStatic<TardisDataLoader> loader = Mockito.mockStatic(TardisDataLoader.class);
+             MockedStatic<FirstDoctorConsoleSync> sync = Mockito.mockStatic(FirstDoctorConsoleSync.class)) {
+            loader.when(() -> TardisDataLoader.get(tardisId)).thenReturn(model);
+            model.variant = TardisChameleonVariant.TT_CAPSULE;
+
+            Optional<TardisChameleonVariant> next = TardisLogic.cycleVariant(tardisId, null);
+
+            assertEquals(Optional.of(TardisChameleonVariant.FIRST_DOCTOR_BOX), next);
+            assertEquals(TardisChameleonVariant.FIRST_DOCTOR_BOX, model.variant);
+        }
     }
 
     @Test

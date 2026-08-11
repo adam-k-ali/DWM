@@ -205,6 +205,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.planet_locator", "Planet locator");
         t.add("dwm.console.dimension_selected", "Dimension: %s");
         t.add("dwm.console.dimension_unavailable", "No dimensions available");
+        t.add("dwm.console.chameleon_circuit", "Chameleon circuit");
         t.add("dwm.console.materialisation_lever", "Materialisation lever");
         t.add("dwm.console.materialisation_lever_pulled", "Materialisation lever engaged");
         t.add("dwm.console.travel_dematerialising", "Dematerialising...");
@@ -224,6 +225,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.player_locator_selected", "Player set as destination");
         t.add("dwm.console.player_locator_select_failed", "Unable to select player");
         t.add("dwm.console.player_locator_offline", "That player is no longer online");
+        t.add("dwm.console.chameleon_unavailable", "Chameleon circuit unavailable");
+        t.add("dwm.console.chameleon_selected", "Chameleon: %s");
         t.add("dwm.gui.waypoint.title", "Waypoint Selector");
         t.add("dwm.gui.waypoint.save", "Save");
         t.add("dwm.gui.waypoint.select", "Select");

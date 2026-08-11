@@ -24,6 +24,7 @@ import net.minecraft.world.phys.AABB;
  *   <li>Yellow — waypoint selector</li>
  *   <li>Sky — player locator</li>
  *   <li>Magenta — planet locator</li>
+ *   <li>White — chameleon circuit</li>
  *   <li>Orange — materialisation lever</li>
  * </ul>
  */
@@ -33,6 +34,7 @@ public final class ConsoleHitboxDebugRenderer {
     private static final int WAYPOINT_COLOR = 0xFFFFFF33;
     private static final int PLAYER_COLOR = 0xFF33FFFF;
     private static final int PLANET_COLOR = 0xFFFF33FF;
+    private static final int CHAMELEON_COLOR = 0xFFFFFFFF;
     private static final int LEVER_COLOR = 0xFFFF8C1A;
     private static final int RANGE = 16;
 
@@ -90,6 +92,10 @@ public final class ConsoleHitboxDebugRenderer {
                         Gizmos.cuboid(
                                 FirstDoctorConsoleControls.planetLocatorWorldBox(mutable, facing),
                                 GizmoStyle.stroke(PLANET_COLOR)
+                        );
+                        Gizmos.cuboid(
+                                FirstDoctorConsoleControls.chameleonCircuitWorldBox(mutable, facing),
+                                GizmoStyle.stroke(CHAMELEON_COLOR)
                         );
                         Gizmos.cuboid(
                                 FirstDoctorConsoleControls.materialisationLeverWorldBox(mutable, facing),

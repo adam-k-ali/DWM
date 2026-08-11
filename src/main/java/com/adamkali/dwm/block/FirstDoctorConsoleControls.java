@@ -43,7 +43,8 @@ public final class FirstDoctorConsoleControls {
     public static final float PLAYER_LOCATOR_MOUNT_X_PX = 1.25F;
     public static final float PLANET_LOCATOR_MOUNT_X_PX = 3.75F;
 
-    /** Panel6 lever stays centered on the deck. */
+    /** Panel6: chameleon left of center; lever stays centered. */
+    public static final float CHAMELEON_CIRCUIT_MOUNT_X_PX = -4.0F;
     public static final float LEVER_MOUNT_X_PX = CONTROL_MOUNT_X_PX;
 
     /** Uniform scale — the raw 14px dial is oversized for the Panel3 deck. */
@@ -80,8 +81,9 @@ public final class FirstDoctorConsoleControls {
         PLANET
     }
 
-    /** Panel6 controls resolved by look-ray. */
+    /** Panel6 controls resolved by look-ray (prefer closest on overlap). */
     public enum Panel6Control {
+        CHAMELEON,
         LEVER
     }
 
@@ -94,6 +96,7 @@ public final class FirstDoctorConsoleControls {
         WAYPOINT_SELECTOR,
         PLAYER_LOCATOR,
         PLANET_LOCATOR,
+        CHAMELEON_CIRCUIT,
         MATERIALISATION_LEVER
     }
 
@@ -209,6 +212,28 @@ public final class FirstDoctorConsoleControls {
         return lookHitsBox(planetLocatorWorldBox(pos, facing), eyePos, lookDir, reach);
     }
 
+    public static AABB chameleonCircuitBox(Direction facing) {
+        return controlBox(facing, PANEL6_YAW_RAD, SELECTOR_SCALE, CHAMELEON_CIRCUIT_MOUNT_X_PX,
+                SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
+    }
+
+    public static AABB chameleonCircuitWorldBox(BlockPos pos, Direction facing) {
+        return chameleonCircuitBox(facing).move(pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    public static boolean isChameleonCircuitLookHit(Direction facing, BlockPos pos, Player player) {
+        return isChameleonCircuitLookHit(facing, pos, player.getEyePosition(), player.getViewVector(1.0F), REACH);
+    }
+
+    public static boolean isChameleonCircuitLookHit(
+            Direction facing,
+            BlockPos pos,
+            Vec3 eyePos,
+            Vec3 lookDir,
+            double reach
+    ) {
+        return lookHitsBox(chameleonCircuitWorldBox(pos, facing), eyePos, lookDir, reach);
+    }
 
     public static AABB materialisationLeverBox(Direction facing) {
         return controlBox(facing, PANEL6_YAW_RAD, LEVER_SCALE, LEVER_MOUNT_X_PX,
@@ -272,8 +297,8 @@ public final class FirstDoctorConsoleControls {
     }
 
     /**
-     * Returns {@link Panel6Control#LEVER} when the look ray hits the materialisation lever.
-     * Returns {@code null} when it does not.
+     * When chameleon and lever rays both hit, returns the closer control.
+     * Returns {@code null} when neither is hit.
      */
     public static @Nullable Panel6Control resolvePanel6LookHit(
             Direction facing,
@@ -282,10 +307,25 @@ public final class FirstDoctorConsoleControls {
             Vec3 lookDir,
             double reach
     ) {
-        if (lookHitsBox(materialisationLeverWorldBox(pos, facing), eyePos, lookDir, reach)) {
+        AABB chameleonBox = chameleonCircuitWorldBox(pos, facing);
+        AABB leverBox = materialisationLeverWorldBox(pos, facing);
+        double chameleonDist = lookHitDistance(chameleonBox, eyePos, lookDir, reach);
+        double leverDist = lookHitDistance(leverBox, eyePos, lookDir, reach);
+        if (chameleonDist < 0.0 && leverDist < 0.0) {
+            return null;
+        }
+        if (chameleonDist < 0.0) {
             return Panel6Control.LEVER;
         }
-        return null;
+        if (leverDist < 0.0) {
+            return Panel6Control.CHAMELEON;
+        }
+        double chameleonHoriz = horizontalDistanceSq(eyePos, chameleonBox.getCenter());
+        double leverHoriz = horizontalDistanceSq(eyePos, leverBox.getCenter());
+        if (chameleonDist < leverDist || (chameleonDist == leverDist && chameleonHoriz <= leverHoriz)) {
+            return Panel6Control.CHAMELEON;
+        }
+        return Panel6Control.LEVER;
     }
 
     public static @Nullable Panel6Control resolvePanel6LookHit(Direction facing, BlockPos pos, Player player) {
@@ -335,6 +375,7 @@ public final class FirstDoctorConsoleControls {
             case WAYPOINT_SELECTOR -> waypointSelectorWorldBox(pos, facing);
             case PLAYER_LOCATOR -> playerLocatorWorldBox(pos, facing);
             case PLANET_LOCATOR -> planetLocatorWorldBox(pos, facing);
+            case CHAMELEON_CIRCUIT -> chameleonCircuitWorldBox(pos, facing);
             case MATERIALISATION_LEVER -> materialisationLeverWorldBox(pos, facing);
             case NONE -> new AABB(0, 0, 0, 0, 0, 0);
         };
