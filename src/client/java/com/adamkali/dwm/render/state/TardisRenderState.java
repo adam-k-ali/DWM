@@ -1,7 +1,7 @@
 package com.adamkali.dwm.render.state;
 
-import net.minecraft.client.render.entity.state.EntityRenderState;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.util.Mth;
 
 public class TardisRenderState extends EntityRenderState {
     private float doorSwingProgress;
@@ -14,7 +14,7 @@ public class TardisRenderState extends EntityRenderState {
     }
 
     public void setDoorSwingProgress(float doorSwingProgress) {
-        this.doorSwingProgress = MathHelper.clamp(doorSwingProgress, 0.0f, 1.0f);
+        this.doorSwingProgress = Mth.clamp(doorSwingProgress, 0.0f, 1.0f);
     }
 
     public float getDoorSwingProgress() {

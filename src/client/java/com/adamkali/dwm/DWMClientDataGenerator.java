@@ -15,21 +15,20 @@ import com.adamkali.dwm.world.DWMConfiguredFeatureBootstrap;
 import com.adamkali.dwm.world.DWMPlacedFeatureBootstrap;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider;
-import net.minecraft.advancement.Advancement;
-import net.minecraft.advancement.AdvancementEntry;
-import net.minecraft.advancement.AdvancementFrame;
-import net.minecraft.advancement.criterion.InventoryChangedCriterion;
-import net.minecraft.item.Item;
-import net.minecraft.predicate.item.ItemPredicate;
-import net.minecraft.registry.RegistryBuilder;
-import net.minecraft.registry.RegistryEntryLookup;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.AdvancementType;
+import net.minecraft.advancements.triggers.InventoryChangeTrigger;
+import net.minecraft.advancements.predicates.ItemPredicate;
+import net.minecraft.core.HolderGetter;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistrySetBuilder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -53,34 +52,34 @@ public class DWMClientDataGenerator implements DataGeneratorEntrypoint {
     }
 
     @Override
-    public void buildRegistry(RegistryBuilder registryBuilder) {
-        registryBuilder.addRegistry(RegistryKeys.CONFIGURED_FEATURE, DWMConfiguredFeatureBootstrap::bootstrap);
-        registryBuilder.addRegistry(RegistryKeys.PLACED_FEATURE, DWMPlacedFeatureBootstrap::bootstrap);
-        registryBuilder.addRegistry(RegistryKeys.BIOME, DWMBiomeBootstrap::bootstrap);
-        registryBuilder.addRegistry(RegistryKeys.CHUNK_GENERATOR_SETTINGS, DWMChunkGeneratorSettingsBootstrap::bootstrap);
+    public void buildRegistry(RegistrySetBuilder registryBuilder) {
+        registryBuilder.add(Registries.CONFIGURED_FEATURE, DWMConfiguredFeatureBootstrap::bootstrap);
+        registryBuilder.add(Registries.PLACED_FEATURE, DWMPlacedFeatureBootstrap::bootstrap);
+        registryBuilder.add(Registries.BIOME, DWMBiomeBootstrap::bootstrap);
+        registryBuilder.add(Registries.NOISE_SETTINGS, DWMChunkGeneratorSettingsBootstrap::bootstrap);
     }
 
     static class AdvancementsProvider extends FabricAdvancementProvider {
-        protected AdvancementsProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registryLookup) {
+        protected AdvancementsProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registryLookup) {
             super(output, registryLookup);
         }
 
         @Override
-        public void generateAdvancement(RegistryWrapper.WrapperLookup registries, Consumer<AdvancementEntry> consumer) {
-            RegistryEntryLookup<Item> registryEntryLookup = registries.getOrThrow(RegistryKeys.ITEM);
-            Advancement.Builder.create()
+        public void generateAdvancement(HolderLookup.Provider registries, Consumer<AdvancementHolder> consumer) {
+            HolderGetter<Item> registryEntryLookup = registries.lookupOrThrow(Registries.ITEM);
+            Advancement.Builder.advancement()
                     .display(
                             DWMItems.SONIC_THIRD_DOCTOR,
-                            Text.translatable("advancements.dwm.sonic_screwdriver"),
-                            Text.translatable("advancements.dwm.sonic_screwdriver.description"),
-                            Identifier.of("textures/gui/advancements/backgrounds/adventure.png"),
-                            AdvancementFrame.TASK,
+                            Component.translatable("advancements.dwm.sonic_screwdriver"),
+                            Component.translatable("advancements.dwm.sonic_screwdriver.description"),
+                            Identifier.parse("textures/gui/advancements/backgrounds/adventure.png"),
+                            AdvancementType.TASK,
                             true,
                             true,
                             false
                     )
-                    .criterion("sonic_screwdriver", InventoryChangedCriterion.Conditions.items(ItemPredicate.Builder.create().tag(registryEntryLookup, DWMItemTags.SONIC_SCREWDRIVERS)))
-                    .build(consumer, DWMReference.MOD_ID + "/sonic_screwdriver");
+                    .addCriterion("sonic_screwdriver", InventoryChangeTrigger.TriggerInstance.hasItems(ItemPredicate.Builder.item().of(registryEntryLookup, DWMItemTags.SONIC_SCREWDRIVERS)))
+                    .save(consumer, DWMReference.MOD_ID + "/sonic_screwdriver");
         }
     }
 }

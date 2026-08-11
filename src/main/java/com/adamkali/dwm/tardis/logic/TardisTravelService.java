@@ -9,19 +9,19 @@ import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.soto.SotoExteriorIndex;
-import com.adamkali.dwm.tardis.soto.SotoExteriorSyncService;
+import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -55,53 +55,53 @@ public final class TardisTravelService {
     /**
      * Begins travel for {@code tardisId} toward its selected destination dimension and biome.
      *
-     * @return {@link ActionResult#SUCCESS} when travel started,
-     * {@link ActionResult#FAIL} when preconditions fail,
-     * {@link ActionResult#PASS} when already traveling
+     * @return {@link InteractionResult#SUCCESS} when travel started,
+     * {@link InteractionResult#FAIL} when preconditions fail,
+     * {@link InteractionResult#PASS} when already traveling
      */
-    public static ActionResult startTravel(UUID tardisId, MinecraftServer server) {
+    public static InteractionResult startTravel(UUID tardisId, MinecraftServer server) {
         if (tardisId == null) {
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
         TardisDataModel model = TardisDataLoader.get(tardisId);
         if (model == null) {
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
         if (model.getTravelPhase().isTraveling()) {
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         }
         if (server == null) {
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
         if (!model.hasExteriorLocation || model.exteriorDimension == null) {
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
 
         String destinationDimension = TardisLogic.effectiveDestinationDimension(model);
         if (destinationDimension == null || destinationDimension.isBlank()) {
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
-        if (getWorld(server, destinationDimension) == null) {
-            return ActionResult.FAIL;
+        if (level(server, destinationDimension) == null) {
+            return InteractionResult.FAIL;
         }
 
         boolean requiresBiome = BiomeSelectorLogic.tagForDimension(destinationDimension).isPresent();
         if (requiresBiome) {
             if (model.selectedBiome == null || model.selectedBiome.isBlank()) {
-                return ActionResult.FAIL;
+                return InteractionResult.FAIL;
             }
             if (LandingSiteLogic.parseBiome(model.selectedBiome).isEmpty()) {
-                return ActionResult.FAIL;
+                return InteractionResult.FAIL;
             }
         }
 
-        ServerWorld exteriorWorld = getExteriorWorld(server, model);
+        ServerLevel exteriorWorld = getExteriorWorld(server, model);
         if (exteriorWorld == null) {
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
         BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
         if (!(exteriorWorld.getBlockEntity(exteriorPos) instanceof TardisBlockEntity)) {
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
 
         model.travelDestinationDimension = destinationDimension;
@@ -110,40 +110,40 @@ public final class TardisTravelService {
         model.setTravelPhase(TardisTravelPhase.DEMATERIALISING);
         if (model.doorState.isOpen || model.doorState.doorSwing > 0.0f) {
             model.doorState.isOpen = false;
-            model.markDirty();
-            SotoExteriorSyncService.markDirty(tardisId);
+            model.setChanged();
+            PortalStreamSyncService.setMetaChanged(tardisId);
         }
         ACTIVE.add(tardisId);
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     /**
      * Begins materialisation while {@code tardisId} is {@link TardisTravelPhase#IN_FLIGHT}.
      *
-     * @return {@link ActionResult#SUCCESS} when materialisation started,
-     * {@link ActionResult#FAIL} when preconditions fail,
-     * {@link ActionResult#PASS} when not in a phase that accepts materialise
+     * @return {@link InteractionResult#SUCCESS} when materialisation started,
+     * {@link InteractionResult#FAIL} when preconditions fail,
+     * {@link InteractionResult#PASS} when not in a phase that accepts materialise
      */
-    public static ActionResult requestMaterialise(UUID tardisId, MinecraftServer server) {
+    public static InteractionResult requestMaterialise(UUID tardisId, MinecraftServer server) {
         if (tardisId == null) {
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
         TardisDataModel model = TardisDataLoader.get(tardisId);
         if (model == null) {
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
         if (model.getTravelPhase() != TardisTravelPhase.IN_FLIGHT) {
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         }
         if (server == null) {
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
 
         ShellSnapshot snapshot = FLIGHT_SHELLS.get(tardisId);
-        ServerWorld destinationWorld = getDestinationWorld(server, model);
+        ServerLevel destinationWorld = getDestinationWorld(server, model);
         if (destinationWorld == null || snapshot == null) {
             abortToIdle(server, tardisId, model);
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
 
         BlockPos oldPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
@@ -151,25 +151,25 @@ public final class TardisTravelService {
 
         placeShell(destinationWorld, landing, snapshot);
         model.setExteriorLocation(
-                destinationWorld.getRegistryKey().getValue().toString(),
+                destinationWorld.dimension().identifier().toString(),
                 landing.getX(),
                 landing.getY(),
                 landing.getZ(),
                 snapshot.facingRotation()
         );
         SotoExteriorIndex.register(tardisId, model);
-        SotoExteriorSyncService.markDirty(tardisId);
+        PortalStreamSyncService.setMetaChanged(tardisId);
 
         model.doorState.isOpen = true;
         model.doorState.doorSwing = 0.0f;
         model.travelPhaseTicks = MATERIALISING_DURATION_TICKS;
-        model.markDirty();
+        model.setChanged();
         model.setTravelPhase(TardisTravelPhase.MATERIALISING);
         FLIGHT_SHELLS.remove(tardisId);
         SHELL_REMOVED.remove(tardisId);
         ACTIVE.add(tardisId);
         TardisTravelAudio.startMat(server, tardisId, destinationWorld, landing);
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     public static boolean isTraveling(@Nullable UUID tardisId) {
@@ -192,7 +192,7 @@ public final class TardisTravelService {
         }
         if (model.travelPhaseTicks > 0) {
             model.travelPhaseTicks--;
-            model.markDirty();
+            model.setChanged();
             if (model.travelPhaseTicks > 0) {
                 return false;
             }
@@ -214,7 +214,7 @@ public final class TardisTravelService {
         }
         if (model.travelPhaseTicks > 0) {
             model.travelPhaseTicks--;
-            model.markDirty();
+            model.setChanged();
             if (model.travelPhaseTicks > 0) {
                 return false;
             }
@@ -270,7 +270,7 @@ public final class TardisTravelService {
             boolean enteredFlight = advanceDematerialisingHold(model);
             if (enteredFlight) {
                 BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
-                ServerWorld exteriorWorld = getExteriorWorld(server, model);
+                ServerLevel exteriorWorld = getExteriorWorld(server, model);
                 TardisTravelAudio.startFlight(server, tardisId, exteriorWorld, exteriorPos);
                 SHELL_REMOVED.remove(tardisId);
                 // FLIGHT_SHELLS kept for materialise.
@@ -281,11 +281,11 @@ public final class TardisTravelService {
         // Door-close prelude before the configurable demat/vworp window.
         TardisLogic.updateDoorState(tardisId);
         if (model.doorState.doorSwing > 0.0f) {
-            SotoExteriorSyncService.markDirty(tardisId);
+            PortalStreamSyncService.setMetaChanged(tardisId);
             return;
         }
 
-        ServerWorld exteriorWorld = getExteriorWorld(server, model);
+        ServerLevel exteriorWorld = getExteriorWorld(server, model);
         if (exteriorWorld == null) {
             abortToIdle(server, tardisId, model);
             return;
@@ -301,34 +301,34 @@ public final class TardisTravelService {
         FLIGHT_SHELLS.put(tardisId, snapshot);
         SHELL_REMOVED.remove(tardisId);
         model.travelPhaseTicks = DEMATERIALISING_DURATION_TICKS;
-        model.markDirty();
+        model.setChanged();
         TardisTravelAudio.startDemat(server, tardisId, exteriorWorld, exteriorPos);
     }
 
     private static void removeExteriorShell(MinecraftServer server, UUID tardisId, TardisDataModel model) {
-        ServerWorld exteriorWorld = getExteriorWorld(server, model);
+        ServerLevel exteriorWorld = getExteriorWorld(server, model);
         if (exteriorWorld == null) {
             return;
         }
         BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
         if (exteriorWorld.getBlockEntity(exteriorPos) instanceof TardisBlockEntity) {
-            exteriorWorld.setBlockState(exteriorPos, Blocks.AIR.getDefaultState(), 3);
+            exteriorWorld.setBlock(exteriorPos, Blocks.AIR.defaultBlockState(), 3);
         }
         SotoExteriorIndex.unregister(tardisId);
-        SotoExteriorSyncService.markDirty(tardisId);
+        PortalStreamSyncService.setMetaChanged(tardisId);
         SHELL_REMOVED.add(tardisId);
-        model.markDirty();
+        model.setChanged();
     }
 
     private static void tickMaterialising(MinecraftServer server, UUID tardisId, TardisDataModel model) {
         TardisLogic.updateDoorState(tardisId);
-        SotoExteriorSyncService.markDirty(tardisId);
+        PortalStreamSyncService.setMetaChanged(tardisId);
         boolean finished = advanceMaterialisingHold(model);
         if (!finished) {
             return;
         }
         ACTIVE.remove(tardisId);
-        ServerWorld exteriorWorld = getExteriorWorld(server, model);
+        ServerLevel exteriorWorld = getExteriorWorld(server, model);
         BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
         TardisTravelAudio.stop(server, tardisId, exteriorWorld, exteriorPos);
         playMaterialiseThud(server, tardisId, exteriorWorld, exteriorPos);
@@ -337,7 +337,7 @@ public final class TardisTravelService {
     private static void playMaterialiseThud(
             MinecraftServer server,
             UUID tardisId,
-            @Nullable ServerWorld exteriorWorld,
+            @Nullable ServerLevel exteriorWorld,
             BlockPos exteriorPos
     ) {
         if (exteriorWorld != null) {
@@ -345,7 +345,7 @@ public final class TardisTravelService {
                     null,
                     exteriorPos,
                     DWMSounds.TARDIS_MATERIALISE_THUD,
-                    SoundCategory.BLOCKS,
+                    SoundSource.BLOCKS,
                     1.0F,
                     1.0F
             );
@@ -353,7 +353,7 @@ public final class TardisTravelService {
         if (server == null) {
             return;
         }
-        ServerWorld interior = server.getWorld(TardisDimensions.TARDIS_WORLD_KEY);
+        ServerLevel interior = server.getLevel(TardisDimensions.TARDIS_WORLD_KEY);
         if (interior == null) {
             return;
         }
@@ -362,18 +362,18 @@ public final class TardisTravelService {
                 null,
                 console,
                 DWMSounds.TARDIS_MATERIALISE_THUD,
-                SoundCategory.BLOCKS,
+                SoundSource.BLOCKS,
                 1.0F,
                 1.0F
         );
     }
 
     private static Optional<BlockPos> resolveLanding(
-            ServerWorld world,
+            ServerLevel world,
             TardisDataModel model,
             BlockPos searchOrigin
     ) {
-        Optional<RegistryKey<Biome>> biome = LandingSiteLogic.parseBiome(model.travelDestinationBiome);
+        Optional<ResourceKey<Biome>> biome = LandingSiteLogic.parseBiome(model.travelDestinationBiome);
         if (biome.isPresent()) {
             Optional<BlockPos> landing = LandingSiteLogic.findLanding(world, biome.get(), searchOrigin);
             if (landing.isPresent()) {
@@ -386,16 +386,16 @@ public final class TardisTravelService {
     private static void abortToIdle(MinecraftServer server, UUID tardisId, TardisDataModel model) {
         ShellSnapshot snapshot = FLIGHT_SHELLS.remove(tardisId);
         SHELL_REMOVED.remove(tardisId);
-        ServerWorld exteriorWorld = getExteriorWorld(server, model);
+        ServerLevel exteriorWorld = getExteriorWorld(server, model);
         BlockPos pos = model.hasExteriorLocation
                 ? new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ)
-                : BlockPos.ORIGIN;
+                : BlockPos.ZERO;
         TardisTravelAudio.stop(server, tardisId, exteriorWorld, pos);
         if (snapshot != null && exteriorWorld != null && model.hasExteriorLocation) {
             if (!(exteriorWorld.getBlockEntity(pos) instanceof TardisBlockEntity)) {
                 placeShell(exteriorWorld, pos, snapshot);
                 SotoExteriorIndex.register(tardisId, model);
-                SotoExteriorSyncService.markDirty(tardisId);
+                PortalStreamSyncService.setMetaChanged(tardisId);
             }
         }
         model.travelDestinationBiome = null;
@@ -405,29 +405,29 @@ public final class TardisTravelService {
         ACTIVE.remove(tardisId);
     }
 
-    private static void placeShell(ServerWorld world, BlockPos pos, ShellSnapshot snapshot) {
+    private static void placeShell(ServerLevel world, BlockPos pos, ShellSnapshot snapshot) {
         world.getChunk(pos);
-        BlockState state = DWMBlocks.TARDIS_BLOCK.getDefaultState()
-                .with(TardisBlock.FACING_ROTATION, snapshot.facingRotation());
-        world.setBlockState(pos, state, 3);
+        BlockState state = DWMBlocks.TARDIS_BLOCK.defaultBlockState()
+                .setValue(TardisBlock.FACING_ROTATION, snapshot.facingRotation());
+        world.setBlock(pos, state, 3);
         if (world.getBlockEntity(pos) instanceof TardisBlockEntity be) {
             be.restoreTravelIdentity(snapshot.tardisId(), snapshot.interiorEntrance(), snapshot.interiorGenerated());
         }
     }
 
-    private static @Nullable ServerWorld getExteriorWorld(MinecraftServer server, TardisDataModel model) {
-        return getWorld(server, model.exteriorDimension);
+    private static @Nullable ServerLevel getExteriorWorld(MinecraftServer server, TardisDataModel model) {
+        return level(server, model.exteriorDimension);
     }
 
-    private static @Nullable ServerWorld getDestinationWorld(MinecraftServer server, TardisDataModel model) {
+    private static @Nullable ServerLevel getDestinationWorld(MinecraftServer server, TardisDataModel model) {
         String destination = model.travelDestinationDimension;
         if (destination == null || destination.isBlank()) {
             destination = TardisLogic.effectiveDestinationDimension(model);
         }
-        return getWorld(server, destination);
+        return level(server, destination);
     }
 
-    private static @Nullable ServerWorld getWorld(MinecraftServer server, @Nullable String dimensionId) {
+    private static @Nullable ServerLevel level(MinecraftServer server, @Nullable String dimensionId) {
         if (dimensionId == null || dimensionId.isBlank()) {
             return null;
         }
@@ -435,7 +435,7 @@ public final class TardisTravelService {
         if (id == null) {
             return null;
         }
-        return server.getWorld(RegistryKey.of(RegistryKeys.WORLD, id));
+        return server.getLevel(ResourceKey.create(Registries.DIMENSION, id));
     }
 
     private record ShellSnapshot(
@@ -445,8 +445,8 @@ public final class TardisTravelService {
             int facingRotation
     ) {
         static ShellSnapshot capture(TardisBlockEntity be, BlockState state) {
-            int rotation = state.contains(TardisBlock.FACING_ROTATION)
-                    ? state.get(TardisBlock.FACING_ROTATION)
+            int rotation = state.hasProperty(TardisBlock.FACING_ROTATION)
+                    ? state.getValue(TardisBlock.FACING_ROTATION)
                     : 0;
             return new ShellSnapshot(
                     be.getTardisId(),

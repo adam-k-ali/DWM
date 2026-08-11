@@ -3,8 +3,6 @@ package com.adamkali.dwm.tardis.interior;
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -12,6 +10,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -74,15 +74,15 @@ class TardisInteriorUnitTest {
     void botiGate_ShowsEarlierThanEntry() {
         TardisDoorState closed = new TardisDoorState();
         closed.doorSwing = 0f;
-        assertFalse(TardisBotiGate.shouldShow(closed));
+        assertFalse(TardisPortalGate.shouldShow(closed));
 
         TardisDoorState ajar = new TardisDoorState();
         ajar.isOpen = true;
         ajar.doorSwing = TardisDimensions.BOTI_DOOR_SWING_THRESHOLD;
-        assertTrue(TardisBotiGate.shouldShow(ajar));
+        assertTrue(TardisPortalGate.shouldShow(ajar));
         assertFalse(TardisEntryGate.canEnter(ajar));
 
-        assertFalse(TardisBotiGate.shouldShow(null));
+        assertFalse(TardisPortalGate.shouldShow(null));
         assertTrue(TardisDimensions.BOTI_DOOR_SWING_THRESHOLD < TardisDimensions.ENTRY_DOOR_SWING_THRESHOLD);
     }
 
@@ -113,8 +113,8 @@ class TardisInteriorUnitTest {
         assertEquals("tardis", TardisDimensions.DIMENSION_ID.getPath());
         assertEquals("first_doctor_console_room", TardisDimensions.CONSOLE_ROOM_STRUCTURE_ID.getPath());
         assertTrue(TardisDimensions.isTardisWorld(TardisDimensions.TARDIS_WORLD_KEY));
-        assertFalse(TardisDimensions.isTardisWorld(net.minecraft.world.World.OVERWORLD));
-        assertFalse(TardisDimensions.isTardisWorld((net.minecraft.world.World) null));
+        assertFalse(TardisDimensions.isTardisWorld(net.minecraft.world.level.Level.OVERWORLD));
+        assertFalse(TardisDimensions.isTardisWorld((net.minecraft.world.level.Level) null));
     }
 
     @Test

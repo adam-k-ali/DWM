@@ -1,10 +1,9 @@
 package com.adamkali.dwm.tardis.interior;
 
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.IntTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtInt;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,10 +25,10 @@ public final class FirstDoctorConsoleRoomNbtWriter {
         NbtIo.writeCompressed(build(), outputPath);
     }
 
-    public static NbtCompound build() {
+    public static CompoundTag build() {
         Map<String, Integer> paletteIndex = new LinkedHashMap<>();
-        NbtList palette = new NbtList();
-        NbtList blocks = new NbtList();
+        ListTag palette = new ListTag();
+        ListTag blocks = new ListTag();
 
         List<Placement> placements = new ArrayList<>();
         String floor = "dwm:white_tardis_wall";
@@ -79,34 +78,34 @@ public final class FirstDoctorConsoleRoomNbtWriter {
                 palette.add(paletteEntry(key));
                 return i;
             });
-            NbtCompound block = new NbtCompound();
+            CompoundTag block = new CompoundTag();
             block.putIntArray("pos", new int[]{placement.x, placement.y, placement.z});
             block.putInt("state", index);
             blocks.add(block);
         }
 
-        NbtCompound root = new NbtCompound();
-        NbtList size = new NbtList();
-        size.add(NbtInt.of(sizeX));
-        size.add(NbtInt.of(sizeY));
-        size.add(NbtInt.of(sizeZ));
+        CompoundTag root = new CompoundTag();
+        ListTag size = new ListTag();
+        size.add(IntTag.valueOf(sizeX));
+        size.add(IntTag.valueOf(sizeY));
+        size.add(IntTag.valueOf(sizeZ));
         root.put("size", size);
         root.put("palette", palette);
         root.put("blocks", blocks);
-        root.put("entities", new NbtList());
+        root.put("entities", new ListTag());
         root.putInt("DataVersion", 4189);
         return root;
     }
 
-    private static NbtCompound paletteEntry(String stateKey) {
-        NbtCompound entry = new NbtCompound();
+    private static CompoundTag paletteEntry(String stateKey) {
+        CompoundTag entry = new CompoundTag();
         int bracket = stateKey.indexOf('[');
         if (bracket < 0) {
             entry.putString("Name", stateKey);
             return entry;
         }
         entry.putString("Name", stateKey.substring(0, bracket));
-        NbtCompound props = new NbtCompound();
+        CompoundTag props = new CompoundTag();
         String propsPart = stateKey.substring(bracket + 1, stateKey.length() - 1);
         for (String pair : propsPart.split(",")) {
             String[] kv = pair.split("=", 2);

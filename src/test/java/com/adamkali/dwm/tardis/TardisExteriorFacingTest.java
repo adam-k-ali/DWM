@@ -1,7 +1,7 @@
 package com.adamkali.dwm.tardis;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.Direction;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

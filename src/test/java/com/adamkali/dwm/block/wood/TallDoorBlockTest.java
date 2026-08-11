@@ -2,9 +2,9 @@ package com.adamkali.dwm.block.wood;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.block.DWMBlocks;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.BlockState;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -32,9 +32,9 @@ class TallDoorBlockTest {
         for (TallDoorSegment segment : TallDoorSegment.values()) {
             BlockPos cell = TallDoorBlock.cellPos(origin, segment);
             assertEquals(origin.getY() + segment.index(), cell.getY());
-            BlockState state = DWMBlocks.CARDINAL_DOOR.getDefaultState()
-                    .with(TallDoorBlock.SEGMENT, segment)
-                    .with(TallDoorBlock.FACING, Direction.NORTH);
+            BlockState state = DWMBlocks.CARDINAL_DOOR.defaultBlockState()
+                    .setValue(TallDoorBlock.SEGMENT, segment)
+                    .setValue(TallDoorBlock.FACING, Direction.NORTH);
             assertEquals(origin, TallDoorBlock.originPos(cell, state));
         }
     }
@@ -49,9 +49,9 @@ class TallDoorBlockTest {
 
     @Test
     void isOriginOnlyBottomSegment() {
-        BlockState bottom = DWMBlocks.CARDINAL_DOOR.getDefaultState()
-                .with(TallDoorBlock.SEGMENT, TallDoorSegment.BOTTOM);
-        BlockState middle = bottom.with(TallDoorBlock.SEGMENT, TallDoorSegment.MIDDLE);
+        BlockState bottom = DWMBlocks.CARDINAL_DOOR.defaultBlockState()
+                .setValue(TallDoorBlock.SEGMENT, TallDoorSegment.BOTTOM);
+        BlockState middle = bottom.setValue(TallDoorBlock.SEGMENT, TallDoorSegment.MIDDLE);
         assertTrue(TallDoorBlock.isOrigin(bottom));
         assertFalse(TallDoorBlock.isOrigin(middle));
     }

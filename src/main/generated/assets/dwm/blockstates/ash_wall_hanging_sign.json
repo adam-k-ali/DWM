@@ -1,7 +1,7 @@
 {
   "variants": {
     "": {
-      "model": "dwm:block/ash_hanging_sign"
+      "model": "dwm:block/ash_wall_hanging_sign"
     }
   }
 }

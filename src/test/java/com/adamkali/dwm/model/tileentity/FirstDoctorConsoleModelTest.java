@@ -1,7 +1,7 @@
 package com.adamkali.dwm.model.tileentity;
 
 import com.adamkali.dwm.render.state.TardisRenderState;
-import net.minecraft.client.model.ModelPart;
+import net.minecraft.client.model.geom.ModelPart;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,7 +11,7 @@ class FirstDoctorConsoleModelTest {
 
     @Test
     void texturedModelData_hasTimeRotorHierarchy() {
-        ModelPart root = FirstDoctorConsoleModel.getTexturedModelData().createModel();
+        ModelPart root = FirstDoctorConsoleModel.getTexturedModelData().bakeRoot();
         assertTrue(root.hasChild("time_rotor"));
         ModelPart rotor = root.getChild("time_rotor");
         assertTrue(rotor.hasChild("Time_middle"));
@@ -55,17 +55,17 @@ class FirstDoctorConsoleModelTest {
 
     @Test
     void setAngles_movesTimeRotorPivotY() {
-        ModelPart root = FirstDoctorConsoleModel.getTexturedModelData().createModel();
+        ModelPart root = FirstDoctorConsoleModel.getTexturedModelData().bakeRoot();
         FirstDoctorConsoleModel model = new FirstDoctorConsoleModel(root);
         ModelPart timeRotor = root.getChild("time_rotor");
 
         TardisRenderState state = new TardisRenderState();
         state.setRotorBobOffset(-2.5f);
-        model.setAngles(state);
-        assertEquals(-2.5f, timeRotor.pivotY, EPSILON);
+        model.setupAnim(state);
+        assertEquals(-2.5f, timeRotor.y, EPSILON);
 
         state.setRotorBobOffset(0.0f);
-        model.setAngles(state);
-        assertEquals(0.0f, timeRotor.pivotY, EPSILON);
+        model.setupAnim(state);
+        assertEquals(0.0f, timeRotor.y, EPSILON);
     }
 }

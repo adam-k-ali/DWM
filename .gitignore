@@ -61,3 +61,10 @@ tools/fixtures/*.wav
 tools/fixtures/*.mp3
 tools/fixtures/*.ogg
 tools/fixtures/compare_out/
+
+# accidental dependency jar extracts at repo root
+/LICENSE-fabric-rendering-v1
+/META-INF/
+/fabric-rendering-v1.*
+/fabric.mod.json
+/net/

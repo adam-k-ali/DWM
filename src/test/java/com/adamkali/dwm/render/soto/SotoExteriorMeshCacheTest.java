@@ -1,14 +1,19 @@
 package com.adamkali.dwm.render.soto;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
+import com.adamkali.dwm.network.SyncPortalMetaS2CPayload;
+import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
+import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
+import com.adamkali.dwm.tardis.portal.PortalShellState;
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
-import net.minecraft.world.dimension.DimensionTypes;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
+import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,7 +26,7 @@ class SotoExteriorMeshCacheTest {
 
     @AfterEach
     void tearDown() {
-        SotoExteriorMeshCache.invalidateAll();
+        PortalSceneStore.invalidateAll();
     }
 
     @Test
@@ -33,20 +38,19 @@ class SotoExteriorMeshCacheTest {
     }
 
     @Test
-    void applySnapshot_storesShellMetadata() {
+    void applyMeta_storesShellMetadata() {
         UUID id = UUID.randomUUID();
-        SotoExteriorMeshCache.applySnapshot(
+        SyncPortalMetaS2CPayload payload = SyncPortalMetaS2CPayload.of(
+                PortalStreamKind.SOTO,
                 id,
                 1,
-                TardisChameleonVariant.FIRST_DOCTOR_BOX,
-                0.75f,
-                true,
-                4,
-                SotoAtmosphere.DEFAULT
+                new PortalShellState(TardisChameleonVariant.FIRST_DOCTOR_BOX, 0.75f, true, 4),
+                PortalAtmosphere.DEFAULT
         );
+        PortalSceneStore.applyMeta(payload);
 
         assertTrue(SotoExteriorMeshCache.hasSnapshot(id));
-        SotoExteriorMeshCache.ShellState shell = SotoExteriorMeshCache.getShellState(id);
+        PortalShellState shell = SotoExteriorMeshCache.getShellState(id);
         assertNotNull(shell);
         assertEquals(TardisChameleonVariant.FIRST_DOCTOR_BOX, shell.variant());
         assertEquals(0.75f, shell.doorSwing(), 1e-4f);
@@ -55,44 +59,47 @@ class SotoExteriorMeshCacheTest {
     }
 
     @Test
-    void applySnapshot_storesAtmosphere() {
+    void applyMeta_storesAtmosphere() {
         UUID id = UUID.randomUUID();
-        SotoAtmosphere atmosphere = new SotoAtmosphere(
-                DimensionTypes.THE_END_ID,
+        PortalAtmosphere atmosphere = new PortalAtmosphere(
+                BuiltinDimensionTypes.END.identifier(),
                 18000L,
                 0.0f,
                 0.0f,
                 0x000000,
                 0xA080FF
         );
-        SotoExteriorMeshCache.applySnapshot(
+        SyncPortalMetaS2CPayload payload = SyncPortalMetaS2CPayload.of(
+                PortalStreamKind.SOTO,
                 id,
                 1,
-                TardisChameleonVariant.TT_CAPSULE,
-                1.0f,
-                true,
-                0,
+                new PortalShellState(TardisChameleonVariant.TT_CAPSULE, 1.0f, true, 0),
                 atmosphere
         );
+        PortalSceneStore.applyMeta(payload);
 
         SotoAtmosphere cached = SotoExteriorMeshCache.getAtmosphere(id);
         assertNotNull(cached);
-        assertEquals(DimensionTypes.THE_END_ID, cached.dimensionEffectsId());
+        assertEquals(BuiltinDimensionTypes.END.identifier(), cached.dimensionEffectsId());
         assertEquals(18000L, cached.timeOfDay());
         assertEquals(0xA080FF, cached.biomeFogColor());
     }
 
     @Test
-    void applySnapshot_ignoresOlderRevision() {
+    void applyMeta_ignoresOlderRevision() {
         UUID id = UUID.randomUUID();
-        SotoExteriorMeshCache.applySnapshot(
-                id, 5,
-                TardisChameleonVariant.TT_CAPSULE, 1.0f, true, 0, SotoAtmosphere.DEFAULT
+        SyncPortalMetaS2CPayload first = SyncPortalMetaS2CPayload.of(
+                PortalStreamKind.SOTO, id, 5,
+                new PortalShellState(TardisChameleonVariant.TT_CAPSULE, 1.0f, true, 0),
+                PortalAtmosphere.DEFAULT
         );
-        SotoExteriorMeshCache.applySnapshot(
-                id, 4,
-                TardisChameleonVariant.FIRST_DOCTOR_BOX, 0.0f, false, 8, SotoAtmosphere.DEFAULT
+        SyncPortalMetaS2CPayload older = SyncPortalMetaS2CPayload.of(
+                PortalStreamKind.SOTO, id, 4,
+                new PortalShellState(TardisChameleonVariant.FIRST_DOCTOR_BOX, 0.0f, false, 8),
+                PortalAtmosphere.DEFAULT
         );
+        PortalSceneStore.applyMeta(first);
+        PortalSceneStore.applyMeta(older);
 
         assertEquals(TardisChameleonVariant.TT_CAPSULE, SotoExteriorMeshCache.getShellState(id).variant());
         assertTrue(SotoExteriorMeshCache.getShellState(id).isOpen());

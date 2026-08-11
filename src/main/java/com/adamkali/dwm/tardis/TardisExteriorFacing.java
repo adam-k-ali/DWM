@@ -1,7 +1,7 @@
 package com.adamkali.dwm.tardis;
 
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.RotationPropertyHelper;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.properties.RotationSegment;
 
 /**
  * Maps {@code TardisBlock.FACING_ROTATION} to the chameleon shell's visual door direction.
@@ -22,7 +22,7 @@ public final class TardisExteriorFacing {
     }
 
     private static Direction rotationToHorizontal(int rotation) {
-        float yaw = RotationPropertyHelper.toDegrees(rotation);
-        return Direction.fromHorizontalDegrees(yaw);
+        float yaw = RotationSegment.convertToDegrees(rotation);
+        return Direction.fromYRot(yaw);
     }
 }

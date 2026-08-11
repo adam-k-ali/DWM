@@ -24,7 +24,7 @@ class DWMConfigTest {
     }
 
     @Test
-    void init_whenConfigIsEmpty_marksFirstStartTrueAndKeepsExperimentalFeaturesDisabledByDefault() {
+    void init_whenConfigIsEmpty_marksFirstStartTrueAndKeepsDoorPortalsEnabledByDefault() {
         try (MockedStatic<DWMConfigManager> configManager = Mockito.mockStatic(DWMConfigManager.class)) {
             configManager.when(DWMConfigManager::load).thenReturn(new HashMap<>());
 
@@ -32,8 +32,7 @@ class DWMConfigTest {
 
             assertTrue(DWMConfig.getBoolean(DWMConfig.IS_FIRST_START));
             assertFalse(DWMConfig.getBoolean(DWMConfig.ENABLE_CHAMELEON_GUI));
-            assertTrue(DWMConfig.getBoolean(DWMConfig.ENABLE_BOTI));
-            assertFalse(DWMConfig.getBoolean(DWMConfig.ENABLE_SOTO));
+            assertTrue(DWMConfig.getBoolean(DWMConfig.ENABLE_DOOR_PORTALS));
         }
     }
 
@@ -50,6 +49,38 @@ class DWMConfigTest {
 
             assertFalse(DWMConfig.getBoolean(DWMConfig.IS_FIRST_START));
             assertTrue(DWMConfig.getBoolean(DWMConfig.ENABLE_CHAMELEON_GUI));
+        }
+    }
+
+    @Test
+    void init_migratesLegacyBotiOrSotoIntoDoorPortals() {
+        HashMap<String, Object> loaded = new HashMap<>();
+        loaded.put(DWMConfig.LEGACY_ENABLE_BOTI, false);
+        loaded.put(DWMConfig.LEGACY_ENABLE_SOTO, true);
+
+        try (MockedStatic<DWMConfigManager> configManager = Mockito.mockStatic(DWMConfigManager.class)) {
+            configManager.when(DWMConfigManager::load).thenReturn(loaded);
+
+            DWMConfig.init();
+
+            assertTrue(DWMConfig.getBoolean(DWMConfig.ENABLE_DOOR_PORTALS));
+            assertFalse(loaded.containsKey(DWMConfig.LEGACY_ENABLE_BOTI));
+            assertFalse(loaded.containsKey(DWMConfig.LEGACY_ENABLE_SOTO));
+        }
+    }
+
+    @Test
+    void init_migratesLegacyBothOffToDoorPortalsOff() {
+        HashMap<String, Object> loaded = new HashMap<>();
+        loaded.put(DWMConfig.LEGACY_ENABLE_BOTI, false);
+        loaded.put(DWMConfig.LEGACY_ENABLE_SOTO, false);
+
+        try (MockedStatic<DWMConfigManager> configManager = Mockito.mockStatic(DWMConfigManager.class)) {
+            configManager.when(DWMConfigManager::load).thenReturn(loaded);
+
+            DWMConfig.init();
+
+            assertFalse(DWMConfig.getBoolean(DWMConfig.ENABLE_DOOR_PORTALS));
         }
     }
 

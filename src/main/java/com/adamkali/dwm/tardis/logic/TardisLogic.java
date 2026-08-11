@@ -5,15 +5,15 @@ import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
-import com.adamkali.dwm.tardis.soto.SotoExteriorSyncService;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
+import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -21,21 +21,21 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class TardisLogic {
-    public static ActionResult toggleDoor(UUID tardisId) {
+    public static InteractionResult toggleDoor(UUID tardisId) {
         TardisDataModel tardis = TardisDataLoader.get(tardisId);
         if (tardis == null) {
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
 
         float doorSwing = tardis.doorState.doorSwing;
         if (doorSwing > 0.0f && doorSwing < 1.0f) {
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         }
 
         tardis.doorState.isOpen = !tardis.doorState.isOpen;
-        tardis.markDirty();
-        SotoExteriorSyncService.markDirty(tardisId);
-        return ActionResult.SUCCESS;
+        tardis.setChanged();
+        PortalStreamSyncService.setMetaChanged(tardisId);
+        return InteractionResult.SUCCESS;
     }
 
     public static TardisDoorState getDoorState(UUID tardisId) {
@@ -58,7 +58,7 @@ public class TardisLogic {
             doorSwing = Math.max(doorSwing - 0.05f, 0f);
         }
         tardis.doorState.doorSwing = doorSwing;
-        tardis.markDirty();
+        tardis.setChanged();
     }
 
     public static void setVariant(UUID tardisId, TardisChameleonVariant variant) {
@@ -68,8 +68,8 @@ public class TardisLogic {
         }
 
         tardis.variant = variant;
-        tardis.markDirty();
-        SotoExteriorSyncService.markDirty(tardisId);
+        tardis.setChanged();
+        PortalStreamSyncService.setMetaChanged(tardisId);
     }
 
     public static TardisChameleonVariant getVariant(UUID tardisId) {
@@ -89,15 +89,15 @@ public class TardisLogic {
         if (tardis == null || server == null) {
             return Optional.empty();
         }
-        Registry<Biome> biomes = server.getRegistryManager().getOrThrow(RegistryKeys.BIOME);
-        List<RegistryKey<Biome>> list =
+        Registry<Biome> biomes = server.registryAccess().lookupOrThrow(Registries.BIOME);
+        List<ResourceKey<Biome>> list =
                 BiomeSelectorLogic.biomesForDimension(biomes, effectiveDestinationDimension(tardis));
         Optional<Identifier> next = BiomeSelectorLogic.nextBiome(tardis.selectedBiome, list);
         if (next.isEmpty()) {
             return Optional.empty();
         }
         tardis.selectedBiome = next.get().toString();
-        tardis.markDirty();
+        tardis.setChanged();
         return next;
     }
 
@@ -111,22 +111,22 @@ public class TardisLogic {
         if (tardis == null || server == null) {
             return Optional.empty();
         }
-        List<RegistryKey<World>> list = PlanetLocatorLogic.dimensions(server);
+        List<ResourceKey<Level>> list = PlanetLocatorLogic.dimensions(server);
         String current = effectiveDestinationDimension(tardis);
         Optional<Identifier> next = PlanetLocatorLogic.nextDimension(current, list);
         if (next.isEmpty()) {
             return Optional.empty();
         }
         tardis.selectedDimension = next.get().toString();
-        Registry<Biome> biomes = server.getRegistryManager().getOrThrow(RegistryKeys.BIOME);
-        List<RegistryKey<Biome>> biomeList =
+        Registry<Biome> biomes = server.registryAccess().lookupOrThrow(Registries.BIOME);
+        List<ResourceKey<Biome>> biomeList =
                 BiomeSelectorLogic.biomesForDimension(biomes, tardis.selectedDimension);
         if (biomeList.isEmpty()) {
             tardis.selectedBiome = null;
         } else {
-            tardis.selectedBiome = biomeList.getFirst().getValue().toString();
+            tardis.selectedBiome = biomeList.getFirst().identifier().toString();
         }
-        tardis.markDirty();
+        tardis.setChanged();
         return next;
     }
 

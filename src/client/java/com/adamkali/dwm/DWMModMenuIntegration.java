@@ -6,7 +6,7 @@ import com.terraformersmc.modmenu.api.ModMenuApi;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 public class DWMModMenuIntegration implements ModMenuApi {
     @Override
@@ -14,14 +14,13 @@ public class DWMModMenuIntegration implements ModMenuApi {
         return parent -> {
             ConfigBuilder builder = ConfigBuilder.create()
                     .setParentScreen(parent)
-                    .setTitle(Text.translatable("config.dwm.title"));
+                    .setTitle(Component.translatable("config.dwm.title"));
             builder.setSavingRunnable(DWMConfig::save);
 
-            ConfigCategory general = builder.getOrCreateCategory(Text.translatable("dwm.config.category.experimental"));
+            ConfigCategory general = builder.getOrCreateCategory(Component.translatable("dwm.config.category.experimental"));
             ConfigEntryBuilder entryBuilder = builder.entryBuilder();
-            general.addEntry(entryBuilder.startBooleanToggle(Text.translatable("dwm.config.option.chameleon_gui"), DWMConfig.getBoolean(DWMConfig.ENABLE_CHAMELEON_GUI)).setDefaultValue(DWMConfig.ENABLE_CHAMELEON_GUI.getDefaultValue()).setSaveConsumer((newValue) -> DWMConfig.setBoolean(DWMConfig.ENABLE_CHAMELEON_GUI, newValue)).build());
-            general.addEntry(entryBuilder.startBooleanToggle(Text.translatable("dwm.config.option.enable_boti"), DWMConfig.getBoolean(DWMConfig.ENABLE_BOTI)).setDefaultValue(DWMConfig.ENABLE_BOTI.getDefaultValue()).setTooltip(Text.translatable("dwm.config.option.enable_boti.tooltip")).setSaveConsumer((newValue) -> DWMConfig.setBoolean(DWMConfig.ENABLE_BOTI, newValue)).build());
-            general.addEntry(entryBuilder.startBooleanToggle(Text.translatable("dwm.config.option.enable_soto"), DWMConfig.getBoolean(DWMConfig.ENABLE_SOTO)).setDefaultValue(DWMConfig.ENABLE_SOTO.getDefaultValue()).setTooltip(Text.translatable("dwm.config.option.enable_soto.tooltip")).setSaveConsumer((newValue) -> DWMConfig.setBoolean(DWMConfig.ENABLE_SOTO, newValue)).build());
+            general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("dwm.config.option.chameleon_gui"), DWMConfig.getBoolean(DWMConfig.ENABLE_CHAMELEON_GUI)).setDefaultValue(DWMConfig.ENABLE_CHAMELEON_GUI.getDefaultValue()).setSaveConsumer((newValue) -> DWMConfig.setBoolean(DWMConfig.ENABLE_CHAMELEON_GUI, newValue)).build());
+            general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("dwm.config.option.enable_door_portals"), DWMConfig.getBoolean(DWMConfig.ENABLE_DOOR_PORTALS)).setDefaultValue(DWMConfig.ENABLE_DOOR_PORTALS.getDefaultValue()).setTooltip(Component.translatable("dwm.config.option.enable_door_portals.tooltip")).setSaveConsumer((newValue) -> DWMConfig.setBoolean(DWMConfig.ENABLE_DOOR_PORTALS, newValue)).build());
             return builder.alwaysShowTabs().build();
         };
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:gallifrey_smooth_stone_from_smelting_gallifrey_stone"
+        "recipe": "dwm:gallifrey_smooth_stone_from_smelting_gallifrey_stone"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:gallifrey_smooth_stone_from_smelting_gallifrey_stone"
+      "dwm:gallifrey_smooth_stone_from_smelting_gallifrey_stone"
     ]
   }
 }

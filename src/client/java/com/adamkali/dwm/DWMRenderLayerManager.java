@@ -1,60 +1,40 @@
 package com.adamkali.dwm;
 
-import com.adamkali.dwm.block.DWMBlocks;
-import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
-import com.adamkali.dwm.block.wood.WoodFamilyBlocks;
-import com.adamkali.dwm.block.wood.WoodFamilyFeature;
 import com.adamkali.dwm.model.tileentity.*;
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
-import net.minecraft.client.render.RenderLayer;
+import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
 
+/**
+ * Registers entity/block-entity model layers. Terrain cutout/translucent layers are
+ * inferred from sprite properties in Minecraft 26.2 (no BlockRenderLayerMap).
+ */
 public class DWMRenderLayerManager {
-    private static void registerBlockRenderLayers() {
-        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.WHITE_ROUNDEL_B, RenderLayer.getCutoutMipped());
-        BlockRenderLayerMap.INSTANCE.putBlock(DWMBlocks.CITADEL_GLASS, RenderLayer.getTranslucent());
-        for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
-            WoodFamilyBlocks blocks = family.blocks();
-            BlockRenderLayerMap.INSTANCE.putBlock(blocks.leaves(), RenderLayer.getCutoutMipped());
-            BlockRenderLayerMap.INSTANCE.putBlock(blocks.sapling(), RenderLayer.getCutout());
-            BlockRenderLayerMap.INSTANCE.putBlock(blocks.pottedSapling(), RenderLayer.getCutout());
-            if (family.hasDoor()) {
-                BlockRenderLayerMap.INSTANCE.putBlock(family.requireDoor(), RenderLayer.getCutout());
-            }
-            if (family.has(WoodFamilyFeature.TRAPDOOR)) {
-                BlockRenderLayerMap.INSTANCE.putBlock(family.requireTrapdoor(), RenderLayer.getCutout());
-            }
-        }
-    }
-
     private static void registerEntityRenderLayers() {
-        EntityModelLayerRegistry.registerModelLayer(TTCapsuleModel.LAYER_LOCATION, TTCapsuleModel::getTexturedModelData);
-        EntityModelLayerRegistry.registerModelLayer(FirstDoctorTardisModel.LAYER_LOCATION, FirstDoctorTardisModel::getTexturedModelData);
-        EntityModelLayerRegistry.registerModelLayer(SecondDoctorTardisModel.LAYER_LOCATION, SecondDoctorTardisModel::getTexturedModelData);
-        EntityModelLayerRegistry.registerModelLayer(ThirdDoctorTardisModel.LAYER_LOCATION, ThirdDoctorTardisModel::getTexturedModelData);
-        EntityModelLayerRegistry.registerModelLayer(FourthDoctorTardisModel.LAYER_LOCATION, FourthDoctorTardisModel::getTexturedModelData);
-        EntityModelLayerRegistry.registerModelLayer(FifthDoctorTardisModel.LAYER_LOCATION, FifthDoctorTardisModel::getTexturedModelData);
-        EntityModelLayerRegistry.registerModelLayer(SixthDoctorTardisModel.LAYER_LOCATION, SixthDoctorTardisModel::getTexturedModelData);
-        EntityModelLayerRegistry.registerModelLayer(SeventhDoctorTardisModel.LAYER_LOCATION, SeventhDoctorTardisModel::getTexturedModelData);
-        EntityModelLayerRegistry.registerModelLayer(
+        ModelLayerRegistry.registerModelLayer(TTCapsuleModel.LAYER_LOCATION, TTCapsuleModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(FirstDoctorTardisModel.LAYER_LOCATION, FirstDoctorTardisModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(SecondDoctorTardisModel.LAYER_LOCATION, SecondDoctorTardisModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(ThirdDoctorTardisModel.LAYER_LOCATION, ThirdDoctorTardisModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(FourthDoctorTardisModel.LAYER_LOCATION, FourthDoctorTardisModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(FifthDoctorTardisModel.LAYER_LOCATION, FifthDoctorTardisModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(SixthDoctorTardisModel.LAYER_LOCATION, SixthDoctorTardisModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(SeventhDoctorTardisModel.LAYER_LOCATION, SeventhDoctorTardisModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(
                 TardisClassicInteriorDoorModel.LAYER_LOCATION,
                 TardisClassicInteriorDoorModel::getTexturedModelData);
-        EntityModelLayerRegistry.registerModelLayer(
+        ModelLayerRegistry.registerModelLayer(
                 FirstDoctorConsoleModel.LAYER_LOCATION,
                 FirstDoctorConsoleModel::getTexturedModelData);
-        EntityModelLayerRegistry.registerModelLayer(
+        ModelLayerRegistry.registerModelLayer(
                 BiomeSelectorModel.LAYER_LOCATION,
                 BiomeSelectorModel::getTexturedModelData);
-        EntityModelLayerRegistry.registerModelLayer(
+        ModelLayerRegistry.registerModelLayer(
                 PlanetLocatorModel.LAYER_LOCATION,
                 PlanetLocatorModel::getTexturedModelData);
-        EntityModelLayerRegistry.registerModelLayer(
+        ModelLayerRegistry.registerModelLayer(
                 MaterialisationLeverModel.LAYER_LOCATION,
                 MaterialisationLeverModel::getTexturedModelData);
     }
 
     public static void initialize() {
-        registerBlockRenderLayers();
         registerEntityRenderLayers();
     }
 }

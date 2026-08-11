@@ -4,142 +4,167 @@ import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.model.tileentity.TardisClassicInteriorDoorModel;
 import com.adamkali.dwm.render.soto.TardisSotoRenderer;
+import com.adamkali.dwm.render.state.TardisInteriorDoorBlockEntityRenderState;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.interior.TardisInteriorDoorShapes;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderPhase;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.TriState;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.RotationAxis;
-import org.lwjgl.opengl.GL11;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
-import java.util.function.Function;
-
-public class TardisInteriorDoorBlockEntityRenderer implements BlockEntityRenderer<TardisInteriorDoorBlockEntity> {
-    /**
-     * Entity cutout that skips the default {@code LEQUAL} depth phase.
-     * {@link RenderPhase#ALWAYS_DEPTH_TEST} is a no-op begin/end for func 519, so the caller must
-     * set {@code GL_ALWAYS} before {@link VertexConsumerProvider.Immediate#draw()} — otherwise
-     * vanilla cutout re-applies LEQUAL and SOTO wins the depth test.
-     */
-    private static final Function<Identifier, RenderLayer> ENTITY_CUTOUT_ALWAYS_DEPTH = Util.memoize(
-            texture -> {
-                RenderLayer.MultiPhaseParameters params = RenderLayer.MultiPhaseParameters.builder()
-                        .program(RenderPhase.ENTITY_CUTOUT_PROGRAM)
-                        .texture(new RenderPhase.Texture(texture, TriState.FALSE, false))
-                        .transparency(RenderPhase.NO_TRANSPARENCY)
-                        .lightmap(RenderPhase.ENABLE_LIGHTMAP)
-                        .overlay(RenderPhase.ENABLE_OVERLAY_COLOR)
-                        .depthTest(RenderPhase.ALWAYS_DEPTH_TEST)
-                        .build(true);
-                return RenderLayer.of(
-                        "dwm_soto_door_overlay",
-                        VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL,
-                        VertexFormat.DrawMode.QUADS,
-                        1536,
-                        true,
-                        false,
-                        params);
-            });
-
+public class TardisInteriorDoorBlockEntityRenderer
+        implements BlockEntityRenderer<TardisInteriorDoorBlockEntity, TardisInteriorDoorBlockEntityRenderState> {
     private final TardisClassicInteriorDoorModel model;
     private final TardisSotoRenderer sotoRenderer;
 
-    public TardisInteriorDoorBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
+    public TardisInteriorDoorBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         this.model = new TardisClassicInteriorDoorModel(
-                context.getLayerModelPart(TardisClassicInteriorDoorModel.LAYER_LOCATION));
+                context.bakeLayer(TardisClassicInteriorDoorModel.LAYER_LOCATION));
         this.sotoRenderer = new TardisSotoRenderer();
     }
 
     @Override
-    public void render(
-            TardisInteriorDoorBlockEntity entity,
-            float tickDelta,
-            MatrixStack matrices,
-            VertexConsumerProvider vertexConsumers,
-            int light,
-            int overlay
-    ) {
-        BlockState state = entity.getCachedState();
-        Direction facing = state.get(TardisInteriorDoorBlock.FACING, Direction.NORTH);
-
-        matrices.push();
-        applyTransforms(matrices, facing);
-
-        TardisRenderState renderState = new TardisRenderState();
-        renderState.setDoorSwingProgress(entity.getDoorSwing());
-        model.setAngles(renderState);
-
-        VertexConsumer vertices = vertexConsumers.getBuffer(
-                RenderLayer.getEntityCutout(TardisClassicInteriorDoorModel.TEXTURE_LOCATION));
-
-        if (TardisSotoRenderer.shouldRender(entity.getDoorSwing())) {
-            // Shell → SOTO → doors so frames establish depth before the aperture clear,
-            // and swung leaves still composite over the exterior preview.
-            model.renderShell(matrices, vertices, light, overlay);
-            flush(vertexConsumers);
-
-            sotoRenderer.render(
-                    matrices,
-                    vertexConsumers,
-                    tickDelta,
-                    entity.getTardisId(),
-                    entity.getPos(),
-                    facing
-            );
-
-            // ALWAYS_DEPTH_TEST phase does not set GL_ALWAYS (no-op for 519); set it here and use
-            // a layer that will not re-apply LEQUAL during Immediate.draw().
-            vertices = vertexConsumers.getBuffer(
-                    ENTITY_CUTOUT_ALWAYS_DEPTH.apply(TardisClassicInteriorDoorModel.TEXTURE_LOCATION));
-            RenderSystem.enableDepthTest();
-            RenderSystem.depthFunc(GL11.GL_ALWAYS);
-            try {
-                // Full mesh: frames/jambs/leaves all composite over sealed SOTO pixels.
-                model.render(matrices, vertices, light, overlay);
-                flush(vertexConsumers);
-            } finally {
-                RenderSystem.depthFunc(GL11.GL_LEQUAL);
-            }
-        } else {
-            model.render(matrices, vertices, light, overlay);
-        }
-        matrices.pop();
+    public TardisInteriorDoorBlockEntityRenderState createRenderState() {
+        return new TardisInteriorDoorBlockEntityRenderState();
     }
 
     @Override
-    public int getRenderDistance() {
+    public void extractRenderState(
+            TardisInteriorDoorBlockEntity entity,
+            TardisInteriorDoorBlockEntityRenderState state,
+            float partialTicks,
+            Vec3 cameraPosition,
+            ModelFeatureRenderer.CrumblingOverlay breakProgress
+    ) {
+        BlockEntityRenderer.super.extractRenderState(entity, state, partialTicks, cameraPosition, breakProgress);
+
+        BlockState blockState = entity.getBlockState();
+        state.facing = blockState.getValueOrElse(TardisInteriorDoorBlock.FACING, Direction.NORTH);
+        state.doorSwing = entity.getDoorSwing();
+        state.partialTicks = partialTicks;
+        state.tardisId = entity.getTardisId();
+        state.shouldRenderSoto = TardisSotoRenderer.shouldRender(state.doorSwing);
+    }
+
+    @Override
+    public void submit(
+            TardisInteriorDoorBlockEntityRenderState state,
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            CameraRenderState camera
+    ) {
+        TardisRenderState animState = new TardisRenderState();
+        animState.setDoorSwingProgress(state.doorSwing);
+
+        poseStack.pushPose();
+        applyTransforms(poseStack, state.facing);
+
+        if (state.shouldRenderSoto) {
+            // Shell → SOTO → doors so frames establish depth before the aperture clear,
+            // and swung leaves still composite over the exterior preview.
+            submitShell(animState, poseStack, submitNodeCollector, state);
+
+            sotoRenderer.render(
+                    poseStack,
+                    submitNodeCollector,
+                    state.partialTicks,
+                    state.tardisId,
+                    state.blockPos,
+                    state.facing
+            );
+
+            submitDoors(animState, poseStack, submitNodeCollector, state);
+        } else {
+            submitFull(animState, poseStack, submitNodeCollector, state);
+        }
+
+        poseStack.popPose();
+    }
+
+    @Override
+    public int getViewDistance() {
         // Exterior preview extends several blocks beyond the door aperture.
         return 128;
+    }
+
+    private void submitFull(
+            TardisRenderState animState,
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            TardisInteriorDoorBlockEntityRenderState state
+    ) {
+        submitNodeCollector.submitModel(
+                model,
+                animState,
+                poseStack,
+                RenderTypes.entityCutout(TardisClassicInteriorDoorModel.TEXTURE_LOCATION),
+                state.lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                0,
+                state.breakProgress);
+    }
+
+    /**
+     * Shell without door leaves. Uses {@link SubmitNodeCollector#submitCustomGeometry} so door
+     * visibility can be toggled at flush time (deferred {@code submitModel} would see restored parts).
+     */
+    private void submitShell(
+            TardisRenderState animState,
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            TardisInteriorDoorBlockEntityRenderState state
+    ) {
+        int light = state.lightCoords;
+        submitNodeCollector.submitCustomGeometry(
+                poseStack,
+                RenderTypes.entityCutout(TardisClassicInteriorDoorModel.TEXTURE_LOCATION),
+                (pose, consumer) -> {
+                    PoseStack local = new PoseStack();
+                    local.last().set(pose);
+                    model.setupAnim(animState);
+                    model.renderShell(local, consumer, light, OverlayTexture.NO_OVERLAY);
+                });
+    }
+
+    /**
+     * Door leaves only, drawn after SOTO so open doors sit over the exterior preview.
+     */
+    private void submitDoors(
+            TardisRenderState animState,
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            TardisInteriorDoorBlockEntityRenderState state
+    ) {
+        int light = state.lightCoords;
+        submitNodeCollector.submitCustomGeometry(
+                poseStack,
+                RenderTypes.entityCutout(TardisClassicInteriorDoorModel.TEXTURE_LOCATION),
+                (pose, consumer) -> {
+                    PoseStack local = new PoseStack();
+                    local.last().set(pose);
+                    model.setupAnim(animState);
+                    model.renderDoors(local, consumer, light, OverlayTexture.NO_OVERLAY);
+                });
     }
 
     /**
      * Standard Blockbench tile-entity placement: pivot at top of door volume, X-180 flip,
      * then yaw for {@code facing}. Model pixel units render as 1/16 block.
      */
-    static void applyTransforms(MatrixStack matrices, Direction facing) {
+    static void applyTransforms(PoseStack matrices, Direction facing) {
         matrices.translate(0.5, TardisInteriorDoorShapes.MODEL_HEIGHT_BLOCKS, 0.5);
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-Direction.getHorizontalDegreesOrThrow(facing)));
+        matrices.mulPose(Axis.YP.rotationDegrees(-Direction.getYRot(facing)));
         // Center the ~3-block-wide mesh on the 3-wide bank (origin is bank start cell).
         matrices.translate(TardisInteriorDoorShapes.BANK_CENTER_OFFSET_BLOCKS, 0.0, 0.0);
-        matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180.0f));
+        matrices.mulPose(Axis.XP.rotationDegrees(180.0f));
         matrices.translate(-TardisInteriorDoorShapes.MODEL_CENTER_X_PX / 16.0F, 0.0F, 0.0F);
-    }
-
-    private static void flush(VertexConsumerProvider vertexConsumers) {
-        if (vertexConsumers instanceof VertexConsumerProvider.Immediate immediate) {
-            immediate.draw();
-        }
     }
 }

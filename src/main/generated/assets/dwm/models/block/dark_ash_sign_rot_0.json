@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/template_sign_rot_0",
+  "textures": {
+    "all": "dwm:block/dark_ash_sign",
+    "particle": "dwm:block/dark_ash_planks"
+  }
+}

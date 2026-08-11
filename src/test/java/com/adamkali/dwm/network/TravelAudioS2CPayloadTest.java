@@ -1,10 +1,10 @@
 package com.adamkali.dwm.network;
 
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -27,12 +27,12 @@ class TravelAudioS2CPayloadTest {
         TravelAudioS2CPayload payload = new TravelAudioS2CPayload(
                 id,
                 TravelAudioS2CPayload.START_FLIGHT,
-                Identifier.of("dwm", "tardis"),
+                Identifier.fromNamespaceAndPath("dwm", "tardis"),
                 new BlockPos(5, 1, 5),
                 true
         );
         assertEquals(TravelAudioS2CPayload.START_FLIGHT, payload.action());
         assertEquals(true, payload.relative());
-        assertEquals(TravelAudioS2CPayload.ID, payload.getId());
+        assertEquals(TravelAudioS2CPayload.ID, payload.type());
     }
 }

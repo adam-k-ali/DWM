@@ -1,8 +1,8 @@
 package com.adamkali.dwm.tardis.boti;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Packs relative BOTI footprint coords (0..10) into a short for network transfer.
@@ -27,10 +27,10 @@ public final class BotiRelativePosCodec {
     }
 
     public static int stateId(BlockState state) {
-        return Block.getRawIdFromState(state);
+        return Block.getId(state);
     }
 
     public static BlockState stateFromId(int id) {
-        return Block.getStateFromRawId(id);
+        return Block.stateById(id);
     }
 }

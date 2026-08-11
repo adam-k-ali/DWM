@@ -2,26 +2,28 @@ package com.adamkali.dwm.tardis.soto;
 
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.server.world.ChunkTicketType;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.ChunkSectionPos;
-import net.minecraft.world.biome.Biome;
-
-import java.util.Comparator;
+import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
+import com.adamkali.dwm.tardis.portal.PortalStreamSample;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.SectionPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.TicketType;
+import net.minecraft.world.attribute.EnvironmentAttributes;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
+import net.minecraft.world.phys.AABB;
 
 /**
  * Exterior sampling helpers for SOTO: atmosphere, ghost stream geometry, and chunk samples.
@@ -47,14 +49,13 @@ public final class SotoExteriorSampler {
     /** Offset from exterior block pos to footprint min corner. */
     public static final BlockPos FOOTPRINT_MIN_OFFSET = new BlockPos(-5, -1, -5);
 
-    private static final ChunkTicketType<ChunkPos> SOTO_TICKET =
-            ChunkTicketType.create("dwm_soto", Comparator.comparingLong(ChunkPos::toLong), 80);
+    private static final TicketType SOTO_TICKET = new TicketType(80, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION);
 
     private SotoExteriorSampler() {
     }
 
     public static BlockPos footprintOrigin(BlockPos exteriorPos) {
-        return exteriorPos.add(FOOTPRINT_MIN_OFFSET);
+        return exteriorPos.offset(FOOTPRINT_MIN_OFFSET);
     }
 
     /**
@@ -65,8 +66,8 @@ public final class SotoExteriorSampler {
     public static boolean isSotoVisible(BlockState state) {
         return state != null
                 && !state.isAir()
-                && !state.isOf(Blocks.LIGHT)
-                && !state.isOf(DWMBlocks.TARDIS_BLOCK);
+                && !state.is(Blocks.LIGHT)
+                && !state.is(DWMBlocks.TARDIS_BLOCK);
     }
 
     public static Map<BlockPos, BlockState> filterVisible(Map<BlockPos, BlockState> placements) {
@@ -82,19 +83,22 @@ public final class SotoExteriorSampler {
     /**
      * Samples exterior sky/fog atmosphere at the TARDIS block (single biome point).
      */
-    public static SotoAtmosphere sampleAtmosphere(ServerWorld exteriorWorld, BlockPos exteriorPos) {
-        Identifier effectsId = exteriorWorld.getDimension().effects();
-        long timeOfDay = exteriorWorld.getTimeOfDay();
-        float rain = exteriorWorld.getRainGradient(0.0f);
-        float thunder = exteriorWorld.getThunderGradient(0.0f);
-        Biome biome = exteriorWorld.getBiome(exteriorPos).value();
-        return new SotoAtmosphere(
+    public static PortalAtmosphere sampleAtmosphere(ServerLevel exteriorWorld, BlockPos exteriorPos) {
+        Identifier effectsId = exteriorWorld.dimensionTypeRegistration()
+                .unwrapKey()
+                .map(ResourceKey::identifier)
+                .orElseGet(BuiltinDimensionTypes.OVERWORLD::identifier);
+        long timeOfDay = exteriorWorld.getOverworldClockTime();
+        float rain = exteriorWorld.getRainLevel(0.0f);
+        float thunder = exteriorWorld.getThunderLevel(0.0f);
+        var attrs = exteriorWorld.environmentAttributes();
+        return new PortalAtmosphere(
                 effectsId,
                 timeOfDay,
                 rain,
                 thunder,
-                biome.getSkyColor(),
-                biome.getFogColor()
+                attrs.getValue(EnvironmentAttributes.SKY_COLOR, exteriorPos),
+                attrs.getValue(EnvironmentAttributes.FOG_COLOR, exteriorPos)
         );
     }
 
@@ -103,8 +107,8 @@ public final class SotoExteriorSampler {
      * around the exterior block's chunk. Returns {@code [minCX, maxCX, minCZ, maxCZ]}.
      */
     public static int[] streamChunkBounds(BlockPos exteriorPos) {
-        int cx = ChunkSectionPos.getSectionCoord(exteriorPos.getX());
-        int cz = ChunkSectionPos.getSectionCoord(exteriorPos.getZ());
+        int cx = SectionPos.blockToSectionCoord(exteriorPos.getX());
+        int cz = SectionPos.blockToSectionCoord(exteriorPos.getZ());
         return new int[]{
                 cx - STREAM_RADIUS_CHUNKS,
                 cx + STREAM_RADIUS_CHUNKS,
@@ -114,9 +118,9 @@ public final class SotoExteriorSampler {
     }
 
     /** Axis-aligned box covering the ghost stream radius (horizontal chunks + vertical radius). */
-    public static Box streamBox(BlockPos exteriorPos) {
+    public static AABB streamBox(BlockPos exteriorPos) {
         int half = STREAM_RADIUS_CHUNKS * 16;
-        return new Box(
+        return new AABB(
                 exteriorPos.getX() - half,
                 exteriorPos.getY() - STREAM_Y_RADIUS,
                 exteriorPos.getZ() - half,
@@ -130,10 +134,10 @@ public final class SotoExteriorSampler {
         if (worldPos == null || exteriorPos == null) {
             return false;
         }
-        int cx = ChunkSectionPos.getSectionCoord(worldPos.getX());
-        int cz = ChunkSectionPos.getSectionCoord(worldPos.getZ());
-        int ecx = ChunkSectionPos.getSectionCoord(exteriorPos.getX());
-        int ecz = ChunkSectionPos.getSectionCoord(exteriorPos.getZ());
+        int cx = SectionPos.blockToSectionCoord(worldPos.getX());
+        int cz = SectionPos.blockToSectionCoord(worldPos.getZ());
+        int ecx = SectionPos.blockToSectionCoord(exteriorPos.getX());
+        int ecz = SectionPos.blockToSectionCoord(exteriorPos.getZ());
         int dx = Math.abs(cx - ecx);
         int dz = Math.abs(cz - ecz);
         if (dx > STREAM_RADIUS_CHUNKS || dz > STREAM_RADIUS_CHUNKS) {
@@ -147,16 +151,16 @@ public final class SotoExteriorSampler {
      * Ticket-only keep-alive for the ghost stream radius. Does not call {@code getChunk}
      * (avoids synchronous force-loads every tick).
      */
-    public static void addStreamTickets(ServerWorld world, BlockPos exteriorPos) {
+    public static void addStreamTickets(ServerLevel world, BlockPos exteriorPos) {
         if (world == null || exteriorPos == null) {
             return;
         }
         int[] bounds = streamChunkBounds(exteriorPos);
-        var chunkManager = world.getChunkManager();
+        var chunkManager = world.getChunkSource();
         for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
             for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
                 ChunkPos chunkPos = new ChunkPos(cx, cz);
-                chunkManager.addTicket(SOTO_TICKET, chunkPos, 2, chunkPos);
+                chunkManager.addTicketWithRadius(SOTO_TICKET, chunkPos, 2);
             }
         }
     }
@@ -164,29 +168,39 @@ public final class SotoExteriorSampler {
     /**
      * Cheap probe: queries already-loaded entities in the stream box without force-loading chunks.
      */
-    public static boolean hasEntities(ServerWorld exteriorWorld, BlockPos exteriorPos) {
+    public static boolean hasEntities(ServerLevel exteriorWorld, BlockPos exteriorPos) {
         if (exteriorWorld == null || exteriorPos == null) {
             return false;
         }
-        return !exteriorWorld.getOtherEntities(null, streamBox(exteriorPos), entity -> !entity.isRemoved()).isEmpty();
+        return !exteriorWorld.getEntities((Entity) null, streamBox(exteriorPos), entity -> !entity.isRemoved()).isEmpty();
     }
 
     /**
      * Resets mob despawn counters in the stream box. Tickets only — no per-tick {@code getChunk}.
      */
-    public static void keepMobAiActive(ServerWorld exteriorWorld, BlockPos exteriorPos) {
+    public static void keepMobAiActive(ServerLevel exteriorWorld, BlockPos exteriorPos) {
         if (exteriorWorld == null || exteriorPos == null) {
             return;
         }
-        if (!exteriorWorld.getPlayers().isEmpty()) {
+        if (!exteriorWorld.players().isEmpty()) {
             return;
         }
         addStreamTickets(exteriorWorld, exteriorPos);
-        for (Entity entity : exteriorWorld.getOtherEntities(null, streamBox(exteriorPos), e -> !e.isRemoved())) {
-            if (entity instanceof MobEntity mob && mob.getDespawnCounter() != 0) {
-                mob.setDespawnCounter(0);
+        for (Entity entity : exteriorWorld.getEntities((Entity) null, streamBox(exteriorPos), e -> !e.isRemoved())) {
+            if (entity instanceof Mob mob && mob.getNoActionTime() != 0) {
+                mob.setNoActionTime(0);
             }
         }
+    }
+
+    public static PortalStreamSample samplePortalStreamChunk(
+            ServerLevel exteriorWorld,
+            BlockPos exteriorPos,
+            int chunkX,
+            int chunkZ
+    ) {
+        StreamChunkSample sample = sampleStreamChunk(exteriorWorld, exteriorPos, chunkX, chunkZ);
+        return new PortalStreamSample(sample.chunkX(), sample.chunkZ(), sample.blocks(), sample.blockEntities());
     }
 
     /**
@@ -194,7 +208,7 @@ public final class SotoExteriorSampler {
      * Positions in the returned maps are world-absolute.
      */
     public static StreamChunkSample sampleStreamChunk(
-            ServerWorld exteriorWorld,
+            ServerLevel exteriorWorld,
             BlockPos exteriorPos,
             int chunkX,
             int chunkZ
@@ -204,11 +218,11 @@ public final class SotoExteriorSampler {
         }
         exteriorWorld.getChunk(chunkX, chunkZ);
         Map<BlockPos, BlockState> blocks = new HashMap<>();
-        Map<BlockPos, NbtCompound> blockEntities = new HashMap<>();
-        RegistryWrapper.WrapperLookup registries = exteriorWorld.getRegistryManager();
-        int minY = Math.max(exteriorWorld.getBottomY(), exteriorPos.getY() - STREAM_Y_RADIUS);
-        int maxY = Math.min(exteriorWorld.getBottomY() + exteriorWorld.getHeight() - 1, exteriorPos.getY() + STREAM_Y_RADIUS);
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
+        Map<BlockPos, CompoundTag> blockEntities = new HashMap<>();
+        HolderLookup.Provider registries = exteriorWorld.registryAccess();
+        int minY = Math.max(exteriorWorld.getMinY(), exteriorPos.getY() - STREAM_Y_RADIUS);
+        int maxY = Math.min(exteriorWorld.getMinY() + exteriorWorld.getHeight() - 1, exteriorPos.getY() + STREAM_Y_RADIUS);
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
         int baseX = chunkX << 4;
         int baseZ = chunkZ << 4;
         for (int lx = 0; lx < 16; lx++) {
@@ -219,7 +233,7 @@ public final class SotoExteriorSampler {
                     if (!isSotoVisible(state)) {
                         continue;
                     }
-                    BlockPos immutable = mutable.toImmutable();
+                    BlockPos immutable = mutable.immutable();
                     blocks.put(immutable, state);
                     BlockEntity blockEntity = exteriorWorld.getBlockEntity(mutable);
                     if (blockEntity != null) {
@@ -231,12 +245,12 @@ public final class SotoExteriorSampler {
         return new StreamChunkSample(chunkX, chunkZ, blocks, blockEntities);
     }
 
-    public static List<Entity> collectStreamEntities(ServerWorld exteriorWorld, BlockPos exteriorPos) {
+    public static List<Entity> collectStreamEntities(ServerLevel exteriorWorld, BlockPos exteriorPos) {
         if (exteriorWorld == null || exteriorPos == null) {
             return List.of();
         }
         addStreamTickets(exteriorWorld, exteriorPos);
-        return List.copyOf(exteriorWorld.getOtherEntities(null, streamBox(exteriorPos), entity -> !entity.isRemoved()));
+        return List.copyOf(exteriorWorld.getEntities((Entity) null, streamBox(exteriorPos), entity -> !entity.isRemoved()));
     }
 
     /** One streamed chunk column for ghost sync. */
@@ -244,7 +258,7 @@ public final class SotoExteriorSampler {
             int chunkX,
             int chunkZ,
             Map<BlockPos, BlockState> blocks,
-            Map<BlockPos, NbtCompound> blockEntities
+            Map<BlockPos, CompoundTag> blockEntities
     ) {
         public StreamChunkSample {
             blocks = blocks == null ? Map.of() : Map.copyOf(blocks);

@@ -1,78 +1,80 @@
 package com.adamkali.dwm.world;
 
 import com.adamkali.dwm.block.DWMBlocks;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.world.gen.YOffset;
-import net.minecraft.world.gen.noise.NoiseParametersKeys;
-import net.minecraft.world.gen.surfacebuilder.MaterialRules;
+import net.minecraft.core.HolderGetter;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.levelgen.Noises;
+import net.minecraft.world.level.levelgen.SurfaceRules;
+import net.minecraft.world.level.levelgen.VerticalAnchor;
 
 /**
  * Gallifrey surface rules: dirt/sand tops over Gallifrey stone (no grass block yet).
  */
 public final class GallifreySurfaceRules {
-    private static final MaterialRules.MaterialRule BEDROCK = block(Blocks.BEDROCK);
-    private static final MaterialRules.MaterialRule GALLIFREY_STONE = block(DWMBlocks.GALLIFREY_STONE);
-    private static final MaterialRules.MaterialRule GALLIFREY_DIRT = block(DWMBlocks.GALLIFREY_DIRT);
-    private static final MaterialRules.MaterialRule GALLIFREY_COARSE_DIRT = block(DWMBlocks.GALLIFREY_COARSE_DIRT);
-    private static final MaterialRules.MaterialRule GALLIFREY_SAND = block(DWMBlocks.GALLIFREY_SAND);
-    private static final MaterialRules.MaterialRule GALLIFREY_SANDSTONE = block(DWMBlocks.GALLIFREY_SANDSTONE);
+    private static final SurfaceRules.RuleSource BEDROCK = block(Blocks.BEDROCK);
+    private static final SurfaceRules.RuleSource GALLIFREY_STONE = block(DWMBlocks.GALLIFREY_STONE);
+    private static final SurfaceRules.RuleSource GALLIFREY_DIRT = block(DWMBlocks.GALLIFREY_DIRT);
+    private static final SurfaceRules.RuleSource GALLIFREY_COARSE_DIRT = block(DWMBlocks.GALLIFREY_COARSE_DIRT);
+    private static final SurfaceRules.RuleSource GALLIFREY_SAND = block(DWMBlocks.GALLIFREY_SAND);
+    private static final SurfaceRules.RuleSource GALLIFREY_SANDSTONE = block(DWMBlocks.GALLIFREY_SANDSTONE);
 
     private GallifreySurfaceRules() {
     }
 
-    public static MaterialRules.MaterialRule create() {
-        MaterialRules.MaterialCondition isWastes = MaterialRules.biome(DWMBiomeKeys.GALLIFREY_WASTES);
-        MaterialRules.MaterialCondition atOrAboveWater = MaterialRules.water(-1, 0);
-        MaterialRules.MaterialCondition aboveWater = MaterialRules.water(0, 0);
+    public static SurfaceRules.RuleSource create(HolderGetter<Biome> biomes) {
+        SurfaceRules.ConditionSource isWastes = SurfaceRules.isBiome(biomes, DWMBiomeKeys.GALLIFREY_WASTES);
+        SurfaceRules.ConditionSource atOrAboveWater = SurfaceRules.waterBlockCheck(-1, 0);
+        SurfaceRules.ConditionSource aboveWater = SurfaceRules.waterBlockCheck(0, 0);
 
-        MaterialRules.MaterialRule wastesTop = MaterialRules.sequence(
-                MaterialRules.condition(MaterialRules.STONE_DEPTH_CEILING, GALLIFREY_SANDSTONE),
-                MaterialRules.condition(
-                        MaterialRules.noiseThreshold(NoiseParametersKeys.SURFACE, -0.95, -0.4),
+        SurfaceRules.RuleSource wastesTop = SurfaceRules.sequence(
+                SurfaceRules.ifTrue(SurfaceRules.ON_CEILING, GALLIFREY_SANDSTONE),
+                SurfaceRules.ifTrue(
+                        SurfaceRules.noiseCondition2d(Noises.SURFACE, -0.95, -0.4),
                         GALLIFREY_COARSE_DIRT
                 ),
                 GALLIFREY_SAND
         );
 
-        MaterialRules.MaterialRule dirtTop = MaterialRules.sequence(
-                MaterialRules.condition(
-                        MaterialRules.noiseThreshold(NoiseParametersKeys.SURFACE, 0.45, 1.0),
+        SurfaceRules.RuleSource dirtTop = SurfaceRules.sequence(
+                SurfaceRules.ifTrue(
+                        SurfaceRules.noiseCondition2d(Noises.SURFACE, 0.45, 1.0),
                         GALLIFREY_COARSE_DIRT
                 ),
                 GALLIFREY_DIRT
         );
 
-        MaterialRules.MaterialRule floorSurface = MaterialRules.sequence(
-                MaterialRules.condition(isWastes, wastesTop),
+        SurfaceRules.RuleSource floorSurface = SurfaceRules.sequence(
+                SurfaceRules.ifTrue(isWastes, wastesTop),
                 dirtTop
         );
 
-        MaterialRules.MaterialRule underSurface = MaterialRules.sequence(
-                MaterialRules.condition(isWastes, MaterialRules.sequence(
-                        MaterialRules.condition(MaterialRules.STONE_DEPTH_CEILING, GALLIFREY_SANDSTONE),
+        SurfaceRules.RuleSource underSurface = SurfaceRules.sequence(
+                SurfaceRules.ifTrue(isWastes, SurfaceRules.sequence(
+                        SurfaceRules.ifTrue(SurfaceRules.ON_CEILING, GALLIFREY_SANDSTONE),
                         GALLIFREY_SAND
                 )),
                 GALLIFREY_DIRT
         );
 
-        MaterialRules.MaterialRule surfaceBlock = MaterialRules.condition(
-                MaterialRules.surface(),
-                MaterialRules.sequence(
-                        MaterialRules.condition(
-                                MaterialRules.STONE_DEPTH_FLOOR,
-                                MaterialRules.condition(atOrAboveWater, floorSurface)
+        SurfaceRules.RuleSource surfaceBlock = SurfaceRules.ifTrue(
+                SurfaceRules.abovePreliminarySurface(),
+                SurfaceRules.sequence(
+                        SurfaceRules.ifTrue(
+                                SurfaceRules.ON_FLOOR,
+                                SurfaceRules.ifTrue(atOrAboveWater, floorSurface)
                         ),
-                        MaterialRules.condition(
-                                MaterialRules.STONE_DEPTH_FLOOR_WITH_SURFACE_DEPTH,
-                                MaterialRules.condition(aboveWater, underSurface)
+                        SurfaceRules.ifTrue(
+                                SurfaceRules.UNDER_FLOOR,
+                                SurfaceRules.ifTrue(aboveWater, underSurface)
                         )
                 )
         );
 
-        return MaterialRules.sequence(
-                MaterialRules.condition(
-                        MaterialRules.verticalGradient("dwm:bedrock_floor", YOffset.getBottom(), YOffset.aboveBottom(5)),
+        return SurfaceRules.sequence(
+                SurfaceRules.ifTrue(
+                        SurfaceRules.verticalGradient("dwm:bedrock_floor", VerticalAnchor.bottom(), VerticalAnchor.aboveBottom(5)),
                         BEDROCK
                 ),
                 surfaceBlock,
@@ -80,7 +82,7 @@ public final class GallifreySurfaceRules {
         );
     }
 
-    private static MaterialRules.MaterialRule block(Block block) {
-        return MaterialRules.block(block.getDefaultState());
+    private static SurfaceRules.RuleSource block(Block block) {
+        return SurfaceRules.state(block.defaultBlockState());
     }
 }

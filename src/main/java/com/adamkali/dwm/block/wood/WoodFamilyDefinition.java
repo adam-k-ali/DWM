@@ -1,14 +1,13 @@
 package com.adamkali.dwm.block.wood;
 
-import net.minecraft.block.BlockSetType;
-import net.minecraft.block.MapColor;
-import net.minecraft.block.SaplingGenerator;
-import net.minecraft.block.WoodType;
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
-import net.minecraft.registry.tag.TagKey;
-
 import java.util.EnumSet;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.grower.TreeGrower;
+import net.minecraft.world.level.block.state.properties.BlockSetType;
+import net.minecraft.world.level.block.state.properties.WoodType;
+import net.minecraft.world.level.material.MapColor;
 
 public record WoodFamilyDefinition(
         String id,
@@ -17,7 +16,7 @@ public record WoodFamilyDefinition(
         MapColor barkColor,
         WoodType woodType,
         BlockSetType blockSetType,
-        SaplingGenerator saplingGenerator,
+        TreeGrower saplingGenerator,
         TagKey<Block> logBlockTag,
         TagKey<Item> logItemTag,
         EnumSet<WoodFamilyFeature> features

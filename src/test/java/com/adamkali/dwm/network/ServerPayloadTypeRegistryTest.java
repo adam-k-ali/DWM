@@ -4,7 +4,6 @@ import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
-import net.minecraft.util.Identifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -15,6 +14,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.UUID;
+import net.minecraft.resources.Identifier;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -55,7 +55,7 @@ class ServerPayloadTypeRegistryTest {
     void safelyHandleChameleonUpdate_rejectsInvalidVariantId() {
         UUID tardisId = UUID.randomUUID();
         UpdateTardisChameleonC2SPayload payload = new UpdateTardisChameleonC2SPayload(
-                Identifier.of("dwm", "not_a_variant"),
+                Identifier.fromNamespaceAndPath("dwm", "not_a_variant"),
                 tardisId
         );
 
@@ -112,25 +112,13 @@ class ServerPayloadTypeRegistryTest {
     }
 
     @Test
-    void safelyHandleSotoRequest_rejectsNullTardisIdOrPlayer() {
-        assertFalse(ServerPayloadTypeRegistry.safelyHandleSotoRequest(
-                new RequestSotoExteriorC2SPayload(null),
+    void safelyHandlePortalStreamRequest_rejectsNullPayloadFieldsOrPlayer() {
+        assertFalse(ServerPayloadTypeRegistry.safelyHandlePortalStreamRequest(
+                new RequestPortalStreamC2SPayload(com.adamkali.dwm.tardis.portal.PortalStreamKind.SOTO, null),
                 null
         ));
-        assertFalse(ServerPayloadTypeRegistry.safelyHandleSotoRequest(
-                new RequestSotoExteriorC2SPayload(UUID.randomUUID()),
-                null
-        ));
-    }
-
-    @Test
-    void safelyHandleSotoGhostRequest_rejectsNullTardisIdOrPlayer() {
-        assertFalse(ServerPayloadTypeRegistry.safelyHandleSotoGhostRequest(
-                new RequestSotoGhostC2SPayload(null),
-                null
-        ));
-        assertFalse(ServerPayloadTypeRegistry.safelyHandleSotoGhostRequest(
-                new RequestSotoGhostC2SPayload(UUID.randomUUID()),
+        assertFalse(ServerPayloadTypeRegistry.safelyHandlePortalStreamRequest(
+                new RequestPortalStreamC2SPayload(com.adamkali.dwm.tardis.portal.PortalStreamKind.SOTO, UUID.randomUUID()),
                 null
         ));
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:citadel_tile_from_citadel_panel_stonecutting"
+        "recipe": "dwm:citadel_tile_from_citadel_panel_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:citadel_tile_from_citadel_panel_stonecutting"
+      "dwm:citadel_tile_from_citadel_panel_stonecutting"
     ]
   }
 }

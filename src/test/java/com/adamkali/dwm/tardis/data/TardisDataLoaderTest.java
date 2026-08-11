@@ -43,7 +43,7 @@ public class TardisDataLoaderTest {
         UUID testUuid = UUID.randomUUID();
         TardisDataModel testModel = TardisDataLoader.create();
         testModel.uuid = testUuid;
-        testModel.markDirty();
+        testModel.setChanged();
 
         // Act
         TardisDataLoader.save();
@@ -70,7 +70,7 @@ public class TardisDataLoaderTest {
 
         TardisDataModel testModel = TardisDataLoader.create();
         testModel.uuid = UUID.randomUUID();
-        testModel.markDirty();
+        testModel.setChanged();
 
         // Act
         TardisDataLoader.save();
@@ -98,7 +98,7 @@ public class TardisDataLoaderTest {
         UUID testUuid = UUID.randomUUID();
         TardisDataModel originalModel = TardisDataLoader.create();
         originalModel.uuid = testUuid;
-        originalModel.markDirty();
+        originalModel.setChanged();
         TardisDataLoader.save();
 
         // Act
@@ -115,7 +115,7 @@ public class TardisDataLoaderTest {
         // Arrange
         TardisDataModel originalModel = TardisDataLoader.create();
         UUID testUuid = originalModel.uuid;
-        originalModel.markDirty();
+        originalModel.setChanged();
 
         // Act
         TardisDataLoader.save();
@@ -129,7 +129,7 @@ public class TardisDataLoaderTest {
     @Test
     void save_OnlyPersistsDirtyModels() {
         TardisDataModel dirtyModel = TardisDataLoader.create();
-        dirtyModel.markDirty();
+        dirtyModel.setChanged();
         UUID dirtyId = dirtyModel.uuid;
 
         TardisDataModel cleanModel = TardisDataLoader.create();

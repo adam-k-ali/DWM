@@ -4,13 +4,6 @@ import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.EntityType;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -18,6 +11,13 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,11 +36,11 @@ class BotiInteriorSamplerTest {
     @Test
     void filterVisible_excludesAirLightAndInteriorDoorIncludesConsole() {
         Map<BlockPos, BlockState> input = new HashMap<>();
-        input.put(new BlockPos(0, 0, 0), DWMBlocks.WHITE_TARDIS_WALL.getDefaultState());
-        input.put(new BlockPos(1, 0, 0), Blocks.AIR.getDefaultState());
-        input.put(new BlockPos(2, 0, 0), Blocks.LIGHT.getDefaultState());
-        input.put(new BlockPos(3, 0, 0), DWMBlocks.TARDIS_INTERIOR_DOOR.getDefaultState());
-        input.put(new BlockPos(4, 0, 0), DWMBlocks.FIRST_DOCTOR_CONSOLE.getDefaultState());
+        input.put(new BlockPos(0, 0, 0), DWMBlocks.WHITE_TARDIS_WALL.defaultBlockState());
+        input.put(new BlockPos(1, 0, 0), Blocks.AIR.defaultBlockState());
+        input.put(new BlockPos(2, 0, 0), Blocks.LIGHT.defaultBlockState());
+        input.put(new BlockPos(3, 0, 0), DWMBlocks.TARDIS_INTERIOR_DOOR.defaultBlockState());
+        input.put(new BlockPos(4, 0, 0), DWMBlocks.FIRST_DOCTOR_CONSOLE.defaultBlockState());
 
         Map<BlockPos, BlockState> visible = BotiInteriorSampler.filterVisible(input);
 
@@ -64,24 +64,24 @@ class BotiInteriorSamplerTest {
 
         assertTrue(BotiInteriorSampler.isInsideFootprint(origin, origin));
         assertTrue(BotiInteriorSampler.isInsideFootprint(
-                origin.add(BotiInteriorSampler.SIZE_X - 1, BotiInteriorSampler.SIZE_Y - 1, BotiInteriorSampler.SIZE_Z - 1),
+                origin.offset(BotiInteriorSampler.SIZE_X - 1, BotiInteriorSampler.SIZE_Y - 1, BotiInteriorSampler.SIZE_Z - 1),
                 origin));
-        assertFalse(BotiInteriorSampler.isInsideFootprint(origin.add(BotiInteriorSampler.SIZE_X, 0, 0), origin));
-        assertFalse(BotiInteriorSampler.isInsideFootprint(origin.add(0, -1, 0), origin));
+        assertFalse(BotiInteriorSampler.isInsideFootprint(origin.offset(BotiInteriorSampler.SIZE_X, 0, 0), origin));
+        assertFalse(BotiInteriorSampler.isInsideFootprint(origin.offset(0, -1, 0), origin));
     }
 
     @Test
     void isBotiVisible_excludesInteriorDoorIncludesConsoleAndChest() {
-        assertFalse(BotiInteriorSampler.isBotiVisible(DWMBlocks.TARDIS_INTERIOR_DOOR.getDefaultState()));
-        assertTrue(BotiInteriorSampler.isBotiVisible(DWMBlocks.FIRST_DOCTOR_CONSOLE.getDefaultState()));
-        assertTrue(BotiInteriorSampler.isBotiVisible(Blocks.CHEST.getDefaultState()));
-        assertFalse(BotiInteriorSampler.isBotiVisible(Blocks.LIGHT.getDefaultState()));
+        assertFalse(BotiInteriorSampler.isBotiVisible(DWMBlocks.TARDIS_INTERIOR_DOOR.defaultBlockState()));
+        assertTrue(BotiInteriorSampler.isBotiVisible(DWMBlocks.FIRST_DOCTOR_CONSOLE.defaultBlockState()));
+        assertTrue(BotiInteriorSampler.isBotiVisible(Blocks.CHEST.defaultBlockState()));
+        assertFalse(BotiInteriorSampler.isBotiVisible(Blocks.LIGHT.defaultBlockState()));
     }
 
     @Test
     void footprintBox_matchesRoomDimensions() {
         BlockPos origin = new BlockPos(64, 64, 128);
-        Box box = BotiInteriorSampler.footprintBox(origin);
+        AABB box = BotiInteriorSampler.footprintBox(origin);
         assertEquals(origin.getX(), box.minX);
         assertEquals(origin.getY(), box.minY);
         assertEquals(origin.getZ(), box.minZ);
@@ -102,35 +102,36 @@ class BotiInteriorSamplerTest {
 
     @Test
     void captureEntity_NullEntityReturnsNull() {
-        assertNull(BotiInteriorSampler.captureEntity(null, BlockPos.ORIGIN));
+        assertNull(BotiInteriorSampler.captureEntity(null, BlockPos.ZERO));
     }
 
     @Test
     void writeRelativePos_OverwritesPosList() {
-        NbtCompound nbt = new NbtCompound();
+        CompoundTag nbt = new CompoundTag();
         BotiInteriorSampler.writeRelativePos(nbt, 1.5f, 2.25f, 3.75f);
-        assertTrue(nbt.contains("Pos", NbtElement.LIST_TYPE));
-        assertEquals(1.5, nbt.getList("Pos", NbtElement.DOUBLE_TYPE).getDouble(0), 0.0001);
-        assertEquals(2.25, nbt.getList("Pos", NbtElement.DOUBLE_TYPE).getDouble(1), 0.0001);
-        assertEquals(3.75, nbt.getList("Pos", NbtElement.DOUBLE_TYPE).getDouble(2), 0.0001);
+        assertTrue(nbt.contains("Pos"));
+        var pos = nbt.getListOrEmpty("Pos");
+        assertEquals(1.5, pos.getDoubleOr(0, 0), 0.0001);
+        assertEquals(2.25, pos.getDoubleOr(1, 0), 0.0001);
+        assertEquals(3.75, pos.getDoubleOr(2, 0), 0.0001);
     }
 
     @Test
     void writeRelativeAttachment_RewritesTileToPlotLocal() {
-        NbtCompound nbt = new NbtCompound();
+        CompoundTag nbt = new CompoundTag();
         BlockPos origin = new BlockPos(1114432, 64, 151168);
         nbt.putInt("TileX", 1114438);
         nbt.putInt("TileY", 66);
         nbt.putInt("TileZ", 151171);
         BotiInteriorSampler.writeRelativeAttachment(nbt, origin);
-        assertEquals(6, nbt.getInt("TileX"));
-        assertEquals(2, nbt.getInt("TileY"));
-        assertEquals(3, nbt.getInt("TileZ"));
+        assertEquals(6, nbt.getIntOr("TileX", 0));
+        assertEquals(2, nbt.getIntOr("TileY", 0));
+        assertEquals(3, nbt.getIntOr("TileZ", 0));
     }
 
     @Test
     void writeRelativeAttachment_NoTileIsNoOp() {
-        NbtCompound nbt = new NbtCompound();
+        CompoundTag nbt = new CompoundTag();
         BotiInteriorSampler.writeRelativePos(nbt, 1f, 1f, 1f);
         BotiInteriorSampler.writeRelativeAttachment(nbt, new BlockPos(10, 20, 30));
         assertFalse(nbt.contains("TileX"));
@@ -139,7 +140,7 @@ class BotiInteriorSamplerTest {
     @Test
     void playerEntityType_IsNotSaveable_RequiresSpecialCase() {
         // Documents why captureEntityNbt special-cases players.
-        assertFalse(EntityType.PLAYER.isSaveable());
-        assertEquals("minecraft:player", EntityType.getId(EntityType.PLAYER).toString());
+        assertFalse(EntityTypes.PLAYER.canSerialize());
+        assertEquals("minecraft:player", EntityType.getKey(EntityTypes.PLAYER).toString());
     }
 }

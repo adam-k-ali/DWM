@@ -2,20 +2,23 @@ package com.adamkali.dwm.block.entities;
 
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityTicker;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 /**
  * Origin-cell state for a 3×2 interior door bank. {@link TardisInteriorDoorBlock#OPEN} on the
@@ -28,15 +31,15 @@ public class TardisInteriorDoorBlockEntity extends BlockEntity implements BlockE
 
     public TardisInteriorDoorBlockEntity(BlockPos pos, BlockState state) {
         super(DWMBlockEntities.TARDIS_INTERIOR_DOOR_BLOCK_ENTITY, pos, state);
-        if (state.contains(TardisInteriorDoorBlock.OPEN)) {
-            this.open = state.get(TardisInteriorDoorBlock.OPEN);
+        if (state.hasProperty(TardisInteriorDoorBlock.OPEN)) {
+            this.open = state.getValue(TardisInteriorDoorBlock.OPEN);
             this.doorSwing = this.open ? 1.0f : 0.0f;
         }
     }
 
     public void setTardisId(@Nullable UUID tardisId) {
         this.tardisId = tardisId;
-        markDirty();
+        setChanged();
     }
 
     public @Nullable UUID getTardisId() {
@@ -61,17 +64,17 @@ public class TardisInteriorDoorBlockEntity extends BlockEntity implements BlockE
 
     public void setOpen(boolean open) {
         this.open = open;
-        markDirty();
-        if (world != null) {
-            BlockState state = getCachedState();
-            world.updateListeners(pos, state, state, Block.NOTIFY_LISTENERS);
+        setChanged();
+        if (level != null) {
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
         }
     }
 
     @Override
-    public void tick(World world, BlockPos pos, BlockState state, TardisInteriorDoorBlockEntity blockEntity) {
-        if (state.contains(TardisInteriorDoorBlock.OPEN)) {
-            open = state.get(TardisInteriorDoorBlock.OPEN);
+    public void tick(Level world, BlockPos pos, BlockState state, TardisInteriorDoorBlockEntity blockEntity) {
+        if (state.hasProperty(TardisInteriorDoorBlock.OPEN)) {
+            open = state.getValue(TardisInteriorDoorBlock.OPEN);
         }
         if (open) {
             doorSwing = Math.min(doorSwing + 0.05f, 1f);
@@ -81,35 +84,31 @@ public class TardisInteriorDoorBlockEntity extends BlockEntity implements BlockE
     }
 
     @Override
-    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
-        super.writeNbt(nbt, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
         if (tardisId != null) {
-            nbt.putUuid("tardisId", tardisId);
+            output.store("tardisId", UUIDUtil.CODEC, tardisId);
         }
-        nbt.putBoolean("open", open);
-        nbt.putFloat("doorSwing", doorSwing);
+        output.putBoolean("open", open);
+        output.putFloat("doorSwing", doorSwing);
     }
 
     @Override
-    protected void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
-        super.readNbt(nbt, registries);
-        if (nbt.containsUuid("tardisId")) {
-            tardisId = nbt.getUuid("tardisId");
-        } else {
-            tardisId = null;
-        }
-        open = nbt.getBoolean("open");
-        doorSwing = nbt.getFloat("doorSwing");
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        tardisId = input.read("tardisId", UUIDUtil.CODEC).orElse(null);
+        open = input.getBooleanOr("open", true);
+        doorSwing = input.getFloatOr("doorSwing", 1.0f);
     }
 
     @Override
-    public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registries) {
-        return createNbt(registries);
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
 
     @Nullable
     @Override
-    public Packet<ClientPlayPacketListener> toUpdatePacket() {
-        return BlockEntityUpdateS2CPacket.create(this);
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 }

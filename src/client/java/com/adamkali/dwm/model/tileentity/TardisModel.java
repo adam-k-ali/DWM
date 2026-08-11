@@ -1,13 +1,12 @@
 package com.adamkali.dwm.model.tileentity;
 
 import com.adamkali.dwm.render.state.TardisRenderState;
-import net.minecraft.client.model.ModelPart;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.entity.model.EntityModel;
-import net.minecraft.client.util.math.MatrixStack;
-
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.geom.ModelPart;
 
 public abstract class TardisModel extends EntityModel<TardisRenderState> {
     private static final List<String> DOOR_PART_NAMES = List.of("LeftDoor", "rightDoor", "Door2", "door");
@@ -17,8 +16,8 @@ public abstract class TardisModel extends EntityModel<TardisRenderState> {
     }
 
     @Override
-    public void setAngles(TardisRenderState state) {
-        super.setAngles(state);
+    public void setupAnim(TardisRenderState state) {
+        super.setupAnim(state);
         float doorSwingProgress = state.getDoorSwingProgress();
         ModelPart leftDoor = null;
 
@@ -29,7 +28,7 @@ public abstract class TardisModel extends EntityModel<TardisRenderState> {
         }
 
         if (leftDoor != null) {
-            leftDoor.setAngles(0.0F, doorSwingProgress * (float) Math.PI / 3, 0.0F);
+            leftDoor.setRotation(0.0F, doorSwingProgress * (float) Math.PI / 3, 0.0F);
         }
     }
 
@@ -52,13 +51,13 @@ public abstract class TardisModel extends EntityModel<TardisRenderState> {
     /**
      * Renders the exterior shell without door meshes (for BOTI to fill the aperture first).
      */
-    public void renderShell(MatrixStack matrices, VertexConsumer vertices, int light, int overlay) {
+    public void renderShell(PoseStack matrices, VertexConsumer vertices, int light, int overlay) {
         List<ModelPart> doors = getDoorParts();
         for (ModelPart door : doors) {
             door.visible = false;
         }
         try {
-            this.render(matrices, vertices, light, overlay);
+            this.renderToBuffer(matrices, vertices, light, overlay, -1);
         } finally {
             for (ModelPart door : doors) {
                 door.visible = true;
@@ -69,10 +68,10 @@ public abstract class TardisModel extends EntityModel<TardisRenderState> {
     /**
      * Renders only door meshes, applying ancestor transforms so nested doors stay aligned.
      */
-    public void renderDoors(MatrixStack matrices, VertexConsumer vertices, int light, int overlay) {
-        matrices.push();
+    public void renderDoors(PoseStack matrices, VertexConsumer vertices, int light, int overlay) {
+        matrices.pushPose();
         try {
-            root.rotate(matrices);
+            root.translateAndRotate(matrices);
 
             for (String name : DOOR_PART_NAMES) {
                 if (root.hasChild(name)) {
@@ -81,28 +80,28 @@ public abstract class TardisModel extends EntityModel<TardisRenderState> {
             }
 
             if (root.hasChild("Main")) {
-                matrices.push();
+                matrices.pushPose();
                 ModelPart main = root.getChild("Main");
-                main.rotate(matrices);
+                main.translateAndRotate(matrices);
                 for (String name : DOOR_PART_NAMES) {
                     if (main.hasChild(name)) {
                         main.getChild(name).render(matrices, vertices, light, overlay);
                     }
                 }
-                matrices.pop();
+                matrices.popPose();
             }
 
             if (root.hasChild("bone")) {
-                matrices.push();
+                matrices.pushPose();
                 ModelPart bone = root.getChild("bone");
-                bone.rotate(matrices);
+                bone.translateAndRotate(matrices);
                 if (bone.hasChild("door")) {
                     bone.getChild("door").render(matrices, vertices, light, overlay);
                 }
-                matrices.pop();
+                matrices.popPose();
             }
         } finally {
-            matrices.pop();
+            matrices.popPose();
         }
     }
 

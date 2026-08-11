@@ -1,18 +1,18 @@
 package com.adamkali.dwm.world;
 
 import com.adamkali.dwm.DWMReference;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.biome.Biome;
 
 public final class DWMBiomeKeys {
-    public static final RegistryKey<Biome> GALLIFREY_PLAINS = key("gallifrey_plains");
-    public static final RegistryKey<Biome> GALLIFREY_FOREST = key("gallifrey_forest");
-    public static final RegistryKey<Biome> GALLIFREY_WASTES = key("gallifrey_wastes");
+    public static final ResourceKey<Biome> GALLIFREY_PLAINS = key("gallifrey_plains");
+    public static final ResourceKey<Biome> GALLIFREY_FOREST = key("gallifrey_forest");
+    public static final ResourceKey<Biome> GALLIFREY_WASTES = key("gallifrey_wastes");
 
-    private static RegistryKey<Biome> key(String path) {
-        return RegistryKey.of(RegistryKeys.BIOME, Identifier.of(DWMReference.MOD_ID, path));
+    private static ResourceKey<Biome> key(String path) {
+        return ResourceKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, path));
     }
 
     private DWMBiomeKeys() {

@@ -1,0 +1,68 @@
+package com.adamkali.dwm.render.portal;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderBuffers;
+import net.minecraft.client.renderer.SubmitNodeStorage;
+import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
+
+/**
+ * Owns a private {@link FeatureRenderDispatcher} for portal entity/BE flushes.
+ * <p>
+ * The game renderer dispatcher still has its main-pass {@code PreparedFrame} open during
+ * {@code LevelRenderEvents.END_MAIN}, so calling {@code renderAllFeatures} on it throws
+ * {@code PreparedFrame already in use}. Portal features must use a separate dispatcher
+ * (and staged vertex buffer) that is not mid-frame.
+ */
+public final class PortalFeatureFlush implements AutoCloseable {
+    private static PortalFeatureFlush instance;
+
+    private final RenderBuffers renderBuffers;
+    private final FeatureRenderDispatcher dispatcher;
+    private boolean closed;
+
+    private PortalFeatureFlush(Minecraft client) {
+        this.renderBuffers = new RenderBuffers(1);
+        this.dispatcher = new FeatureRenderDispatcher(
+                this.renderBuffers,
+                client.getModelManager(),
+                client.getAtlasManager(),
+                client.font,
+                client.gameRenderer.gameRenderState()
+        );
+    }
+
+    public static PortalFeatureFlush get(Minecraft client) {
+        if (client == null) {
+            return null;
+        }
+        if (instance == null || instance.closed) {
+            instance = new PortalFeatureFlush(client);
+        }
+        return instance;
+    }
+
+    public static void closeGlobal() {
+        if (instance != null) {
+            instance.close();
+            instance = null;
+        }
+    }
+
+    public void renderAllFeatures(SubmitNodeStorage submitNodeStorage) {
+        if (closed || submitNodeStorage == null) {
+            return;
+        }
+        dispatcher.renderAllFeatures(submitNodeStorage);
+        renderBuffers.endFrame();
+    }
+
+    @Override
+    public void close() {
+        if (closed) {
+            return;
+        }
+        closed = true;
+        dispatcher.close();
+        renderBuffers.close();
+    }
+}

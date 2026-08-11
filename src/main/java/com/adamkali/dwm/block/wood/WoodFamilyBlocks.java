@@ -1,6 +1,6 @@
 package com.adamkali.dwm.block.wood;
 
-import net.minecraft.block.Block;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
 
 public record WoodFamilyBlocks(

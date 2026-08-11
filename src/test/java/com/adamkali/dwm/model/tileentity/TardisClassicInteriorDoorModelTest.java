@@ -1,16 +1,17 @@
 package com.adamkali.dwm.model.tileentity;
 
-import net.minecraft.client.model.ModelPart;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.util.math.MatrixStack;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.List;
+import net.minecraft.client.model.geom.ModelPart;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 
 class TardisClassicInteriorDoorModelTest {
     private static final float EPSILON = 1e-4f;
@@ -29,7 +30,7 @@ class TardisClassicInteriorDoorModelTest {
 
     @Test
     void texturedModelData_hasDoorHierarchy() {
-        ModelPart root = TardisClassicInteriorDoorModel.getTexturedModelData().createModel();
+        ModelPart root = TardisClassicInteriorDoorModel.getTexturedModelData().bakeRoot();
         assertTrue(root.hasChild("frame"));
         assertTrue(root.getChild("frame").hasChild("Door1"));
         assertTrue(root.hasChild("frame2"));
@@ -40,7 +41,7 @@ class TardisClassicInteriorDoorModelTest {
 
     @Test
     void renderShell_hidesDoorsDuringRenderThenRestoresVisibility() {
-        ModelPart root = TardisClassicInteriorDoorModel.getTexturedModelData().createModel();
+        ModelPart root = TardisClassicInteriorDoorModel.getTexturedModelData().bakeRoot();
         TardisClassicInteriorDoorModel model = new TardisClassicInteriorDoorModel(root);
         List<ModelPart> doors = model.getDoorParts();
         assertEquals(2, doors.size());
@@ -58,7 +59,7 @@ class TardisClassicInteriorDoorModelTest {
             return Mockito.RETURNS_DEFAULTS.answer(invocation);
         });
 
-        model.renderShell(new MatrixStack(), vertices, 0, 0);
+        model.renderShell(new PoseStack(), vertices, 0, 0);
 
         assertTrue(sawHidden[0], "shell render should write geometry with doors hidden");
         for (ModelPart door : doors) {
@@ -68,7 +69,7 @@ class TardisClassicInteriorDoorModelTest {
 
     @Test
     void getDoorParts_areNestedUnderFrames() {
-        ModelPart root = TardisClassicInteriorDoorModel.getTexturedModelData().createModel();
+        ModelPart root = TardisClassicInteriorDoorModel.getTexturedModelData().bakeRoot();
         TardisClassicInteriorDoorModel model = new TardisClassicInteriorDoorModel(root);
         List<ModelPart> doors = model.getDoorParts();
         assertEquals(root.getChild("frame").getChild("Door1"), doors.get(0));

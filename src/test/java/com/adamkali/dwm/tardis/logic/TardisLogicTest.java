@@ -4,13 +4,13 @@ import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
-import net.minecraft.util.ActionResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.util.UUID;
+import net.minecraft.world.InteractionResult;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -35,13 +35,13 @@ class TardisLogicTest {
 
             // Test opening the door
             assertFalse(testTardis.doorState.isOpen);
-            ActionResult firstResult = TardisLogic.toggleDoor(testTardisId);
-            assertEquals(ActionResult.SUCCESS, firstResult);
+            InteractionResult firstResult = TardisLogic.toggleDoor(testTardisId);
+            assertEquals(InteractionResult.SUCCESS, firstResult);
             assertTrue(testTardis.doorState.isOpen);
 
             // Test closing the door
-            ActionResult secondResult = TardisLogic.toggleDoor(testTardisId);
-            assertEquals(ActionResult.SUCCESS, secondResult);
+            InteractionResult secondResult = TardisLogic.toggleDoor(testTardisId);
+            assertEquals(InteractionResult.SUCCESS, secondResult);
             assertFalse(testTardis.doorState.isOpen);
         }
     }
@@ -53,9 +53,9 @@ class TardisLogicTest {
             testTardis.doorState.isOpen = false;
             testTardis.doorState.doorSwing = 0.4f;
 
-            ActionResult result = TardisLogic.toggleDoor(testTardisId);
+            InteractionResult result = TardisLogic.toggleDoor(testTardisId);
 
-            assertEquals(ActionResult.PASS, result);
+            assertEquals(InteractionResult.PASS, result);
             assertFalse(testTardis.doorState.isOpen);
             assertEquals(0.4f, testTardis.doorState.doorSwing, 0.001f);
         }
@@ -65,8 +65,8 @@ class TardisLogicTest {
     void toggleDoor_WithNullTardis_ShouldDoNothing() {
         try (MockedStatic<TardisDataLoader> mockedStatic = Mockito.mockStatic(TardisDataLoader.class)) {
             mockedStatic.when(() -> TardisDataLoader.get(testTardisId)).thenReturn(null);
-            ActionResult result = TardisLogic.toggleDoor(testTardisId);
-            assertEquals(ActionResult.FAIL, result);
+            InteractionResult result = TardisLogic.toggleDoor(testTardisId);
+            assertEquals(InteractionResult.FAIL, result);
         }
     }
 

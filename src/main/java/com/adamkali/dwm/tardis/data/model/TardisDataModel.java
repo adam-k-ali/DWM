@@ -53,14 +53,14 @@ public class TardisDataModel {
 
     public void setTravelPhase(TardisTravelPhase phase) {
         this.travelPhase = phase == null ? TardisTravelPhase.IDLE.name() : phase.name();
-        markDirty();
+        setChanged();
     }
 
     public boolean needsSaving() {
         return needsSaving;
     }
 
-    public void markDirty() {
+    public void setChanged() {
         this.needsSaving = true;
     }
 
@@ -71,7 +71,7 @@ public class TardisDataModel {
         this.exteriorZ = z;
         this.exteriorRotation = rotation;
         this.hasExteriorLocation = true;
-        markDirty();
+        setChanged();
     }
 
     @Override

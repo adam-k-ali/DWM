@@ -14,11 +14,15 @@ public class DWMConfig {
 
     public static final ConfigKey<Boolean> ENABLE_CHAMELEON_GUI = new ConfigKey<>("enableChameleonGui", false);
 
-    /** Exterior bigger-on-the-inside door preview (client stencil). Default on. */
-    public static final ConfigKey<Boolean> ENABLE_BOTI = new ConfigKey<>("enableBoti", true);
+    /**
+     * Shared exterior BOTI + interior SOTO door portal previews (client FBO).
+     * Default on (matches former {@code enableBoti} default).
+     */
+    public static final ConfigKey<Boolean> ENABLE_DOOR_PORTALS = new ConfigKey<>("enableDoorPortals", true);
 
-    /** Interior smaller-on-the-outside door preview (client stencil). Experimental; default off. */
-    public static final ConfigKey<Boolean> ENABLE_SOTO = new ConfigKey<>("enableSoto", false);
+    /** Legacy keys migrated into {@link #ENABLE_DOOR_PORTALS} on load. */
+    static final String LEGACY_ENABLE_BOTI = "enableBoti";
+    static final String LEGACY_ENABLE_SOTO = "enableSoto";
 
     private static HashMap<String, Object> config = new HashMap<>();
 
@@ -30,6 +34,7 @@ public class DWMConfig {
 
         initialized = true;
         config = DWMConfigManager.load();
+        migrateDoorPortals(config);
 
         // Force IS_FIRST_START to be true if the config is empty
         if (!config.containsKey(IS_FIRST_START.getKey())) {
@@ -41,7 +46,39 @@ public class DWMConfig {
         LOGGER.info("DWMConfig initialized");
     }
 
+    /**
+     * If {@code enableDoorPortals} is absent but either legacy key is present,
+     * set {@code enableDoorPortals = enableBoti || enableSoto} and drop the legacy keys.
+     */
+    static void migrateDoorPortals(HashMap<String, Object> map) {
+        if (map == null) {
+            return;
+        }
+        boolean hasLegacy = map.containsKey(LEGACY_ENABLE_BOTI) || map.containsKey(LEGACY_ENABLE_SOTO);
+        if (!map.containsKey(ENABLE_DOOR_PORTALS.getKey()) && hasLegacy) {
+            boolean boti = asBoolean(map.get(LEGACY_ENABLE_BOTI), true);
+            boolean soto = asBoolean(map.get(LEGACY_ENABLE_SOTO), false);
+            map.put(ENABLE_DOOR_PORTALS.getKey(), boti || soto);
+        }
+        map.remove(LEGACY_ENABLE_BOTI);
+        map.remove(LEGACY_ENABLE_SOTO);
+    }
+
+    private static boolean asBoolean(Object value, boolean defaultValue) {
+        if (value instanceof Boolean b) {
+            return b;
+        }
+        if (value instanceof Number n) {
+            return n.intValue() != 0;
+        }
+        if (value instanceof String s) {
+            return Boolean.parseBoolean(s);
+        }
+        return defaultValue;
+    }
+
     public static void save() {
+        migrateDoorPortals(config);
         DWMConfigManager.save(config);
     }
 

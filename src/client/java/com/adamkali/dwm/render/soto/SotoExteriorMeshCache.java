@@ -1,217 +1,240 @@
 package com.adamkali.dwm.render.soto;
 
-import com.adamkali.dwm.network.RequestSotoExteriorC2SPayload;
-import com.adamkali.dwm.network.RequestSotoGhostC2SPayload;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.LerpedPose;
+import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
-import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
+import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
+import com.adamkali.dwm.tardis.portal.PortalShellState;
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.entity.EntityRenderDispatcher;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.math.BlockPos;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
 
-import java.util.Map;
+import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Per-TARDIS SOTO exterior cache for shell metadata and atmosphere (Phase 0).
- * Terrain and entities come from {@link SotoGhostExterior}.
+ * Per-TARDIS SOTO exterior cache for shell metadata and atmosphere.
+ * Now delegates meta storage to {@link PortalSceneStore} and terrain/entities
+ * to kind-keyed {@link SotoGhostExterior}.
+ * <p>
+ * Ghost entity / block-entity draws use extract+submit against {@link SubmitNodeCollector}
+ * and {@link CameraRenderState}.
  */
 public final class SotoExteriorMeshCache {
-    private static final long REQUEST_COOLDOWN_MS = 2000L;
-
-    private static final Map<UUID, CachedSnapshot> SNAPSHOTS = new ConcurrentHashMap<>();
-    private static final Map<UUID, Long> LAST_REQUEST_MS = new ConcurrentHashMap<>();
+    private static final int FULLBRIGHT = LightCoordsUtil.FULL_BRIGHT;
+    private static final AtomicInteger NEXT_FALLBACK_ENTITY_ID = new AtomicInteger(2_000_000);
 
     private SotoExteriorMeshCache() {
     }
 
-    public record ShellState(
-            TardisChameleonVariant variant,
-            float doorSwing,
-            boolean isOpen,
-            int exteriorRotation
-    ) {
-    }
-
     public static boolean hasSnapshot(UUID tardisId) {
-        return tardisId != null && SNAPSHOTS.containsKey(tardisId);
+        return tardisId != null && PortalSceneStore.getShell(PortalStreamKind.SOTO, tardisId) != null;
     }
 
-    public static ShellState getShellState(UUID tardisId) {
+    public static PortalShellState getShellState(UUID tardisId) {
         if (tardisId == null) {
             return null;
         }
-        CachedSnapshot cached = SNAPSHOTS.get(tardisId);
-        if (cached == null) {
-            requestIfNeeded(tardisId);
-            return null;
+        PortalShellState shell = PortalSceneStore.getShell(PortalStreamKind.SOTO, tardisId);
+        if (shell == null) {
+            PortalSceneStore.requestIfNeeded(PortalStreamKind.SOTO, tardisId);
         }
-        return cached.shell();
+        return shell;
     }
 
     public static SotoAtmosphere getAtmosphere(UUID tardisId) {
         if (tardisId == null) {
             return null;
         }
-        CachedSnapshot cached = SNAPSHOTS.get(tardisId);
-        if (cached == null) {
-            requestIfNeeded(tardisId);
+        PortalAtmosphere portal = PortalSceneStore.getAtmosphere(PortalStreamKind.SOTO, tardisId);
+        if (portal == null) {
+            PortalSceneStore.requestIfNeeded(PortalStreamKind.SOTO, tardisId);
             return null;
         }
-        return cached.atmosphere();
-    }
-
-    public static void applySnapshot(
-            UUID tardisId,
-            int revision,
-            TardisChameleonVariant variant,
-            float doorSwing,
-            boolean isOpen,
-            int exteriorRotation,
-            SotoAtmosphere atmosphere
-    ) {
-        if (tardisId == null) {
-            return;
-        }
-        CachedSnapshot existing = SNAPSHOTS.get(tardisId);
-        if (existing != null && revision < existing.revision()) {
-            return;
-        }
-        ShellState shell = new ShellState(
-                variant == null ? TardisChameleonVariant.TT_CAPSULE : variant,
-                doorSwing,
-                isOpen,
-                exteriorRotation
-        );
-        SotoAtmosphere atm = atmosphere == null ? SotoAtmosphere.DEFAULT : atmosphere;
-        SNAPSHOTS.put(tardisId, new CachedSnapshot(revision, shell, atm));
-        LAST_REQUEST_MS.remove(tardisId);
+        return SotoAtmosphere.fromPortal(portal);
     }
 
     public static void invalidate(UUID tardisId) {
         if (tardisId != null) {
-            SNAPSHOTS.remove(tardisId);
-            LAST_REQUEST_MS.remove(tardisId);
-            SotoGhostExterior.invalidate(tardisId);
+            PortalSceneStore.invalidate(PortalStreamKind.SOTO, tardisId);
         }
     }
 
     public static void invalidateAll() {
-        SNAPSHOTS.clear();
-        LAST_REQUEST_MS.clear();
-        SotoGhostExterior.invalidateAll();
+        PortalSceneStore.invalidateAll();
     }
 
-    public static void renderGhostBlockEntities(
-            MatrixStack matrices,
-            VertexConsumerProvider vertexConsumers,
+    /**
+     * Submits ghost block entities into {@code submitNodeCollector}. Caller must flush
+     * while the portal target is bound.
+     *
+     * @return number of BEs successfully submitted
+     */
+    public static int renderGhostBlockEntities(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            CameraRenderState cameraState,
             int light,
             float tickDelta,
             UUID tardisId,
             Camera camera
     ) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        SotoGhostExterior ghost = SotoGhostExterior.get(tardisId);
-        if (client == null || ghost == null) {
-            return;
+        return renderGhostBlockEntities(
+                matrices, submitNodeCollector, cameraState, light, tickDelta,
+                PortalStreamKind.SOTO, tardisId, camera
+        );
+    }
+
+    public static int renderGhostBlockEntities(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            CameraRenderState cameraState,
+            int light,
+            float tickDelta,
+            PortalStreamKind kind,
+            UUID tardisId,
+            Camera camera
+    ) {
+        Minecraft client = Minecraft.getInstance();
+        SotoGhostExterior ghost = SotoGhostExterior.get(kind, tardisId);
+        if (client == null || ghost == null || matrices == null || submitNodeCollector == null || cameraState == null) {
+            return 0;
         }
         BlockEntityRenderDispatcher beDispatcher = client.getBlockEntityRenderDispatcher();
-        if (client.world != null && camera != null) {
-            beDispatcher.configure(client.world, camera, client.crosshairTarget);
+        if (camera != null) {
+            beDispatcher.prepare(camera.position());
         }
-        for (BlockEntity blockEntity : ghost.buildRenderedBlockEntities()) {
-            BlockEntityRenderer<BlockEntity> renderer = beDispatcher.get(blockEntity);
+        List<BlockEntity> bes = ghost.buildRenderedBlockEntities();
+        int submitted = 0;
+        int lightCoords = light >= 0 ? light : FULLBRIGHT;
+        Vec3 cameraPos = cameraState.pos;
+        for (BlockEntity blockEntity : bes) {
+            @SuppressWarnings("unchecked")
+            BlockEntityRenderer<BlockEntity, BlockEntityRenderState> renderer =
+                    (BlockEntityRenderer<BlockEntity, BlockEntityRenderState>) beDispatcher.getRenderer(blockEntity);
             if (renderer == null) {
                 continue;
             }
-            BlockPos pos = blockEntity.getPos();
-            matrices.push();
-            matrices.translate(pos.getX(), pos.getY(), pos.getZ());
-            renderer.render(blockEntity, tickDelta, matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV);
-            matrices.pop();
+            BlockEntityRenderState state = beDispatcher.tryExtractRenderState(blockEntity, tickDelta, null, false);
+            if (state == null) {
+                continue;
+            }
+            state.lightCoords = lightCoords;
+            BlockPos pos = blockEntity.getBlockPos();
+            matrices.pushPose();
+            matrices.translate(
+                    pos.getX() - cameraPos.x,
+                    pos.getY() - cameraPos.y,
+                    pos.getZ() - cameraPos.z
+            );
+            beDispatcher.submit(state, matrices, submitNodeCollector, cameraState);
+            matrices.popPose();
+            submitted++;
         }
+        return submitted;
     }
 
-    public static void renderGhostEntities(
-            MatrixStack matrices,
-            VertexConsumerProvider vertexConsumers,
-            int light,
+    /**
+     * Submits ghost entities into {@code submitNodeCollector}. Caller must flush while the
+     * portal target is bound.
+     *
+     * @return number of entities successfully submitted
+     */
+    public static int renderGhostEntities(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            CameraRenderState cameraState,
             float tickDelta,
             UUID tardisId,
             Camera camera
     ) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client == null || !SotoGhostExterior.hasEntities(tardisId)) {
-            return;
+        return renderGhostEntities(
+                matrices, submitNodeCollector, cameraState, tickDelta,
+                PortalStreamKind.SOTO, tardisId, camera
+        );
+    }
+
+    public static int renderGhostEntities(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            CameraRenderState cameraState,
+            float tickDelta,
+            PortalStreamKind kind,
+            UUID tardisId,
+            Camera camera
+    ) {
+        Minecraft client = Minecraft.getInstance();
+        if (client == null || matrices == null || submitNodeCollector == null || cameraState == null
+                || !SotoGhostExterior.hasEntities(kind, tardisId)) {
+            return 0;
         }
         EntityRenderDispatcher entityDispatcher = client.getEntityRenderDispatcher();
-        if (client.world != null && camera != null) {
-            entityDispatcher.configure(client.world, camera, client.player);
+        if (camera != null) {
+            entityDispatcher.prepare(camera, client.player);
         }
-        for (SotoGhostExterior.RenderableGhostEntity ghost : SotoGhostExterior.getRenderableEntities(tardisId)) {
+        List<SotoGhostExterior.RenderableGhostEntity> ghosts =
+                SotoGhostExterior.getRenderableEntities(kind, tardisId);
+        int submitted = 0;
+        Vec3 cameraPos = cameraState.pos;
+        for (SotoGhostExterior.RenderableGhostEntity ghost : ghosts) {
             Entity entity = ghost.entity();
             LerpedPose pose = ghost.pose();
-            entity.setYaw(pose.yaw());
-            entity.setPitch(pose.pitch());
+            entity.setYRot(pose.yaw());
+            entity.setXRot(pose.pitch());
             if (entity instanceof LivingEntity living) {
                 snapLivingYaw(living, pose.yaw());
             }
-            entityDispatcher.render(
-                    entity,
-                    pose.x(),
-                    pose.y(),
-                    pose.z(),
-                    tickDelta,
-                    matrices,
-                    vertexConsumers,
-                    light
-            );
+            try {
+                ensureGhostEntityId(entity);
+                EntityRenderState entityState = entityDispatcher.extractEntity(entity, tickDelta);
+                if (entityState == null) {
+                    continue;
+                }
+                entityState.lightCoords = FULLBRIGHT;
+                entityDispatcher.submit(
+                        entityState,
+                        cameraState,
+                        pose.x() - cameraPos.x,
+                        pose.y() - cameraPos.y,
+                        pose.z() - cameraPos.z,
+                        matrices,
+                        submitNodeCollector
+                );
+                submitted++;
+            } catch (RuntimeException ignored) {
+            }
+        }
+        return submitted;
+    }
+
+    private static void ensureGhostEntityId(Entity entity) {
+        try {
+            entity.getId();
+        } catch (IllegalStateException missingId) {
+            entity.setId(NEXT_FALLBACK_ENTITY_ID.getAndIncrement());
         }
     }
 
     private static void snapLivingYaw(LivingEntity living, float yaw) {
-        living.setBodyYaw(yaw);
-        living.setHeadYaw(yaw);
-        living.prevBodyYaw = yaw;
-        living.prevHeadYaw = yaw;
-    }
-
-    private static void requestIfNeeded(UUID tardisId) {
-        long now = System.currentTimeMillis();
-        Long last = LAST_REQUEST_MS.get(tardisId);
-        if (last != null && now - last < REQUEST_COOLDOWN_MS) {
-            return;
-        }
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client == null || client.getNetworkHandler() == null) {
-            return;
-        }
-        LAST_REQUEST_MS.put(tardisId, now);
-        ClientPlayNetworking.send(new RequestSotoExteriorC2SPayload(tardisId));
-        ClientPlayNetworking.send(new RequestSotoGhostC2SPayload(tardisId));
-    }
-
-    private record CachedSnapshot(
-            int revision,
-            ShellState shell,
-            SotoAtmosphere atmosphere
-    ) {
-        private CachedSnapshot {
-            if (atmosphere == null) {
-                atmosphere = SotoAtmosphere.DEFAULT;
-            }
-        }
+        living.setYBodyRot(yaw);
+        living.setYHeadRot(yaw);
+        living.yBodyRotO = yaw;
+        living.yHeadRotO = yaw;
     }
 }

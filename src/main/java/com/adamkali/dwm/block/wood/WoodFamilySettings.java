@@ -1,127 +1,128 @@
 package com.adamkali.dwm.block.wood;
 
 import com.adamkali.dwm.block.DWMBlockSettings;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.MapColor;
-import net.minecraft.block.enums.NoteBlockInstrument;
-import net.minecraft.block.piston.PistonBehavior;
-import net.minecraft.entity.EntityType;
-import net.minecraft.sound.BlockSoundGroup;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
+import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 
 public record WoodFamilySettings(
-        AbstractBlock.Settings planks,
-        AbstractBlock.Settings leaves,
-        AbstractBlock.Settings sapling,
-        AbstractBlock.Settings sign,
-        AbstractBlock.Settings hangingSign,
-        AbstractBlock.Settings button,
-        AbstractBlock.Settings pressurePlate,
-        AbstractBlock.Settings flowerPot,
-        AbstractBlock.Settings door,
-        AbstractBlock.Settings trapdoor
+        BlockBehaviour.Properties planks,
+        BlockBehaviour.Properties leaves,
+        BlockBehaviour.Properties sapling,
+        BlockBehaviour.Properties sign,
+        BlockBehaviour.Properties hangingSign,
+        BlockBehaviour.Properties button,
+        BlockBehaviour.Properties pressurePlate,
+        BlockBehaviour.Properties flowerPot,
+        BlockBehaviour.Properties door,
+        BlockBehaviour.Properties trapdoor
 ) {
     public static WoodFamilySettings of(MapColor planksColor) {
         return new WoodFamilySettings(
-                AbstractBlock.Settings.create()
+                BlockBehaviour.Properties.of()
                         .mapColor(planksColor)
                         .instrument(NoteBlockInstrument.BASS)
                         .strength(2.0F, 3.0F)
-                        .sounds(BlockSoundGroup.WOOD)
-                        .burnable(),
-                AbstractBlock.Settings.create()
-                        .mapColor(MapColor.DARK_GREEN)
+                        .sound(SoundType.WOOD)
+                        .ignitedByLava(),
+                BlockBehaviour.Properties.of()
+                        .mapColor(MapColor.PLANT)
                         .strength(0.2F)
-                        .ticksRandomly()
-                        .sounds(BlockSoundGroup.GRASS)
-                        .nonOpaque()
-                        .allowsSpawning(WoodFamilySettings::canSpawnOnLeaves)
-                        .suffocates(WoodFamilySettings::never)
-                        .blockVision(WoodFamilySettings::never)
-                        .burnable()
-                        .pistonBehavior(PistonBehavior.DESTROY)
-                        .solidBlock(WoodFamilySettings::never),
-                AbstractBlock.Settings.create()
-                        .mapColor(MapColor.DARK_GREEN)
+                        .randomTicks()
+                        .sound(SoundType.GRASS)
+                        .noOcclusion()
+                        .isValidSpawn(WoodFamilySettings::canSpawnOnLeaves)
+                        .isSuffocating(WoodFamilySettings::never)
+                        .isViewBlocking(WoodFamilySettings::never)
+                        .ignitedByLava()
+                        .pushReaction(PushReaction.DESTROY)
+                        .isRedstoneConductor(WoodFamilySettings::never),
+                BlockBehaviour.Properties.of()
+                        .mapColor(MapColor.PLANT)
                         .noCollision()
-                        .ticksRandomly()
-                        .breakInstantly()
-                        .sounds(BlockSoundGroup.GRASS)
-                        .pistonBehavior(PistonBehavior.DESTROY),
-                AbstractBlock.Settings.create()
+                        .randomTicks()
+                        .instabreak()
+                        .sound(SoundType.GRASS)
+                        .pushReaction(PushReaction.DESTROY),
+                BlockBehaviour.Properties.of()
                         .mapColor(planksColor)
-                        .solid()
+                        .forceSolidOn()
                         .instrument(NoteBlockInstrument.BASS)
                         .noCollision()
                         .strength(1.0F)
-                        .burnable(),
-                AbstractBlock.Settings.create()
+                        .ignitedByLava(),
+                BlockBehaviour.Properties.of()
                         .mapColor(planksColor)
-                        .solid()
+                        .forceSolidOn()
                         .instrument(NoteBlockInstrument.BASS)
                         .noCollision()
                         .strength(1.0F)
-                        .burnable(),
-                AbstractBlock.Settings.create()
+                        .ignitedByLava(),
+                BlockBehaviour.Properties.of()
                         .noCollision()
                         .strength(0.5F)
-                        .pistonBehavior(PistonBehavior.DESTROY),
-                AbstractBlock.Settings.create()
+                        .pushReaction(PushReaction.DESTROY),
+                BlockBehaviour.Properties.of()
                         .mapColor(planksColor)
-                        .solid()
+                        .forceSolidOn()
                         .instrument(NoteBlockInstrument.BASS)
                         .noCollision()
                         .strength(0.5F)
-                        .burnable()
-                        .pistonBehavior(PistonBehavior.DESTROY),
-                AbstractBlock.Settings.create()
-                        .breakInstantly()
-                        .nonOpaque()
-                        .pistonBehavior(PistonBehavior.DESTROY),
-                AbstractBlock.Settings.create()
+                        .ignitedByLava()
+                        .pushReaction(PushReaction.DESTROY),
+                BlockBehaviour.Properties.of()
+                        .instabreak()
+                        .noOcclusion()
+                        .pushReaction(PushReaction.DESTROY),
+                BlockBehaviour.Properties.of()
                         .mapColor(planksColor)
                         .instrument(NoteBlockInstrument.BASS)
                         .strength(3.0F)
-                        .nonOpaque()
-                        .burnable()
-                        .pistonBehavior(PistonBehavior.DESTROY),
-                AbstractBlock.Settings.create()
+                        .noOcclusion()
+                        .ignitedByLava()
+                        .pushReaction(PushReaction.DESTROY),
+                BlockBehaviour.Properties.of()
                         .mapColor(planksColor)
                         .instrument(NoteBlockInstrument.BASS)
                         .strength(3.0F)
-                        .nonOpaque()
-                        .allowsSpawning(WoodFamilySettings::neverSpawn)
-                        .burnable()
+                        .noOcclusion()
+                        .isValidSpawn(WoodFamilySettings::neverSpawn)
+                        .ignitedByLava()
         );
     }
 
-    public AbstractBlock.Settings log(MapColor topColor, MapColor sideColor) {
+    public BlockBehaviour.Properties log(MapColor topColor, MapColor sideColor) {
         return DWMBlockSettings.ashLog(topColor, sideColor);
     }
 
-    public AbstractBlock.Settings wallSign(MapColor planksColor, net.minecraft.block.Block standingSign) {
-        return AbstractBlock.Settings.create()
+    public BlockBehaviour.Properties wallSign(MapColor planksColor, net.minecraft.world.level.block.Block standingSign) {
+        return BlockBehaviour.Properties.of()
                 .mapColor(planksColor)
-                .solid()
+                .forceSolidOn()
                 .instrument(NoteBlockInstrument.BASS)
                 .noCollision()
                 .strength(1.0F)
-                .burnable()
-                .lootTable(java.util.Optional.of(standingSign.getLootTableKey().orElseThrow()))
-                .overrideTranslationKey(standingSign.getTranslationKey());
+                .ignitedByLava()
+                .overrideLootTable(java.util.Optional.of(standingSign.getLootTable().orElseThrow()))
+                .overrideDescription(standingSign.getDescriptionId());
     }
 
-    private static boolean never(BlockState state, BlockView world, BlockPos pos) {
+    private static boolean never(BlockState state, BlockGetter world, BlockPos pos) {
         return false;
     }
 
-    private static Boolean neverSpawn(BlockState state, BlockView world, BlockPos pos, EntityType<?> type) {
+    private static Boolean neverSpawn(BlockState state, BlockGetter world, BlockPos pos, EntityType<?> type) {
         return false;
     }
 
-    private static Boolean canSpawnOnLeaves(BlockState state, BlockView world, BlockPos pos, EntityType<?> type) {
-        return type == EntityType.OCELOT || type == EntityType.PARROT;
+    private static Boolean canSpawnOnLeaves(BlockState state, BlockGetter world, BlockPos pos, EntityType<?> type) {
+        return type == EntityTypes.OCELOT || type == EntityTypes.PARROT;
     }
 }

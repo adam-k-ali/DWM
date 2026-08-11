@@ -1,29 +1,29 @@
 package com.adamkali.dwm.block;
 
+import com.adamkali.dwm.item.DWMCreativeTabs;
+
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.block.wood.WoodFamilyDefinition;
 import com.adamkali.dwm.block.wood.WoodFamilyFeature;
 import com.adamkali.dwm.block.wood.WoodFamilyRegistrar;
 import com.adamkali.dwm.item.DWMItemTags;
-import net.minecraft.block.MapColor;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.ColoredFallingBlock;
-import net.minecraft.block.TransparentBlock;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroups;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ColorCode;
-import net.minecraft.util.Identifier;
-
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ColorRGBA;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.ColoredFallingBlock;
+import net.minecraft.world.level.block.TransparentBlock;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.MapColor;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Function;
@@ -47,23 +47,23 @@ public class DWMBlocks {
     public static final Block PURPLE_ROUNDEL_A = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "purple_roundel_a");
     public static final Block TEAL_ROUNDEL_A = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "teal_roundel_a");
 
-    public static final Block BLACK_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.nonOpaque(), "black_roundel_b");
-    public static final Block BLUE_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.nonOpaque(), "blue_roundel_b");
-    public static final Block BROWN_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.nonOpaque(), "brown_roundel_b");
-    public static final Block CYAN_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.nonOpaque(), "cyan_roundel_b");
-    public static final Block GREEN_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.nonOpaque(), "green_roundel_b");
-    public static final Block LIGHT_BLUE_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.nonOpaque(), "light_blue_roundel_b");
-    public static final Block LIGHT_GRAY_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.nonOpaque(), "light_gray_roundel_b");
-    public static final Block LIME_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.nonOpaque(), "lime_roundel_b");
-    public static final Block MAGENTA_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.nonOpaque(), "magenta_roundel_b");
-    public static final Block ORANGE_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.nonOpaque(), "orange_roundel_b");
-    public static final Block PINK_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.nonOpaque(), "pink_roundel_b");
-    public static final Block RED_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.nonOpaque(), "red_roundel_b");
-    public static final Block WHITE_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.nonOpaque(), "white_roundel_b");
-    public static final Block YELLOW_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.nonOpaque(), "yellow_roundel_b");
-    public static final Block GRAY_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.nonOpaque(), "gray_roundel_b");
-    public static final Block PURPLE_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.nonOpaque(), "purple_roundel_b");
-    public static final Block TEAL_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.nonOpaque(), "teal_roundel_b");
+    public static final Block BLACK_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.noOcclusion(), "black_roundel_b");
+    public static final Block BLUE_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.noOcclusion(), "blue_roundel_b");
+    public static final Block BROWN_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.noOcclusion(), "brown_roundel_b");
+    public static final Block CYAN_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.noOcclusion(), "cyan_roundel_b");
+    public static final Block GREEN_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.noOcclusion(), "green_roundel_b");
+    public static final Block LIGHT_BLUE_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.noOcclusion(), "light_blue_roundel_b");
+    public static final Block LIGHT_GRAY_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.noOcclusion(), "light_gray_roundel_b");
+    public static final Block LIME_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.noOcclusion(), "lime_roundel_b");
+    public static final Block MAGENTA_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.noOcclusion(), "magenta_roundel_b");
+    public static final Block ORANGE_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.noOcclusion(), "orange_roundel_b");
+    public static final Block PINK_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.noOcclusion(), "pink_roundel_b");
+    public static final Block RED_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.noOcclusion(), "red_roundel_b");
+    public static final Block WHITE_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.noOcclusion(), "white_roundel_b");
+    public static final Block YELLOW_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.noOcclusion(), "yellow_roundel_b");
+    public static final Block GRAY_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.noOcclusion(), "gray_roundel_b");
+    public static final Block PURPLE_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.noOcclusion(), "purple_roundel_b");
+    public static final Block TEAL_ROUNDEL_B = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS.noOcclusion(), "teal_roundel_b");
 
     public static final Block BLACK_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "black_big_roundel_a");
     public static final Block BLUE_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "blue_big_roundel_a");
@@ -157,7 +157,7 @@ public class DWMBlocks {
     public static final Block GALLIFREY_CUT_SANDSTONE = register(Block::new, DWMBlockSettings.GALLIFREY_SANDSTONE, "gallifrey_cut_sandstone");
     public static final Block GALLIFREY_CHISELED_SANDSTONE = register(Block::new, DWMBlockSettings.GALLIFREY_SANDSTONE, "gallifrey_chiseled_sandstone");
     public static final Block GALLIFREY_SAND = register(
-            settings -> new ColoredFallingBlock(new ColorCode(0xC47A3A), settings),
+            settings -> new ColoredFallingBlock(new ColorRGBA(0xC47A3A), settings),
             DWMBlockSettings.GALLIFREY_SAND,
             "gallifrey_sand"
     );
@@ -357,200 +357,200 @@ public class DWMBlocks {
 
         AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
             if (FirstDoctorConsoleBlock.isPlayerBreakDenied(world.getBlockState(pos))) {
-                return ActionResult.FAIL;
+                return InteractionResult.FAIL;
             }
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         });
 
         for (RegisteredWoodFamily family : WOOD_FAMILIES) {
             WoodFamilyRegistrar.wireRuntime(family);
         }
 
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> {
-            content.add(BLACK_ROUNDEL_A);
-            content.add(BLUE_ROUNDEL_A);
-            content.add(BROWN_ROUNDEL_A);
-            content.add(CYAN_ROUNDEL_A);
-            content.add(GREEN_ROUNDEL_A);
-            content.add(LIGHT_BLUE_ROUNDEL_A);
-            content.add(LIGHT_GRAY_ROUNDEL_A);
-            content.add(LIME_ROUNDEL_A);
-            content.add(MAGENTA_ROUNDEL_A);
-            content.add(ORANGE_ROUNDEL_A);
-            content.add(PINK_ROUNDEL_A);
-            content.add(RED_ROUNDEL_A);
-            content.add(WHITE_ROUNDEL_A);
-            content.add(YELLOW_ROUNDEL_A);
-            content.add(GRAY_ROUNDEL_A);
-            content.add(PURPLE_ROUNDEL_A);
-            content.add(TEAL_ROUNDEL_A);
+        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.BUILDING_BLOCKS).register(content -> {
+            content.accept(BLACK_ROUNDEL_A);
+            content.accept(BLUE_ROUNDEL_A);
+            content.accept(BROWN_ROUNDEL_A);
+            content.accept(CYAN_ROUNDEL_A);
+            content.accept(GREEN_ROUNDEL_A);
+            content.accept(LIGHT_BLUE_ROUNDEL_A);
+            content.accept(LIGHT_GRAY_ROUNDEL_A);
+            content.accept(LIME_ROUNDEL_A);
+            content.accept(MAGENTA_ROUNDEL_A);
+            content.accept(ORANGE_ROUNDEL_A);
+            content.accept(PINK_ROUNDEL_A);
+            content.accept(RED_ROUNDEL_A);
+            content.accept(WHITE_ROUNDEL_A);
+            content.accept(YELLOW_ROUNDEL_A);
+            content.accept(GRAY_ROUNDEL_A);
+            content.accept(PURPLE_ROUNDEL_A);
+            content.accept(TEAL_ROUNDEL_A);
 
-            content.add(BLACK_ROUNDEL_B);
-            content.add(BLUE_ROUNDEL_B);
-            content.add(BROWN_ROUNDEL_B);
-            content.add(CYAN_ROUNDEL_B);
-            content.add(GREEN_ROUNDEL_B);
-            content.add(LIGHT_BLUE_ROUNDEL_B);
-            content.add(LIGHT_GRAY_ROUNDEL_B);
-            content.add(LIME_ROUNDEL_B);
-            content.add(MAGENTA_ROUNDEL_B);
-            content.add(ORANGE_ROUNDEL_B);
-            content.add(PINK_ROUNDEL_B);
-            content.add(RED_ROUNDEL_B);
-            content.add(WHITE_ROUNDEL_B);
-            content.add(YELLOW_ROUNDEL_B);
-            content.add(GRAY_ROUNDEL_B);
-            content.add(PURPLE_ROUNDEL_B);
-            content.add(TEAL_ROUNDEL_B);
+            content.accept(BLACK_ROUNDEL_B);
+            content.accept(BLUE_ROUNDEL_B);
+            content.accept(BROWN_ROUNDEL_B);
+            content.accept(CYAN_ROUNDEL_B);
+            content.accept(GREEN_ROUNDEL_B);
+            content.accept(LIGHT_BLUE_ROUNDEL_B);
+            content.accept(LIGHT_GRAY_ROUNDEL_B);
+            content.accept(LIME_ROUNDEL_B);
+            content.accept(MAGENTA_ROUNDEL_B);
+            content.accept(ORANGE_ROUNDEL_B);
+            content.accept(PINK_ROUNDEL_B);
+            content.accept(RED_ROUNDEL_B);
+            content.accept(WHITE_ROUNDEL_B);
+            content.accept(YELLOW_ROUNDEL_B);
+            content.accept(GRAY_ROUNDEL_B);
+            content.accept(PURPLE_ROUNDEL_B);
+            content.accept(TEAL_ROUNDEL_B);
 
-            content.add(BLACK_BIG_ROUNDEL_A);
-            content.add(BLUE_BIG_ROUNDEL_A);
-            content.add(BROWN_BIG_ROUNDEL_A);
-            content.add(CYAN_BIG_ROUNDEL_A);
-            content.add(GREEN_BIG_ROUNDEL_A);
-            content.add(LIGHT_BLUE_BIG_ROUNDEL_A);
-            content.add(LIGHT_GRAY_BIG_ROUNDEL_A);
-            content.add(LIME_BIG_ROUNDEL_A);
-            content.add(MAGENTA_BIG_ROUNDEL_A);
-            content.add(ORANGE_BIG_ROUNDEL_A);
-            content.add(PINK_BIG_ROUNDEL_A);
-            content.add(RED_BIG_ROUNDEL_A);
-            content.add(WHITE_BIG_ROUNDEL_A);
-            content.add(YELLOW_BIG_ROUNDEL_A);
-            content.add(GRAY_BIG_ROUNDEL_A);
-            content.add(PURPLE_BIG_ROUNDEL_A);
-            content.add(TEAL_BIG_ROUNDEL_A);
+            content.accept(BLACK_BIG_ROUNDEL_A);
+            content.accept(BLUE_BIG_ROUNDEL_A);
+            content.accept(BROWN_BIG_ROUNDEL_A);
+            content.accept(CYAN_BIG_ROUNDEL_A);
+            content.accept(GREEN_BIG_ROUNDEL_A);
+            content.accept(LIGHT_BLUE_BIG_ROUNDEL_A);
+            content.accept(LIGHT_GRAY_BIG_ROUNDEL_A);
+            content.accept(LIME_BIG_ROUNDEL_A);
+            content.accept(MAGENTA_BIG_ROUNDEL_A);
+            content.accept(ORANGE_BIG_ROUNDEL_A);
+            content.accept(PINK_BIG_ROUNDEL_A);
+            content.accept(RED_BIG_ROUNDEL_A);
+            content.accept(WHITE_BIG_ROUNDEL_A);
+            content.accept(YELLOW_BIG_ROUNDEL_A);
+            content.accept(GRAY_BIG_ROUNDEL_A);
+            content.accept(PURPLE_BIG_ROUNDEL_A);
+            content.accept(TEAL_BIG_ROUNDEL_A);
 
-            content.add(BLACK_BIG_ROUNDEL_B);
-            content.add(BLUE_BIG_ROUNDEL_B);
-            content.add(BROWN_BIG_ROUNDEL_B);
-            content.add(CYAN_BIG_ROUNDEL_B);
-            content.add(GREEN_BIG_ROUNDEL_B);
-            content.add(LIGHT_BLUE_BIG_ROUNDEL_B);
-            content.add(LIGHT_GRAY_BIG_ROUNDEL_B);
-            content.add(LIME_BIG_ROUNDEL_B);
-            content.add(MAGENTA_BIG_ROUNDEL_B);
-            content.add(ORANGE_BIG_ROUNDEL_B);
-            content.add(PINK_BIG_ROUNDEL_B);
-            content.add(RED_BIG_ROUNDEL_B);
-            content.add(WHITE_BIG_ROUNDEL_B);
-            content.add(YELLOW_BIG_ROUNDEL_B);
-            content.add(GRAY_BIG_ROUNDEL_B);
-            content.add(PURPLE_BIG_ROUNDEL_B);
-            content.add(TEAL_BIG_ROUNDEL_B);
+            content.accept(BLACK_BIG_ROUNDEL_B);
+            content.accept(BLUE_BIG_ROUNDEL_B);
+            content.accept(BROWN_BIG_ROUNDEL_B);
+            content.accept(CYAN_BIG_ROUNDEL_B);
+            content.accept(GREEN_BIG_ROUNDEL_B);
+            content.accept(LIGHT_BLUE_BIG_ROUNDEL_B);
+            content.accept(LIGHT_GRAY_BIG_ROUNDEL_B);
+            content.accept(LIME_BIG_ROUNDEL_B);
+            content.accept(MAGENTA_BIG_ROUNDEL_B);
+            content.accept(ORANGE_BIG_ROUNDEL_B);
+            content.accept(PINK_BIG_ROUNDEL_B);
+            content.accept(RED_BIG_ROUNDEL_B);
+            content.accept(WHITE_BIG_ROUNDEL_B);
+            content.accept(YELLOW_BIG_ROUNDEL_B);
+            content.accept(GRAY_BIG_ROUNDEL_B);
+            content.accept(PURPLE_BIG_ROUNDEL_B);
+            content.accept(TEAL_BIG_ROUNDEL_B);
 
-            content.add(BLACK_TARDIS_WALL);
-            content.add(BLUE_TARDIS_WALL);
-            content.add(BROWN_TARDIS_WALL);
-            content.add(CYAN_TARDIS_WALL);
-            content.add(GREEN_TARDIS_WALL);
-            content.add(LIGHT_BLUE_TARDIS_WALL);
-            content.add(LIGHT_GRAY_TARDIS_WALL);
-            content.add(LIME_TARDIS_WALL);
-            content.add(MAGENTA_TARDIS_WALL);
-            content.add(ORANGE_TARDIS_WALL);
-            content.add(PINK_TARDIS_WALL);
-            content.add(RED_TARDIS_WALL);
-            content.add(WHITE_TARDIS_WALL);
-            content.add(YELLOW_TARDIS_WALL);
-            content.add(GRAY_TARDIS_WALL);
-            content.add(PURPLE_TARDIS_WALL);
-            content.add(TEAL_TARDIS_WALL);
+            content.accept(BLACK_TARDIS_WALL);
+            content.accept(BLUE_TARDIS_WALL);
+            content.accept(BROWN_TARDIS_WALL);
+            content.accept(CYAN_TARDIS_WALL);
+            content.accept(GREEN_TARDIS_WALL);
+            content.accept(LIGHT_BLUE_TARDIS_WALL);
+            content.accept(LIGHT_GRAY_TARDIS_WALL);
+            content.accept(LIME_TARDIS_WALL);
+            content.accept(MAGENTA_TARDIS_WALL);
+            content.accept(ORANGE_TARDIS_WALL);
+            content.accept(PINK_TARDIS_WALL);
+            content.accept(RED_TARDIS_WALL);
+            content.accept(WHITE_TARDIS_WALL);
+            content.accept(YELLOW_TARDIS_WALL);
+            content.accept(GRAY_TARDIS_WALL);
+            content.accept(PURPLE_TARDIS_WALL);
+            content.accept(TEAL_TARDIS_WALL);
 
-            content.add(BLACK_CHRONOPLASM_POWDER);
-            content.add(BLUE_CHRONOPLASM_POWDER);
-            content.add(BROWN_CHRONOPLASM_POWDER);
-            content.add(CYAN_CHRONOPLASM_POWDER);
-            content.add(GREEN_CHRONOPLASM_POWDER);
-            content.add(LIGHT_BLUE_CHRONOPLASM_POWDER);
-            content.add(LIGHT_GRAY_CHRONOPLASM_POWDER);
-            content.add(LIME_CHRONOPLASM_POWDER);
-            content.add(MAGENTA_CHRONOPLASM_POWDER);
-            content.add(ORANGE_CHRONOPLASM_POWDER);
-            content.add(PINK_CHRONOPLASM_POWDER);
-            content.add(RED_CHRONOPLASM_POWDER);
-            content.add(WHITE_CHRONOPLASM_POWDER);
-            content.add(YELLOW_CHRONOPLASM_POWDER);
-            content.add(GRAY_CHRONOPLASM_POWDER);
-            content.add(PURPLE_CHRONOPLASM_POWDER);
-            content.add(TEAL_CHRONOPLASM_POWDER);
+            content.accept(BLACK_CHRONOPLASM_POWDER);
+            content.accept(BLUE_CHRONOPLASM_POWDER);
+            content.accept(BROWN_CHRONOPLASM_POWDER);
+            content.accept(CYAN_CHRONOPLASM_POWDER);
+            content.accept(GREEN_CHRONOPLASM_POWDER);
+            content.accept(LIGHT_BLUE_CHRONOPLASM_POWDER);
+            content.accept(LIGHT_GRAY_CHRONOPLASM_POWDER);
+            content.accept(LIME_CHRONOPLASM_POWDER);
+            content.accept(MAGENTA_CHRONOPLASM_POWDER);
+            content.accept(ORANGE_CHRONOPLASM_POWDER);
+            content.accept(PINK_CHRONOPLASM_POWDER);
+            content.accept(RED_CHRONOPLASM_POWDER);
+            content.accept(WHITE_CHRONOPLASM_POWDER);
+            content.accept(YELLOW_CHRONOPLASM_POWDER);
+            content.accept(GRAY_CHRONOPLASM_POWDER);
+            content.accept(PURPLE_CHRONOPLASM_POWDER);
+            content.accept(TEAL_CHRONOPLASM_POWDER);
 
             for (Block block : GALLIFREY_STONE_BUILDING_BLOCKS) {
-                content.add(block);
+                content.accept(block);
             }
 
             for (Block block : CITADEL_FAMILY) {
-                content.add(block);
+                content.accept(block);
             }
 
             for (RegisteredWoodFamily family : WOOD_FAMILIES) {
                 for (Block block : family.buildingBlocks()) {
-                    content.add(block);
+                    content.accept(block);
                 }
             }
         });
 
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.NATURAL).register(content -> {
-            content.add(GALLIFREY_DIRT);
-            content.add(GALLIFREY_COARSE_DIRT);
-            content.add(GALLIFREY_SAND);
-            content.add(GALLIFREY_COBBLESTONE);
-            content.add(GALLIFREY_MOSSY_COBBLESTONE);
-            content.add(GALLIFREY_STONE);
+        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.NATURAL_BLOCKS).register(content -> {
+            content.accept(GALLIFREY_DIRT);
+            content.accept(GALLIFREY_COARSE_DIRT);
+            content.accept(GALLIFREY_SAND);
+            content.accept(GALLIFREY_COBBLESTONE);
+            content.accept(GALLIFREY_MOSSY_COBBLESTONE);
+            content.accept(GALLIFREY_STONE);
             for (RegisteredWoodFamily family : WOOD_FAMILIES) {
-                content.add(family.blocks().log());
-                content.add(family.blocks().leaves());
-                content.add(family.blocks().sapling());
+                content.accept(family.blocks().log());
+                content.accept(family.blocks().leaves());
+                content.accept(family.blocks().sapling());
             }
         });
 
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(content -> {
-            content.add(TARDIS_DOOR_BUTTON);
+        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.REDSTONE_BLOCKS).register(content -> {
+            content.accept(TARDIS_DOOR_BUTTON);
             for (RegisteredWoodFamily family : WOOD_FAMILIES) {
-                content.add(family.blocks().button());
-                content.add(family.blocks().pressurePlate());
+                content.accept(family.blocks().button());
+                content.accept(family.blocks().pressurePlate());
                 if (family.trapdoorOrNull() != null) {
-                    content.add(family.requireTrapdoor());
+                    content.accept(family.requireTrapdoor());
                 }
                 if (family.doorOrNull() != null) {
-                    content.add(family.requireDoor());
+                    content.accept(family.requireDoor());
                 }
             }
         });
 
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(content -> {
-            content.add(FIRST_DOCTOR_CONSOLE);
+        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.FUNCTIONAL_BLOCKS).register(content -> {
+            content.accept(FIRST_DOCTOR_CONSOLE);
         });
     }
 
-    public static Block registerBlock(Function<AbstractBlock.Settings, Block> factory, AbstractBlock.Settings settings, String id) {
+    public static Block registerBlock(Function<BlockBehaviour.Properties, Block> factory, BlockBehaviour.Properties settings, String id) {
         return register(factory, settings, id);
     }
 
-    public static Block registerBlockWithoutItem(Function<AbstractBlock.Settings, Block> factory, AbstractBlock.Settings settings, String id) {
+    public static Block registerBlockWithoutItem(Function<BlockBehaviour.Properties, Block> factory, BlockBehaviour.Properties settings, String id) {
         return registerWithoutItem(factory, settings, id);
     }
 
-    private static Block register(Function<AbstractBlock.Settings, Block> factory, AbstractBlock.Settings settings, String id) {
-        Identifier blockID = Identifier.of("dwm", id);
-        RegistryKey<Block> blockKey = RegistryKey.of(RegistryKeys.BLOCK, blockID);
-        Block block = factory.apply(settings.registryKey(blockKey));
+    private static Block register(Function<BlockBehaviour.Properties, Block> factory, BlockBehaviour.Properties settings, String id) {
+        Identifier blockID = Identifier.fromNamespaceAndPath("dwm", id);
+        ResourceKey<Block> blockKey = ResourceKey.create(Registries.BLOCK, blockID);
+        Block block = factory.apply(settings.setId(blockKey));
 
         registerBlockItem(blockID, block);
 
-        return Registry.register(Registries.BLOCK, blockID, block);
+        return Registry.register(BuiltInRegistries.BLOCK, blockID, block);
     }
 
-    private static Block registerWithoutItem(Function<AbstractBlock.Settings, Block> factory, AbstractBlock.Settings settings, String id) {
-        Identifier blockID = Identifier.of("dwm", id);
-        RegistryKey<Block> blockKey = RegistryKey.of(RegistryKeys.BLOCK, blockID);
-        Block block = factory.apply(settings.registryKey(blockKey));
-        return Registry.register(Registries.BLOCK, blockID, block);
+    private static Block registerWithoutItem(Function<BlockBehaviour.Properties, Block> factory, BlockBehaviour.Properties settings, String id) {
+        Identifier blockID = Identifier.fromNamespaceAndPath("dwm", id);
+        ResourceKey<Block> blockKey = ResourceKey.create(Registries.BLOCK, blockID);
+        Block block = factory.apply(settings.setId(blockKey));
+        return Registry.register(BuiltInRegistries.BLOCK, blockID, block);
     }
 
     private static void registerBlockItem(Identifier blockID, Block block) {
-        RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, blockID);
-        BlockItem blockItem = new BlockItem(block, new Item.Settings().registryKey(itemKey));
-        Registry.register(Registries.ITEM, itemKey, blockItem);
+        ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, blockID);
+        BlockItem blockItem = new BlockItem(block, new Item.Properties().setId(itemKey));
+        Registry.register(BuiltInRegistries.ITEM, itemKey, blockItem);
     }
 }

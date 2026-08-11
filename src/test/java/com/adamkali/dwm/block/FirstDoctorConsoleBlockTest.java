@@ -1,7 +1,7 @@
 package com.adamkali.dwm.block;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
-import net.minecraft.block.Blocks;
+import net.minecraft.world.level.block.Blocks;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -17,13 +17,13 @@ class FirstDoctorConsoleBlockTest {
     @Test
     void isPlayerBreakDenied_trueForConsole() {
         assertTrue(FirstDoctorConsoleBlock.isPlayerBreakDenied(
-                DWMBlocks.FIRST_DOCTOR_CONSOLE.getDefaultState()));
+                DWMBlocks.FIRST_DOCTOR_CONSOLE.defaultBlockState()));
     }
 
     @Test
     void isPlayerBreakDenied_falseForOtherBlocks() {
-        assertFalse(FirstDoctorConsoleBlock.isPlayerBreakDenied(Blocks.STONE.getDefaultState()));
+        assertFalse(FirstDoctorConsoleBlock.isPlayerBreakDenied(Blocks.STONE.defaultBlockState()));
         assertFalse(FirstDoctorConsoleBlock.isPlayerBreakDenied(
-                DWMBlocks.WHITE_TARDIS_WALL.getDefaultState()));
+                DWMBlocks.WHITE_TARDIS_WALL.defaultBlockState()));
     }
 }

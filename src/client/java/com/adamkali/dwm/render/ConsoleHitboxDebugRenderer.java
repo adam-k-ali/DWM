@@ -3,24 +3,21 @@ package com.adamkali.dwm.render;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.FirstDoctorConsoleBlock;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexRendering;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.debug.DebugScreenEntries;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.gizmos.GizmoStyle;
+import net.minecraft.gizmos.Gizmos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 
 /**
  * Debug wireframes for First Doctor console hit regions, shown when entity hitboxes are
- * enabled (F3 + B).
+ * enabled (F3 + B / {@link DebugScreenEntries#ENTITY_HITBOXES}).
  * <ul>
  *   <li>Cyan — {@link FirstDoctorConsoleBlock#COLLISION_SHAPE}</li>
  *   <li>Lime — biome selector look/click AABB</li>
@@ -30,105 +27,65 @@ import net.minecraft.world.World;
  */
 public final class ConsoleHitboxDebugRenderer {
     private static final int COLLISION_COLOR = 0xFF00FFFF;
-    private static final float SELECTOR_R = 0.2f;
-    private static final float SELECTOR_G = 1.0f;
-    private static final float SELECTOR_B = 0.2f;
-    private static final float SELECTOR_A = 1.0f;
-    private static final float PLANET_R = 1.0f;
-    private static final float PLANET_G = 0.2f;
-    private static final float PLANET_B = 1.0f;
-    private static final float PLANET_A = 1.0f;
-    private static final float LEVER_R = 1.0f;
-    private static final float LEVER_G = 0.55f;
-    private static final float LEVER_B = 0.1f;
-    private static final float LEVER_A = 1.0f;
+    private static final int SELECTOR_COLOR = 0xFF33FF33;
+    private static final int PLANET_COLOR = 0xFFFF33FF;
+    private static final int LEVER_COLOR = 0xFFFF8C1A;
     private static final int RANGE = 16;
 
     private ConsoleHitboxDebugRenderer() {
     }
 
     public static void initialize() {
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(ConsoleHitboxDebugRenderer::render);
+        LevelRenderEvents.BEFORE_GIZMOS.register(ConsoleHitboxDebugRenderer::beforeGizmos);
     }
 
-    private static void render(WorldRenderContext context) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        World world = client.world;
-        if (world == null || client.player == null || context.consumers() == null || context.matrixStack() == null) {
+    private static void beforeGizmos(LevelRenderContext context) {
+        Minecraft client = Minecraft.getInstance();
+        Level world = client.level;
+        if (world == null || client.player == null) {
             return;
         }
-        if (!client.getEntityRenderDispatcher().shouldRenderHitboxes()) {
+        if (!client.debugEntries.isCurrentlyEnabled(DebugScreenEntries.ENTITY_HITBOXES)) {
             return;
         }
 
-        VertexConsumerProvider consumers = context.consumers();
-        VertexConsumer lines = consumers.getBuffer(RenderLayer.getLines());
-        MatrixStack matrices = context.matrixStack();
-        Vec3d cam = context.camera().getPos();
+        BlockPos playerPos = client.player.blockPosition();
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 
-        BlockPos playerPos = client.player.getBlockPos();
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
+        try (Gizmos.TemporaryCollection ignored = context.levelRenderer().collectPerFrameRenderThreadGizmos()) {
+            for (int dx = -RANGE; dx <= RANGE; dx++) {
+                for (int dy = -RANGE; dy <= RANGE; dy++) {
+                    for (int dz = -RANGE; dz <= RANGE; dz++) {
+                        mutable.set(playerPos.getX() + dx, playerPos.getY() + dy, playerPos.getZ() + dz);
+                        BlockState state = world.getBlockState(mutable);
+                        if (!state.is(DWMBlocks.FIRST_DOCTOR_CONSOLE)) {
+                            continue;
+                        }
 
-        matrices.push();
-        matrices.translate(-cam.x, -cam.y, -cam.z);
+                        Direction facing = state.getValueOrElse(FirstDoctorConsoleBlock.FACING, Direction.NORTH);
 
-        for (int dx = -RANGE; dx <= RANGE; dx++) {
-            for (int dy = -RANGE; dy <= RANGE; dy++) {
-                for (int dz = -RANGE; dz <= RANGE; dz++) {
-                    mutable.set(playerPos.getX() + dx, playerPos.getY() + dy, playerPos.getZ() + dz);
-                    BlockState state = world.getBlockState(mutable);
-                    if (!state.isOf(DWMBlocks.FIRST_DOCTOR_CONSOLE)) {
-                        continue;
+                        for (AABB local : FirstDoctorConsoleBlock.COLLISION_SHAPE.toAabbs()) {
+                            Gizmos.cuboid(
+                                    local.move(mutable.getX(), mutable.getY(), mutable.getZ()),
+                                    GizmoStyle.stroke(COLLISION_COLOR)
+                            );
+                        }
+
+                        Gizmos.cuboid(
+                                FirstDoctorConsoleControls.biomeSelectorWorldBox(mutable, facing),
+                                GizmoStyle.stroke(SELECTOR_COLOR)
+                        );
+                        Gizmos.cuboid(
+                                FirstDoctorConsoleControls.planetLocatorWorldBox(mutable, facing),
+                                GizmoStyle.stroke(PLANET_COLOR)
+                        );
+                        Gizmos.cuboid(
+                                FirstDoctorConsoleControls.materialisationLeverWorldBox(mutable, facing),
+                                GizmoStyle.stroke(LEVER_COLOR)
+                        );
                     }
-
-                    Direction facing = state.get(FirstDoctorConsoleBlock.FACING, Direction.NORTH);
-
-                    VertexRendering.drawOutline(
-                            matrices,
-                            lines,
-                            FirstDoctorConsoleBlock.COLLISION_SHAPE,
-                            mutable.getX(),
-                            mutable.getY(),
-                            mutable.getZ(),
-                            COLLISION_COLOR
-                    );
-
-                    Box selector = FirstDoctorConsoleControls.biomeSelectorWorldBox(mutable, facing);
-                    VertexRendering.drawBox(
-                            matrices,
-                            lines,
-                            selector,
-                            SELECTOR_R,
-                            SELECTOR_G,
-                            SELECTOR_B,
-                            SELECTOR_A
-                    );
-
-                    Box planet = FirstDoctorConsoleControls.planetLocatorWorldBox(mutable, facing);
-                    VertexRendering.drawBox(
-                            matrices,
-                            lines,
-                            planet,
-                            PLANET_R,
-                            PLANET_G,
-                            PLANET_B,
-                            PLANET_A
-                    );
-
-                    Box lever = FirstDoctorConsoleControls.materialisationLeverWorldBox(mutable, facing);
-                    VertexRendering.drawBox(
-                            matrices,
-                            lines,
-                            lever,
-                            LEVER_R,
-                            LEVER_G,
-                            LEVER_B,
-                            LEVER_A
-                    );
                 }
             }
         }
-
-        matrices.pop();
     }
 }

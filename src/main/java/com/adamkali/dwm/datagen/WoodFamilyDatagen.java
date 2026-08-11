@@ -3,13 +3,13 @@ package com.adamkali.dwm.datagen;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.block.wood.WoodFamilyBlocks;
 import com.adamkali.dwm.block.wood.WoodFamilyFeature;
-import net.minecraft.data.recipe.RecipeExporter;
-import net.minecraft.data.recipe.RecipeGenerator;
-import net.minecraft.loot.LootTable;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.book.RecipeCategory;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.registry.tag.ItemTags;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.storage.loot.LootTable;
 
 /**
  * Shared datagen helpers for {@link RegisteredWoodFamily} instances.
@@ -18,56 +18,58 @@ public final class WoodFamilyDatagen {
     private WoodFamilyDatagen() {
     }
 
-    public static void generateRecipes(RecipeGenerator generator, RecipeExporter exporter, RegisteredWoodFamily family) {
+    public static void generateRecipes(RecipeProvider generator, RecipeOutput exporter, RegisteredWoodFamily family) {
         WoodFamilyBlocks blocks = family.blocks();
-        generator.offerPlanksRecipe(blocks.planks(), family.definition().logItemTag(), 4);
-        generator.offerBarkBlockRecipe(blocks.wood(), blocks.log());
-        generator.offerBarkBlockRecipe(blocks.strippedWood(), blocks.strippedLog());
-        generator.createStairsRecipe(blocks.stairs(), Ingredient.ofItem(blocks.planks()))
-                .criterion(generator.hasItem(blocks.planks()), generator.conditionsFromItem(blocks.planks()))
-                .offerTo(exporter);
-        generator.offerSlabRecipe(RecipeCategory.BUILDING_BLOCKS, blocks.slab(), blocks.planks());
-        generator.createFenceRecipe(blocks.fence(), Ingredient.ofItem(blocks.planks()))
-                .criterion(generator.hasItem(blocks.planks()), generator.conditionsFromItem(blocks.planks()))
-                .offerTo(exporter);
-        generator.createFenceGateRecipe(blocks.fenceGate(), Ingredient.ofItem(blocks.planks()))
-                .criterion(generator.hasItem(blocks.planks()), generator.conditionsFromItem(blocks.planks()))
-                .offerTo(exporter);
-        generator.offerPressurePlateRecipe(blocks.pressurePlate(), blocks.planks());
-        generator.createButtonRecipe(blocks.button(), Ingredient.ofItem(blocks.planks()))
-                .criterion(generator.hasItem(blocks.planks()), generator.conditionsFromItem(blocks.planks()))
-                .offerTo(exporter);
+        generator.planksFromLogs(blocks.planks(), family.definition().logItemTag(), 4);
+        generator.woodFromLogs(blocks.wood(), blocks.log());
+        generator.woodFromLogs(blocks.strippedWood(), blocks.strippedLog());
+        generator.stairBuilder(blocks.stairs(), Ingredient.of(blocks.planks()))
+                .unlockedBy(generator.getHasName(blocks.planks()), generator.has(blocks.planks()))
+                .save(exporter);
+        generator.slab(RecipeCategory.BUILDING_BLOCKS, blocks.slab(), blocks.planks());
+        generator.fenceBuilder(blocks.fence(), Ingredient.of(blocks.planks()))
+                .unlockedBy(generator.getHasName(blocks.planks()), generator.has(blocks.planks()))
+                .save(exporter);
+        generator.fenceGateBuilder(blocks.fenceGate(), Ingredient.of(blocks.planks()))
+                .unlockedBy(generator.getHasName(blocks.planks()), generator.has(blocks.planks()))
+                .save(exporter);
+        generator.pressurePlate(blocks.pressurePlate(), blocks.planks());
+        generator.buttonBuilder(blocks.button(), Ingredient.of(blocks.planks()))
+                .unlockedBy(generator.getHasName(blocks.planks()), generator.has(blocks.planks()))
+                .save(exporter);
         if (family.hasDoor()) {
-            generator.createDoorRecipe(family.requireDoor(), Ingredient.ofItem(blocks.planks()))
-                    .criterion(generator.hasItem(blocks.planks()), generator.conditionsFromItem(blocks.planks()))
-                    .offerTo(exporter);
+            generator.doorBuilder(family.requireDoor(), Ingredient.of(blocks.planks()))
+                    .unlockedBy(generator.getHasName(blocks.planks()), generator.has(blocks.planks()))
+                    .save(exporter);
         }
         if (family.has(WoodFamilyFeature.TRAPDOOR)) {
-            generator.createTrapdoorRecipe(family.requireTrapdoor(), Ingredient.ofItem(blocks.planks()))
-                    .criterion(generator.hasItem(blocks.planks()), generator.conditionsFromItem(blocks.planks()))
-                    .offerTo(exporter);
+            generator.trapdoorBuilder(family.requireTrapdoor(), Ingredient.of(blocks.planks()))
+                    .unlockedBy(generator.getHasName(blocks.planks()), generator.has(blocks.planks()))
+                    .save(exporter);
         }
-        generator.createSignRecipe(family.signItem(), Ingredient.ofItem(blocks.planks()))
-                .criterion(generator.hasItem(blocks.planks()), generator.conditionsFromItem(blocks.planks()))
-                .offerTo(exporter);
-        generator.offerHangingSignRecipe(family.hangingSignItem(), blocks.strippedLog());
-        generator.offerBoatRecipe(family.boatItem(), blocks.planks());
+        generator.signBuilder(family.signItem(), Ingredient.of(blocks.planks()))
+                .unlockedBy(generator.getHasName(blocks.planks()), generator.has(blocks.planks()))
+                .save(exporter);
+        generator.hangingSignBuilder(family.hangingSignItem(), Ingredient.of(blocks.strippedLog()))
+                .unlockedBy(generator.getHasName(blocks.strippedLog()), generator.has(blocks.strippedLog()))
+                .save(exporter);
+        generator.woodenBoat(family.boatItem(), blocks.planks());
     }
 
     public interface LootDropSink {
-        void addDrop(net.minecraft.block.Block block);
+        void addDrop(net.minecraft.world.level.block.Block block);
 
-        void addDrop(net.minecraft.block.Block block, LootTable.Builder builder);
+        void addDrop(net.minecraft.world.level.block.Block block, LootTable.Builder builder);
 
-        void addPottedPlantDrops(net.minecraft.block.Block block);
+        void addPottedPlantDrops(net.minecraft.world.level.block.Block block);
 
-        LootTable.Builder slabDrops(net.minecraft.block.Block block);
+        LootTable.Builder slabDrops(net.minecraft.world.level.block.Block block);
 
-        LootTable.Builder leavesDrops(net.minecraft.block.Block leaves, net.minecraft.block.Block sapling, float... chances);
+        LootTable.Builder leavesDrops(net.minecraft.world.level.block.Block leaves, net.minecraft.world.level.block.Block sapling, float... chances);
 
-        LootTable.Builder tallDoorDrops(net.minecraft.block.Block door);
+        LootTable.Builder tallDoorDrops(net.minecraft.world.level.block.Block door);
 
-        void excludeFromStrictValidation(net.minecraft.block.Block block);
+        void excludeFromStrictValidation(net.minecraft.world.level.block.Block block);
     }
 
     public static void generateLoot(LootDropSink loot, RegisteredWoodFamily family, float[] saplingDropChance) {
@@ -101,13 +103,13 @@ public final class WoodFamilyDatagen {
     }
 
     public interface LangSink {
-        void addBlockAndItem(net.minecraft.block.Block block, String name);
+        void addBlockAndItem(net.minecraft.world.level.block.Block block, String name);
 
-        void add(net.minecraft.block.Block block, String name);
+        void add(net.minecraft.world.level.block.Block block, String name);
 
-        void add(net.minecraft.item.Item item, String name);
+        void add(net.minecraft.world.item.Item item, String name);
 
-        void add(net.minecraft.entity.EntityType<?> type, String name);
+        void add(net.minecraft.world.entity.EntityType<?> type, String name);
     }
 
     public static void addTranslations(LangSink lang, RegisteredWoodFamily family) {
@@ -142,20 +144,20 @@ public final class WoodFamilyDatagen {
     }
 
     public interface BlockTagSink {
-        void addToTag(net.minecraft.registry.tag.TagKey<net.minecraft.block.Block> tag, net.minecraft.block.Block block);
+        void addToTag(net.minecraft.tags.TagKey<net.minecraft.world.level.block.Block> tag, net.minecraft.world.level.block.Block block);
 
-        void addTagToTag(net.minecraft.registry.tag.TagKey<net.minecraft.block.Block> tag, net.minecraft.registry.tag.TagKey<net.minecraft.block.Block> nested);
+        void addTagToTag(net.minecraft.tags.TagKey<net.minecraft.world.level.block.Block> tag, net.minecraft.tags.TagKey<net.minecraft.world.level.block.Block> nested);
     }
 
     public static void generateBlockTags(BlockTagSink tags, RegisteredWoodFamily family) {
         WoodFamilyBlocks blocks = family.blocks();
-        for (net.minecraft.block.Block log : family.logs()) {
+        for (net.minecraft.world.level.block.Block log : family.logs()) {
             tags.addToTag(family.definition().logBlockTag(), log);
         }
-        for (net.minecraft.block.Block block : family.axeMineableBlocks()) {
-            tags.addToTag(BlockTags.AXE_MINEABLE, block);
+        for (net.minecraft.world.level.block.Block block : family.axeMineableBlocks()) {
+            tags.addToTag(BlockTags.MINEABLE_WITH_AXE, block);
         }
-        tags.addTagToTag(BlockTags.LOGS_THAT_BURN, family.definition().logBlockTag());
+        tags.addTagToTag(com.adamkali.dwm.block.DWMBlockTags.LOGS_THAT_BURN, family.definition().logBlockTag());
         tags.addTagToTag(BlockTags.LOGS, family.definition().logBlockTag());
         tags.addToTag(BlockTags.OVERWORLD_NATURAL_LOGS, blocks.log());
         tags.addToTag(BlockTags.PLANKS, blocks.planks());
@@ -178,14 +180,14 @@ public final class WoodFamilyDatagen {
         tags.addToTag(BlockTags.CEILING_HANGING_SIGNS, blocks.hangingSign());
         tags.addToTag(BlockTags.WALL_HANGING_SIGNS, blocks.wallHangingSign());
         tags.addToTag(BlockTags.LEAVES, blocks.leaves());
-        tags.addToTag(BlockTags.SAPLINGS, blocks.sapling());
+        tags.addToTag(com.adamkali.dwm.block.DWMBlockTags.SAPLINGS, blocks.sapling());
         tags.addToTag(BlockTags.FLOWER_POTS, blocks.pottedSapling());
     }
 
     public interface ItemTagSink {
-        void copy(net.minecraft.registry.tag.TagKey<net.minecraft.block.Block> blockTag, net.minecraft.registry.tag.TagKey<net.minecraft.item.Item> itemTag);
+        void copy(net.minecraft.tags.TagKey<net.minecraft.world.level.block.Block> blockTag, net.minecraft.tags.TagKey<net.minecraft.world.item.Item> itemTag);
 
-        void addToTag(net.minecraft.registry.tag.TagKey<net.minecraft.item.Item> tag, net.minecraft.item.Item item);
+        void addToTag(net.minecraft.tags.TagKey<net.minecraft.world.item.Item> tag, net.minecraft.world.item.Item item);
     }
 
     public static void generateItemTags(ItemTagSink tags, RegisteredWoodFamily family) {

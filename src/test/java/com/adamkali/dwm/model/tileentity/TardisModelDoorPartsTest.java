@@ -1,9 +1,9 @@
 package com.adamkali.dwm.model.tileentity;
 
-import net.minecraft.client.model.ModelPart;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import net.minecraft.client.model.geom.ModelPart;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,7 +12,7 @@ class TardisModelDoorPartsTest {
 
     @Test
     void firstDoctor_resolvesRootLeftAndRightDoors() {
-        ModelPart root = FirstDoctorTardisModel.getTexturedModelData().createModel();
+        ModelPart root = FirstDoctorTardisModel.getTexturedModelData().bakeRoot();
         FirstDoctorTardisModel model = new FirstDoctorTardisModel(root);
 
         List<ModelPart> doors = model.getDoorParts();
@@ -24,7 +24,7 @@ class TardisModelDoorPartsTest {
 
     @Test
     void ttCapsule_resolvesBoneDoor() {
-        ModelPart root = TTCapsuleModel.getTexturedModelData().createModel();
+        ModelPart root = TTCapsuleModel.getTexturedModelData().bakeRoot();
         TTCapsuleModel model = new TTCapsuleModel(root);
 
         List<ModelPart> doors = model.getDoorParts();
@@ -35,7 +35,7 @@ class TardisModelDoorPartsTest {
 
     @Test
     void secondDoctor_resolvesMainNestedDoors() {
-        ModelPart root = SecondDoctorTardisModel.getTexturedModelData().createModel();
+        ModelPart root = SecondDoctorTardisModel.getTexturedModelData().bakeRoot();
         SecondDoctorTardisModel model = new SecondDoctorTardisModel(root);
 
         List<ModelPart> doors = model.getDoorParts();

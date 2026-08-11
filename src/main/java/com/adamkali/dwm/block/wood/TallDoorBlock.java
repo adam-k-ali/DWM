@@ -2,41 +2,41 @@ package com.adamkali.dwm.block.wood;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockSetType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.block.enums.DoorHinge;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.pathing.NavigationType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.BlockMirror;
-import net.minecraft.util.BlockRotation;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldEvents;
-import net.minecraft.world.WorldView;
-import net.minecraft.world.block.WireOrientation;
-import net.minecraft.world.event.GameEvent;
-import net.minecraft.world.tick.ScheduledTickView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LevelEvent;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockSetType;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.level.redstone.Orientation;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -47,42 +47,42 @@ public class TallDoorBlock extends Block {
     public static final MapCodec<TallDoorBlock> CODEC = RecordCodecBuilder.mapCodec(
             instance -> instance.group(
                             BlockSetType.CODEC.fieldOf("block_set_type").forGetter(TallDoorBlock::getBlockSetType),
-                            createSettingsCodec()
+                            propertiesCodec()
                     )
                     .apply(instance, TallDoorBlock::new)
     );
 
-    public static final EnumProperty<Direction> FACING = Properties.HORIZONTAL_FACING;
-    public static final BooleanProperty OPEN = Properties.OPEN;
-    public static final EnumProperty<DoorHinge> HINGE = Properties.DOOR_HINGE;
-    public static final BooleanProperty POWERED = Properties.POWERED;
-    public static final EnumProperty<TallDoorSegment> SEGMENT = EnumProperty.of("segment", TallDoorSegment.class);
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
+    public static final EnumProperty<DoorHingeSide> HINGE = BlockStateProperties.DOOR_HINGE;
+    public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
+    public static final EnumProperty<TallDoorSegment> SEGMENT = EnumProperty.create("segment", TallDoorSegment.class);
 
     public static final int HEIGHT = 3;
 
-    protected static final VoxelShape NORTH_SHAPE = Block.createCuboidShape(0.0, 0.0, 0.0, 16.0, 16.0, 3.0);
-    protected static final VoxelShape SOUTH_SHAPE = Block.createCuboidShape(0.0, 0.0, 13.0, 16.0, 16.0, 16.0);
-    protected static final VoxelShape EAST_SHAPE = Block.createCuboidShape(13.0, 0.0, 0.0, 16.0, 16.0, 16.0);
-    protected static final VoxelShape WEST_SHAPE = Block.createCuboidShape(0.0, 0.0, 0.0, 3.0, 16.0, 16.0);
+    protected static final VoxelShape NORTH_SHAPE = Block.box(0.0, 0.0, 0.0, 16.0, 16.0, 3.0);
+    protected static final VoxelShape SOUTH_SHAPE = Block.box(0.0, 0.0, 13.0, 16.0, 16.0, 16.0);
+    protected static final VoxelShape EAST_SHAPE = Block.box(13.0, 0.0, 0.0, 16.0, 16.0, 16.0);
+    protected static final VoxelShape WEST_SHAPE = Block.box(0.0, 0.0, 0.0, 3.0, 16.0, 16.0);
 
     private final BlockSetType blockSetType;
 
-    public TallDoorBlock(BlockSetType type, AbstractBlock.Settings settings) {
-        super(settings.sounds(type.soundType()));
+    public TallDoorBlock(BlockSetType type, BlockBehaviour.Properties settings) {
+        super(settings.sound(type.soundType()));
         this.blockSetType = type;
-        this.setDefaultState(
-                this.stateManager
-                        .getDefaultState()
-                        .with(FACING, Direction.NORTH)
-                        .with(OPEN, false)
-                        .with(HINGE, DoorHinge.LEFT)
-                        .with(POWERED, false)
-                        .with(SEGMENT, TallDoorSegment.BOTTOM)
+        this.registerDefaultState(
+                this.stateDefinition
+                        .any()
+                        .setValue(FACING, Direction.NORTH)
+                        .setValue(OPEN, false)
+                        .setValue(HINGE, DoorHingeSide.LEFT)
+                        .setValue(POWERED, false)
+                        .setValue(SEGMENT, TallDoorSegment.BOTTOM)
         );
     }
 
     @Override
-    public MapCodec<? extends TallDoorBlock> getCodec() {
+    public MapCodec<? extends TallDoorBlock> codec() {
         return CODEC;
     }
 
@@ -91,15 +91,15 @@ public class TallDoorBlock extends Block {
     }
 
     public static boolean isOrigin(BlockState state) {
-        return state.contains(SEGMENT) && state.get(SEGMENT) == TallDoorSegment.BOTTOM;
+        return state.hasProperty(SEGMENT) && state.getValue(SEGMENT) == TallDoorSegment.BOTTOM;
     }
 
     public static BlockPos cellPos(BlockPos origin, TallDoorSegment segment) {
-        return origin.up(segment.index());
+        return origin.above(segment.index());
     }
 
     public static BlockPos originPos(BlockPos pos, BlockState state) {
-        return pos.down(state.get(SEGMENT).index());
+        return pos.below(state.getValue(SEGMENT).index());
     }
 
     /**
@@ -111,17 +111,17 @@ public class TallDoorBlock extends Block {
 
     /**
      * Whether creative / non-harvest breaks of this segment must destroy the origin first
-     * with {@link Block#SKIP_DROPS} (vanilla {@code DoorBlock} / {@code TallPlantBlock} pattern).
+     * with {@link Block#UPDATE_SUPPRESS_DROPS} (vanilla {@code DoorBlock} / {@code TallPlantBlock} pattern).
      */
     public static boolean shouldPreventCreativeDropFromOrigin(TallDoorSegment segment) {
         return segment != TallDoorSegment.BOTTOM;
     }
 
     @Override
-    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        Direction direction = state.get(FACING);
-        boolean closed = !state.get(OPEN);
-        boolean right = state.get(HINGE) == DoorHinge.RIGHT;
+    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+        Direction direction = state.getValue(FACING);
+        boolean closed = !state.getValue(OPEN);
+        boolean right = state.getValue(HINGE) == DoorHingeSide.RIGHT;
         return switch (direction) {
             case SOUTH -> closed ? NORTH_SHAPE : (right ? WEST_SHAPE : EAST_SHAPE);
             case WEST -> closed ? EAST_SHAPE : (right ? NORTH_SHAPE : SOUTH_SHAPE);
@@ -131,39 +131,39 @@ public class TallDoorBlock extends Block {
     }
 
     @Override
-    protected BlockState getStateForNeighborUpdate(
+    protected BlockState updateShape(
             BlockState state,
-            WorldView world,
-            ScheduledTickView tickView,
+            LevelReader world,
+            ScheduledTickAccess tickView,
             BlockPos pos,
             Direction direction,
             BlockPos neighborPos,
             BlockState neighborState,
-            Random random
+            RandomSource random
     ) {
-        TallDoorSegment segment = state.get(SEGMENT);
+        TallDoorSegment segment = state.getValue(SEGMENT);
         if (direction.getAxis() == Direction.Axis.Y) {
             boolean expectsNeighborBelow = direction == Direction.DOWN && segment != TallDoorSegment.BOTTOM;
             boolean expectsNeighborAbove = direction == Direction.UP && segment != TallDoorSegment.TOP;
             if (expectsNeighborBelow || expectsNeighborAbove) {
-                if (neighborState.isOf(this) && neighborState.get(SEGMENT) != segment) {
-                    return neighborState.with(SEGMENT, segment);
+                if (neighborState.is(this) && neighborState.getValue(SEGMENT) != segment) {
+                    return neighborState.setValue(SEGMENT, segment);
                 }
-                return Blocks.AIR.getDefaultState();
+                return Blocks.AIR.defaultBlockState();
             }
         }
-        if (segment == TallDoorSegment.BOTTOM && direction == Direction.DOWN && !state.canPlaceAt(world, pos)) {
-            return Blocks.AIR.getDefaultState();
+        if (segment == TallDoorSegment.BOTTOM && direction == Direction.DOWN && !state.canSurvive(world, pos)) {
+            return Blocks.AIR.defaultBlockState();
         }
-        return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
+        return super.updateShape(state, world, tickView, pos, direction, neighborPos, neighborState, random);
     }
 
     @Override
-    public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (!world.isClient && (player.isCreative() || !player.canHarvest(state))) {
+    public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
+        if (!world.isClientSide() && (player.isCreative() || !player.hasCorrectToolForDrops(state))) {
             preventCreativeDropFromOrigin(world, pos, state, player);
         }
-        return super.onBreak(world, pos, state, player);
+        return super.playerWillDestroy(world, pos, state, player);
     }
 
     /**
@@ -171,136 +171,136 @@ public class TallDoorBlock extends Block {
      * (or when the player cannot harvest). Neighbor updates then clear the remaining column;
      * loot only drops from {@link TallDoorSegment#BOTTOM}.
      */
-    private void preventCreativeDropFromOrigin(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (!shouldPreventCreativeDropFromOrigin(state.get(SEGMENT))) {
+    private void preventCreativeDropFromOrigin(Level world, BlockPos pos, BlockState state, Player player) {
+        if (!shouldPreventCreativeDropFromOrigin(state.getValue(SEGMENT))) {
             return;
         }
         BlockPos origin = originPos(pos, state);
         BlockState bottomState = world.getBlockState(origin);
-        if (bottomState.isOf(this) && bottomState.get(SEGMENT) == TallDoorSegment.BOTTOM) {
-            world.setBlockState(origin, Blocks.AIR.getDefaultState(), Block.NOTIFY_ALL | Block.SKIP_DROPS);
-            world.syncWorldEvent(player, WorldEvents.BLOCK_BROKEN, origin, Block.getRawIdFromState(bottomState));
+        if (bottomState.is(this) && bottomState.getValue(SEGMENT) == TallDoorSegment.BOTTOM) {
+            world.setBlock(origin, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+            world.levelEvent(player, LevelEvent.PARTICLES_DESTROY_BLOCK, origin, Block.getId(bottomState));
         }
     }
 
     @Override
-    protected boolean canPathfindThrough(BlockState state, NavigationType type) {
+    protected boolean isPathfindable(BlockState state, PathComputationType type) {
         return switch (type) {
-            case LAND, AIR -> state.get(OPEN);
+            case LAND, AIR -> state.getValue(OPEN);
             case WATER -> false;
         };
     }
 
     @Nullable
     @Override
-    public BlockState getPlacementState(ItemPlacementContext ctx) {
-        BlockPos pos = ctx.getBlockPos();
-        World world = ctx.getWorld();
-        if (pos.getY() + HEIGHT - 1 > world.getTopYInclusive()) {
+    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        BlockPos pos = ctx.getClickedPos();
+        Level world = ctx.getLevel();
+        if (pos.getY() + HEIGHT - 1 > world.getMaxY()) {
             return null;
         }
         for (int i = 1; i < HEIGHT; i++) {
-            if (!world.getBlockState(pos.up(i)).canReplace(ctx)) {
+            if (!world.getBlockState(pos.above(i)).canBeReplaced(ctx)) {
                 return null;
             }
         }
         boolean powered = isColumnPowered(world, pos);
-        return this.getDefaultState()
-                .with(FACING, ctx.getHorizontalPlayerFacing())
-                .with(HINGE, getHinge(ctx))
-                .with(POWERED, powered)
-                .with(OPEN, powered)
-                .with(SEGMENT, TallDoorSegment.BOTTOM);
+        return this.defaultBlockState()
+                .setValue(FACING, ctx.getHorizontalDirection())
+                .setValue(HINGE, getHinge(ctx))
+                .setValue(POWERED, powered)
+                .setValue(OPEN, powered)
+                .setValue(SEGMENT, TallDoorSegment.BOTTOM);
     }
 
     @Override
-    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
+    public void setPlacedBy(Level world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
         for (TallDoorSegment segment : TallDoorSegment.values()) {
             if (segment == TallDoorSegment.BOTTOM) {
                 continue;
             }
-            world.setBlockState(pos.up(segment.index()), state.with(SEGMENT, segment), Block.NOTIFY_ALL);
+            world.setBlock(pos.above(segment.index()), state.setValue(SEGMENT, segment), Block.UPDATE_ALL);
         }
     }
 
-    private DoorHinge getHinge(ItemPlacementContext ctx) {
-        BlockView world = ctx.getWorld();
-        BlockPos pos = ctx.getBlockPos();
-        Direction facing = ctx.getHorizontalPlayerFacing();
-        Direction ccw = facing.rotateYCounterclockwise();
-        Direction cw = facing.rotateYClockwise();
+    private DoorHingeSide getHinge(BlockPlaceContext ctx) {
+        BlockGetter world = ctx.getLevel();
+        BlockPos pos = ctx.getClickedPos();
+        Direction facing = ctx.getHorizontalDirection();
+        Direction ccw = facing.getCounterClockWise();
+        Direction cw = facing.getClockWise();
 
         int score = 0;
         for (int i = 0; i < HEIGHT; i++) {
-            BlockPos cell = pos.up(i);
-            BlockPos left = cell.offset(ccw);
-            BlockPos right = cell.offset(cw);
-            if (world.getBlockState(left).isFullCube(world, left)) {
+            BlockPos cell = pos.above(i);
+            BlockPos left = cell.relative(ccw);
+            BlockPos right = cell.relative(cw);
+            if (world.getBlockState(left).isCollisionShapeFullBlock(world, left)) {
                 score--;
             }
-            if (world.getBlockState(right).isFullCube(world, right)) {
+            if (world.getBlockState(right).isCollisionShapeFullBlock(world, right)) {
                 score++;
             }
         }
         if (score > 0) {
-            return DoorHinge.LEFT;
+            return DoorHingeSide.LEFT;
         }
         if (score < 0) {
-            return DoorHinge.RIGHT;
+            return DoorHingeSide.RIGHT;
         }
 
-        int ox = facing.getOffsetX();
-        int oz = facing.getOffsetZ();
-        Vec3d hit = ctx.getHitPos();
+        int ox = facing.getStepX();
+        int oz = facing.getStepZ();
+        Vec3 hit = ctx.getClickLocation();
         double dx = hit.x - (double) pos.getX();
         double dz = hit.z - (double) pos.getZ();
         return (ox >= 0 || !(dz < 0.5))
                         && (ox <= 0 || !(dz > 0.5))
                         && (oz >= 0 || !(dx > 0.5))
                         && (oz <= 0 || !(dx < 0.5))
-                ? DoorHinge.LEFT
-                : DoorHinge.RIGHT;
+                ? DoorHingeSide.LEFT
+                : DoorHingeSide.RIGHT;
     }
 
     @Override
-    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
+    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
         if (!this.blockSetType.canOpenByHand()) {
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         }
-        boolean open = !state.get(OPEN);
+        boolean open = !state.getValue(OPEN);
         setOpen(player, world, state, pos, open);
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     public boolean isOpen(BlockState state) {
-        return state.get(OPEN);
+        return state.getValue(OPEN);
     }
 
-    public void setOpen(@Nullable Entity entity, World world, BlockState state, BlockPos pos, boolean open) {
-        if (!state.isOf(this) || state.get(OPEN) == open) {
+    public void setOpen(@Nullable Entity entity, Level world, BlockState state, BlockPos pos, boolean open) {
+        if (!state.is(this) || state.getValue(OPEN) == open) {
             return;
         }
-        setColumnOpenAndPowered(world, pos, state, open, state.get(POWERED), true, entity);
+        setColumnOpenAndPowered(world, pos, state, open, state.getValue(POWERED), true, entity);
     }
 
     @Override
-    protected void neighborUpdate(
+    protected void neighborChanged(
             BlockState state,
-            World world,
+            Level world,
             BlockPos pos,
             Block sourceBlock,
-            @Nullable WireOrientation wireOrientation,
+            @Nullable Orientation wireOrientation,
             boolean notify
     ) {
         BlockPos origin = originPos(pos, state);
         boolean poweredNow = isColumnPowered(world, origin);
-        if (!this.getDefaultState().isOf(sourceBlock) && shouldApplyPowerEdge(poweredNow, state.get(POWERED))) {
-            setColumnOpenAndPowered(world, pos, state, poweredNow, poweredNow, state.get(OPEN) != poweredNow, null);
+        if (!this.defaultBlockState().is(sourceBlock) && shouldApplyPowerEdge(poweredNow, state.getValue(POWERED))) {
+            setColumnOpenAndPowered(world, pos, state, poweredNow, poweredNow, state.getValue(OPEN) != poweredNow, null);
         }
     }
 
     private void setColumnOpenAndPowered(
-            World world,
+            Level world,
             BlockPos pos,
             BlockState state,
             boolean open,
@@ -312,24 +312,24 @@ public class TallDoorBlock extends Block {
         for (TallDoorSegment segment : TallDoorSegment.values()) {
             BlockPos cell = cellPos(origin, segment);
             BlockState cellState = world.getBlockState(cell);
-            if (!cellState.isOf(this)) {
+            if (!cellState.is(this)) {
                 continue;
             }
-            world.setBlockState(
+            world.setBlock(
                     cell,
-                    cellState.with(OPEN, open).with(POWERED, powered),
-                    Block.NOTIFY_LISTENERS | Block.REDRAW_ON_MAIN_THREAD
+                    cellState.setValue(OPEN, open).setValue(POWERED, powered),
+                    Block.UPDATE_CLIENTS | Block.UPDATE_IMMEDIATE
             );
         }
         if (playSound) {
             playOpenCloseSound(entity, world, origin, open);
-            world.emitGameEvent(entity, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, origin);
+            world.gameEvent(entity, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, origin);
         }
     }
 
-    public static boolean isColumnPowered(World world, BlockPos origin) {
+    public static boolean isColumnPowered(Level world, BlockPos origin) {
         for (TallDoorSegment segment : TallDoorSegment.values()) {
-            if (world.isReceivingRedstonePower(cellPos(origin, segment))) {
+            if (world.hasNeighborSignal(cellPos(origin, segment))) {
                 return true;
             }
         }
@@ -337,46 +337,46 @@ public class TallDoorBlock extends Block {
     }
 
     @Override
-    protected boolean canPlaceAt(BlockState state, WorldView world, BlockPos pos) {
-        TallDoorSegment segment = state.get(SEGMENT);
+    protected boolean canSurvive(BlockState state, LevelReader world, BlockPos pos) {
+        TallDoorSegment segment = state.getValue(SEGMENT);
         if (segment == TallDoorSegment.BOTTOM) {
-            BlockPos below = pos.down();
-            return world.getBlockState(below).isSideSolidFullSquare(world, below, Direction.UP);
+            BlockPos below = pos.below();
+            return world.getBlockState(below).isFaceSturdy(world, below, Direction.UP);
         }
-        BlockState below = world.getBlockState(pos.down());
-        return below.isOf(this) && below.get(SEGMENT).index() == segment.index() - 1;
+        BlockState below = world.getBlockState(pos.below());
+        return below.is(this) && below.getValue(SEGMENT).index() == segment.index() - 1;
     }
 
-    private void playOpenCloseSound(@Nullable Entity entity, World world, BlockPos pos, boolean open) {
+    private void playOpenCloseSound(@Nullable Entity entity, Level world, BlockPos pos, boolean open) {
         world.playSound(
                 entity,
                 pos,
                 open ? this.blockSetType.doorOpen() : this.blockSetType.doorClose(),
-                SoundCategory.BLOCKS,
+                SoundSource.BLOCKS,
                 1.0F,
                 world.getRandom().nextFloat() * 0.1F + 0.9F
         );
     }
 
     @Override
-    protected BlockState rotate(BlockState state, BlockRotation rotation) {
-        return state.with(FACING, rotation.rotate(state.get(FACING)));
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
-    protected BlockState mirror(BlockState state, BlockMirror mirror) {
-        return mirror == BlockMirror.NONE
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return mirror == Mirror.NONE
                 ? state
-                : state.rotate(mirror.getRotation(state.get(FACING))).cycle(HINGE);
+                : state.rotate(mirror.getRotation(state.getValue(FACING))).cycle(HINGE);
     }
 
     @Override
-    protected long getRenderingSeed(BlockState state, BlockPos pos) {
-        return MathHelper.hashCode(pos.getX(), originPos(pos, state).getY(), pos.getZ());
+    protected long getSeed(BlockState state, BlockPos pos) {
+        return Mth.getSeed(pos.getX(), originPos(pos, state).getY(), pos.getZ());
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(SEGMENT, FACING, OPEN, HINGE, POWERED);
     }
 }

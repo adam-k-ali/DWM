@@ -1,11 +1,13 @@
 package com.adamkali.dwm.tardis.soto;
 
-import net.minecraft.util.Identifier;
-import net.minecraft.world.dimension.DimensionTypes;
+import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 
 /**
- * Synced exterior atmosphere for SOTO sky/fog. Single biome sample at the exterior TARDIS pos.
+ * @deprecated Prefer {@link PortalAtmosphere}; kept as a thin alias for existing SOTO render helpers.
  */
+@Deprecated
 public record SotoAtmosphere(
         Identifier dimensionEffectsId,
         long timeOfDay,
@@ -14,22 +16,34 @@ public record SotoAtmosphere(
         int biomeSkyColor,
         int biomeFogColor
 ) {
-    /** Overworld noon-ish fallback when no snapshot atmosphere is available. */
-    public static final SotoAtmosphere DEFAULT = new SotoAtmosphere(
-            DimensionTypes.OVERWORLD_ID,
-            6000L,
-            0.0f,
-            0.0f,
-            0x78A7FF,
-            0xC0D8FF
-    );
+    public static final SotoAtmosphere DEFAULT = fromPortal(PortalAtmosphere.DEFAULT);
 
     public SotoAtmosphere {
         if (dimensionEffectsId == null) {
-            dimensionEffectsId = DimensionTypes.OVERWORLD_ID;
+            dimensionEffectsId = BuiltinDimensionTypes.OVERWORLD.identifier();
         }
         rainGradient = clamp01(rainGradient);
         thunderGradient = clamp01(thunderGradient);
+    }
+
+    public PortalAtmosphere toPortal() {
+        return new PortalAtmosphere(
+                dimensionEffectsId, timeOfDay, rainGradient, thunderGradient, biomeSkyColor, biomeFogColor
+        );
+    }
+
+    public static SotoAtmosphere fromPortal(PortalAtmosphere atmosphere) {
+        if (atmosphere == null) {
+            return DEFAULT;
+        }
+        return new SotoAtmosphere(
+                atmosphere.dimensionEffectsId(),
+                atmosphere.timeOfDay(),
+                atmosphere.rainGradient(),
+                atmosphere.thunderGradient(),
+                atmosphere.biomeSkyColor(),
+                atmosphere.biomeFogColor()
+        );
     }
 
     private static float clamp01(float value) {

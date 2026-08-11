@@ -1,66 +1,66 @@
 package com.adamkali.dwm.world;
 
 import com.adamkali.dwm.block.DWMBlocks;
-import net.minecraft.registry.Registerable;
-import net.minecraft.registry.RegistryEntryLookup;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.world.gen.feature.ConfiguredFeature;
-import net.minecraft.world.gen.feature.PlacedFeature;
-import net.minecraft.world.gen.feature.PlacedFeatures;
-import net.minecraft.world.gen.feature.VegetationPlacedFeatures;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderGetter;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.data.worldgen.placement.PlacementUtils;
+import net.minecraft.data.worldgen.placement.VegetationPlacements;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
 public final class DWMPlacedFeatureBootstrap {
     private DWMPlacedFeatureBootstrap() {
     }
 
-    public static void bootstrap(Registerable<PlacedFeature> registerable) {
-        RegistryEntryLookup<ConfiguredFeature<?, ?>> configured =
-                registerable.getRegistryLookup(RegistryKeys.CONFIGURED_FEATURE);
+    public static void bootstrap(BootstrapContext<PlacedFeature> registerable) {
+        HolderGetter<ConfiguredFeature<?, ?>> configured =
+                registerable.lookup(Registries.CONFIGURED_FEATURE);
 
         registerTree(
                 registerable,
                 DWMPlacedFeatures.ASH_PLAINS,
                 configured.getOrThrow(DWMConfiguredFeatures.ASH),
-                PlacedFeatures.createCountExtraModifier(0, 0.05F, 1),
+                PlacementUtils.countExtra(0, 0.05F, 1),
                 DWMBlocks.ASH_SAPLING
         );
         registerTree(
                 registerable,
                 DWMPlacedFeatures.ASH_FOREST,
                 configured.getOrThrow(DWMConfiguredFeatures.ASH),
-                PlacedFeatures.createCountExtraModifier(4, 0.1F, 1),
+                PlacementUtils.countExtra(4, 0.1F, 1),
                 DWMBlocks.ASH_SAPLING
         );
         registerTree(
                 registerable,
                 DWMPlacedFeatures.DARK_ASH_FOREST,
                 configured.getOrThrow(DWMConfiguredFeatures.DARK_ASH),
-                PlacedFeatures.createCountExtraModifier(3, 0.1F, 1),
+                PlacementUtils.countExtra(3, 0.1F, 1),
                 DWMBlocks.DARK_ASH_SAPLING
         );
         registerTree(
                 registerable,
                 DWMPlacedFeatures.CARDINAL_FOREST,
                 configured.getOrThrow(DWMConfiguredFeatures.CARDINAL),
-                PlacedFeatures.createCountExtraModifier(2, 0.1F, 1),
+                PlacementUtils.countExtra(2, 0.1F, 1),
                 DWMBlocks.CARDINAL_SAPLING
         );
     }
 
     private static void registerTree(
-            Registerable<PlacedFeature> registerable,
-            RegistryKey<PlacedFeature> key,
-            RegistryEntry<ConfiguredFeature<?, ?>> feature,
-            net.minecraft.world.gen.placementmodifier.PlacementModifier countModifier,
-            net.minecraft.block.Block sapling
+            BootstrapContext<PlacedFeature> registerable,
+            ResourceKey<PlacedFeature> key,
+            Holder<ConfiguredFeature<?, ?>> feature,
+            net.minecraft.world.level.levelgen.placement.PlacementModifier countModifier,
+            net.minecraft.world.level.block.Block sapling
     ) {
-        PlacedFeatures.register(
+        PlacementUtils.register(
                 registerable,
                 key,
                 feature,
-                VegetationPlacedFeatures.treeModifiersWithWouldSurvive(countModifier, sapling)
+                VegetationPlacements.treePlacement(countModifier, sapling)
         );
     }
 }

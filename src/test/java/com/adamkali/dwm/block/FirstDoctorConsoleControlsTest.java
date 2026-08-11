@@ -1,23 +1,24 @@
 package com.adamkali.dwm.block;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 class FirstDoctorConsoleControlsTest {
     private static final double EPSILON = 1e-3;
 
     @Test
     void biomeSelectorBox_sitsOnPanelDeckAwayFromCenter() {
-        Box box = FirstDoctorConsoleControls.biomeSelectorBox(Direction.NORTH);
+        AABB box = FirstDoctorConsoleControls.biomeSelectorBox(Direction.NORTH);
         assertTrue(box.minY > 0.5, "selector should sit on panel deck, was minY=" + box.minY);
         assertTrue(box.maxY < 1.7, "selector should stay near console top, was maxY=" + box.maxY);
-        assertTrue(box.getLengthX() > 0.2);
-        assertTrue(box.getLengthZ() > 0.2);
+        assertTrue(box.getXsize() > 0.2);
+        assertTrue(box.getZsize() > 0.2);
         assertTrue(
                 FirstDoctorConsoleControls.selectorDistanceFromCenter(Direction.NORTH) > 0.45,
                 "selector should be out on Panel3 deck, not at the time rotor"
@@ -27,46 +28,46 @@ class FirstDoctorConsoleControlsTest {
     @Test
     void isBiomeSelectorHit_acceptsCenterRejectsOrigin() {
         Direction facing = Direction.SOUTH;
-        Box box = FirstDoctorConsoleControls.biomeSelectorBox(facing);
-        Vec3d center = box.getCenter();
+        AABB box = FirstDoctorConsoleControls.biomeSelectorBox(facing);
+        Vec3 center = box.getCenter();
         assertTrue(FirstDoctorConsoleControls.isBiomeSelectorHit(facing, center));
-        assertFalse(FirstDoctorConsoleControls.isBiomeSelectorHit(facing, Vec3d.ZERO));
-        assertFalse(FirstDoctorConsoleControls.isBiomeSelectorHit(facing, new Vec3d(0.5, 0.1, 0.5)));
+        assertFalse(FirstDoctorConsoleControls.isBiomeSelectorHit(facing, Vec3.ZERO));
+        assertFalse(FirstDoctorConsoleControls.isBiomeSelectorHit(facing, new Vec3(0.5, 0.1, 0.5)));
     }
 
     @Test
     void lookRay_hitsSelectorFromAbove() {
         Direction facing = Direction.NORTH;
-        BlockPos pos = BlockPos.ORIGIN;
-        Box box = FirstDoctorConsoleControls.biomeSelectorWorldBox(pos, facing);
-        Vec3d center = box.getCenter();
-        Vec3d eye = new Vec3d(center.x, center.y + 1.5, center.z);
-        Vec3d look = new Vec3d(0, -1, 0);
+        BlockPos pos = BlockPos.ZERO;
+        AABB box = FirstDoctorConsoleControls.biomeSelectorWorldBox(pos, facing);
+        Vec3 center = box.getCenter();
+        Vec3 eye = new Vec3(center.x, center.y + 1.5, center.z);
+        Vec3 look = new Vec3(0, -1, 0);
         assertTrue(FirstDoctorConsoleControls.isBiomeSelectorLookHit(facing, pos, eye, look, 5.0));
 
-        Vec3d missEye = new Vec3d(-2.0, 2.0, -2.0);
-        Vec3d missLook = new Vec3d(0, -1, 0);
+        Vec3 missEye = new Vec3(-2.0, 2.0, -2.0);
+        Vec3 missLook = new Vec3(0, -1, 0);
         assertFalse(FirstDoctorConsoleControls.isBiomeSelectorLookHit(facing, pos, missEye, missLook, 5.0));
     }
 
     @Test
     void facingRotation_movesSelectorHorizontally() {
-        Box north = FirstDoctorConsoleControls.biomeSelectorBox(Direction.NORTH);
-        Box east = FirstDoctorConsoleControls.biomeSelectorBox(Direction.EAST);
+        AABB north = FirstDoctorConsoleControls.biomeSelectorBox(Direction.NORTH);
+        AABB east = FirstDoctorConsoleControls.biomeSelectorBox(Direction.EAST);
         assertNotEquals(north.getCenter().x, east.getCenter().x, EPSILON);
         assertEquals(north.getCenter().y, east.getCenter().y, EPSILON);
     }
 
     @Test
     void selectorLocalToBlockLocal_panel3North_isOffsetFromCenter() {
-        Vec3d p = FirstDoctorConsoleControls.selectorLocalToBlockLocal(0, 1, 0, Direction.NORTH);
+        Vec3 p = FirstDoctorConsoleControls.selectorLocalToBlockLocal(0, 1, 0, Direction.NORTH);
         assertTrue(Math.hypot(p.x - 0.5, p.z - 0.5) > 0.45);
         assertTrue(p.y > 0.5);
     }
 
     @Test
     void materialisationLeverBox_sitsOnPanel6DeckAwayFromCenter() {
-        Box box = FirstDoctorConsoleControls.materialisationLeverBox(Direction.NORTH);
+        AABB box = FirstDoctorConsoleControls.materialisationLeverBox(Direction.NORTH);
         assertTrue(box.minY > 0.4, "lever should sit on panel deck, was minY=" + box.minY);
         assertTrue(box.maxY < 2.0, "lever should stay near console top, was maxY=" + box.maxY);
         assertTrue(
@@ -78,30 +79,30 @@ class FirstDoctorConsoleControlsTest {
     @Test
     void lookRay_hitsLeverFromAbove() {
         Direction facing = Direction.NORTH;
-        BlockPos pos = BlockPos.ORIGIN;
-        Box box = FirstDoctorConsoleControls.materialisationLeverWorldBox(pos, facing);
-        Vec3d center = box.getCenter();
-        Vec3d eye = new Vec3d(center.x, center.y + 1.5, center.z);
-        Vec3d look = new Vec3d(0, -1, 0);
+        BlockPos pos = BlockPos.ZERO;
+        AABB box = FirstDoctorConsoleControls.materialisationLeverWorldBox(pos, facing);
+        Vec3 center = box.getCenter();
+        Vec3 eye = new Vec3(center.x, center.y + 1.5, center.z);
+        Vec3 look = new Vec3(0, -1, 0);
         assertTrue(FirstDoctorConsoleControls.isMaterialisationLeverLookHit(facing, pos, eye, look, 5.0));
 
-        Vec3d missEye = new Vec3d(-2.0, 2.0, -2.0);
-        Vec3d missLook = new Vec3d(0, -1, 0);
+        Vec3 missEye = new Vec3(-2.0, 2.0, -2.0);
+        Vec3 missLook = new Vec3(0, -1, 0);
         assertFalse(FirstDoctorConsoleControls.isMaterialisationLeverLookHit(facing, pos, missEye, missLook, 5.0));
     }
 
     @Test
     void facingRotation_movesLeverHorizontally() {
-        Box north = FirstDoctorConsoleControls.materialisationLeverBox(Direction.NORTH);
-        Box east = FirstDoctorConsoleControls.materialisationLeverBox(Direction.EAST);
+        AABB north = FirstDoctorConsoleControls.materialisationLeverBox(Direction.NORTH);
+        AABB east = FirstDoctorConsoleControls.materialisationLeverBox(Direction.EAST);
         assertNotEquals(north.getCenter().x, east.getCenter().x, EPSILON);
         assertEquals(north.getCenter().y, east.getCenter().y, EPSILON);
     }
 
     @Test
     void leverAndSelector_areOnDifferentPanels() {
-        Box selector = FirstDoctorConsoleControls.biomeSelectorBox(Direction.NORTH);
-        Box lever = FirstDoctorConsoleControls.materialisationLeverBox(Direction.NORTH);
+        AABB selector = FirstDoctorConsoleControls.biomeSelectorBox(Direction.NORTH);
+        AABB lever = FirstDoctorConsoleControls.materialisationLeverBox(Direction.NORTH);
         double dx = selector.getCenter().x - lever.getCenter().x;
         double dz = selector.getCenter().z - lever.getCenter().z;
         assertTrue(Math.hypot(dx, dz) > 0.3, "Panel3 and Panel6 controls should not share the same center");
@@ -109,8 +110,8 @@ class FirstDoctorConsoleControlsTest {
 
     @Test
     void planetLocatorBox_sitsBesideBiomeSelectorOnPanel3() {
-        Box biome = FirstDoctorConsoleControls.biomeSelectorBox(Direction.NORTH);
-        Box planet = FirstDoctorConsoleControls.planetLocatorBox(Direction.NORTH);
+        AABB biome = FirstDoctorConsoleControls.biomeSelectorBox(Direction.NORTH);
+        AABB planet = FirstDoctorConsoleControls.planetLocatorBox(Direction.NORTH);
         assertTrue(planet.minY > 0.5, "planet locator should sit on panel deck, was minY=" + planet.minY);
         assertTrue(
                 FirstDoctorConsoleControls.planetLocatorDistanceFromCenter(Direction.NORTH) > 0.45,
@@ -125,31 +126,31 @@ class FirstDoctorConsoleControlsTest {
     @Test
     void lookRay_hitsPlanetLocatorFromAbove() {
         Direction facing = Direction.NORTH;
-        BlockPos pos = BlockPos.ORIGIN;
-        Box box = FirstDoctorConsoleControls.planetLocatorWorldBox(pos, facing);
-        Vec3d center = box.getCenter();
-        Vec3d eye = new Vec3d(center.x, center.y + 1.5, center.z);
-        Vec3d look = new Vec3d(0, -1, 0);
+        BlockPos pos = BlockPos.ZERO;
+        AABB box = FirstDoctorConsoleControls.planetLocatorWorldBox(pos, facing);
+        Vec3 center = box.getCenter();
+        Vec3 eye = new Vec3(center.x, center.y + 1.5, center.z);
+        Vec3 look = new Vec3(0, -1, 0);
         assertTrue(FirstDoctorConsoleControls.isPlanetLocatorLookHit(facing, pos, eye, look, 5.0));
 
-        Vec3d missEye = new Vec3d(-2.0, 2.0, -2.0);
-        Vec3d missLook = new Vec3d(0, -1, 0);
+        Vec3 missEye = new Vec3(-2.0, 2.0, -2.0);
+        Vec3 missLook = new Vec3(0, -1, 0);
         assertFalse(FirstDoctorConsoleControls.isPlanetLocatorLookHit(facing, pos, missEye, missLook, 5.0));
     }
 
     @Test
     void preferBiomeOverPlanet_picksCloserDial() {
         Direction facing = Direction.NORTH;
-        BlockPos pos = BlockPos.ORIGIN;
-        Box biome = FirstDoctorConsoleControls.biomeSelectorWorldBox(pos, facing);
-        Vec3d biomeCenter = biome.getCenter();
-        Vec3d eye = new Vec3d(biomeCenter.x, biomeCenter.y + 1.5, biomeCenter.z);
-        Vec3d look = new Vec3d(0, -1, 0);
+        BlockPos pos = BlockPos.ZERO;
+        AABB biome = FirstDoctorConsoleControls.biomeSelectorWorldBox(pos, facing);
+        Vec3 biomeCenter = biome.getCenter();
+        Vec3 eye = new Vec3(biomeCenter.x, biomeCenter.y + 1.5, biomeCenter.z);
+        Vec3 look = new Vec3(0, -1, 0);
         assertTrue(FirstDoctorConsoleControls.preferBiomeOverPlanet(facing, pos, eye, look, 5.0));
 
-        Box planet = FirstDoctorConsoleControls.planetLocatorWorldBox(pos, facing);
-        Vec3d planetCenter = planet.getCenter();
-        Vec3d planetEye = new Vec3d(planetCenter.x, planetCenter.y + 1.5, planetCenter.z);
+        AABB planet = FirstDoctorConsoleControls.planetLocatorWorldBox(pos, facing);
+        Vec3 planetCenter = planet.getCenter();
+        Vec3 planetEye = new Vec3(planetCenter.x, planetCenter.y + 1.5, planetCenter.z);
         assertFalse(FirstDoctorConsoleControls.preferBiomeOverPlanet(facing, pos, planetEye, look, 5.0));
     }
 }

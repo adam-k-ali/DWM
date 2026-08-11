@@ -2,19 +2,18 @@ package com.adamkali.dwm.tardis.interior;
 
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.structure.StructurePlacementData;
-import net.minecraft.structure.StructureTemplate;
-import net.minecraft.util.BlockMirror;
-import net.minecraft.util.BlockRotation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 
 /**
  * Places the First Doctor console room. Prefers the shipped structure template; falls back to
@@ -31,9 +30,9 @@ public final class FirstDoctorConsoleRoomPlacer {
     private FirstDoctorConsoleRoomPlacer() {
     }
 
-    public static BlockPos place(ServerWorld world, BlockPos origin, UUID tardisId) {
+    public static BlockPos place(ServerLevel world, BlockPos origin, UUID tardisId) {
         // Far UUID-derived plots are often unloaded; load the structure footprint before placing.
-        BlockPos max = origin.add(SIZE_X - 1, SIZE_Y - 1, SIZE_Z - 1);
+        BlockPos max = origin.offset(SIZE_X - 1, SIZE_Y - 1, SIZE_Z - 1);
         for (int x = origin.getX() >> 4; x <= max.getX() >> 4; x++) {
             for (int z = origin.getZ() >> 4; z <= max.getZ() >> 4; z++) {
                 world.getChunk(x, z);
@@ -45,35 +44,35 @@ public final class FirstDoctorConsoleRoomPlacer {
         tryPlaceFromTemplate(world, origin);
         placeProgrammatically(world, origin);
         stampInteriorEntities(world, origin, tardisId);
-        return origin.add(LOCAL_ENTRANCE);
+        return origin.offset(LOCAL_ENTRANCE);
     }
 
-    private static boolean tryPlaceFromTemplate(ServerWorld world, BlockPos origin) {
-        Optional<StructureTemplate> template = world.getServer()
-                .getStructureTemplateManager()
-                .getTemplate(TardisDimensions.CONSOLE_ROOM_STRUCTURE_ID);
-        if (template.isEmpty()) {
+    private static boolean tryPlaceFromTemplate(ServerLevel world, BlockPos origin) {
+        Optional<StructureTemplate> structure = world.getServer()
+                .getStructureManager()
+                .get(TardisDimensions.CONSOLE_ROOM_STRUCTURE_ID);
+        if (structure.isEmpty()) {
             return false;
         }
-        StructurePlacementData data = new StructurePlacementData()
-                .setMirror(BlockMirror.NONE)
-                .setRotation(BlockRotation.NONE)
+        StructurePlaceSettings data = new StructurePlaceSettings()
+                .setMirror(Mirror.NONE)
+                .setRotation(Rotation.NONE)
                 .setIgnoreEntities(true);
-        template.get().place(world, origin, origin, data, Random.create(), Block.NOTIFY_LISTENERS);
+        structure.get().placeInWorld(world, origin, origin, data, RandomSource.create(), Block.UPDATE_CLIENTS);
         return true;
     }
 
-    static void placeProgrammatically(ServerWorld world, BlockPos origin) {
+    static void placeProgrammatically(ServerLevel world, BlockPos origin) {
         for (Map.Entry<BlockPos, BlockState> entry : buildPlacements().entrySet()) {
-            world.setBlockState(origin.add(entry.getKey()), entry.getValue(), Block.NOTIFY_LISTENERS);
+            world.setBlock(origin.offset(entry.getKey()), entry.getValue(), Block.UPDATE_CLIENTS);
         }
     }
 
-    private static void stampInteriorEntities(ServerWorld world, BlockPos origin, UUID tardisId) {
+    private static void stampInteriorEntities(ServerLevel world, BlockPos origin, UUID tardisId) {
         for (int x = 0; x < SIZE_X; x++) {
             for (int y = 0; y < SIZE_Y; y++) {
                 for (int z = 0; z < SIZE_Z; z++) {
-                    BlockPos pos = origin.add(x, y, z);
+                    BlockPos pos = origin.offset(x, y, z);
                     if (world.getBlockEntity(pos) instanceof TardisInteriorDoorBlockEntity doorEntity) {
                         doorEntity.setTardisId(tardisId);
                     } else if (world.getBlockEntity(pos) instanceof FirstDoctorConsoleBlockEntity consoleEntity) {

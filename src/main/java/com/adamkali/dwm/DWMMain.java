@@ -9,15 +9,13 @@ import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.item.DWMItems;
 import com.adamkali.dwm.network.ServerPayloadTypeRegistry;
 import com.adamkali.dwm.sound.DWMSounds;
-import com.adamkali.dwm.tardis.boti.BotiInteriorSyncService;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
-import com.adamkali.dwm.tardis.soto.SotoExteriorSyncService;
-import com.adamkali.dwm.tardis.soto.SotoGhostSyncService;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
+import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.minecraft.util.WorldSavePath;
+import net.minecraft.world.level.storage.LevelResource;
 import org.slf4j.Logger;
 
 public class DWMMain implements ModInitializer {
@@ -35,12 +33,10 @@ public class DWMMain implements ModInitializer {
         DWMBlockEntities.initialize();
         DWMSounds.initialize();
         ServerPayloadTypeRegistry.initialize();
-        BotiInteriorSyncService.initialize();
-        SotoExteriorSyncService.initialize();
-        SotoGhostSyncService.initialize();
+        PortalStreamSyncService.initialize();
         TardisTravelService.initialize();
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            TardisDataLoader.tardisSaveDirectory = server.getSavePath(WorldSavePath.ROOT).resolve("tardis_data");
+            TardisDataLoader.tardisSaveDirectory = server.getWorldPath(LevelResource.ROOT).resolve("tardis_data");
         });
         ServerLifecycleEvents.AFTER_SAVE.register((server, flush, force) -> {
             TardisDataLoader.save();

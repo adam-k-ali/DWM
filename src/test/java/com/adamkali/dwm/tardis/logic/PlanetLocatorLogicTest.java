@@ -1,37 +1,37 @@
 package com.adamkali.dwm.tardis.logic;
 
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.Level;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class PlanetLocatorLogicTest {
-    private static RegistryKey<World> world(String namespace, String path) {
-        return RegistryKey.of(RegistryKeys.WORLD, Identifier.of(namespace, path));
+    private static ResourceKey<Level> world(String namespace, String path) {
+        return ResourceKey.create(Registries.DIMENSION, Identifier.fromNamespaceAndPath(namespace, path));
     }
 
     @Test
     void filterTravelDimensions_excludesTardisAndSorts() {
-        List<RegistryKey<World>> input = List.of(
+        List<ResourceKey<Level>> input = List.of(
                 world("minecraft", "the_end"),
                 TardisDimensions.TARDIS_WORLD_KEY,
                 world("minecraft", "overworld"),
                 world("minecraft", "the_nether")
         );
 
-        List<RegistryKey<World>> filtered = PlanetLocatorLogic.filterTravelDimensions(input);
+        List<ResourceKey<Level>> filtered = PlanetLocatorLogic.filterTravelDimensions(input);
 
         assertEquals(3, filtered.size());
-        assertEquals("minecraft:overworld", filtered.get(0).getValue().toString());
-        assertEquals("minecraft:the_end", filtered.get(1).getValue().toString());
-        assertEquals("minecraft:the_nether", filtered.get(2).getValue().toString());
+        assertEquals("minecraft:overworld", filtered.get(0).identifier().toString());
+        assertEquals("minecraft:the_end", filtered.get(1).identifier().toString());
+        assertEquals("minecraft:the_nether", filtered.get(2).identifier().toString());
         assertFalse(filtered.contains(TardisDimensions.TARDIS_WORLD_KEY));
     }
 
@@ -44,30 +44,30 @@ class PlanetLocatorLogicTest {
 
     @Test
     void nextDimension_wrapsAndHandlesMissingCurrent() {
-        List<RegistryKey<World>> dims = List.of(
-                World.OVERWORLD,
-                World.NETHER,
-                World.END
+        List<ResourceKey<Level>> dims = List.of(
+                Level.OVERWORLD,
+                Level.NETHER,
+                Level.END
         );
 
         assertEquals(
-                Optional.of(World.OVERWORLD.getValue()),
+                Optional.of(Level.OVERWORLD.identifier()),
                 PlanetLocatorLogic.nextDimension(null, dims)
         );
         assertEquals(
-                Optional.of(World.NETHER.getValue()),
+                Optional.of(Level.NETHER.identifier()),
                 PlanetLocatorLogic.nextDimension("minecraft:overworld", dims)
         );
         assertEquals(
-                Optional.of(World.END.getValue()),
+                Optional.of(Level.END.identifier()),
                 PlanetLocatorLogic.nextDimension("minecraft:the_nether", dims)
         );
         assertEquals(
-                Optional.of(World.OVERWORLD.getValue()),
+                Optional.of(Level.OVERWORLD.identifier()),
                 PlanetLocatorLogic.nextDimension("minecraft:the_end", dims)
         );
         assertEquals(
-                Optional.of(World.OVERWORLD.getValue()),
+                Optional.of(Level.OVERWORLD.identifier()),
                 PlanetLocatorLogic.nextDimension("minecraft:unknown", dims)
         );
     }

@@ -2,21 +2,20 @@ package com.adamkali.dwm.datagen;
 
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.item.DWMItems;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricLanguageProvider;
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
-import net.minecraft.registry.RegistryWrapper;
-
+import net.minecraft.core.HolderLookup;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import java.util.concurrent.CompletableFuture;
 
 public class DWMLanguageProvider extends FabricLanguageProvider {
-    public DWMLanguageProvider(FabricDataOutput dataOutput, CompletableFuture<RegistryWrapper.WrapperLookup> registryLookup) {
+    public DWMLanguageProvider(FabricPackOutput dataOutput, CompletableFuture<HolderLookup.Provider> registryLookup) {
         super(dataOutput, registryLookup);
     }
 
     @Override
-    public void generateTranslations(RegistryWrapper.WrapperLookup registryLookup, TranslationBuilder translationBuilder) {
+    public void generateTranslations(HolderLookup.Provider registryLookup, TranslationBuilder translationBuilder) {
         addItems(translationBuilder);
         addBuildingBlocks(translationBuilder);
         addGallifreyStoneFamily(translationBuilder);
@@ -24,22 +23,22 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         for (var family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.addTranslations(new WoodFamilyDatagen.LangSink() {
                 @Override
-                public void addBlockAndItem(net.minecraft.block.Block block, String name) {
+                public void addBlockAndItem(net.minecraft.world.level.block.Block block, String name) {
                     DWMLanguageProvider.addBlockAndItem(translationBuilder, block, name);
                 }
 
                 @Override
-                public void add(net.minecraft.block.Block block, String name) {
+                public void add(net.minecraft.world.level.block.Block block, String name) {
                     translationBuilder.add(block, name);
                 }
 
                 @Override
-                public void add(net.minecraft.item.Item item, String name) {
+                public void add(net.minecraft.world.item.Item item, String name) {
                     translationBuilder.add(item, name);
                 }
 
                 @Override
-                public void add(net.minecraft.entity.EntityType<?> type, String name) {
+                public void add(net.minecraft.world.entity.EntityType<?> type, String name) {
                     translationBuilder.add(type, name);
                 }
             }, family);
@@ -233,10 +232,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.seventh_doctor_box", "Seventh Doctor Box");
         t.add("dwm.gui.no_more_variants", "No more variants");
         t.add("dwm.config.option.chameleon_gui", "Enable Chameleon GUI");
-        t.add("dwm.config.option.enable_boti", "Bigger on the Inside (exterior)");
-        t.add("dwm.config.option.enable_boti.tooltip", "Show the console room through open exterior doors. Requires stencil support; may not work with Fabulous graphics or some Sodium setups.");
-        t.add("dwm.config.option.enable_soto", "Smaller on the Outside (interior) [Experimental]");
-        t.add("dwm.config.option.enable_soto.tooltip", "Experimental. Show the exterior world through open interior doors. Requires stencil support; may not work with Fabulous graphics or some Sodium setups.");
+        t.add("dwm.config.option.enable_door_portals", "Door portals (BOTI / SOTO)");
+        t.add("dwm.config.option.enable_door_portals.tooltip", "Show doorway previews through open exterior and interior doors using the shared portal renderer. Disabled on Fabulous graphics or when order-independent transparency is on.");
         t.add("dwm.config.category.experimental", "Experimental");
     }
 

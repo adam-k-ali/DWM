@@ -1,71 +1,78 @@
 package com.adamkali.dwm.render.soto.ghost;
 
+import com.adamkali.dwm.render.portal.PortalSceneStore;
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
+import com.mojang.blaze3d.IndexType;
+import com.mojang.blaze3d.PrimitiveTopology;
+import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.QuadInstance;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
-import net.minecraft.client.gl.GlUsage;
-import net.minecraft.client.gl.VertexBuffer;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BuiltBuffer;
-import net.minecraft.client.render.LightmapTextureManager;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderLayers;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.render.block.BlockRenderManager;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.util.BufferAllocator;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
+import net.minecraft.client.renderer.block.BlockStateModelSet;
+import net.minecraft.client.renderer.block.ModelBlockRenderer;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.minecraft.client.renderer.rendertype.PreparedRenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Phase 2: per-chunk GPU meshes baked from {@link SotoGhostExterior} on chunk apply.
+ * Per-chunk GPU meshes baked from {@link SotoGhostExterior} on chunk apply.
+ * Keyed by (PortalStreamKind, UUID) so BOTI and SOTO share the same mesh infrastructure.
  */
 public final class SotoGhostMeshCache {
-    private static final int FULLBRIGHT = LightmapTextureManager.pack(15, 15);
+    private static final int FULLBRIGHT = LightCoordsUtil.FULL_BRIGHT;
 
-    private static final Map<UUID, Map<Long, ChunkMesh>> MESHES = new ConcurrentHashMap<>();
+    private static final Map<PortalSceneStore.SceneKey, Map<Long, ChunkMesh>> MESHES = new ConcurrentHashMap<>();
 
     private SotoGhostMeshCache() {
     }
 
-    public static boolean hasMeshes(UUID tardisId) {
-        if (tardisId == null) {
+    public static boolean hasMeshes(PortalStreamKind kind, UUID tardisId) {
+        if (kind == null || tardisId == null) {
             return false;
         }
-        Map<Long, ChunkMesh> byChunk = MESHES.get(tardisId);
+        Map<Long, ChunkMesh> byChunk = MESHES.get(new PortalSceneStore.SceneKey(kind, tardisId));
         return byChunk != null && !byChunk.isEmpty();
     }
 
-    public static int meshChunkCount(UUID tardisId) {
-        if (tardisId == null) {
+    public static int meshChunkCount(PortalStreamKind kind, UUID tardisId) {
+        if (kind == null || tardisId == null) {
             return 0;
         }
-        Map<Long, ChunkMesh> byChunk = MESHES.get(tardisId);
+        Map<Long, ChunkMesh> byChunk = MESHES.get(new PortalSceneStore.SceneKey(kind, tardisId));
         return byChunk == null ? 0 : byChunk.size();
     }
 
-    public static void onChunkApplied(UUID tardisId, int chunkX, int chunkZ, SotoGhostExterior ghost) {
-        if (tardisId == null || ghost == null) {
+    public static void onChunkApplied(PortalStreamKind kind, UUID tardisId, int chunkX, int chunkZ, SotoGhostExterior ghost) {
+        if (kind == null || tardisId == null || ghost == null) {
             return;
         }
-        long key = ChunkPos.toLong(chunkX, chunkZ);
+        PortalSceneStore.SceneKey sceneKey = new PortalSceneStore.SceneKey(kind, tardisId);
+        long key = ChunkPos.pack(chunkX, chunkZ);
         Map<BlockPos, BlockState> blocks = ghost.blocksInChunk(key);
-        ChunkMesh baked = bakeChunk(blocks);
-        Map<Long, ChunkMesh> byChunk = MESHES.computeIfAbsent(tardisId, ignored -> new ConcurrentHashMap<>());
+        ChunkMesh baked = bakeChunk(blocks, ghost);
+        Map<Long, ChunkMesh> byChunk = MESHES.computeIfAbsent(sceneKey, ignored -> new ConcurrentHashMap<>());
         ChunkMesh previous = byChunk.put(key, baked);
         if (previous != null) {
             previous.close();
@@ -75,28 +82,30 @@ public final class SotoGhostMeshCache {
         }
     }
 
-    public static void onChunkUnloaded(UUID tardisId, int chunkX, int chunkZ) {
-        if (tardisId == null) {
+    public static void onChunkUnloaded(PortalStreamKind kind, UUID tardisId, int chunkX, int chunkZ) {
+        if (kind == null || tardisId == null) {
             return;
         }
-        Map<Long, ChunkMesh> byChunk = MESHES.get(tardisId);
+        PortalSceneStore.SceneKey sceneKey = new PortalSceneStore.SceneKey(kind, tardisId);
+        Map<Long, ChunkMesh> byChunk = MESHES.get(sceneKey);
         if (byChunk == null) {
             return;
         }
-        ChunkMesh removed = byChunk.remove(ChunkPos.toLong(chunkX, chunkZ));
+        ChunkMesh removed = byChunk.remove(ChunkPos.pack(chunkX, chunkZ));
         if (removed != null) {
             removed.close();
         }
         if (byChunk.isEmpty()) {
-            MESHES.remove(tardisId, byChunk);
+            MESHES.remove(sceneKey, byChunk);
         }
     }
 
-    public static void invalidate(UUID tardisId) {
-        if (tardisId == null) {
+    public static void invalidate(PortalStreamKind kind, UUID tardisId) {
+        if (kind == null || tardisId == null) {
             return;
         }
-        Map<Long, ChunkMesh> byChunk = MESHES.remove(tardisId);
+        PortalSceneStore.SceneKey sceneKey = new PortalSceneStore.SceneKey(kind, tardisId);
+        Map<Long, ChunkMesh> byChunk = MESHES.remove(sceneKey);
         if (byChunk == null) {
             return;
         }
@@ -107,20 +116,21 @@ public final class SotoGhostMeshCache {
     }
 
     public static void invalidateAll() {
-        for (UUID id : List.copyOf(MESHES.keySet())) {
-            invalidate(id);
+        for (PortalSceneStore.SceneKey key : List.copyOf(MESHES.keySet())) {
+            invalidate(key.kind(), key.tardisId());
         }
     }
 
     /**
      * Test helper: records a chunk as having a drawable mesh without requiring a GPU bake.
      */
-    public static void markChunkMeshForTest(UUID tardisId, int chunkX, int chunkZ) {
-        if (tardisId == null) {
+    public static void markChunkMeshForTest(PortalStreamKind kind, UUID tardisId, int chunkX, int chunkZ) {
+        if (kind == null || tardisId == null) {
             return;
         }
-        long key = ChunkPos.toLong(chunkX, chunkZ);
-        Map<Long, ChunkMesh> byChunk = MESHES.computeIfAbsent(tardisId, ignored -> new ConcurrentHashMap<>());
+        PortalSceneStore.SceneKey sceneKey = new PortalSceneStore.SceneKey(kind, tardisId);
+        long key = ChunkPos.pack(chunkX, chunkZ);
+        Map<Long, ChunkMesh> byChunk = MESHES.computeIfAbsent(sceneKey, ignored -> new ConcurrentHashMap<>());
         ChunkMesh previous = byChunk.put(key, ChunkMesh.MARKER);
         if (previous != null && previous != ChunkMesh.MARKER) {
             previous.close();
@@ -130,11 +140,11 @@ public final class SotoGhostMeshCache {
     /**
      * Draws one terrain pass across every chunk, preserving opaque → cutout → translucent order.
      */
-    public static void drawLayer(UUID tardisId, Matrix4f viewMatrix, TerrainPass pass) {
-        if (tardisId == null || viewMatrix == null || pass == null) {
+    public static void drawLayer(PortalStreamKind kind, UUID tardisId, Matrix4f viewMatrix, TerrainPass pass) {
+        if (kind == null || tardisId == null || viewMatrix == null || pass == null) {
             return;
         }
-        Map<Long, ChunkMesh> byChunk = MESHES.get(tardisId);
+        Map<Long, ChunkMesh> byChunk = MESHES.get(new PortalSceneStore.SceneKey(kind, tardisId));
         if (byChunk == null || byChunk.isEmpty()) {
             return;
         }
@@ -155,122 +165,154 @@ public final class SotoGhostMeshCache {
         }
     }
 
-    private static ChunkMesh bakeChunk(Map<BlockPos, BlockState> blocks) {
+    private static ChunkMesh bakeChunk(Map<BlockPos, BlockState> blocks, SotoGhostExterior ghost) {
         if (blocks == null || blocks.isEmpty()) {
             return ChunkMesh.EMPTY;
         }
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         if (client == null) {
             return ChunkMesh.EMPTY;
         }
-        BlockRenderManager blockRenderManager = client.getBlockRenderManager();
-        BlockColors blockColors = client.getBlockColors();
-        if (blockRenderManager == null || blockColors == null) {
-            return ChunkMesh.EMPTY;
-        }
 
-        Map<LayerKey, List<Map.Entry<BlockPos, BlockState>>> byLayer = new HashMap<>();
-        for (Map.Entry<BlockPos, BlockState> entry : blocks.entrySet()) {
-            BlockState state = entry.getValue();
-            if (state == null || state.getRenderType() == BlockRenderType.INVISIBLE) {
-                continue;
+        boolean anyVisible = false;
+        for (BlockState state : blocks.values()) {
+            if (state != null && state.getRenderShape() != RenderShape.INVISIBLE) {
+                anyVisible = true;
+                break;
             }
-            RenderLayer layer = RenderLayers.getEntityBlockLayer(state);
-            TerrainPass pass = TerrainPass.forBlockState(state);
-            byLayer.computeIfAbsent(new LayerKey(pass, layer), ignored -> new ArrayList<>()).add(entry);
         }
-        if (byLayer.isEmpty()) {
+        if (!anyVisible) {
             return ChunkMesh.EMPTY;
         }
 
-        List<LayerBuffer> uploaded = new ArrayList<>(byLayer.size());
-        MatrixStack matrices = new MatrixStack();
+        if (!RenderSystem.isOnRenderThread() || client.getModelManager() == null || client.getBlockColors() == null) {
+            return ChunkMesh.MARKER;
+        }
+
         try {
-            for (Map.Entry<LayerKey, List<Map.Entry<BlockPos, BlockState>>> layerEntry : byLayer.entrySet()) {
-                LayerBuffer layerBuffer = bakeLayer(
-                        layerEntry.getKey().pass(),
-                        layerEntry.getKey().layer(),
-                        layerEntry.getValue(),
-                        blockRenderManager,
-                        blockColors,
-                        matrices
-                );
-                if (layerBuffer != null) {
-                    uploaded.add(layerBuffer);
-                }
-            }
-        } catch (RuntimeException e) {
-            for (LayerBuffer layerBuffer : uploaded) {
-                layerBuffer.close();
-            }
-            return ChunkMesh.EMPTY;
-        }
-        return uploaded.isEmpty() ? ChunkMesh.EMPTY : new ChunkMesh(uploaded);
-    }
+            BlockStateModelSet models = client.getModelManager().getBlockStateModelSet();
+            BlockColors blockColors = client.getBlockColors();
+            ModelBlockRenderer baker = new ModelBlockRenderer(false, true, blockColors);
 
-    private static LayerBuffer bakeLayer(
-            TerrainPass pass,
-            RenderLayer layer,
-            List<Map.Entry<BlockPos, BlockState>> entries,
-            BlockRenderManager blockRenderManager,
-            BlockColors blockColors,
-            MatrixStack matrices
-    ) {
-        BufferAllocator allocator = new BufferAllocator(Math.max(256 * 1024, entries.size() * 512));
-        BufferBuilder bufferBuilder = new BufferBuilder(
-                allocator,
-                VertexFormat.DrawMode.QUADS,
-                VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL
-        );
-        boolean wrote = false;
-        try {
-            for (Map.Entry<BlockPos, BlockState> entry : entries) {
+            EnumMap<ChunkSectionLayer, ByteBufferBuilder> allocators = new EnumMap<>(ChunkSectionLayer.class);
+            EnumMap<ChunkSectionLayer, BufferBuilder> builders = new EnumMap<>(ChunkSectionLayer.class);
+            QuadInstance quadInstance = new QuadInstance();
+            quadInstance.setLightCoords(FULLBRIGHT);
+            quadInstance.setOverlayCoords(0);
+
+            for (Map.Entry<BlockPos, BlockState> entry : blocks.entrySet()) {
                 BlockPos pos = entry.getKey();
                 BlockState state = entry.getValue();
-                BakedModel model = blockRenderManager.getModel(state);
-                int color = blockColors.getColor(state, null, null, 0);
-                float red = (float) (color >> 16 & 0xFF) / 255.0F;
-                float green = (float) (color >> 8 & 0xFF) / 255.0F;
-                float blue = (float) (color & 0xFF) / 255.0F;
-
-                matrices.push();
-                matrices.translate(pos.getX(), pos.getY(), pos.getZ());
-                blockRenderManager.getModelRenderer().render(
-                        matrices.peek(),
-                        bufferBuilder,
+                if (pos == null || state == null || state.getRenderShape() == RenderShape.INVISIBLE) {
+                    continue;
+                }
+                BlockStateModel model = models.get(state);
+                if (model == null) {
+                    continue;
+                }
+                baker.tesselateBlock(
+                        (x, y, z, quad, instance) -> putQuad(allocators, builders, x, y, z, quad, instance),
+                        pos.getX(),
+                        pos.getY(),
+                        pos.getZ(),
+                        ghost,
+                        pos,
                         state,
                         model,
-                        red,
-                        green,
-                        blue,
-                        FULLBRIGHT,
-                        OverlayTexture.DEFAULT_UV
+                        state.getSeed(pos)
                 );
-                matrices.pop();
-                wrote = true;
             }
-            if (!wrote) {
-                return null;
+
+            List<LayerBuffer> uploaded = new ArrayList<>();
+            for (ChunkSectionLayer layer : ChunkSectionLayer.values()) {
+                BufferBuilder builder = builders.get(layer);
+                if (builder == null) {
+                    continue;
+                }
+                MeshData meshData = builder.build();
+                if (meshData == null) {
+                    continue;
+                }
+                try {
+                    LayerBuffer layerBuffer = uploadLayer(layer, meshData);
+                    if (layerBuffer != null) {
+                        uploaded.add(layerBuffer);
+                    }
+                } finally {
+                    meshData.close();
+                }
             }
-            BuiltBuffer built = bufferBuilder.endNullable();
-            if (built == null) {
-                return null;
+            for (ByteBufferBuilder allocator : allocators.values()) {
+                allocator.close();
             }
-            VertexBuffer vertexBuffer = new VertexBuffer(GlUsage.STATIC_WRITE);
-            vertexBuffer.bind();
-            vertexBuffer.upload(built);
-            VertexBuffer.unbind();
-            return new LayerBuffer(pass, layer, vertexBuffer);
-        } catch (RuntimeException e) {
-            return null;
-        } finally {
-            allocator.close();
+
+            if (uploaded.isEmpty()) {
+                return ChunkMesh.MARKER;
+            }
+            return new ChunkMesh(uploaded);
+        } catch (Throwable ignored) {
+            return ChunkMesh.MARKER;
         }
+    }
+
+    private static void putQuad(
+            EnumMap<ChunkSectionLayer, ByteBufferBuilder> allocators,
+            EnumMap<ChunkSectionLayer, BufferBuilder> builders,
+            float x,
+            float y,
+            float z,
+            BakedQuad quad,
+            QuadInstance instance
+    ) {
+        ChunkSectionLayer layer = quad.materialInfo().layer();
+        if (layer == null) {
+            layer = ChunkSectionLayer.SOLID;
+        }
+        BufferBuilder builder = builders.get(layer);
+        if (builder == null) {
+            ByteBufferBuilder allocator = new ByteBufferBuilder(Math.max(layer.bufferSize(), 256 * 1024));
+            allocators.put(layer, allocator);
+            builder = new BufferBuilder(allocator, PrimitiveTopology.QUADS, DefaultVertexFormat.BLOCK);
+            builders.put(layer, builder);
+        }
+        builder.putBlockBakedQuad(x, y, z, quad, instance);
+    }
+
+    private static LayerBuffer uploadLayer(ChunkSectionLayer layer, MeshData meshData) {
+        MeshData.DrawState drawState = meshData.drawState();
+        if (drawState.vertexCount() <= 0 || drawState.indexCount() <= 0) {
+            return null;
+        }
+        ByteBuffer vertexBytes = meshData.vertexBuffer();
+        if (vertexBytes == null || !vertexBytes.hasRemaining()) {
+            return null;
+        }
+        GpuBuffer vertexBuffer = RenderSystem.getDevice().createBuffer(
+                () -> "dwm_soto_" + layer.label(),
+                GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST,
+                vertexBytes
+        );
+        GpuBuffer indexBuffer = null;
+        ByteBuffer indexBytes = meshData.indexBuffer();
+        if (indexBytes != null && indexBytes.hasRemaining()) {
+            indexBuffer = RenderSystem.getDevice().createBuffer(
+                    () -> "dwm_soto_idx_" + layer.label(),
+                    GpuBuffer.USAGE_INDEX | GpuBuffer.USAGE_COPY_DST,
+                    indexBytes
+            );
+        }
+        return new LayerBuffer(
+                TerrainPass.forSectionLayer(layer),
+                layer,
+                vertexBuffer,
+                indexBuffer,
+                drawState.indexType(),
+                drawState.indexCount()
+        );
     }
 
     private static final class ChunkMesh implements AutoCloseable {
         static final ChunkMesh EMPTY = new ChunkMesh(List.of(), false);
-        /** Non-empty placeholder used by {@link #markChunkMeshForTest}. */
         static final ChunkMesh MARKER = new ChunkMesh(List.of(), true);
 
         private final List<LayerBuffer> layers;
@@ -290,15 +332,18 @@ public final class SotoGhostMeshCache {
             return !marker && layers.isEmpty();
         }
 
-        void draw(TerrainPass pass) {
-            if (closed || isEmpty() || marker) {
-                return;
+        int draw(TerrainPass pass) {
+            if (closed || isEmpty() || marker || pass == null) {
+                return 0;
             }
+            int drawn = 0;
             for (LayerBuffer layerBuffer : layers) {
-                if (layerBuffer.pass() == pass && !layerBuffer.buffer().isClosed()) {
-                    layerBuffer.buffer().draw(layerBuffer.layer());
+                if (layerBuffer.pass() == pass) {
+                    layerBuffer.draw();
+                    drawn++;
                 }
             }
+            return drawn;
         }
 
         @Override
@@ -313,14 +358,46 @@ public final class SotoGhostMeshCache {
         }
     }
 
-    private record LayerKey(TerrainPass pass, RenderLayer layer) {
-    }
+    private record LayerBuffer(
+            TerrainPass pass,
+            ChunkSectionLayer sectionLayer,
+            GpuBuffer vertexBuffer,
+            GpuBuffer indexBuffer,
+            IndexType indexType,
+            int indexCount
+    ) implements AutoCloseable {
+        void draw() {
+            if (vertexBuffer == null || vertexBuffer.isClosed() || indexCount <= 0) {
+                return;
+            }
+            PreparedRenderType prepared = renderTypeFor(sectionLayer).prepare();
+            GpuBuffer ib = indexBuffer;
+            IndexType type = indexType;
+            if (ib == null || ib.isClosed()) {
+                var sequential = RenderSystem.getSequentialBuffer(PrimitiveTopology.QUADS);
+                ib = sequential.getBuffer(indexCount);
+                type = sequential.type();
+            }
+            prepared.drawFromBuffer(vertexBuffer, ib, type, 0, 0, indexCount);
+        }
 
-    private record LayerBuffer(TerrainPass pass, RenderLayer layer, VertexBuffer buffer) implements AutoCloseable {
+        private static net.minecraft.client.renderer.rendertype.RenderType renderTypeFor(ChunkSectionLayer layer) {
+            if (layer == ChunkSectionLayer.TRANSLUCENT) {
+                return RenderTypes.translucentMovingBlock();
+            }
+            if (layer == ChunkSectionLayer.CUTOUT) {
+                return RenderTypes.cutoutMovingBlock();
+            }
+            return RenderTypes.solidMovingBlock();
+        }
+
         @Override
         public void close() {
-            if (!buffer.isClosed()) {
-                buffer.close();
+            if (vertexBuffer != null && !vertexBuffer.isClosed()) {
+                vertexBuffer.close();
+            }
+            if (indexBuffer != null && !indexBuffer.isClosed()) {
+                indexBuffer.close();
             }
         }
     }
@@ -330,12 +407,24 @@ public final class SotoGhostMeshCache {
         CUTOUT,
         TRANSLUCENT;
 
-        static TerrainPass forBlockState(BlockState state) {
-            RenderLayer layer = RenderLayers.getBlockLayer(state);
-            if (layer == RenderLayer.getTranslucent() || layer == RenderLayer.getTripwire()) {
+        static TerrainPass forSectionLayer(ChunkSectionLayer layer) {
+            if (layer == null) {
+                return OPAQUE;
+            }
+            if (layer.translucent()) {
                 return TRANSLUCENT;
             }
-            if (layer == RenderLayer.getCutout() || layer == RenderLayer.getCutoutMipped()) {
+            if (layer == ChunkSectionLayer.CUTOUT) {
+                return CUTOUT;
+            }
+            return OPAQUE;
+        }
+
+        static TerrainPass forBlockState(BlockState state) {
+            if (state == null) {
+                return OPAQUE;
+            }
+            if (!state.canOcclude()) {
                 return CUTOUT;
             }
             return OPAQUE;

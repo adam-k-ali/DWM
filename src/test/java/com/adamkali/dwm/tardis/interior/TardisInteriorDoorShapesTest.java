@@ -1,11 +1,11 @@
 package com.adamkali.dwm.tardis.interior;
 
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
-import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -57,7 +57,7 @@ class TardisInteriorDoorShapesTest {
             for (int slot = 0; slot < TardisInteriorDoorBlock.BANK_WIDTH; slot++) {
                 VoxelShape shape = TardisInteriorDoorShapes.forCell(Direction.SOUTH, half, slot);
                 assertFalse(shape.isEmpty(), "cell half=" + half + " slot=" + slot + " should intersect mesh");
-                Box local = shape.getBoundingBox();
+                AABB local = shape.bounds();
                 assertTrue(local.minX >= -EPSILON && local.minY >= -EPSILON && local.minZ >= -EPSILON);
                 assertTrue(local.maxX <= 1.0 + EPSILON && local.maxY <= 1.0 + EPSILON && local.maxZ <= 1.0 + EPSILON);
             }

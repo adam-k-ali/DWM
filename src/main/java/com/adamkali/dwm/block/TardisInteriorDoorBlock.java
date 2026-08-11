@@ -5,34 +5,34 @@ import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.tardis.interior.TardisInteriorDoorShapes;
 import com.adamkali.dwm.tardis.interior.TardisInteriorService;
 import com.mojang.serialization.MapCodec;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockEntityProvider;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityTicker;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.IntProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.BlockMirror;
-import net.minecraft.util.BlockRotation;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -40,35 +40,35 @@ import org.jetbrains.annotations.Nullable;
  * one block id, part identity in blockstate, {@link #OPEN} synced across the bank, and a single
  * block entity on the origin cell ({@code half=lower}, {@code slot=0}).
  */
-public class TardisInteriorDoorBlock extends Block implements BlockEntityProvider {
-    private static final MapCodec<TardisInteriorDoorBlock> CODEC = createCodec(TardisInteriorDoorBlock::new);
+public class TardisInteriorDoorBlock extends Block implements EntityBlock {
+    private static final MapCodec<TardisInteriorDoorBlock> CODEC = simpleCodec(TardisInteriorDoorBlock::new);
 
-    public static final EnumProperty<Direction> FACING = Properties.HORIZONTAL_FACING;
-    public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
-    public static final IntProperty SLOT = IntProperty.of("slot", 0, 2);
-    public static final BooleanProperty OPEN = Properties.OPEN;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
+    public static final IntegerProperty SLOT = IntegerProperty.create("slot", 0, 2);
+    public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
 
     public static final int BANK_WIDTH = 3;
     public static final int BANK_HEIGHT = 2;
 
-    public TardisInteriorDoorBlock(Settings settings) {
+    public TardisInteriorDoorBlock(Properties settings) {
         super(settings);
-        this.setDefaultState(this.stateManager.getDefaultState()
-                .with(FACING, Direction.NORTH)
-                .with(HALF, DoubleBlockHalf.LOWER)
-                .with(SLOT, 0)
-                .with(OPEN, true));
+        this.registerDefaultState(this.stateDefinition.any()
+                .setValue(FACING, Direction.NORTH)
+                .setValue(HALF, DoubleBlockHalf.LOWER)
+                .setValue(SLOT, 0)
+                .setValue(OPEN, true));
     }
 
     @Override
-    protected MapCodec<TardisInteriorDoorBlock> getCodec() {
+    protected MapCodec<TardisInteriorDoorBlock> codec() {
         return CODEC;
     }
 
     public static boolean isOrigin(BlockState state) {
-        return state.contains(HALF) && state.contains(SLOT)
-                && state.get(HALF) == DoubleBlockHalf.LOWER
-                && state.get(SLOT) == 0;
+        return state.hasProperty(HALF) && state.hasProperty(SLOT)
+                && state.getValue(HALF) == DoubleBlockHalf.LOWER
+                && state.getValue(SLOT) == 0;
     }
 
     /**
@@ -76,30 +76,30 @@ public class TardisInteriorDoorBlock extends Block implements BlockEntityProvide
      * upper half is one block above lower.
      */
     public static BlockPos cellPos(BlockPos origin, Direction facing, DoubleBlockHalf half, int slot) {
-        Direction alongBank = facing.rotateYCounterclockwise();
-        BlockPos cell = origin.offset(alongBank, slot);
+        Direction alongBank = facing.getCounterClockWise();
+        BlockPos cell = origin.relative(alongBank, slot);
         if (half == DoubleBlockHalf.UPPER) {
-            cell = cell.up();
+            cell = cell.above();
         }
         return cell;
     }
 
     public static BlockPos originPos(BlockPos pos, BlockState state) {
-        Direction facing = state.get(FACING);
-        int slot = state.get(SLOT);
-        BlockPos lower = state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos;
-        return lower.offset(facing.rotateYClockwise(), slot);
+        Direction facing = state.getValue(FACING);
+        int slot = state.getValue(SLOT);
+        BlockPos lower = state.getValue(HALF) == DoubleBlockHalf.UPPER ? pos.below() : pos;
+        return lower.relative(facing.getClockWise(), slot);
     }
 
     public static BlockState bankCellState(Direction facing, DoubleBlockHalf half, int slot, boolean open) {
-        return DWMBlocks.TARDIS_INTERIOR_DOOR.getDefaultState()
-                .with(FACING, facing)
-                .with(HALF, half)
-                .with(SLOT, slot)
-                .with(OPEN, open);
+        return DWMBlocks.TARDIS_INTERIOR_DOOR.defaultBlockState()
+                .setValue(FACING, facing)
+                .setValue(HALF, half)
+                .setValue(SLOT, slot)
+                .setValue(OPEN, open);
     }
 
-    public static @Nullable TardisInteriorDoorBlockEntity getOriginEntity(BlockView world, BlockPos pos, BlockState state) {
+    public static @Nullable TardisInteriorDoorBlockEntity getOriginEntity(BlockGetter world, BlockPos pos, BlockState state) {
         BlockPos origin = originPos(pos, state);
         if (world.getBlockEntity(origin) instanceof TardisInteriorDoorBlockEntity door) {
             return door;
@@ -110,8 +110,8 @@ public class TardisInteriorDoorBlock extends Block implements BlockEntityProvide
     /**
      * Sets {@link #OPEN} on every cell in the bank and drives the origin BE swing target.
      */
-    public static void setOpen(World world, BlockPos pos, BlockState state, boolean open) {
-        Direction facing = state.get(FACING);
+    public static void setOpen(Level world, BlockPos pos, BlockState state, boolean open) {
+        Direction facing = state.getValue(FACING);
         BlockPos origin = originPos(pos, state);
         TardisInteriorDoorBlockEntity originEntity = null;
         if (world.getBlockEntity(origin) instanceof TardisInteriorDoorBlockEntity door) {
@@ -125,11 +125,11 @@ public class TardisInteriorDoorBlock extends Block implements BlockEntityProvide
             for (int slot = 0; slot < BANK_WIDTH; slot++) {
                 BlockPos cell = cellPos(origin, facing, half, slot);
                 BlockState cellState = world.getBlockState(cell);
-                if (!cellState.isOf(DWMBlocks.TARDIS_INTERIOR_DOOR)
-                        || cellState.get(FACING) != facing) {
+                if (!cellState.is(DWMBlocks.TARDIS_INTERIOR_DOOR)
+                        || cellState.getValue(FACING) != facing) {
                     continue;
                 }
-                world.setBlockState(cell, cellState.with(OPEN, open), Block.NOTIFY_LISTENERS);
+                world.setBlock(cell, cellState.setValue(OPEN, open), Block.UPDATE_CLIENTS);
             }
         }
 
@@ -138,36 +138,36 @@ public class TardisInteriorDoorBlock extends Block implements BlockEntityProvide
         }
     }
 
-    public static void toggleOpen(World world, BlockPos pos, BlockState state) {
-        setOpen(world, pos, state, !state.get(OPEN));
+    public static void toggleOpen(Level world, BlockPos pos, BlockState state) {
+        setOpen(world, pos, state, !state.getValue(OPEN));
     }
 
     @Override
-    public @Nullable BlockState getPlacementState(ItemPlacementContext ctx) {
-        return this.getDefaultState()
-                .with(FACING, ctx.getHorizontalPlayerFacing().getOpposite())
-                .with(HALF, DoubleBlockHalf.LOWER)
-                .with(SLOT, 0)
-                .with(OPEN, true);
+    public @Nullable BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        return this.defaultBlockState()
+                .setValue(FACING, ctx.getHorizontalDirection().getOpposite())
+                .setValue(HALF, DoubleBlockHalf.LOWER)
+                .setValue(SLOT, 0)
+                .setValue(OPEN, true);
     }
 
     @Override
-    protected BlockState rotate(BlockState state, BlockRotation rotation) {
-        return state.with(FACING, rotation.rotate(state.get(FACING)));
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
-    protected BlockState mirror(BlockState state, BlockMirror mirror) {
-        return state.rotate(mirror.getRotation(state.get(FACING)));
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING, HALF, SLOT, OPEN);
     }
 
     @Override
-    public @Nullable BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         if (!isOrigin(state)) {
             return null;
         }
@@ -175,17 +175,24 @@ public class TardisInteriorDoorBlock extends Block implements BlockEntityProvide
     }
 
     @Override
-    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (player.isSneaking()) {
-            return ActionResult.PASS;
+    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+        if (player.isShiftKeyDown()) {
+            return InteractionResult.PASS;
         }
         toggleOpen(world, pos, state);
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    protected void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
-        if (world.isClient() || !(entity instanceof ServerPlayerEntity player)) {
+    protected void entityInside(
+            BlockState state,
+            Level world,
+            BlockPos pos,
+            Entity entity,
+            net.minecraft.world.entity.InsideBlockEffectApplier effectApplier,
+            boolean firstTick
+    ) {
+        if (world.isClientSide() || !(entity instanceof ServerPlayer player)) {
             return;
         }
         TardisInteriorDoorBlockEntity doorEntity = getOriginEntity(world, pos, state);
@@ -200,21 +207,21 @@ public class TardisInteriorDoorBlock extends Block implements BlockEntityProvide
      * Closed collision is the per-cell clip of the classic door mesh.
      */
     @Override
-    protected VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+    protected VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         TardisInteriorDoorBlockEntity doorEntity = getOriginEntity(world, pos, state);
         if (doorEntity != null && doorEntity.isOpenEnoughForExit()) {
-            return VoxelShapes.empty();
+            return Shapes.empty();
         }
         return TardisInteriorDoorShapes.outline(state);
     }
 
     @Override
-    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return TardisInteriorDoorShapes.outline(state);
     }
 
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state, BlockEntityType<T> type) {
         if (!isOrigin(state)) {
             return null;
         }
@@ -232,7 +239,7 @@ public class TardisInteriorDoorBlock extends Block implements BlockEntityProvide
     }
 
     @Override
-    protected BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.INVISIBLE;
+    protected RenderShape getRenderShape(BlockState state) {
+        return RenderShape.INVISIBLE;
     }
 }

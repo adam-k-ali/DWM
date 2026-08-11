@@ -3,87 +3,90 @@ package com.adamkali.dwm.datagen;
 import com.adamkali.dwm.block.DWMBlockTags;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
-import net.minecraft.block.Block;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.registry.tag.TagKey;
-
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
 import java.util.concurrent.CompletableFuture;
 
-public class DWMBlockTagProvider extends FabricTagProvider.BlockTagProvider {
-    public DWMBlockTagProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
+    public DWMBlockTagProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
         super(output, registriesFuture);
     }
 
     @Override
-    protected void configure(RegistryWrapper.WrapperLookup wrapperLookup) {
-        getOrCreateTagBuilder(DWMBlockTags.GALLIFREY_STONE)
-                .add(DWMBlocks.GALLIFREY_STONE)
-                .add(DWMBlocks.GALLIFREY_STONE_BRICKS)
-                .add(DWMBlocks.CHISELED_GALLIFREY_STONE_BRICKS)
-                .add(DWMBlocks.CRACKED_GALLIFREY_STONE_BRICKS)
-                .add(DWMBlocks.MOSSY_GALLIFREY_STONE_BRICKS)
-                .add(DWMBlocks.GALLIFREY_COBBLESTONE)
-                .add(DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE)
-                .add(DWMBlocks.GALLIFREY_SMOOTH_STONE)
-                .add(DWMBlocks.GALLIFREY_SANDSTONE)
-                .add(DWMBlocks.GALLIFREY_CUT_SANDSTONE)
-                .add(DWMBlocks.GALLIFREY_CHISELED_SANDSTONE)
-                .add(DWMBlocks.GALLIFREY_SAND)
-                .add(DWMBlocks.GALLIFREY_DIRT)
-                .add(DWMBlocks.GALLIFREY_COARSE_DIRT);
+    protected void addTags(HolderLookup.Provider wrapperLookup) {
+        builder(DWMBlockTags.GALLIFREY_STONE)
+                .add(key(DWMBlocks.GALLIFREY_STONE))
+                .add(key(DWMBlocks.GALLIFREY_STONE_BRICKS))
+                .add(key(DWMBlocks.CHISELED_GALLIFREY_STONE_BRICKS))
+                .add(key(DWMBlocks.CRACKED_GALLIFREY_STONE_BRICKS))
+                .add(key(DWMBlocks.MOSSY_GALLIFREY_STONE_BRICKS))
+                .add(key(DWMBlocks.GALLIFREY_COBBLESTONE))
+                .add(key(DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE))
+                .add(key(DWMBlocks.GALLIFREY_SMOOTH_STONE))
+                .add(key(DWMBlocks.GALLIFREY_SANDSTONE))
+                .add(key(DWMBlocks.GALLIFREY_CUT_SANDSTONE))
+                .add(key(DWMBlocks.GALLIFREY_CHISELED_SANDSTONE))
+                .add(key(DWMBlocks.GALLIFREY_SAND))
+                .add(key(DWMBlocks.GALLIFREY_DIRT))
+                .add(key(DWMBlocks.GALLIFREY_COARSE_DIRT));
 
-        getOrCreateTagBuilder(DWMBlockTags.CITADEL)
-                .add(DWMBlocks.CITADEL_WALL)
-                .add(DWMBlocks.CITADEL_PANEL)
-                .add(DWMBlocks.CITADEL_TILE)
-                .add(DWMBlocks.CITADEL_GLASS);
+        builder(DWMBlockTags.CITADEL)
+                .add(key(DWMBlocks.CITADEL_WALL))
+                .add(key(DWMBlocks.CITADEL_PANEL))
+                .add(key(DWMBlocks.CITADEL_TILE))
+                .add(key(DWMBlocks.CITADEL_GLASS));
 
-        getOrCreateTagBuilder(BlockTags.PICKAXE_MINEABLE)
-                .add(DWMBlocks.GALLIFREY_STONE)
-                .add(DWMBlocks.GALLIFREY_STONE_BRICKS)
-                .add(DWMBlocks.CHISELED_GALLIFREY_STONE_BRICKS)
-                .add(DWMBlocks.CRACKED_GALLIFREY_STONE_BRICKS)
-                .add(DWMBlocks.MOSSY_GALLIFREY_STONE_BRICKS)
-                .add(DWMBlocks.GALLIFREY_COBBLESTONE)
-                .add(DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE)
-                .add(DWMBlocks.GALLIFREY_SMOOTH_STONE)
-                .add(DWMBlocks.GALLIFREY_SANDSTONE)
-                .add(DWMBlocks.GALLIFREY_CUT_SANDSTONE)
-                .add(DWMBlocks.GALLIFREY_CHISELED_SANDSTONE)
-                .add(DWMBlocks.CITADEL_WALL)
-                .add(DWMBlocks.CITADEL_PANEL)
-                .add(DWMBlocks.CITADEL_TILE);
+        builder(BlockTags.MINEABLE_WITH_PICKAXE)
+                .add(key(DWMBlocks.GALLIFREY_STONE))
+                .add(key(DWMBlocks.GALLIFREY_STONE_BRICKS))
+                .add(key(DWMBlocks.CHISELED_GALLIFREY_STONE_BRICKS))
+                .add(key(DWMBlocks.CRACKED_GALLIFREY_STONE_BRICKS))
+                .add(key(DWMBlocks.MOSSY_GALLIFREY_STONE_BRICKS))
+                .add(key(DWMBlocks.GALLIFREY_COBBLESTONE))
+                .add(key(DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE))
+                .add(key(DWMBlocks.GALLIFREY_SMOOTH_STONE))
+                .add(key(DWMBlocks.GALLIFREY_SANDSTONE))
+                .add(key(DWMBlocks.GALLIFREY_CUT_SANDSTONE))
+                .add(key(DWMBlocks.GALLIFREY_CHISELED_SANDSTONE))
+                .add(key(DWMBlocks.CITADEL_WALL))
+                .add(key(DWMBlocks.CITADEL_PANEL))
+                .add(key(DWMBlocks.CITADEL_TILE));
 
-        getOrCreateTagBuilder(BlockTags.IMPERMEABLE)
-                .add(DWMBlocks.CITADEL_GLASS);
+        builder(BlockTags.IMPERMEABLE)
+                .add(key(DWMBlocks.CITADEL_GLASS));
 
-        getOrCreateTagBuilder(BlockTags.SHOVEL_MINEABLE)
-                .add(DWMBlocks.GALLIFREY_SAND)
-                .add(DWMBlocks.GALLIFREY_DIRT)
-                .add(DWMBlocks.GALLIFREY_COARSE_DIRT);
+        builder(BlockTags.MINEABLE_WITH_SHOVEL)
+                .add(key(DWMBlocks.GALLIFREY_SAND))
+                .add(key(DWMBlocks.GALLIFREY_DIRT))
+                .add(key(DWMBlocks.GALLIFREY_COARSE_DIRT));
 
-        getOrCreateTagBuilder(BlockTags.SAND)
-                .add(DWMBlocks.GALLIFREY_SAND);
+        builder(BlockTags.SAND)
+                .add(key(DWMBlocks.GALLIFREY_SAND));
 
-        getOrCreateTagBuilder(BlockTags.DIRT)
-                .add(DWMBlocks.GALLIFREY_DIRT)
-                .add(DWMBlocks.GALLIFREY_COARSE_DIRT);
+        builder(BlockTags.DIRT)
+                .add(key(DWMBlocks.GALLIFREY_DIRT))
+                .add(key(DWMBlocks.GALLIFREY_COARSE_DIRT));
 
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.generateBlockTags(new WoodFamilyDatagen.BlockTagSink() {
                 @Override
                 public void addToTag(TagKey<Block> tag, Block block) {
-                    getOrCreateTagBuilder(tag).add(block);
+                    builder(tag).add(key(block));
                 }
 
                 @Override
                 public void addTagToTag(TagKey<Block> tag, TagKey<Block> nested) {
-                    getOrCreateTagBuilder(tag).addTag(nested);
+                    builder(tag).addTag(nested);
                 }
             }, family);
         }
+    }
+
+    private static net.minecraft.resources.ResourceKey<Block> key(Block block) {
+        return block.builtInRegistryHolder().key();
     }
 }
