@@ -5,25 +5,19 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import org.joml.Matrix4f;
 
-import net.minecraft.client.Camera;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.LightCoordsUtil;
 
 /**
- * Shared aperture compositing: FOV-matched portal UV crop and placeholder quads.
+ * Shared aperture compositing: aspect-matched portal UV crop and placeholder quads.
+ * <p>
+ * Crops the full-window portal FBO to the aperture aspect (letterbox/pillarbox). FOV-at-depth
+ * cropping over-zooms small exterior doors (BOTI) relative to the hitch-fixed scene render.
  */
 public final class PortalApertureComposite {
     private static final int FULLBRIGHT = LightCoordsUtil.FULL_BRIGHT;
-
-    /**
-     * Fixed camera↔door depth used when cropping the full-window portal FBO onto the aperture.
-     * Player-relative depth would change the UV crop while walking (dolly), but hitch cameras
-     * are fixed — crop must stay constant.
-     */
-    public static final float COMPOSITE_REFERENCE_DEPTH = 2.75f;
 
     /** Placeholder ARGB while waiting for the first END_MAIN portal texture. */
     public static final int PLACEHOLDER_ARGB = 0xFF203040;
@@ -54,19 +48,7 @@ public final class PortalApertureComposite {
 
         float cropU;
         float cropV;
-        Minecraft client = Minecraft.getInstance();
-        Camera camera = client != null && client.gameRenderer != null
-                ? client.gameRenderer.mainCamera()
-                : null;
-        if (camera != null) {
-            float depth = COMPOSITE_REFERENCE_DEPTH;
-            float halfAngH = (float) Math.atan((doorH * 0.5f) / depth);
-            float halfAngW = (float) Math.atan((doorW * 0.5f) / depth);
-            float halfVFov = (float) Math.toRadians(Math.max(camera.getFov(), 1.0e-3f) * 0.5f);
-            float halfHFov = (float) Math.atan(Math.tan(halfVFov) * fbAspect);
-            cropV = Math.min(1.0f, (float) (Math.tan(halfAngH) / Math.tan(halfVFov)));
-            cropU = Math.min(1.0f, (float) (Math.tan(halfAngW) / Math.tan(halfHFov)));
-        } else if (fbAspect > doorAspect) {
+        if (fbAspect > doorAspect) {
             cropV = 1.0f;
             cropU = doorAspect / fbAspect;
         } else {

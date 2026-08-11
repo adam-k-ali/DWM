@@ -31,7 +31,7 @@ class TardisBotiRendererAlignmentTest {
             float width = aperture.x1() - aperture.x0();
             float height = aperture.y1() - aperture.y0();
             assertTrue(width > 0.0f && height > 0.0f, variant + " composite sizing");
-            assertTrue(PortalApertureComposite.COMPOSITE_REFERENCE_DEPTH > 0.0f);
+            assertTrue(PortalApertureComposite.PLACEHOLDER_ARGB != 0);
         }
     }
 
