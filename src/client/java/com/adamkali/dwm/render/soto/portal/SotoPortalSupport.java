@@ -31,20 +31,33 @@ public final class SotoPortalSupport {
         }
         initialized = true;
         LevelRenderEvents.START_MAIN.register(context -> SotoPortalRenderTarget.beginClientFrame());
-        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> SotoPortalRenderTarget.closeGlobal());
+        // Portal FBO clear/mesh draws must not run mid-BER (blacks out world/items on 26.2).
+        LevelRenderEvents.END_MAIN.register(context -> SotoPortalScheduler.flushEndMain());
+        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
+            SotoPortalRenderTarget.closeGlobal();
+            SotoPortalFeatureFlush.closeGlobal();
+        });
+        // Portal sampling texture registers lazily on first composite (TextureManager is null here).
     }
 
     public static boolean isAvailable() {
         return sessionAvailable && isGraphicsModeSupported() && BotiStencilSupport.isAvailable();
     }
 
+    /**
+     * SOTO portal compositing is incompatible with Fabulous-style order-independent transparency.
+     * In 26.2+, that lives in {@code improvedTransparency}; presets also gained {@code CUSTOM}
+     * for mixed video settings (common after upgrades). Allow Fast/Fancy/Custom when OIT is off.
+     */
     public static boolean isGraphicsModeSupported() {
         Minecraft client = Minecraft.getInstance();
         if (client == null || client.options == null) {
             return false;
         }
-        GraphicsPreset mode = client.options.graphicsPreset().get();
-        return mode == GraphicsPreset.FAST || mode == GraphicsPreset.FANCY;
+        if (!isSupportedGraphicsPreset(client.options.graphicsPreset().get())) {
+            return false;
+        }
+        return !Boolean.TRUE.equals(client.options.improvedTransparency().get());
     }
 
     public static boolean hasGhostMeshes(UUID tardisId) {
@@ -75,9 +88,15 @@ public final class SotoPortalSupport {
     ) {
         return session
                 && stencil
-                && (graphicsMode == GraphicsPreset.FAST || graphicsMode == GraphicsPreset.FANCY)
+                && isSupportedGraphicsPreset(graphicsMode)
                 && targetReady
                 && ghostReady;
+    }
+
+    static boolean isSupportedGraphicsPreset(GraphicsPreset graphicsMode) {
+        return graphicsMode == GraphicsPreset.FAST
+                || graphicsMode == GraphicsPreset.FANCY
+                || graphicsMode == GraphicsPreset.CUSTOM;
     }
 
     public static void disableForSession(String reason, Throwable error) {

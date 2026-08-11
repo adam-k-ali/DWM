@@ -46,6 +46,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Per-TARDIS Phase 1 ghost exterior: streamed chunks + live entities in footprint-relative space.
@@ -58,6 +59,11 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
     public static final long ENTITY_UPDATE_INTERVAL_MS = 100L;
     private static final int BOTTOM_Y = -64;
     private static final int HEIGHT = 384;
+    /**
+     * Client {@link Level#getNextEntityId()} always returns 0; extract/submit needs a non-zero id
+     * ({@code ItemModelResolver} etc.). Ghost entities are never added to the world.
+     */
+    private static final AtomicInteger NEXT_GHOST_ENTITY_ID = new AtomicInteger(1_000_000);
 
     private static final Map<UUID, SotoGhostExterior> BY_TARDIS = new ConcurrentHashMap<>();
     private static final Map<UUID, Long> LAST_REQUEST_MS = new ConcurrentHashMap<>();
@@ -380,6 +386,8 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
                 }
             }
             entity.setUUID(payload.entityUuid());
+            // Client Level.getNextEntityId() is always 0; LivingEntity extract requires a real id.
+            entity.setId(NEXT_GHOST_ENTITY_ID.getAndIncrement());
             return entity;
         } catch (RuntimeException ignored) {
             return null;

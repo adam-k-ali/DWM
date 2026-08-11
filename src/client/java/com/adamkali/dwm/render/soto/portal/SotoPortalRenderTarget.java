@@ -157,8 +157,43 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
 
     /**
      * Clears the portal target to {@code rgba} then leaves output overrides pointing at it.
+     * <p>
+     * Prefer {@link #clearViaRenderPass} at END_MAIN — vanilla
+     * {@link CommandEncoder#clearColorAndDepthTextures} ends by binding GL framebuffer 0.
      */
     public void bindAndClear(float r, float g, float b, float a) {
+        clearOnly(r, g, b, a);
+        bindForWrite();
+        GL11.glViewport(0, 0, width, height);
+    }
+
+    /**
+     * Clears portal color/depth via a dedicated RenderPass load-op (no FBO-0 rebind from
+     * {@code clearColorAndDepthTextures}). Leaves output overrides pointing at the portal.
+     */
+    public void clearViaRenderPass(float r, float g, float b, float a) {
+        if (!isReady()) {
+            throw new IllegalStateException("SOTO portal framebuffer is not ready");
+        }
+        CommandEncoder encoder = RenderSystem.getDevice().createCommandEncoder();
+        try (var ignored = encoder.createRenderPass(
+                () -> "dwm_soto_portal_clear",
+                framebuffer.getColorTextureView(),
+                java.util.Optional.of(new Vector4f(r, g, b, a)),
+                framebuffer.getDepthTextureView(),
+                java.util.OptionalDouble.of(RenderSystem.DEFAULT_DEPTH_CLEAR_VALUE)
+        )) {
+            // Load-op clear only.
+        }
+        bindForWrite();
+        GL11.glViewport(0, 0, width, height);
+    }
+
+    /**
+     * Clears portal color/depth without changing output overrides. Still leaves GL FBO at 0
+     * (vanilla clear behavior) — avoid mid-frame; prefer {@link #clearViaRenderPass}.
+     */
+    public void clearOnly(float r, float g, float b, float a) {
         if (!isReady()) {
             throw new IllegalStateException("SOTO portal framebuffer is not ready");
         }
@@ -169,8 +204,6 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
                 framebuffer.getDepthTexture(),
                 RenderSystem.DEFAULT_DEPTH_CLEAR_VALUE
         );
-        bindForWrite();
-        GL11.glViewport(0, 0, width, height);
     }
 
     /**
@@ -194,6 +227,10 @@ public final class SotoPortalRenderTarget implements AutoCloseable {
         }
         // Vulkan / non-GL backends: no legacy GL texture id for composite sampling.
         return -1;
+    }
+
+    public GpuTexture colorTexture() {
+        return isReady() ? framebuffer.getColorTexture() : null;
     }
 
     public GpuTextureView colorTextureView() {
