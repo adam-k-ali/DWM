@@ -14,6 +14,8 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import org.joml.Matrix4f;
 
 import java.util.UUID;
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -47,6 +49,14 @@ public final class TardisSotoRenderer {
      * kept slightly lower so the look-out sits nearer the threshold than mid-door.
      */
     public static final double PREVIEW_EYE_HEIGHT = 0.75;
+
+    /**
+     * Fixed camera↔door depth used when cropping the full-window portal FBO onto the aperture.
+     * Player-relative depth would change the UV crop while walking (dolly), but the exterior pass
+     * is hitch-fixed — crop must stay constant. ~2.75 matches a typical stand-back in the
+     * console room so vertical FOV through the 2-block opening stays aligned with player view.
+     */
+    public static final float COMPOSITE_REFERENCE_DEPTH = 2.75f;
 
     /**
      * Exterior door opening center in footprint-relative coords
@@ -102,7 +112,12 @@ public final class TardisSotoRenderer {
     }
 
     /**
-     * Composites the portal color texture as a door-aperture quad with aperture-local UVs.
+     * Composites the portal color texture onto the door aperture with an FOV-matched center crop.
+     * <p>
+     * The portal FBO is full-window at the player's projection. Stretching a near-full aspect crop
+     * onto the aperture made the exterior look too wide. Crop the center of the FBO to the angular
+     * size of the aperture at a fixed reference depth ({@link #COMPOSITE_REFERENCE_DEPTH}) so FOV
+     * stays correct without dollying when the player walks (the exterior pass is hitch-fixed).
      */
     private static void drawPortalComposite(
             PoseStack matrices,
@@ -118,23 +133,40 @@ public final class TardisSotoRenderer {
         float y1 = aperture.y1();
         float z = aperture.z();
 
-        float doorAspect = Math.max(x1 - x0, 1.0e-4f) / Math.max(y1 - y0, 1.0e-4f);
+        float doorW = Math.max(x1 - x0, 1.0e-4f);
+        float doorH = Math.max(y1 - y0, 1.0e-4f);
+        float doorAspect = doorW / doorH;
         float fbAspect = portalTexture.height() <= 0
                 ? doorAspect
                 : (float) portalTexture.width() / (float) portalTexture.height();
+
         float cropU;
         float cropV;
-        if (fbAspect > doorAspect) {
+        Minecraft client = Minecraft.getInstance();
+        Camera camera = client != null && client.gameRenderer != null
+                ? client.gameRenderer.mainCamera()
+                : null;
+        if (camera != null) {
+            float depth = COMPOSITE_REFERENCE_DEPTH;
+            float halfAngH = (float) Math.atan((doorH * 0.5f) / depth);
+            float halfAngW = (float) Math.atan((doorW * 0.5f) / depth);
+            float halfVFov = (float) Math.toRadians(Math.max(camera.getFov(), 1.0e-3f) * 0.5f);
+            float halfHFov = (float) Math.atan(Math.tan(halfVFov) * fbAspect);
+            cropV = Math.min(1.0f, (float) (Math.tan(halfAngH) / Math.tan(halfVFov)));
+            cropU = Math.min(1.0f, (float) (Math.tan(halfAngW) / Math.tan(halfHFov)));
+        } else if (fbAspect > doorAspect) {
             cropV = 1.0f;
             cropU = doorAspect / fbAspect;
         } else {
             cropU = 1.0f;
             cropV = fbAspect / doorAspect;
         }
+
         float uMin = 0.5f - cropU * 0.5f;
         float uMax = 0.5f + cropU * 0.5f;
         float vMin = 0.5f - cropV * 0.5f;
         float vMax = 0.5f + cropV * 0.5f;
+        // y0/bottom → vMax; BER X-180 already flips the quad in model space.
         float[] us = {uMin, uMin, uMax, uMax};
         float[] vs = {vMax, vMin, vMin, vMax};
         float[] xs = {x0, x0, x1, x1};
