@@ -50,7 +50,8 @@ public final class PortalSceneStore {
         PortalShellState shell = payload.shellState();
         PortalAtmosphere atmosphere = payload.atmosphere() == null ? PortalAtmosphere.DEFAULT : payload.atmosphere();
         META.put(key, new MetaEntry(payload.revision(), shell, atmosphere));
-        LAST_REQUEST_MS.remove(key);
+        // Do not clear LAST_REQUEST_MS here — that re-armed requestIfNeeded every meta
+        // packet and caused subscribe→sendFullChunks storms.
         PortalFrameCache.markDirty(payload.kind(), payload.tardisId());
     }
 
@@ -118,6 +119,13 @@ public final class PortalSceneStore {
             return;
         }
         SceneKey key = new SceneKey(kind, tardisId);
+        // Already have a live stream — incremental tick sync keeps it fresh.
+        if (META.containsKey(key)) {
+            SotoGhostExterior ghost = SotoGhostExterior.get(kind, tardisId);
+            if (ghost != null && ghost.chunkCount() > 0) {
+                return;
+            }
+        }
         long now = System.currentTimeMillis();
         Long last = LAST_REQUEST_MS.get(key);
         if (last != null && now - last < REQUEST_COOLDOWN_MS) {

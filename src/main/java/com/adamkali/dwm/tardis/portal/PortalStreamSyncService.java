@@ -142,6 +142,12 @@ public final class PortalStreamSyncService {
         StreamKey streamKey = new StreamKey(kind, tardisId);
         SUBSCRIBERS.computeIfAbsent(streamKey, id -> ConcurrentHashMap.newKeySet()).add(player.getUUID());
         LEAVE_GRACE.remove(streamKey);
+        ViewerKey viewerKey = new ViewerKey(kind, tardisId, player.getUUID());
+        Set<Long> alreadySent = SENT_CHUNKS.get(viewerKey);
+        boolean alreadyStreaming = alreadySent != null && !alreadySent.isEmpty();
+        if (alreadyStreaming) {
+            return true;
+        }
         sendMeta(player, ctx);
         sendFullChunks(player, ctx);
         return true;
