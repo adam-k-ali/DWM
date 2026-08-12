@@ -11,6 +11,7 @@ public class DWMPacketIds {
     public static final Identifier OPEN_PLAYER_LOCATOR_SCREEN_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "open_player_locator_screen");
     public static final Identifier SAVE_WAYPOINT_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "save_waypoint");
     public static final Identifier DELETE_WAYPOINT_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "delete_waypoint");
+    public static final Identifier RENAME_WAYPOINT_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "rename_waypoint");
     public static final Identifier SELECT_WAYPOINT_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "select_waypoint");
     public static final Identifier SELECT_PLAYER_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "select_player");
 

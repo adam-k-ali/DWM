@@ -39,6 +39,7 @@ public class ServerPayloadTypeRegistry {
         PayloadTypeRegistry.serverboundPlay().register(UpdateTardisChameleonC2SPayload.ID, UpdateTardisChameleonC2SPayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(SaveWaypointC2SPayload.ID, SaveWaypointC2SPayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(DeleteWaypointC2SPayload.ID, DeleteWaypointC2SPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(RenameWaypointC2SPayload.ID, RenameWaypointC2SPayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(SelectWaypointC2SPayload.ID, SelectWaypointC2SPayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(SelectPlayerC2SPayload.ID, SelectPlayerC2SPayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(RequestPortalStreamC2SPayload.ID, RequestPortalStreamC2SPayload.CODEC);
@@ -54,6 +55,9 @@ public class ServerPayloadTypeRegistry {
         });
         ServerPlayNetworking.registerGlobalReceiver(DeleteWaypointC2SPayload.ID, (payload, context) -> {
             context.server().execute(() -> safelyHandleDeleteWaypoint(payload, context.player()));
+        });
+        ServerPlayNetworking.registerGlobalReceiver(RenameWaypointC2SPayload.ID, (payload, context) -> {
+            context.server().execute(() -> safelyHandleRenameWaypoint(payload, context.player()));
         });
         ServerPlayNetworking.registerGlobalReceiver(SelectWaypointC2SPayload.ID, (payload, context) -> {
             context.server().execute(() -> safelyHandleSelectWaypoint(payload, context.player()));
@@ -106,6 +110,19 @@ public class ServerPayloadTypeRegistry {
             return false;
         }
         player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_deleted"));
+        return true;
+    }
+
+    static boolean safelyHandleRenameWaypoint(RenameWaypointC2SPayload payload, ServerPlayer player) {
+        if (!validateConsoleAction(payload.tardisId(), player)) {
+            return false;
+        }
+        boolean renamed = TardisLogic.renameWaypoint(payload.tardisId(), payload.waypointId(), payload.name());
+        if (!renamed) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_rename_failed"));
+            return false;
+        }
+        player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_renamed", payload.name().trim()));
         return true;
     }
 

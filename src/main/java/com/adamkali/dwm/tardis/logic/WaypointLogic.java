@@ -133,6 +133,32 @@ public final class WaypointLogic {
     }
 
     /**
+     * Renames an existing waypoint. Blank names and duplicates (case-insensitive) are rejected.
+     *
+     * @return true when the name was applied
+     */
+    public static boolean rename(
+            @Nullable TardisDataModel model,
+            @Nullable UUID waypointId,
+            @Nullable String requestedName
+    ) {
+        if (model == null || waypointId == null || requestedName == null || requestedName.isBlank()) {
+            return false;
+        }
+        Optional<TardisWaypoint> existing = find(model, waypointId);
+        if (existing.isEmpty()) {
+            return false;
+        }
+        String name = requestedName.trim();
+        if (!isNameUnique(model, name, waypointId)) {
+            return false;
+        }
+        existing.get().name = name;
+        model.setChanged();
+        return true;
+    }
+
+    /**
      * Selects a waypoint as the travel destination and switches mode to {@link DestinationMode#WAYPOINT}.
      */
     public static boolean select(@Nullable TardisDataModel model, @Nullable UUID waypointId) {

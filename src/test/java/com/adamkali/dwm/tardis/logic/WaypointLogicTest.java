@@ -88,6 +88,43 @@ class WaypointLogicTest {
     }
 
     @Test
+    void rename_updatesName() {
+        TardisWaypoint waypoint = WaypointLogic.add(model, "Pad").orElseThrow();
+
+        assertTrue(WaypointLogic.rename(model, waypoint.id, "Home"));
+        assertEquals("Home", waypoint.name);
+    }
+
+    @Test
+    void rename_rejectsBlankAndUnknownId() {
+        TardisWaypoint waypoint = WaypointLogic.add(model, "Pad").orElseThrow();
+
+        assertFalse(WaypointLogic.rename(model, waypoint.id, "  "));
+        assertFalse(WaypointLogic.rename(model, waypoint.id, null));
+        assertFalse(WaypointLogic.rename(model, UUID.randomUUID(), "Elsewhere"));
+        assertEquals("Pad", waypoint.name);
+    }
+
+    @Test
+    void rename_rejectsDuplicateNamesCaseInsensitive() {
+        TardisWaypoint first = WaypointLogic.add(model, "Home").orElseThrow();
+        TardisWaypoint second = WaypointLogic.add(model, "Pad").orElseThrow();
+
+        assertFalse(WaypointLogic.rename(model, second.id, "home"));
+        assertEquals("Pad", second.name);
+        assertEquals("Home", first.name);
+    }
+
+    @Test
+    void rename_allowsSameNameKeepingIdentity() {
+        TardisWaypoint waypoint = WaypointLogic.add(model, "Home").orElseThrow();
+
+        assertTrue(WaypointLogic.rename(model, waypoint.id, "Home"));
+        assertTrue(WaypointLogic.rename(model, waypoint.id, "HOME"));
+        assertEquals("HOME", waypoint.name);
+    }
+
+    @Test
     void waypoints_accessorMatchesModelList() {
         WaypointLogic.add(model, "A");
         assertSame(model.getWaypoints(), WaypointLogic.waypoints(model));

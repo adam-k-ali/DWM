@@ -220,6 +220,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.waypoint_delete_failed", "Unable to delete waypoint");
         t.add("dwm.console.waypoint_selected", "Waypoint set as destination");
         t.add("dwm.console.waypoint_select_failed", "Unable to select waypoint");
+        t.add("dwm.console.waypoint_renamed", "Waypoint renamed: %s");
+        t.add("dwm.console.waypoint_rename_failed", "Unable to rename waypoint");
         t.add("dwm.console.player_locator_unavailable", "Player locator unavailable");
         t.add("dwm.console.player_locator_selected", "Player set as destination");
         t.add("dwm.console.player_locator_select_failed", "Unable to select player");
@@ -228,6 +230,11 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.gui.waypoint.save", "Save");
         t.add("dwm.gui.waypoint.select", "Select");
         t.add("dwm.gui.waypoint.delete", "Delete");
+        t.add("dwm.gui.waypoint.edit", "Edit");
+        t.add("dwm.gui.waypoint.name", "Waypoint name");
+        t.add("dwm.gui.waypoint.confirm", "Confirm");
+        t.add("dwm.gui.waypoint.detail.name", "Name");
+        t.add("dwm.gui.waypoint.detail.location", "Location");
         t.add("dwm.gui.waypoint.empty", "No waypoints saved");
         t.add("dwm.gui.player_locator.title", "Player Locator");
         t.add("dwm.gui.player_locator.select", "Select");

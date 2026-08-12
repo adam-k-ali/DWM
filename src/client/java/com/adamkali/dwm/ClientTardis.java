@@ -1,6 +1,7 @@
 package com.adamkali.dwm;
 
 import com.adamkali.dwm.network.DeleteWaypointC2SPayload;
+import com.adamkali.dwm.network.RenameWaypointC2SPayload;
 import com.adamkali.dwm.network.SaveWaypointC2SPayload;
 import com.adamkali.dwm.network.SelectPlayerC2SPayload;
 import com.adamkali.dwm.network.SelectWaypointC2SPayload;
@@ -33,6 +34,10 @@ public class ClientTardis {
 
     public void deleteWaypoint(@NotNull UUID waypointId) {
         ClientPlayNetworking.send(new DeleteWaypointC2SPayload(this.tardisId, waypointId));
+    }
+
+    public void renameWaypoint(@NotNull UUID waypointId, @NotNull String name) {
+        ClientPlayNetworking.send(new RenameWaypointC2SPayload(this.tardisId, waypointId, name));
     }
 
     public void selectWaypoint(@NotNull UUID waypointId) {

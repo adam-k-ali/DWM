@@ -195,6 +195,14 @@ public class TardisLogic {
         return WaypointLogic.delete(tardis, waypointId);
     }
 
+    public static boolean renameWaypoint(UUID tardisId, UUID waypointId, @Nullable String name) {
+        TardisDataModel tardis = TardisDataLoader.get(tardisId);
+        if (tardis == null) {
+            return false;
+        }
+        return WaypointLogic.rename(tardis, waypointId, name);
+    }
+
     /**
      * Destination dimension used for biome listing and travel: {@code selectedDimension} when set,
      * otherwise {@code exteriorDimension}.
