@@ -1,7 +1,7 @@
 package com.adamkali.dwm.tardis.logic;
 
+import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.world.DWMBiomeTags;
-import com.adamkali.dwm.world.GallifreyDimensions;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -14,7 +14,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 
 /**
@@ -35,16 +34,16 @@ public final class BiomeSelectorLogic {
         if (id == null) {
             return Optional.empty();
         }
-        if (Level.OVERWORLD.identifier().equals(id)) {
+        if (id.equals(Identifier.withDefaultNamespace("overworld"))) {
             return Optional.of(BiomeTags.IS_OVERWORLD);
         }
-        if (Level.NETHER.identifier().equals(id)) {
+        if (id.equals(Identifier.withDefaultNamespace("the_nether"))) {
             return Optional.of(BiomeTags.IS_NETHER);
         }
-        if (Level.END.identifier().equals(id)) {
+        if (id.equals(Identifier.withDefaultNamespace("the_end"))) {
             return Optional.of(BiomeTags.IS_END);
         }
-        if (GallifreyDimensions.DIMENSION_ID.equals(id)) {
+        if (id.equals(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "gallifrey"))) {
             return Optional.of(DWMBiomeTags.IS_GALLIFREY);
         }
         return Optional.empty();

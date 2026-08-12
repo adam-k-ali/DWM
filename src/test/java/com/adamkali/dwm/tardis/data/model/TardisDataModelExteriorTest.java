@@ -1,11 +1,17 @@
 package com.adamkali.dwm.tardis.data.model;
 
 import com.google.gson.Gson;
+import com.adamkali.dwm.MinecraftTestBootstrap;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TardisDataModelExteriorTest {
+    @BeforeEach
+    void setUp() {
+        MinecraftTestBootstrap.ensure();
+    }
     @Test
     void exteriorLocation_SerializesThroughGson() {
         TardisDataModel model = new TardisDataModel();
@@ -62,6 +68,38 @@ class TardisDataModelExteriorTest {
         assertEquals(40, loaded.travelPhaseTicks);
         assertEquals("minecraft:forest", loaded.travelDestinationBiome);
         assertEquals("minecraft:the_end", loaded.travelDestinationDimension);
+        assertEquals(model, loaded);
+    }
+
+    @Test
+    void destinationModeAndWaypoints_SerializesThroughGson() {
+        TardisDataModel model = new TardisDataModel();
+        model.setDestinationMode(DestinationMode.WAYPOINT);
+        model.selectedPlayerUuid = java.util.UUID.fromString("11111111-1111-1111-1111-111111111111");
+        TardisWaypoint waypoint = new TardisWaypoint(
+                java.util.UUID.fromString("22222222-2222-2222-2222-222222222222"),
+                "Pad",
+                "minecraft:overworld",
+                1,
+                2,
+                3,
+                4
+        );
+        model.getWaypoints().add(waypoint);
+        model.selectedWaypointId = waypoint.id;
+        model.travelDestinationMode = DestinationMode.PLAYER;
+        model.travelTargetPlayerUuid = model.selectedPlayerUuid;
+        model.travelDestinationX = 9;
+
+        Gson gson = new Gson();
+        TardisDataModel loaded = gson.fromJson(gson.toJson(model), TardisDataModel.class);
+
+        assertEquals(DestinationMode.WAYPOINT, loaded.getDestinationMode());
+        assertEquals(1, loaded.getWaypoints().size());
+        assertEquals("Pad", loaded.getWaypoints().getFirst().name);
+        assertEquals(waypoint.id, loaded.selectedWaypointId);
+        assertEquals(DestinationMode.PLAYER, loaded.travelDestinationMode);
+        assertEquals(9, loaded.travelDestinationX);
         assertEquals(model, loaded);
     }
 }

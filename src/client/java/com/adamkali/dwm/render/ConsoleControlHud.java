@@ -3,6 +3,7 @@ package com.adamkali.dwm.render;
 import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.FirstDoctorConsoleBlock;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls;
+import com.adamkali.dwm.block.FirstDoctorConsoleControls.LookTarget;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.minecraft.client.DeltaTracker;
@@ -48,23 +49,10 @@ public final class ConsoleControlHud {
         }
 
         Direction facing = state.getValueOrElse(FirstDoctorConsoleBlock.FACING, Direction.NORTH);
-        Component label;
-        if (FirstDoctorConsoleControls.isMaterialisationLeverLookHit(facing, pos, client.player)) {
-            label = Component.translatable("dwm.console.materialisation_lever");
-        } else {
-            boolean biomeHit = FirstDoctorConsoleControls.isBiomeSelectorLookHit(facing, pos, client.player);
-            boolean planetHit = FirstDoctorConsoleControls.isPlanetLocatorLookHit(facing, pos, client.player);
-            if (biomeHit && planetHit) {
-                label = FirstDoctorConsoleControls.preferBiomeOverPlanet(facing, pos, client.player)
-                        ? Component.translatable("dwm.console.biome_selector")
-                        : Component.translatable("dwm.console.planet_locator");
-            } else if (planetHit) {
-                label = Component.translatable("dwm.console.planet_locator");
-            } else if (biomeHit) {
-                label = Component.translatable("dwm.console.biome_selector");
-            } else {
-                return;
-            }
+        LookTarget target = FirstDoctorConsoleControls.resolveLookTarget(facing, pos, client.player);
+        Component label = labelFor(target);
+        if (label == null) {
+            return;
         }
 
         // GuiGraphicsExtractor.text no-ops when ARGB alpha is 0; opaque white is required in 26.2.
@@ -73,5 +61,16 @@ public final class ConsoleControlHud {
         int x = (graphics.guiWidth() - textWidth) / 2;
         int y = graphics.guiHeight() / 2 - 15;
         graphics.text(client.font, label, x, y, color);
+    }
+
+    private static Component labelFor(LookTarget target) {
+        return switch (target) {
+            case BIOME_SELECTOR -> Component.translatable("dwm.console.biome_selector");
+            case WAYPOINT_SELECTOR -> Component.translatable("dwm.console.waypoint_selector");
+            case PLAYER_LOCATOR -> Component.translatable("dwm.console.player_locator");
+            case PLANET_LOCATOR -> Component.translatable("dwm.console.planet_locator");
+            case MATERIALISATION_LEVER -> Component.translatable("dwm.console.materialisation_lever");
+            case NONE -> null;
+        };
     }
 }

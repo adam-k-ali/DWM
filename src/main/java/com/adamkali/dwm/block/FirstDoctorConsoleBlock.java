@@ -1,12 +1,19 @@
 package com.adamkali.dwm.block;
 
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
+import com.adamkali.dwm.network.OpenPlayerLocatorScreen;
+import com.adamkali.dwm.network.OpenWaypointScreen;
+import com.adamkali.dwm.tardis.data.TardisDataLoader;
+import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
+import com.adamkali.dwm.tardis.logic.PlayerLocatorLogic;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.mojang.serialization.MapCodec;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
@@ -14,6 +21,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
@@ -47,7 +55,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
     /** Approximate hexagonal pedestal: ~1.6×1.6 footprint, ~1.25 blocks tall. */
     public static final VoxelShape COLLISION_SHAPE = Shapes.box(-0.3, 0.0, -0.3, 1.3, 1.25, 1.3);
 
-    /** Outline includes Panel3 biome selector so raycast can target it. */
+    /** Outline includes Panel3 selectors so raycast can target them. */
     public static final VoxelShape OUTLINE_SHAPE = Shapes.box(-0.5, 0.0, -0.5, 1.5, 1.6, 1.5);
 
     public FirstDoctorConsoleBlock(Properties settings) {
@@ -118,10 +126,11 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         }
 
         Direction facing = state.getValue(FACING);
-        boolean leverHit = FirstDoctorConsoleControls.isMaterialisationLeverLookHit(facing, pos, player);
-        boolean biomeHit = FirstDoctorConsoleControls.isBiomeSelectorLookHit(facing, pos, player);
-        boolean planetHit = FirstDoctorConsoleControls.isPlanetLocatorLookHit(facing, pos, player);
-        if (!leverHit && !biomeHit && !planetHit) {
+        FirstDoctorConsoleControls.Panel3Control panel3 =
+                FirstDoctorConsoleControls.resolvePanel3LookHit(facing, pos, player);
+        FirstDoctorConsoleControls.Panel6Control panel6 =
+                FirstDoctorConsoleControls.resolvePanel6LookHit(facing, pos, player);
+        if (panel3 == null && panel6 == null) {
             return InteractionResult.PASS;
         }
 
@@ -130,34 +139,45 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         }
 
         if (!(world.getBlockEntity(pos) instanceof FirstDoctorConsoleBlockEntity console)
-                || !(world instanceof ServerLevel serverWorld)) {
+                || !(world instanceof ServerLevel serverWorld)
+                || !(player instanceof ServerPlayer serverPlayer)) {
             return InteractionResult.CONSUME;
         }
 
         UUID tardisId = console.getTardisId();
         if (tardisId == null) {
-            String unavailableKey = leverHit
-                    ? "dwm.console.travel_unavailable"
-                    : planetHit && !biomeHit
-                    ? "dwm.console.dimension_unavailable"
-                    : "dwm.console.biome_unavailable";
-            player.sendOverlayMessage(Component.translatable(unavailableKey));
+            player.sendOverlayMessage(Component.translatable(unavailableKey(panel3, panel6)));
             return InteractionResult.CONSUME;
         }
 
-        if (leverHit) {
-            return handleMaterialisationLever(world, pos, player, serverWorld, tardisId);
+        // Prefer Panel3 when both panels somehow hit (unusual; different deck angles).
+        if (panel3 != null) {
+            return switch (panel3) {
+                case BIOME -> handleBiomeSelector(world, pos, player, serverWorld, tardisId);
+                case PLANET -> handlePlanetLocator(world, pos, player, serverWorld, tardisId);
+                case WAYPOINT -> handleWaypointSelector(world, pos, serverPlayer, tardisId);
+                case PLAYER -> handlePlayerLocator(world, pos, serverPlayer, serverWorld, tardisId);
+            };
         }
-        if (biomeHit && planetHit) {
-            if (FirstDoctorConsoleControls.preferBiomeOverPlanet(facing, pos, player)) {
-                return handleBiomeSelector(world, pos, player, serverWorld, tardisId);
-            }
-            return handlePlanetLocator(world, pos, player, serverWorld, tardisId);
+
+        return switch (panel6) {
+            case LEVER -> handleMaterialisationLever(world, pos, player, serverWorld, tardisId);
+        };
+    }
+
+    private static String unavailableKey(
+            @Nullable FirstDoctorConsoleControls.Panel3Control panel3,
+            @Nullable FirstDoctorConsoleControls.Panel6Control panel6
+    ) {
+        if (panel3 != null) {
+            return switch (panel3) {
+                case PLANET -> "dwm.console.dimension_unavailable";
+                case WAYPOINT -> "dwm.console.waypoint_unavailable";
+                case PLAYER -> "dwm.console.player_locator_unavailable";
+                case BIOME -> "dwm.console.biome_unavailable";
+            };
         }
-        if (planetHit) {
-            return handlePlanetLocator(world, pos, player, serverWorld, tardisId);
-        }
-        return handleBiomeSelector(world, pos, player, serverWorld, tardisId);
+        return "dwm.console.travel_unavailable";
     }
 
     private static InteractionResult handleMaterialisationLever(
@@ -181,6 +201,10 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         String successKey;
         if (phase.awaitsMaterialise()) {
             result = TardisTravelService.requestMaterialise(tardisId, serverWorld.getServer());
+            if (result == InteractionResult.FAIL) {
+                player.sendOverlayMessage(Component.translatable("dwm.console.travel_player_offline"));
+                return InteractionResult.CONSUME;
+            }
             successKey = "dwm.console.travel_materialising";
         } else {
             result = TardisTravelService.startTravel(tardisId, serverWorld.getServer());
@@ -189,14 +213,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
 
         if (result == InteractionResult.SUCCESS) {
             player.sendOverlayMessage(Component.translatable(successKey));
-            world.playSound(
-                    null,
-                    pos,
-                    SoundEvents.UI_BUTTON_CLICK.value(),
-                    SoundSource.BLOCKS,
-                    0.4F,
-                    1.0F
-            );
+            playClick(world, pos);
             return InteractionResult.SUCCESS;
         }
         if (result == InteractionResult.PASS) {
@@ -227,14 +244,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
 
         Component biomeName = Component.translatable(selected.get().toLanguageKey("biome"));
         player.sendOverlayMessage(Component.translatable("dwm.console.biome_selected", biomeName));
-        world.playSound(
-                null,
-                pos,
-                SoundEvents.UI_BUTTON_CLICK.value(),
-                SoundSource.BLOCKS,
-                0.4F,
-                1.0F
-        );
+        playClick(world, pos);
         return InteractionResult.SUCCESS;
     }
 
@@ -258,6 +268,47 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
 
         Component dimensionName = Component.translatable(selected.get().toLanguageKey("dimension"));
         player.sendOverlayMessage(Component.translatable("dwm.console.dimension_selected", dimensionName));
+        playClick(world, pos);
+        return InteractionResult.SUCCESS;
+    }
+
+    private static InteractionResult handleWaypointSelector(
+            Level world,
+            BlockPos pos,
+            ServerPlayer player,
+            UUID tardisId
+    ) {
+        if (TardisTravelService.isTraveling(tardisId)) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.travel_in_flight"));
+            return InteractionResult.CONSUME;
+        }
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        ServerPlayNetworking.send(player, OpenWaypointScreen.of(tardisId, model));
+        playClick(world, pos);
+        return InteractionResult.SUCCESS;
+    }
+
+    private static InteractionResult handlePlayerLocator(
+            Level world,
+            BlockPos pos,
+            ServerPlayer player,
+            ServerLevel serverWorld,
+            UUID tardisId
+    ) {
+        if (TardisTravelService.isTraveling(tardisId)) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.travel_in_flight"));
+            return InteractionResult.CONSUME;
+        }
+        List<PlayerLocatorLogic.PlayerEntry> players =
+                PlayerLocatorLogic.listOnlineExcluding(serverWorld.getServer(), player.getUUID());
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        UUID selectedPlayerUuid = model == null ? null : model.selectedPlayerUuid;
+        ServerPlayNetworking.send(player, OpenPlayerLocatorScreen.of(tardisId, players, selectedPlayerUuid));
+        playClick(world, pos);
+        return InteractionResult.SUCCESS;
+    }
+
+    private static void playClick(Level world, BlockPos pos) {
         world.playSound(
                 null,
                 pos,
@@ -266,6 +317,5 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
                 0.4F,
                 1.0F
         );
-        return InteractionResult.SUCCESS;
     }
 }

@@ -11,7 +11,7 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 
 /**
- * Shared dial mesh for Panel3 console selectors (biome / planet locator).
+ * Shared dial mesh for console selectors (biome / waypoint / player / planet / chameleon).
  */
 public class ConsoleSelectorModel extends EntityModel<TardisRenderState> {
     public static final String PART_NAME = "console_selector";
