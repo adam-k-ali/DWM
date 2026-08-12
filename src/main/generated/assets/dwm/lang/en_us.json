@@ -122,6 +122,8 @@
   "dwm.gui.waypoint.clear": "Clear destination",
   "dwm.gui.waypoint.confirm": "Confirm",
   "dwm.gui.waypoint.delete": "Delete",
+  "dwm.gui.waypoint.delete.confirm.message": "Are you sure you want to delete \"%s\"?",
+  "dwm.gui.waypoint.delete.confirm.title": "Delete waypoint?",
   "dwm.gui.waypoint.detail.location": "Location",
   "dwm.gui.waypoint.detail.name": "Name",
   "dwm.gui.waypoint.edit": "Edit",

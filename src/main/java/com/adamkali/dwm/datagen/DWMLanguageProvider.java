@@ -233,6 +233,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.gui.waypoint.select", "Select");
         t.add("dwm.gui.waypoint.clear", "Clear destination");
         t.add("dwm.gui.waypoint.delete", "Delete");
+        t.add("dwm.gui.waypoint.delete.confirm.title", "Delete waypoint?");
+        t.add("dwm.gui.waypoint.delete.confirm.message", "Are you sure you want to delete \"%s\"?");
         t.add("dwm.gui.waypoint.edit", "Edit");
         t.add("dwm.gui.waypoint.name", "Waypoint name");
         t.add("dwm.gui.waypoint.confirm", "Confirm");

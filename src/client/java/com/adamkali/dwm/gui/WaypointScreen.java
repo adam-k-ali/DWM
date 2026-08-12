@@ -10,12 +10,16 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.gui.components.PopupScreen;
 import net.minecraft.client.gui.components.SpriteIconButton;
+import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -117,14 +121,14 @@ public class WaypointScreen extends Screen {
         );
         editButton.setPosition(detailActionsLeft, detailButtonY);
 
-        deleteButton = iconButton(
+        deleteButton = destructiveIconButton(
                 Component.translatable("dwm.gui.waypoint.delete"),
                 Component.translatable("dwm.gui.waypoint.tooltip.delete"),
                 ICON_DELETE,
                 button -> {
                     OpenWaypointScreen.WaypointEntry selected = selectedWaypoint();
                     if (selected != null) {
-                        deleteWaypoint(selected);
+                        confirmDelete(selected);
                     }
                 }
         );
@@ -210,6 +214,47 @@ public class WaypointScreen extends Screen {
                 .sprite(sprite, ACTION_SPRITE_SIZE, ACTION_SPRITE_SIZE)
                 .tooltip(tooltip)
                 .build();
+    }
+
+    private static SpriteIconButton destructiveIconButton(
+            Component message,
+            Component tooltip,
+            Identifier sprite,
+            Button.OnPress onPress
+    ) {
+        return new DestructiveIconButton(
+                ACTION_BUTTON_SIZE,
+                ACTION_BUTTON_SIZE,
+                message,
+                ACTION_SPRITE_SIZE,
+                ACTION_SPRITE_SIZE,
+                0,
+                0,
+                new WidgetSprites(sprite),
+                onPress,
+                tooltip,
+                null,
+                false
+        );
+    }
+
+    private void confirmDelete(OpenWaypointScreen.WaypointEntry entry) {
+        minecraft.gui.setScreen(
+                new PopupScreen.Builder(
+                        this,
+                        Component.translatable("dwm.gui.waypoint.delete.confirm.title")
+                )
+                        .addMessage(Component.translatable(
+                                "dwm.gui.waypoint.delete.confirm.message",
+                                entry.name()
+                        ))
+                        .addButton(CommonComponents.GUI_YES, popup -> {
+                            deleteWaypoint(entry);
+                            popup.onClose();
+                        })
+                        .addButton(CommonComponents.GUI_NO, PopupScreen::onClose)
+                        .build()
+        );
     }
 
     private void rebuildListEntries() {
@@ -436,6 +481,54 @@ public class WaypointScreen extends Screen {
         LIST,
         CREATE,
         RENAME
+    }
+
+    /**
+     * Icon-only button that tints its sprite red to signal a destructive action.
+     */
+    private static final class DestructiveIconButton extends SpriteIconButton.CenteredIcon {
+        private DestructiveIconButton(
+                int width,
+                int height,
+                Component message,
+                int spriteWidth,
+                int spriteHeight,
+                int spriteOffsetX,
+                int spriteOffsetY,
+                WidgetSprites sprite,
+                Button.OnPress onPress,
+                @Nullable Component tooltip,
+                Button.@Nullable CreateNarration narration,
+                boolean switchToLoadingAfterPress
+        ) {
+            super(
+                    width,
+                    height,
+                    message,
+                    spriteWidth,
+                    spriteHeight,
+                    spriteOffsetX,
+                    spriteOffsetY,
+                    sprite,
+                    onPress,
+                    tooltip,
+                    narration,
+                    switchToLoadingAfterPress
+            );
+        }
+
+        @Override
+        protected void extractSprite(GuiGraphicsExtractor graphics, int x, int y) {
+            graphics.blitSprite(
+                    RenderPipelines.GUI_TEXTURED,
+                    this.sprite.get(this.isActive(), this.isHoveredOrFocused()),
+                    x,
+                    y,
+                    this.spriteWidth,
+                    this.spriteHeight,
+                    ARGB.colorFromFloat(this.alpha, 1.0F, 0.35F, 0.35F)
+            );
+        }
     }
 
     private class WaypointList extends ObjectSelectionList<WaypointList.WaypointEntryRow> {
