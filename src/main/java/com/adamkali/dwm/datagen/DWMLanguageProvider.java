@@ -254,7 +254,13 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.gui.waypoint.tooltip.clear", "Clear destination");
         t.add("dwm.gui.player_locator.title", "Player Locator");
         t.add("dwm.gui.player_locator.select", "Select");
+        t.add("dwm.gui.player_locator.clear", "Clear destination");
         t.add("dwm.gui.player_locator.empty", "No other players online");
+        t.add("dwm.gui.player_locator.detail.name", "Name");
+        t.add("dwm.gui.player_locator.detail.location", "Location");
+        t.add("dwm.gui.player_locator.tooltip.select", "Set as destination");
+        t.add("dwm.gui.player_locator.tooltip.clear", "Clear destination");
+        t.add("dwm.gui.player_locator.tooltip.destination", "Selected destination");
         t.add("dwm.sonic_screwdriver.subtitle", "Whirring");
         t.add("dwm.tardis_door_close.subtitle", "TARDIS Door Closing");
         t.add("dwm.tardis_door_open.subtitle", "TARDIS Door Opening");

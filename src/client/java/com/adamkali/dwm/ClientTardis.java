@@ -44,7 +44,7 @@ public class ClientTardis {
         ClientPlayNetworking.send(new SelectWaypointC2SPayload(this.tardisId, waypointId));
     }
 
-    public void selectPlayer(@NotNull UUID playerUuid) {
+    public void selectPlayer(@Nullable UUID playerUuid) {
         ClientPlayNetworking.send(new SelectPlayerC2SPayload(this.tardisId, playerUuid));
     }
 }

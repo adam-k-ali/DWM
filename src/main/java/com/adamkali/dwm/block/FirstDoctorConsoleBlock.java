@@ -301,7 +301,9 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         }
         List<PlayerLocatorLogic.PlayerEntry> players =
                 PlayerLocatorLogic.listOnlineExcluding(serverWorld.getServer(), player.getUUID());
-        ServerPlayNetworking.send(player, OpenPlayerLocatorScreen.of(tardisId, players));
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        UUID selectedPlayerUuid = model == null ? null : model.selectedPlayerUuid;
+        ServerPlayNetworking.send(player, OpenPlayerLocatorScreen.of(tardisId, players, selectedPlayerUuid));
         playClick(world, pos);
         return InteractionResult.SUCCESS;
     }

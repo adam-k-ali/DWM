@@ -154,24 +154,29 @@ public class TardisLogic {
     }
 
     /**
-     * Selects an online player as destination. Does not re-validate online status here —
-     * callers with a server should use {@link #selectPlayer(UUID, UUID, MinecraftServer)}.
+     * Selects an online player as destination. {@code playerUuid} null clears the selection.
+     * Does not re-validate online status here — callers with a server should use
+     * {@link #selectPlayer(UUID, UUID, MinecraftServer)}.
      */
-    public static boolean selectPlayer(UUID tardisId, UUID playerUuid) {
+    public static boolean selectPlayer(UUID tardisId, @Nullable UUID playerUuid) {
         return selectPlayer(tardisId, playerUuid, null);
     }
 
     /**
-     * Selects a player destination. When {@code server} is non-null, requires the player to be online.
+     * Selects a player destination. {@code playerUuid} null clears via {@link WaypointLogic#clearSelection}.
+     * When {@code server} is non-null and selecting, requires the player to be online.
      */
     public static boolean selectPlayer(
             UUID tardisId,
-            UUID playerUuid,
+            @Nullable UUID playerUuid,
             @Nullable MinecraftServer server
     ) {
         TardisDataModel tardis = TardisDataLoader.get(tardisId);
-        if (tardis == null || playerUuid == null) {
+        if (tardis == null) {
             return false;
+        }
+        if (playerUuid == null) {
+            return WaypointLogic.clearSelection(tardis);
         }
         if (server != null && !PlayerLocatorLogic.isOnline(server, playerUuid)) {
             return false;

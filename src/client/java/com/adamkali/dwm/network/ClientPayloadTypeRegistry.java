@@ -69,7 +69,11 @@ public class ClientPayloadTypeRegistry {
                 return;
             }
             ClientTardis clientTardis = new ClientTardis(payload.tardisId());
-            context.client().setScreenAndShow(new PlayerLocatorScreen(clientTardis, payload.players()));
+            context.client().setScreenAndShow(new PlayerLocatorScreen(
+                    clientTardis,
+                    payload.players(),
+                    payload.selectedPlayerUuid()
+            ));
         });
     }
 

@@ -155,7 +155,8 @@ public class ServerPayloadTypeRegistry {
         if (!validateConsoleAction(payload.tardisId(), player)) {
             return false;
         }
-        if (!PlayerLocatorLogic.isOnline(player.level().getServer(), payload.playerUuid())) {
+        if (payload.playerUuid() != null
+                && !PlayerLocatorLogic.isOnline(player.level().getServer(), payload.playerUuid())) {
             player.sendOverlayMessage(Component.translatable("dwm.console.player_locator_offline"));
             return false;
         }
@@ -168,7 +169,11 @@ public class ServerPayloadTypeRegistry {
             player.sendOverlayMessage(Component.translatable("dwm.console.player_locator_select_failed"));
             return false;
         }
-        player.sendOverlayMessage(Component.translatable("dwm.console.player_locator_selected"));
+        if (payload.playerUuid() == null) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_cleared"));
+        } else {
+            player.sendOverlayMessage(Component.translatable("dwm.console.player_locator_selected"));
+        }
         return true;
     }
 

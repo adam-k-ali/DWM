@@ -1,5 +1,6 @@
 package com.adamkali.dwm.tardis.logic;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
@@ -17,7 +18,7 @@ public final class PlayerLocatorLogic {
     private PlayerLocatorLogic() {
     }
 
-    public record PlayerEntry(UUID uuid, String name) {
+    public record PlayerEntry(UUID uuid, String name, String dimension, int x, int y, int z) {
     }
 
     /**
@@ -51,7 +52,9 @@ public final class PlayerLocatorLogic {
             if (name == null || name.isBlank()) {
                 name = id.toString();
             }
-            entries.add(new PlayerEntry(id, name));
+            String dimension = player.level().dimension().identifier().toString();
+            BlockPos pos = player.blockPosition();
+            entries.add(new PlayerEntry(id, name, dimension, pos.getX(), pos.getY(), pos.getZ()));
         }
         entries.sort(Comparator.comparing(e -> e.name(), String.CASE_INSENSITIVE_ORDER));
         return List.copyOf(entries);

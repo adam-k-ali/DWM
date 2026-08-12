@@ -14,9 +14,9 @@ class PlayerLocatorLogicTest {
         UUID a = UUID.randomUUID();
         UUID b = UUID.randomUUID();
         List<PlayerLocatorLogic.PlayerEntry> input = List.of(
-                new PlayerLocatorLogic.PlayerEntry(b, "Zoe"),
-                new PlayerLocatorLogic.PlayerEntry(self, "Doctor"),
-                new PlayerLocatorLogic.PlayerEntry(a, "Amy")
+                new PlayerLocatorLogic.PlayerEntry(b, "Zoe", "minecraft:overworld", 1, 64, 1),
+                new PlayerLocatorLogic.PlayerEntry(self, "Doctor", "minecraft:overworld", 0, 70, 0),
+                new PlayerLocatorLogic.PlayerEntry(a, "Amy", "minecraft:the_nether", 10, 80, 20)
         );
 
         List<PlayerLocatorLogic.PlayerEntry> filtered = PlayerLocatorLogic.filterExcluding(input, self);
