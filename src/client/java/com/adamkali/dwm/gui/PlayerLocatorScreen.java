@@ -9,12 +9,17 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.gui.components.PlayerFaceExtractor;
 import net.minecraft.client.gui.components.SpriteIconButton;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.PlayerSkin;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -38,6 +43,8 @@ public class PlayerLocatorScreen extends Screen {
     private static final int DETAIL_WIDTH = 136;
     private static final int BODY_HEIGHT = 118;
     private static final int ICON_SIZE = 10;
+    private static final int FACE_SIZE = 16;
+    private static final int FACE_TEXT_GAP = 4;
     private static final int ACTION_BUTTON_SIZE = 20;
     private static final int ACTION_SPRITE_SIZE = 12;
 
@@ -196,6 +203,17 @@ public class PlayerLocatorScreen extends Screen {
         return EMPTY_HINT_ROW_ID.equals(id);
     }
 
+    private PlayerSkin resolveSkin(UUID uuid) {
+        ClientPacketListener connection = minecraft.getConnection();
+        if (connection != null) {
+            PlayerInfo info = connection.getPlayerInfo(uuid);
+            if (info != null) {
+                return info.getSkin();
+            }
+        }
+        return DefaultPlayerSkin.get(uuid);
+    }
+
     private @Nullable OpenPlayerLocatorScreen.PlayerEntry selectedPlayer() {
         if (selectedId == null || isEmptyHint(selectedId)) {
             return null;
@@ -328,11 +346,15 @@ public class PlayerLocatorScreen extends Screen {
                 }
 
                 boolean isDestination = selectedPlayerUuid != null && selectedPlayerUuid.equals(player.uuid());
+                int faceX = getContentX() + 4;
+                int faceY = getContentYMiddle() - FACE_SIZE / 2;
+                PlayerFaceExtractor.extractRenderState(graphics, resolveSkin(player.uuid()), faceX, faceY, FACE_SIZE);
+
                 int textColor = isFocused() || PlayerList.this.getSelected() == this ? 0xFFFFFFFF : 0xFFE0E0E0;
                 graphics.text(
                         font,
                         Component.literal(player.name()),
-                        getContentX() + 4,
+                        faceX + FACE_SIZE + FACE_TEXT_GAP,
                         getContentYMiddle() - 4,
                         textColor,
                         false
