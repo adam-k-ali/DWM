@@ -94,6 +94,7 @@ class PortalPerfStatsTest {
                 2.1,
                 60,
                 0.0,
+                0.0,
                 PortalPerfStats.Stage.TERRAIN_OPAQUE
         );
 

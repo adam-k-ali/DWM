@@ -77,6 +77,19 @@ public final class SotoGhostMeshCache {
         return count;
     }
 
+    /** True when a drawable (non-MARKER) mesh exists for this chunk column. */
+    public static boolean hasDrawableChunk(PortalStreamKind kind, UUID tardisId, int chunkX, int chunkZ) {
+        if (kind == null || tardisId == null) {
+            return false;
+        }
+        Map<Long, ChunkMesh> byChunk = MESHES.get(new PortalSceneStore.SceneKey(kind, tardisId));
+        if (byChunk == null) {
+            return false;
+        }
+        ChunkMesh mesh = byChunk.get(ChunkPos.pack(chunkX, chunkZ));
+        return mesh != null && mesh.isDrawable();
+    }
+
     public static void onChunkApplied(PortalStreamKind kind, UUID tardisId, int chunkX, int chunkZ, SotoGhostExterior ghost) {
         if (kind == null || tardisId == null || ghost == null) {
             return;

@@ -9,9 +9,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,6 +28,7 @@ class SotoGhostExteriorTest {
     @AfterEach
     void tearDown() {
         SotoGhostExterior.invalidateAll();
+        SotoGhostMeshCache.invalidateAll();
     }
 
     @Test
@@ -62,6 +66,55 @@ class SotoGhostExteriorTest {
     }
 
     @Test
+    void chunkContentUnchanged_comparesBlocksAndBes() {
+        BlockPos pos = new BlockPos(1, 2, 3);
+        Map<BlockPos, BlockState> blocksA = Map.of(pos, Blocks.STONE.defaultBlockState());
+        Map<BlockPos, BlockState> blocksB = Map.of(pos, Blocks.STONE.defaultBlockState());
+        Map<BlockPos, BlockState> blocksC = Map.of(pos, Blocks.DIRT.defaultBlockState());
+        Map<BlockPos, CompoundTag> bes = Map.of(pos, new CompoundTag());
+
+        assertTrue(SotoGhostExterior.chunkContentUnchanged(blocksA, blocksB, null, null));
+        assertTrue(SotoGhostExterior.chunkContentUnchanged(null, Map.of(), null, Map.of()));
+        assertFalse(SotoGhostExterior.chunkContentUnchanged(blocksA, blocksC, null, null));
+        assertFalse(SotoGhostExterior.chunkContentUnchanged(blocksA, blocksB, null, bes));
+    }
+
+    @Test
+    void applyChunk_identicalWithDrawableMesh_skipsRebake() {
+        UUID id = UUID.randomUUID();
+        SyncPortalChunkS2CPayload payload = dirtChunk(id, 1, 2, Blocks.DIRT);
+
+        SotoGhostExterior.applyChunk(PortalStreamKind.SOTO, payload);
+        SotoGhostMeshCache.markChunkMeshForTest(PortalStreamKind.SOTO, id, 1, 2);
+        assertTrue(SotoGhostMeshCache.hasDrawableChunk(PortalStreamKind.SOTO, id, 1, 2));
+
+        // Second identical apply must keep drawable mesh (skip onChunkApplied / bake).
+        SotoGhostExterior.applyChunk(PortalStreamKind.SOTO, payload);
+        assertTrue(SotoGhostMeshCache.hasDrawableChunk(PortalStreamKind.SOTO, id, 1, 2));
+        assertEquals(1, SotoGhostMeshCache.meshChunkCount(PortalStreamKind.SOTO, id));
+    }
+
+    @Test
+    void applyChunk_contentChange_replacesDrawableMesh() {
+        UUID id = UUID.randomUUID();
+        SyncPortalChunkS2CPayload dirt = dirtChunk(id, 1, 2, Blocks.DIRT);
+        SyncPortalChunkS2CPayload stone = dirtChunk(id, 1, 2, Blocks.STONE);
+
+        SotoGhostExterior.applyChunk(PortalStreamKind.SOTO, dirt);
+        SotoGhostMeshCache.markChunkMeshForTest(PortalStreamKind.SOTO, id, 1, 2);
+        assertTrue(SotoGhostMeshCache.hasDrawableChunk(PortalStreamKind.SOTO, id, 1, 2));
+
+        SotoGhostExterior.applyChunk(PortalStreamKind.SOTO, stone);
+        // Real bake in unit tests yields MARKER/empty — drawable test mesh must be replaced.
+        assertFalse(SotoGhostMeshCache.hasDrawableChunk(PortalStreamKind.SOTO, id, 1, 2));
+        assertTrue(SotoGhostMeshCache.arePassBatchesDirtyForTest(PortalStreamKind.SOTO, id));
+
+        SotoGhostExterior ghost = SotoGhostExterior.get(PortalStreamKind.SOTO, id);
+        assertNotNull(ghost);
+        assertEquals(Blocks.STONE, ghost.getBlockState(new BlockPos(2, 1, 3)).getBlock());
+    }
+
+    @Test
     void removeEntity_andInvalidateClearState() {
         UUID id = UUID.randomUUID();
         SotoGhostExterior.getOrCreate(PortalStreamKind.SOTO, id);
@@ -70,5 +123,26 @@ class SotoGhostExteriorTest {
         assertFalse(SotoGhostExterior.hasEntities(PortalStreamKind.SOTO, id));
         SotoGhostExterior.invalidate(PortalStreamKind.SOTO, id);
         assertNull(SotoGhostExterior.get(PortalStreamKind.SOTO, id));
+    }
+
+    private static SyncPortalChunkS2CPayload dirtChunk(
+            UUID id,
+            int cx,
+            int cz,
+            net.minecraft.world.level.block.Block block
+    ) {
+        return new SyncPortalChunkS2CPayload(
+                PortalStreamKind.SOTO,
+                id,
+                cx,
+                cz,
+                100,
+                64,
+                200,
+                List.of(new SyncPortalChunkS2CPayload.BlockEntry(
+                        2, 1, 3, BotiRelativePosCodec.stateId(block.defaultBlockState())
+                )),
+                List.of()
+        );
     }
 }

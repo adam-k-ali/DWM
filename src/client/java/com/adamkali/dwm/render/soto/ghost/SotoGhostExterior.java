@@ -7,6 +7,7 @@ import com.adamkali.dwm.render.boti.BotiEntityMotion;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.EntityInterpState;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.LerpedPose;
 import com.adamkali.dwm.render.portal.PortalFrameCache;
+import com.adamkali.dwm.render.portal.PortalPerfStats;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
@@ -44,6 +45,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -148,8 +150,23 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         SotoGhostExterior ghost = getOrCreate(kind, payload.tardisId());
         ghost.footprintOrigin = payload.footprintOrigin();
         long key = ChunkPos.pack(payload.chunkX(), payload.chunkZ());
-        Map<BlockPos, BlockState> previousBlocks = ghost.chunkBlocks.put(key, new HashMap<>(payload.toBlockMap()));
-        Map<BlockPos, CompoundTag> previousBes = ghost.chunkBlockEntities.put(key, new HashMap<>(payload.toBlockEntityMap()));
+        Map<BlockPos, BlockState> newBlocks = new HashMap<>(payload.toBlockMap());
+        Map<BlockPos, CompoundTag> newBes = new HashMap<>(payload.toBlockEntityMap());
+        Map<BlockPos, BlockState> previousBlocks = ghost.chunkBlocks.get(key);
+        Map<BlockPos, CompoundTag> previousBes = ghost.chunkBlockEntities.get(key);
+        boolean contentUnchanged = chunkContentUnchanged(previousBlocks, newBlocks, previousBes, newBes);
+        boolean hasDrawable = SotoGhostMeshCache.hasDrawableChunk(
+                kind, payload.tardisId(), payload.chunkX(), payload.chunkZ()
+        );
+        if (contentUnchanged && hasDrawable) {
+            // Keep maps current (cheap) but skip tessellation / pass-batch rebuild.
+            ghost.chunkBlocks.put(key, newBlocks);
+            ghost.chunkBlockEntities.put(key, newBes);
+            PortalPerfStats.noteBakeSkip();
+            return;
+        }
+        previousBlocks = ghost.chunkBlocks.put(key, newBlocks);
+        previousBes = ghost.chunkBlockEntities.put(key, newBes);
         if (previousBlocks != null) {
             for (BlockPos pos : previousBlocks.keySet()) {
                 ghost.blocksByRel.remove(pos);
@@ -160,9 +177,27 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
                 ghost.blockEntitiesByRel.remove(pos);
             }
         }
-        ghost.blocksByRel.putAll(payload.toBlockMap());
-        ghost.blockEntitiesByRel.putAll(payload.toBlockEntityMap());
+        ghost.blocksByRel.putAll(newBlocks);
+        ghost.blockEntitiesByRel.putAll(newBes);
         SotoGhostMeshCache.onChunkApplied(kind, payload.tardisId(), payload.chunkX(), payload.chunkZ(), ghost);
+    }
+
+    /**
+     * True when block + block-entity maps are equal (including both null/empty).
+     * Package-visible for unit tests.
+     */
+    static boolean chunkContentUnchanged(
+            Map<BlockPos, BlockState> previousBlocks,
+            Map<BlockPos, BlockState> newBlocks,
+            Map<BlockPos, CompoundTag> previousBes,
+            Map<BlockPos, CompoundTag> newBes
+    ) {
+        return Objects.equals(emptyToNull(previousBlocks), emptyToNull(newBlocks))
+                && Objects.equals(emptyToNull(previousBes), emptyToNull(newBes));
+    }
+
+    private static <K, V> Map<K, V> emptyToNull(Map<K, V> map) {
+        return map == null || map.isEmpty() ? null : map;
     }
 
     public static void unloadChunk(PortalStreamKind kind, UUID tardisId, int chunkX, int chunkZ) {

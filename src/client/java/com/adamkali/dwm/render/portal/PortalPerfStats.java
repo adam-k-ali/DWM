@@ -34,6 +34,7 @@ public final class PortalPerfStats {
     private static int chunksCulled;
     private static long meshBakeNsThisFrame;
     private static int meshBakeCountThisFrame;
+    private static int meshBakeSkipCountThisFrame;
     private static long lastMeshBakeNs;
     private static volatile Snapshot published = Snapshot.IDLE;
     private static volatile DisplaySnapshot display = DisplaySnapshot.IDLE;
@@ -118,6 +119,14 @@ public final class PortalPerfStats {
         addStageNs(Stage.MESH_BAKE, bakeNs);
     }
 
+    /** Records a skipped mesh bake (unchanged chunk content with drawable mesh). */
+    public static void noteBakeSkip() {
+        if (!isEnabled()) {
+            return;
+        }
+        meshBakeSkipCountThisFrame++;
+    }
+
     /**
      * Publishes the current frame into history + display averages and resets transient timers.
      */
@@ -150,7 +159,8 @@ public final class PortalPerfStats {
         FrameSample sample = new FrameSample(
                 MapCopy.copyDoubles(stageMs),
                 totalMs,
-                meshBakeCountThisFrame
+                meshBakeCountThisFrame,
+                meshBakeSkipCountThisFrame
         );
         pushHistory(sample);
 
@@ -175,6 +185,7 @@ public final class PortalPerfStats {
         STAGE_NS.clear();
         meshBakeNsThisFrame = 0L;
         meshBakeCountThisFrame = 0;
+        meshBakeSkipCountThisFrame = 0;
 
         PortalPerfDebugLog.maybeAppend(display);
     }
@@ -251,12 +262,13 @@ public final class PortalPerfStats {
                 snap.chunksCulled()
         ));
         double bakeAvg = snap.avgStageMs().getOrDefault(Stage.MESH_BAKE, 0.0);
-        if (bakeAvg > 0.0 || snap.avgBakeCount() > 0.0) {
+        if (bakeAvg > 0.0 || snap.avgBakeCount() > 0.0 || snap.avgBakeSkipCount() > 0.0) {
             lines.add(String.format(
                     Locale.ROOT,
-                    "bakeAvg: %.2fms  bakeCount/frame: %.2f",
+                    "bakeAvg: %.2fms  bakeCount/frame: %.2f  bakeSkip/frame: %.2f",
                     bakeAvg,
-                    snap.avgBakeCount()
+                    snap.avgBakeCount(),
+                    snap.avgBakeSkipCount()
             ));
         }
         if (snap.maxAvgStage() != null) {
@@ -327,11 +339,15 @@ public final class PortalPerfStats {
 
     /** Test helper: push a synthetic sample without requiring config/timers. */
     static void pushSampleForTest(EnumMap<Stage, Double> stageMs, double totalMs, int bakeCount) {
+        pushSampleForTest(stageMs, totalMs, bakeCount, 0);
+    }
+
+    static void pushSampleForTest(EnumMap<Stage, Double> stageMs, double totalMs, int bakeCount, int bakeSkipCount) {
         EnumMap<Stage, Double> copy = MapCopy.copyDoubles(stageMs);
         for (Stage stage : Stage.HUD_ORDER) {
             copy.putIfAbsent(stage, 0.0);
         }
-        pushHistory(new FrameSample(copy, totalMs, bakeCount));
+        pushHistory(new FrameSample(copy, totalMs, bakeCount, bakeSkipCount));
         totalEmaMs = updateEma(totalEmaMs, totalMs, EMA_ALPHA);
         display = buildDisplay(new Snapshot(
                 activeKey != null ? activeKey : PortalKey.soto(UUID.fromString("00000000-0000-0000-0000-000000000001")),
@@ -372,6 +388,7 @@ public final class PortalPerfStats {
         chunksCulled = 0;
         meshBakeNsThisFrame = 0L;
         meshBakeCountThisFrame = 0;
+        meshBakeSkipCountThisFrame = 0;
         lastMeshBakeNs = 0L;
         published = Snapshot.IDLE;
         display = DisplaySnapshot.IDLE;
@@ -405,13 +422,16 @@ public final class PortalPerfStats {
         }
         double[] totals = new double[window];
         double[] bakeCounts = new double[window];
+        double[] bakeSkipCounts = new double[window];
         for (int i = 0; i < window; i++) {
             FrameSample sample = historyAt(historySize - window + i);
             totals[i] = sample.totalMs();
             bakeCounts[i] = sample.bakeCount();
+            bakeSkipCounts[i] = sample.bakeSkipCount();
         }
         double avgTotal = windowAverage(totals, window);
         double avgBake = windowAverage(bakeCounts, window);
+        double avgBakeSkip = windowAverage(bakeSkipCounts, window);
         Stage maxAvg = findMaxAvgStage(avgStages);
         return new DisplaySnapshot(
                 latest.key(),
@@ -426,6 +446,7 @@ public final class PortalPerfStats {
                 latest.totalEmaMs(),
                 window,
                 avgBake,
+                avgBakeSkip,
                 maxAvg
         );
     }
@@ -578,6 +599,7 @@ public final class PortalPerfStats {
             double emaTotalMs,
             int windowCount,
             double avgBakeCount,
+            double avgBakeSkipCount,
             Stage maxAvgStage
     ) {
         static final DisplaySnapshot IDLE = new DisplaySnapshot(
@@ -585,7 +607,7 @@ public final class PortalPerfStats {
                 Outcome.IDLE,
                 new EnumMap<>(Stage.class),
                 0, 0, 0, 0, 0,
-                0.0, 0.0, 0, 0.0,
+                0.0, 0.0, 0, 0.0, 0.0,
                 null
         );
     }
@@ -593,7 +615,8 @@ public final class PortalPerfStats {
     private record FrameSample(
             EnumMap<Stage, Double> stageMs,
             double totalMs,
-            int bakeCount
+            int bakeCount,
+            int bakeSkipCount
     ) {
     }
 

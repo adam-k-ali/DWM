@@ -110,7 +110,8 @@ public final class PortalPerfDebugLog {
         field(sb, "entities", snap.entityCount(), true);
         field(sb, "cullKept", snap.chunksKept(), true);
         field(sb, "cullCulled", snap.chunksCulled(), true);
-        // remove trailing comma from last field helper by rewriting last fields carefully
+        field(sb, "avgBakeCount", snap.avgBakeCount(), true);
+        field(sb, "avgBakeSkipCount", snap.avgBakeSkipCount(), true);
         // field() always appends comma — strip final comma before closing
         if (sb.charAt(sb.length() - 1) == ',') {
             sb.setLength(sb.length() - 1);

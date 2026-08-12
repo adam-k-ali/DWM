@@ -88,6 +88,18 @@ class SotoGhostMeshCacheTest {
     }
 
     @Test
+    void hasDrawableChunk_trueOnlyForDrawableMesh() {
+        UUID id = UUID.randomUUID();
+        assertFalse(SotoGhostMeshCache.hasDrawableChunk(PortalStreamKind.SOTO, id, 0, 0));
+
+        SotoGhostMeshCache.markChunkMarkerForTest(PortalStreamKind.SOTO, id, 0, 0);
+        assertFalse(SotoGhostMeshCache.hasDrawableChunk(PortalStreamKind.SOTO, id, 0, 0));
+
+        SotoGhostMeshCache.markChunkMeshForTest(PortalStreamKind.SOTO, id, 0, 0);
+        assertTrue(SotoGhostMeshCache.hasDrawableChunk(PortalStreamKind.SOTO, id, 0, 0));
+    }
+
+    @Test
     void invalidateAll_clearsAllMeshes() {
         UUID a = UUID.randomUUID();
         UUID b = UUID.randomUUID();

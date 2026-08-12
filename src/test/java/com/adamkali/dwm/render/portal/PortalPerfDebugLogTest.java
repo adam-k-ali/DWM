@@ -39,6 +39,7 @@ class PortalPerfDebugLogTest {
                 2.1,
                 60,
                 0.25,
+                1.5,
                 PortalPerfStats.Stage.TERRAIN_OPAQUE
         );
 
@@ -55,6 +56,8 @@ class PortalPerfDebugLogTest {
         assertTrue(line.contains("\"chunks\":25"));
         assertTrue(line.contains("\"cullKept\":8"));
         assertTrue(line.contains("\"cullCulled\":17"));
+        assertTrue(line.contains("\"avgBakeCount\":0.2500"));
+        assertTrue(line.contains("\"avgBakeSkipCount\":1.5000"));
     }
 
     @Test
