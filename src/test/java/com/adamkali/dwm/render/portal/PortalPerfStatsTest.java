@@ -97,11 +97,14 @@ class PortalPerfStatsTest {
                 0.0,
                 PortalPerfStats.Stage.TERRAIN_OPAQUE,
                 2.0,
+                0.5,
+                0.25,
                 0.05,
                 0.3f,
                 8.0f,
                 1.0,
-                1.5
+                1.5,
+                new PortalPerfStats.ServerDiag(55.0f, 4.0f, 1.5f, 48, 3, 0, 1, 2, 1, 900)
         );
 
         List<String> lines = PortalPerfStats.formatLinesPure(snap);
@@ -113,10 +116,16 @@ class PortalPerfStatsTest {
         assertTrue(lines.stream().anyMatch(line -> line.contains("*opaque:")));
         assertTrue(lines.stream().anyMatch(line -> line.contains("cull: 8/17")));
         assertTrue(lines.stream().anyMatch(line -> line.contains("ent upd: 2.00")));
+        assertTrue(lines.stream().anyMatch(line -> line.contains("spawn/rm: 0.50/0.25")));
         assertTrue(lines.stream().anyMatch(line -> line.contains("poseΔ: 0.0500")));
         assertTrue(lines.stream().anyMatch(line -> line.contains("partial: 0.300")));
         assertTrue(lines.stream().anyMatch(line -> line.contains("itemAge: 8.00")));
         assertTrue(lines.stream().anyMatch(line -> line.contains("id/adv: 1.00/1.50")));
+        assertTrue(lines.stream().anyMatch(line -> line.contains("srv mspt: 55.0")));
+        assertTrue(lines.stream().anyMatch(line -> line.contains("sync: 4.00ms")));
+        assertTrue(lines.stream().anyMatch(line -> line.contains("upd: 48")));
+        assertTrue(lines.stream().anyMatch(line -> line.contains("spawn: 3")));
+        assertTrue(lines.stream().anyMatch(line -> line.contains("resync: 1")));
         assertTrue(lines.stream().anyMatch(line -> line.contains("maxAvg: opaque")));
         assertTrue(lines.stream().noneMatch(line -> line.contains("bake this frame")));
     }

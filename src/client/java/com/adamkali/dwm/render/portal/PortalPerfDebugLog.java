@@ -113,11 +113,22 @@ public final class PortalPerfDebugLog {
         field(sb, "avgBakeCount", snap.avgBakeCount(), true);
         field(sb, "avgBakeSkipCount", snap.avgBakeSkipCount(), true);
         field(sb, "avgEntityUpdates", snap.avgEntityUpdates(), true);
+        field(sb, "avgEntitySpawns", snap.avgEntitySpawns(), true);
+        field(sb, "avgEntityRemoves", snap.avgEntityRemoves(), true);
         field(sb, "maxPoseDelta", snap.avgMaxPoseDelta(), true);
         field(sb, "partialTickUsed", (double) snap.partialTickUsed(), true);
         field(sb, "itemAgeInTicks", (double) snap.itemAgeInTicks(), true);
         field(sb, "avgIdentityInterp", snap.avgIdentityInterp(), true);
         field(sb, "avgAdvanceInterp", snap.avgAdvanceInterp(), true);
+        PortalPerfStats.ServerDiag srv = snap.serverDiag();
+        if (srv != null && srv.isPresent()) {
+            field(sb, "msptMs", (double) srv.msptMs(), true);
+            field(sb, "syncFlushMs", (double) srv.syncFlushMs(), true);
+            field(sb, "srvEntityUpdates", srv.entityUpdates(), true);
+            field(sb, "srvEntitySpawns", srv.entitySpawns(), true);
+            field(sb, "srvFullResyncs", srv.fullResyncs(), true);
+            field(sb, "srvViewers", srv.viewers(), true);
+        }
         // field() always appends comma — strip final comma before closing
         if (sb.charAt(sb.length() - 1) == ',') {
             sb.setLength(sb.length() - 1);

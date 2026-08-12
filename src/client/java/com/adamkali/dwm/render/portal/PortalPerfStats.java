@@ -1,6 +1,7 @@
 package com.adamkali.dwm.render.portal;
 
 import com.adamkali.dwm.config.DWMConfig;
+import com.adamkali.dwm.network.SyncPortalPerfS2CPayload;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -44,6 +45,7 @@ public final class PortalPerfStats {
     private static int advanceInterpThisFrame;
     private static float partialTickThisFrame = Float.NaN;
     private static float itemAgeInTicksThisFrame = Float.NaN;
+    private static volatile ServerDiag serverDiag = ServerDiag.NONE;
     private static volatile Snapshot published = Snapshot.IDLE;
     private static volatile DisplaySnapshot display = DisplaySnapshot.IDLE;
     private static double totalEmaMs;
@@ -194,6 +196,18 @@ public final class PortalPerfStats {
         itemAgeInTicksThisFrame = ageInTicks;
     }
 
+    /** Applies the latest ~1 Hz server portal-sync diagnostics snapshot. */
+    public static void applyServerDiag(SyncPortalPerfS2CPayload payload) {
+        if (!isEnabled() || payload == null || Float.isNaN(payload.msptMs())) {
+            return;
+        }
+        serverDiag = ServerDiag.fromPayload(payload);
+        DisplaySnapshot current = display;
+        if (current != null && current != DisplaySnapshot.IDLE) {
+            display = current.withServerDiag(serverDiag);
+        }
+    }
+
     /**
      * Publishes the current frame into history + display averages and resets transient timers.
      */
@@ -202,6 +216,7 @@ public final class PortalPerfStats {
         if (!enabled) {
             if (wasEnabled) {
                 PortalPerfDebugLog.close();
+                serverDiag = ServerDiag.NONE;
                 wasEnabled = false;
             }
             return;
@@ -358,14 +373,29 @@ public final class PortalPerfStats {
         }
         lines.add(String.format(
                 Locale.ROOT,
-                "ent upd: %.2f  poseΔ: %.4f  partial: %.3f  itemAge: %.2f  id/adv: %.2f/%.2f",
+                "ent upd: %.2f  spawn/rm: %.2f/%.2f  poseΔ: %.4f  partial: %.3f  itemAge: %.2f  id/adv: %.2f/%.2f",
                 snap.avgEntityUpdates(),
+                snap.avgEntitySpawns(),
+                snap.avgEntityRemoves(),
                 snap.avgMaxPoseDelta(),
                 snap.partialTickUsed(),
                 snap.itemAgeInTicks(),
                 snap.avgIdentityInterp(),
                 snap.avgAdvanceInterp()
         ));
+        if (snap.serverDiag() != null && snap.serverDiag().isPresent()) {
+            ServerDiag srv = snap.serverDiag();
+            lines.add(String.format(
+                    Locale.ROOT,
+                    "srv mspt: %.1f  sync: %.2fms  upd: %d  spawn: %d  resync: %d  viewers: %d",
+                    srv.msptMs(),
+                    srv.syncFlushMs(),
+                    srv.entityUpdates(),
+                    srv.entitySpawns(),
+                    srv.fullResyncs(),
+                    srv.viewers()
+            ));
+        }
         if (snap.maxAvgStage() != null) {
             lines.add(String.format(
                     Locale.ROOT,
@@ -523,6 +553,7 @@ public final class PortalPerfStats {
         advanceInterpThisFrame = 0;
         partialTickThisFrame = Float.NaN;
         itemAgeInTicksThisFrame = Float.NaN;
+        serverDiag = ServerDiag.NONE;
         published = Snapshot.IDLE;
         display = DisplaySnapshot.IDLE;
         totalEmaMs = 0.0;
@@ -557,6 +588,8 @@ public final class PortalPerfStats {
         double[] bakeCounts = new double[window];
         double[] bakeSkipCounts = new double[window];
         double[] entityUpdates = new double[window];
+        double[] entitySpawns = new double[window];
+        double[] entityRemoves = new double[window];
         double[] maxPoseDeltas = new double[window];
         double[] identityInterps = new double[window];
         double[] advanceInterps = new double[window];
@@ -566,6 +599,8 @@ public final class PortalPerfStats {
             bakeCounts[i] = sample.bakeCount();
             bakeSkipCounts[i] = sample.bakeSkipCount();
             entityUpdates[i] = sample.entityUpdates();
+            entitySpawns[i] = sample.entitySpawns();
+            entityRemoves[i] = sample.entityRemoves();
             maxPoseDeltas[i] = sample.maxPoseDelta();
             identityInterps[i] = sample.identityInterp();
             advanceInterps[i] = sample.advanceInterp();
@@ -601,11 +636,14 @@ public final class PortalPerfStats {
                 avgBakeSkip,
                 maxAvg,
                 windowAverage(entityUpdates, window),
+                windowAverage(entitySpawns, window),
+                windowAverage(entityRemoves, window),
                 windowAverage(maxPoseDeltas, window),
                 Float.isNaN(partial) ? 0.0f : partial,
                 Float.isNaN(itemAge) ? 0.0f : itemAge,
                 windowAverage(identityInterps, window),
-                windowAverage(advanceInterps, window)
+                windowAverage(advanceInterps, window),
+                serverDiag
         );
     }
 
@@ -764,11 +802,14 @@ public final class PortalPerfStats {
             double avgBakeSkipCount,
             Stage maxAvgStage,
             double avgEntityUpdates,
+            double avgEntitySpawns,
+            double avgEntityRemoves,
             double avgMaxPoseDelta,
             float partialTickUsed,
             float itemAgeInTicks,
             double avgIdentityInterp,
-            double avgAdvanceInterp
+            double avgAdvanceInterp,
+            ServerDiag serverDiag
     ) {
         static final DisplaySnapshot IDLE = new DisplaySnapshot(
                 null,
@@ -777,8 +818,73 @@ public final class PortalPerfStats {
                 0, 0, 0, 0, 0,
                 0.0, 0.0, 0, 0.0, 0.0,
                 null,
-                0.0, 0.0, 0.0f, 0.0f, 0.0, 0.0
+                0.0, 0.0, 0.0, 0.0, 0.0f, 0.0f, 0.0, 0.0,
+                ServerDiag.NONE
         );
+
+        DisplaySnapshot withServerDiag(ServerDiag diag) {
+            return new DisplaySnapshot(
+                    key,
+                    outcome,
+                    avgStageMs,
+                    chunkCount,
+                    meshChunkCount,
+                    entityCount,
+                    chunksKept,
+                    chunksCulled,
+                    avgTotalMs,
+                    emaTotalMs,
+                    windowCount,
+                    avgBakeCount,
+                    avgBakeSkipCount,
+                    maxAvgStage,
+                    avgEntityUpdates,
+                    avgEntitySpawns,
+                    avgEntityRemoves,
+                    avgMaxPoseDelta,
+                    partialTickUsed,
+                    itemAgeInTicks,
+                    avgIdentityInterp,
+                    avgAdvanceInterp,
+                    diag == null ? ServerDiag.NONE : diag
+            );
+        }
+    }
+
+    public record ServerDiag(
+            float msptMs,
+            float syncFlushMs,
+            float syncEntitiesMs,
+            int entityUpdates,
+            int entitySpawns,
+            int entityRemoves,
+            int fullResyncs,
+            int viewers,
+            int activeStreams,
+            int serverTick
+    ) {
+        static final ServerDiag NONE = new ServerDiag(
+                Float.NaN, 0.0f, 0.0f, 0, 0, 0, 0, 0, 0, 0
+        );
+
+        static ServerDiag fromPayload(SyncPortalPerfS2CPayload payload) {
+            return new ServerDiag(
+                    payload.msptMs(),
+                    payload.syncFlushMs(),
+                    payload.syncEntitiesMs(),
+                    payload.entityUpdates(),
+                    payload.entitySpawns(),
+                    payload.entityRemoves(),
+                    payload.fullResyncs(),
+                    payload.viewers(),
+                    payload.activeStreams(),
+                    payload.serverTick()
+            );
+        }
+
+        public boolean isPresent() {
+            return !Float.isNaN(msptMs);
+        }
     }
 
     private record FrameSample(

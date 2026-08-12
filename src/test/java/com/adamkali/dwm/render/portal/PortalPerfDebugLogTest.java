@@ -42,11 +42,14 @@ class PortalPerfDebugLogTest {
                 1.5,
                 PortalPerfStats.Stage.TERRAIN_OPAQUE,
                 1.2,
+                0.4,
+                0.1,
                 0.015,
                 0.42f,
                 12.4f,
                 0.5,
-                0.8
+                0.8,
+                new PortalPerfStats.ServerDiag(48.5f, 3.25f, 1.1f, 40, 2, 1, 0, 1, 1, 2400)
         );
 
         String line = PortalPerfDebugLog.formatLine(1_700_000_000_000L, snap);
@@ -65,11 +68,19 @@ class PortalPerfDebugLogTest {
         assertTrue(line.contains("\"avgBakeCount\":0.2500"));
         assertTrue(line.contains("\"avgBakeSkipCount\":1.5000"));
         assertTrue(line.contains("\"avgEntityUpdates\":1.2000"));
+        assertTrue(line.contains("\"avgEntitySpawns\":0.4000"));
+        assertTrue(line.contains("\"avgEntityRemoves\":0.1000"));
         assertTrue(line.contains("\"maxPoseDelta\":0.0150"));
         assertTrue(line.contains("\"partialTickUsed\":0.4200"));
         assertTrue(line.contains("\"itemAgeInTicks\":12.4000"));
         assertTrue(line.contains("\"avgIdentityInterp\":0.5000"));
         assertTrue(line.contains("\"avgAdvanceInterp\":0.8000"));
+        assertTrue(line.contains("\"msptMs\":48.5000"));
+        assertTrue(line.contains("\"syncFlushMs\":3.2500"));
+        assertTrue(line.contains("\"srvEntityUpdates\":40"));
+        assertTrue(line.contains("\"srvEntitySpawns\":2"));
+        assertTrue(line.contains("\"srvFullResyncs\":0"));
+        assertTrue(line.contains("\"srvViewers\":1"));
     }
 
     @Test

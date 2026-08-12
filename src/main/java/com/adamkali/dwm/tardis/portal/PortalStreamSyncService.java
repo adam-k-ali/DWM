@@ -5,6 +5,7 @@ import com.adamkali.dwm.network.SyncPortalEntityRemoveS2CPayload;
 import com.adamkali.dwm.network.SyncPortalEntitySpawnS2CPayload;
 import com.adamkali.dwm.network.SyncPortalEntityUpdateS2CPayload;
 import com.adamkali.dwm.network.SyncPortalMetaS2CPayload;
+import com.adamkali.dwm.network.SyncPortalPerfS2CPayload;
 import com.adamkali.dwm.network.UnloadPortalChunkS2CPayload;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
@@ -56,6 +57,7 @@ public final class PortalStreamSyncService {
     private static final Map<StreamKey, Integer> LEAVE_GRACE = new ConcurrentHashMap<>();
     private static final Set<UUID> META_DIRTY = ConcurrentHashMap.newKeySet();
     private static final Map<UUID, Integer> META_REVISIONS = new ConcurrentHashMap<>();
+    private static final Set<ServerPlayer> TICK_VIEWERS = ConcurrentHashMap.newKeySet();
     private static int tickCounter;
 
     private PortalStreamSyncService() {
@@ -88,8 +90,10 @@ public final class PortalStreamSyncService {
         LEAVE_GRACE.clear();
         META_DIRTY.clear();
         META_REVISIONS.clear();
+        TICK_VIEWERS.clear();
         SotoExteriorIndex.clear();
         BotiPlotIndex.clear();
+        PortalStreamPerfStats.clear();
         tickCounter = 0;
     }
 
@@ -150,10 +154,38 @@ public final class PortalStreamSyncService {
 
     private static void onEndTick(MinecraftServer server) {
         tickCounter++;
+        TICK_VIEWERS.clear();
+        boolean diag = PortalStreamPerfStats.isEnabled();
+        if (diag) {
+            PortalStreamPerfStats.beginTick(server);
+        }
         markShellAnimatingDirty();
+        long metaStart = PortalStreamPerfStats.begin();
         flushMeta(server);
+        PortalStreamPerfStats.endFlushMeta(metaStart);
+        long sotoStart = PortalStreamPerfStats.begin();
         flushStreams(server, PortalStreamKind.SOTO);
+        PortalStreamPerfStats.endFlushSoto(sotoStart);
+        long botiStart = PortalStreamPerfStats.begin();
         flushStreams(server, PortalStreamKind.BOTI);
+        PortalStreamPerfStats.endFlushBoti(botiStart);
+        if (diag) {
+            PortalStreamPerfStats.endTick();
+            maybeSendPerfDiag(server);
+        }
+    }
+
+    private static void maybeSendPerfDiag(MinecraftServer server) {
+        PortalStreamPerfStats.Snapshot snap = PortalStreamPerfStats.maybePublish(tickCounter);
+        if (snap == null || !snap.isPresent() || TICK_VIEWERS.isEmpty()) {
+            return;
+        }
+        SyncPortalPerfS2CPayload payload = SyncPortalPerfS2CPayload.fromSnapshot(snap);
+        for (ServerPlayer viewer : Set.copyOf(TICK_VIEWERS)) {
+            if (viewer != null && !viewer.hasDisconnected()) {
+                ServerPlayNetworking.send(viewer, payload);
+            }
+        }
     }
 
     private static void markShellAnimatingDirty() {
@@ -201,6 +233,7 @@ public final class PortalStreamSyncService {
                 );
                 for (ServerPlayer viewer : viewers) {
                     ServerPlayNetworking.send(viewer, payload);
+                    PortalStreamPerfStats.noteMetaPacket();
                 }
             }
         }
@@ -220,6 +253,8 @@ public final class PortalStreamSyncService {
                 continue;
             }
             active.add(tardisId);
+            TICK_VIEWERS.addAll(viewers);
+            PortalStreamPerfStats.noteStreamViewers(viewers.size());
             LEAVE_GRACE.remove(streamKey);
             SceneContext ctx = resolveScene(server, kind, tardisId);
             if (ctx == null) {
@@ -279,6 +314,7 @@ public final class PortalStreamSyncService {
                     ServerPlayNetworking.send(player, new SyncPortalEntityRemoveS2CPayload(
                             streamKey.kind, streamKey.tardisId, entityId
                     ));
+                    PortalStreamPerfStats.noteEntityRemove();
                 }
             }
             SENT_CHUNKS.remove(key);
@@ -323,6 +359,7 @@ public final class PortalStreamSyncService {
         ServerPlayNetworking.send(player, SyncPortalMetaS2CPayload.of(
                 ctx.kind(), ctx.tardisId(), revision, ctx.shell(), ctx.atmosphere()
         ));
+        PortalStreamPerfStats.noteMetaPacket();
     }
 
     private static void sendFullChunks(ServerPlayer player, SceneContext ctx) {
@@ -332,13 +369,16 @@ public final class PortalStreamSyncService {
         for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
             for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
                 PortalStreamSample sample = ctx.sampleChunk(cx, cz);
+                PortalStreamPerfStats.noteChunkSample();
                 ServerPlayNetworking.send(
                         player,
                         SyncPortalChunkS2CPayload.fromSample(ctx.kind(), ctx.tardisId(), ctx.footprintOrigin(), sample)
                 );
+                PortalStreamPerfStats.noteChunkPacket();
                 sent.add(ChunkPos.pack(cx, cz));
             }
         }
+        PortalStreamPerfStats.noteFullResync();
         TRACKED_ENTITIES.put(key, ConcurrentHashMap.newKeySet());
         syncEntities(player, ctx);
     }
@@ -368,10 +408,12 @@ public final class PortalStreamSyncService {
             int cx = ChunkPos.getX(packed);
             int cz = ChunkPos.getZ(packed);
             PortalStreamSample sample = ctx.sampleChunk(cx, cz);
+            PortalStreamPerfStats.noteChunkSample();
             ServerPlayNetworking.send(
                     player,
                     SyncPortalChunkS2CPayload.fromSample(ctx.kind(), ctx.tardisId(), ctx.footprintOrigin(), sample)
             );
+            PortalStreamPerfStats.noteChunkPacket();
             sent.add(packed);
         }
     }
@@ -393,17 +435,21 @@ public final class PortalStreamSyncService {
             int cx = ChunkPos.getX(packed);
             int cz = ChunkPos.getZ(packed);
             PortalStreamSample sample = ctx.sampleChunk(cx, cz);
+            PortalStreamPerfStats.noteChunkSample();
             ServerPlayNetworking.send(
                     player,
                     SyncPortalChunkS2CPayload.fromSample(ctx.kind(), ctx.tardisId(), ctx.footprintOrigin(), sample)
             );
+            PortalStreamPerfStats.noteChunkPacket();
         }
     }
 
     private static void syncEntities(ServerPlayer player, SceneContext ctx) {
+        long syncStart = PortalStreamPerfStats.begin();
         ViewerKey key = new ViewerKey(ctx.kind(), ctx.tardisId(), player.getUUID());
         Set<UUID> tracked = TRACKED_ENTITIES.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet());
         List<Entity> live = ctx.collectEntities();
+        PortalStreamPerfStats.noteEntitiesScanned(live.size());
         Set<UUID> liveIds = new HashSet<>();
         for (Entity entity : live) {
             if (BotiInteriorSampler.captureEntityNbt(entity) == null
@@ -416,6 +462,7 @@ public final class PortalStreamSyncService {
                         player,
                         SyncPortalEntityUpdateS2CPayload.fromEntity(ctx.kind(), ctx.tardisId(), entity, ctx.footprintOrigin())
                 );
+                PortalStreamPerfStats.noteEntityUpdate();
             } else {
                 SyncPortalEntitySpawnS2CPayload spawn =
                         SyncPortalEntitySpawnS2CPayload.fromEntity(ctx.kind(), ctx.tardisId(), entity, ctx.footprintOrigin());
@@ -423,6 +470,7 @@ public final class PortalStreamSyncService {
                     continue;
                 }
                 ServerPlayNetworking.send(player, spawn);
+                PortalStreamPerfStats.noteEntitySpawn();
                 tracked.add(entity.getUUID());
             }
         }
@@ -430,8 +478,10 @@ public final class PortalStreamSyncService {
             if (!liveIds.contains(id)) {
                 tracked.remove(id);
                 ServerPlayNetworking.send(player, new SyncPortalEntityRemoveS2CPayload(ctx.kind(), ctx.tardisId(), id));
+                PortalStreamPerfStats.noteEntityRemove();
             }
         }
+        PortalStreamPerfStats.endSyncEntities(syncStart);
     }
 
     private static void keepAlive(SceneContext ctx) {
