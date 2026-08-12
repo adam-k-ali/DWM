@@ -44,7 +44,9 @@ public final class BotiPortalContent implements PortalContent {
             return false;
         }
         PortalSceneStore.requestIfNeeded(PortalStreamKind.BOTI, tardisId);
-        return true;
+        // Same spirit as SOTO: skip the full-window FBO until ghost meshes exist.
+        // Blueprint fallback remains available as a BER placeholder when not ready.
+        return SotoGhostMeshCache.hasMeshes(PortalStreamKind.BOTI, tardisId);
     }
 
     @Override
@@ -87,23 +89,23 @@ public final class BotiPortalContent implements PortalContent {
                 PortalStreamKind.BOTI,
                 id,
                 hitch.viewMatrix(),
-                SotoGhostMeshCache.TerrainPass.OPAQUE
+                SotoGhostMeshCache.TerrainPass.OPAQUE,
+                hitch
         );
-        context.bindTarget();
         SotoGhostMeshCache.drawLayer(
                 PortalStreamKind.BOTI,
                 id,
                 hitch.viewMatrix(),
-                SotoGhostMeshCache.TerrainPass.CUTOUT
+                SotoGhostMeshCache.TerrainPass.CUTOUT,
+                hitch
         );
-        context.bindTarget();
         SotoGhostMeshCache.drawLayer(
                 PortalStreamKind.BOTI,
                 id,
                 hitch.viewMatrix(),
-                SotoGhostMeshCache.TerrainPass.TRANSLUCENT
+                SotoGhostMeshCache.TerrainPass.TRANSLUCENT,
+                hitch
         );
-        context.bindTarget();
         try {
             PortalFeatureFlush featureFlush = context.featureFlush();
             if (featureFlush != null) {

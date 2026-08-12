@@ -92,28 +92,27 @@ public final class SotoPortalContent implements PortalContent {
         context.bindTarget();
         GpuBufferSlice previousFog = SotoSkyFogRenderer.applyPortalTerrainFog(atmosphere);
         try {
-            context.bindTarget();
             SotoGhostMeshCache.drawLayer(
                     PortalStreamKind.SOTO,
                     id,
                     hitch.viewMatrix(),
-                    SotoGhostMeshCache.TerrainPass.OPAQUE
+                    SotoGhostMeshCache.TerrainPass.OPAQUE,
+                    hitch
             );
-            context.bindTarget();
             SotoGhostMeshCache.drawLayer(
                     PortalStreamKind.SOTO,
                     id,
                     hitch.viewMatrix(),
-                    SotoGhostMeshCache.TerrainPass.CUTOUT
+                    SotoGhostMeshCache.TerrainPass.CUTOUT,
+                    hitch
             );
-            context.bindTarget();
             SotoGhostMeshCache.drawLayer(
                     PortalStreamKind.SOTO,
                     id,
                     hitch.viewMatrix(),
-                    SotoGhostMeshCache.TerrainPass.TRANSLUCENT
+                    SotoGhostMeshCache.TerrainPass.TRANSLUCENT,
+                    hitch
             );
-            context.bindTarget();
             try {
                 PortalFeatureFlush featureFlush = context.featureFlush();
                 if (featureFlush != null) {
