@@ -18,6 +18,7 @@ import net.minecraft.resources.Identifier;
 
 @Environment(EnvType.CLIENT)
 public class TardisChameleonGui extends Screen {
+    private static final Identifier BACKGROUND = Identifier.withDefaultNamespace("popup/background");
     private static final TardisChameleonVariant[] variants = TardisChameleonVariant.values();
     private final ClientTardis tardis;
     private final TardisBlockEntity tardisBlockEntity;
@@ -107,18 +108,7 @@ public class TardisChameleonGui extends Screen {
         int x1 = (width - contentWidth) / 2;
         int x2 = x1 + contentWidth;
         int y1 = (height) / 2 - contentHeight / 3;
-        graphics.blit(
-                RenderPipelines.GUI_TEXTURED,
-                Identifier.withDefaultNamespace("textures/gui/demo_background.png"),
-                x1,
-                y1,
-                0,
-                0,
-                256,
-                256,
-                256,
-                256
-        );
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, BACKGROUND, x1, y1, contentWidth, 160);
 
         super.extractRenderState(graphics, mouseX, mouseY, delta);
 

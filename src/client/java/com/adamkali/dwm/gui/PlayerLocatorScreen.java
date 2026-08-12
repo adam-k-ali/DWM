@@ -17,6 +17,8 @@ import java.util.UUID;
 
 @Environment(EnvType.CLIENT)
 public class PlayerLocatorScreen extends Screen {
+    private static final Identifier BACKGROUND = Identifier.withDefaultNamespace("popup/background");
+
     private final ClientTardis tardis;
     private final List<OpenPlayerLocatorScreen.PlayerEntry> players;
     private int selectedIndex = -1;
@@ -68,18 +70,7 @@ public class PlayerLocatorScreen extends Screen {
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         int x1 = width / 2 - 128;
         int y1 = height / 2 - 110;
-        graphics.blit(
-                RenderPipelines.GUI_TEXTURED,
-                Identifier.withDefaultNamespace("textures/gui/demo_background.png"),
-                x1,
-                y1,
-                0,
-                0,
-                256,
-                256,
-                256,
-                256
-        );
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, BACKGROUND, x1, y1, 256, 200);
         super.extractRenderState(graphics, mouseX, mouseY, delta);
         graphics.text(font, getTitle(), x1 + 10, y1 + 10, 0x404040, false);
         if (players.isEmpty()) {
