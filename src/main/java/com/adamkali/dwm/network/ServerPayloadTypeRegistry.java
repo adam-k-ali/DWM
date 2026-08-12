@@ -15,7 +15,6 @@ import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.slf4j.Logger;
 
@@ -47,8 +46,7 @@ public class ServerPayloadTypeRegistry {
         ServerPlayNetworking.registerGlobalReceiver(UpdateTardisChameleonC2SPayload.ID, (payload, context) -> {
             context.server().execute(() -> safelyHandleChameleonUpdate(
                     payload,
-                    context.player().getName().getString(),
-                    context.server()
+                    context.player().getName().getString()
             ));
         });
         ServerPlayNetworking.registerGlobalReceiver(SaveWaypointC2SPayload.ID, (payload, context) -> {
@@ -69,14 +67,6 @@ public class ServerPayloadTypeRegistry {
     }
 
     static boolean safelyHandleChameleonUpdate(UpdateTardisChameleonC2SPayload payload, String playerName) {
-        return safelyHandleChameleonUpdate(payload, playerName, null);
-    }
-
-    static boolean safelyHandleChameleonUpdate(
-            UpdateTardisChameleonC2SPayload payload,
-            String playerName,
-            MinecraftServer server
-    ) {
         try {
             TardisDataModel tardis = TardisDataLoader.get(payload.tardisId());
             if (tardis == null) {
@@ -85,7 +75,7 @@ public class ServerPayloadTypeRegistry {
             }
 
             TardisChameleonVariant variant = TardisChameleonVariant.fromId(payload.variantId());
-            TardisLogic.setVariant(payload.tardisId(), variant, server);
+            TardisLogic.setVariant(payload.tardisId(), variant);
             return true;
         } catch (IllegalArgumentException e) {
             LOGGER.warn("Rejected chameleon update with invalid variant {} from {}", payload.variantId(), playerName);
