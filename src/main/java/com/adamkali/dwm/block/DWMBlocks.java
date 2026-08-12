@@ -163,6 +163,7 @@ public class DWMBlocks {
     );
     public static final Block GALLIFREY_DIRT = register(Block::new, DWMBlockSettings.GALLIFREY_DIRT, "gallifrey_dirt");
     public static final Block GALLIFREY_COARSE_DIRT = register(Block::new, DWMBlockSettings.GALLIFREY_DIRT, "gallifrey_coarse_dirt");
+    public static final Block GALLIFREY_GRASS_BLOCK = register(Block::new, DWMBlockSettings.GALLIFREY_GRASS, "gallifrey_grass_block");
 
     public static final Block CITADEL_WALL = register(Block::new, DWMBlockSettings.CITADEL, "citadel_wall");
     public static final Block CITADEL_PANEL = register(Block::new, DWMBlockSettings.CITADEL, "citadel_panel");
@@ -331,7 +332,8 @@ public class DWMBlocks {
             GALLIFREY_CHISELED_SANDSTONE,
             GALLIFREY_SAND,
             GALLIFREY_DIRT,
-            GALLIFREY_COARSE_DIRT
+            GALLIFREY_COARSE_DIRT,
+            GALLIFREY_GRASS_BLOCK
     );
 
     /** Citadel decorative solids (excludes glass). */
@@ -491,6 +493,7 @@ public class DWMBlocks {
         });
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.NATURAL_BLOCKS).register(content -> {
+            content.accept(GALLIFREY_GRASS_BLOCK);
             content.accept(GALLIFREY_DIRT);
             content.accept(GALLIFREY_COARSE_DIRT);
             content.accept(GALLIFREY_SAND);

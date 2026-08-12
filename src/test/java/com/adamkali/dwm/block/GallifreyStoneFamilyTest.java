@@ -16,12 +16,13 @@ class GallifreyStoneFamilyTest {
 
     @Test
     void stoneFamilyContainsBuildingAndTerrainBlocks() {
-        assertEquals(14, DWMBlocks.GALLIFREY_STONE_FAMILY.size());
+        assertEquals(15, DWMBlocks.GALLIFREY_STONE_FAMILY.size());
         assertEquals(11, DWMBlocks.GALLIFREY_STONE_BUILDING_BLOCKS.size());
         assertTrue(DWMBlocks.GALLIFREY_STONE_FAMILY.containsAll(DWMBlocks.GALLIFREY_STONE_BUILDING_BLOCKS));
         assertTrue(DWMBlocks.GALLIFREY_STONE_FAMILY.contains(DWMBlocks.GALLIFREY_SAND));
         assertTrue(DWMBlocks.GALLIFREY_STONE_FAMILY.contains(DWMBlocks.GALLIFREY_DIRT));
         assertTrue(DWMBlocks.GALLIFREY_STONE_FAMILY.contains(DWMBlocks.GALLIFREY_COARSE_DIRT));
+        assertTrue(DWMBlocks.GALLIFREY_STONE_FAMILY.contains(DWMBlocks.GALLIFREY_GRASS_BLOCK));
     }
 
     @Test
@@ -29,6 +30,7 @@ class GallifreyStoneFamilyTest {
         assertFalse(DWMBlocks.GALLIFREY_STONE_BUILDING_BLOCKS.contains(DWMBlocks.GALLIFREY_SAND));
         assertFalse(DWMBlocks.GALLIFREY_STONE_BUILDING_BLOCKS.contains(DWMBlocks.GALLIFREY_DIRT));
         assertFalse(DWMBlocks.GALLIFREY_STONE_BUILDING_BLOCKS.contains(DWMBlocks.GALLIFREY_COARSE_DIRT));
+        assertFalse(DWMBlocks.GALLIFREY_STONE_BUILDING_BLOCKS.contains(DWMBlocks.GALLIFREY_GRASS_BLOCK));
         assertTrue(DWMBlocks.GALLIFREY_STONE_BUILDING_BLOCKS.contains(DWMBlocks.GALLIFREY_SANDSTONE));
     }
 }

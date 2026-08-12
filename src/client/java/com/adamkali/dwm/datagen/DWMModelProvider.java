@@ -31,6 +31,7 @@ public class DWMModelProvider extends FabricModelProvider {
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_SAND);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_DIRT);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_COARSE_DIRT);
+        registerGallifreyGrass(blockStateModelGenerator);
 
         registerCubeAll(blockStateModelGenerator, DWMBlocks.CITADEL_WALL);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.CITADEL_PANEL);
@@ -56,6 +57,18 @@ public class DWMModelProvider extends FabricModelProvider {
     private static void registerCubeAll(BlockModelGenerators generator, Block block) {
         generator.createTrivialCube(block);
         generator.registerSimpleItemModel(block, ModelLocationUtils.getModelLocation(block));
+    }
+
+    private static void registerGallifreyGrass(BlockModelGenerators generator) {
+        Block grass = DWMBlocks.GALLIFREY_GRASS_BLOCK;
+        TextureMapping textures = new TextureMapping()
+                .put(TextureSlot.TOP, TextureMapping.getBlockTexture(grass, "_top"))
+                .put(TextureSlot.BOTTOM, TextureMapping.getBlockTexture(DWMBlocks.GALLIFREY_DIRT))
+                .put(TextureSlot.SIDE, TextureMapping.getBlockTexture(grass, "_side"))
+                .put(TextureSlot.PARTICLE, TextureMapping.getBlockTexture(grass, "_side"));
+        var modelId = ModelTemplates.CUBE_BOTTOM_TOP.create(grass, textures, generator.modelOutput);
+        generator.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(grass, BlockModelGenerators.plainVariant(modelId)));
+        generator.registerSimpleItemModel(grass, modelId);
     }
 
     private static void registerSandstone(BlockModelGenerators generator, Block sandstone) {

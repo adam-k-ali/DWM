@@ -13,7 +13,7 @@ Give players a Gallifrey-themed terrain and builder kit—stone, woods, and Cita
 ## Implemented Now
 - **Gallifrey stone family**
   - Building set: stone, stone bricks (including chiseled, cracked, and mossy), cobblestone and mossy cobblestone, smooth stone, sandstone, cut sandstone, chiseled sandstone
-  - Terrain blocks: Gallifrey sand, dirt, and coarse dirt
+  - Terrain blocks: Gallifrey grass (silver top), dirt, coarse dirt, and sand
 - **Wood families:** Ash, Dark Ash, and Cardinal
   - Shared set: planks, logs/wood (and stripped), leaves, sapling (and potted), stairs, slab, fence, fence gate, button, pressure plate, signs, hanging signs, boats
   - Doors and trapdoors on all three families; Cardinal uses a three-block-tall door
@@ -26,7 +26,6 @@ Give players a Gallifrey-themed terrain and builder kit—stone, woods, and Cita
 3. Combine stone, wood, and Citadel blocks for exteriors, interiors, and set dressing.
 
 ## Known Constraints
-- No Gallifrey grass block yet (deferred until a top texture exists in the asset archive).
 - Some wood accessory textures (for example signs, boats, or GUI icons) may still be provisional.
 - Roundels, TARDIS walls, and Chronoplasm remain under the separate Building Content System feature.
 
@@ -34,5 +33,5 @@ Give players a Gallifrey-themed terrain and builder kit—stone, woods, and Cita
 - Soul wood family (fourth Gallifrey wood set).
 - Gallifrey decorative plants.
 - Orange sand and sandstone variants (distinct from Gallifrey sand).
-- Gallifrey grass block when archive textures allow.
+- Wire archive colormaps for tinted grass/foliage if plants need biome tinting (grass block uses pre-colored silver textures).
 - Richer Gallifrey destination content (mobs, villages) on top of the shipped dimension.

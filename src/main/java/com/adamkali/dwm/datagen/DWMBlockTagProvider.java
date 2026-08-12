@@ -32,7 +32,8 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(key(DWMBlocks.GALLIFREY_CHISELED_SANDSTONE))
                 .add(key(DWMBlocks.GALLIFREY_SAND))
                 .add(key(DWMBlocks.GALLIFREY_DIRT))
-                .add(key(DWMBlocks.GALLIFREY_COARSE_DIRT));
+                .add(key(DWMBlocks.GALLIFREY_COARSE_DIRT))
+                .add(key(DWMBlocks.GALLIFREY_GRASS_BLOCK));
 
         builder(DWMBlockTags.CITADEL)
                 .add(key(DWMBlocks.CITADEL_WALL))
@@ -62,14 +63,16 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
         builder(BlockTags.MINEABLE_WITH_SHOVEL)
                 .add(key(DWMBlocks.GALLIFREY_SAND))
                 .add(key(DWMBlocks.GALLIFREY_DIRT))
-                .add(key(DWMBlocks.GALLIFREY_COARSE_DIRT));
+                .add(key(DWMBlocks.GALLIFREY_COARSE_DIRT))
+                .add(key(DWMBlocks.GALLIFREY_GRASS_BLOCK));
 
         builder(BlockTags.SAND)
                 .add(key(DWMBlocks.GALLIFREY_SAND));
 
         builder(BlockTags.DIRT)
                 .add(key(DWMBlocks.GALLIFREY_DIRT))
-                .add(key(DWMBlocks.GALLIFREY_COARSE_DIRT));
+                .add(key(DWMBlocks.GALLIFREY_COARSE_DIRT))
+                .add(key(DWMBlocks.GALLIFREY_GRASS_BLOCK));
 
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.generateBlockTags(new WoodFamilyDatagen.BlockTagSink() {
