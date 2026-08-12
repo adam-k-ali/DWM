@@ -51,6 +51,7 @@ public final class PortalSceneStore {
         PortalAtmosphere atmosphere = payload.atmosphere() == null ? PortalAtmosphere.DEFAULT : payload.atmosphere();
         META.put(key, new MetaEntry(payload.revision(), shell, atmosphere));
         LAST_REQUEST_MS.remove(key);
+        PortalFrameCache.markDirty(payload.kind(), payload.tardisId());
     }
 
     public static PortalShellState getShell(PortalStreamKind kind, UUID tardisId) {
@@ -74,6 +75,7 @@ public final class PortalSceneStore {
             return;
         }
         SotoGhostExterior.applyChunk(payload.kind(), payload);
+        PortalFrameCache.markDirty(payload.kind(), payload.tardisId());
     }
 
     public static void unloadChunk(UnloadPortalChunkS2CPayload payload) {
@@ -81,6 +83,7 @@ public final class PortalSceneStore {
             return;
         }
         SotoGhostExterior.unloadChunk(payload.kind(), payload.tardisId(), payload.chunkX(), payload.chunkZ());
+        PortalFrameCache.markDirty(payload.kind(), payload.tardisId());
     }
 
     public static void applyEntitySpawn(SyncPortalEntitySpawnS2CPayload payload) {
@@ -88,6 +91,7 @@ public final class PortalSceneStore {
             return;
         }
         SotoGhostExterior.applyEntitySpawn(payload.kind(), payload);
+        PortalFrameCache.markDirty(payload.kind(), payload.tardisId());
     }
 
     public static void applyEntityUpdate(SyncPortalEntityUpdateS2CPayload payload) {
@@ -95,6 +99,7 @@ public final class PortalSceneStore {
             return;
         }
         SotoGhostExterior.applyEntityUpdate(payload.kind(), payload);
+        PortalFrameCache.markDirty(payload.kind(), payload.tardisId());
     }
 
     public static void removeEntity(SyncPortalEntityRemoveS2CPayload payload) {
@@ -102,6 +107,7 @@ public final class PortalSceneStore {
             return;
         }
         SotoGhostExterior.removeEntity(payload.kind(), payload.tardisId(), payload.entityUuid());
+        PortalFrameCache.markDirty(payload.kind(), payload.tardisId());
     }
 
     public static void requestIfNeeded(PortalStreamKind kind, UUID tardisId) {
@@ -130,12 +136,14 @@ public final class PortalSceneStore {
         META.remove(key);
         LAST_REQUEST_MS.remove(key);
         SotoGhostExterior.invalidate(kind, tardisId);
+        PortalFrameCache.markDirty(kind, tardisId);
     }
 
     public static void invalidateAll() {
         META.clear();
         LAST_REQUEST_MS.clear();
         SotoGhostExterior.invalidateAll();
+        PortalFrameCache.markAllDirty();
     }
 
     public static void clientTick() {

@@ -22,6 +22,9 @@ import net.minecraft.util.ARGB;
  * <p>
  * Mid-BER GPU work blacks out the world on 26.2. Call {@link #renderOffMainPass} from
  * {@code LevelRenderEvents.END_MAIN} only; BER uses {@link #peekLastRendered}.
+ * <p>
+ * Hitch-fixed scenes reuse the last color texture when {@link PortalFrameCache} reports
+ * clean content and this key was the last shared-FBO writer.
  */
 public final class PortalRenderer {
     private final PortalRenderTarget target;
@@ -81,11 +84,22 @@ public final class PortalRenderer {
                 PortalSupport.disableForSession("Portal framebuffer is incomplete", null);
                 return PortalTexture.UNAVAILABLE;
             }
-            if (!target.shouldRenderThisFrame(scene.key())) {
-                return peekLastRendered(scene.key());
+            PortalKey key = scene.key();
+            if (!target.shouldRenderThisFrame(key)) {
+                return peekLastRendered(key);
+            }
+            if (!PortalFrameCache.isDirty(key)
+                    && PortalFrameCache.wasLastWriter(key)
+                    && renderedReady.contains(key)) {
+                return peekLastRendered(key);
             }
             renderScene(client, scene, hitch, content.clearRgb(client));
-            renderedReady.add(scene.key());
+            for (PortalKey overwritten : PortalFrameCache.overwrittenReadyKeys(key, renderedReady)) {
+                renderedReady.remove(overwritten);
+            }
+            PortalFrameCache.noteRendered(key);
+            PortalFrameCache.clearDirty(key);
+            renderedReady.add(key);
             int colorTex = target.colorTextureId();
             return new PortalTexture(colorTex, target.width(), target.height(), hitch, true);
         }

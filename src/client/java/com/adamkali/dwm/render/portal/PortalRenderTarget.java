@@ -118,6 +118,7 @@ public final class PortalRenderTarget implements AutoCloseable {
                 width = requiredWidth;
                 height = requiredHeight;
                 renderedFrameByKey.clear();
+                PortalFrameCache.invalidateForResize();
             }
             return isReady();
         } catch (Throwable failure) {
@@ -254,6 +255,7 @@ public final class PortalRenderTarget implements AutoCloseable {
         }
         width = 0;
         height = 0;
+        PortalFrameCache.invalidateForResize();
     }
 
     long clientFrameForTest() {

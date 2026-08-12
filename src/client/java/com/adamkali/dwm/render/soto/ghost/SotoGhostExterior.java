@@ -6,6 +6,7 @@ import com.adamkali.dwm.network.SyncPortalEntityUpdateS2CPayload;
 import com.adamkali.dwm.render.boti.BotiEntityMotion;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.EntityInterpState;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.LerpedPose;
+import com.adamkali.dwm.render.portal.PortalFrameCache;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
@@ -134,6 +135,9 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
     public static void clientTick() {
         for (SotoGhostExterior ghost : BY_KEY.values()) {
             ghost.tickEntities();
+            if (ghost.entityCount() > 0) {
+                PortalFrameCache.markDirty(ghost.kind, ghost.tardisId);
+            }
         }
     }
 
