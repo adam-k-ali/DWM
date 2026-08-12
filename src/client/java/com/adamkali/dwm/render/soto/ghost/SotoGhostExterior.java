@@ -125,18 +125,23 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         List<RenderableGhostEntity> result = new ArrayList<>(ghost.entities.size());
         for (Map.Entry<UUID, GhostEntity> entry : ghost.entities.entrySet()) {
             GhostEntity ghostEntity = entry.getValue();
-            if (ghostEntity.entity == null || ghostEntity.interp == null) {
+            if (ghostEntity.interp == null) {
                 continue;
             }
             LerpedPose pose = BotiEntityMotion.lerpPose(ghostEntity.interp, nowMs, ENTITY_UPDATE_INTERVAL_MS);
-            LerpedPose previousPose = ghostEntity.lastPublishedPose;
-            if (previousPose != null) {
-                double dx = pose.x() - previousPose.x();
-                double dy = pose.y() - previousPose.y();
-                double dz = pose.z() - previousPose.z();
-                PortalPerfStats.notePoseDelta(Math.sqrt(dx * dx + dy * dy + dz * dz));
+            // Stats only: once-per-frame baseline lives in PortalPerfStats (not on GhostEntity),
+            // so repeated getRenderableEntities calls in one flush cannot corrupt inter-frame deltas.
+            PortalPerfStats.noteLerpedPose(
+                    kind,
+                    tardisId,
+                    entry.getKey(),
+                    pose.x(),
+                    pose.y(),
+                    pose.z()
+            );
+            if (ghostEntity.entity == null) {
+                continue;
             }
-            ghostEntity.lastPublishedPose = pose;
             float animAge = animAgeInTicks(ghostEntity.animStartMs, nowMs);
             result.add(new RenderableGhostEntity(
                     ghostEntity.entity,
@@ -187,9 +192,6 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
                 : nextInterpForUpdate(previous.entity, previous.interp, relX, relY, relZ, yaw, pitch, receiveTimeMs);
         Entity entity = previous == null ? null : previous.entity;
         GhostEntity stored = new GhostEntity(entity, next, animStartMsPreserved(previous, receiveTimeMs), previous != null ? previous.bobOffset : 0.0f);
-        if (previous != null) {
-            stored.lastPublishedPose = previous.lastPublishedPose;
-        }
         ghost.entities.put(entityUuid, stored);
     }
 
@@ -222,12 +224,14 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
                 ITEM_BOB_OFFSETS.remove(entityUuid);
             }
         }
+        PortalPerfStats.clearPoseTracking(kind, tardisId);
         SotoGhostMeshCache.invalidate(kind, tardisId);
     }
 
     public static void invalidateAll() {
         BY_KEY.clear();
         ITEM_BOB_OFFSETS.clear();
+        PortalPerfStats.clearAllPoseTracking();
         SotoGhostMeshCache.invalidateAll();
     }
 
@@ -347,7 +351,6 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
                     previous.animStartMs,
                     previous.bobOffset
             );
-            stored.lastPublishedPose = previous.lastPublishedPose;
             ghost.entities.put(payload.entityUuid(), stored);
             return;
         }
@@ -413,7 +416,6 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
             living.yHeadRotO = payload.headYaw();
         }
         GhostEntity stored = new GhostEntity(entity, next, previous.animStartMs, previous.bobOffset);
-        stored.lastPublishedPose = previous.lastPublishedPose;
         ghost.entities.put(payload.entityUuid(), stored);
     }
 
@@ -477,6 +479,7 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
             return;
         }
         ghost.entities.remove(entityUuid);
+        PortalPerfStats.clearPoseTracking(kind, tardisId, entityUuid);
     }
 
     public PortalStreamKind kind() {
@@ -682,7 +685,6 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         final long animStartMs;
         /** Stable item bob/spin phase; survives duplicate spawn packets that recreate ItemEntity. */
         final float bobOffset;
-        LerpedPose lastPublishedPose;
 
         GhostEntity(Entity entity, EntityInterpState interp, long animStartMs, float bobOffset) {
             this.entity = entity;

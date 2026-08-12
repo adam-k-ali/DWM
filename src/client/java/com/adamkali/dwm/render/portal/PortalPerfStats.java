@@ -2,12 +2,16 @@ package com.adamkali.dwm.render.portal;
 
 import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.network.SyncPortalPerfS2CPayload;
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Config-gated CPU wall-time instrumentation for the shared BOTI/SOTO portal pipeline.
@@ -45,16 +49,27 @@ public final class PortalPerfStats {
     private static int advanceInterpThisFrame;
     private static float partialTickThisFrame = Float.NaN;
     private static float itemAgeInTicksThisFrame = Float.NaN;
+    /**
+     * Inter-frame pose baselines for {@link #noteLerpedPose}. Keyed by stream so BOTI/SOTO never share.
+     * Updated at most once per entity per published frame ({@link #SAMPLED_THIS_FRAME}).
+     */
+    private static final Map<PoseTrackKey, PoseXyz> LAST_POSES = new ConcurrentHashMap<>();
+    private static final Set<PoseTrackKey> SAMPLED_THIS_FRAME = ConcurrentHashMap.newKeySet();
     private static volatile ServerDiag serverDiag = ServerDiag.NONE;
     private static volatile Snapshot published = Snapshot.IDLE;
     private static volatile DisplaySnapshot display = DisplaySnapshot.IDLE;
     private static double totalEmaMs;
     private static boolean wasEnabled;
+    /** Non-null in unit tests to bypass {@link DWMConfig} (null = use config). */
+    private static Boolean enabledOverrideForTest;
 
     private PortalPerfStats() {
     }
 
     public static boolean isEnabled() {
+        if (enabledOverrideForTest != null) {
+            return enabledOverrideForTest;
+        }
         return DWMConfig.getBoolean(DWMConfig.SHOW_PORTAL_PERF_DEBUG);
     }
 
@@ -168,6 +183,64 @@ public final class PortalPerfStats {
         }
     }
 
+    /**
+     * Samples a ghost entity's lerped pose for inter-frame movement stats.
+     * <p>
+     * Only the first sample per {@code (kind, tardisId, entityUuid)} in a published frame
+     * compares against the previous frame's pose and updates the baseline. Later calls in the
+     * same frame (e.g. repeated {@code getRenderableEntities}) are ignored so intra-frame
+     * re-entry cannot shrink or replace the inter-frame delta.
+     */
+    public static void noteLerpedPose(
+            PortalStreamKind kind,
+            UUID tardisId,
+            UUID entityUuid,
+            double x,
+            double y,
+            double z
+    ) {
+        if (!isEnabled() || kind == null || tardisId == null || entityUuid == null) {
+            return;
+        }
+        PoseTrackKey key = new PoseTrackKey(kind, tardisId, entityUuid);
+        if (!SAMPLED_THIS_FRAME.add(key)) {
+            return;
+        }
+        PoseXyz previous = LAST_POSES.put(key, new PoseXyz(x, y, z));
+        if (previous == null) {
+            return;
+        }
+        double dx = x - previous.x();
+        double dy = y - previous.y();
+        double dz = z - previous.z();
+        notePoseDelta(Math.sqrt(dx * dx + dy * dy + dz * dz));
+    }
+
+    /** Drops pose baselines for one entity (remove / despawn). */
+    public static void clearPoseTracking(PortalStreamKind kind, UUID tardisId, UUID entityUuid) {
+        if (kind == null || tardisId == null || entityUuid == null) {
+            return;
+        }
+        PoseTrackKey key = new PoseTrackKey(kind, tardisId, entityUuid);
+        LAST_POSES.remove(key);
+        SAMPLED_THIS_FRAME.remove(key);
+    }
+
+    /** Drops pose baselines for an entire portal stream (invalidate). */
+    public static void clearPoseTracking(PortalStreamKind kind, UUID tardisId) {
+        if (kind == null || tardisId == null) {
+            return;
+        }
+        LAST_POSES.keySet().removeIf(k -> k.kind() == kind && k.tardisId().equals(tardisId));
+        SAMPLED_THIS_FRAME.removeIf(k -> k.kind() == kind && k.tardisId().equals(tardisId));
+    }
+
+    /** Drops all pose baselines (client disconnect / invalidateAll). */
+    public static void clearAllPoseTracking() {
+        LAST_POSES.clear();
+        SAMPLED_THIS_FRAME.clear();
+    }
+
     public static void noteIdentityInterp() {
         if (!isEnabled()) {
             return;
@@ -217,6 +290,8 @@ public final class PortalPerfStats {
             if (wasEnabled) {
                 PortalPerfDebugLog.close();
                 serverDiag = ServerDiag.NONE;
+                LAST_POSES.clear();
+                SAMPLED_THIS_FRAME.clear();
                 wasEnabled = false;
             }
             return;
@@ -286,8 +361,15 @@ public final class PortalPerfStats {
         advanceInterpThisFrame = 0;
         partialTickThisFrame = Float.NaN;
         itemAgeInTicksThisFrame = Float.NaN;
+        // Allow the next END_MAIN flush to sample each entity once against LAST_POSES.
+        SAMPLED_THIS_FRAME.clear();
 
         PortalPerfDebugLog.maybeAppend(display);
+    }
+
+    /** Package-visible for tests: max pose delta accumulated since the last {@link #publishFrame()}. */
+    static double maxPoseDeltaThisFrameForTest() {
+        return maxPoseDeltaThisFrame;
     }
 
     public static Snapshot snapshot() {
@@ -553,11 +635,24 @@ public final class PortalPerfStats {
         advanceInterpThisFrame = 0;
         partialTickThisFrame = Float.NaN;
         itemAgeInTicksThisFrame = Float.NaN;
+        LAST_POSES.clear();
+        SAMPLED_THIS_FRAME.clear();
         serverDiag = ServerDiag.NONE;
         published = Snapshot.IDLE;
         display = DisplaySnapshot.IDLE;
         totalEmaMs = 0.0;
         wasEnabled = false;
+        enabledOverrideForTest = null;
+    }
+
+    static void setEnabledOverrideForTest(Boolean enabled) {
+        enabledOverrideForTest = enabled;
+    }
+
+    private record PoseTrackKey(PortalStreamKind kind, UUID tardisId, UUID entityUuid) {
+    }
+
+    private record PoseXyz(double x, double y, double z) {
     }
 
     private static void pushHistory(FrameSample sample) {

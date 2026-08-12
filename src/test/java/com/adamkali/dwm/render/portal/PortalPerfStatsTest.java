@@ -8,6 +8,8 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.UUID;
 
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -169,5 +171,48 @@ class PortalPerfStatsTest {
         float[] totals = PortalPerfStats.historyTotalsMs();
         assertEquals(5.0f, totals[0], 1e-4f);
         assertEquals(PortalPerfStats.HISTORY_FRAMES + 4.0f, totals[totals.length - 1], 1e-4f);
+    }
+
+    @Test
+    void noteLerpedPose_sameFrameReentry_keepsInterFrameBaseline() {
+        PortalPerfStats.setEnabledOverrideForTest(true);
+        UUID tardisId = UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        UUID entityId = UUID.fromString("11111111-2222-3333-4444-555555555555");
+
+        // Frame 0 baseline at origin.
+        PortalPerfStats.noteLerpedPose(PortalStreamKind.SOTO, tardisId, entityId, 0.0, 0.0, 0.0);
+        PortalPerfStats.publishFrame();
+        assertEquals(0.0, PortalPerfStats.maxPoseDeltaThisFrameForTest(), 1e-9);
+
+        // First sample this frame: inter-frame delta 10.
+        PortalPerfStats.noteLerpedPose(PortalStreamKind.SOTO, tardisId, entityId, 10.0, 0.0, 0.0);
+        assertEquals(10.0, PortalPerfStats.maxPoseDeltaThisFrameForTest(), 1e-9);
+
+        // Same-frame re-entry with a different pose must not replace the baseline or shrink the max
+        // via a smaller intra-frame step (old GhostEntity.lastPublishedPose bug).
+        PortalPerfStats.noteLerpedPose(PortalStreamKind.SOTO, tardisId, entityId, 12.0, 0.0, 0.0);
+        assertEquals(10.0, PortalPerfStats.maxPoseDeltaThisFrameForTest(), 1e-9);
+
+        PortalPerfStats.publishFrame();
+        // Next frame compares against the first sample (10), not the ignored re-entry (12).
+        PortalPerfStats.noteLerpedPose(PortalStreamKind.SOTO, tardisId, entityId, 20.0, 0.0, 0.0);
+        assertEquals(10.0, PortalPerfStats.maxPoseDeltaThisFrameForTest(), 1e-9);
+    }
+
+    @Test
+    void noteLerpedPose_botiAndSoto_trackIndependently() {
+        PortalPerfStats.setEnabledOverrideForTest(true);
+        UUID tardisId = UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        UUID entityId = UUID.fromString("11111111-2222-3333-4444-555555555555");
+
+        PortalPerfStats.noteLerpedPose(PortalStreamKind.BOTI, tardisId, entityId, 0.0, 0.0, 0.0);
+        PortalPerfStats.noteLerpedPose(PortalStreamKind.SOTO, tardisId, entityId, 0.0, 0.0, 0.0);
+        PortalPerfStats.publishFrame();
+
+        PortalPerfStats.noteLerpedPose(PortalStreamKind.BOTI, tardisId, entityId, 5.0, 0.0, 0.0);
+        assertEquals(5.0, PortalPerfStats.maxPoseDeltaThisFrameForTest(), 1e-9);
+        // SOTO still has its own baseline at 0 — an 8-block move must be visible independently.
+        PortalPerfStats.noteLerpedPose(PortalStreamKind.SOTO, tardisId, entityId, 8.0, 0.0, 0.0);
+        assertEquals(8.0, PortalPerfStats.maxPoseDeltaThisFrameForTest(), 1e-9);
     }
 }
