@@ -44,9 +44,12 @@ public class WaypointScreen extends Screen {
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "waypoint/clear");
     /** Client-only sentinel for the create-mode ghost list row. */
     private static final UUID GHOST_ROW_ID = new UUID(0L, 0L);
+    /** Client-only sentinel for the empty-list hint row under the ghost. */
+    private static final UUID EMPTY_HINT_ROW_ID = new UUID(0L, 1L);
     private static final int GHOST_TEXT_COLOR = 0xFF9CCC6A;
     private static final int GHOST_TEXT_COLOR_MUTED = 0xFF7AAA50;
     private static final int GHOST_TEXT_COLOR_DISABLED = 0xFF4A5A40;
+    private static final int EMPTY_HINT_TEXT_COLOR = 0xFF888888;
     private static final int MODE_LABEL_COLOR = 0xFFD4A84B;
     private static final int MAX_NAME_LENGTH = 32;
     private static final int ROW_HEIGHT = 22;
@@ -241,6 +244,9 @@ public class WaypointScreen extends Screen {
         applyModeVisibility();
         updateDetailActions();
         updateConfirmActive();
+        if (waypoints.isEmpty() && canSave) {
+            beginCreate();
+        }
     }
 
     private static SpriteIconButton iconButton(
@@ -309,6 +315,10 @@ public class WaypointScreen extends Screen {
             keepId = GHOST_ROW_ID;
         }
 
+        if (waypoints.isEmpty()) {
+            list.addRow(list.new WaypointEntryRow(emptyHintEntry()));
+        }
+
         for (OpenWaypointScreen.WaypointEntry entry : waypoints) {
             WaypointList.WaypointEntryRow row = list.new WaypointEntryRow(entry);
             list.addRow(row);
@@ -335,7 +345,8 @@ public class WaypointScreen extends Screen {
 
     private @Nullable WaypointList.WaypointEntryRow firstRealRow() {
         for (WaypointList.WaypointEntryRow row : list.children()) {
-            if (!isGhost(row.waypoint.id())) {
+            UUID id = row.waypoint.id();
+            if (!isGhost(id) && !isEmptyHint(id)) {
                 return row;
             }
         }
@@ -346,12 +357,20 @@ public class WaypointScreen extends Screen {
         return new OpenWaypointScreen.WaypointEntry(GHOST_ROW_ID, "", "", 0, 0, 0, 0);
     }
 
+    private static OpenWaypointScreen.WaypointEntry emptyHintEntry() {
+        return new OpenWaypointScreen.WaypointEntry(EMPTY_HINT_ROW_ID, "", "", 0, 0, 0, 0);
+    }
+
     private static boolean isGhost(@Nullable UUID id) {
         return GHOST_ROW_ID.equals(id);
     }
 
+    private static boolean isEmptyHint(@Nullable UUID id) {
+        return EMPTY_HINT_ROW_ID.equals(id);
+    }
+
     private @Nullable OpenWaypointScreen.WaypointEntry selectedWaypoint() {
-        if (selectedId == null || isGhost(selectedId)) {
+        if (selectedId == null || isGhost(selectedId) || isEmptyHint(selectedId)) {
             return null;
         }
         for (OpenWaypointScreen.WaypointEntry entry : waypoints) {
@@ -491,6 +510,9 @@ public class WaypointScreen extends Screen {
         if (nameMode == NameMode.RENAME && entry.id().equals(renameTargetId)) {
             exitNameMode();
         }
+        if (waypoints.isEmpty() && canSave) {
+            beginCreate();
+        }
     }
 
     private void selectCurrent() {
@@ -553,17 +575,6 @@ public class WaypointScreen extends Screen {
 
         if (nameMode != NameMode.LIST) {
             renderNameModeDetail(graphics);
-            return;
-        }
-
-        if (waypoints.isEmpty()) {
-            graphics.centeredText(
-                    font,
-                    Component.translatable("dwm.gui.waypoint.empty"),
-                    width / 2,
-                    detailTop + BODY_HEIGHT / 2 - 4,
-                    0xFFFFFFFF
-            );
             return;
         }
 
@@ -723,6 +734,18 @@ public class WaypointScreen extends Screen {
 
             @Override
             public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float delta) {
+                if (isEmptyHint(waypoint.id())) {
+                    graphics.text(
+                            font,
+                            Component.translatable("dwm.gui.waypoint.empty"),
+                            getContentX() + 4,
+                            getContentYMiddle() - 4,
+                            EMPTY_HINT_TEXT_COLOR,
+                            false
+                    );
+                    return;
+                }
+
                 boolean ghost = isGhost(waypoint.id());
                 if (ghost) {
                     int textColor;
@@ -808,6 +831,9 @@ public class WaypointScreen extends Screen {
 
             @Override
             public Component getNarration() {
+                if (isEmptyHint(waypoint.id())) {
+                    return Component.translatable("dwm.gui.waypoint.empty");
+                }
                 if (isGhost(waypoint.id())) {
                     return Component.translatable("dwm.gui.waypoint.new.ghost");
                 }
@@ -817,6 +843,9 @@ public class WaypointScreen extends Screen {
             @Override
             public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
                 if (nameMode != NameMode.LIST) {
+                    return false;
+                }
+                if (isEmptyHint(waypoint.id())) {
                     return false;
                 }
                 if (isGhost(waypoint.id())) {
