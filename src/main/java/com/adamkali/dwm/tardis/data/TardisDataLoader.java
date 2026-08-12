@@ -1,5 +1,6 @@
 package com.adamkali.dwm.tardis.data;
 
+import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -40,6 +41,11 @@ public class TardisDataLoader {
         if (uuid == null) {
             return null;
         }
+        // Remote clients never run SERVER_STARTED, so the save directory stays unset.
+        // Treat that as a cache-only mode instead of crashing during block-entity ticks.
+        if (tardisSaveDirectory == null) {
+            return null;
+        }
 
         File file = TardisDataLoader.getTardisDataFile(uuid, false);
         if (!file.exists()) {
@@ -75,6 +81,42 @@ public class TardisDataLoader {
         }
 
         return TardisDataLoader.load(uuid);
+    }
+
+    /**
+     * Seeds or updates an ephemeral client-side model from S2C portal shell meta.
+     * No-ops when the save directory is set (integrated server owns the shared cache).
+     */
+    public static void applyClientShell(
+            @NotNull UUID uuid,
+            @NotNull TardisChameleonVariant variant,
+            float doorSwing,
+            boolean isOpen
+    ) {
+        if (tardisSaveDirectory != null) {
+            return;
+        }
+        TardisDataModel model = tardisData.get(uuid);
+        if (model == null) {
+            model = new TardisDataModel();
+            model.uuid = uuid;
+            tardisData.put(uuid, model);
+        }
+        model.variant = variant;
+        model.doorState.isOpen = isOpen;
+        model.doorState.doorSwing = doorSwing;
+    }
+
+    /**
+     * Drops all cached models. Used when a remote client disconnects so the next
+     * session does not reuse another world's ephemeral shell state.
+     * No-ops when the save directory is set so integrated/server persistence is preserved.
+     */
+    public static void clearCache() {
+        if (tardisSaveDirectory != null) {
+            return;
+        }
+        tardisData.clear();
     }
 
     private static void save(TardisDataModel dataModel) throws IOException {
