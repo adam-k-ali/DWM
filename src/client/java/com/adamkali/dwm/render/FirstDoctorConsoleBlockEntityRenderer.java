@@ -46,10 +46,16 @@ public class FirstDoctorConsoleBlockEntityRenderer
         implements BlockEntityRenderer<FirstDoctorConsoleBlockEntity, FirstDoctorConsoleBlockEntityRenderState> {
     private static final float PX = 1.0f / 16.0f;
     /** Uniform scale for the translucent shell hologram above the chameleon dial. */
-    private static final float HOLOGRAM_SCALE = 0.2F;
+    private static final float HOLOGRAM_SCALE = 0.125F;
     /** Deck-local Y lift (model pixels) so the hologram sits above the dial. */
-    private static final float HOLOGRAM_Y_OFFSET_PX = 10.0F;
+    private static final float HOLOGRAM_Y_OFFSET_PX = 5.0F;
     private static final int HOLOGRAM_COLOR = ARGB.color(0x88, 0xAA, 0xEE, 0xFF);
+    /** ~8s per full revolution (360° / 160 ticks). */
+    static final float HOLOGRAM_DEGREES_PER_TICK = 360.0F / 160.0F;
+    /** Bob angular speed (~1.25s period at 20 TPS). */
+    static final float HOLOGRAM_BOB_SPEED = 0.08F;
+    /** Peak vertical bob displacement in blocks (deck-local Y). */
+    static final float HOLOGRAM_BOB_AMPLITUDE = 0.03F;
 
     private final FirstDoctorConsoleModel model;
     private final BiomeSelectorModel biomeSelectorModel;
@@ -131,6 +137,18 @@ public class FirstDoctorConsoleBlockEntityRenderer
         float timeTicks = world == null ? partialTicks : world.getGameTime() + partialTicks;
         state.rotorBobOffset = FirstDoctorConsoleModel.rotorBobOffset(timeTicks, phase.isTraveling());
         state.variant = entity.getSyncedVariant();
+        state.hologramYawDegrees = hologramYawDegrees(timeTicks);
+        state.hologramBobOffset = hologramBobOffset(timeTicks);
+    }
+
+    /** Continuous turntable yaw in degrees from game time. */
+    static float hologramYawDegrees(float timeTicks) {
+        return timeTicks * HOLOGRAM_DEGREES_PER_TICK;
+    }
+
+    /** Slight vertical hover offset from game time. */
+    static float hologramBobOffset(float timeTicks) {
+        return (float) Math.sin(timeTicks * HOLOGRAM_BOB_SPEED) * HOLOGRAM_BOB_AMPLITUDE;
     }
 
     @Override
@@ -245,7 +263,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
         hologramAnim.setDoorSwingProgress(0.0F);
 
         poseStack.pushPose();
-        applyPanel6ChameleonHologramTransforms(poseStack);
+        applyPanel6ChameleonHologramTransforms(poseStack, state.hologramYawDegrees, state.hologramBobOffset);
         int light = state.lightCoords;
         submitNodeCollector.submitCustomGeometry(
                 poseStack,
@@ -312,19 +330,27 @@ public class FirstDoctorConsoleBlockEntityRenderer
     }
 
     /**
-     * Mount at the chameleon control, lift above the dial, scale, then Java-entity shell orientation.
+     * Mount at the chameleon control, lift above the dial (with bob), undo deck
+     * pitch so the shell stands upright for the player, then scale, Java-entity
+     * orientation, and turntable yaw.
      */
-    static void applyPanel6ChameleonHologramTransforms(PoseStack matrices) {
+    static void applyPanel6ChameleonHologramTransforms(
+            PoseStack matrices,
+            float yawDegrees,
+            float bobOffset
+    ) {
         applyPanelControlTransforms(
                 matrices,
                 FirstDoctorConsoleControls.PANEL6_YAW_RAD,
                 1.0F,
                 FirstDoctorConsoleControls.CHAMELEON_CIRCUIT_MOUNT_X_PX
         );
-        matrices.translate(0.0, HOLOGRAM_Y_OFFSET_PX * PX, 0.0);
+        matrices.translate(0.0, HOLOGRAM_Y_OFFSET_PX * PX + bobOffset, 0.0);
+        matrices.mulPose(Axis.XP.rotation(-FirstDoctorConsoleControls.DECK_PITCH_RAD));
         matrices.scale(HOLOGRAM_SCALE, HOLOGRAM_SCALE, HOLOGRAM_SCALE);
         matrices.mulPose(Axis.XP.rotationDegrees(180.0f));
         matrices.translate(0.0, -1.5, 0.0);
+        matrices.mulPose(Axis.YP.rotationDegrees(yawDegrees));
     }
 
     /**
