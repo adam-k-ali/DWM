@@ -229,7 +229,10 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.player_locator_offline", "That player is no longer online");
         t.add("dwm.gui.waypoint.title", "Waypoint Selector");
         t.add("dwm.gui.waypoint.save", "Save");
+        t.add("dwm.gui.waypoint.rename", "Rename");
+        t.add("dwm.gui.waypoint.rename.title", "Rename waypoint");
         t.add("dwm.gui.waypoint.new", "New waypoint");
+        t.add("dwm.gui.waypoint.new.ghost", "+ New…");
         t.add("dwm.gui.waypoint.select", "Select");
         t.add("dwm.gui.waypoint.clear", "Clear destination");
         t.add("dwm.gui.waypoint.delete", "Delete");

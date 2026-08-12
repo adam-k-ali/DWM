@@ -17,7 +17,8 @@ public record OpenWaypointScreen(
         List<WaypointEntry> waypoints,
         boolean canSave,
         @Nullable UUID destinationWaypointId,
-        @Nullable UUID locationWaypointId
+        @Nullable UUID locationWaypointId,
+        @Nullable ExteriorLocation exteriorLocation
 ) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<OpenWaypointScreen> ID =
             new CustomPacketPayload.Type<>(DWMPacketIds.OPEN_WAYPOINT_SCREEN_ID);
@@ -33,17 +34,37 @@ public record OpenWaypointScreen(
             WaypointEntry::new
     );
 
+    public static final StreamCodec<RegistryFriendlyByteBuf, ExteriorLocation> EXTERIOR_CODEC = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, ExteriorLocation::dimension,
+            ByteBufCodecs.VAR_INT, ExteriorLocation::x,
+            ByteBufCodecs.VAR_INT, ExteriorLocation::y,
+            ByteBufCodecs.VAR_INT, ExteriorLocation::z,
+            ExteriorLocation::new
+    );
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, @Nullable ExteriorLocation> NULLABLE_EXTERIOR_CODEC =
+            StreamCodec.of(
+                    (buf, location) -> {
+                        buf.writeBoolean(location != null);
+                        if (location != null) {
+                            EXTERIOR_CODEC.encode(buf, location);
+                        }
+                    },
+                    buf -> buf.readBoolean() ? EXTERIOR_CODEC.decode(buf) : null
+            );
+
     public static final StreamCodec<RegistryFriendlyByteBuf, OpenWaypointScreen> CODEC = StreamCodec.composite(
             DWMPacketCodecs.UUID_PACKET_CODEC, OpenWaypointScreen::tardisId,
             ENTRY_CODEC.apply(ByteBufCodecs.list()), OpenWaypointScreen::waypoints,
             ByteBufCodecs.BOOL, OpenWaypointScreen::canSave,
             DWMPacketCodecs.NULLABLE_UUID_PACKET_CODEC, OpenWaypointScreen::destinationWaypointId,
             DWMPacketCodecs.NULLABLE_UUID_PACKET_CODEC, OpenWaypointScreen::locationWaypointId,
+            NULLABLE_EXTERIOR_CODEC, OpenWaypointScreen::exteriorLocation,
             OpenWaypointScreen::new
     );
 
     public static OpenWaypointScreen of(UUID tardisId, List<TardisWaypoint> waypoints, boolean canSave) {
-        return of(tardisId, waypoints, canSave, null, null);
+        return of(tardisId, waypoints, canSave, null, null, null);
     }
 
     public static OpenWaypointScreen of(
@@ -52,6 +73,17 @@ public record OpenWaypointScreen(
             boolean canSave,
             @Nullable UUID destinationWaypointId,
             @Nullable UUID locationWaypointId
+    ) {
+        return of(tardisId, waypoints, canSave, destinationWaypointId, locationWaypointId, null);
+    }
+
+    public static OpenWaypointScreen of(
+            UUID tardisId,
+            List<TardisWaypoint> waypoints,
+            boolean canSave,
+            @Nullable UUID destinationWaypointId,
+            @Nullable UUID locationWaypointId,
+            @Nullable ExteriorLocation exteriorLocation
     ) {
         List<WaypointEntry> entries = new ArrayList<>(waypoints.size());
         for (TardisWaypoint waypoint : waypoints) {
@@ -73,7 +105,8 @@ public record OpenWaypointScreen(
                 List.copyOf(entries),
                 canSave,
                 destinationWaypointId,
-                locationWaypointId
+                locationWaypointId,
+                exteriorLocation
         );
     }
 
@@ -84,7 +117,20 @@ public record OpenWaypointScreen(
                 && model.getWaypoints().size() < WaypointLogic.MAX_WAYPOINTS;
         UUID destination = model == null ? null : model.selectedWaypointId;
         UUID location = WaypointLogic.findAtExterior(model).map(w -> w.id).orElse(null);
-        return of(tardisId, waypoints, canSave, destination, location);
+        return of(tardisId, waypoints, canSave, destination, location, exteriorLocationOf(model));
+    }
+
+    public static @Nullable ExteriorLocation exteriorLocationOf(@Nullable TardisDataModel model) {
+        if (model == null || !model.hasExteriorLocation || model.exteriorDimension == null
+                || model.exteriorDimension.isBlank()) {
+            return null;
+        }
+        return new ExteriorLocation(
+                model.exteriorDimension,
+                model.exteriorX,
+                model.exteriorY,
+                model.exteriorZ
+        );
     }
 
     @Override
@@ -100,6 +146,14 @@ public record OpenWaypointScreen(
             int y,
             int z,
             int rotation
+    ) {
+    }
+
+    public record ExteriorLocation(
+            String dimension,
+            int x,
+            int y,
+            int z
     ) {
     }
 }

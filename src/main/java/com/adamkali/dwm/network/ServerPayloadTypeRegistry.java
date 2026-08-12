@@ -92,11 +92,19 @@ public class ServerPayloadTypeRegistry {
             return false;
         }
         Optional<TardisWaypoint> saved = TardisLogic.saveWaypoint(payload.tardisId(), payload.name());
+        TardisDataModel model = TardisDataLoader.get(payload.tardisId());
         if (saved.isEmpty()) {
             player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_save_failed"));
+            // Refresh so the client leaves create mode even on failure.
+            if (model != null) {
+                ServerPlayNetworking.send(player, OpenWaypointScreen.of(payload.tardisId(), model));
+            }
             return false;
         }
         player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_saved", saved.get().name));
+        if (model != null) {
+            ServerPlayNetworking.send(player, OpenWaypointScreen.of(payload.tardisId(), model));
+        }
         return true;
     }
 

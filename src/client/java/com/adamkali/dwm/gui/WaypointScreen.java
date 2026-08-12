@@ -14,6 +14,7 @@ import net.minecraft.client.gui.components.PopupScreen;
 import net.minecraft.client.gui.components.SpriteIconButton;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.CommonComponents;
@@ -41,6 +42,12 @@ public class WaypointScreen extends Screen {
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "waypoint/delete");
     private static final Identifier ICON_CLEAR =
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "waypoint/clear");
+    /** Client-only sentinel for the create-mode ghost list row. */
+    private static final UUID GHOST_ROW_ID = new UUID(0L, 0L);
+    private static final int GHOST_TEXT_COLOR = 0xFF9CCC6A;
+    private static final int GHOST_TEXT_COLOR_MUTED = 0xFF7AAA50;
+    private static final int GHOST_TEXT_COLOR_DISABLED = 0xFF4A5A40;
+    private static final int MODE_LABEL_COLOR = 0xFFD4A84B;
     private static final int MAX_NAME_LENGTH = 32;
     private static final int ROW_HEIGHT = 22;
     private static final int PANEL_WIDTH = 300;
@@ -52,12 +59,14 @@ public class WaypointScreen extends Screen {
     private static final int ICON_GAP = 2;
     private static final int ACTION_BUTTON_SIZE = 20;
     private static final int ACTION_SPRITE_SIZE = 12;
+    private static final int DETAIL_BUTTON_WIDTH = 62;
 
     private final ClientTardis tardis;
     private final List<OpenWaypointScreen.WaypointEntry> waypoints;
     private final boolean canSave;
     private @Nullable UUID destinationWaypointId;
     private final @Nullable UUID locationWaypointId;
+    private final @Nullable OpenWaypointScreen.ExteriorLocation exteriorLocation;
 
     private WaypointList list;
     private SpriteIconButton editButton;
@@ -78,13 +87,15 @@ public class WaypointScreen extends Screen {
     private NameMode nameMode = NameMode.LIST;
     private @Nullable UUID renameTargetId;
     private @Nullable UUID selectedId;
+    private boolean createPending;
 
     public WaypointScreen(
             ClientTardis tardis,
             List<OpenWaypointScreen.WaypointEntry> waypoints,
             boolean canSave,
             @Nullable UUID destinationWaypointId,
-            @Nullable UUID locationWaypointId
+            @Nullable UUID locationWaypointId,
+            @Nullable OpenWaypointScreen.ExteriorLocation exteriorLocation
     ) {
         super(Component.translatable("dwm.gui.waypoint.title"));
         this.tardis = tardis;
@@ -92,9 +103,33 @@ public class WaypointScreen extends Screen {
         this.canSave = canSave;
         this.destinationWaypointId = destinationWaypointId;
         this.locationWaypointId = locationWaypointId;
-        if (!this.waypoints.isEmpty()) {
-            this.selectedId = this.waypoints.getFirst().id();
+        this.exteriorLocation = exteriorLocation;
+        this.selectedId = preferSelectedId();
+    }
+
+    private @Nullable UUID preferSelectedId() {
+        if (containsWaypoint(locationWaypointId)) {
+            return locationWaypointId;
         }
+        if (containsWaypoint(destinationWaypointId)) {
+            return destinationWaypointId;
+        }
+        if (!waypoints.isEmpty()) {
+            return waypoints.getFirst().id();
+        }
+        return null;
+    }
+
+    private boolean containsWaypoint(@Nullable UUID id) {
+        if (id == null) {
+            return false;
+        }
+        for (OpenWaypointScreen.WaypointEntry entry : waypoints) {
+            if (id.equals(entry.id())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -166,22 +201,26 @@ public class WaypointScreen extends Screen {
 
         nameField = new EditBox(
                 font,
-                panelLeft + 10,
-                footerY - 24,
-                PANEL_WIDTH - 20,
+                detailLeft + 8,
+                detailTop + 24,
+                DETAIL_WIDTH - 16,
                 20,
                 Component.translatable("dwm.gui.waypoint.name")
         );
         nameField.setMaxLength(MAX_NAME_LENGTH);
         nameField.setHint(Component.translatable("dwm.gui.waypoint.name"));
+        nameField.setResponder(value -> updateConfirmActive());
 
-        int nameButtonWidth = (PANEL_WIDTH - 30) / 2;
-        confirmButton = Button.builder(Component.translatable("dwm.gui.waypoint.confirm"), button -> confirmName())
-                .bounds(panelLeft + 10, footerY, nameButtonWidth, 20)
+        confirmButton = Button.builder(Component.translatable("dwm.gui.waypoint.save"), button -> confirmName())
+                .bounds(detailLeft + 4, detailButtonY, DETAIL_BUTTON_WIDTH, 20)
                 .build();
 
-        cancelButton = Button.builder(Component.translatable("gui.cancel"), button -> exitNameMode())
-                .bounds(panelLeft + 20 + nameButtonWidth, footerY, nameButtonWidth, 20)
+        cancelButton = Button.builder(Component.translatable("gui.cancel"), button -> {
+            if (!createPending) {
+                exitNameMode();
+            }
+        })
+                .bounds(detailLeft + DETAIL_WIDTH - DETAIL_BUTTON_WIDTH - 4, detailButtonY, DETAIL_BUTTON_WIDTH, 20)
                 .build();
 
         list = new WaypointList(minecraft, LIST_WIDTH, BODY_HEIGHT, bodyTop, ROW_HEIGHT);
@@ -201,6 +240,7 @@ public class WaypointScreen extends Screen {
 
         applyModeVisibility();
         updateDetailActions();
+        updateConfirmActive();
     }
 
     private static SpriteIconButton iconButton(
@@ -261,6 +301,14 @@ public class WaypointScreen extends Screen {
         UUID keepId = selectedId;
         list.clearAll();
         WaypointList.WaypointEntryRow toSelect = null;
+
+        WaypointList.WaypointEntryRow ghost = list.new WaypointEntryRow(ghostEntry());
+        list.addRow(ghost);
+        if (nameMode == NameMode.CREATE) {
+            toSelect = ghost;
+            keepId = GHOST_ROW_ID;
+        }
+
         for (OpenWaypointScreen.WaypointEntry entry : waypoints) {
             WaypointList.WaypointEntryRow row = list.new WaypointEntryRow(entry);
             list.addRow(row);
@@ -268,22 +316,42 @@ public class WaypointScreen extends Screen {
                 toSelect = row;
             }
         }
+
         if (toSelect != null) {
             list.setSelected(toSelect);
             selectedId = toSelect.waypoint.id();
-        } else if (!list.children().isEmpty()) {
-            WaypointList.WaypointEntryRow first = list.children().getFirst();
-            list.setSelected(first);
-            selectedId = first.waypoint.id();
         } else {
-            list.setSelected(null);
-            selectedId = null;
+            WaypointList.WaypointEntryRow firstReal = firstRealRow();
+            if (firstReal != null) {
+                list.setSelected(firstReal);
+                selectedId = firstReal.waypoint.id();
+            } else {
+                list.setSelected(null);
+                selectedId = null;
+            }
         }
         updateDetailActions();
     }
 
+    private @Nullable WaypointList.WaypointEntryRow firstRealRow() {
+        for (WaypointList.WaypointEntryRow row : list.children()) {
+            if (!isGhost(row.waypoint.id())) {
+                return row;
+            }
+        }
+        return null;
+    }
+
+    private static OpenWaypointScreen.WaypointEntry ghostEntry() {
+        return new OpenWaypointScreen.WaypointEntry(GHOST_ROW_ID, "", "", 0, 0, 0, 0);
+    }
+
+    private static boolean isGhost(@Nullable UUID id) {
+        return GHOST_ROW_ID.equals(id);
+    }
+
     private @Nullable OpenWaypointScreen.WaypointEntry selectedWaypoint() {
-        if (selectedId == null) {
+        if (selectedId == null || isGhost(selectedId)) {
             return null;
         }
         for (OpenWaypointScreen.WaypointEntry entry : waypoints) {
@@ -318,41 +386,72 @@ public class WaypointScreen extends Screen {
         clearDestinationButton.visible = nameMode == NameMode.LIST && hasSelection && isDestination;
     }
 
+    private void updateConfirmActive() {
+        if (confirmButton == null || nameField == null) {
+            return;
+        }
+        String name = nameField.getValue() == null ? "" : nameField.getValue().trim();
+        confirmButton.active = !name.isEmpty() && !createPending;
+    }
+
     private void beginCreate() {
-        if (!canSave) {
+        if (!canSave || createPending) {
             return;
         }
         nameMode = NameMode.CREATE;
         renameTargetId = null;
         nameField.setValue("");
+        confirmButton.setMessage(Component.translatable("dwm.gui.waypoint.save"));
+        selectedId = GHOST_ROW_ID;
+        rebuildListEntries();
         applyModeVisibility();
+        updateConfirmActive();
         setInitialFocus(nameField);
     }
 
     private void beginRename(OpenWaypointScreen.WaypointEntry entry) {
+        if (createPending) {
+            return;
+        }
         nameMode = NameMode.RENAME;
         renameTargetId = entry.id();
         nameField.setValue(entry.name() == null ? "" : entry.name());
+        confirmButton.setMessage(Component.translatable("dwm.gui.waypoint.rename"));
+        selectedId = entry.id();
+        rebuildListEntries();
         applyModeVisibility();
+        updateConfirmActive();
         setInitialFocus(nameField);
     }
 
     private void exitNameMode() {
+        if (createPending) {
+            return;
+        }
         nameMode = NameMode.LIST;
         renameTargetId = null;
         nameField.setValue("");
+        if (isGhost(selectedId)) {
+            selectedId = preferSelectedId();
+        }
+        rebuildListEntries();
         applyModeVisibility();
         updateDetailActions();
+        updateConfirmActive();
     }
 
     private void confirmName() {
         String name = nameField.getValue() == null ? "" : nameField.getValue().trim();
-        if (name.isEmpty()) {
+        if (name.isEmpty() || createPending) {
             return;
         }
         if (nameMode == NameMode.CREATE) {
+            createPending = true;
+            updateConfirmActive();
+            cancelButton.active = false;
+            nameField.setEditable(false);
             tardis.saveWaypoint(name);
-            onClose();
+            // Stay in create mode until OpenWaypointScreen S2C replaces this screen.
             return;
         }
         if (nameMode == NameMode.RENAME && renameTargetId != null) {
@@ -412,7 +511,8 @@ public class WaypointScreen extends Screen {
 
     private void applyModeVisibility() {
         boolean naming = nameMode != NameMode.LIST;
-        list.visible = !naming;
+        list.visible = true;
+        list.active = !naming;
         editButton.visible = !naming;
         deleteButton.visible = !naming;
         newButton.visible = !naming;
@@ -423,9 +523,20 @@ public class WaypointScreen extends Screen {
         if (naming) {
             selectDestinationButton.visible = false;
             clearDestinationButton.visible = false;
-            nameField.setEditable(true);
+            nameField.setEditable(!createPending);
         }
         updateDetailActions();
+    }
+
+    @Override
+    public boolean keyPressed(KeyEvent event) {
+        if (nameMode != NameMode.LIST && event.isEscape()) {
+            if (!createPending) {
+                exitNameMode();
+            }
+            return true;
+        }
+        return super.keyPressed(event);
     }
 
     @Override
@@ -434,15 +545,14 @@ public class WaypointScreen extends Screen {
         int y1 = height / 2 - PANEL_HEIGHT / 2;
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, BACKGROUND, x1, y1, PANEL_WIDTH, PANEL_HEIGHT);
 
-        if (nameMode == NameMode.LIST) {
-            // Draw behind widgets so action buttons stay clickable and visible.
-            graphics.fill(detailLeft, detailTop, detailLeft + DETAIL_WIDTH, detailTop + BODY_HEIGHT, 0xFF333333);
-        }
+        // Draw behind widgets so action buttons stay clickable and visible.
+        graphics.fill(detailLeft, detailTop, detailLeft + DETAIL_WIDTH, detailTop + BODY_HEIGHT, 0xFF333333);
 
         super.extractRenderState(graphics, mouseX, mouseY, delta);
         graphics.text(font, getTitle(), x1 + 10, y1 + 10, 0xFFFFFFFF, false);
 
         if (nameMode != NameMode.LIST) {
+            renderNameModeDetail(graphics);
             return;
         }
 
@@ -470,6 +580,53 @@ public class WaypointScreen extends Screen {
         graphics.text(font, Component.literal(selected.dimension()), textX, detailTop + 56, 0xFFFFFFFF, false);
         String coords = selected.x() + ", " + selected.y() + ", " + selected.z();
         graphics.text(font, Component.literal(coords), textX, detailTop + 68, 0xFFA0A0A0, false);
+    }
+
+    private void renderNameModeDetail(GuiGraphicsExtractor graphics) {
+        int textX = detailLeft + 8;
+        Component modeLabel = nameMode == NameMode.CREATE
+                ? Component.translatable("dwm.gui.waypoint.new")
+                : Component.translatable("dwm.gui.waypoint.rename.title");
+        graphics.text(font, modeLabel, textX, detailTop + 8, MODE_LABEL_COLOR, false);
+
+        graphics.text(font, Component.translatable("dwm.gui.waypoint.detail.location"), textX, detailTop + 52, 0xFF888888, false);
+
+        String dimension;
+        String coords;
+        if (nameMode == NameMode.CREATE) {
+            if (exteriorLocation != null) {
+                dimension = exteriorLocation.dimension();
+                coords = exteriorLocation.x() + ", " + exteriorLocation.y() + ", " + exteriorLocation.z();
+            } else {
+                dimension = "";
+                coords = "";
+            }
+        } else {
+            OpenWaypointScreen.WaypointEntry selected = null;
+            if (renameTargetId != null) {
+                for (OpenWaypointScreen.WaypointEntry entry : waypoints) {
+                    if (renameTargetId.equals(entry.id())) {
+                        selected = entry;
+                        break;
+                    }
+                }
+            }
+            if (selected == null) {
+                selected = selectedWaypoint();
+            }
+            if (selected != null) {
+                dimension = selected.dimension();
+                coords = selected.x() + ", " + selected.y() + ", " + selected.z();
+            } else {
+                dimension = "";
+                coords = "";
+            }
+        }
+
+        if (!dimension.isEmpty()) {
+            graphics.text(font, Component.literal(dimension), textX, detailTop + 64, 0xFFFFFFFF, false);
+            graphics.text(font, Component.literal(coords), textX, detailTop + 76, 0xFFA0A0A0, false);
+        }
     }
 
     @Override
@@ -566,6 +723,27 @@ public class WaypointScreen extends Screen {
 
             @Override
             public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float delta) {
+                boolean ghost = isGhost(waypoint.id());
+                if (ghost) {
+                    int textColor;
+                    if (!canSave) {
+                        textColor = GHOST_TEXT_COLOR_DISABLED;
+                    } else if (isFocused() || WaypointList.this.getSelected() == this) {
+                        textColor = GHOST_TEXT_COLOR;
+                    } else {
+                        textColor = GHOST_TEXT_COLOR_MUTED;
+                    }
+                    graphics.text(
+                            font,
+                            Component.translatable("dwm.gui.waypoint.new.ghost"),
+                            getContentX() + 4,
+                            getContentYMiddle() - 4,
+                            textColor,
+                            false
+                    );
+                    return;
+                }
+
                 boolean isDestination = destinationWaypointId != null && destinationWaypointId.equals(waypoint.id());
                 boolean isAtLocation = locationWaypointId != null && locationWaypointId.equals(waypoint.id());
                 int iconCount = (isDestination ? 1 : 0) + (isAtLocation ? 1 : 0);
@@ -630,11 +808,23 @@ public class WaypointScreen extends Screen {
 
             @Override
             public Component getNarration() {
+                if (isGhost(waypoint.id())) {
+                    return Component.translatable("dwm.gui.waypoint.new.ghost");
+                }
                 return Component.literal(waypoint.name());
             }
 
             @Override
             public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+                if (nameMode != NameMode.LIST) {
+                    return false;
+                }
+                if (isGhost(waypoint.id())) {
+                    if (canSave && !createPending) {
+                        beginCreate();
+                    }
+                    return true;
+                }
                 WaypointList.this.setSelected(this);
                 return true;
             }

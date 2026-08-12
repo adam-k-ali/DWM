@@ -56,7 +56,8 @@ public class ClientPayloadTypeRegistry {
                     payload.waypoints(),
                     payload.canSave(),
                     payload.destinationWaypointId(),
-                    payload.locationWaypointId()
+                    payload.locationWaypointId(),
+                    payload.exteriorLocation()
             ));
         });
     }
