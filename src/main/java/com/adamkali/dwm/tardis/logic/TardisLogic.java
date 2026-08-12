@@ -142,10 +142,13 @@ public class TardisLogic {
         tardis.setDestinationMode(mode);
     }
 
-    public static boolean selectWaypoint(UUID tardisId, UUID waypointId) {
+    public static boolean selectWaypoint(UUID tardisId, @Nullable UUID waypointId) {
         TardisDataModel tardis = TardisDataLoader.get(tardisId);
         if (tardis == null) {
             return false;
+        }
+        if (waypointId == null) {
+            return WaypointLogic.clearSelection(tardis);
         }
         return WaypointLogic.select(tardis, waypointId);
     }

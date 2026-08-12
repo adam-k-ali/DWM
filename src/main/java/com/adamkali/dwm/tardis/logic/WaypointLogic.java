@@ -175,6 +175,17 @@ public final class WaypointLogic {
     }
 
     /**
+     * Clears waypoint/player destination selection and resets mode to {@link DestinationMode#BIOME}.
+     */
+    public static boolean clearSelection(@Nullable TardisDataModel model) {
+        if (model == null) {
+            return false;
+        }
+        model.clearNonBiomeDestinationSelection();
+        return true;
+    }
+
+    /**
      * Finds the first waypoint that matches the model's current exterior dimension and block position.
      */
     public static Optional<TardisWaypoint> findAtExterior(@Nullable TardisDataModel model) {

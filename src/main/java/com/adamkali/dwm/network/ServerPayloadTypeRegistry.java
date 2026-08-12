@@ -135,7 +135,11 @@ public class ServerPayloadTypeRegistry {
             player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_select_failed"));
             return false;
         }
-        player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_selected"));
+        if (payload.waypointId() == null) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_cleared"));
+        } else {
+            player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_selected"));
+        }
         return true;
     }
 

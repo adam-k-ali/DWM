@@ -77,6 +77,17 @@ class WaypointLogicTest {
     }
 
     @Test
+    void clearSelection_clearsWaypointAndResetsMode() {
+        TardisWaypoint waypoint = WaypointLogic.add(model, "Pad").orElseThrow();
+        WaypointLogic.select(model, waypoint.id);
+
+        assertTrue(WaypointLogic.clearSelection(model));
+        assertNull(model.selectedWaypointId);
+        assertNull(model.selectedPlayerUuid);
+        assertEquals(DestinationMode.BIOME, model.getDestinationMode());
+    }
+
+    @Test
     void delete_removesAndClearsSelection() {
         TardisWaypoint waypoint = WaypointLogic.add(model, "Pad").orElseThrow();
         WaypointLogic.select(model, waypoint.id);

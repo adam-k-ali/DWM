@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.gui.components.SpriteIconButton;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -28,6 +29,14 @@ public class WaypointScreen extends Screen {
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "waypoint/selected");
     private static final Identifier ICON_AT_LOCATION =
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "waypoint/at_location");
+    private static final Identifier ICON_NEW =
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "waypoint/new");
+    private static final Identifier ICON_EDIT =
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "waypoint/edit");
+    private static final Identifier ICON_DELETE =
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "waypoint/delete");
+    private static final Identifier ICON_CLEAR =
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "waypoint/clear");
     private static final int MAX_NAME_LENGTH = 32;
     private static final int ROW_HEIGHT = 28;
     private static final int PANEL_WIDTH = 340;
@@ -37,18 +46,21 @@ public class WaypointScreen extends Screen {
     private static final int BODY_HEIGHT = 156;
     private static final int ICON_SIZE = 10;
     private static final int ICON_GAP = 2;
+    private static final int ACTION_BUTTON_SIZE = 20;
+    private static final int ACTION_SPRITE_SIZE = 12;
 
     private final ClientTardis tardis;
     private final List<OpenWaypointScreen.WaypointEntry> waypoints;
     private final boolean canSave;
-    private final @Nullable UUID destinationWaypointId;
+    private @Nullable UUID destinationWaypointId;
     private final @Nullable UUID locationWaypointId;
 
     private WaypointList list;
-    private Button editButton;
-    private Button deleteButton;
-    private Button saveButton;
-    private Button selectButton;
+    private SpriteIconButton editButton;
+    private SpriteIconButton deleteButton;
+    private SpriteIconButton selectDestinationButton;
+    private SpriteIconButton clearDestinationButton;
+    private SpriteIconButton newButton;
     private Button doneButton;
     private EditBox nameField;
     private Button confirmButton;
@@ -90,32 +102,62 @@ public class WaypointScreen extends Screen {
         detailTop = bodyTop;
 
         int detailButtonY = detailTop + BODY_HEIGHT - 26;
-        editButton = Button.builder(Component.translatable("dwm.gui.waypoint.edit"), button -> {
-            OpenWaypointScreen.WaypointEntry selected = selectedWaypoint();
-            if (selected != null) {
-                beginRename(selected);
-            }
-        }).bounds(detailLeft + 4, detailButtonY, 72, 20).build();
+        int detailActionsLeft = detailLeft + 4;
 
-        deleteButton = Button.builder(Component.translatable("dwm.gui.waypoint.delete"), button -> {
-            OpenWaypointScreen.WaypointEntry selected = selectedWaypoint();
-            if (selected != null) {
-                deleteWaypoint(selected);
-            }
-        }).bounds(detailLeft + DETAIL_WIDTH - 76, detailButtonY, 72, 20).build();
+        editButton = iconButton(
+                Component.translatable("dwm.gui.waypoint.edit"),
+                Component.translatable("dwm.gui.waypoint.tooltip.edit"),
+                ICON_EDIT,
+                button -> {
+                    OpenWaypointScreen.WaypointEntry selected = selectedWaypoint();
+                    if (selected != null) {
+                        beginRename(selected);
+                    }
+                }
+        );
+        editButton.setPosition(detailActionsLeft, detailButtonY);
+
+        deleteButton = iconButton(
+                Component.translatable("dwm.gui.waypoint.delete"),
+                Component.translatable("dwm.gui.waypoint.tooltip.delete"),
+                ICON_DELETE,
+                button -> {
+                    OpenWaypointScreen.WaypointEntry selected = selectedWaypoint();
+                    if (selected != null) {
+                        deleteWaypoint(selected);
+                    }
+                }
+        );
+        deleteButton.setPosition(detailActionsLeft + ACTION_BUTTON_SIZE + 4, detailButtonY);
+
+        selectDestinationButton = iconButton(
+                Component.translatable("dwm.gui.waypoint.select"),
+                Component.translatable("dwm.gui.waypoint.tooltip.select"),
+                ICON_SELECTED,
+                button -> selectCurrent()
+        );
+        selectDestinationButton.setPosition(detailLeft + DETAIL_WIDTH - ACTION_BUTTON_SIZE - 4, detailButtonY);
+
+        clearDestinationButton = iconButton(
+                Component.translatable("dwm.gui.waypoint.clear"),
+                Component.translatable("dwm.gui.waypoint.tooltip.clear"),
+                ICON_CLEAR,
+                button -> clearDestination()
+        );
+        clearDestinationButton.setPosition(detailLeft + DETAIL_WIDTH - ACTION_BUTTON_SIZE - 4, detailButtonY);
 
         int footerY = panelTop + PANEL_HEIGHT - 40;
-        saveButton = Button.builder(Component.translatable("dwm.gui.waypoint.save"), button -> beginCreate())
-                .bounds(panelLeft + 10, footerY, 100, 20)
-                .build();
-        saveButton.active = canSave;
-
-        selectButton = Button.builder(Component.translatable("dwm.gui.waypoint.select"), button -> selectCurrent())
-                .bounds(panelLeft + 120, footerY, 100, 20)
-                .build();
+        newButton = iconButton(
+                Component.translatable("dwm.gui.waypoint.new"),
+                Component.translatable("dwm.gui.waypoint.tooltip.new"),
+                ICON_NEW,
+                button -> beginCreate()
+        );
+        newButton.setPosition(panelLeft + 10, footerY);
+        newButton.active = canSave;
 
         doneButton = Button.builder(Component.translatable("gui.done"), button -> onClose())
-                .bounds(panelLeft + 230, footerY, 100, 20)
+                .bounds(panelLeft + 38, footerY, PANEL_WIDTH - 48, 20)
                 .build();
 
         nameField = new EditBox(
@@ -144,8 +186,9 @@ public class WaypointScreen extends Screen {
         addRenderableWidget(list);
         addRenderableWidget(editButton);
         addRenderableWidget(deleteButton);
-        addRenderableWidget(saveButton);
-        addRenderableWidget(selectButton);
+        addRenderableWidget(selectDestinationButton);
+        addRenderableWidget(clearDestinationButton);
+        addRenderableWidget(newButton);
         addRenderableWidget(doneButton);
         addRenderableWidget(nameField);
         addRenderableWidget(confirmButton);
@@ -153,6 +196,19 @@ public class WaypointScreen extends Screen {
 
         applyModeVisibility();
         updateDetailActions();
+    }
+
+    private static SpriteIconButton iconButton(
+            Component message,
+            Component tooltip,
+            Identifier sprite,
+            Button.OnPress onPress
+    ) {
+        return SpriteIconButton.builder(message, onPress, true)
+                .size(ACTION_BUTTON_SIZE, ACTION_BUTTON_SIZE)
+                .sprite(sprite, ACTION_SPRITE_SIZE, ACTION_SPRITE_SIZE)
+                .tooltip(tooltip)
+                .build();
     }
 
     private void rebuildListEntries() {
@@ -198,13 +254,22 @@ public class WaypointScreen extends Screen {
     }
 
     private void updateDetailActions() {
-        if (editButton == null || deleteButton == null || selectButton == null) {
+        if (editButton == null || deleteButton == null
+                || selectDestinationButton == null || clearDestinationButton == null) {
             return;
         }
         boolean hasSelection = selectedWaypoint() != null && nameMode == NameMode.LIST;
+        boolean isDestination = hasSelection
+                && destinationWaypointId != null
+                && destinationWaypointId.equals(selectedId);
+
         editButton.active = hasSelection;
         deleteButton.active = hasSelection;
-        selectButton.active = hasSelection;
+        selectDestinationButton.active = hasSelection && !isDestination;
+        clearDestinationButton.active = hasSelection && isDestination;
+
+        selectDestinationButton.visible = nameMode == NameMode.LIST && hasSelection && !isDestination;
+        clearDestinationButton.visible = nameMode == NameMode.LIST && hasSelection && isDestination;
     }
 
     private void beginCreate() {
@@ -274,6 +339,9 @@ public class WaypointScreen extends Screen {
         if (entry.id().equals(selectedId)) {
             selectedId = null;
         }
+        if (entry.id().equals(destinationWaypointId)) {
+            destinationWaypointId = null;
+        }
         rebuildListEntries();
         if (nameMode == NameMode.RENAME && entry.id().equals(renameTargetId)) {
             exitNameMode();
@@ -289,18 +357,25 @@ public class WaypointScreen extends Screen {
         onClose();
     }
 
+    private void clearDestination() {
+        tardis.selectWaypoint(null);
+        destinationWaypointId = null;
+        updateDetailActions();
+    }
+
     private void applyModeVisibility() {
         boolean naming = nameMode != NameMode.LIST;
         list.visible = !naming;
         editButton.visible = !naming;
         deleteButton.visible = !naming;
-        saveButton.visible = !naming;
-        selectButton.visible = !naming;
+        newButton.visible = !naming;
         doneButton.visible = !naming;
         nameField.visible = naming;
         confirmButton.visible = naming;
         cancelButton.visible = naming;
         if (naming) {
+            selectDestinationButton.visible = false;
+            clearDestinationButton.visible = false;
             nameField.setEditable(true);
         }
         updateDetailActions();
@@ -313,7 +388,7 @@ public class WaypointScreen extends Screen {
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, BACKGROUND, x1, y1, PANEL_WIDTH, PANEL_HEIGHT);
 
         if (nameMode == NameMode.LIST) {
-            // Draw behind widgets so Edit/Delete stay clickable and visible.
+            // Draw behind widgets so action buttons stay clickable and visible.
             graphics.fill(detailLeft, detailTop, detailLeft + DETAIL_WIDTH, detailTop + BODY_HEIGHT, 0xFF333333);
         }
 

@@ -219,6 +219,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.waypoint_deleted", "Waypoint deleted");
         t.add("dwm.console.waypoint_delete_failed", "Unable to delete waypoint");
         t.add("dwm.console.waypoint_selected", "Waypoint set as destination");
+        t.add("dwm.console.waypoint_cleared", "Destination cleared");
         t.add("dwm.console.waypoint_select_failed", "Unable to select waypoint");
         t.add("dwm.console.waypoint_renamed", "Waypoint renamed: %s");
         t.add("dwm.console.waypoint_rename_failed", "Unable to rename waypoint");
@@ -228,7 +229,9 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.player_locator_offline", "That player is no longer online");
         t.add("dwm.gui.waypoint.title", "Waypoint Selector");
         t.add("dwm.gui.waypoint.save", "Save");
+        t.add("dwm.gui.waypoint.new", "New waypoint");
         t.add("dwm.gui.waypoint.select", "Select");
+        t.add("dwm.gui.waypoint.clear", "Clear destination");
         t.add("dwm.gui.waypoint.delete", "Delete");
         t.add("dwm.gui.waypoint.edit", "Edit");
         t.add("dwm.gui.waypoint.name", "Waypoint name");
@@ -238,6 +241,11 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.gui.waypoint.empty", "No waypoints saved");
         t.add("dwm.gui.waypoint.tooltip.destination", "Selected destination");
         t.add("dwm.gui.waypoint.tooltip.at_location", "Current location");
+        t.add("dwm.gui.waypoint.tooltip.new", "Save current location as a waypoint");
+        t.add("dwm.gui.waypoint.tooltip.edit", "Rename waypoint");
+        t.add("dwm.gui.waypoint.tooltip.delete", "Delete waypoint");
+        t.add("dwm.gui.waypoint.tooltip.select", "Set as destination");
+        t.add("dwm.gui.waypoint.tooltip.clear", "Clear destination");
         t.add("dwm.gui.player_locator.title", "Player Locator");
         t.add("dwm.gui.player_locator.select", "Select");
         t.add("dwm.gui.player_locator.empty", "No other players online");
