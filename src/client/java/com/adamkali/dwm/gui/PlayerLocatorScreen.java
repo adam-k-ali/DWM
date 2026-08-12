@@ -3,6 +3,7 @@ package com.adamkali.dwm.gui;
 import com.adamkali.dwm.ClientTardis;
 import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.network.OpenPlayerLocatorScreen;
+import com.adamkali.dwm.text.DimensionNames;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -285,7 +286,7 @@ public class PlayerLocatorScreen extends Screen {
         graphics.text(font, Component.literal(selected.name()), textX, detailTop + 20, 0xFFFFFFFF, false);
 
         graphics.text(font, Component.translatable("dwm.gui.player_locator.detail.location"), textX, detailTop + 44, 0xFF888888, false);
-        graphics.text(font, Component.literal(selected.dimension()), textX, detailTop + 56, 0xFFFFFFFF, false);
+        graphics.text(font, DimensionNames.of(selected.dimension()), textX, detailTop + 56, 0xFFFFFFFF, false);
         String coords = selected.x() + ", " + selected.y() + ", " + selected.z();
         graphics.text(font, Component.literal(coords), textX, detailTop + 68, 0xFFA0A0A0, false);
     }

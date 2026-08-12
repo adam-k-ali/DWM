@@ -3,6 +3,7 @@ package com.adamkali.dwm.gui;
 import com.adamkali.dwm.ClientTardis;
 import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.network.OpenWaypointScreen;
+import com.adamkali.dwm.text.DimensionNames;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -638,7 +639,7 @@ public class WaypointScreen extends Screen {
         graphics.text(font, Component.literal(selected.name()), textX, detailTop + 20, 0xFFFFFFFF, false);
 
         graphics.text(font, Component.translatable("dwm.gui.waypoint.detail.location"), textX, detailTop + 44, 0xFF888888, false);
-        graphics.text(font, Component.literal(selected.dimension()), textX, detailTop + 56, 0xFFFFFFFF, false);
+        graphics.text(font, DimensionNames.of(selected.dimension()), textX, detailTop + 56, 0xFFFFFFFF, false);
         String coords = selected.x() + ", " + selected.y() + ", " + selected.z();
         graphics.text(font, Component.literal(coords), textX, detailTop + 68, 0xFFA0A0A0, false);
     }
@@ -685,7 +686,7 @@ public class WaypointScreen extends Screen {
         }
 
         if (!dimension.isEmpty()) {
-            graphics.text(font, Component.literal(dimension), textX, detailTop + 64, 0xFFFFFFFF, false);
+            graphics.text(font, DimensionNames.of(dimension), textX, detailTop + 64, 0xFFFFFFFF, false);
             graphics.text(font, Component.literal(coords), textX, detailTop + 76, 0xFFA0A0A0, false);
         }
     }
