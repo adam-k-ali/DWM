@@ -104,18 +104,87 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
      * Entities with packet-lerped poses for smooth portal rendering.
      */
     public static List<RenderableGhostEntity> getRenderableEntities(PortalStreamKind kind, UUID tardisId) {
+        return getRenderableEntities(kind, tardisId, Util.getMillis());
+    }
+
+    /**
+     * Same as {@link #getRenderableEntities(PortalStreamKind, UUID)} with a fixed clock (tests / deterministic lerp).
+     */
+    public static List<RenderableGhostEntity> getRenderableEntities(
+            PortalStreamKind kind,
+            UUID tardisId,
+            long nowMs
+    ) {
         SotoGhostExterior ghost = get(kind, tardisId);
         if (ghost == null || ghost.entities.isEmpty()) {
             return List.of();
         }
-        long now = Util.getMillis();
         List<RenderableGhostEntity> result = new ArrayList<>(ghost.entities.size());
         for (GhostEntity ghostEntity : ghost.entities.values()) {
             if (ghostEntity.entity == null || ghostEntity.interp == null) {
                 continue;
             }
-            LerpedPose pose = BotiEntityMotion.lerpPose(ghostEntity.interp, now, ENTITY_UPDATE_INTERVAL_MS);
+            LerpedPose pose = BotiEntityMotion.lerpPose(ghostEntity.interp, nowMs, ENTITY_UPDATE_INTERVAL_MS);
             result.add(new RenderableGhostEntity(ghostEntity.entity, pose));
+        }
+        return List.copyOf(result);
+    }
+
+    /**
+     * Test helper: stores interp without a live entity so pose sampling can be asserted headlessly.
+     */
+    static void putInterpForTest(
+            PortalStreamKind kind,
+            UUID tardisId,
+            UUID entityUuid,
+            EntityInterpState interp
+    ) {
+        if (kind == null || tardisId == null || entityUuid == null || interp == null) {
+            return;
+        }
+        getOrCreate(kind, tardisId).entities.put(entityUuid, new GhostEntity(null, interp));
+    }
+
+    /**
+     * Test helper: advances stored interp the same way {@link #applyEntityUpdate} does (no position snap).
+     */
+    static void advanceInterpForTest(
+            PortalStreamKind kind,
+            UUID tardisId,
+            UUID entityUuid,
+            float relX,
+            float relY,
+            float relZ,
+            float yaw,
+            float pitch,
+            long receiveTimeMs
+    ) {
+        SotoGhostExterior ghost = get(kind, tardisId);
+        if (ghost == null || entityUuid == null) {
+            return;
+        }
+        GhostEntity previous = ghost.entities.get(entityUuid);
+        EntityInterpState next = previous == null || previous.interp == null
+                ? EntityInterpState.identity(relX, relY, relZ, yaw, pitch, receiveTimeMs)
+                : previous.interp.advanceTo(relX, relY, relZ, yaw, pitch, receiveTimeMs);
+        Entity entity = previous == null ? null : previous.entity;
+        ghost.entities.put(entityUuid, new GhostEntity(entity, next));
+    }
+
+    /**
+     * Test helper: lerped poses for all ghosts at {@code nowMs} (includes interp-only test entries).
+     */
+    static List<LerpedPose> sampleLerpedPosesForTest(PortalStreamKind kind, UUID tardisId, long nowMs) {
+        SotoGhostExterior ghost = get(kind, tardisId);
+        if (ghost == null || ghost.entities.isEmpty()) {
+            return List.of();
+        }
+        List<LerpedPose> result = new ArrayList<>(ghost.entities.size());
+        for (GhostEntity ghostEntity : ghost.entities.values()) {
+            if (ghostEntity.interp == null) {
+                continue;
+            }
+            result.add(BotiEntityMotion.lerpPose(ghostEntity.interp, nowMs, ENTITY_UPDATE_INTERVAL_MS));
         }
         return List.copyOf(result);
     }
@@ -270,17 +339,12 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         if (entity instanceof LivingEntity living) {
             float speed = BotiEntityMotion.limbSpeed(next.fromX(), next.fromZ(), next.toX(), next.toZ());
             living.walkAnimation.update(speed, 0.4f, living.isBaby() ? 3.0f : 1.0f);
+            // Head/body only — position is packet-lerped at render time (avoid snap-to-target vs extract mismatch).
+            living.setYBodyRot(payload.bodyYaw());
+            living.setYHeadRot(payload.headYaw());
+            living.yBodyRotO = payload.bodyYaw();
+            living.yHeadRotO = payload.headYaw();
         }
-        ghost.snapEntityPose(
-                entity,
-                payload.relX(),
-                payload.relY(),
-                payload.relZ(),
-                payload.yaw(),
-                payload.pitch(),
-                payload.headYaw(),
-                payload.bodyYaw()
-        );
         ghost.entities.put(payload.entityUuid(), new GhostEntity(entity, next));
     }
 

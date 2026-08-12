@@ -195,14 +195,11 @@ public final class SotoExteriorMeshCache {
         for (SotoGhostExterior.RenderableGhostEntity ghost : ghosts) {
             Entity entity = ghost.entity();
             LerpedPose pose = ghost.pose();
-            entity.setYRot(pose.yaw());
-            entity.setXRot(pose.pitch());
-            if (entity instanceof LivingEntity living) {
-                snapLivingYaw(living, pose.yaw());
-            }
+            applyLerpedPoseForExtract(entity, pose);
             try {
                 ensureGhostEntityId(entity);
-                EntityRenderState entityState = entityDispatcher.extractEntity(entity, tickDelta);
+                // tickDelta 0: pose is already packet-lerped; avoid a second vanilla interp.
+                EntityRenderState entityState = entityDispatcher.extractEntity(entity, 0.0f);
                 if (entityState == null) {
                     continue;
                 }
@@ -228,6 +225,21 @@ public final class SotoExteriorMeshCache {
             entity.getId();
         } catch (IllegalStateException missingId) {
             entity.setId(NEXT_FALLBACK_ENTITY_ID.getAndIncrement());
+        }
+    }
+
+    /**
+     * Snaps the ghost entity to the packet-lerped pose before {@code extractEntity},
+     * so baked render state matches submit translation.
+     */
+    static void applyLerpedPoseForExtract(Entity entity, LerpedPose pose) {
+        if (entity == null || pose == null) {
+            return;
+        }
+        entity.snapTo(pose.x(), pose.y(), pose.z(), pose.yaw(), pose.pitch());
+        entity.setDeltaMovement(0.0, 0.0, 0.0);
+        if (entity instanceof LivingEntity living) {
+            snapLivingYaw(living, pose.yaw());
         }
     }
 

@@ -125,6 +125,40 @@ class SotoGhostExteriorTest {
         assertNull(SotoGhostExterior.get(PortalStreamKind.SOTO, id));
     }
 
+    @Test
+    void entityInterp_advancesLerpedPoseBetweenPackets() {
+        UUID tardisId = UUID.randomUUID();
+        UUID entityUuid = UUID.randomUUID();
+        long t0 = 1_000L;
+
+        SotoGhostExterior.putInterpForTest(
+                PortalStreamKind.SOTO,
+                tardisId,
+                entityUuid,
+                new com.adamkali.dwm.render.boti.BotiEntityMotion.EntityInterpState(
+                        0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                        0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                        t0
+                )
+        );
+        SotoGhostExterior.advanceInterpForTest(
+                PortalStreamKind.SOTO, tardisId, entityUuid,
+                10.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                t0 + SotoGhostExterior.ENTITY_UPDATE_INTERVAL_MS
+        );
+
+        long receive = t0 + SotoGhostExterior.ENTITY_UPDATE_INTERVAL_MS;
+        var atReceive = SotoGhostExterior.sampleLerpedPosesForTest(PortalStreamKind.SOTO, tardisId, receive);
+        var atMid = SotoGhostExterior.sampleLerpedPosesForTest(
+                PortalStreamKind.SOTO, tardisId, receive + SotoGhostExterior.ENTITY_UPDATE_INTERVAL_MS / 2
+        );
+
+        assertEquals(1, atReceive.size());
+        assertEquals(1, atMid.size());
+        assertEquals(0.0, atReceive.getFirst().x(), 1.0e-4);
+        assertEquals(5.0, atMid.getFirst().x(), 1.0e-4);
+    }
+
     private static SyncPortalChunkS2CPayload dirtChunk(
             UUID id,
             int cx,
