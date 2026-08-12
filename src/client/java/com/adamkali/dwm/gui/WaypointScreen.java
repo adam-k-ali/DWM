@@ -1,6 +1,7 @@
 package com.adamkali.dwm.gui;
 
 import com.adamkali.dwm.ClientTardis;
+import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.network.OpenWaypointScreen;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -23,6 +24,10 @@ import java.util.UUID;
 @Environment(EnvType.CLIENT)
 public class WaypointScreen extends Screen {
     private static final Identifier BACKGROUND = Identifier.withDefaultNamespace("popup/background");
+    private static final Identifier ICON_SELECTED =
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "waypoint/selected");
+    private static final Identifier ICON_AT_LOCATION =
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "waypoint/at_location");
     private static final int MAX_NAME_LENGTH = 32;
     private static final int ROW_HEIGHT = 28;
     private static final int PANEL_WIDTH = 340;
@@ -30,10 +35,14 @@ public class WaypointScreen extends Screen {
     private static final int LIST_WIDTH = 156;
     private static final int DETAIL_WIDTH = 156;
     private static final int BODY_HEIGHT = 156;
+    private static final int ICON_SIZE = 10;
+    private static final int ICON_GAP = 2;
 
     private final ClientTardis tardis;
     private final List<OpenWaypointScreen.WaypointEntry> waypoints;
     private final boolean canSave;
+    private final @Nullable UUID destinationWaypointId;
+    private final @Nullable UUID locationWaypointId;
 
     private WaypointList list;
     private Button editButton;
@@ -54,11 +63,19 @@ public class WaypointScreen extends Screen {
     private @Nullable UUID renameTargetId;
     private @Nullable UUID selectedId;
 
-    public WaypointScreen(ClientTardis tardis, List<OpenWaypointScreen.WaypointEntry> waypoints, boolean canSave) {
+    public WaypointScreen(
+            ClientTardis tardis,
+            List<OpenWaypointScreen.WaypointEntry> waypoints,
+            boolean canSave,
+            @Nullable UUID destinationWaypointId,
+            @Nullable UUID locationWaypointId
+    ) {
         super(Component.translatable("dwm.gui.waypoint.title"));
         this.tardis = tardis;
         this.waypoints = new ArrayList<>(waypoints);
         this.canSave = canSave;
+        this.destinationWaypointId = destinationWaypointId;
+        this.locationWaypointId = locationWaypointId;
         if (!this.waypoints.isEmpty()) {
             this.selectedId = this.waypoints.getFirst().id();
         }
@@ -379,6 +396,11 @@ public class WaypointScreen extends Screen {
 
             @Override
             public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float delta) {
+                boolean isDestination = destinationWaypointId != null && destinationWaypointId.equals(waypoint.id());
+                boolean isAtLocation = locationWaypointId != null && locationWaypointId.equals(waypoint.id());
+                int iconCount = (isDestination ? 1 : 0) + (isAtLocation ? 1 : 0);
+                int iconsWidth = iconCount == 0 ? 0 : iconCount * ICON_SIZE + (iconCount - 1) * ICON_GAP + 4;
+
                 int textColor = isFocused() || WaypointList.this.getSelected() == this ? 0xFFFFFFFF : 0xFFE0E0E0;
                 graphics.text(
                         font,
@@ -388,6 +410,52 @@ public class WaypointScreen extends Screen {
                         textColor,
                         false
                 );
+
+                if (iconCount == 0) {
+                    return;
+                }
+                int iconX = getContentRight() - iconsWidth;
+                int iconY = getContentYMiddle() - ICON_SIZE / 2;
+                if (isAtLocation) {
+                    graphics.blitSprite(
+                            RenderPipelines.GUI_TEXTURED,
+                            ICON_AT_LOCATION,
+                            iconX,
+                            iconY,
+                            ICON_SIZE,
+                            ICON_SIZE
+                    );
+                    if (isMouseOverIcon(mouseX, mouseY, iconX, iconY)) {
+                        graphics.setTooltipForNextFrame(
+                                Component.translatable("dwm.gui.waypoint.tooltip.at_location"),
+                                mouseX,
+                                mouseY
+                        );
+                    }
+                    iconX += ICON_SIZE + ICON_GAP;
+                }
+                if (isDestination) {
+                    graphics.blitSprite(
+                            RenderPipelines.GUI_TEXTURED,
+                            ICON_SELECTED,
+                            iconX,
+                            iconY,
+                            ICON_SIZE,
+                            ICON_SIZE
+                    );
+                    if (isMouseOverIcon(mouseX, mouseY, iconX, iconY)) {
+                        graphics.setTooltipForNextFrame(
+                                Component.translatable("dwm.gui.waypoint.tooltip.destination"),
+                                mouseX,
+                                mouseY
+                        );
+                    }
+                }
+            }
+
+            private static boolean isMouseOverIcon(int mouseX, int mouseY, int iconX, int iconY) {
+                return mouseX >= iconX && mouseX < iconX + ICON_SIZE
+                        && mouseY >= iconY && mouseY < iconY + ICON_SIZE;
             }
 
             @Override

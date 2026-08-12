@@ -51,7 +51,13 @@ public class ClientPayloadTypeRegistry {
                 return;
             }
             ClientTardis clientTardis = new ClientTardis(payload.tardisId());
-            context.client().setScreenAndShow(new WaypointScreen(clientTardis, payload.waypoints(), payload.canSave()));
+            context.client().setScreenAndShow(new WaypointScreen(
+                    clientTardis,
+                    payload.waypoints(),
+                    payload.canSave(),
+                    payload.destinationWaypointId(),
+                    payload.locationWaypointId()
+            ));
         });
     }
 

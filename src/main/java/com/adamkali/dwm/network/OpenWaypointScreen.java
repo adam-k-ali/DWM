@@ -1,6 +1,8 @@
 package com.adamkali.dwm.network;
 
+import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisWaypoint;
+import com.adamkali.dwm.tardis.logic.WaypointLogic;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -8,11 +10,14 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import org.jetbrains.annotations.Nullable;
 
 public record OpenWaypointScreen(
         UUID tardisId,
         List<WaypointEntry> waypoints,
-        boolean canSave
+        boolean canSave,
+        @Nullable UUID destinationWaypointId,
+        @Nullable UUID locationWaypointId
 ) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<OpenWaypointScreen> ID =
             new CustomPacketPayload.Type<>(DWMPacketIds.OPEN_WAYPOINT_SCREEN_ID);
@@ -32,10 +37,22 @@ public record OpenWaypointScreen(
             DWMPacketCodecs.UUID_PACKET_CODEC, OpenWaypointScreen::tardisId,
             ENTRY_CODEC.apply(ByteBufCodecs.list()), OpenWaypointScreen::waypoints,
             ByteBufCodecs.BOOL, OpenWaypointScreen::canSave,
+            DWMPacketCodecs.NULLABLE_UUID_PACKET_CODEC, OpenWaypointScreen::destinationWaypointId,
+            DWMPacketCodecs.NULLABLE_UUID_PACKET_CODEC, OpenWaypointScreen::locationWaypointId,
             OpenWaypointScreen::new
     );
 
     public static OpenWaypointScreen of(UUID tardisId, List<TardisWaypoint> waypoints, boolean canSave) {
+        return of(tardisId, waypoints, canSave, null, null);
+    }
+
+    public static OpenWaypointScreen of(
+            UUID tardisId,
+            List<TardisWaypoint> waypoints,
+            boolean canSave,
+            @Nullable UUID destinationWaypointId,
+            @Nullable UUID locationWaypointId
+    ) {
         List<WaypointEntry> entries = new ArrayList<>(waypoints.size());
         for (TardisWaypoint waypoint : waypoints) {
             if (waypoint == null || waypoint.id == null) {
@@ -51,7 +68,23 @@ public record OpenWaypointScreen(
                     waypoint.rotation
             ));
         }
-        return new OpenWaypointScreen(tardisId, List.copyOf(entries), canSave);
+        return new OpenWaypointScreen(
+                tardisId,
+                List.copyOf(entries),
+                canSave,
+                destinationWaypointId,
+                locationWaypointId
+        );
+    }
+
+    public static OpenWaypointScreen of(UUID tardisId, @Nullable TardisDataModel model) {
+        List<TardisWaypoint> waypoints = model == null ? List.of() : List.copyOf(model.getWaypoints());
+        boolean canSave = model != null
+                && model.hasExteriorLocation
+                && model.getWaypoints().size() < WaypointLogic.MAX_WAYPOINTS;
+        UUID destination = model == null ? null : model.selectedWaypointId;
+        UUID location = WaypointLogic.findAtExterior(model).map(w -> w.id).orElse(null);
+        return of(tardisId, waypoints, canSave, destination, location);
     }
 
     @Override

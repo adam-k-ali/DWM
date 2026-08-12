@@ -6,11 +6,9 @@ import com.adamkali.dwm.network.OpenWaypointScreen;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
-import com.adamkali.dwm.tardis.data.model.TardisWaypoint;
 import com.adamkali.dwm.tardis.logic.PlayerLocatorLogic;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
-import com.adamkali.dwm.tardis.logic.WaypointLogic;
 import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import org.jetbrains.annotations.Nullable;
@@ -285,11 +283,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             return InteractionResult.CONSUME;
         }
         TardisDataModel model = TardisDataLoader.get(tardisId);
-        List<TardisWaypoint> waypoints = model == null ? List.of() : List.copyOf(model.getWaypoints());
-        boolean canSave = model != null
-                && model.hasExteriorLocation
-                && model.getWaypoints().size() < WaypointLogic.MAX_WAYPOINTS;
-        ServerPlayNetworking.send(player, OpenWaypointScreen.of(tardisId, waypoints, canSave));
+        ServerPlayNetworking.send(player, OpenWaypointScreen.of(tardisId, model));
         playClick(world, pos);
         return InteractionResult.SUCCESS;
     }

@@ -128,6 +128,8 @@
   "dwm.gui.waypoint.save": "Save",
   "dwm.gui.waypoint.select": "Select",
   "dwm.gui.waypoint.title": "Waypoint Selector",
+  "dwm.gui.waypoint.tooltip.at_location": "Current location",
+  "dwm.gui.waypoint.tooltip.destination": "Selected destination",
   "dwm.second_doctor_box": "Second Doctor Box",
   "dwm.seventh_doctor_box": "Seventh Doctor Box",
   "dwm.sixth_doctor_box": "Sixth Doctor Box",

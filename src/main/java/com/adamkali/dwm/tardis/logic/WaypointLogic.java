@@ -174,6 +174,28 @@ public final class WaypointLogic {
         return true;
     }
 
+    /**
+     * Finds the first waypoint that matches the model's current exterior dimension and block position.
+     */
+    public static Optional<TardisWaypoint> findAtExterior(@Nullable TardisDataModel model) {
+        if (model == null || !model.hasExteriorLocation || model.exteriorDimension == null
+                || model.exteriorDimension.isBlank()) {
+            return Optional.empty();
+        }
+        for (TardisWaypoint waypoint : model.getWaypoints()) {
+            if (waypoint == null || waypoint.dimension == null) {
+                continue;
+            }
+            if (model.exteriorDimension.equals(waypoint.dimension)
+                    && model.exteriorX == waypoint.x
+                    && model.exteriorY == waypoint.y
+                    && model.exteriorZ == waypoint.z) {
+                return Optional.of(waypoint);
+            }
+        }
+        return Optional.empty();
+    }
+
     static String nextGeneratedName(TardisDataModel model) {
         int index = 1;
         while (true) {

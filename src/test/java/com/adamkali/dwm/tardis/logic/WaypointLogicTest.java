@@ -130,4 +130,34 @@ class WaypointLogicTest {
         assertSame(model.getWaypoints(), WaypointLogic.waypoints(model));
         assertTrue(WaypointLogic.waypoints(null).isEmpty());
     }
+
+    @Test
+    void findAtExterior_matchesDimensionAndCoords() {
+        TardisWaypoint atExterior = WaypointLogic.add(model, "Here").orElseThrow();
+        model.setExteriorLocation("minecraft:the_nether", 0, 70, 0, 0);
+        TardisWaypoint elsewhere = WaypointLogic.add(model, "There").orElseThrow();
+        model.setExteriorLocation("minecraft:overworld", 10, 64, -20, 2);
+
+        Optional<TardisWaypoint> found = WaypointLogic.findAtExterior(model);
+        assertTrue(found.isPresent());
+        assertEquals(atExterior.id, found.get().id);
+        assertNotEquals(elsewhere.id, found.get().id);
+    }
+
+    @Test
+    void findAtExterior_missesWhenCoordsDiffer() {
+        WaypointLogic.add(model, "Here").orElseThrow();
+        model.setExteriorLocation("minecraft:overworld", 11, 64, -20, 2);
+
+        assertTrue(WaypointLogic.findAtExterior(model).isEmpty());
+    }
+
+    @Test
+    void findAtExterior_emptyWithoutExterior() {
+        WaypointLogic.add(model, "Here").orElseThrow();
+        TardisDataModel empty = new TardisDataModel();
+
+        assertTrue(WaypointLogic.findAtExterior(empty).isEmpty());
+        assertTrue(WaypointLogic.findAtExterior(null).isEmpty());
+    }
 }

@@ -236,6 +236,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.gui.waypoint.detail.name", "Name");
         t.add("dwm.gui.waypoint.detail.location", "Location");
         t.add("dwm.gui.waypoint.empty", "No waypoints saved");
+        t.add("dwm.gui.waypoint.tooltip.destination", "Selected destination");
+        t.add("dwm.gui.waypoint.tooltip.at_location", "Current location");
         t.add("dwm.gui.player_locator.title", "Player Locator");
         t.add("dwm.gui.player_locator.select", "Select");
         t.add("dwm.gui.player_locator.empty", "No other players online");
