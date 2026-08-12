@@ -99,8 +99,10 @@ public final class PortalRenderer {
                     PortalPerfStats.setOutcome(PortalPerfStats.Outcome.ONCE_PER_FRAME);
                     return peekLastRendered(key);
                 }
-                if (!PortalFrameCache.isDirty(key)
-                        && PortalFrameCache.wasLastWriter(key)
+                boolean dirty = PortalFrameCache.isDirty(key);
+                boolean lastWriter = PortalFrameCache.wasLastWriter(key);
+                if (!dirty
+                        && lastWriter
                         && renderedReady.contains(key)) {
                     PortalPerfStats.setOutcome(PortalPerfStats.Outcome.FRAME_CACHE_HIT);
                     return peekLastRendered(key);

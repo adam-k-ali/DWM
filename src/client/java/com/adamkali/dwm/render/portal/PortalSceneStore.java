@@ -91,6 +91,7 @@ public final class PortalSceneStore {
             return;
         }
         SotoGhostExterior.applyEntitySpawn(payload.kind(), payload);
+        PortalPerfStats.noteEntitySpawn();
         PortalFrameCache.markDirty(payload.kind(), payload.tardisId());
     }
 
@@ -99,6 +100,7 @@ public final class PortalSceneStore {
             return;
         }
         SotoGhostExterior.applyEntityUpdate(payload.kind(), payload);
+        PortalPerfStats.noteEntityUpdate();
         PortalFrameCache.markDirty(payload.kind(), payload.tardisId());
     }
 
@@ -107,6 +109,7 @@ public final class PortalSceneStore {
             return;
         }
         SotoGhostExterior.removeEntity(payload.kind(), payload.tardisId(), payload.entityUuid());
+        PortalPerfStats.noteEntityRemove();
         PortalFrameCache.markDirty(payload.kind(), payload.tardisId());
     }
 

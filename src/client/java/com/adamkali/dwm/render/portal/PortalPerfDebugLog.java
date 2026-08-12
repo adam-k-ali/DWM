@@ -112,6 +112,12 @@ public final class PortalPerfDebugLog {
         field(sb, "cullCulled", snap.chunksCulled(), true);
         field(sb, "avgBakeCount", snap.avgBakeCount(), true);
         field(sb, "avgBakeSkipCount", snap.avgBakeSkipCount(), true);
+        field(sb, "avgEntityUpdates", snap.avgEntityUpdates(), true);
+        field(sb, "maxPoseDelta", snap.avgMaxPoseDelta(), true);
+        field(sb, "partialTickUsed", (double) snap.partialTickUsed(), true);
+        field(sb, "itemAgeInTicks", (double) snap.itemAgeInTicks(), true);
+        field(sb, "avgIdentityInterp", snap.avgIdentityInterp(), true);
+        field(sb, "avgAdvanceInterp", snap.avgAdvanceInterp(), true);
         // field() always appends comma — strip final comma before closing
         if (sb.charAt(sb.length() - 1) == ',') {
             sb.setLength(sb.length() - 1);

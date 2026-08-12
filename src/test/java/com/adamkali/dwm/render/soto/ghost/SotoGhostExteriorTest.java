@@ -159,6 +159,45 @@ class SotoGhostExteriorTest {
         assertEquals(5.0, atMid.getFirst().x(), 1.0e-4);
     }
 
+    @Test
+    void usesIdentityInterp_onlyForItemEntities() {
+        assertFalse(SotoGhostExterior.usesIdentityInterp(null));
+    }
+
+    @Test
+    void animAgeInTicks_growsWithWallClock() {
+        long start = 1_000L;
+        assertEquals(0.0f, SotoGhostExterior.animAgeInTicks(start, start), 1.0e-4f);
+        assertEquals(2.0f, SotoGhostExterior.animAgeInTicks(start, start + 100L), 1.0e-4f);
+        assertEquals(20.0f, SotoGhostExterior.animAgeInTicks(start, start + 1_000L), 1.0e-4f);
+        assertTrue(SotoGhostExterior.animAgeInTicks(start, start + 50_000L) > 2.0f);
+    }
+
+    @Test
+    void nextInterpForUpdate_nullEntity_advances() {
+        var previous = com.adamkali.dwm.render.boti.BotiEntityMotion.EntityInterpState.identity(
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1_000L
+        );
+        var next = SotoGhostExterior.nextInterpForUpdate(
+                null, previous, 10.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1_100L
+        );
+        assertEquals(0.0f, next.fromX(), 1.0e-4f);
+        assertEquals(10.0f, next.toX(), 1.0e-4f);
+        assertEquals(1_100L, next.receiveTimeMs());
+    }
+
+    @Test
+    void nextInterpForUpdate_nullPrevious_usesIdentity() {
+        var next = SotoGhostExterior.nextInterpForUpdate(
+                null, null, 3.0f, 1.0f, 2.0f, 45.0f, 10.0f, 2_000L
+        );
+        assertEquals(3.0f, next.fromX(), 1.0e-4f);
+        assertEquals(3.0f, next.toX(), 1.0e-4f);
+        assertEquals(1.0f, next.fromY(), 1.0e-4f);
+        assertEquals(1.0f, next.toY(), 1.0e-4f);
+        assertEquals(2_000L, next.receiveTimeMs());
+    }
+
     private static SyncPortalChunkS2CPayload dirtChunk(
             UUID id,
             int cx,

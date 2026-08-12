@@ -104,4 +104,14 @@ class SotoExteriorMeshCacheTest {
         assertEquals(TardisChameleonVariant.TT_CAPSULE, SotoExteriorMeshCache.getShellState(id).variant());
         assertTrue(SotoExteriorMeshCache.getShellState(id).isOpen());
     }
+
+    @Test
+    void shouldApplyPacketRotation_rejectsNull() {
+        assertFalse(SotoExteriorMeshCache.shouldApplyPacketRotation(null));
+    }
+
+    @Test
+    void resolvePartialTick_fallsBackWhenClientNull() {
+        assertEquals(0.37f, SotoExteriorMeshCache.resolvePartialTick(null, 0.37f), 1.0e-6f);
+    }
 }

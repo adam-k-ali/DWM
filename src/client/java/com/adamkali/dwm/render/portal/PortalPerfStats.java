@@ -36,6 +36,14 @@ public final class PortalPerfStats {
     private static int meshBakeCountThisFrame;
     private static int meshBakeSkipCountThisFrame;
     private static long lastMeshBakeNs;
+    private static int entityUpdatesThisFrame;
+    private static int entitySpawnsThisFrame;
+    private static int entityRemovesThisFrame;
+    private static double maxPoseDeltaThisFrame;
+    private static int identityInterpThisFrame;
+    private static int advanceInterpThisFrame;
+    private static float partialTickThisFrame = Float.NaN;
+    private static float itemAgeInTicksThisFrame = Float.NaN;
     private static volatile Snapshot published = Snapshot.IDLE;
     private static volatile DisplaySnapshot display = DisplaySnapshot.IDLE;
     private static double totalEmaMs;
@@ -127,6 +135,65 @@ public final class PortalPerfStats {
         meshBakeSkipCountThisFrame++;
     }
 
+    public static void noteEntityUpdate() {
+        if (!isEnabled()) {
+            return;
+        }
+        entityUpdatesThisFrame++;
+    }
+
+    public static void noteEntitySpawn() {
+        if (!isEnabled()) {
+            return;
+        }
+        entitySpawnsThisFrame++;
+    }
+
+    public static void noteEntityRemove() {
+        if (!isEnabled()) {
+            return;
+        }
+        entityRemovesThisFrame++;
+    }
+
+    /** Records a pose movement sample; keeps the max for the current frame. */
+    public static void notePoseDelta(double delta) {
+        if (!isEnabled() || !(delta > 0.0)) {
+            return;
+        }
+        if (delta > maxPoseDeltaThisFrame) {
+            maxPoseDeltaThisFrame = delta;
+        }
+    }
+
+    public static void noteIdentityInterp() {
+        if (!isEnabled()) {
+            return;
+        }
+        identityInterpThisFrame++;
+    }
+
+    public static void noteAdvanceInterp() {
+        if (!isEnabled()) {
+            return;
+        }
+        advanceInterpThisFrame++;
+    }
+
+    public static void notePartialTick(float partialTick) {
+        if (!isEnabled()) {
+            return;
+        }
+        partialTickThisFrame = partialTick;
+    }
+
+    public static void noteItemAgeInTicks(float ageInTicks) {
+        if (!isEnabled()) {
+            return;
+        }
+        itemAgeInTicksThisFrame = ageInTicks;
+    }
+
     /**
      * Publishes the current frame into history + display averages and resets transient timers.
      */
@@ -160,7 +227,15 @@ public final class PortalPerfStats {
                 MapCopy.copyDoubles(stageMs),
                 totalMs,
                 meshBakeCountThisFrame,
-                meshBakeSkipCountThisFrame
+                meshBakeSkipCountThisFrame,
+                entityUpdatesThisFrame,
+                entitySpawnsThisFrame,
+                entityRemovesThisFrame,
+                maxPoseDeltaThisFrame,
+                identityInterpThisFrame,
+                advanceInterpThisFrame,
+                partialTickThisFrame,
+                itemAgeInTicksThisFrame
         );
         pushHistory(sample);
 
@@ -178,7 +253,9 @@ public final class PortalPerfStats {
                 lastMeshBakeNs,
                 totalMs,
                 totalEmaMs,
-                maxStage
+                maxStage,
+                partialTickThisFrame,
+                itemAgeInTicksThisFrame
         );
         published = snap;
         display = buildDisplay(snap);
@@ -186,6 +263,14 @@ public final class PortalPerfStats {
         meshBakeNsThisFrame = 0L;
         meshBakeCountThisFrame = 0;
         meshBakeSkipCountThisFrame = 0;
+        entityUpdatesThisFrame = 0;
+        entitySpawnsThisFrame = 0;
+        entityRemovesThisFrame = 0;
+        maxPoseDeltaThisFrame = 0.0;
+        identityInterpThisFrame = 0;
+        advanceInterpThisFrame = 0;
+        partialTickThisFrame = Float.NaN;
+        itemAgeInTicksThisFrame = Float.NaN;
 
         PortalPerfDebugLog.maybeAppend(display);
     }
@@ -271,6 +356,16 @@ public final class PortalPerfStats {
                     snap.avgBakeSkipCount()
             ));
         }
+        lines.add(String.format(
+                Locale.ROOT,
+                "ent upd: %.2f  poseΔ: %.4f  partial: %.3f  itemAge: %.2f  id/adv: %.2f/%.2f",
+                snap.avgEntityUpdates(),
+                snap.avgMaxPoseDelta(),
+                snap.partialTickUsed(),
+                snap.itemAgeInTicks(),
+                snap.avgIdentityInterp(),
+                snap.avgAdvanceInterp()
+        ));
         if (snap.maxAvgStage() != null) {
             lines.add(String.format(
                     Locale.ROOT,
@@ -343,11 +438,39 @@ public final class PortalPerfStats {
     }
 
     static void pushSampleForTest(EnumMap<Stage, Double> stageMs, double totalMs, int bakeCount, int bakeSkipCount) {
+        pushSampleForTest(stageMs, totalMs, bakeCount, bakeSkipCount, 0, 0.0, 0, 0, Float.NaN, Float.NaN);
+    }
+
+    static void pushSampleForTest(
+            EnumMap<Stage, Double> stageMs,
+            double totalMs,
+            int bakeCount,
+            int bakeSkipCount,
+            int entityUpdates,
+            double maxPoseDelta,
+            int identityInterp,
+            int advanceInterp,
+            float partialTick,
+            float itemAgeInTicks
+    ) {
         EnumMap<Stage, Double> copy = MapCopy.copyDoubles(stageMs);
         for (Stage stage : Stage.HUD_ORDER) {
             copy.putIfAbsent(stage, 0.0);
         }
-        pushHistory(new FrameSample(copy, totalMs, bakeCount, bakeSkipCount));
+        pushHistory(new FrameSample(
+                copy,
+                totalMs,
+                bakeCount,
+                bakeSkipCount,
+                entityUpdates,
+                0,
+                0,
+                maxPoseDelta,
+                identityInterp,
+                advanceInterp,
+                partialTick,
+                itemAgeInTicks
+        ));
         totalEmaMs = updateEma(totalEmaMs, totalMs, EMA_ALPHA);
         display = buildDisplay(new Snapshot(
                 activeKey != null ? activeKey : PortalKey.soto(UUID.fromString("00000000-0000-0000-0000-000000000001")),
@@ -363,7 +486,9 @@ public final class PortalPerfStats {
                 0L,
                 totalMs,
                 totalEmaMs,
-                findMaxAvgStage(copy)
+                findMaxAvgStage(copy),
+                partialTick,
+                itemAgeInTicks
         ));
     }
 
@@ -390,6 +515,14 @@ public final class PortalPerfStats {
         meshBakeCountThisFrame = 0;
         meshBakeSkipCountThisFrame = 0;
         lastMeshBakeNs = 0L;
+        entityUpdatesThisFrame = 0;
+        entitySpawnsThisFrame = 0;
+        entityRemovesThisFrame = 0;
+        maxPoseDeltaThisFrame = 0.0;
+        identityInterpThisFrame = 0;
+        advanceInterpThisFrame = 0;
+        partialTickThisFrame = Float.NaN;
+        itemAgeInTicksThisFrame = Float.NaN;
         published = Snapshot.IDLE;
         display = DisplaySnapshot.IDLE;
         totalEmaMs = 0.0;
@@ -423,16 +556,35 @@ public final class PortalPerfStats {
         double[] totals = new double[window];
         double[] bakeCounts = new double[window];
         double[] bakeSkipCounts = new double[window];
+        double[] entityUpdates = new double[window];
+        double[] maxPoseDeltas = new double[window];
+        double[] identityInterps = new double[window];
+        double[] advanceInterps = new double[window];
         for (int i = 0; i < window; i++) {
             FrameSample sample = historyAt(historySize - window + i);
             totals[i] = sample.totalMs();
             bakeCounts[i] = sample.bakeCount();
             bakeSkipCounts[i] = sample.bakeSkipCount();
+            entityUpdates[i] = sample.entityUpdates();
+            maxPoseDeltas[i] = sample.maxPoseDelta();
+            identityInterps[i] = sample.identityInterp();
+            advanceInterps[i] = sample.advanceInterp();
         }
         double avgTotal = windowAverage(totals, window);
         double avgBake = windowAverage(bakeCounts, window);
         double avgBakeSkip = windowAverage(bakeSkipCounts, window);
         Stage maxAvg = findMaxAvgStage(avgStages);
+        float partial = latest.partialTickUsed();
+        float itemAge = latest.itemAgeInTicks();
+        if (window > 0) {
+            FrameSample newest = historyAt(historySize - 1);
+            if (Float.isNaN(partial) && !Float.isNaN(newest.partialTick())) {
+                partial = newest.partialTick();
+            }
+            if (Float.isNaN(itemAge) && !Float.isNaN(newest.itemAgeInTicks())) {
+                itemAge = newest.itemAgeInTicks();
+            }
+        }
         return new DisplaySnapshot(
                 latest.key(),
                 latest.outcome(),
@@ -447,7 +599,13 @@ public final class PortalPerfStats {
                 window,
                 avgBake,
                 avgBakeSkip,
-                maxAvg
+                maxAvg,
+                windowAverage(entityUpdates, window),
+                windowAverage(maxPoseDeltas, window),
+                Float.isNaN(partial) ? 0.0f : partial,
+                Float.isNaN(itemAge) ? 0.0f : itemAge,
+                windowAverage(identityInterps, window),
+                windowAverage(advanceInterps, window)
         );
     }
 
@@ -573,7 +731,9 @@ public final class PortalPerfStats {
             long lastMeshBakeNs,
             double totalMs,
             double totalEmaMs,
-            Stage maxStage
+            Stage maxStage,
+            float partialTickUsed,
+            float itemAgeInTicks
     ) {
         static final Snapshot IDLE = new Snapshot(
                 null,
@@ -582,7 +742,9 @@ public final class PortalPerfStats {
                 0, 0, 0, 0, 0,
                 0L, 0, 0L,
                 0.0, 0.0,
-                null
+                null,
+                Float.NaN,
+                Float.NaN
         );
     }
 
@@ -600,7 +762,13 @@ public final class PortalPerfStats {
             int windowCount,
             double avgBakeCount,
             double avgBakeSkipCount,
-            Stage maxAvgStage
+            Stage maxAvgStage,
+            double avgEntityUpdates,
+            double avgMaxPoseDelta,
+            float partialTickUsed,
+            float itemAgeInTicks,
+            double avgIdentityInterp,
+            double avgAdvanceInterp
     ) {
         static final DisplaySnapshot IDLE = new DisplaySnapshot(
                 null,
@@ -608,7 +776,8 @@ public final class PortalPerfStats {
                 new EnumMap<>(Stage.class),
                 0, 0, 0, 0, 0,
                 0.0, 0.0, 0, 0.0, 0.0,
-                null
+                null,
+                0.0, 0.0, 0.0f, 0.0f, 0.0, 0.0
         );
     }
 
@@ -616,7 +785,15 @@ public final class PortalPerfStats {
             EnumMap<Stage, Double> stageMs,
             double totalMs,
             int bakeCount,
-            int bakeSkipCount
+            int bakeSkipCount,
+            int entityUpdates,
+            int entitySpawns,
+            int entityRemoves,
+            double maxPoseDelta,
+            int identityInterp,
+            int advanceInterp,
+            float partialTick,
+            float itemAgeInTicks
     ) {
     }
 

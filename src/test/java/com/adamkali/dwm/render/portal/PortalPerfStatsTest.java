@@ -95,7 +95,13 @@ class PortalPerfStatsTest {
                 60,
                 0.0,
                 0.0,
-                PortalPerfStats.Stage.TERRAIN_OPAQUE
+                PortalPerfStats.Stage.TERRAIN_OPAQUE,
+                2.0,
+                0.05,
+                0.3f,
+                8.0f,
+                1.0,
+                1.5
         );
 
         List<String> lines = PortalPerfStats.formatLinesPure(snap);
@@ -106,6 +112,11 @@ class PortalPerfStatsTest {
         assertTrue(lines.get(1).contains("n=60"));
         assertTrue(lines.stream().anyMatch(line -> line.contains("*opaque:")));
         assertTrue(lines.stream().anyMatch(line -> line.contains("cull: 8/17")));
+        assertTrue(lines.stream().anyMatch(line -> line.contains("ent upd: 2.00")));
+        assertTrue(lines.stream().anyMatch(line -> line.contains("poseΔ: 0.0500")));
+        assertTrue(lines.stream().anyMatch(line -> line.contains("partial: 0.300")));
+        assertTrue(lines.stream().anyMatch(line -> line.contains("itemAge: 8.00")));
+        assertTrue(lines.stream().anyMatch(line -> line.contains("id/adv: 1.00/1.50")));
         assertTrue(lines.stream().anyMatch(line -> line.contains("maxAvg: opaque")));
         assertTrue(lines.stream().noneMatch(line -> line.contains("bake this frame")));
     }

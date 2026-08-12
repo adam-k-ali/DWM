@@ -40,7 +40,13 @@ class PortalPerfDebugLogTest {
                 60,
                 0.25,
                 1.5,
-                PortalPerfStats.Stage.TERRAIN_OPAQUE
+                PortalPerfStats.Stage.TERRAIN_OPAQUE,
+                1.2,
+                0.015,
+                0.42f,
+                12.4f,
+                0.5,
+                0.8
         );
 
         String line = PortalPerfDebugLog.formatLine(1_700_000_000_000L, snap);
@@ -58,6 +64,12 @@ class PortalPerfDebugLogTest {
         assertTrue(line.contains("\"cullCulled\":17"));
         assertTrue(line.contains("\"avgBakeCount\":0.2500"));
         assertTrue(line.contains("\"avgBakeSkipCount\":1.5000"));
+        assertTrue(line.contains("\"avgEntityUpdates\":1.2000"));
+        assertTrue(line.contains("\"maxPoseDelta\":0.0150"));
+        assertTrue(line.contains("\"partialTickUsed\":0.4200"));
+        assertTrue(line.contains("\"itemAgeInTicks\":12.4000"));
+        assertTrue(line.contains("\"avgIdentityInterp\":0.5000"));
+        assertTrue(line.contains("\"avgAdvanceInterp\":0.8000"));
     }
 
     @Test
