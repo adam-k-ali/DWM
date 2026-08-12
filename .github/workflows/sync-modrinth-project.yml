@@ -1,0 +1,100 @@
+name: Sync Modrinth Project
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update Modrinth project metadata
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${MODRINTH_TOKEN:-}" ]; then
+            echo "MODRINTH_TOKEN secret is not set" >&2
+            exit 1
+          fi
+
+          python3 <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.request
+          from pathlib import Path
+
+          token = os.environ["MODRINTH_TOKEN"]
+          meta_path = Path("metadata/modrinth.json")
+          body_path = Path("metadata/modrinth-body.md")
+
+          if not meta_path.is_file():
+              raise SystemExit(f"Missing {meta_path}")
+          if not body_path.is_file():
+              raise SystemExit(f"Missing {body_path}")
+
+          meta = json.loads(meta_path.read_text(encoding="utf-8"))
+          required = ("description", "categories", "additional_categories", "discord_url")
+          missing = [key for key in required if key not in meta]
+          if missing:
+              raise SystemExit(f"metadata/modrinth.json missing keys: {', '.join(missing)}")
+
+          description = meta["description"]
+          categories = meta["categories"]
+          additional_categories = meta["additional_categories"]
+          discord_url = meta["discord_url"]
+
+          if not isinstance(description, str) or not description.strip():
+              raise SystemExit("description must be a non-blank string")
+          if not isinstance(categories, list) or not all(isinstance(c, str) for c in categories):
+              raise SystemExit("categories must be a list of strings")
+          if not isinstance(additional_categories, list) or not all(
+              isinstance(c, str) for c in additional_categories
+          ):
+              raise SystemExit("additional_categories must be a list of strings")
+          if not isinstance(discord_url, str) or not discord_url.strip():
+              raise SystemExit("discord_url must be a non-blank string")
+
+          body = body_path.read_text(encoding="utf-8").strip()
+          if not body:
+              raise SystemExit("metadata/modrinth-body.md must be non-blank")
+
+          payload = {
+              "description": description.strip(),
+              "body": body,
+              "categories": categories,
+              "additional_categories": additional_categories,
+              "discord_url": discord_url.strip(),
+          }
+
+          request = urllib.request.Request(
+              "https://api.modrinth.com/v2/project/CY3ponKT",
+              data=json.dumps(payload).encode("utf-8"),
+              method="PATCH",
+              headers={
+                  "Authorization": token,
+                  "Content-Type": "application/json",
+                  "User-Agent": "adam-k-ali/DWM (https://github.com/adam-k-ali/DWM)",
+              },
+          )
+
+          try:
+              with urllib.request.urlopen(request) as response:
+                  status = response.status
+                  response.read()
+          except urllib.error.HTTPError as exc:
+              detail = exc.read().decode("utf-8", errors="replace")
+              print(detail, file=sys.stderr)
+              raise SystemExit(f"Modrinth PATCH failed with HTTP {exc.code}") from exc
+
+          if status != 204:
+              raise SystemExit(f"Expected HTTP 204 from Modrinth PATCH, got {status}")
+
+          print("Updated Modrinth project listing for CY3ponKT")
+          PY

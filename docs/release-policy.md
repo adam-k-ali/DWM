@@ -80,6 +80,7 @@ Ship a patch immediately for:
 
 - **[`version.json`](../version.json)** is the only release-notes and promo channel (GitHub Release body, Modrinth changelog, Discord summary).
 - Do not maintain a separate changelog file; dual ledgers drift.
+- **[`metadata/`](../metadata/)** is the source of truth for the Modrinth **project listing** (`description`, long-form `body`, categories, Discord URL). Edit those files, then run the **Sync Modrinth Project** workflow; listing updates are manual and are not part of the tag Release workflow.
 
 ## Distribution checklist
 
@@ -96,7 +97,7 @@ Ship a patch immediately for:
 
 | Secret | Purpose |
 | --- | --- |
-| `MODRINTH_TOKEN` | Modrinth personal access token with `VERSION_CREATE` |
+| `MODRINTH_TOKEN` | Modrinth personal access token with `VERSION_CREATE` (Release) and `PROJECT_WRITE` (Sync Modrinth Project) |
 | `DISCORD_WEBHOOK_URL` | Incoming webhook for Discord `#releases` |
 
 ## CI overview
@@ -106,5 +107,6 @@ Ship a patch immediately for:
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `pull_request`, push to `main` | `./gradlew build` (compile + unit tests + version sync check) |
 | [`.github/workflows/create-release-tag.yml`](../.github/workflows/create-release-tag.yml) | `workflow_dispatch` | Create and push `v*` tag from `version.json` `promos.latest` if missing; then dispatch Release |
 | [`.github/workflows/release.yml`](../.github/workflows/release.yml) | push of tags `v*`, or `workflow_dispatch` | Build; publish GitHub Release, Modrinth version, and Discord announcement from `version.json` |
+| [`.github/workflows/sync-modrinth-project.yml`](../.github/workflows/sync-modrinth-project.yml) | `workflow_dispatch` | PATCH Modrinth project listing from [`metadata/`](../metadata/) |
 
 CircleCI is retired; do not add draft GitHub releases on every `main` merge.
