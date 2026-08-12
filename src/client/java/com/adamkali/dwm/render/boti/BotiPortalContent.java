@@ -4,6 +4,7 @@ import com.adamkali.dwm.render.portal.PortalCameraTransform;
 import com.adamkali.dwm.render.portal.PortalContent;
 import com.adamkali.dwm.render.portal.PortalContentContext;
 import com.adamkali.dwm.render.portal.PortalFeatureFlush;
+import com.adamkali.dwm.render.portal.PortalPerfStats;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.render.soto.SotoExteriorMeshCache;
 import com.adamkali.dwm.render.soto.SotoSkyFogRenderer;
@@ -85,6 +86,7 @@ public final class BotiPortalContent implements PortalContent {
         PoseStack sceneMatrices = context.sceneMatrices();
 
         context.bindTarget();
+        long opaqueStart = PortalPerfStats.begin();
         SotoGhostMeshCache.drawLayer(
                 PortalStreamKind.BOTI,
                 id,
@@ -92,6 +94,9 @@ public final class BotiPortalContent implements PortalContent {
                 SotoGhostMeshCache.TerrainPass.OPAQUE,
                 hitch
         );
+        PortalPerfStats.end(PortalPerfStats.Stage.TERRAIN_OPAQUE, opaqueStart);
+
+        long cutoutStart = PortalPerfStats.begin();
         SotoGhostMeshCache.drawLayer(
                 PortalStreamKind.BOTI,
                 id,
@@ -99,6 +104,9 @@ public final class BotiPortalContent implements PortalContent {
                 SotoGhostMeshCache.TerrainPass.CUTOUT,
                 hitch
         );
+        PortalPerfStats.end(PortalPerfStats.Stage.TERRAIN_CUTOUT, cutoutStart);
+
+        long translucentStart = PortalPerfStats.begin();
         SotoGhostMeshCache.drawLayer(
                 PortalStreamKind.BOTI,
                 id,
@@ -106,6 +114,9 @@ public final class BotiPortalContent implements PortalContent {
                 SotoGhostMeshCache.TerrainPass.TRANSLUCENT,
                 hitch
         );
+        PortalPerfStats.end(PortalPerfStats.Stage.TERRAIN_TRANSLUCENT, translucentStart);
+
+        long featuresStart = PortalPerfStats.begin();
         try {
             PortalFeatureFlush featureFlush = context.featureFlush();
             if (featureFlush != null) {
@@ -142,35 +153,42 @@ public final class BotiPortalContent implements PortalContent {
                 }
             }
         } catch (Throwable ignored) {
+        } finally {
+            PortalPerfStats.end(PortalPerfStats.Stage.GHOST_FEATURES, featuresStart);
         }
     }
 
     private void renderBlueprintFallback(PortalContentContext context) {
-        PortalFeatureFlush featureFlush = context.featureFlush();
-        if (featureFlush == null) {
-            return;
-        }
-        PoseStack sceneMatrices = context.sceneMatrices();
-        SubmitNodeStorage submitStorage = context.submitStorage();
-        CameraRenderState cameraState = context.cameraState();
-        Matrix4fStack featureModelView = RenderSystem.getModelViewStack();
-        featureModelView.pushMatrix();
+        long featuresStart = PortalPerfStats.begin();
         try {
-            context.portalCamera().getViewRotationMatrix(featureModelView);
-            BotiInteriorMeshCache.renderForPortal(
-                    sceneMatrices,
-                    submitStorage,
-                    cameraState,
-                    context.portalCamera(),
-                    FULLBRIGHT,
-                    context.tickDelta(),
-                    tardisId
-            );
-            context.bindTarget();
-            featureFlush.renderAllFeatures(submitStorage);
-            context.bindTarget();
+            PortalFeatureFlush featureFlush = context.featureFlush();
+            if (featureFlush == null) {
+                return;
+            }
+            PoseStack sceneMatrices = context.sceneMatrices();
+            SubmitNodeStorage submitStorage = context.submitStorage();
+            CameraRenderState cameraState = context.cameraState();
+            Matrix4fStack featureModelView = RenderSystem.getModelViewStack();
+            featureModelView.pushMatrix();
+            try {
+                context.portalCamera().getViewRotationMatrix(featureModelView);
+                BotiInteriorMeshCache.renderForPortal(
+                        sceneMatrices,
+                        submitStorage,
+                        cameraState,
+                        context.portalCamera(),
+                        FULLBRIGHT,
+                        context.tickDelta(),
+                        tardisId
+                );
+                context.bindTarget();
+                featureFlush.renderAllFeatures(submitStorage);
+                context.bindTarget();
+            } finally {
+                featureModelView.popMatrix();
+            }
         } finally {
-            featureModelView.popMatrix();
+            PortalPerfStats.end(PortalPerfStats.Stage.GHOST_FEATURES, featuresStart);
         }
     }
 }

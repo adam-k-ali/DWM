@@ -1,6 +1,7 @@
 package com.adamkali.dwm.render.soto.ghost;
 
 import com.adamkali.dwm.render.portal.PortalCameraTransform;
+import com.adamkali.dwm.render.portal.PortalPerfStats;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.mojang.blaze3d.IndexType;
@@ -83,7 +84,9 @@ public final class SotoGhostMeshCache {
         PortalSceneStore.SceneKey sceneKey = new PortalSceneStore.SceneKey(kind, tardisId);
         long key = ChunkPos.pack(chunkX, chunkZ);
         Map<BlockPos, BlockState> blocks = ghost.blocksInChunk(key);
+        long bakeStart = PortalPerfStats.begin();
         ChunkMesh baked = bakeChunk(blocks, ghost);
+        PortalPerfStats.noteMeshBake(bakeStart >= 0L ? System.nanoTime() - bakeStart : 0L);
         Map<Long, ChunkMesh> byChunk = MESHES.computeIfAbsent(sceneKey, ignored -> new ConcurrentHashMap<>());
         ChunkMesh previous = byChunk.put(key, baked);
         if (previous != null) {
@@ -242,7 +245,9 @@ public final class SotoGhostMeshCache {
         }
         SotoGhostExterior ghost = SotoGhostExterior.get(sceneKey.kind(), sceneKey.tardisId());
         BlockPos footprintOrigin = ghost != null ? ghost.footprintOrigin() : BlockPos.ZERO;
+        long rebuildStart = PortalPerfStats.begin();
         state.rebuild(byChunk, hitch, signature, footprintOrigin);
+        PortalPerfStats.end(PortalPerfStats.Stage.PASS_BATCH_REBUILD, rebuildStart);
         return state;
     }
 
@@ -495,6 +500,8 @@ public final class SotoGhostMeshCache {
             Vec3 look = hitch != null ? hitch.lookDirection() : null;
             BlockPos origin = footprintOrigin == null ? BlockPos.ZERO : footprintOrigin;
 
+            int kept = 0;
+            int culled = 0;
             for (Long chunkKey : chunkKeys) {
                 ChunkMesh mesh = byChunk.get(chunkKey);
                 if (mesh == null || !mesh.isDrawable() || mesh.layers.isEmpty()) {
@@ -503,14 +510,17 @@ public final class SotoGhostMeshCache {
                 int chunkX = ChunkPos.getX(chunkKey);
                 int chunkZ = ChunkPos.getZ(chunkKey);
                 if (!SotoGhostHitchCull.isChunkVisibleToHitch(chunkX, chunkZ, origin, eye, look, viewMatrix)) {
+                    culled++;
                     continue;
                 }
+                kept++;
                 for (CpuLayer layer : mesh.layers) {
                     TerrainPass pass = layer.pass();
                     byPass.computeIfAbsent(pass, ignored -> new ArrayList<>()).add(layer);
                     sectionForPass.putIfAbsent(pass, layer.sectionLayer());
                 }
             }
+            PortalPerfStats.setCullCounts(kept, culled);
 
             for (TerrainPass pass : TerrainPass.values()) {
                 List<CpuLayer> parts = byPass.get(pass);

@@ -41,6 +41,8 @@ public final class PortalDoorRenderer {
             return;
         }
         PortalScheduler.schedule(scene);
+        PortalPerfStats.noteScheduled(scene.key());
+        long compositeStart = PortalPerfStats.begin();
         PortalRenderer.PortalTexture portalTexture =
                 PortalScheduler.peekCompositeTexture(scene.key());
         matrices.pushPose();
@@ -57,6 +59,7 @@ public final class PortalDoorRenderer {
             }
         } finally {
             matrices.popPose();
+            PortalPerfStats.end(PortalPerfStats.Stage.COMPOSITE, compositeStart);
         }
     }
 }

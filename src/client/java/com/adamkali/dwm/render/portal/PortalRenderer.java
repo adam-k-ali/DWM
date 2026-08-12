@@ -1,5 +1,8 @@
 package com.adamkali.dwm.render.portal;
 
+import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
+import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -67,42 +70,69 @@ public final class PortalRenderer {
         if (client == null || client.level == null || client.gameRenderer == null) {
             return PortalTexture.UNAVAILABLE;
         }
-        PortalContent content = scene.content();
-        if (!content.isReady(client)) {
-            renderedReady.remove(scene.key());
-            return PortalTexture.UNAVAILABLE;
-        }
-        PortalCameraTransform.Result hitch = content.hitch(client);
-        if (hitch == null) {
-            renderedReady.remove(scene.key());
-            return PortalTexture.UNAVAILABLE;
-        }
-
-        try (PortalRenderTarget.RenderStateGuard ignored =
-                     PortalRenderTarget.RenderStateGuard.capture()) {
-            if (!target.ensureReady(client)) {
-                PortalSupport.disableForSession("Portal framebuffer is incomplete", null);
+        PortalKey key = scene.key();
+        PortalPerfStats.beginOffMain(key);
+        long offMainStart = PortalPerfStats.begin();
+        try {
+            PortalContent content = scene.content();
+            if (!content.isReady(client)) {
+                renderedReady.remove(key);
+                PortalPerfStats.setOutcome(PortalPerfStats.Outcome.NOT_READY);
                 return PortalTexture.UNAVAILABLE;
             }
-            PortalKey key = scene.key();
-            if (!target.shouldRenderThisFrame(key)) {
-                return peekLastRendered(key);
+            PortalCameraTransform.Result hitch = content.hitch(client);
+            if (hitch == null) {
+                renderedReady.remove(key);
+                PortalPerfStats.setOutcome(PortalPerfStats.Outcome.NOT_READY);
+                return PortalTexture.UNAVAILABLE;
             }
-            if (!PortalFrameCache.isDirty(key)
-                    && PortalFrameCache.wasLastWriter(key)
-                    && renderedReady.contains(key)) {
-                return peekLastRendered(key);
+            recordSceneCounts(key);
+
+            try (PortalRenderTarget.RenderStateGuard ignored =
+                         PortalRenderTarget.RenderStateGuard.capture()) {
+                if (!target.ensureReady(client)) {
+                    PortalSupport.disableForSession("Portal framebuffer is incomplete", null);
+                    PortalPerfStats.setOutcome(PortalPerfStats.Outcome.FBO_FAIL);
+                    return PortalTexture.UNAVAILABLE;
+                }
+                if (!target.shouldRenderThisFrame(key)) {
+                    PortalPerfStats.setOutcome(PortalPerfStats.Outcome.ONCE_PER_FRAME);
+                    return peekLastRendered(key);
+                }
+                if (!PortalFrameCache.isDirty(key)
+                        && PortalFrameCache.wasLastWriter(key)
+                        && renderedReady.contains(key)) {
+                    PortalPerfStats.setOutcome(PortalPerfStats.Outcome.FRAME_CACHE_HIT);
+                    return peekLastRendered(key);
+                }
+                renderScene(client, scene, hitch, content.clearRgb(client));
+                for (PortalKey overwritten : PortalFrameCache.overwrittenReadyKeys(key, renderedReady)) {
+                    renderedReady.remove(overwritten);
+                }
+                PortalFrameCache.noteRendered(key);
+                PortalFrameCache.clearDirty(key);
+                renderedReady.add(key);
+                PortalPerfStats.setOutcome(PortalPerfStats.Outcome.RENDERED);
+                int colorTex = target.colorTextureId();
+                return new PortalTexture(colorTex, target.width(), target.height(), hitch, true);
             }
-            renderScene(client, scene, hitch, content.clearRgb(client));
-            for (PortalKey overwritten : PortalFrameCache.overwrittenReadyKeys(key, renderedReady)) {
-                renderedReady.remove(overwritten);
-            }
-            PortalFrameCache.noteRendered(key);
-            PortalFrameCache.clearDirty(key);
-            renderedReady.add(key);
-            int colorTex = target.colorTextureId();
-            return new PortalTexture(colorTex, target.width(), target.height(), hitch, true);
+        } finally {
+            PortalPerfStats.end(PortalPerfStats.Stage.OFF_MAIN_TOTAL, offMainStart);
         }
+    }
+
+    private static void recordSceneCounts(PortalKey key) {
+        if (!PortalPerfStats.isEnabled() || key == null) {
+            return;
+        }
+        PortalStreamKind streamKind = key.kind() == PortalKind.SOTO
+                ? PortalStreamKind.SOTO
+                : PortalStreamKind.BOTI;
+        SotoGhostExterior ghost = SotoGhostExterior.get(streamKind, key.tardisId());
+        int chunks = ghost != null ? ghost.chunkCount() : 0;
+        int entities = ghost != null ? ghost.entityCount() : 0;
+        int meshes = SotoGhostMeshCache.meshChunkCount(streamKind, key.tardisId());
+        PortalPerfStats.setSceneCounts(chunks, meshes, entities);
     }
 
     private void renderScene(

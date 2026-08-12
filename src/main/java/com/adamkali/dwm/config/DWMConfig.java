@@ -20,6 +20,12 @@ public class DWMConfig {
      */
     public static final ConfigKey<Boolean> ENABLE_DOOR_PORTALS = new ConfigKey<>("enableDoorPortals", true);
 
+    /**
+     * Client F3-style HUD overlay with shared portal pipeline stage timings (BOTI + SOTO).
+     * Default off — enable only while profiling.
+     */
+    public static final ConfigKey<Boolean> SHOW_PORTAL_PERF_DEBUG = new ConfigKey<>("showPortalPerfDebug", false);
+
     /** Legacy keys migrated into {@link #ENABLE_DOOR_PORTALS} on load. */
     static final String LEGACY_ENABLE_BOTI = "enableBoti";
     static final String LEGACY_ENABLE_SOTO = "enableSoto";

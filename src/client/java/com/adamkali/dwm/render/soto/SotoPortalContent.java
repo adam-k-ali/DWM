@@ -4,6 +4,7 @@ import com.adamkali.dwm.render.portal.PortalCameraTransform;
 import com.adamkali.dwm.render.portal.PortalContent;
 import com.adamkali.dwm.render.portal.PortalContentContext;
 import com.adamkali.dwm.render.portal.PortalFeatureFlush;
+import com.adamkali.dwm.render.portal.PortalPerfStats;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
@@ -88,10 +89,13 @@ public final class SotoPortalContent implements PortalContent {
         PortalAtmosphere portal = PortalSceneStore.getAtmosphere(PortalStreamKind.SOTO, id);
         SotoAtmosphere atmosphere = portal != null ? SotoAtmosphere.fromPortal(portal) : SotoAtmosphere.DEFAULT;
 
+        long skyStart = PortalPerfStats.begin();
         SotoSkyFogRenderer.renderPortalSky(sceneMatrices, null, atmosphere);
         context.bindTarget();
         GpuBufferSlice previousFog = SotoSkyFogRenderer.applyPortalTerrainFog(atmosphere);
+        PortalPerfStats.end(PortalPerfStats.Stage.SKY_FOG, skyStart);
         try {
+            long opaqueStart = PortalPerfStats.begin();
             SotoGhostMeshCache.drawLayer(
                     PortalStreamKind.SOTO,
                     id,
@@ -99,6 +103,9 @@ public final class SotoPortalContent implements PortalContent {
                     SotoGhostMeshCache.TerrainPass.OPAQUE,
                     hitch
             );
+            PortalPerfStats.end(PortalPerfStats.Stage.TERRAIN_OPAQUE, opaqueStart);
+
+            long cutoutStart = PortalPerfStats.begin();
             SotoGhostMeshCache.drawLayer(
                     PortalStreamKind.SOTO,
                     id,
@@ -106,6 +113,9 @@ public final class SotoPortalContent implements PortalContent {
                     SotoGhostMeshCache.TerrainPass.CUTOUT,
                     hitch
             );
+            PortalPerfStats.end(PortalPerfStats.Stage.TERRAIN_CUTOUT, cutoutStart);
+
+            long translucentStart = PortalPerfStats.begin();
             SotoGhostMeshCache.drawLayer(
                     PortalStreamKind.SOTO,
                     id,
@@ -113,6 +123,9 @@ public final class SotoPortalContent implements PortalContent {
                     SotoGhostMeshCache.TerrainPass.TRANSLUCENT,
                     hitch
             );
+            PortalPerfStats.end(PortalPerfStats.Stage.TERRAIN_TRANSLUCENT, translucentStart);
+
+            long featuresStart = PortalPerfStats.begin();
             try {
                 PortalFeatureFlush featureFlush = context.featureFlush();
                 if (featureFlush != null) {
@@ -149,6 +162,8 @@ public final class SotoPortalContent implements PortalContent {
                     }
                 }
             } catch (Throwable ignored) {
+            } finally {
+                PortalPerfStats.end(PortalPerfStats.Stage.GHOST_FEATURES, featuresStart);
             }
         } finally {
             SotoSkyFogRenderer.restoreFog(previousFog);
