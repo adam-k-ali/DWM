@@ -355,7 +355,8 @@ public class WaypointScreen extends Screen {
             return;
         }
         tardis.selectWaypoint(selected.id());
-        onClose();
+        destinationWaypointId = selected.id();
+        updateDetailActions();
     }
 
     private void clearDestination() {
