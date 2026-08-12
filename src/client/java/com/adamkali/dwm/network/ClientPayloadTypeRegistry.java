@@ -5,6 +5,7 @@ import com.adamkali.dwm.gui.TardisChameleonGui;
 import com.adamkali.dwm.render.portal.PortalRenderTarget;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.sound.TardisTravelSoundController;
+import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -26,6 +27,7 @@ public class ClientPayloadTypeRegistry {
             PortalSceneStore.invalidateAll();
             PortalRenderTarget.closeGlobal();
             TardisTravelSoundController.stopAll();
+            TardisDataLoader.clearCache();
         });
     }
 
@@ -41,7 +43,17 @@ public class ClientPayloadTypeRegistry {
     }
 
     private static void syncPortalMeta(SyncPortalMetaS2CPayload payload, ClientPlayNetworking.Context context) {
-        context.client().execute(() -> PortalSceneStore.applyMeta(payload));
+        context.client().execute(() -> {
+            PortalSceneStore.applyMeta(payload);
+            // Remote clients have no save directory; seed the shared cache so exterior
+            // tick/render can animate doors without hitting disk.
+            TardisDataLoader.applyClientShell(
+                    payload.tardisId(),
+                    payload.variant(),
+                    payload.doorSwing(),
+                    payload.isOpen()
+            );
+        });
     }
 
     private static void syncPortalChunk(SyncPortalChunkS2CPayload payload, ClientPlayNetworking.Context context) {

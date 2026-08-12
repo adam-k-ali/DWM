@@ -1,5 +1,6 @@
 package com.adamkali.dwm.tardis.data;
 
+import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.AfterEach;
@@ -90,6 +91,59 @@ public class TardisDataLoaderTest {
 
         // Assert
         assertNull(result, "Should return null for nonexistent file");
+    }
+
+    @Test
+    void get_ReturnsNullWhenSaveDirectoryUnset() {
+        TardisDataLoader.tardisSaveDirectory = null;
+        UUID uuid = UUID.randomUUID();
+
+        assertNull(TardisDataLoader.get(uuid), "Remote clients must not crash when save dir is unset");
+    }
+
+    @Test
+    void applyClientShell_SeedsCacheWhenSaveDirectoryUnset() {
+        TardisDataLoader.tardisSaveDirectory = null;
+        UUID uuid = UUID.randomUUID();
+
+        TardisDataLoader.applyClientShell(uuid, TardisChameleonVariant.FIRST_DOCTOR_BOX, 0.5f, true);
+
+        TardisDataModel model = TardisDataLoader.get(uuid);
+        assertNotNull(model);
+        assertEquals(TardisChameleonVariant.FIRST_DOCTOR_BOX, model.variant);
+        assertTrue(model.doorState.isOpen);
+        assertEquals(0.5f, model.doorState.doorSwing, 0.001f);
+        assertFalse(model.needsSaving(), "Client shell seed must not mark dirty for persistence");
+    }
+
+    @Test
+    void applyClientShell_NoOpsWhenSaveDirectorySet() {
+        UUID uuid = UUID.randomUUID();
+
+        TardisDataLoader.applyClientShell(uuid, TardisChameleonVariant.FIRST_DOCTOR_BOX, 1.0f, true);
+
+        assertNull(TardisDataLoader.get(uuid), "Integrated/server cache must not be overwritten by client meta");
+    }
+
+    @Test
+    void clearCache_RemovesCachedModels() {
+        TardisDataLoader.tardisSaveDirectory = null;
+        UUID uuid = UUID.randomUUID();
+        TardisDataLoader.applyClientShell(uuid, TardisChameleonVariant.TT_CAPSULE, 0.0f, false);
+
+        TardisDataLoader.clearCache();
+
+        assertNull(TardisDataLoader.get(uuid));
+    }
+
+    @Test
+    void clearCache_NoOpsWhenSaveDirectorySet() {
+        TardisDataModel model = TardisDataLoader.create();
+        UUID uuid = model.uuid;
+
+        TardisDataLoader.clearCache();
+
+        assertSame(model, TardisDataLoader.get(uuid), "Server/integrated cache must survive clearCache");
     }
 
     @Test
