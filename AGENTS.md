@@ -84,6 +84,7 @@
 - Releases are intentional git tags `v{minecraft}-{mod}` — see [docs/release-policy.md](docs/release-policy.md).
 - Do not bump `mod_version` or `version.json` promos except when cutting a release; use `./gradlew syncVersionJson` at cut time.
 - The release workflow publishes the GitHub Release, Modrinth version, and Discord `#releases` announcement from `version.json` (`summary` + changelog lists). Requires `MODRINTH_TOKEN` and `DISCORD_WEBHOOK_URL` secrets.
+- Modrinth project listing fields live in `metadata/` (`modrinth.json` + `modrinth-body.md`); sync them with the manual **Sync Modrinth Project** workflow (`PROJECT_WRITE` on `MODRINTH_TOKEN`).
 
 ## Change Scope & Safety
 - Keep unrelated files untouched.
