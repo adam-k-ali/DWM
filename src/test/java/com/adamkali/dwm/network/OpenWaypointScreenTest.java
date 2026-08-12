@@ -57,6 +57,7 @@ class OpenWaypointScreenTest {
     void of_disablesSaveAtWaypointCapButKeepsExteriorSnapshot() {
         model.setExteriorLocation("dwm:gallifrey", 1, 2, 3, 0);
         for (int i = 0; i < WaypointLogic.MAX_WAYPOINTS; i++) {
+            model.setExteriorLocation("dwm:gallifrey", i, 2, 3, 0);
             assertTrue(WaypointLogic.add(model, "WP" + i).isPresent());
         }
 

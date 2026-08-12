@@ -74,7 +74,7 @@ public final class WaypointLogic {
      * Adds a waypoint at the model's current exterior location.
      *
      * @param requestedName optional display name; blank → generated unique name
-     * @return the created waypoint, or empty when exterior missing, at cap, or name taken
+     * @return the created waypoint, or empty when exterior missing, at cap, location already saved, or name taken
      */
     public static Optional<TardisWaypoint> add(
             @Nullable TardisDataModel model,
@@ -86,6 +86,9 @@ public final class WaypointLogic {
         }
         List<TardisWaypoint> waypoints = model.getWaypoints();
         if (waypoints.size() >= MAX_WAYPOINTS) {
+            return Optional.empty();
+        }
+        if (findAtExterior(model).isPresent()) {
             return Optional.empty();
         }
 

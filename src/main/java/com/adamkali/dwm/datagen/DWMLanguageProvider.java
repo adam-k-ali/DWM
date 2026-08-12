@@ -247,6 +247,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.gui.waypoint.tooltip.destination", "Selected destination");
         t.add("dwm.gui.waypoint.tooltip.at_location", "Current location");
         t.add("dwm.gui.waypoint.tooltip.new", "Save current location as a waypoint");
+        t.add("dwm.gui.waypoint.tooltip.new_exists", "A waypoint already exists at this location");
         t.add("dwm.gui.waypoint.tooltip.edit", "Rename waypoint");
         t.add("dwm.gui.waypoint.tooltip.delete", "Delete waypoint");
         t.add("dwm.gui.waypoint.tooltip.select", "Set as destination");

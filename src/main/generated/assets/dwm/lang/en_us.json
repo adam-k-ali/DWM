@@ -142,6 +142,7 @@
   "dwm.gui.waypoint.tooltip.destination": "Selected destination",
   "dwm.gui.waypoint.tooltip.edit": "Rename waypoint",
   "dwm.gui.waypoint.tooltip.new": "Save current location as a waypoint",
+  "dwm.gui.waypoint.tooltip.new_exists": "A waypoint already exists at this location",
   "dwm.gui.waypoint.tooltip.select": "Set as destination",
   "dwm.second_doctor_box": "Second Doctor Box",
   "dwm.seventh_doctor_box": "Seventh Doctor Box",

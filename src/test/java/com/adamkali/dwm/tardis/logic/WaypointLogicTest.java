@@ -39,7 +39,15 @@ class WaypointLogicTest {
     @Test
     void add_rejectsDuplicateNamesCaseInsensitive() {
         assertTrue(WaypointLogic.add(model, "Home").isPresent());
+        model.setExteriorLocation("minecraft:overworld", 11, 64, -20, 2);
         assertTrue(WaypointLogic.add(model, "home").isEmpty());
+        assertEquals(1, model.getWaypoints().size());
+    }
+
+    @Test
+    void add_rejectsDuplicateLocation() {
+        assertTrue(WaypointLogic.add(model, "Here").isPresent());
+        assertTrue(WaypointLogic.add(model, "Also Here").isEmpty());
         assertEquals(1, model.getWaypoints().size());
     }
 
@@ -52,8 +60,10 @@ class WaypointLogicTest {
     @Test
     void add_enforcesCap() {
         for (int i = 0; i < WaypointLogic.MAX_WAYPOINTS; i++) {
+            model.setExteriorLocation("minecraft:overworld", i, 64, -20, 2);
             assertTrue(WaypointLogic.add(model, "WP" + i).isPresent());
         }
+        model.setExteriorLocation("minecraft:overworld", 100, 64, -20, 2);
         assertTrue(WaypointLogic.add(model, "overflow").isEmpty());
         assertEquals(WaypointLogic.MAX_WAYPOINTS, model.getWaypoints().size());
     }
@@ -119,6 +129,7 @@ class WaypointLogicTest {
     @Test
     void rename_rejectsDuplicateNamesCaseInsensitive() {
         TardisWaypoint first = WaypointLogic.add(model, "Home").orElseThrow();
+        model.setExteriorLocation("minecraft:overworld", 11, 64, -20, 2);
         TardisWaypoint second = WaypointLogic.add(model, "Pad").orElseThrow();
 
         assertFalse(WaypointLogic.rename(model, second.id, "home"));

@@ -12,6 +12,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 import net.minecraft.client.gui.components.PopupScreen;
 import net.minecraft.client.gui.components.SpriteIconButton;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
@@ -68,7 +69,7 @@ public class WaypointScreen extends Screen {
     private final List<OpenWaypointScreen.WaypointEntry> waypoints;
     private final boolean canSave;
     private @Nullable UUID destinationWaypointId;
-    private final @Nullable UUID locationWaypointId;
+    private @Nullable UUID locationWaypointId;
     private final @Nullable OpenWaypointScreen.ExteriorLocation exteriorLocation;
 
     private WaypointList list;
@@ -135,6 +136,51 @@ public class WaypointScreen extends Screen {
         return false;
     }
 
+    /** True when a new waypoint can be saved at the current exterior. */
+    private boolean canCreateNew() {
+        return canSave && !hasWaypointAtCurrentLocation();
+    }
+
+    private boolean hasWaypointAtCurrentLocation() {
+        if (locationWaypointId != null) {
+            return true;
+        }
+        return findWaypointIdAtExterior() != null;
+    }
+
+    private @Nullable UUID findWaypointIdAtExterior() {
+        if (exteriorLocation == null) {
+            return null;
+        }
+        for (OpenWaypointScreen.WaypointEntry entry : waypoints) {
+            if (entry == null || entry.dimension() == null) {
+                continue;
+            }
+            if (exteriorLocation.dimension().equals(entry.dimension())
+                    && exteriorLocation.x() == entry.x()
+                    && exteriorLocation.y() == entry.y()
+                    && exteriorLocation.z() == entry.z()) {
+                return entry.id();
+            }
+        }
+        return null;
+    }
+
+    private Component newButtonTooltip() {
+        if (hasWaypointAtCurrentLocation()) {
+            return Component.translatable("dwm.gui.waypoint.tooltip.new_exists");
+        }
+        return Component.translatable("dwm.gui.waypoint.tooltip.new");
+    }
+
+    private void refreshNewButton() {
+        if (newButton == null) {
+            return;
+        }
+        newButton.active = canCreateNew();
+        newButton.setTooltip(Tooltip.create(newButtonTooltip()));
+    }
+
     @Override
     protected void init() {
         panelLeft = width / 2 - PANEL_WIDTH / 2;
@@ -191,12 +237,12 @@ public class WaypointScreen extends Screen {
         int footerY = panelTop + PANEL_HEIGHT - 40;
         newButton = iconButton(
                 Component.translatable("dwm.gui.waypoint.new"),
-                Component.translatable("dwm.gui.waypoint.tooltip.new"),
+                newButtonTooltip(),
                 ICON_NEW,
                 button -> beginCreate()
         );
         newButton.setPosition(panelLeft + 10, footerY);
-        newButton.active = canSave;
+        refreshNewButton();
 
         doneButton = Button.builder(Component.translatable("gui.done"), button -> onClose())
                 .bounds(panelLeft + 38, footerY, PANEL_WIDTH - 48, 20)
@@ -244,7 +290,7 @@ public class WaypointScreen extends Screen {
         applyModeVisibility();
         updateDetailActions();
         updateConfirmActive();
-        if (waypoints.isEmpty() && canSave) {
+        if (waypoints.isEmpty() && canCreateNew()) {
             beginCreate();
         }
     }
@@ -414,7 +460,7 @@ public class WaypointScreen extends Screen {
     }
 
     private void beginCreate() {
-        if (!canSave || createPending) {
+        if (!canCreateNew() || createPending) {
             return;
         }
         nameMode = NameMode.CREATE;
@@ -506,11 +552,15 @@ public class WaypointScreen extends Screen {
         if (entry.id().equals(destinationWaypointId)) {
             destinationWaypointId = null;
         }
+        if (entry.id().equals(locationWaypointId)) {
+            locationWaypointId = null;
+        }
         rebuildListEntries();
+        refreshNewButton();
         if (nameMode == NameMode.RENAME && entry.id().equals(renameTargetId)) {
             exitNameMode();
         }
-        if (waypoints.isEmpty() && canSave) {
+        if (waypoints.isEmpty() && canCreateNew()) {
             beginCreate();
         }
     }
@@ -719,6 +769,9 @@ public class WaypointScreen extends Screen {
 
         @Override
         public void setSelected(@Nullable WaypointEntryRow entry) {
+            if (entry != null && isGhost(entry.waypoint.id()) && nameMode != NameMode.CREATE && !canCreateNew()) {
+                return;
+            }
             super.setSelected(entry);
             if (entry != null) {
                 onRowSelected(entry.waypoint);
@@ -749,7 +802,7 @@ public class WaypointScreen extends Screen {
                 boolean ghost = isGhost(waypoint.id());
                 if (ghost) {
                     int textColor;
-                    if (!canSave) {
+                    if (!canCreateNew()) {
                         textColor = GHOST_TEXT_COLOR_DISABLED;
                     } else if (isFocused() || WaypointList.this.getSelected() == this) {
                         textColor = GHOST_TEXT_COLOR;
@@ -764,6 +817,9 @@ public class WaypointScreen extends Screen {
                             textColor,
                             false
                     );
+                    if (hovered && !canCreateNew()) {
+                        graphics.setTooltipForNextFrame(newButtonTooltip(), mouseX, mouseY);
+                    }
                     return;
                 }
 
@@ -835,9 +891,20 @@ public class WaypointScreen extends Screen {
                     return Component.translatable("dwm.gui.waypoint.empty");
                 }
                 if (isGhost(waypoint.id())) {
+                    if (!canCreateNew()) {
+                        return newButtonTooltip();
+                    }
                     return Component.translatable("dwm.gui.waypoint.new.ghost");
                 }
                 return Component.literal(waypoint.name());
+            }
+
+            @Override
+            public boolean shouldTakeFocusAfterInteraction() {
+                if (isGhost(waypoint.id()) && !canCreateNew()) {
+                    return false;
+                }
+                return super.shouldTakeFocusAfterInteraction();
             }
 
             @Override
@@ -849,9 +916,10 @@ public class WaypointScreen extends Screen {
                     return false;
                 }
                 if (isGhost(waypoint.id())) {
-                    if (canSave && !createPending) {
-                        beginCreate();
+                    if (!canCreateNew() || createPending) {
+                        return false;
                     }
+                    beginCreate();
                     return true;
                 }
                 WaypointList.this.setSelected(this);
