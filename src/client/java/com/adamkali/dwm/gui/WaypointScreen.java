@@ -38,12 +38,12 @@ public class WaypointScreen extends Screen {
     private static final Identifier ICON_CLEAR =
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "waypoint/clear");
     private static final int MAX_NAME_LENGTH = 32;
-    private static final int ROW_HEIGHT = 28;
-    private static final int PANEL_WIDTH = 340;
-    private static final int PANEL_HEIGHT = 250;
-    private static final int LIST_WIDTH = 156;
-    private static final int DETAIL_WIDTH = 156;
-    private static final int BODY_HEIGHT = 156;
+    private static final int ROW_HEIGHT = 22;
+    private static final int PANEL_WIDTH = 300;
+    private static final int PANEL_HEIGHT = 200;
+    private static final int LIST_WIDTH = 136;
+    private static final int DETAIL_WIDTH = 136;
+    private static final int BODY_HEIGHT = 118;
     private static final int ICON_SIZE = 10;
     private static final int ICON_GAP = 2;
     private static final int ACTION_BUTTON_SIZE = 20;
@@ -171,12 +171,13 @@ public class WaypointScreen extends Screen {
         nameField.setMaxLength(MAX_NAME_LENGTH);
         nameField.setHint(Component.translatable("dwm.gui.waypoint.name"));
 
+        int nameButtonWidth = (PANEL_WIDTH - 30) / 2;
         confirmButton = Button.builder(Component.translatable("dwm.gui.waypoint.confirm"), button -> confirmName())
-                .bounds(panelLeft + 10, footerY, 155, 20)
+                .bounds(panelLeft + 10, footerY, nameButtonWidth, 20)
                 .build();
 
         cancelButton = Button.builder(Component.translatable("gui.cancel"), button -> exitNameMode())
-                .bounds(panelLeft + 175, footerY, 155, 20)
+                .bounds(panelLeft + 20 + nameButtonWidth, footerY, nameButtonWidth, 20)
                 .build();
 
         list = new WaypointList(minecraft, LIST_WIDTH, BODY_HEIGHT, bodyTop, ROW_HEIGHT);
