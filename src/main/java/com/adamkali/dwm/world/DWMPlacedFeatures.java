@@ -15,6 +15,7 @@ public final class DWMPlacedFeatures {
     public static final ResourceKey<PlacedFeature> GALLIFREY_FLOWERS_FOREST = key("gallifrey_flowers_forest");
     public static final ResourceKey<PlacedFeature> SACCHARINE_CANE_WASTES = key("saccharine_cane_wastes");
     public static final ResourceKey<PlacedFeature> SACCHARINE_CANE_BADLANDS = key("saccharine_cane_badlands");
+    public static final ResourceKey<PlacedFeature> AZBANTIUM_ORE = key("azbantium_ore");
 
     private static ResourceKey<PlacedFeature> key(String path) {
         return ResourceKey.create(Registries.PLACED_FEATURE, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, path));

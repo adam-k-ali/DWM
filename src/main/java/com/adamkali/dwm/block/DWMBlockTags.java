@@ -27,6 +27,12 @@ public final class DWMBlockTags {
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "gallifrey_plants")
     );
 
+    /** Gallifrey stone only — ore replacement target (excludes dirt/sand/grass family members). */
+    public static final TagKey<Block> GALLIFREY_ORE_REPLACEABLES = TagKey.create(
+            Registries.BLOCK,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "gallifrey_ore_replaceables")
+    );
+
     public static final TagKey<Block> AZBANTIUM_ORES = TagKey.create(
             Registries.BLOCK,
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "azbantium_ores")

@@ -12,6 +12,7 @@ public final class DWMConfiguredFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> CARDINAL = key("cardinal");
     public static final ResourceKey<ConfiguredFeature<?, ?>> GALLIFREY_FLOWERS = key("gallifrey_flowers");
     public static final ResourceKey<ConfiguredFeature<?, ?>> SACCHARINE_CANE = key("saccharine_cane");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> AZBANTIUM_ORE = key("azbantium_ore");
 
     private static ResourceKey<ConfiguredFeature<?, ?>> key(String path) {
         return ResourceKey.create(

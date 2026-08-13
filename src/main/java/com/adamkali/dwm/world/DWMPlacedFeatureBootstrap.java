@@ -10,11 +10,13 @@ import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.data.worldgen.placement.VegetationPlacements;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.placement.BiomeFilter;
 import net.minecraft.world.level.levelgen.placement.BlockPredicateFilter;
 import net.minecraft.world.level.levelgen.placement.CountPlacement;
+import net.minecraft.world.level.levelgen.placement.HeightRangePlacement;
 import net.minecraft.world.level.levelgen.placement.InSquarePlacement;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.placement.PlacementModifier;
@@ -65,6 +67,16 @@ public final class DWMPlacedFeatureBootstrap {
         Holder<ConfiguredFeature<?, ?>> cane = configured.getOrThrow(DWMConfiguredFeatures.SACCHARINE_CANE);
         registerSaccharineCane(registerable, DWMPlacedFeatures.SACCHARINE_CANE_WASTES, cane, 4);
         registerSaccharineCane(registerable, DWMPlacedFeatures.SACCHARINE_CANE_BADLANDS, cane, 5);
+
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.AZBANTIUM_ORE,
+                configured.getOrThrow(DWMConfiguredFeatures.AZBANTIUM_ORE),
+                CountPlacement.of(8),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.triangle(VerticalAnchor.absolute(-64), VerticalAnchor.absolute(32)),
+                BiomeFilter.biome()
+        );
     }
 
     private static void registerTree(

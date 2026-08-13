@@ -16,6 +16,7 @@ Give TARDIS travel a unique destination world built from Gallifrey builder block
 - Surface rules use Gallifrey grass / dirt / coarse dirt / sand / sandstone / orange sand / orange sandstone / stone (wastes stay Gallifrey-sand; badlands use orange sand).
 - Placed tree features for Ash (sparse plains + denser forest), Dark Ash, and Cardinal in forest.
 - Plant decoration: Flower of Remembrance / Moonlight Bloom mix on plains (denser) and forest (sparser); Saccharine Cane columns on wastes and badlands (no water requirement).
+- Azbantium ore veins in Gallifrey stone (all biomes; diamond pickaxe required — see [Azbantium](./feature-azbantium.md)).
 - Archive colormap and cloud textures imported under `assets/dwm/textures/` for future tinting/sky work; grass block uses pre-colored deep-red textures.
 - TARDIS `BiomeSelectorLogic` maps `dwm:gallifrey` to `#dwm:is_gallifrey`.
 
