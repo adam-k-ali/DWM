@@ -36,6 +36,9 @@ public class DWMRenderLayerManager {
                 PlayerLocatorModel.LAYER_LOCATION,
                 PlayerLocatorModel::getTexturedModelData);
         ModelLayerRegistry.registerModelLayer(
+                ChameleonCircuitModel.LAYER_LOCATION,
+                ChameleonCircuitModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(
                 MaterialisationLeverModel.LAYER_LOCATION,
                 MaterialisationLeverModel::getTexturedModelData);
     }

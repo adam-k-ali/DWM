@@ -64,6 +64,17 @@ public class TardisLogic {
     }
 
     public static void setVariant(UUID tardisId, TardisChameleonVariant variant) {
+        setVariant(tardisId, variant, null);
+    }
+
+    /**
+     * Sets the chameleon variant and optionally syncs it onto the interior console BE for holograms.
+     */
+    public static void setVariant(
+            UUID tardisId,
+            TardisChameleonVariant variant,
+            @Nullable MinecraftServer server
+    ) {
         TardisDataModel tardis = TardisDataLoader.get(tardisId);
         if (tardis == null) {
             return;
@@ -72,6 +83,30 @@ public class TardisLogic {
         tardis.variant = variant;
         tardis.setChanged();
         PortalStreamSyncService.setMetaChanged(tardisId);
+        FirstDoctorConsoleSync.syncVariant(server, tardisId, variant);
+    }
+
+    /**
+     * Advances to the next {@link TardisChameleonVariant} (wrapping), syncing the console hologram.
+     *
+     * @return the new variant, or empty if the TARDIS is missing
+     */
+    public static Optional<TardisChameleonVariant> cycleVariant(
+            UUID tardisId,
+            @Nullable MinecraftServer server
+    ) {
+        TardisDataModel tardis = TardisDataLoader.get(tardisId);
+        if (tardis == null) {
+            return Optional.empty();
+        }
+        TardisChameleonVariant[] values = TardisChameleonVariant.values();
+        TardisChameleonVariant current = tardis.variant == null
+                ? TardisChameleonVariant.TT_CAPSULE
+                : tardis.variant;
+        int nextIndex = (current.ordinal() + 1) % values.length;
+        TardisChameleonVariant next = values[nextIndex];
+        setVariant(tardisId, next, server);
+        return Optional.of(next);
     }
 
     public static TardisChameleonVariant getVariant(UUID tardisId) {

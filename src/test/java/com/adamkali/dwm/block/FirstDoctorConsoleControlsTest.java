@@ -162,6 +162,17 @@ class FirstDoctorConsoleControlsTest {
     }
 
     @Test
+    void lookRay_hitsChameleonCircuitFromAbove() {
+        Direction facing = Direction.NORTH;
+        BlockPos pos = BlockPos.ZERO;
+        AABB box = FirstDoctorConsoleControls.chameleonCircuitWorldBox(pos, facing);
+        Vec3 center = box.getCenter();
+        Vec3 eye = new Vec3(center.x, center.y + 1.5, center.z);
+        Vec3 look = new Vec3(0, -1, 0);
+        assertTrue(FirstDoctorConsoleControls.isChameleonCircuitLookHit(facing, pos, eye, look, 5.0));
+    }
+
+    @Test
     void preferBiomeOverPlanet_picksCloserDial() {
         Direction facing = Direction.NORTH;
         BlockPos pos = BlockPos.ZERO;
@@ -206,10 +217,17 @@ class FirstDoctorConsoleControlsTest {
     }
 
     @Test
-    void resolvePanel6LookHit_returnsLeverWhenHit() {
+    void resolvePanel6LookHit_prefersCloserControl() {
         Direction facing = Direction.NORTH;
         BlockPos pos = BlockPos.ZERO;
         Vec3 look = new Vec3(0, -1, 0);
+
+        AABB chameleon = FirstDoctorConsoleControls.chameleonCircuitWorldBox(pos, facing);
+        Vec3 chameleonEye = new Vec3(chameleon.getCenter().x, chameleon.getCenter().y + 1.5, chameleon.getCenter().z);
+        assertEquals(
+                FirstDoctorConsoleControls.Panel6Control.CHAMELEON,
+                FirstDoctorConsoleControls.resolvePanel6LookHit(facing, pos, chameleonEye, look, 5.0)
+        );
 
         AABB lever = FirstDoctorConsoleControls.materialisationLeverWorldBox(pos, facing);
         Vec3 leverEye = new Vec3(lever.getCenter().x, lever.getCenter().y + 1.5, lever.getCenter().z);
@@ -232,11 +250,11 @@ class FirstDoctorConsoleControlsTest {
                 FirstDoctorConsoleControls.resolveLookTarget(facing, pos, waypointEye, look, 5.0)
         );
 
-        AABB lever = FirstDoctorConsoleControls.materialisationLeverWorldBox(pos, facing);
-        Vec3 leverEye = new Vec3(lever.getCenter().x, lever.getCenter().y + 1.5, lever.getCenter().z);
+        AABB chameleon = FirstDoctorConsoleControls.chameleonCircuitWorldBox(pos, facing);
+        Vec3 chameleonEye = new Vec3(chameleon.getCenter().x, chameleon.getCenter().y + 1.5, chameleon.getCenter().z);
         assertEquals(
-                FirstDoctorConsoleControls.LookTarget.MATERIALISATION_LEVER,
-                FirstDoctorConsoleControls.resolveLookTarget(facing, pos, leverEye, look, 5.0)
+                FirstDoctorConsoleControls.LookTarget.CHAMELEON_CIRCUIT,
+                FirstDoctorConsoleControls.resolveLookTarget(facing, pos, chameleonEye, look, 5.0)
         );
     }
 
