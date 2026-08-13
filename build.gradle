@@ -278,7 +278,8 @@ tasks.register("pruneDatagenItemModels") {
                     || f.name.contains("orange_sand")
                     || f.name.contains("flower_of_remembrance")
                     || f.name.contains("moonlight_bloom")
-                    || f.name.contains("saccharine_cane")) {
+                    || f.name.contains("saccharine_cane")
+                    || f.name.contains("azbantium")) {
                 return
             }
             f.delete()

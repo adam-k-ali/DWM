@@ -51,6 +51,12 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
             gallifreyPlantsTag.add(key(plant));
         }
 
+        builder(DWMBlockTags.GALLIFREY_ORE_REPLACEABLES)
+                .add(key(DWMBlocks.GALLIFREY_STONE));
+
+        builder(DWMBlockTags.AZBANTIUM_ORES)
+                .add(key(DWMBlocks.AZBANTIUM_ORE));
+
         var smallFlowers = builder(BlockTags.SMALL_FLOWERS);
         for (Block flower : DWMBlocks.GALLIFREY_CROSS_PLANTS) {
             smallFlowers.add(key(flower));
@@ -90,7 +96,13 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(key(DWMBlocks.SMOOTH_ORANGE_SANDSTONE_SLAB))
                 .add(key(DWMBlocks.CITADEL_WALL))
                 .add(key(DWMBlocks.CITADEL_PANEL))
-                .add(key(DWMBlocks.CITADEL_TILE));
+                .add(key(DWMBlocks.CITADEL_TILE))
+                .add(key(DWMBlocks.AZBANTIUM_ORE))
+                .add(key(DWMBlocks.AZBANTIUM_BLOCK));
+
+        builder(BlockTags.NEEDS_DIAMOND_TOOL)
+                .add(key(DWMBlocks.AZBANTIUM_ORE))
+                .add(key(DWMBlocks.AZBANTIUM_BLOCK));
 
         builder(BlockTags.IMPERMEABLE)
                 .add(key(DWMBlocks.CITADEL_GLASS));
