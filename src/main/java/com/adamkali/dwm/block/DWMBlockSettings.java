@@ -5,6 +5,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 
 public class DWMBlockSettings {
     public static final BlockBehaviour.Properties TARDIS_WALL_SETTINGS = BlockBehaviour.Properties.of().strength(2.0F, 3.0F).sound(SoundType.METAL);
@@ -76,6 +77,33 @@ public class DWMBlockSettings {
     public static final MapColor ASH_BARK_COLOR = MapColor.TERRACOTTA_GRAY;
     public static final MapColor DARK_ASH_PLANKS_COLOR = MapColor.TERRACOTTA_BROWN;
     public static final MapColor DARK_ASH_BARK_COLOR = MapColor.TERRACOTTA_GRAY;
+
+    /** Fresh properties for each Gallifrey cross flower (avoids shared setId mutation). */
+    public static BlockBehaviour.Properties gallifreyCrossPlant() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.PLANT)
+                .noCollision()
+                .instabreak()
+                .sound(SoundType.GRASS)
+                .offsetType(BlockBehaviour.OffsetType.XZ)
+                .pushReaction(PushReaction.DESTROY);
+    }
+
+    public static BlockBehaviour.Properties gallifreyPottedPlant() {
+        return BlockBehaviour.Properties.of()
+                .instabreak()
+                .noOcclusion()
+                .pushReaction(PushReaction.DESTROY);
+    }
+
+    public static BlockBehaviour.Properties saccharineCane() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.PLANT)
+                .noCollision()
+                .instabreak()
+                .sound(SoundType.GRASS)
+                .pushReaction(PushReaction.DESTROY);
+    }
 
     public static BlockBehaviour.Properties ashLog(MapColor topMapColor, MapColor sideMapColor) {
         return BlockBehaviour.Properties.of()

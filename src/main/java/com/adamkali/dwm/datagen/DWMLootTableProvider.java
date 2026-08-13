@@ -40,6 +40,13 @@ public class DWMLootTableProvider extends FabricBlockLootSubProvider {
         }
         add(DWMBlocks.CITADEL_GLASS, createSilkTouchOnlyTable(DWMBlocks.CITADEL_GLASS));
 
+        for (Block plant : DWMBlocks.GALLIFREY_PLANTS) {
+            dropSelf(plant);
+        }
+        for (Block potted : DWMBlocks.GALLIFREY_POTTED_PLANTS) {
+            dropPottedContents(potted);
+        }
+
         for (var family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.generateLoot(new WoodFamilyDatagen.LootDropSink() {
                 @Override

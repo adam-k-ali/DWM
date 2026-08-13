@@ -2,6 +2,7 @@ package com.adamkali.dwm.block;
 
 import com.adamkali.dwm.item.DWMCreativeTabs;
 
+import com.adamkali.dwm.block.plant.SaccharineCaneBlock;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.block.wood.WoodFamilyDefinition;
 import com.adamkali.dwm.block.wood.WoodFamilyFeature;
@@ -10,6 +11,7 @@ import com.adamkali.dwm.item.DWMItemTags;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
+import net.fabricmc.fabric.api.registry.CompostableRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -17,10 +19,13 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ColorRGBA;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ColoredFallingBlock;
+import net.minecraft.world.level.block.FlowerBlock;
+import net.minecraft.world.level.block.FlowerPotBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.TransparentBlock;
@@ -212,6 +217,32 @@ public class DWMBlocks {
     public static final Block CITADEL_PANEL = register(Block::new, DWMBlockSettings.CITADEL, "citadel_panel");
     public static final Block CITADEL_TILE = register(Block::new, DWMBlockSettings.CITADEL, "citadel_tile");
     public static final Block CITADEL_GLASS = register(TransparentBlock::new, DWMBlockSettings.CITADEL_GLASS, "citadel_glass");
+
+    public static final Block FLOWER_OF_REMEMBRANCE = register(
+            props -> new FlowerBlock(MobEffects.SATURATION, 0.35F, props),
+            DWMBlockSettings.gallifreyCrossPlant(),
+            "flower_of_remembrance"
+    );
+    public static final Block POTTED_FLOWER_OF_REMEMBRANCE = registerWithoutItem(
+            props -> new FlowerPotBlock(FLOWER_OF_REMEMBRANCE, props),
+            DWMBlockSettings.gallifreyPottedPlant(),
+            "potted_flower_of_remembrance"
+    );
+    public static final Block MOONLIGHT_BLOOM = register(
+            props -> new FlowerBlock(MobEffects.NIGHT_VISION, 5.0F, props),
+            DWMBlockSettings.gallifreyCrossPlant(),
+            "moonlight_bloom"
+    );
+    public static final Block POTTED_MOONLIGHT_BLOOM = registerWithoutItem(
+            props -> new FlowerPotBlock(MOONLIGHT_BLOOM, props),
+            DWMBlockSettings.gallifreyPottedPlant(),
+            "potted_moonlight_bloom"
+    );
+    public static final Block SACCHARINE_CANE = register(
+            SaccharineCaneBlock::new,
+            DWMBlockSettings.saccharineCane(),
+            "saccharine_cane"
+    );
 
     public static final RegisteredWoodFamily ASH = WoodFamilyRegistrar.registerBlocks(
             new WoodFamilyDefinition(
@@ -423,8 +454,31 @@ public class DWMBlocks {
             CITADEL_GLASS
     );
 
+    /** Placeable Gallifrey decorative plants (items). */
+    public static final List<Block> GALLIFREY_PLANTS = List.of(
+            FLOWER_OF_REMEMBRANCE,
+            MOONLIGHT_BLOOM,
+            SACCHARINE_CANE
+    );
+
+    /** Cross flowers that have potted variants. */
+    public static final List<Block> GALLIFREY_CROSS_PLANTS = List.of(
+            FLOWER_OF_REMEMBRANCE,
+            MOONLIGHT_BLOOM
+    );
+
+    /** Potted Gallifrey flowers (no BlockItem). */
+    public static final List<Block> GALLIFREY_POTTED_PLANTS = List.of(
+            POTTED_FLOWER_OF_REMEMBRANCE,
+            POTTED_MOONLIGHT_BLOOM
+    );
+
     public static void initialize() {
         DWMWoodTypes.initialize();
+
+        CompostableRegistry.INSTANCE.add(FLOWER_OF_REMEMBRANCE.asItem(), 0.65F);
+        CompostableRegistry.INSTANCE.add(MOONLIGHT_BLOOM.asItem(), 0.65F);
+        CompostableRegistry.INSTANCE.add(SACCHARINE_CANE.asItem(), 0.50F);
 
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) ->
                 !FirstDoctorConsoleBlock.isPlayerBreakDenied(state));
@@ -581,6 +635,9 @@ public class DWMBlocks {
                 content.accept(family.blocks().log());
                 content.accept(family.blocks().leaves());
                 content.accept(family.blocks().sapling());
+            }
+            for (Block plant : GALLIFREY_PLANTS) {
+                content.accept(plant);
             }
         });
 
