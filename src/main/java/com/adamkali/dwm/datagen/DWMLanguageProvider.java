@@ -21,6 +21,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addGallifreyStoneFamily(translationBuilder);
         addOrangeSandFamily(translationBuilder);
         addCitadelFamily(translationBuilder);
+        addGallifreyPlants(translationBuilder);
         for (var family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.addTranslations(new WoodFamilyDatagen.LangSink() {
                 @Override
@@ -208,10 +209,19 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addBlockAndItem(t, DWMBlocks.CITADEL_GLASS, "Citadel Glass");
     }
 
+    private static void addGallifreyPlants(TranslationBuilder t) {
+        addBlockAndItem(t, DWMBlocks.FLOWER_OF_REMEMBRANCE, "Flower of Remembrance");
+        t.add(DWMBlocks.POTTED_FLOWER_OF_REMEMBRANCE, "Potted Flower of Remembrance");
+        addBlockAndItem(t, DWMBlocks.MOONLIGHT_BLOOM, "Moonlight Bloom");
+        t.add(DWMBlocks.POTTED_MOONLIGHT_BLOOM, "Potted Moonlight Bloom");
+        addBlockAndItem(t, DWMBlocks.SACCHARINE_CANE, "Saccharine Cane");
+    }
+
     private static void addMisc(TranslationBuilder t) {
         t.add("dimension.dwm.gallifrey", "Gallifrey");
         t.add("biome.dwm.gallifrey_plains", "Gallifrey Plains");
         t.add("biome.dwm.gallifrey_forest", "Gallifrey Forest");
+        t.add("tag.item.dwm.gallifrey_plants", "Gallifrey Plants");
         t.add("biome.dwm.gallifrey_wastes", "Gallifrey Wastes");
         t.add("biome.dwm.gallifrey_badlands", "Gallifrey Badlands");
         t.add("dwm.console.biome_selector", "Biome selector");

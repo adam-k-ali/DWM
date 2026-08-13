@@ -46,6 +46,26 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
             orangeSandTag.add(key(block));
         }
 
+        var gallifreyPlantsTag = builder(DWMBlockTags.GALLIFREY_PLANTS);
+        for (Block plant : DWMBlocks.GALLIFREY_PLANTS) {
+            gallifreyPlantsTag.add(key(plant));
+        }
+
+        var smallFlowers = builder(BlockTags.SMALL_FLOWERS);
+        for (Block flower : DWMBlocks.GALLIFREY_CROSS_PLANTS) {
+            smallFlowers.add(key(flower));
+        }
+
+        var flowers = builder(BlockTags.FLOWERS);
+        for (Block flower : DWMBlocks.GALLIFREY_CROSS_PLANTS) {
+            flowers.add(key(flower));
+        }
+
+        var flowerPots = builder(BlockTags.FLOWER_POTS);
+        for (Block potted : DWMBlocks.GALLIFREY_POTTED_PLANTS) {
+            flowerPots.add(key(potted));
+        }
+
         builder(BlockTags.MINEABLE_WITH_PICKAXE)
                 .add(key(DWMBlocks.GALLIFREY_STONE))
                 .add(key(DWMBlocks.GALLIFREY_STONE_BRICKS))

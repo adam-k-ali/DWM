@@ -7,6 +7,7 @@ import com.adamkali.dwm.item.DWMItemTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.tags.BlockItemTags;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
@@ -27,6 +28,9 @@ public class DWMItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         copy(com.adamkali.dwm.block.DWMBlockTags.GALLIFREY_STONE, com.adamkali.dwm.item.DWMItemTags.GALLIFREY_STONE);
         copy(com.adamkali.dwm.block.DWMBlockTags.ORANGE_SAND, com.adamkali.dwm.item.DWMItemTags.ORANGE_SAND);
         copy(com.adamkali.dwm.block.DWMBlockTags.CITADEL, com.adamkali.dwm.item.DWMItemTags.CITADEL);
+        copy(com.adamkali.dwm.block.DWMBlockTags.GALLIFREY_PLANTS, com.adamkali.dwm.item.DWMItemTags.GALLIFREY_PLANTS);
+        copy(BlockTags.SMALL_FLOWERS, BlockItemTags.SMALL_FLOWERS.item());
+        copy(BlockTags.FLOWERS, BlockItemTags.FLOWERS.item());
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.generateItemTags(new WoodFamilyDatagen.ItemTagSink() {
                 @Override

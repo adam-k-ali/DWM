@@ -47,6 +47,8 @@ public class DWMModelProvider extends FabricModelProvider {
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyClientDatagen.generateBlockModels(blockStateModelGenerator, family);
         }
+
+        registerGallifreyPlants(blockStateModelGenerator);
     }
 
     @Override
@@ -54,6 +56,22 @@ public class DWMModelProvider extends FabricModelProvider {
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyClientDatagen.generateItemModels(itemModelGenerator, family);
         }
+    }
+
+    private static void registerGallifreyPlants(BlockModelGenerators generator) {
+        generator.createPlantWithDefaultItem(
+                DWMBlocks.FLOWER_OF_REMEMBRANCE,
+                DWMBlocks.POTTED_FLOWER_OF_REMEMBRANCE,
+                BlockModelGenerators.PlantType.NOT_TINTED
+        );
+        generator.createPlantWithDefaultItem(
+                DWMBlocks.MOONLIGHT_BLOOM,
+                DWMBlocks.POTTED_MOONLIGHT_BLOOM,
+                BlockModelGenerators.PlantType.NOT_TINTED
+        );
+        // Cross block model from block texture; flat item uses textures/item/saccharine_cane.png
+        generator.createCrossBlock(DWMBlocks.SACCHARINE_CANE, BlockModelGenerators.PlantType.NOT_TINTED);
+        generator.registerSimpleFlatItemModel(DWMBlocks.SACCHARINE_CANE.asItem());
     }
 
     private static void registerCubeAll(BlockModelGenerators generator, Block block) {

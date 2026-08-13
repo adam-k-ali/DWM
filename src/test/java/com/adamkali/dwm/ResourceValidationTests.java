@@ -131,4 +131,26 @@ public class ResourceValidationTests {
             );
         }
     }
+
+    /**
+     * Guards against {@code pruneDatagenItemModels} dropping Gallifrey plant item defs
+     * (IDs lack a shared {@code gallifrey} substring).
+     */
+    @Test
+    public void generatedGallifreyPlantItemModelsExist() throws Exception {
+        Path itemsDir = Path.of("src/main/generated/assets/dwm/items");
+        assertTrue(Files.isDirectory(itemsDir), "Expected generated items dir at " + itemsDir);
+        String[] ids = {
+                "flower_of_remembrance",
+                "moonlight_bloom",
+                "saccharine_cane",
+        };
+        for (String id : ids) {
+            Path item = itemsDir.resolve(id + ".json");
+            assertTrue(
+                    Files.isRegularFile(item) && Files.size(item) > 0,
+                    "Missing generated Gallifrey plant item model: " + item
+            );
+        }
+    }
 }
