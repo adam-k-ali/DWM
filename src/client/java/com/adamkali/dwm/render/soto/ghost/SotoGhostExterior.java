@@ -6,6 +6,8 @@ import com.adamkali.dwm.network.SyncPortalEntityUpdateS2CPayload;
 import com.adamkali.dwm.render.boti.BotiEntityMotion;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.EntityInterpState;
 import com.adamkali.dwm.render.boti.BotiEntityMotion.LerpedPose;
+import com.adamkali.dwm.render.portal.PortalFrameCache;
+import com.adamkali.dwm.render.portal.PortalPerfStats;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
@@ -26,6 +28,7 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntitySpawnRequest;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.CardinalLighting;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ColorResolver;
@@ -43,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,6 +66,8 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
     private static final AtomicInteger NEXT_GHOST_ENTITY_ID = new AtomicInteger(1_000_000);
 
     private static final Map<PortalSceneStore.SceneKey, SotoGhostExterior> BY_KEY = new ConcurrentHashMap<>();
+    /** Survives remove+respawn flaps so item bob/spin phase does not reset. */
+    private static final Map<UUID, Float> ITEM_BOB_OFFSETS = new ConcurrentHashMap<>();
 
     private final PortalStreamKind kind;
     private final UUID tardisId;
@@ -101,18 +107,108 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
      * Entities with packet-lerped poses for smooth portal rendering.
      */
     public static List<RenderableGhostEntity> getRenderableEntities(PortalStreamKind kind, UUID tardisId) {
+        return getRenderableEntities(kind, tardisId, Util.getMillis());
+    }
+
+    /**
+     * Same as {@link #getRenderableEntities(PortalStreamKind, UUID)} with a fixed clock (tests / deterministic lerp).
+     */
+    public static List<RenderableGhostEntity> getRenderableEntities(
+            PortalStreamKind kind,
+            UUID tardisId,
+            long nowMs
+    ) {
         SotoGhostExterior ghost = get(kind, tardisId);
         if (ghost == null || ghost.entities.isEmpty()) {
             return List.of();
         }
-        long now = Util.getMillis();
         List<RenderableGhostEntity> result = new ArrayList<>(ghost.entities.size());
-        for (GhostEntity ghostEntity : ghost.entities.values()) {
-            if (ghostEntity.entity == null || ghostEntity.interp == null) {
+        for (Map.Entry<UUID, GhostEntity> entry : ghost.entities.entrySet()) {
+            GhostEntity ghostEntity = entry.getValue();
+            if (ghostEntity.interp == null) {
                 continue;
             }
-            LerpedPose pose = BotiEntityMotion.lerpPose(ghostEntity.interp, now, ENTITY_UPDATE_INTERVAL_MS);
-            result.add(new RenderableGhostEntity(ghostEntity.entity, pose));
+            LerpedPose pose = BotiEntityMotion.lerpPose(ghostEntity.interp, nowMs, ENTITY_UPDATE_INTERVAL_MS);
+            // Stats only: once-per-frame baseline lives in PortalPerfStats (not on GhostEntity),
+            // so repeated getRenderableEntities calls in one flush cannot corrupt inter-frame deltas.
+            PortalPerfStats.noteLerpedPose(
+                    kind,
+                    tardisId,
+                    entry.getKey(),
+                    pose.x(),
+                    pose.y(),
+                    pose.z()
+            );
+            if (ghostEntity.entity == null) {
+                continue;
+            }
+            float animAge = animAgeInTicks(ghostEntity.animStartMs, nowMs);
+            result.add(new RenderableGhostEntity(
+                    ghostEntity.entity,
+                    pose,
+                    animAge,
+                    ghostEntity.bobOffset
+            ));
+        }
+        return List.copyOf(result);
+    }
+
+    /**
+     * Test helper: stores interp without a live entity so pose sampling can be asserted headlessly.
+     */
+    static void putInterpForTest(
+            PortalStreamKind kind,
+            UUID tardisId,
+            UUID entityUuid,
+            EntityInterpState interp
+    ) {
+        if (kind == null || tardisId == null || entityUuid == null || interp == null) {
+            return;
+        }
+        getOrCreate(kind, tardisId).entities.put(entityUuid, new GhostEntity(null, interp, interp.receiveTimeMs(), 0.0f));
+    }
+
+    /**
+     * Test helper: advances stored interp the same way {@link #applyEntityUpdate} does (no position snap).
+     */
+    static void advanceInterpForTest(
+            PortalStreamKind kind,
+            UUID tardisId,
+            UUID entityUuid,
+            float relX,
+            float relY,
+            float relZ,
+            float yaw,
+            float pitch,
+            long receiveTimeMs
+    ) {
+        SotoGhostExterior ghost = get(kind, tardisId);
+        if (ghost == null || entityUuid == null) {
+            return;
+        }
+        GhostEntity previous = ghost.entities.get(entityUuid);
+        EntityInterpState next = previous == null || previous.interp == null
+                ? EntityInterpState.identity(relX, relY, relZ, yaw, pitch, receiveTimeMs)
+                : nextInterpForUpdate(previous.entity, previous.interp, relX, relY, relZ, yaw, pitch, receiveTimeMs);
+        Entity entity = previous == null ? null : previous.entity;
+        GhostEntity stored = new GhostEntity(entity, next, animStartMsPreserved(previous, receiveTimeMs), previous != null ? previous.bobOffset : 0.0f);
+        ghost.entities.put(entityUuid, stored);
+    }
+
+    /**
+     * Test helper: lerped poses for all ghosts at {@code nowMs} (includes interp-only test entries).
+     */
+    static List<LerpedPose> sampleLerpedPosesForTest(PortalStreamKind kind, UUID tardisId, long nowMs) {
+        SotoGhostExterior ghost = get(kind, tardisId);
+        if (ghost == null || ghost.entities.isEmpty()) {
+            return List.of();
+        }
+        List<LerpedPose> result = new ArrayList<>(ghost.entities.size());
+        for (GhostEntity ghostEntity : ghost.entities.values()) {
+            if (ghostEntity.interp == null) {
+                continue;
+            }
+            result.add(BotiEntityMotion.lerpPose(ghostEntity.interp, nowMs, ENTITY_UPDATE_INTERVAL_MS));
         }
         return List.copyOf(result);
     }
@@ -122,18 +218,29 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
             return;
         }
         PortalSceneStore.SceneKey key = new PortalSceneStore.SceneKey(kind, tardisId);
-        BY_KEY.remove(key);
+        SotoGhostExterior removed = BY_KEY.remove(key);
+        if (removed != null) {
+            for (UUID entityUuid : removed.entities.keySet()) {
+                ITEM_BOB_OFFSETS.remove(entityUuid);
+            }
+        }
+        PortalPerfStats.clearPoseTracking(kind, tardisId);
         SotoGhostMeshCache.invalidate(kind, tardisId);
     }
 
     public static void invalidateAll() {
         BY_KEY.clear();
+        ITEM_BOB_OFFSETS.clear();
+        PortalPerfStats.clearAllPoseTracking();
         SotoGhostMeshCache.invalidateAll();
     }
 
     public static void clientTick() {
         for (SotoGhostExterior ghost : BY_KEY.values()) {
             ghost.tickEntities();
+            if (ghost.entityCount() > 0) {
+                PortalFrameCache.markDirty(ghost.kind, ghost.tardisId);
+            }
         }
     }
 
@@ -144,8 +251,23 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         SotoGhostExterior ghost = getOrCreate(kind, payload.tardisId());
         ghost.footprintOrigin = payload.footprintOrigin();
         long key = ChunkPos.pack(payload.chunkX(), payload.chunkZ());
-        Map<BlockPos, BlockState> previousBlocks = ghost.chunkBlocks.put(key, new HashMap<>(payload.toBlockMap()));
-        Map<BlockPos, CompoundTag> previousBes = ghost.chunkBlockEntities.put(key, new HashMap<>(payload.toBlockEntityMap()));
+        Map<BlockPos, BlockState> newBlocks = new HashMap<>(payload.toBlockMap());
+        Map<BlockPos, CompoundTag> newBes = new HashMap<>(payload.toBlockEntityMap());
+        Map<BlockPos, BlockState> previousBlocks = ghost.chunkBlocks.get(key);
+        Map<BlockPos, CompoundTag> previousBes = ghost.chunkBlockEntities.get(key);
+        boolean contentUnchanged = chunkContentUnchanged(previousBlocks, newBlocks, previousBes, newBes);
+        boolean hasDrawable = SotoGhostMeshCache.hasDrawableChunk(
+                kind, payload.tardisId(), payload.chunkX(), payload.chunkZ()
+        );
+        if (contentUnchanged && hasDrawable) {
+            // Keep maps current (cheap) but skip tessellation / pass-batch rebuild.
+            ghost.chunkBlocks.put(key, newBlocks);
+            ghost.chunkBlockEntities.put(key, newBes);
+            PortalPerfStats.noteBakeSkip();
+            return;
+        }
+        previousBlocks = ghost.chunkBlocks.put(key, newBlocks);
+        previousBes = ghost.chunkBlockEntities.put(key, newBes);
         if (previousBlocks != null) {
             for (BlockPos pos : previousBlocks.keySet()) {
                 ghost.blocksByRel.remove(pos);
@@ -156,9 +278,27 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
                 ghost.blockEntitiesByRel.remove(pos);
             }
         }
-        ghost.blocksByRel.putAll(payload.toBlockMap());
-        ghost.blockEntitiesByRel.putAll(payload.toBlockEntityMap());
+        ghost.blocksByRel.putAll(newBlocks);
+        ghost.blockEntitiesByRel.putAll(newBes);
         SotoGhostMeshCache.onChunkApplied(kind, payload.tardisId(), payload.chunkX(), payload.chunkZ(), ghost);
+    }
+
+    /**
+     * True when block + block-entity maps are equal (including both null/empty).
+     * Package-visible for unit tests.
+     */
+    static boolean chunkContentUnchanged(
+            Map<BlockPos, BlockState> previousBlocks,
+            Map<BlockPos, BlockState> newBlocks,
+            Map<BlockPos, CompoundTag> previousBes,
+            Map<BlockPos, CompoundTag> newBes
+    ) {
+        return Objects.equals(emptyToNull(previousBlocks), emptyToNull(newBlocks))
+                && Objects.equals(emptyToNull(previousBes), emptyToNull(newBes));
+    }
+
+    private static <K, V> Map<K, V> emptyToNull(Map<K, V> map) {
+        return map == null || map.isEmpty() ? null : map;
     }
 
     public static void unloadChunk(PortalStreamKind kind, UUID tardisId, int chunkX, int chunkZ) {
@@ -187,11 +327,37 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
             return;
         }
         SotoGhostExterior ghost = getOrCreate(kind, payload.tardisId());
+        GhostEntity previous = ghost.entities.get(payload.entityUuid());
+        long now = Util.getMillis();
+        // Duplicate spawn for an existing ghost: reuse the entity so ItemEntity.bobOffs stays stable.
+        if (previous != null && previous.entity != null) {
+            Entity entity = previous.entity;
+            EntityInterpState interp = EntityInterpState.identity(
+                    payload.relX(), payload.relY(), payload.relZ(), payload.yaw(), payload.pitch(), now
+            );
+            ghost.snapEntityPose(
+                    entity,
+                    payload.relX(),
+                    payload.relY(),
+                    payload.relZ(),
+                    payload.yaw(),
+                    payload.pitch(),
+                    payload.headYaw(),
+                    payload.bodyYaw()
+            );
+            GhostEntity stored = new GhostEntity(
+                    entity,
+                    interp,
+                    previous.animStartMs,
+                    previous.bobOffset
+            );
+            ghost.entities.put(payload.entityUuid(), stored);
+            return;
+        }
         Entity entity = ghost.createEntity(payload);
         if (entity == null) {
             return;
         }
-        long now = Util.getMillis();
         EntityInterpState interp = EntityInterpState.identity(
                 payload.relX(), payload.relY(), payload.relZ(), payload.yaw(), payload.pitch(), now
         );
@@ -205,7 +371,12 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
                 payload.headYaw(),
                 payload.bodyYaw()
         );
-        ghost.entities.put(payload.entityUuid(), new GhostEntity(entity, interp));
+        float bobOffset = entity instanceof ItemEntity item
+                ? ITEM_BOB_OFFSETS.computeIfAbsent(payload.entityUuid(), id -> item.bobOffs)
+                : 0.0f;
+        long animStartMs = animStartMsForNew(entity, now);
+        GhostEntity stored = new GhostEntity(entity, interp, animStartMs, bobOffset);
+        ghost.entities.put(payload.entityUuid(), stored);
     }
 
     public static void applyEntityUpdate(PortalStreamKind kind, SyncPortalEntityUpdateS2CPayload payload) {
@@ -224,25 +395,82 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         EntityInterpState next = previous.interp == null
                 ? EntityInterpState.identity(
                         payload.relX(), payload.relY(), payload.relZ(), payload.yaw(), payload.pitch(), now)
-                : previous.interp.advanceTo(
-                        payload.relX(), payload.relY(), payload.relZ(), payload.yaw(), payload.pitch(), now);
+                : nextInterpForUpdate(
+                        previous.entity,
+                        previous.interp,
+                        payload.relX(),
+                        payload.relY(),
+                        payload.relZ(),
+                        payload.yaw(),
+                        payload.pitch(),
+                        now);
 
         Entity entity = previous.entity;
         if (entity instanceof LivingEntity living) {
             float speed = BotiEntityMotion.limbSpeed(next.fromX(), next.fromZ(), next.toX(), next.toZ());
             living.walkAnimation.update(speed, 0.4f, living.isBaby() ? 3.0f : 1.0f);
+            // Head/body only — position is packet-lerped at render time (avoid snap-to-target vs extract mismatch).
+            living.setYBodyRot(payload.bodyYaw());
+            living.setYHeadRot(payload.headYaw());
+            living.yBodyRotO = payload.bodyYaw();
+            living.yHeadRotO = payload.headYaw();
         }
-        ghost.snapEntityPose(
-                entity,
-                payload.relX(),
-                payload.relY(),
-                payload.relZ(),
-                payload.yaw(),
-                payload.pitch(),
-                payload.headYaw(),
-                payload.bodyYaw()
-        );
-        ghost.entities.put(payload.entityUuid(), new GhostEntity(entity, next));
+        GhostEntity stored = new GhostEntity(entity, next, previous.animStartMs, previous.bobOffset);
+        ghost.entities.put(payload.entityUuid(), stored);
+    }
+
+    /**
+     * Items hold pose without micro-lerp (age-based bob/spin); others advance over the update interval.
+     * Package-visible for tests.
+     */
+    static EntityInterpState nextInterpForUpdate(
+            Entity entity,
+            EntityInterpState previous,
+            float relX,
+            float relY,
+            float relZ,
+            float yaw,
+            float pitch,
+            long now
+    ) {
+        if (previous == null) {
+            PortalPerfStats.noteIdentityInterp();
+            return EntityInterpState.identity(relX, relY, relZ, yaw, pitch, now);
+        }
+        if (usesIdentityInterp(entity)) {
+            PortalPerfStats.noteIdentityInterp();
+            return EntityInterpState.identity(relX, relY, relZ, yaw, pitch, now);
+        }
+        PortalPerfStats.noteAdvanceInterp();
+        return previous.advanceTo(relX, relY, relZ, yaw, pitch, now);
+    }
+
+    /** Package-visible: item ghosts skip packet position lerp. */
+    static boolean usesIdentityInterp(Entity entity) {
+        return entity instanceof ItemEntity;
+    }
+
+    /**
+     * Wall-clock animation age in ticks (50ms). Independent of {@link Entity#tickCount}, which does not
+     * advance for ghosts unless they are in {@link ClientLevel}'s ticker.
+     */
+    static float animAgeInTicks(long animStartMs, long nowMs) {
+        if (animStartMs <= 0L || nowMs <= animStartMs) {
+            return 0.0f;
+        }
+        return (nowMs - animStartMs) / 50.0f;
+    }
+
+    static long animStartMsForNew(Entity entity, long nowMs) {
+        if (entity instanceof ItemEntity item) {
+            int age = Math.max(0, item.getAge());
+            return nowMs - (long) age * 50L;
+        }
+        return nowMs;
+    }
+
+    private static long animStartMsPreserved(GhostEntity previous, long nowMs) {
+        return previous != null && previous.animStartMs > 0L ? previous.animStartMs : nowMs;
     }
 
     public static void removeEntity(PortalStreamKind kind, UUID tardisId, UUID entityUuid) {
@@ -251,6 +479,7 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
             return;
         }
         ghost.entities.remove(entityUuid);
+        PortalPerfStats.clearPoseTracking(kind, tardisId, entityUuid);
     }
 
     public PortalStreamKind kind() {
@@ -322,6 +551,7 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
 
     /**
      * Advances animation age only. Position is packet-driven + render-lerped (no velocity integrate).
+     * Also mirrors age onto {@link Entity#tickCount} so extract-based anims stay coherent if used.
      */
     private void tickEntities() {
         for (GhostEntity ghostEntity : entities.values()) {
@@ -329,7 +559,7 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
             if (entity == null) {
                 continue;
             }
-            entity.tickCount++;
+            entity.tickCount = Math.max(entity.tickCount + 1, (int) animAgeInTicks(ghostEntity.animStartMs, Util.getMillis()));
         }
     }
 
@@ -446,9 +676,21 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         return 15;
     }
 
-    public record RenderableGhostEntity(Entity entity, LerpedPose pose) {
+    public record RenderableGhostEntity(Entity entity, LerpedPose pose, float animAgeInTicks, float bobOffset) {
     }
 
-    private record GhostEntity(Entity entity, EntityInterpState interp) {
+    private static final class GhostEntity {
+        final Entity entity;
+        final EntityInterpState interp;
+        final long animStartMs;
+        /** Stable item bob/spin phase; survives duplicate spawn packets that recreate ItemEntity. */
+        final float bobOffset;
+
+        GhostEntity(Entity entity, EntityInterpState interp, long animStartMs, float bobOffset) {
+            this.entity = entity;
+            this.interp = interp;
+            this.animStartMs = animStartMs;
+            this.bobOffset = bobOffset;
+        }
     }
 }

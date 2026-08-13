@@ -82,6 +82,8 @@
   "dwm.config.option.chameleon_gui": "Enable Chameleon GUI",
   "dwm.config.option.enable_door_portals": "Door portals (BOTI / SOTO)",
   "dwm.config.option.enable_door_portals.tooltip": "Show doorway previews through open exterior and interior doors using the shared portal renderer. Disabled on Fabulous graphics or when order-independent transparency is on.",
+  "dwm.config.option.show_portal_perf_debug": "Portal performance debug HUD",
+  "dwm.config.option.show_portal_perf_debug.tooltip": "Show an F3-style on-screen overlay with shared portal pipeline stage timings (BOTI and SOTO). Enable only while profiling.",
   "dwm.console.biome_selected": "Biome: %s",
   "dwm.console.biome_selector": "Biome selector",
   "dwm.console.biome_unavailable": "No biomes available for this dimension",

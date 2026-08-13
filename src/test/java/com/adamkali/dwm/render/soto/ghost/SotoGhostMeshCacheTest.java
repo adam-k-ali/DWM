@@ -42,6 +42,18 @@ class SotoGhostMeshCacheTest {
     }
 
     @Test
+    void markerOnly_doesNotCountAsDrawableMesh() {
+        UUID id = UUID.randomUUID();
+        SotoGhostMeshCache.markChunkMarkerForTest(PortalStreamKind.SOTO, id, 0, 0);
+        assertFalse(SotoGhostMeshCache.hasMeshes(PortalStreamKind.SOTO, id));
+        assertEquals(0, SotoGhostMeshCache.meshChunkCount(PortalStreamKind.SOTO, id));
+
+        SotoGhostMeshCache.markChunkMeshForTest(PortalStreamKind.SOTO, id, 1, 1);
+        assertTrue(SotoGhostMeshCache.hasMeshes(PortalStreamKind.SOTO, id));
+        assertEquals(1, SotoGhostMeshCache.meshChunkCount(PortalStreamKind.SOTO, id));
+    }
+
+    @Test
     void unloadChunk_clearsMeshMarker() {
         UUID id = UUID.randomUUID();
         SotoGhostMeshCache.markChunkMeshForTest(PortalStreamKind.SOTO, id, 3, 4);
@@ -76,6 +88,18 @@ class SotoGhostMeshCacheTest {
     }
 
     @Test
+    void hasDrawableChunk_trueOnlyForDrawableMesh() {
+        UUID id = UUID.randomUUID();
+        assertFalse(SotoGhostMeshCache.hasDrawableChunk(PortalStreamKind.SOTO, id, 0, 0));
+
+        SotoGhostMeshCache.markChunkMarkerForTest(PortalStreamKind.SOTO, id, 0, 0);
+        assertFalse(SotoGhostMeshCache.hasDrawableChunk(PortalStreamKind.SOTO, id, 0, 0));
+
+        SotoGhostMeshCache.markChunkMeshForTest(PortalStreamKind.SOTO, id, 0, 0);
+        assertTrue(SotoGhostMeshCache.hasDrawableChunk(PortalStreamKind.SOTO, id, 0, 0));
+    }
+
+    @Test
     void invalidateAll_clearsAllMeshes() {
         UUID a = UUID.randomUUID();
         UUID b = UUID.randomUUID();
@@ -84,5 +108,22 @@ class SotoGhostMeshCacheTest {
         SotoGhostMeshCache.invalidateAll();
         assertFalse(SotoGhostMeshCache.hasMeshes(PortalStreamKind.SOTO, a));
         assertFalse(SotoGhostMeshCache.hasMeshes(PortalStreamKind.BOTI, b));
+    }
+
+    @Test
+    void passBatches_markedDirtyOnMeshLifecycle() {
+        UUID id = UUID.randomUUID();
+        assertTrue(SotoGhostMeshCache.arePassBatchesDirtyForTest(PortalStreamKind.SOTO, id));
+
+        SotoGhostMeshCache.markChunkMeshForTest(PortalStreamKind.SOTO, id, 0, 0);
+        assertTrue(SotoGhostMeshCache.arePassBatchesDirtyForTest(PortalStreamKind.SOTO, id));
+
+        SotoGhostMeshCache.onChunkUnloaded(PortalStreamKind.SOTO, id, 0, 0);
+        assertTrue(SotoGhostMeshCache.arePassBatchesDirtyForTest(PortalStreamKind.SOTO, id));
+
+        SotoGhostMeshCache.markChunkMeshForTest(PortalStreamKind.SOTO, id, 2, 2);
+        SotoGhostMeshCache.invalidate(PortalStreamKind.SOTO, id);
+        assertTrue(SotoGhostMeshCache.arePassBatchesDirtyForTest(PortalStreamKind.SOTO, id));
+        assertFalse(SotoGhostMeshCache.hasMeshes(PortalStreamKind.SOTO, id));
     }
 }

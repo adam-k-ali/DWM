@@ -4,6 +4,7 @@ import com.adamkali.dwm.ClientTardis;
 import com.adamkali.dwm.gui.PlayerLocatorScreen;
 import com.adamkali.dwm.gui.TardisChameleonGui;
 import com.adamkali.dwm.gui.WaypointScreen;
+import com.adamkali.dwm.render.portal.PortalPerfStats;
 import com.adamkali.dwm.render.portal.PortalRenderTarget;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.sound.TardisTravelSoundController;
@@ -26,6 +27,7 @@ public class ClientPayloadTypeRegistry {
         ClientPlayNetworking.registerGlobalReceiver(SyncPortalEntitySpawnS2CPayload.ID, ClientPayloadTypeRegistry::spawnPortalEntity);
         ClientPlayNetworking.registerGlobalReceiver(SyncPortalEntityUpdateS2CPayload.ID, ClientPayloadTypeRegistry::updatePortalEntity);
         ClientPlayNetworking.registerGlobalReceiver(SyncPortalEntityRemoveS2CPayload.ID, ClientPayloadTypeRegistry::removePortalEntity);
+        ClientPlayNetworking.registerGlobalReceiver(SyncPortalPerfS2CPayload.ID, ClientPayloadTypeRegistry::syncPortalPerf);
         ClientPlayNetworking.registerGlobalReceiver(TravelAudioS2CPayload.ID, ClientPayloadTypeRegistry::travelAudio);
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             PortalSceneStore.invalidateAll();
@@ -111,6 +113,10 @@ public class ClientPayloadTypeRegistry {
 
     private static void removePortalEntity(SyncPortalEntityRemoveS2CPayload payload, ClientPlayNetworking.Context context) {
         context.client().execute(() -> PortalSceneStore.removeEntity(payload));
+    }
+
+    private static void syncPortalPerf(SyncPortalPerfS2CPayload payload, ClientPlayNetworking.Context context) {
+        context.client().execute(() -> PortalPerfStats.applyServerDiag(payload));
     }
 
     private static void travelAudio(TravelAudioS2CPayload payload, ClientPlayNetworking.Context context) {

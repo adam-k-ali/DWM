@@ -1,6 +1,7 @@
 package com.adamkali.dwm.render.soto;
 
 import com.adamkali.dwm.render.boti.BotiEntityMotion.LerpedPose;
+import com.adamkali.dwm.render.portal.PortalPerfStats;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
 import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
@@ -16,11 +17,13 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.entity.state.ItemEntityRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 
@@ -184,6 +187,8 @@ public final class SotoExteriorMeshCache {
                 || !SotoGhostExterior.hasEntities(kind, tardisId)) {
             return 0;
         }
+        float partialTick = resolvePartialTick(client, tickDelta);
+        PortalPerfStats.notePartialTick(partialTick);
         EntityRenderDispatcher entityDispatcher = client.getEntityRenderDispatcher();
         if (camera != null) {
             entityDispatcher.prepare(camera, client.player);
@@ -195,16 +200,20 @@ public final class SotoExteriorMeshCache {
         for (SotoGhostExterior.RenderableGhostEntity ghost : ghosts) {
             Entity entity = ghost.entity();
             LerpedPose pose = ghost.pose();
-            entity.setYRot(pose.yaw());
-            entity.setXRot(pose.pitch());
-            if (entity instanceof LivingEntity living) {
-                snapLivingYaw(living, pose.yaw());
-            }
+            applyLerpedPoseForExtract(entity, pose);
             try {
                 ensureGhostEntityId(entity);
-                EntityRenderState entityState = entityDispatcher.extractEntity(entity, tickDelta);
+                // Fresh END_MAIN partial: age-based anims (item bob/spin) need current partial ticks.
+                EntityRenderState entityState = entityDispatcher.extractEntity(entity, partialTick);
                 if (entityState == null) {
                     continue;
+                }
+                if (entity instanceof ItemEntity
+                        && entityState instanceof ItemEntityRenderState itemState) {
+                    // Wall-clock age + locked bob phase (duplicate spawns recreate ItemEntity with new bobOffs).
+                    itemState.ageInTicks = ghost.animAgeInTicks();
+                    itemState.bobOffset = ghost.bobOffset();
+                    PortalPerfStats.noteItemAgeInTicks(itemState.ageInTicks);
                 }
                 entityState.lightCoords = FULLBRIGHT;
                 entityDispatcher.submit(
@@ -223,11 +232,50 @@ public final class SotoExteriorMeshCache {
         return submitted;
     }
 
+    /**
+     * Prefer the live game-time partial tick at FBO draw time; fall back to the scheduled scene value.
+     */
+    static float resolvePartialTick(Minecraft client, float fallbackTickDelta) {
+        if (client == null || client.getDeltaTracker() == null) {
+            return fallbackTickDelta;
+        }
+        return client.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+    }
+
     private static void ensureGhostEntityId(Entity entity) {
         try {
             entity.getId();
         } catch (IllegalStateException missingId) {
             entity.setId(NEXT_FALLBACK_ENTITY_ID.getAndIncrement());
+        }
+    }
+
+    /**
+     * True when packet yaw/pitch should drive extract (living locomotion).
+     * Items spin/bob from age + partialTick — packet rotation would fight that.
+     */
+    static boolean shouldApplyPacketRotation(Entity entity) {
+        return entity != null && !(entity instanceof ItemEntity);
+    }
+
+    /**
+     * Snaps the ghost entity to the packet-lerped pose before {@code extractEntity},
+     * so baked render state matches submit translation.
+     * {@link ItemEntity}: position only (preserve yaw/pitch for age-based spin).
+     */
+    static void applyLerpedPoseForExtract(Entity entity, LerpedPose pose) {
+        if (entity == null || pose == null) {
+            return;
+        }
+        if (shouldApplyPacketRotation(entity)) {
+            entity.snapTo(pose.x(), pose.y(), pose.z(), pose.yaw(), pose.pitch());
+            entity.setDeltaMovement(0.0, 0.0, 0.0);
+            if (entity instanceof LivingEntity living) {
+                snapLivingYaw(living, pose.yaw());
+            }
+        } else {
+            entity.snapTo(pose.x(), pose.y(), pose.z(), entity.getYRot(), entity.getXRot());
+            entity.setDeltaMovement(0.0, 0.0, 0.0);
         }
     }
 

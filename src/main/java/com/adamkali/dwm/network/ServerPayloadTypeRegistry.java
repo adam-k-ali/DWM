@@ -34,6 +34,7 @@ public class ServerPayloadTypeRegistry {
         PayloadTypeRegistry.clientboundPlay().register(SyncPortalEntitySpawnS2CPayload.ID, SyncPortalEntitySpawnS2CPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(SyncPortalEntityUpdateS2CPayload.ID, SyncPortalEntityUpdateS2CPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(SyncPortalEntityRemoveS2CPayload.ID, SyncPortalEntityRemoveS2CPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(SyncPortalPerfS2CPayload.ID, SyncPortalPerfS2CPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(TravelAudioS2CPayload.ID, TravelAudioS2CPayload.CODEC);
 
         PayloadTypeRegistry.serverboundPlay().register(UpdateTardisChameleonC2SPayload.ID, UpdateTardisChameleonC2SPayload.CODEC);

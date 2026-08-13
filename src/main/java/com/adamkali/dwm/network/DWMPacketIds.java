@@ -22,6 +22,7 @@ public class DWMPacketIds {
     public static final Identifier SYNC_PORTAL_ENTITY_SPAWN_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sync_portal_entity_spawn");
     public static final Identifier SYNC_PORTAL_ENTITY_UPDATE_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sync_portal_entity_update");
     public static final Identifier SYNC_PORTAL_ENTITY_REMOVE_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sync_portal_entity_remove");
+    public static final Identifier SYNC_PORTAL_PERF_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sync_portal_perf");
 
     public static final Identifier TRAVEL_AUDIO_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "travel_audio");
 }

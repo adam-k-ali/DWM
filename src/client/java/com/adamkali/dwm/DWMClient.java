@@ -4,6 +4,8 @@ import com.adamkali.dwm.network.ClientPayloadTypeRegistry;
 import com.adamkali.dwm.client.DWMEntityRenderers;
 import com.adamkali.dwm.render.ConsoleControlHud;
 import com.adamkali.dwm.render.ConsoleHitboxDebugRenderer;
+import com.adamkali.dwm.render.portal.PortalPerfDebugHud;
+import com.adamkali.dwm.render.portal.PortalPerfDebugLog;
 import com.adamkali.dwm.render.portal.PortalSupport;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.sound.TardisHumController;
@@ -21,6 +23,8 @@ public class DWMClient implements ClientModInitializer {
         TardisHumController.initialize();
         ConsoleControlHud.initialize();
         ConsoleHitboxDebugRenderer.initialize();
+        PortalPerfDebugHud.initialize();
+        PortalPerfDebugLog.resetForSession();
         PortalSupport.initialize();
         ClientTickEvents.END_CLIENT_TICK.register(client -> PortalSceneStore.clientTick());
     }

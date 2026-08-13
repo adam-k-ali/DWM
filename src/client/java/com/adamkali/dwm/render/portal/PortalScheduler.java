@@ -42,12 +42,23 @@ public final class PortalScheduler {
         }
         List<PortalScene> batch = new ArrayList<>(PENDING.values());
         PENDING.clear();
-        for (PortalScene scene : batch) {
-            try {
-                RENDERER.renderOffMainPass(scene);
-            } catch (Throwable t) {
-                PortalSupport.disableForSession("Portal END_MAIN flush failed", t);
-                break;
+        if (batch.isEmpty()) {
+            return;
+        }
+        long flushStart = PortalPerfStats.begin();
+        try {
+            for (PortalScene scene : batch) {
+                try {
+                    RENDERER.renderOffMainPass(scene);
+                } catch (Throwable t) {
+                    PortalSupport.disableForSession("Portal END_MAIN flush failed", t);
+                    break;
+                }
+            }
+        } finally {
+            PortalPerfStats.end(PortalPerfStats.Stage.FLUSH_TOTAL, flushStart);
+            if (PortalPerfStats.isEnabled()) {
+                PortalPerfStats.publishFrame();
             }
         }
     }
