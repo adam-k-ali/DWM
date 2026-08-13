@@ -27,7 +27,6 @@ import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import java.util.HashMap;
-import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -272,16 +271,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
                     PoseStack local = new PoseStack();
                     local.last().set(pose);
                     shellModel.setupAnim(hologramAnim);
-                    for (ModelPart door : shellModel.getDoorParts()) {
-                        door.visible = false;
-                    }
-                    try {
-                        shellModel.renderToBuffer(local, consumer, light, OverlayTexture.NO_OVERLAY, HOLOGRAM_COLOR);
-                    } finally {
-                        for (ModelPart door : shellModel.getDoorParts()) {
-                            door.visible = true;
-                        }
-                    }
+                    shellModel.renderToBuffer(local, consumer, light, OverlayTexture.NO_OVERLAY, HOLOGRAM_COLOR);
                 });
         poseStack.popPose();
     }
