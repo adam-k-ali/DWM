@@ -18,22 +18,10 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider wrapperLookup) {
-        builder(DWMBlockTags.GALLIFREY_STONE)
-                .add(key(DWMBlocks.GALLIFREY_STONE))
-                .add(key(DWMBlocks.GALLIFREY_STONE_BRICKS))
-                .add(key(DWMBlocks.CHISELED_GALLIFREY_STONE_BRICKS))
-                .add(key(DWMBlocks.CRACKED_GALLIFREY_STONE_BRICKS))
-                .add(key(DWMBlocks.MOSSY_GALLIFREY_STONE_BRICKS))
-                .add(key(DWMBlocks.GALLIFREY_COBBLESTONE))
-                .add(key(DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE))
-                .add(key(DWMBlocks.GALLIFREY_SMOOTH_STONE))
-                .add(key(DWMBlocks.GALLIFREY_SANDSTONE))
-                .add(key(DWMBlocks.GALLIFREY_CUT_SANDSTONE))
-                .add(key(DWMBlocks.GALLIFREY_CHISELED_SANDSTONE))
-                .add(key(DWMBlocks.GALLIFREY_SAND))
-                .add(key(DWMBlocks.GALLIFREY_DIRT))
-                .add(key(DWMBlocks.GALLIFREY_COARSE_DIRT))
-                .add(key(DWMBlocks.GALLIFREY_GRASS_BLOCK));
+        var gallifreyStoneTag = builder(DWMBlockTags.GALLIFREY_STONE);
+        for (Block block : DWMBlocks.GALLIFREY_STONE_FAMILY) {
+            gallifreyStoneTag.add(key(block));
+        }
 
         builder(DWMBlockTags.CITADEL)
                 .add(key(DWMBlocks.CITADEL_WALL))
@@ -72,18 +60,11 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
             flowerPots.add(key(potted));
         }
 
-        builder(BlockTags.MINEABLE_WITH_PICKAXE)
-                .add(key(DWMBlocks.GALLIFREY_STONE))
-                .add(key(DWMBlocks.GALLIFREY_STONE_BRICKS))
-                .add(key(DWMBlocks.CHISELED_GALLIFREY_STONE_BRICKS))
-                .add(key(DWMBlocks.CRACKED_GALLIFREY_STONE_BRICKS))
-                .add(key(DWMBlocks.MOSSY_GALLIFREY_STONE_BRICKS))
-                .add(key(DWMBlocks.GALLIFREY_COBBLESTONE))
-                .add(key(DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE))
-                .add(key(DWMBlocks.GALLIFREY_SMOOTH_STONE))
-                .add(key(DWMBlocks.GALLIFREY_SANDSTONE))
-                .add(key(DWMBlocks.GALLIFREY_CUT_SANDSTONE))
-                .add(key(DWMBlocks.GALLIFREY_CHISELED_SANDSTONE))
+        var pickaxe = builder(BlockTags.MINEABLE_WITH_PICKAXE);
+        for (Block block : DWMBlocks.GALLIFREY_STONE_BUILDING_BLOCKS) {
+            pickaxe.add(key(block));
+        }
+        pickaxe
                 .add(key(DWMBlocks.ORANGE_SANDSTONE))
                 .add(key(DWMBlocks.ORANGE_SANDSTONE_STAIRS))
                 .add(key(DWMBlocks.ORANGE_SANDSTONE_SLAB))
@@ -138,17 +119,28 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(key(DWMBlocks.GALLIFREY_SAND))
                 .add(key(DWMBlocks.ORANGE_SAND));
 
-        builder(BlockTags.STAIRS)
+        var stairs = builder(BlockTags.STAIRS)
                 .add(key(DWMBlocks.ORANGE_SANDSTONE_STAIRS))
                 .add(key(DWMBlocks.SMOOTH_ORANGE_SANDSTONE_STAIRS));
+        stairs.add(key(DWMBlocks.GALLIFREY_COBBLESTONE_STAIRS));
+        stairs.add(key(DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE_STAIRS));
+        stairs.add(key(DWMBlocks.GALLIFREY_STONE_BRICK_STAIRS));
+        stairs.add(key(DWMBlocks.MOSSY_GALLIFREY_STONE_BRICK_STAIRS));
 
-        builder(BlockTags.SLABS)
+        var slabs = builder(BlockTags.SLABS)
                 .add(key(DWMBlocks.ORANGE_SANDSTONE_SLAB))
                 .add(key(DWMBlocks.CUT_ORANGE_SANDSTONE_SLAB))
                 .add(key(DWMBlocks.SMOOTH_ORANGE_SANDSTONE_SLAB));
+        for (Block slab : DWMBlocks.GALLIFREY_STONE_SLABS) {
+            slabs.add(key(slab));
+        }
 
-        builder(BlockTags.WALLS)
+        var walls = builder(BlockTags.WALLS)
                 .add(key(DWMBlocks.ORANGE_SANDSTONE_WALL));
+        walls.add(key(DWMBlocks.GALLIFREY_COBBLESTONE_WALL));
+        walls.add(key(DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE_WALL));
+        walls.add(key(DWMBlocks.GALLIFREY_STONE_BRICK_WALL));
+        walls.add(key(DWMBlocks.MOSSY_GALLIFREY_STONE_BRICK_WALL));
 
         builder(BlockTags.DIRT)
                 .add(key(DWMBlocks.GALLIFREY_DIRT))

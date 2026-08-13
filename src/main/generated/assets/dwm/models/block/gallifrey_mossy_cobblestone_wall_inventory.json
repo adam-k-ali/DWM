@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/wall_inventory",
+  "textures": {
+    "wall": "dwm:block/gallifrey_mossy_cobblestone"
+  }
+}

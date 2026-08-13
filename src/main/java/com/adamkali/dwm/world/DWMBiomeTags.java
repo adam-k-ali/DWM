@@ -12,6 +12,11 @@ public final class DWMBiomeTags {
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "is_gallifrey")
     );
 
+    public static final TagKey<Biome> HAS_GALLIFREY_VILLAGE = TagKey.create(
+            Registries.BIOME,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "has_structure/gallifrey_village")
+    );
+
     private DWMBiomeTags() {
     }
 }

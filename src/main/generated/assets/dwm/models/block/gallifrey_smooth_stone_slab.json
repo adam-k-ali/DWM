@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/slab",
+  "textures": {
+    "bottom": "dwm:block/gallifrey_smooth_stone",
+    "side": "dwm:block/gallifrey_smooth_stone",
+    "top": "dwm:block/gallifrey_smooth_stone"
+  }
+}

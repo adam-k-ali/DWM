@@ -9,6 +9,8 @@ import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 public final class DWMPlacedFeatures {
     public static final ResourceKey<PlacedFeature> ASH_PLAINS = key("ash_plains");
     public static final ResourceKey<PlacedFeature> ASH_FOREST = key("ash_forest");
+    /** Village-piece tree: configured Ash tree with sapling survival filter only (no biome rarity). */
+    public static final ResourceKey<PlacedFeature> ASH_VILLAGE = key("ash_village");
     public static final ResourceKey<PlacedFeature> DARK_ASH_FOREST = key("dark_ash_forest");
     public static final ResourceKey<PlacedFeature> CARDINAL_FOREST = key("cardinal_forest");
     public static final ResourceKey<PlacedFeature> GALLIFREY_FLOWERS_PLAINS = key("gallifrey_flowers_plains");
