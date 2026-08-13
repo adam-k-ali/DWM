@@ -4,6 +4,7 @@ import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.sound.DWMSounds;
+import com.adamkali.dwm.tardis.TardisExteriorFacing;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.DestinationMode;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
@@ -14,6 +15,7 @@ import com.adamkali.dwm.tardis.soto.SotoExteriorIndex;
 import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
@@ -220,6 +222,10 @@ public final class TardisTravelService {
         ServerLevel destinationWorld;
         BlockPos landing;
         int facingRotation = snapshot.facingRotation();
+        if (mode == DestinationMode.WAYPOINT) {
+            facingRotation = model.travelDestinationRotation;
+        }
+        Direction doorFacing = TardisExteriorFacing.doorDirection(facingRotation);
 
         if (mode == DestinationMode.PLAYER) {
             Optional<ServerPlayer> target = PlayerLocatorLogic.resolve(server, model.travelTargetPlayerUuid);
@@ -230,7 +236,8 @@ public final class TardisTravelService {
             }
             ServerPlayer player = target.get();
             destinationWorld = (ServerLevel) player.level();
-            Optional<BlockPos> resolved = resolvePlayerLanding(destinationWorld, player.blockPosition());
+            Optional<BlockPos> resolved = resolvePlayerLanding(
+                    destinationWorld, player.blockPosition(), doorFacing);
             if (resolved.isEmpty()) {
                 lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
                 return InteractionResult.FAIL;
@@ -243,15 +250,12 @@ public final class TardisTravelService {
                 return InteractionResult.FAIL;
             }
             BlockPos oldPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
-            Optional<BlockPos> resolved = resolveLanding(destinationWorld, model, oldPos);
+            Optional<BlockPos> resolved = resolveLanding(destinationWorld, model, oldPos, doorFacing);
             if (resolved.isEmpty() && mode == DestinationMode.WAYPOINT) {
                 lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
                 return InteractionResult.FAIL;
             }
             landing = resolved.orElse(oldPos);
-            if (mode == DestinationMode.WAYPOINT) {
-                facingRotation = model.travelDestinationRotation;
-            }
         }
 
         placeShell(destinationWorld, landing, snapshot, facingRotation);
@@ -476,25 +480,31 @@ public final class TardisTravelService {
     private static Optional<BlockPos> resolveLanding(
             ServerLevel world,
             TardisDataModel model,
-            BlockPos searchOrigin
+            BlockPos searchOrigin,
+            Direction doorFacing
     ) {
         DestinationMode mode = effectiveTravelMode(model);
         if (mode == DestinationMode.WAYPOINT) {
             return waypointTargetFromSnapshot(model)
-                    .flatMap(target -> LandingSiteLogic.findLandingAtOrNearby(world, target));
+                    .flatMap(target -> LandingSiteLogic.findLandingAtOrNearby(world, target, doorFacing));
         }
         Optional<ResourceKey<Biome>> biome = LandingSiteLogic.parseBiome(model.travelDestinationBiome);
         if (biome.isPresent()) {
-            Optional<BlockPos> landing = LandingSiteLogic.findLanding(world, biome.get(), searchOrigin);
+            Optional<BlockPos> landing = LandingSiteLogic.findLanding(
+                    world, biome.get(), searchOrigin, doorFacing);
             if (landing.isPresent()) {
                 return landing;
             }
         }
-        return LandingSiteLogic.findSurfaceLanding(world, searchOrigin);
+        return LandingSiteLogic.findSurfaceLanding(world, searchOrigin, doorFacing);
     }
 
-    private static Optional<BlockPos> resolvePlayerLanding(ServerLevel world, BlockPos playerPos) {
-        return LandingSiteLogic.findLandingAtOrNearby(world, playerPos);
+    private static Optional<BlockPos> resolvePlayerLanding(
+            ServerLevel world,
+            BlockPos playerPos,
+            Direction doorFacing
+    ) {
+        return LandingSiteLogic.findLandingAtOrNearby(world, playerPos, doorFacing);
     }
 
     /**

@@ -51,9 +51,10 @@ public final class LandingSiteLogic {
             ServerLevel world,
             ResourceKey<Biome> biome,
             BlockPos searchOrigin,
-            int radius
+            int radius,
+            Direction doorFacing
     ) {
-        if (world == null || biome == null || searchOrigin == null) {
+        if (world == null || biome == null || searchOrigin == null || doorFacing == null) {
             return Optional.empty();
         }
         Pair<BlockPos, Holder<Biome>> located = world.findClosestBiome3d(
@@ -71,8 +72,8 @@ public final class LandingSiteLogic {
         world.getChunk(biomePos);
         int topY = world.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, biomePos.getX(), biomePos.getZ());
         BlockPos landing = new BlockPos(biomePos.getX(), topY, biomePos.getZ());
-        if (!isValidLanding(world, landing)) {
-            return findNearbyValidLanding(world, biomePos.getX(), biomePos.getZ());
+        if (!isValidLanding(world, landing, doorFacing)) {
+            return findNearbyValidLanding(world, biomePos.getX(), biomePos.getZ(), doorFacing);
         }
         return Optional.of(landing);
     }
@@ -81,21 +82,33 @@ public final class LandingSiteLogic {
      * Tries {@code target} if valid; otherwise spirals nearby for a valid shell cell.
      * Used for waypoint exact-coordinate landings.
      */
-    public static Optional<BlockPos> findLandingAtOrNearby(ServerLevel world, BlockPos target) {
-        if (world == null || target == null) {
+    public static Optional<BlockPos> findLandingAtOrNearby(
+            ServerLevel world,
+            BlockPos target,
+            Direction doorFacing
+    ) {
+        if (world == null || target == null || doorFacing == null) {
             return Optional.empty();
         }
         world.getChunk(target);
-        if (isValidLanding(world, target)) {
+        if (isValidLanding(world, target, doorFacing)) {
             return Optional.of(target);
         }
-        return findNearbyValidLanding(world, target.getX(), target.getZ());
+        return findNearbyValidLanding(world, target.getX(), target.getZ(), doorFacing);
     }
 
     /**
      * Tries a small spiral of columns around {@code originX/Z} after the chunk is loaded.
      */
-    public static Optional<BlockPos> findNearbyValidLanding(ServerLevel world, int originX, int originZ) {
+    public static Optional<BlockPos> findNearbyValidLanding(
+            ServerLevel world,
+            int originX,
+            int originZ,
+            Direction doorFacing
+    ) {
+        if (world == null || doorFacing == null) {
+            return Optional.empty();
+        }
         for (int radius = 1; radius <= 8; radius++) {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
@@ -107,7 +120,7 @@ public final class LandingSiteLogic {
                     world.getChunk(x >> 4, z >> 4);
                     int topY = world.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
                     BlockPos candidate = new BlockPos(x, topY, z);
-                    if (isValidLanding(world, candidate)) {
+                    if (isValidLanding(world, candidate, doorFacing)) {
                         return Optional.of(candidate);
                     }
                 }
@@ -119,16 +132,21 @@ public final class LandingSiteLogic {
     public static Optional<BlockPos> findLanding(
             ServerLevel world,
             ResourceKey<Biome> biome,
-            BlockPos searchOrigin
+            BlockPos searchOrigin,
+            Direction doorFacing
     ) {
-        return findLanding(world, biome, searchOrigin, DEFAULT_SEARCH_RADIUS);
+        return findLanding(world, biome, searchOrigin, DEFAULT_SEARCH_RADIUS, doorFacing);
     }
 
     /**
      * Surface landing near {@code searchOrigin} without biome filtering (untagged / modded dims).
      */
-    public static Optional<BlockPos> findSurfaceLanding(ServerLevel world, BlockPos searchOrigin) {
-        if (world == null || searchOrigin == null) {
+    public static Optional<BlockPos> findSurfaceLanding(
+            ServerLevel world,
+            BlockPos searchOrigin,
+            Direction doorFacing
+    ) {
+        if (world == null || searchOrigin == null || doorFacing == null) {
             return Optional.empty();
         }
         world.getChunk(searchOrigin);
@@ -138,17 +156,18 @@ public final class LandingSiteLogic {
                 searchOrigin.getZ()
         );
         BlockPos landing = new BlockPos(searchOrigin.getX(), topY, searchOrigin.getZ());
-        if (isValidLanding(world, landing)) {
+        if (isValidLanding(world, landing, doorFacing)) {
             return Optional.of(landing);
         }
-        return findNearbyValidLanding(world, searchOrigin.getX(), searchOrigin.getZ());
+        return findNearbyValidLanding(world, searchOrigin.getX(), searchOrigin.getZ(), doorFacing);
     }
 
     /**
-     * Shell needs a solid floor under {@code pos} and replaceable space at {@code pos} and above.
+     * Shell needs a solid floor under {@code pos}, replaceable space at {@code pos} and above,
+     * and replaceable space in the door-facing column (feet + head) used by exit teleport.
      */
-    public static boolean isValidLanding(LevelReader world, BlockPos pos) {
-        if (world == null || pos == null || world.isOutsideBuildHeight(pos)) {
+    public static boolean isValidLanding(LevelReader world, BlockPos pos, Direction doorFacing) {
+        if (world == null || pos == null || doorFacing == null || world.isOutsideBuildHeight(pos)) {
             return false;
         }
         BlockState below = world.getBlockState(pos.below());
@@ -157,6 +176,23 @@ public final class LandingSiteLogic {
         }
         BlockState feet = world.getBlockState(pos);
         BlockState head = world.getBlockState(pos.above());
-        return (feet.isAir() || feet.canBeReplaced()) && (head.isAir() || head.canBeReplaced());
+        if (!isReplaceable(feet) || !isReplaceable(head)) {
+            return false;
+        }
+
+        BlockPos door = pos.relative(doorFacing);
+        if (world.isOutsideBuildHeight(door) || world.isOutsideBuildHeight(door.above())) {
+            return false;
+        }
+        if (world instanceof ServerLevel serverLevel) {
+            serverLevel.getChunk(door);
+        }
+        BlockState doorFeet = world.getBlockState(door);
+        BlockState doorHead = world.getBlockState(door.above());
+        return isReplaceable(doorFeet) && isReplaceable(doorHead);
+    }
+
+    private static boolean isReplaceable(BlockState state) {
+        return state.isAir() || state.canBeReplaced();
     }
 }

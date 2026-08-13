@@ -25,6 +25,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - `TardisBlockEntity` stores `interiorEntrance` / `interiorGenerated`.
 - Exterior return coordinates stored on `TardisDataModel` for exit teleports.
 - Collision entry when the exterior door is open (`doorSwing >= 0.9`); exit via open interior doors.
+- Landing search requires replaceable space in the door-facing column (feet + head), not only the shell cell.
 - Single config toggle `enableDoorPortals` (default on) via Mod Menu / Cloth Config; legacy `enableBoti` / `enableSoto` migrate on load.
 - Interior doors use an invisible block + dedicated BER (`TardisClassicInteriorDoorModel`) with swing animation.
 - Materialisation lever travel: first pull dematerialises the exterior; after a short hold the TARDIS enters `IN_FLIGHT`; a second pull materialises at the destination resolved from the active `DestinationMode`.
