@@ -19,6 +19,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItems(translationBuilder);
         addBuildingBlocks(translationBuilder);
         addGallifreyStoneFamily(translationBuilder);
+        addOrangeSandFamily(translationBuilder);
         addCitadelFamily(translationBuilder);
         for (var family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.addTranslations(new WoodFamilyDatagen.LangSink() {
@@ -186,6 +187,20 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addBlockAndItem(t, DWMBlocks.GALLIFREY_GRASS_BLOCK, "Gallifrey Grass");
     }
 
+    private static void addOrangeSandFamily(TranslationBuilder t) {
+        addBlockAndItem(t, DWMBlocks.ORANGE_SAND, "Orange Sand");
+        addBlockAndItem(t, DWMBlocks.ORANGE_SANDSTONE, "Orange Sandstone");
+        addBlockAndItem(t, DWMBlocks.ORANGE_SANDSTONE_STAIRS, "Orange Sandstone Stairs");
+        addBlockAndItem(t, DWMBlocks.ORANGE_SANDSTONE_SLAB, "Orange Sandstone Slab");
+        addBlockAndItem(t, DWMBlocks.ORANGE_SANDSTONE_WALL, "Orange Sandstone Wall");
+        addBlockAndItem(t, DWMBlocks.CUT_ORANGE_SANDSTONE, "Cut Orange Sandstone");
+        addBlockAndItem(t, DWMBlocks.CUT_ORANGE_SANDSTONE_SLAB, "Cut Orange Sandstone Slab");
+        addBlockAndItem(t, DWMBlocks.CHISELED_ORANGE_SANDSTONE, "Chiseled Orange Sandstone");
+        addBlockAndItem(t, DWMBlocks.SMOOTH_ORANGE_SANDSTONE, "Smooth Orange Sandstone");
+        addBlockAndItem(t, DWMBlocks.SMOOTH_ORANGE_SANDSTONE_STAIRS, "Smooth Orange Sandstone Stairs");
+        addBlockAndItem(t, DWMBlocks.SMOOTH_ORANGE_SANDSTONE_SLAB, "Smooth Orange Sandstone Slab");
+    }
+
     private static void addCitadelFamily(TranslationBuilder t) {
         addBlockAndItem(t, DWMBlocks.CITADEL_WALL, "Citadel Wall");
         addBlockAndItem(t, DWMBlocks.CITADEL_PANEL, "Citadel Panel");
@@ -198,6 +213,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("biome.dwm.gallifrey_plains", "Gallifrey Plains");
         t.add("biome.dwm.gallifrey_forest", "Gallifrey Forest");
         t.add("biome.dwm.gallifrey_wastes", "Gallifrey Wastes");
+        t.add("biome.dwm.gallifrey_badlands", "Gallifrey Badlands");
         t.add("dwm.console.biome_selector", "Biome selector");
         t.add("dwm.console.biome_selected", "Biome: %s");
         t.add("dwm.console.biome_unavailable", "No biomes available for this dimension");

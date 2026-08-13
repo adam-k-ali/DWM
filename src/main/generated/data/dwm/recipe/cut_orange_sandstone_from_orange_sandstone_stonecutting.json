@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "dwm:orange_sandstone",
+  "result": {
+    "id": "dwm:cut_orange_sandstone"
+  }
+}

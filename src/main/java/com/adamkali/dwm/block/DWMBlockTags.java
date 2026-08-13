@@ -12,6 +12,11 @@ public final class DWMBlockTags {
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "gallifrey_stone")
     );
 
+    public static final TagKey<Block> ORANGE_SAND = TagKey.create(
+            Registries.BLOCK,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "orange_sand")
+    );
+
     public static final TagKey<Block> CITADEL = TagKey.create(
             Registries.BLOCK,
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "citadel")

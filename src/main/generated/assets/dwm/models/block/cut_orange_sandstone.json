@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "dwm:block/orange_sandstone_top",
+    "side": "dwm:block/cut_orange_sandstone"
+  }
+}

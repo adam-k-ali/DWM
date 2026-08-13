@@ -101,4 +101,34 @@ public class ResourceValidationTests {
             }
         }
     }
+
+    /**
+     * Guards against {@code pruneDatagenItemModels} dropping orange sand family item defs
+     * (allowlist must include {@code orange_sand} substring).
+     */
+    @Test
+    public void generatedOrangeSandFamilyItemModelsExist() throws Exception {
+        Path itemsDir = Path.of("src/main/generated/assets/dwm/items");
+        assertTrue(Files.isDirectory(itemsDir), "Expected generated items dir at " + itemsDir);
+        String[] ids = {
+                "orange_sand",
+                "orange_sandstone",
+                "orange_sandstone_stairs",
+                "orange_sandstone_slab",
+                "orange_sandstone_wall",
+                "cut_orange_sandstone",
+                "cut_orange_sandstone_slab",
+                "chiseled_orange_sandstone",
+                "smooth_orange_sandstone",
+                "smooth_orange_sandstone_stairs",
+                "smooth_orange_sandstone_slab",
+        };
+        for (String id : ids) {
+            Path item = itemsDir.resolve(id + ".json");
+            assertTrue(
+                    Files.isRegularFile(item) && Files.size(item) > 0,
+                    "Missing generated orange sand item model: " + item
+            );
+        }
+    }
 }

@@ -14,6 +14,9 @@ Give players a Gallifrey-themed terrain and builder kit—stone, woods, and Cita
 - **Gallifrey stone family**
   - Building set: stone, stone bricks (including chiseled, cracked, and mossy), cobblestone and mossy cobblestone, smooth stone, sandstone, cut sandstone, chiseled sandstone
   - Terrain blocks: Gallifrey grass (deep-red top), dirt, coarse dirt, and sand
+- **Orange sand family** (distinct from Gallifrey sand; vanilla red-sandstone parity)
+  - Terrain: orange sand
+  - Building: orange sandstone (stairs, slab, wall), cut orange sandstone (slab), chiseled orange sandstone, smooth orange sandstone (stairs, slab)
 - **Wood families:** Ash, Dark Ash, and Cardinal
   - Shared set: planks, logs/wood (and stripped), leaves, sapling (and potted), stairs, slab, fence, fence gate, button, pressure plate, signs, hanging signs, boats
   - Doors and trapdoors on all three families; Cardinal uses a three-block-tall door
@@ -21,7 +24,7 @@ Give players a Gallifrey-themed terrain and builder kit—stone, woods, and Cita
 - Localization, creative-tab placement, and recipe/tag coverage via datagen for these families
 
 ## How It Works In-Game
-1. Gather Gallifrey stone, sand, or wood logs (creative or survival).
+1. Gather Gallifrey stone, sand, orange sand, or wood logs (creative or survival).
 2. Craft bricks, sandstone variants, planks, and wood furnishings from the provided recipes.
 3. Combine stone, wood, and Citadel blocks for exteriors, interiors, and set dressing.
 
@@ -32,6 +35,5 @@ Give players a Gallifrey-themed terrain and builder kit—stone, woods, and Cita
 ## Future Opportunities (Planned)
 - Soul wood family (fourth Gallifrey wood set).
 - Gallifrey decorative plants.
-- Orange sand and sandstone variants (distinct from Gallifrey sand).
 - Wire archive colormaps for tinted grass/foliage if plants need biome tinting (grass block uses pre-colored deep-red textures).
 - Richer Gallifrey destination content (mobs, villages) on top of the shipped dimension.

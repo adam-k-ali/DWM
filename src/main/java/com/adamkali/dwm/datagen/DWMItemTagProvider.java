@@ -25,6 +25,7 @@ public class DWMItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
     @Override
     protected void addTags(HolderLookup.Provider wrapperLookup) {
         copy(com.adamkali.dwm.block.DWMBlockTags.GALLIFREY_STONE, com.adamkali.dwm.item.DWMItemTags.GALLIFREY_STONE);
+        copy(com.adamkali.dwm.block.DWMBlockTags.ORANGE_SAND, com.adamkali.dwm.item.DWMItemTags.ORANGE_SAND);
         copy(com.adamkali.dwm.block.DWMBlockTags.CITADEL, com.adamkali.dwm.item.DWMItemTags.CITADEL);
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.generateItemTags(new WoodFamilyDatagen.ItemTagSink() {
@@ -54,5 +55,6 @@ public class DWMItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         copy(BlockTags.TRAPDOORS, DWMItemTags.TRAPDOORS);
         copy(BlockTags.LEAVES, ItemTags.LEAVES);
         copy(DWMBlockTags.SAPLINGS, ItemTags.SAPLINGS);
+        copy(BlockTags.WALLS, ItemTags.WALLS);
     }
 }

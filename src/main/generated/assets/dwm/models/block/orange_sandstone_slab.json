@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/slab",
+  "textures": {
+    "bottom": "dwm:block/orange_sandstone_bottom",
+    "side": "dwm:block/orange_sandstone",
+    "top": "dwm:block/orange_sandstone_top"
+  }
+}
