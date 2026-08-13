@@ -2,7 +2,7 @@
 
 See also: [Docs Index](./index.md), [Branding Guidelines](./branding-guidelines.md)
 
-This document defines when we cut a release, what “enough” means, how versions are named, and the distribution checklist (GitHub, Modrinth, Discord).
+This document defines when we cut a release, what “enough” means, how versions are named, and the distribution checklist (GitHub, Modrinth, CurseForge, Discord).
 
 ## Cadence (hybrid)
 
@@ -24,14 +24,14 @@ Example: `v1.21.4-1.2.0` → Minecraft `1.21.4`, mod `1.2.0`.
 | --- | --- |
 | `minecraft_version` | [`gradle.properties`](../gradle.properties) |
 | `mod_version` | [`gradle.properties`](../gradle.properties) (SemVer piece only) |
-| Player changelog + promos | [`version.json`](../version.json) (source for GitHub Release notes, Modrinth changelog, and Discord) |
+| Player changelog + promos | [`version.json`](../version.json) (source for GitHub Release notes, Modrinth/CurseForge changelogs, and Discord) |
 
 Each per-version entry under `version.json` → `{minecraft_version}` → `{mod_version}` includes:
 
 | Field | Purpose |
 | --- | --- |
-| `summary` | Short player-facing blurb (required, non-blank). Leads the GitHub Release body and Modrinth changelog; used as the Discord embed description. |
-| `added` / `changed` / `removed` | Detailed changelog bullets for GitHub and Modrinth. |
+| `summary` | Short player-facing blurb (required, non-blank). Leads the GitHub Release body and Modrinth/CurseForge changelogs; used as the Discord embed description. |
+| `added` / `changed` / `removed` | Detailed changelog bullets for GitHub, Modrinth, and CurseForge. |
 
 ### SemVer meaning for `mod_version`
 
@@ -78,9 +78,9 @@ Ship a patch immediately for:
 
 ## Source of truth
 
-- **[`version.json`](../version.json)** is the only release-notes and promo channel (GitHub Release body, Modrinth changelog, Discord summary).
+- **[`version.json`](../version.json)** is the only release-notes and promo channel (GitHub Release body, Modrinth/CurseForge changelogs, Discord summary).
 - Do not maintain a separate changelog file; dual ledgers drift.
-- **[`metadata/`](../metadata/)** is the source of truth for the Modrinth **project listing** (`description`, long-form `body`, categories, Discord URL). Edit those files, then run the **Sync Modrinth Project** workflow; listing updates are manual and are not part of the tag Release workflow.
+- **[`metadata/`](../metadata/)** is the source of truth for the Modrinth **project listing** (`description`, long-form `body`, categories, Discord URL). Edit those files, then run the **Sync Modrinth Project** workflow; listing updates are manual and are not part of the tag Release workflow. CurseForge has no official listing PATCH API — update the CurseForge project page description and categories by hand when they change.
 
 ## Distribution checklist
 
@@ -91,13 +91,15 @@ Ship a patch immediately for:
 5. Confirm the **Release** GitHub Actions workflow succeeds:
    - GitHub Release with remapped JAR (+ sources JAR) and notes from `version.json` (`summary` + detailed lists)
    - Modrinth version upload (Fabric + Minecraft from the tag; Fabric API dependency)
-   - Discord `#releases` embed (summary + Modrinth link)
+   - CurseForge file upload (project `355957`; Fabric + Client/Server + Minecraft from the tag; Fabric API required dependency)
+   - Discord `#releases` embed (summary + Modrinth and CurseForge links)
 
 ### Required GitHub Actions secrets
 
 | Secret | Purpose |
 | --- | --- |
 | `MODRINTH_TOKEN` | Modrinth personal access token with `VERSION_CREATE` (Release) and `PROJECT_WRITE` (Sync Modrinth Project) |
+| `CURSEFORGE_TOKEN` | CurseForge authors upload token ([API Tokens](https://console.curseforge.com/#/api-tokens)); account must be able to upload to project `355957` |
 | `DISCORD_WEBHOOK_URL` | Incoming webhook for Discord `#releases` |
 
 ## CI overview
@@ -106,7 +108,7 @@ Ship a patch immediately for:
 | --- | --- | --- |
 | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `pull_request`, push to `main` | `./gradlew build` (compile + unit tests + version sync check) |
 | [`.github/workflows/create-release-tag.yml`](../.github/workflows/create-release-tag.yml) | `workflow_dispatch` | Create and push `v*` tag from `version.json` `promos.latest` if missing; then dispatch Release |
-| [`.github/workflows/release.yml`](../.github/workflows/release.yml) | push of tags `v*`, or `workflow_dispatch` | Build; publish GitHub Release, Modrinth version, and Discord announcement from `version.json` |
-| [`.github/workflows/sync-modrinth-project.yml`](../.github/workflows/sync-modrinth-project.yml) | `workflow_dispatch` | PATCH Modrinth project listing from [`metadata/`](../metadata/) |
+| [`.github/workflows/release.yml`](../.github/workflows/release.yml) | push of tags `v*`, or `workflow_dispatch` | Build; publish GitHub Release, Modrinth version, CurseForge file, and Discord announcement from `version.json` |
+| [`.github/workflows/sync-modrinth-project.yml`](../.github/workflows/sync-modrinth-project.yml) | `workflow_dispatch` | PATCH Modrinth project listing from [`metadata/`](../metadata/) (Modrinth only; CurseForge listing stays manual) |
 
 CircleCI is retired; do not add draft GitHub releases on every `main` merge.

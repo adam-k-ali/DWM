@@ -123,6 +123,23 @@ jobs:
               encoding="utf-8",
           )
 
+          curseforge_data = {
+              "changelog": changelog_body,
+              "changelogType": "markdown",
+              "displayName": version,
+              "gameVersionNames": [minecraft_version, "Fabric", "Client", "Server"],
+              "releaseType": "release",
+              "relations": {
+                  "projects": [
+                      {"slug": "fabric-api", "type": "requiredDependency"},
+                  ],
+              },
+          }
+          Path("curseforge-data.json").write_text(
+              json.dumps(curseforge_data, indent=2) + "\n",
+              encoding="utf-8",
+          )
+
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
               out.write(f"minecraft_version={minecraft_version}\n")
               out.write(f"release_version={version}\n")
@@ -174,6 +191,33 @@ jobs:
           echo "modrinth_version_url=${VERSION_URL}" >> "$GITHUB_OUTPUT"
           echo "Published Modrinth version: ${VERSION_URL}"
 
+      - name: Publish to CurseForge
+        id: curseforge
+        env:
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+          MOD_VERSION: ${{ steps.version.outputs.mod_version }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CURSEFORGE_TOKEN:-}" ]; then
+            echo "CURSEFORGE_TOKEN secret is not set" >&2
+            exit 1
+          fi
+          JAR="build/libs/dwm-${MOD_VERSION}.jar"
+          if [ ! -f "$JAR" ]; then
+            echo "Missing build artifact: $JAR" >&2
+            exit 1
+          fi
+          RESPONSE=$(curl -fsS -X POST "https://minecraft.curseforge.com/api/projects/355957/upload-file" \
+            -H "X-Api-Token: ${CURSEFORGE_TOKEN}" \
+            -F "metadata=<curseforge-data.json" \
+            -F "file=@${JAR}")
+          echo "$RESPONSE" | tee curseforge-response.json
+          FILE_ID=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])' <<<"$RESPONSE")
+          FILE_URL="https://www.curseforge.com/minecraft/mc-mods/the-doctor-who-mod/files/${FILE_ID}"
+          echo "curseforge_file_id=${FILE_ID}" >> "$GITHUB_OUTPUT"
+          echo "curseforge_file_url=${FILE_URL}" >> "$GITHUB_OUTPUT"
+          echo "Published CurseForge file: ${FILE_URL}"
+
       - name: Announce on Discord
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
@@ -181,6 +225,7 @@ jobs:
           MINECRAFT_VERSION: ${{ steps.notes.outputs.minecraft_version }}
           SUMMARY: ${{ steps.notes.outputs.summary }}
           MODRINTH_VERSION_URL: ${{ steps.modrinth.outputs.modrinth_version_url }}
+          CURSEFORGE_FILE_URL: ${{ steps.curseforge.outputs.curseforge_file_url }}
         run: |
           set -euo pipefail
           if [ -z "${DISCORD_WEBHOOK_URL:-}" ]; then
@@ -195,6 +240,7 @@ jobs:
           minecraft_version = os.environ["MINECRAFT_VERSION"]
           summary = os.environ["SUMMARY"].strip()
           modrinth_url = os.environ["MODRINTH_VERSION_URL"]
+          curseforge_url = os.environ["CURSEFORGE_FILE_URL"]
           if not summary:
               raise SystemExit("Release summary is empty")
 
@@ -209,6 +255,10 @@ jobs:
                       "url": modrinth_url,
                       "description": summary,
                       "color": 1911355,
+                      "fields": [
+                          {"name": "Modrinth", "value": f"[Download]({modrinth_url})", "inline": True},
+                          {"name": "CurseForge", "value": f"[Download]({curseforge_url})", "inline": True},
+                      ],
                       "footer": {"text": f"Fabric · Minecraft {minecraft_version}"},
                       "thumbnail": {
                           "url": "https://cdn.modrinth.com/data/CY3ponKT/03858742885c853698edb03ac20d719e38575f8e_96.webp"

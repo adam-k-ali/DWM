@@ -20,7 +20,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 - [Differentiation Strategy](./differentiation-strategy.md)
 
 ## Releases
-- [Release Policy](./release-policy.md) (cadence, versioning, Modrinth + Discord checklist, CI)
+- [Release Policy](./release-policy.md) (cadence, versioning, Modrinth + CurseForge + Discord checklist, CI)
 
 ## Scope Notes
 - These docs describe behavior currently implemented in this repository.
