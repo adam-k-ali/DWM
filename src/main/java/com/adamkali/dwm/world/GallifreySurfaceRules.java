@@ -10,13 +10,14 @@ import net.minecraft.world.level.levelgen.SurfaceRules;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 
 /**
- * Gallifrey surface rules: dirt/sand tops over Gallifrey stone (no grass block yet).
+ * Gallifrey surface rules: deep-red grass / dirt / sand tops over Gallifrey stone.
  */
 public final class GallifreySurfaceRules {
     private static final SurfaceRules.RuleSource BEDROCK = block(Blocks.BEDROCK);
     private static final SurfaceRules.RuleSource GALLIFREY_STONE = block(DWMBlocks.GALLIFREY_STONE);
     private static final SurfaceRules.RuleSource GALLIFREY_DIRT = block(DWMBlocks.GALLIFREY_DIRT);
     private static final SurfaceRules.RuleSource GALLIFREY_COARSE_DIRT = block(DWMBlocks.GALLIFREY_COARSE_DIRT);
+    private static final SurfaceRules.RuleSource GALLIFREY_GRASS_BLOCK = block(DWMBlocks.GALLIFREY_GRASS_BLOCK);
     private static final SurfaceRules.RuleSource GALLIFREY_SAND = block(DWMBlocks.GALLIFREY_SAND);
     private static final SurfaceRules.RuleSource GALLIFREY_SANDSTONE = block(DWMBlocks.GALLIFREY_SANDSTONE);
 
@@ -42,7 +43,7 @@ public final class GallifreySurfaceRules {
                         SurfaceRules.noiseCondition2d(Noises.SURFACE, 0.45, 1.0),
                         GALLIFREY_COARSE_DIRT
                 ),
-                GALLIFREY_DIRT
+                GALLIFREY_GRASS_BLOCK
         );
 
         SurfaceRules.RuleSource floorSurface = SurfaceRules.sequence(

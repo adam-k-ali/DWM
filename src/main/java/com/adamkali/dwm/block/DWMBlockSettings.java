@@ -37,6 +37,11 @@ public class DWMBlockSettings {
             .strength(0.5F)
             .sound(SoundType.GRAVEL);
 
+    public static final BlockBehaviour.Properties GALLIFREY_GRASS = BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_RED)
+            .strength(0.6F)
+            .sound(SoundType.GRASS);
+
     public static final BlockBehaviour.Properties CITADEL = BlockBehaviour.Properties.of()
             .mapColor(MapColor.STONE)
             .instrument(NoteBlockInstrument.BASEDRUM)

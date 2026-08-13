@@ -15,8 +15,15 @@ public class DWMLootTableProvider extends FabricBlockLootSubProvider {
     @Override
     public void generate() {
         for (Block block : DWMBlocks.GALLIFREY_STONE_FAMILY) {
+            if (block == DWMBlocks.GALLIFREY_GRASS_BLOCK) {
+                continue;
+            }
             dropSelf(block);
         }
+        add(DWMBlocks.GALLIFREY_GRASS_BLOCK, createSingleItemTableWithSilkTouch(
+                DWMBlocks.GALLIFREY_GRASS_BLOCK,
+                DWMBlocks.GALLIFREY_DIRT
+        ));
 
         for (Block block : DWMBlocks.CITADEL_BUILDING_BLOCKS) {
             dropSelf(block);

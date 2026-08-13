@@ -183,6 +183,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addBlockAndItem(t, DWMBlocks.GALLIFREY_SAND, "Gallifrey Sand");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_DIRT, "Gallifrey Dirt");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_COARSE_DIRT, "Gallifrey Coarse Dirt");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_GRASS_BLOCK, "Gallifrey Grass");
     }
 
     private static void addCitadelFamily(TranslationBuilder t) {
