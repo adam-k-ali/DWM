@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:simple_block",
+  "config": {
+    "to_place": {
+      "type": "minecraft:weighted_state_provider",
+      "entries": [
+        {
+          "data": {
+            "Name": "dwm:flower_of_remembrance"
+          },
+          "weight": 2
+        },
+        {
+          "data": {
+            "Name": "dwm:moonlight_bloom"
+          },
+          "weight": 1
+        }
+      ]
+    }
+  }
+}

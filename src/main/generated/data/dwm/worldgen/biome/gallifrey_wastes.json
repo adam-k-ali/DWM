@@ -75,7 +75,8 @@
       "minecraft:spring_lava"
     ],
     [
-      "minecraft:glow_lichen"
+      "minecraft:glow_lichen",
+      "dwm:saccharine_cane_wastes"
     ],
     [
       "minecraft:freeze_top_layer"

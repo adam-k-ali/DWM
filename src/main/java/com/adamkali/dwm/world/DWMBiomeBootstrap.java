@@ -50,6 +50,7 @@ public final class DWMBiomeBootstrap {
         BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(features, carvers);
         addBasicFeatures(generation);
         generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.ASH_PLAINS);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.GALLIFREY_FLOWERS_PLAINS);
 
         return buildBiome(true, 0.9F, 0.3F, spawns, generation);
     }
@@ -66,6 +67,7 @@ public final class DWMBiomeBootstrap {
         generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.ASH_FOREST);
         generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.DARK_ASH_FOREST);
         generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.CARDINAL_FOREST);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.GALLIFREY_FLOWERS_FOREST);
 
         return buildBiome(true, 0.85F, 0.6F, spawns, generation);
     }
@@ -79,6 +81,7 @@ public final class DWMBiomeBootstrap {
 
         BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(features, carvers);
         addBasicFeatures(generation);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.SACCHARINE_CANE_WASTES);
 
         return buildBiome(false, 1.2F, 0.0F, spawns, generation);
     }
@@ -92,6 +95,7 @@ public final class DWMBiomeBootstrap {
 
         BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(features, carvers);
         addBasicFeatures(generation);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.SACCHARINE_CANE_BADLANDS);
 
         return buildBiome(false, 1.2F, 0.0F, spawns, generation);
     }

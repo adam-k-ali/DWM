@@ -4,15 +4,20 @@ import com.adamkali.dwm.block.DWMBlocks;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.random.WeightedList;
+import net.minecraft.util.valueproviders.BiasedToBottomInt;
 import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.configurations.BlockColumnConfiguration;
+import net.minecraft.world.level.levelgen.feature.configurations.SimpleBlockConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.TreeConfiguration;
 import net.minecraft.world.level.levelgen.feature.featuresize.TwoLayersFeatureSize;
 import net.minecraft.world.level.levelgen.feature.foliageplacers.BlobFoliagePlacer;
 import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider;
+import net.minecraft.world.level.levelgen.feature.stateproviders.WeightedStateProvider;
 import net.minecraft.world.level.levelgen.feature.trunkplacers.StraightTrunkPlacer;
 
 public final class DWMConfiguredFeatureBootstrap {
@@ -23,6 +28,28 @@ public final class DWMConfiguredFeatureBootstrap {
         registerTree(registerable, DWMConfiguredFeatures.ASH, DWMBlocks.ASH_LOG, DWMBlocks.ASH_LEAVES);
         registerTree(registerable, DWMConfiguredFeatures.DARK_ASH, DWMBlocks.DARK_ASH_LOG, DWMBlocks.DARK_ASH_LEAVES);
         registerTree(registerable, DWMConfiguredFeatures.CARDINAL, DWMBlocks.CARDINAL_LOG, DWMBlocks.CARDINAL_LEAVES);
+
+        WeightedList.Builder<BlockState> flowers = WeightedList.builder();
+        flowers.add(DWMBlocks.FLOWER_OF_REMEMBRANCE.defaultBlockState(), 2);
+        flowers.add(DWMBlocks.MOONLIGHT_BLOOM.defaultBlockState(), 1);
+        registerable.register(
+                DWMConfiguredFeatures.GALLIFREY_FLOWERS,
+                new ConfiguredFeature<>(
+                        Feature.SIMPLE_BLOCK,
+                        new SimpleBlockConfiguration(new WeightedStateProvider(flowers))
+                )
+        );
+
+        registerable.register(
+                DWMConfiguredFeatures.SACCHARINE_CANE,
+                new ConfiguredFeature<>(
+                        Feature.BLOCK_COLUMN,
+                        BlockColumnConfiguration.simple(
+                                BiasedToBottomInt.of(2, 4),
+                                BlockStateProvider.simple(DWMBlocks.SACCHARINE_CANE)
+                        )
+                )
+        );
     }
 
     private static void registerTree(
