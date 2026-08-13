@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "#": "dwm:azbantium"
+  },
+  "pattern": [
+    "###",
+    "# #"
+  ],
+  "result": {
+    "id": "dwm:azbantium_helmet"
+  }
+}

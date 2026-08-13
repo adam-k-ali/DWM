@@ -22,6 +22,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addOrangeSandFamily(translationBuilder);
         addCitadelFamily(translationBuilder);
         addGallifreyPlants(translationBuilder);
+        addAzbantiumSet(translationBuilder);
         for (var family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.addTranslations(new WoodFamilyDatagen.LangSink() {
                 @Override
@@ -217,11 +218,28 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addBlockAndItem(t, DWMBlocks.SACCHARINE_CANE, "Saccharine Cane");
     }
 
+    private static void addAzbantiumSet(TranslationBuilder t) {
+        addBlockAndItem(t, DWMBlocks.AZBANTIUM_ORE, "Azbantium Ore");
+        addBlockAndItem(t, DWMBlocks.AZBANTIUM_BLOCK, "Azbantium Block");
+        addItem(t, DWMItems.AZBANTIUM, "Azbantium");
+        addItem(t, DWMItems.AZBANTIUM_SWORD, "Azbantium Sword");
+        addItem(t, DWMItems.AZBANTIUM_SHOVEL, "Azbantium Shovel");
+        addItem(t, DWMItems.AZBANTIUM_PICKAXE, "Azbantium Pickaxe");
+        addItem(t, DWMItems.AZBANTIUM_AXE, "Azbantium Axe");
+        addItem(t, DWMItems.AZBANTIUM_HOE, "Azbantium Hoe");
+        addItem(t, DWMItems.AZBANTIUM_HELMET, "Azbantium Helmet");
+        addItem(t, DWMItems.AZBANTIUM_CHESTPLATE, "Azbantium Chestplate");
+        addItem(t, DWMItems.AZBANTIUM_LEGGINGS, "Azbantium Leggings");
+        addItem(t, DWMItems.AZBANTIUM_BOOTS, "Azbantium Boots");
+    }
+
     private static void addMisc(TranslationBuilder t) {
         t.add("dimension.dwm.gallifrey", "Gallifrey");
         t.add("biome.dwm.gallifrey_plains", "Gallifrey Plains");
         t.add("biome.dwm.gallifrey_forest", "Gallifrey Forest");
         t.add("tag.item.dwm.gallifrey_plants", "Gallifrey Plants");
+        t.add("tag.item.dwm.azbantium_ores", "Azbantium Ores");
+        t.add("tag.item.dwm.repairs_azbantium_equipment", "Azbantium Equipment Repair Materials");
         t.add("biome.dwm.gallifrey_wastes", "Gallifrey Wastes");
         t.add("biome.dwm.gallifrey_badlands", "Gallifrey Badlands");
         t.add("dwm.console.biome_selector", "Biome selector");

@@ -2,6 +2,7 @@ package com.adamkali.dwm.datagen;
 
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
+import com.adamkali.dwm.item.DWMItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.core.HolderLookup;
@@ -111,6 +112,109 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 }
 
                 generateOrangeSandRecipes();
+                generateAzbantiumRecipes();
+            }
+
+            private void generateAzbantiumRecipes() {
+                shaped(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.AZBANTIUM_BLOCK)
+                        .define('#', DWMItems.AZBANTIUM)
+                        .pattern("###")
+                        .pattern("###")
+                        .pattern("###")
+                        .unlockedBy(getHasName(DWMItems.AZBANTIUM), has(DWMItems.AZBANTIUM))
+                        .save(output);
+
+                shapeless(RecipeCategory.MISC, DWMItems.AZBANTIUM, 9)
+                        .requires(DWMBlocks.AZBANTIUM_BLOCK)
+                        .unlockedBy(getHasName(DWMBlocks.AZBANTIUM_BLOCK), has(DWMBlocks.AZBANTIUM_BLOCK))
+                        .save(output);
+
+                oreSmelting(
+                        List.of(DWMBlocks.AZBANTIUM_ORE),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        DWMItems.AZBANTIUM,
+                        1.0F,
+                        200,
+                        "azbantium"
+                );
+                oreBlasting(
+                        List.of(DWMBlocks.AZBANTIUM_ORE),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        DWMItems.AZBANTIUM,
+                        1.0F,
+                        100,
+                        "azbantium"
+                );
+
+                shaped(RecipeCategory.COMBAT, DWMItems.AZBANTIUM_SWORD)
+                        .define('#', DWMItems.AZBANTIUM)
+                        .define('S', Items.STICK)
+                        .pattern("#")
+                        .pattern("#")
+                        .pattern("S")
+                        .unlockedBy(getHasName(DWMItems.AZBANTIUM), has(DWMItems.AZBANTIUM))
+                        .save(output);
+                shaped(RecipeCategory.TOOLS, DWMItems.AZBANTIUM_SHOVEL)
+                        .define('#', DWMItems.AZBANTIUM)
+                        .define('S', Items.STICK)
+                        .pattern("#")
+                        .pattern("S")
+                        .pattern("S")
+                        .unlockedBy(getHasName(DWMItems.AZBANTIUM), has(DWMItems.AZBANTIUM))
+                        .save(output);
+                shaped(RecipeCategory.TOOLS, DWMItems.AZBANTIUM_PICKAXE)
+                        .define('#', DWMItems.AZBANTIUM)
+                        .define('S', Items.STICK)
+                        .pattern("###")
+                        .pattern(" S ")
+                        .pattern(" S ")
+                        .unlockedBy(getHasName(DWMItems.AZBANTIUM), has(DWMItems.AZBANTIUM))
+                        .save(output);
+                shaped(RecipeCategory.TOOLS, DWMItems.AZBANTIUM_AXE)
+                        .define('#', DWMItems.AZBANTIUM)
+                        .define('S', Items.STICK)
+                        .pattern("##")
+                        .pattern("#S")
+                        .pattern(" S")
+                        .unlockedBy(getHasName(DWMItems.AZBANTIUM), has(DWMItems.AZBANTIUM))
+                        .save(output);
+                shaped(RecipeCategory.TOOLS, DWMItems.AZBANTIUM_HOE)
+                        .define('#', DWMItems.AZBANTIUM)
+                        .define('S', Items.STICK)
+                        .pattern("##")
+                        .pattern(" S")
+                        .pattern(" S")
+                        .unlockedBy(getHasName(DWMItems.AZBANTIUM), has(DWMItems.AZBANTIUM))
+                        .save(output);
+
+                shaped(RecipeCategory.COMBAT, DWMItems.AZBANTIUM_HELMET)
+                        .define('#', DWMItems.AZBANTIUM)
+                        .pattern("###")
+                        .pattern("# #")
+                        .unlockedBy(getHasName(DWMItems.AZBANTIUM), has(DWMItems.AZBANTIUM))
+                        .save(output);
+                shaped(RecipeCategory.COMBAT, DWMItems.AZBANTIUM_CHESTPLATE)
+                        .define('#', DWMItems.AZBANTIUM)
+                        .pattern("# #")
+                        .pattern("###")
+                        .pattern("###")
+                        .unlockedBy(getHasName(DWMItems.AZBANTIUM), has(DWMItems.AZBANTIUM))
+                        .save(output);
+                shaped(RecipeCategory.COMBAT, DWMItems.AZBANTIUM_LEGGINGS)
+                        .define('#', DWMItems.AZBANTIUM)
+                        .pattern("###")
+                        .pattern("# #")
+                        .pattern("# #")
+                        .unlockedBy(getHasName(DWMItems.AZBANTIUM), has(DWMItems.AZBANTIUM))
+                        .save(output);
+                shaped(RecipeCategory.COMBAT, DWMItems.AZBANTIUM_BOOTS)
+                        .define('#', DWMItems.AZBANTIUM)
+                        .pattern("# #")
+                        .pattern("# #")
+                        .unlockedBy(getHasName(DWMItems.AZBANTIUM), has(DWMItems.AZBANTIUM))
+                        .save(output);
             }
 
             private void generateOrangeSandRecipes() {

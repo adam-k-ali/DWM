@@ -11,6 +11,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 - [Building Content System](./feature-building-content.md)
 - [Gallifrey Building](./feature-gallifrey-building.md)
 - [Gallifrey Dimension](./feature-gallifrey-dimension.md)
+- [Azbantium](./feature-azbantium.md)
 
 ### Experimental Features
 - [TARDIS Chameleon System](./feature-chameleon-system.md) (config-gated and disabled by default)

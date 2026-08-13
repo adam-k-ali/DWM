@@ -21,6 +21,7 @@ Give players a Gallifrey-themed terrain and builder kit—stone, woods, and Cita
   - Shared set: planks, logs/wood (and stripped), leaves, sapling (and potted), stairs, slab, fence, fence gate, button, pressure plate, signs, hanging signs, boats
   - Doors and trapdoors on all three families; Cardinal uses a three-block-tall door
 - **Citadel family:** Citadel wall, panel, tile, and glass
+- **Azbantium:** storage block and gem craft set (tools/armor — see [Azbantium](./feature-azbantium.md))
 - **Gallifrey decorative plants**
   - Cross flowers: Flower of Remembrance, Moonlight Bloom (with potted variants)
   - Saccharine Cane (stackable decorative cane; no water requirement, no growth)

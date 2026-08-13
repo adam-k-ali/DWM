@@ -14,6 +14,8 @@ public final class DWMCreativeTabs {
     public static final ResourceKey<CreativeModeTab> FUNCTIONAL_BLOCKS = key("functional_blocks");
     public static final ResourceKey<CreativeModeTab> REDSTONE_BLOCKS = key("redstone_blocks");
     public static final ResourceKey<CreativeModeTab> TOOLS_AND_UTILITIES = key("tools_and_utilities");
+    public static final ResourceKey<CreativeModeTab> COMBAT = key("combat");
+    public static final ResourceKey<CreativeModeTab> INGREDIENTS = key("ingredients");
 
     private DWMCreativeTabs() {
     }

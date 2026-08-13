@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_azbantium_ore": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dwm:azbantium_ore"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "dwm:azbantium_from_blasting_azbantium_ore"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_azbantium_ore"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "dwm:azbantium_from_blasting_azbantium_ore"
+    ]
+  }
+}

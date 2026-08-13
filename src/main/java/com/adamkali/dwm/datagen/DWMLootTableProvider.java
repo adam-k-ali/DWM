@@ -1,6 +1,7 @@
 package com.adamkali.dwm.datagen;
 
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.item.DWMItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootSubProvider;
 import net.minecraft.core.HolderLookup;
@@ -46,6 +47,9 @@ public class DWMLootTableProvider extends FabricBlockLootSubProvider {
         for (Block potted : DWMBlocks.GALLIFREY_POTTED_PLANTS) {
             dropPottedContents(potted);
         }
+
+        add(DWMBlocks.AZBANTIUM_ORE, createOreDrop(DWMBlocks.AZBANTIUM_ORE, DWMItems.AZBANTIUM));
+        dropSelf(DWMBlocks.AZBANTIUM_BLOCK);
 
         for (var family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.generateLoot(new WoodFamilyDatagen.LootDropSink() {
