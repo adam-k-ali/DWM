@@ -23,6 +23,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addCitadelFamily(translationBuilder);
         addGallifreyPlants(translationBuilder);
         addAzbantiumSet(translationBuilder);
+        addGallifreyVanillaOres(translationBuilder);
         for (var family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.addTranslations(new WoodFamilyDatagen.LangSink() {
                 @Override
@@ -231,6 +232,13 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItem(t, DWMItems.AZBANTIUM_CHESTPLATE, "Azbantium Chestplate");
         addItem(t, DWMItems.AZBANTIUM_LEGGINGS, "Azbantium Leggings");
         addItem(t, DWMItems.AZBANTIUM_BOOTS, "Azbantium Boots");
+    }
+
+    private static void addGallifreyVanillaOres(TranslationBuilder t) {
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_COAL_ORE, "Gallifrey Coal Ore");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_IRON_ORE, "Gallifrey Iron Ore");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_GOLD_ORE, "Gallifrey Gold Ore");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_DIAMOND_ORE, "Gallifrey Diamond Ore");
     }
 
     private static void addMisc(TranslationBuilder t) {

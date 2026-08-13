@@ -22,6 +22,7 @@ Give players a Gallifrey-themed terrain and builder kit—stone, woods, and Cita
   - Doors and trapdoors on all three families; Cardinal uses a three-block-tall door
 - **Citadel family:** Citadel wall, panel, tile, and glass
 - **Azbantium:** storage block (ore is mined in Gallifrey; gem crafts tools/armor — see [Azbantium](./feature-azbantium.md))
+- **Gallifrey vanilla ores:** coal, iron, gold, and diamond ores textured for Gallifrey stone (drop vanilla items; mined in the destination dimension)
 - **Gallifrey decorative plants**
   - Cross flowers: Flower of Remembrance, Moonlight Bloom (with potted variants)
   - Saccharine Cane (stackable decorative cane; no water requirement, no growth)

@@ -98,11 +98,31 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(key(DWMBlocks.CITADEL_PANEL))
                 .add(key(DWMBlocks.CITADEL_TILE))
                 .add(key(DWMBlocks.AZBANTIUM_ORE))
-                .add(key(DWMBlocks.AZBANTIUM_BLOCK));
+                .add(key(DWMBlocks.AZBANTIUM_BLOCK))
+                .add(key(DWMBlocks.GALLIFREY_COAL_ORE))
+                .add(key(DWMBlocks.GALLIFREY_IRON_ORE))
+                .add(key(DWMBlocks.GALLIFREY_GOLD_ORE))
+                .add(key(DWMBlocks.GALLIFREY_DIAMOND_ORE));
+
+        builder(BlockTags.NEEDS_STONE_TOOL)
+                .add(key(DWMBlocks.GALLIFREY_IRON_ORE));
+
+        builder(BlockTags.NEEDS_IRON_TOOL)
+                .add(key(DWMBlocks.GALLIFREY_GOLD_ORE))
+                .add(key(DWMBlocks.GALLIFREY_DIAMOND_ORE));
 
         builder(BlockTags.NEEDS_DIAMOND_TOOL)
                 .add(key(DWMBlocks.AZBANTIUM_ORE))
                 .add(key(DWMBlocks.AZBANTIUM_BLOCK));
+
+        builder(DWMBlockTags.COAL_ORES)
+                .add(key(DWMBlocks.GALLIFREY_COAL_ORE));
+        builder(BlockTags.IRON_ORES)
+                .add(key(DWMBlocks.GALLIFREY_IRON_ORE));
+        builder(BlockTags.GOLD_ORES)
+                .add(key(DWMBlocks.GALLIFREY_GOLD_ORE));
+        builder(DWMBlockTags.DIAMOND_ORES)
+                .add(key(DWMBlocks.GALLIFREY_DIAMOND_ORE));
 
         builder(BlockTags.IMPERMEABLE)
                 .add(key(DWMBlocks.CITADEL_GLASS));

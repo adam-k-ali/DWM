@@ -115,6 +115,16 @@ public class DWMBlockSettings {
                 .sound(SoundType.METAL);
     }
 
+    /** Fresh properties for Gallifrey-stone vanilla ores (vanilla ore hardness; avoids shared setId mutation). */
+    public static BlockBehaviour.Properties gallifreyVanillaOre() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.TERRACOTTA_ORANGE)
+                .instrument(NoteBlockInstrument.BASEDRUM)
+                .requiresCorrectToolForDrops()
+                .strength(3.0F)
+                .sound(SoundType.STONE);
+    }
+
     public static BlockBehaviour.Properties ashLog(MapColor topMapColor, MapColor sideMapColor) {
         return BlockBehaviour.Properties.of()
                 .mapColor(state -> state.hasProperty(net.minecraft.world.level.block.RotatedPillarBlock.AXIS)

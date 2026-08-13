@@ -25,7 +25,6 @@ Give Gallifrey a signature hard gem material—minable only with diamond-tier to
 
 ## Known Constraints
 - No nugget or raw-ore form (archive coverage is gem + tools/armor only).
-- Vanilla overworld ores still run on Gallifrey biomes but replace `minecraft:stone`, so they do not appear in Gallifrey stone fill.
 
 ## Future Opportunities (Planned)
 - Dark Star Alloy (DWM-021) as a higher netherite-style tier reusing this material pattern.

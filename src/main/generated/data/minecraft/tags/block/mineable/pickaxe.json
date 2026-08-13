@@ -25,6 +25,10 @@
     "dwm:citadel_panel",
     "dwm:citadel_tile",
     "dwm:azbantium_ore",
-    "dwm:azbantium_block"
+    "dwm:azbantium_block",
+    "dwm:gallifrey_coal_ore",
+    "dwm:gallifrey_iron_ore",
+    "dwm:gallifrey_gold_ore",
+    "dwm:gallifrey_diamond_ore"
   ]
 }

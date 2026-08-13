@@ -113,6 +113,85 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
 
                 generateOrangeSandRecipes();
                 generateAzbantiumRecipes();
+                generateGallifreyVanillaOreRecipes();
+            }
+
+            private void generateGallifreyVanillaOreRecipes() {
+                oreSmelting(
+                        List.of(DWMBlocks.GALLIFREY_COAL_ORE),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        Items.COAL,
+                        0.1F,
+                        200,
+                        "coal"
+                );
+                oreBlasting(
+                        List.of(DWMBlocks.GALLIFREY_COAL_ORE),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        Items.COAL,
+                        0.1F,
+                        100,
+                        "coal"
+                );
+
+                oreSmelting(
+                        List.of(DWMBlocks.GALLIFREY_IRON_ORE),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        Items.IRON_INGOT,
+                        0.7F,
+                        200,
+                        "iron_ingot"
+                );
+                oreBlasting(
+                        List.of(DWMBlocks.GALLIFREY_IRON_ORE),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        Items.IRON_INGOT,
+                        0.7F,
+                        100,
+                        "iron_ingot"
+                );
+
+                oreSmelting(
+                        List.of(DWMBlocks.GALLIFREY_GOLD_ORE),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        Items.GOLD_INGOT,
+                        1.0F,
+                        200,
+                        "gold_ingot"
+                );
+                oreBlasting(
+                        List.of(DWMBlocks.GALLIFREY_GOLD_ORE),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        Items.GOLD_INGOT,
+                        1.0F,
+                        100,
+                        "gold_ingot"
+                );
+
+                oreSmelting(
+                        List.of(DWMBlocks.GALLIFREY_DIAMOND_ORE),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        Items.DIAMOND,
+                        1.0F,
+                        200,
+                        "diamond"
+                );
+                oreBlasting(
+                        List.of(DWMBlocks.GALLIFREY_DIAMOND_ORE),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        Items.DIAMOND,
+                        1.0F,
+                        100,
+                        "diamond"
+                );
             }
 
             private void generateAzbantiumRecipes() {

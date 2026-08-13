@@ -184,4 +184,27 @@ public class ResourceValidationTests {
             );
         }
     }
+
+    /**
+     * Guards against {@code pruneDatagenItemModels} dropping Gallifrey vanilla ore item defs
+     * (allowlist must include {@code gallifrey} substring).
+     */
+    @Test
+    public void generatedGallifreyVanillaOreItemModelsExist() throws Exception {
+        Path itemsDir = Path.of("src/main/generated/assets/dwm/items");
+        assertTrue(Files.isDirectory(itemsDir), "Expected generated items dir at " + itemsDir);
+        String[] ids = {
+                "gallifrey_coal_ore",
+                "gallifrey_iron_ore",
+                "gallifrey_gold_ore",
+                "gallifrey_diamond_ore",
+        };
+        for (String id : ids) {
+            Path item = itemsDir.resolve(id + ".json");
+            assertTrue(
+                    Files.isRegularFile(item) && Files.size(item) > 0,
+                    "Missing generated Gallifrey vanilla ore item model: " + item
+            );
+        }
+    }
 }

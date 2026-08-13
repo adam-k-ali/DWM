@@ -106,6 +106,17 @@ public final class DWMBiomeBootstrap {
         BiomeDefaultFeatures.addDefaultMonsterRoom(generation);
         BiomeDefaultFeatures.addDefaultUndergroundVariety(generation);
         BiomeDefaultFeatures.addDefaultOres(generation);
+        generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.GALLIFREY_COAL_ORE_UPPER);
+        generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.GALLIFREY_COAL_ORE_LOWER);
+        generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.GALLIFREY_IRON_ORE_UPPER);
+        generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.GALLIFREY_IRON_ORE_MIDDLE);
+        generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.GALLIFREY_IRON_ORE_SMALL);
+        generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.GALLIFREY_GOLD_ORE);
+        generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.GALLIFREY_GOLD_ORE_LOWER);
+        generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.GALLIFREY_DIAMOND_ORE);
+        generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.GALLIFREY_DIAMOND_ORE_MEDIUM);
+        generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.GALLIFREY_DIAMOND_ORE_LARGE);
+        generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.GALLIFREY_DIAMOND_ORE_BURIED);
         generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.AZBANTIUM_ORE);
         BiomeDefaultFeatures.addDefaultSoftDisks(generation);
         BiomeDefaultFeatures.addDefaultSprings(generation);
