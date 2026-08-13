@@ -105,6 +105,16 @@ public class DWMBlockSettings {
                 .pushReaction(PushReaction.DESTROY);
     }
 
+    /** Fresh properties for azbantium ore/block (harder than obsidian; avoids shared setId mutation). */
+    public static BlockBehaviour.Properties azbantium() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_LIGHT_BLUE)
+                .instrument(NoteBlockInstrument.BASEDRUM)
+                .requiresCorrectToolForDrops()
+                .strength(55.0F, 1200.0F)
+                .sound(SoundType.METAL);
+    }
+
     public static BlockBehaviour.Properties ashLog(MapColor topMapColor, MapColor sideMapColor) {
         return BlockBehaviour.Properties.of()
                 .mapColor(state -> state.hasProperty(net.minecraft.world.level.block.RotatedPillarBlock.AXIS)

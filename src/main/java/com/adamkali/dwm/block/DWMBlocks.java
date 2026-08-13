@@ -218,6 +218,9 @@ public class DWMBlocks {
     public static final Block CITADEL_TILE = register(Block::new, DWMBlockSettings.CITADEL, "citadel_tile");
     public static final Block CITADEL_GLASS = register(TransparentBlock::new, DWMBlockSettings.CITADEL_GLASS, "citadel_glass");
 
+    public static final Block AZBANTIUM_ORE = register(Block::new, DWMBlockSettings.azbantium(), "azbantium_ore");
+    public static final Block AZBANTIUM_BLOCK = register(Block::new, DWMBlockSettings.azbantium(), "azbantium_block");
+
     public static final Block FLOWER_OF_REMEMBRANCE = register(
             props -> new FlowerBlock(MobEffects.SATURATION, 0.35F, props),
             DWMBlockSettings.gallifreyCrossPlant(),
@@ -454,6 +457,11 @@ public class DWMBlocks {
             CITADEL_GLASS
     );
 
+    public static final List<Block> AZBANTIUM_BLOCKS = List.of(
+            AZBANTIUM_ORE,
+            AZBANTIUM_BLOCK
+    );
+
     /** Placeable Gallifrey decorative plants (items). */
     public static final List<Block> GALLIFREY_PLANTS = List.of(
             FLOWER_OF_REMEMBRANCE,
@@ -615,6 +623,8 @@ public class DWMBlocks {
                 content.accept(block);
             }
 
+            content.accept(AZBANTIUM_BLOCK);
+
             for (RegisteredWoodFamily family : WOOD_FAMILIES) {
                 for (Block block : family.buildingBlocks()) {
                     content.accept(block);
@@ -631,6 +641,7 @@ public class DWMBlocks {
             content.accept(GALLIFREY_COBBLESTONE);
             content.accept(GALLIFREY_MOSSY_COBBLESTONE);
             content.accept(GALLIFREY_STONE);
+            content.accept(AZBANTIUM_ORE);
             for (RegisteredWoodFamily family : WOOD_FAMILIES) {
                 content.accept(family.blocks().log());
                 content.accept(family.blocks().leaves());

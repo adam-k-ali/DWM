@@ -153,4 +153,35 @@ public class ResourceValidationTests {
             );
         }
     }
+
+    /**
+     * Guards against {@code pruneDatagenItemModels} dropping azbantium item defs
+     * (allowlist must include {@code azbantium} substring).
+     */
+    @Test
+    public void generatedAzbantiumItemModelsExist() throws Exception {
+        Path itemsDir = Path.of("src/main/generated/assets/dwm/items");
+        assertTrue(Files.isDirectory(itemsDir), "Expected generated items dir at " + itemsDir);
+        String[] ids = {
+                "azbantium_ore",
+                "azbantium_block",
+                "azbantium",
+                "azbantium_sword",
+                "azbantium_shovel",
+                "azbantium_pickaxe",
+                "azbantium_axe",
+                "azbantium_hoe",
+                "azbantium_helmet",
+                "azbantium_chestplate",
+                "azbantium_leggings",
+                "azbantium_boots",
+        };
+        for (String id : ids) {
+            Path item = itemsDir.resolve(id + ".json");
+            assertTrue(
+                    Files.isRegularFile(item) && Files.size(item) > 0,
+                    "Missing generated azbantium item model: " + item
+            );
+        }
+    }
 }

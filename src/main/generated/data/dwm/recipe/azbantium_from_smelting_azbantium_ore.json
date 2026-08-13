@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smelting",
+  "experience": 1.0,
+  "group": "azbantium",
+  "ingredient": "dwm:azbantium_ore",
+  "result": {
+    "id": "dwm:azbantium"
+  }
+}

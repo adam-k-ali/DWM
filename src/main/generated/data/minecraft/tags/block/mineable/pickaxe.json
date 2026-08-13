@@ -23,6 +23,8 @@
     "dwm:smooth_orange_sandstone_slab",
     "dwm:citadel_wall",
     "dwm:citadel_panel",
-    "dwm:citadel_tile"
+    "dwm:citadel_tile",
+    "dwm:azbantium_ore",
+    "dwm:azbantium_block"
   ]
 }

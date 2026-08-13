@@ -27,6 +27,11 @@ public final class DWMBlockTags {
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "gallifrey_plants")
     );
 
+    public static final TagKey<Block> AZBANTIUM_ORES = TagKey.create(
+            Registries.BLOCK,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "azbantium_ores")
+    );
+
     public static final TagKey<Block> ASH_LOGS = TagKey.create(
             Registries.BLOCK,
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "ash_logs")

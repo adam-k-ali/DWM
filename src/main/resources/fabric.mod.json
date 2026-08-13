@@ -34,6 +34,7 @@
       "com.adamkali.dwm.gametest.DarkAshWoodFamilyGameTests",
       "com.adamkali.dwm.gametest.CardinalWoodFamilyGameTests",
       "com.adamkali.dwm.gametest.GallifreyPlantsGameTests",
+      "com.adamkali.dwm.gametest.AzbantiumGameTests",
       "com.adamkali.dwm.gametest.SonicInteractionGameTests",
       "com.adamkali.dwm.network.ChameleonGameTests"
     ]

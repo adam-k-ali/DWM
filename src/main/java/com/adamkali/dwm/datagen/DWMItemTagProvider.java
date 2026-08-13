@@ -4,6 +4,7 @@ import com.adamkali.dwm.block.DWMBlockTags;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.item.DWMItemTags;
+import com.adamkali.dwm.item.DWMItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.core.HolderLookup;
@@ -29,8 +30,23 @@ public class DWMItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         copy(com.adamkali.dwm.block.DWMBlockTags.ORANGE_SAND, com.adamkali.dwm.item.DWMItemTags.ORANGE_SAND);
         copy(com.adamkali.dwm.block.DWMBlockTags.CITADEL, com.adamkali.dwm.item.DWMItemTags.CITADEL);
         copy(com.adamkali.dwm.block.DWMBlockTags.GALLIFREY_PLANTS, com.adamkali.dwm.item.DWMItemTags.GALLIFREY_PLANTS);
+        copy(DWMBlockTags.AZBANTIUM_ORES, DWMItemTags.AZBANTIUM_ORES);
         copy(BlockTags.SMALL_FLOWERS, BlockItemTags.SMALL_FLOWERS.item());
         copy(BlockTags.FLOWERS, BlockItemTags.FLOWERS.item());
+
+        builder(DWMItemTags.REPAIRS_AZBANTIUM_EQUIPMENT)
+                .add(DWMItems.AZBANTIUM.builtInRegistryHolder().key());
+
+        builder(ItemTags.SWORDS).add(DWMItems.AZBANTIUM_SWORD.builtInRegistryHolder().key());
+        builder(ItemTags.SHOVELS).add(DWMItems.AZBANTIUM_SHOVEL.builtInRegistryHolder().key());
+        builder(ItemTags.PICKAXES).add(DWMItems.AZBANTIUM_PICKAXE.builtInRegistryHolder().key());
+        builder(ItemTags.AXES).add(DWMItems.AZBANTIUM_AXE.builtInRegistryHolder().key());
+        builder(ItemTags.HOES).add(DWMItems.AZBANTIUM_HOE.builtInRegistryHolder().key());
+        builder(ItemTags.HEAD_ARMOR).add(DWMItems.AZBANTIUM_HELMET.builtInRegistryHolder().key());
+        builder(ItemTags.CHEST_ARMOR).add(DWMItems.AZBANTIUM_CHESTPLATE.builtInRegistryHolder().key());
+        builder(ItemTags.LEG_ARMOR).add(DWMItems.AZBANTIUM_LEGGINGS.builtInRegistryHolder().key());
+        builder(ItemTags.FOOT_ARMOR).add(DWMItems.AZBANTIUM_BOOTS.builtInRegistryHolder().key());
+
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.generateItemTags(new WoodFamilyDatagen.ItemTagSink() {
                 @Override

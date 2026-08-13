@@ -2,6 +2,7 @@ package com.adamkali.dwm.datagen;
 
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
+import com.adamkali.dwm.item.DWMItems;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.minecraft.client.data.models.BlockModelGenerators;
@@ -49,6 +50,9 @@ public class DWMModelProvider extends FabricModelProvider {
         }
 
         registerGallifreyPlants(blockStateModelGenerator);
+
+        registerCubeAll(blockStateModelGenerator, DWMBlocks.AZBANTIUM_ORE);
+        registerCubeAll(blockStateModelGenerator, DWMBlocks.AZBANTIUM_BLOCK);
     }
 
     @Override
@@ -56,6 +60,17 @@ public class DWMModelProvider extends FabricModelProvider {
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyClientDatagen.generateItemModels(itemModelGenerator, family);
         }
+
+        itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_SWORD, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_SHOVEL, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_PICKAXE, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_AXE, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_HOE, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_HELMET, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_CHESTPLATE, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_LEGGINGS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_BOOTS, ModelTemplates.FLAT_ITEM);
     }
 
     private static void registerGallifreyPlants(BlockModelGenerators generator) {

@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "dwm:azbantium"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "dwm:azbantium"
+      }
+    ]
+  }
+}
