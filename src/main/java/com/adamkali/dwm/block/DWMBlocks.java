@@ -21,7 +21,10 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ColoredFallingBlock;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.TransparentBlock;
+import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import java.util.EnumSet;
@@ -164,6 +167,46 @@ public class DWMBlocks {
     public static final Block GALLIFREY_DIRT = register(Block::new, DWMBlockSettings.GALLIFREY_DIRT, "gallifrey_dirt");
     public static final Block GALLIFREY_COARSE_DIRT = register(Block::new, DWMBlockSettings.GALLIFREY_DIRT, "gallifrey_coarse_dirt");
     public static final Block GALLIFREY_GRASS_BLOCK = register(Block::new, DWMBlockSettings.GALLIFREY_GRASS, "gallifrey_grass_block");
+
+    public static final Block ORANGE_SAND = register(
+            settings -> new ColoredFallingBlock(new ColorRGBA(0xF4B583), settings),
+            DWMBlockSettings.ORANGE_SAND,
+            "orange_sand"
+    );
+    public static final Block ORANGE_SANDSTONE = register(Block::new, DWMBlockSettings.ORANGE_SANDSTONE, "orange_sandstone");
+    public static final Block ORANGE_SANDSTONE_STAIRS = register(
+            settings -> new StairBlock(ORANGE_SANDSTONE.defaultBlockState(), settings),
+            BlockBehaviour.Properties.ofLegacyCopy(ORANGE_SANDSTONE),
+            "orange_sandstone_stairs"
+    );
+    public static final Block ORANGE_SANDSTONE_SLAB = register(
+            SlabBlock::new,
+            BlockBehaviour.Properties.ofLegacyCopy(ORANGE_SANDSTONE),
+            "orange_sandstone_slab"
+    );
+    public static final Block ORANGE_SANDSTONE_WALL = register(
+            WallBlock::new,
+            BlockBehaviour.Properties.ofLegacyCopy(ORANGE_SANDSTONE),
+            "orange_sandstone_wall"
+    );
+    public static final Block CUT_ORANGE_SANDSTONE = register(Block::new, DWMBlockSettings.ORANGE_SANDSTONE, "cut_orange_sandstone");
+    public static final Block CUT_ORANGE_SANDSTONE_SLAB = register(
+            SlabBlock::new,
+            BlockBehaviour.Properties.ofLegacyCopy(CUT_ORANGE_SANDSTONE),
+            "cut_orange_sandstone_slab"
+    );
+    public static final Block CHISELED_ORANGE_SANDSTONE = register(Block::new, DWMBlockSettings.ORANGE_SANDSTONE, "chiseled_orange_sandstone");
+    public static final Block SMOOTH_ORANGE_SANDSTONE = register(Block::new, DWMBlockSettings.ORANGE_SANDSTONE, "smooth_orange_sandstone");
+    public static final Block SMOOTH_ORANGE_SANDSTONE_STAIRS = register(
+            settings -> new StairBlock(SMOOTH_ORANGE_SANDSTONE.defaultBlockState(), settings),
+            BlockBehaviour.Properties.ofLegacyCopy(SMOOTH_ORANGE_SANDSTONE),
+            "smooth_orange_sandstone_stairs"
+    );
+    public static final Block SMOOTH_ORANGE_SANDSTONE_SLAB = register(
+            SlabBlock::new,
+            BlockBehaviour.Properties.ofLegacyCopy(SMOOTH_ORANGE_SANDSTONE),
+            "smooth_orange_sandstone_slab"
+    );
 
     public static final Block CITADEL_WALL = register(Block::new, DWMBlockSettings.CITADEL, "citadel_wall");
     public static final Block CITADEL_PANEL = register(Block::new, DWMBlockSettings.CITADEL, "citadel_panel");
@@ -336,6 +379,35 @@ public class DWMBlocks {
             GALLIFREY_GRASS_BLOCK
     );
 
+    /** Orange sandstone building set (excludes falling sand). */
+    public static final List<Block> ORANGE_SAND_BUILDING_BLOCKS = List.of(
+            ORANGE_SANDSTONE,
+            ORANGE_SANDSTONE_STAIRS,
+            ORANGE_SANDSTONE_SLAB,
+            ORANGE_SANDSTONE_WALL,
+            CUT_ORANGE_SANDSTONE,
+            CUT_ORANGE_SANDSTONE_SLAB,
+            CHISELED_ORANGE_SANDSTONE,
+            SMOOTH_ORANGE_SANDSTONE,
+            SMOOTH_ORANGE_SANDSTONE_STAIRS,
+            SMOOTH_ORANGE_SANDSTONE_SLAB
+    );
+
+    /** Full orange sand family including terrain sand. */
+    public static final List<Block> ORANGE_SAND_FAMILY = List.of(
+            ORANGE_SAND,
+            ORANGE_SANDSTONE,
+            ORANGE_SANDSTONE_STAIRS,
+            ORANGE_SANDSTONE_SLAB,
+            ORANGE_SANDSTONE_WALL,
+            CUT_ORANGE_SANDSTONE,
+            CUT_ORANGE_SANDSTONE_SLAB,
+            CHISELED_ORANGE_SANDSTONE,
+            SMOOTH_ORANGE_SANDSTONE,
+            SMOOTH_ORANGE_SANDSTONE_STAIRS,
+            SMOOTH_ORANGE_SANDSTONE_SLAB
+    );
+
     /** Citadel decorative solids (excludes glass). */
     public static final List<Block> CITADEL_BUILDING_BLOCKS = List.of(
             CITADEL_WALL,
@@ -481,6 +553,10 @@ public class DWMBlocks {
                 content.accept(block);
             }
 
+            for (Block block : ORANGE_SAND_BUILDING_BLOCKS) {
+                content.accept(block);
+            }
+
             for (Block block : CITADEL_FAMILY) {
                 content.accept(block);
             }
@@ -497,6 +573,7 @@ public class DWMBlocks {
             content.accept(GALLIFREY_DIRT);
             content.accept(GALLIFREY_COARSE_DIRT);
             content.accept(GALLIFREY_SAND);
+            content.accept(ORANGE_SAND);
             content.accept(GALLIFREY_COBBLESTONE);
             content.accept(GALLIFREY_MOSSY_COBBLESTONE);
             content.accept(GALLIFREY_STONE);

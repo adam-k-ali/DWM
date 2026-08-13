@@ -25,6 +25,16 @@ public class DWMLootTableProvider extends FabricBlockLootSubProvider {
                 DWMBlocks.GALLIFREY_DIRT
         ));
 
+        for (Block block : DWMBlocks.ORANGE_SAND_FAMILY) {
+            if (block == DWMBlocks.ORANGE_SANDSTONE_SLAB
+                    || block == DWMBlocks.CUT_ORANGE_SANDSTONE_SLAB
+                    || block == DWMBlocks.SMOOTH_ORANGE_SANDSTONE_SLAB) {
+                add(block, createSlabItemTable(block));
+            } else {
+                dropSelf(block);
+            }
+        }
+
         for (Block block : DWMBlocks.CITADEL_BUILDING_BLOCKS) {
             dropSelf(block);
         }

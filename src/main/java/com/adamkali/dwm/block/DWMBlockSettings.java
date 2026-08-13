@@ -42,6 +42,18 @@ public class DWMBlockSettings {
             .strength(0.6F)
             .sound(SoundType.GRASS);
 
+    public static final BlockBehaviour.Properties ORANGE_SAND = BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_ORANGE)
+            .instrument(NoteBlockInstrument.SNARE)
+            .strength(0.5F)
+            .sound(SoundType.SAND);
+
+    public static final BlockBehaviour.Properties ORANGE_SANDSTONE = BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_ORANGE)
+            .instrument(NoteBlockInstrument.BASEDRUM)
+            .requiresCorrectToolForDrops()
+            .strength(0.8F);
+
     public static final BlockBehaviour.Properties CITADEL = BlockBehaviour.Properties.of()
             .mapColor(MapColor.STONE)
             .instrument(NoteBlockInstrument.BASEDRUM)

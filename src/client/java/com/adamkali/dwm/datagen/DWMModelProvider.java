@@ -42,6 +42,8 @@ public class DWMModelProvider extends FabricModelProvider {
         registerCutSandstone(blockStateModelGenerator, DWMBlocks.GALLIFREY_CUT_SANDSTONE, DWMBlocks.GALLIFREY_SANDSTONE);
         registerChiseledSandstone(blockStateModelGenerator, DWMBlocks.GALLIFREY_CHISELED_SANDSTONE, DWMBlocks.GALLIFREY_SANDSTONE);
 
+        registerOrangeSandFamily(blockStateModelGenerator);
+
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyClientDatagen.generateBlockModels(blockStateModelGenerator, family);
         }
@@ -94,5 +96,55 @@ public class DWMModelProvider extends FabricModelProvider {
         var modelId = ModelTemplates.CUBE_COLUMN.create(chiseledSandstone, textures, generator.modelOutput);
         generator.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(chiseledSandstone, BlockModelGenerators.plainVariant(modelId)));
         generator.registerSimpleItemModel(chiseledSandstone, modelId);
+    }
+
+    /**
+     * Vanilla red-sandstone parity: sand + sandstone stairs/slab/wall + cut slab + smooth stairs/slab.
+     * Smooth reuses {@code orange_sandstone_top} (no dedicated smooth texture).
+     */
+    private static void registerOrangeSandFamily(BlockModelGenerators generator) {
+        registerCubeAll(generator, DWMBlocks.ORANGE_SAND);
+
+        TexturedModel sandstone = TexturedModel.TOP_BOTTOM_WITH_WALL.get(DWMBlocks.ORANGE_SANDSTONE);
+        generator.new BlockFamilyProvider(sandstone.getMapping())
+                .fullBlock(DWMBlocks.ORANGE_SANDSTONE, sandstone.getTemplate())
+                .stairs(DWMBlocks.ORANGE_SANDSTONE_STAIRS)
+                .slab(DWMBlocks.ORANGE_SANDSTONE_SLAB)
+                .wall(DWMBlocks.ORANGE_SANDSTONE_WALL);
+        generator.registerSimpleItemModel(
+                DWMBlocks.ORANGE_SANDSTONE,
+                ModelLocationUtils.getModelLocation(DWMBlocks.ORANGE_SANDSTONE)
+        );
+
+        TexturedModel cut = TexturedModel.COLUMN.get(DWMBlocks.ORANGE_SANDSTONE)
+                .updateTextures(m -> m.put(
+                        TextureSlot.SIDE,
+                        TextureMapping.getBlockTexture(DWMBlocks.CUT_ORANGE_SANDSTONE)
+                ));
+        generator.new BlockFamilyProvider(cut.getMapping())
+                .fullBlock(DWMBlocks.CUT_ORANGE_SANDSTONE, cut.getTemplate())
+                .slab(DWMBlocks.CUT_ORANGE_SANDSTONE_SLAB);
+        generator.registerSimpleItemModel(
+                DWMBlocks.CUT_ORANGE_SANDSTONE,
+                ModelLocationUtils.getModelLocation(DWMBlocks.CUT_ORANGE_SANDSTONE)
+        );
+
+        registerChiseledSandstone(
+                generator,
+                DWMBlocks.CHISELED_ORANGE_SANDSTONE,
+                DWMBlocks.ORANGE_SANDSTONE
+        );
+
+        TexturedModel smooth = TexturedModel.createAllSame(
+                TextureMapping.getBlockTexture(DWMBlocks.ORANGE_SANDSTONE, "_top")
+        );
+        generator.new BlockFamilyProvider(smooth.getMapping())
+                .fullBlock(DWMBlocks.SMOOTH_ORANGE_SANDSTONE, smooth.getTemplate())
+                .stairs(DWMBlocks.SMOOTH_ORANGE_SANDSTONE_STAIRS)
+                .slab(DWMBlocks.SMOOTH_ORANGE_SANDSTONE_SLAB);
+        generator.registerSimpleItemModel(
+                DWMBlocks.SMOOTH_ORANGE_SANDSTONE,
+                ModelLocationUtils.getModelLocation(DWMBlocks.SMOOTH_ORANGE_SANDSTONE)
+        );
     }
 }

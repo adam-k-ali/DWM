@@ -37,6 +37,7 @@ public final class DWMBiomeBootstrap {
         registerable.register(DWMBiomeKeys.GALLIFREY_PLAINS, createPlains(features, carvers));
         registerable.register(DWMBiomeKeys.GALLIFREY_FOREST, createForest(features, carvers));
         registerable.register(DWMBiomeKeys.GALLIFREY_WASTES, createWastes(features, carvers));
+        registerable.register(DWMBiomeKeys.GALLIFREY_BADLANDS, createBadlands(features, carvers));
     }
 
     private static Biome createPlains(
@@ -70,6 +71,19 @@ public final class DWMBiomeBootstrap {
     }
 
     private static Biome createWastes(
+            HolderGetter<PlacedFeature> features,
+            HolderGetter<ConfiguredWorldCarver<?>> carvers
+    ) {
+        MobSpawnSettings.Builder spawns = new MobSpawnSettings.Builder();
+        BiomeDefaultFeatures.commonSpawns(spawns);
+
+        BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(features, carvers);
+        addBasicFeatures(generation);
+
+        return buildBiome(false, 1.2F, 0.0F, spawns, generation);
+    }
+
+    private static Biome createBadlands(
             HolderGetter<PlacedFeature> features,
             HolderGetter<ConfiguredWorldCarver<?>> carvers
     ) {

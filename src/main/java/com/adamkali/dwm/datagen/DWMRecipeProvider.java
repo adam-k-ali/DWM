@@ -10,6 +10,7 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CookingBookCategory;
+import net.minecraft.world.item.crafting.Ingredient;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -108,6 +109,47 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
                     WoodFamilyDatagen.generateRecipes(this, output, family);
                 }
+
+                generateOrangeSandRecipes();
+            }
+
+            private void generateOrangeSandRecipes() {
+                twoByTwoPacker(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.ORANGE_SANDSTONE, DWMBlocks.ORANGE_SAND);
+                cut(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.CUT_ORANGE_SANDSTONE, DWMBlocks.ORANGE_SANDSTONE);
+                chiseled(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.CHISELED_ORANGE_SANDSTONE, DWMBlocks.ORANGE_SANDSTONE_SLAB);
+
+                stairBuilder(DWMBlocks.ORANGE_SANDSTONE_STAIRS, Ingredient.of(DWMBlocks.ORANGE_SANDSTONE))
+                        .unlockedBy(getHasName(DWMBlocks.ORANGE_SANDSTONE), has(DWMBlocks.ORANGE_SANDSTONE))
+                        .save(output);
+                slab(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.ORANGE_SANDSTONE_SLAB, DWMBlocks.ORANGE_SANDSTONE);
+                wall(RecipeCategory.DECORATIONS, DWMBlocks.ORANGE_SANDSTONE_WALL, DWMBlocks.ORANGE_SANDSTONE);
+
+                slab(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.CUT_ORANGE_SANDSTONE_SLAB, DWMBlocks.CUT_ORANGE_SANDSTONE);
+
+                stairBuilder(DWMBlocks.SMOOTH_ORANGE_SANDSTONE_STAIRS, Ingredient.of(DWMBlocks.SMOOTH_ORANGE_SANDSTONE))
+                        .unlockedBy(getHasName(DWMBlocks.SMOOTH_ORANGE_SANDSTONE), has(DWMBlocks.SMOOTH_ORANGE_SANDSTONE))
+                        .save(output);
+                slab(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.SMOOTH_ORANGE_SANDSTONE_SLAB, DWMBlocks.SMOOTH_ORANGE_SANDSTONE);
+
+                oreSmelting(
+                        List.of(DWMBlocks.ORANGE_SANDSTONE),
+                        RecipeCategory.BUILDING_BLOCKS,
+                        CookingBookCategory.BLOCKS,
+                        DWMBlocks.SMOOTH_ORANGE_SANDSTONE,
+                        0.1F,
+                        200,
+                        "smooth_orange_sandstone"
+                );
+
+                stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.ORANGE_SANDSTONE_SLAB, DWMBlocks.ORANGE_SANDSTONE, 2);
+                stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.ORANGE_SANDSTONE_STAIRS, DWMBlocks.ORANGE_SANDSTONE);
+                stonecutterResultFromBase(RecipeCategory.DECORATIONS, DWMBlocks.ORANGE_SANDSTONE_WALL, DWMBlocks.ORANGE_SANDSTONE);
+                stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.CUT_ORANGE_SANDSTONE, DWMBlocks.ORANGE_SANDSTONE);
+                stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.CUT_ORANGE_SANDSTONE_SLAB, DWMBlocks.ORANGE_SANDSTONE, 2);
+                stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.CHISELED_ORANGE_SANDSTONE, DWMBlocks.ORANGE_SANDSTONE);
+                stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.CUT_ORANGE_SANDSTONE_SLAB, DWMBlocks.CUT_ORANGE_SANDSTONE, 2);
+                stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.SMOOTH_ORANGE_SANDSTONE_SLAB, DWMBlocks.SMOOTH_ORANGE_SANDSTONE, 2);
+                stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.SMOOTH_ORANGE_SANDSTONE_STAIRS, DWMBlocks.SMOOTH_ORANGE_SANDSTONE);
             }
         };
     }

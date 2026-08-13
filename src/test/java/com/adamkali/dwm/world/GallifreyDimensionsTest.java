@@ -21,4 +21,12 @@ class GallifreyDimensionsTest {
     void isGallifreyBiomeTag_usesExpectedId() {
         assertEquals(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "is_gallifrey"), DWMBiomeTags.IS_GALLIFREY.location());
     }
+
+    @Test
+    void badlandsBiomeKey_usesExpectedId() {
+        assertEquals(
+                Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "gallifrey_badlands"),
+                DWMBiomeKeys.GALLIFREY_BADLANDS.identifier()
+        );
+    }
 }

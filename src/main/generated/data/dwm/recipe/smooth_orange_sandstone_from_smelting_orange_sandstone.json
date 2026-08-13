@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:smelting",
+  "category": "blocks",
+  "experience": 0.1,
+  "group": "smooth_orange_sandstone",
+  "ingredient": "dwm:orange_sandstone",
+  "result": {
+    "id": "dwm:smooth_orange_sandstone"
+  }
+}

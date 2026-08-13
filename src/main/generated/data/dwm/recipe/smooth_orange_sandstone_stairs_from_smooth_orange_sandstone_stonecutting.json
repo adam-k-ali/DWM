@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "dwm:smooth_orange_sandstone",
+  "result": {
+    "id": "dwm:smooth_orange_sandstone_stairs"
+  }
+}
