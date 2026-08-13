@@ -16,6 +16,11 @@ Enable players to quickly build coherent Doctor Who-inspired interiors and exter
   - Big Roundel A / Big Roundel B
   - TARDIS Wall
   - Chronoplasm Powder variants (multiple colors)
+- Interior decor props (placeable, craftable from white TARDIS wall):
+  - Small / large TARDIS chairs
+  - Decorational column
+  - TARDIS globe
+  - Compact / full TARDIS scanners
 - Localization and item/block presentation for these families.
 - Recipe coverage for obtaining and combining core decorative materials.
 

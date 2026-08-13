@@ -20,6 +20,13 @@ public class DWMBlockEntities {
     public static final BlockEntityType<FirstDoctorConsoleBlockEntity> FIRST_DOCTOR_CONSOLE_BLOCK_ENTITY =
             register("first_doctor_console", FirstDoctorConsoleBlockEntity::new, DWMBlocks.FIRST_DOCTOR_CONSOLE);
 
+    public static final BlockEntityType<TardisDecorBlockEntity> TARDIS_DECOR_BLOCK_ENTITY = register(
+            "tardis_decor",
+            TardisDecorBlockEntity::new,
+            DWMBlocks.TARDIS_GLOBE,
+            DWMBlocks.TARDIS_COMPACT_SCANNER,
+            DWMBlocks.TARDIS_FULL_SCANNER);
+
     public static void initialize() {
     }
 

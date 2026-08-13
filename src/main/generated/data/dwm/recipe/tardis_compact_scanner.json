@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "dwm:white_tardis_wall",
+    "minecraft:redstone",
+    "minecraft:glass_pane"
+  ],
+  "result": {
+    "id": "dwm:tardis_compact_scanner"
+  }
+}

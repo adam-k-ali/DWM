@@ -114,6 +114,7 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 generateOrangeSandRecipes();
                 generateAzbantiumRecipes();
                 generateGallifreyVanillaOreRecipes();
+                generateInteriorDecorRecipes();
             }
 
             private void generateGallifreyVanillaOreRecipes() {
@@ -293,6 +294,55 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         .pattern("# #")
                         .pattern("# #")
                         .unlockedBy(getHasName(DWMItems.AZBANTIUM), has(DWMItems.AZBANTIUM))
+                        .save(output);
+            }
+
+            private void generateInteriorDecorRecipes() {
+                var wall = DWMBlocks.WHITE_TARDIS_WALL;
+
+                shaped(RecipeCategory.DECORATIONS, DWMBlocks.TARDIS_CHAIR_SMALL)
+                        .define('#', wall)
+                        .pattern("#  ")
+                        .pattern("###")
+                        .unlockedBy(getHasName(wall), has(wall))
+                        .save(output);
+
+                shaped(RecipeCategory.DECORATIONS, DWMBlocks.TARDIS_CHAIR_LARGE)
+                        .define('#', wall)
+                        .pattern("#  ")
+                        .pattern("###")
+                        .pattern("###")
+                        .unlockedBy(getHasName(wall), has(wall))
+                        .save(output);
+
+                shaped(RecipeCategory.DECORATIONS, DWMBlocks.DECORATIONAL_COLUMN)
+                        .define('#', wall)
+                        .pattern("#")
+                        .pattern("#")
+                        .unlockedBy(getHasName(wall), has(wall))
+                        .save(output);
+
+                shapeless(RecipeCategory.DECORATIONS, DWMBlocks.TARDIS_GLOBE)
+                        .requires(wall)
+                        .requires(Items.GLASS_PANE)
+                        .requires(Items.GOLD_NUGGET)
+                        .unlockedBy(getHasName(wall), has(wall))
+                        .save(output);
+
+                shapeless(RecipeCategory.DECORATIONS, DWMBlocks.TARDIS_COMPACT_SCANNER)
+                        .requires(wall)
+                        .requires(Items.REDSTONE)
+                        .requires(Items.GLASS_PANE)
+                        .unlockedBy(getHasName(wall), has(wall))
+                        .save(output);
+
+                shaped(RecipeCategory.DECORATIONS, DWMBlocks.TARDIS_FULL_SCANNER)
+                        .define('#', wall)
+                        .define('R', Items.REDSTONE)
+                        .define('G', Items.GLASS_PANE)
+                        .pattern("###")
+                        .pattern("RGR")
+                        .unlockedBy(getHasName(wall), has(wall))
                         .save(output);
             }
 

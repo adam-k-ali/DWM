@@ -170,6 +170,13 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addBlockItem(t, DWMBlocks.TARDIS_INTERIOR_DOOR, "TARDIS Interior Door");
         addBlockItem(t, DWMBlocks.FIRST_DOCTOR_CONSOLE, "First Doctor Console");
         addBlockItem(t, DWMBlocks.TARDIS_DOOR_BUTTON, "TARDIS Door Button");
+
+        addBlockAndItem(t, DWMBlocks.TARDIS_CHAIR_SMALL, "Small TARDIS Chair");
+        addBlockAndItem(t, DWMBlocks.TARDIS_CHAIR_LARGE, "Large TARDIS Chair");
+        addBlockAndItem(t, DWMBlocks.DECORATIONAL_COLUMN, "Decorational Column");
+        addBlockAndItem(t, DWMBlocks.TARDIS_GLOBE, "TARDIS Globe");
+        addBlockAndItem(t, DWMBlocks.TARDIS_COMPACT_SCANNER, "Compact TARDIS Scanner");
+        addBlockAndItem(t, DWMBlocks.TARDIS_FULL_SCANNER, "Full TARDIS Scanner");
     }
 
     private static void addGallifreyStoneFamily(TranslationBuilder t) {

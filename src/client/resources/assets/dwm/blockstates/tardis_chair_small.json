@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "dwm:block/tardis_chair_small",
+      "y": 180
+    },
+    "facing=south": {
+      "model": "dwm:block/tardis_chair_small"
+    },
+    "facing=east": {
+      "model": "dwm:block/tardis_chair_small",
+      "y": 270
+    },
+    "facing=west": {
+      "model": "dwm:block/tardis_chair_small",
+      "y": 90
+    }
+  }
+}

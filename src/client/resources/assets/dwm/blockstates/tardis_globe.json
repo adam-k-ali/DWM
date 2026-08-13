@@ -1,0 +1,9 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "dwm:block/tardis_globe"
+      }
+    }
+  ]
+}

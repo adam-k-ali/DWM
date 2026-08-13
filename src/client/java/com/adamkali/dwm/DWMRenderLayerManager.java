@@ -41,6 +41,15 @@ public class DWMRenderLayerManager {
         ModelLayerRegistry.registerModelLayer(
                 MaterialisationLeverModel.LAYER_LOCATION,
                 MaterialisationLeverModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(
+                TardisGlobeModel.LAYER_LOCATION,
+                TardisGlobeModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(
+                TardisCompactScannerModel.LAYER_LOCATION,
+                TardisCompactScannerModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(
+                TardisFullScannerModel.LAYER_LOCATION,
+                TardisFullScannerModel::getTexturedModelData);
     }
 
     public static void initialize() {
