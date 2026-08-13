@@ -12,7 +12,7 @@ Give players a Gallifrey-themed terrain and builder kit—stone, woods, and Cita
 
 ## Implemented Now
 - **Gallifrey stone family**
-  - Building set: stone, stone bricks (including chiseled, cracked, and mossy), cobblestone and mossy cobblestone, smooth stone, sandstone, cut sandstone, chiseled sandstone
+  - Building set: stone, stone bricks (including chiseled, cracked, and mossy, plus stairs/slab/wall), cobblestone and mossy cobblestone (stairs/slab/wall), smooth stone (slab), sandstone, cut sandstone, chiseled sandstone
   - Terrain blocks: Gallifrey grass (deep-red top), dirt, coarse dirt, and sand
 - **Orange sand family** (distinct from Gallifrey sand; vanilla red-sandstone parity)
   - Terrain: orange sand
@@ -44,4 +44,4 @@ Give players a Gallifrey-themed terrain and builder kit—stone, woods, and Cita
 - Soul wood family (fourth Gallifrey wood set).
 - Krubella / plutarch plants once proper cross (or intentional cube) sprites exist.
 - Wire archive colormaps for tinted grass/foliage if plants need biome tinting (grass block uses pre-colored deep-red textures).
-- Richer Gallifrey destination content (mobs, villages) on top of the shipped dimension.
+- Richer Gallifrey destination content (mobs) on top of the shipped dimension and villages.

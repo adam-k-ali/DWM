@@ -111,6 +111,7 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                     WoodFamilyDatagen.generateRecipes(this, output, family);
                 }
 
+                generateGallifreyStoneShapeRecipes();
                 generateOrangeSandRecipes();
                 generateAzbantiumRecipes();
                 generateGallifreyVanillaOreRecipes();
@@ -294,6 +295,56 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         .pattern("# #")
                         .unlockedBy(getHasName(DWMItems.AZBANTIUM), has(DWMItems.AZBANTIUM))
                         .save(output);
+            }
+
+            private void generateGallifreyStoneShapeRecipes() {
+                stoneShapes(
+                        DWMBlocks.GALLIFREY_COBBLESTONE,
+                        DWMBlocks.GALLIFREY_COBBLESTONE_STAIRS,
+                        DWMBlocks.GALLIFREY_COBBLESTONE_SLAB,
+                        DWMBlocks.GALLIFREY_COBBLESTONE_WALL
+                );
+                stoneShapes(
+                        DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE,
+                        DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE_STAIRS,
+                        DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE_SLAB,
+                        DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE_WALL
+                );
+                stoneShapes(
+                        DWMBlocks.GALLIFREY_STONE_BRICKS,
+                        DWMBlocks.GALLIFREY_STONE_BRICK_STAIRS,
+                        DWMBlocks.GALLIFREY_STONE_BRICK_SLAB,
+                        DWMBlocks.GALLIFREY_STONE_BRICK_WALL
+                );
+                stoneShapes(
+                        DWMBlocks.MOSSY_GALLIFREY_STONE_BRICKS,
+                        DWMBlocks.MOSSY_GALLIFREY_STONE_BRICK_STAIRS,
+                        DWMBlocks.MOSSY_GALLIFREY_STONE_BRICK_SLAB,
+                        DWMBlocks.MOSSY_GALLIFREY_STONE_BRICK_WALL
+                );
+                slab(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.GALLIFREY_SMOOTH_STONE_SLAB, DWMBlocks.GALLIFREY_SMOOTH_STONE);
+                stonecutterResultFromBase(
+                        RecipeCategory.BUILDING_BLOCKS,
+                        DWMBlocks.GALLIFREY_SMOOTH_STONE_SLAB,
+                        DWMBlocks.GALLIFREY_SMOOTH_STONE,
+                        2
+                );
+            }
+
+            private void stoneShapes(
+                    net.minecraft.world.level.block.Block full,
+                    net.minecraft.world.level.block.Block stairs,
+                    net.minecraft.world.level.block.Block slab,
+                    net.minecraft.world.level.block.Block wall
+            ) {
+                stairBuilder(stairs, Ingredient.of(full))
+                        .unlockedBy(getHasName(full), has(full))
+                        .save(output);
+                slab(RecipeCategory.BUILDING_BLOCKS, slab, full);
+                wall(RecipeCategory.DECORATIONS, wall, full);
+                stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, slab, full, 2);
+                stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, stairs, full);
+                stonecutterResultFromBase(RecipeCategory.DECORATIONS, wall, full);
             }
 
             private void generateOrangeSandRecipes() {

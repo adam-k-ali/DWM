@@ -20,7 +20,11 @@ public class DWMLootTableProvider extends FabricBlockLootSubProvider {
             if (block == DWMBlocks.GALLIFREY_GRASS_BLOCK) {
                 continue;
             }
-            dropSelf(block);
+            if (DWMBlocks.GALLIFREY_STONE_SLABS.contains(block)) {
+                add(block, createSlabItemTable(block));
+            } else {
+                dropSelf(block);
+            }
         }
         add(DWMBlocks.GALLIFREY_GRASS_BLOCK, createSingleItemTableWithSilkTouch(
                 DWMBlocks.GALLIFREY_GRASS_BLOCK,

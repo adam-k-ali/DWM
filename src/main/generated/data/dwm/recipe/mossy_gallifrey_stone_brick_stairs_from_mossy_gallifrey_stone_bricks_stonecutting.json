@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "dwm:mossy_gallifrey_stone_bricks",
+  "result": {
+    "id": "dwm:mossy_gallifrey_stone_brick_stairs"
+  }
+}

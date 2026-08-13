@@ -13,6 +13,11 @@ import com.adamkali.dwm.world.DWMBiomeBootstrap;
 import com.adamkali.dwm.world.DWMChunkGeneratorSettingsBootstrap;
 import com.adamkali.dwm.world.DWMConfiguredFeatureBootstrap;
 import com.adamkali.dwm.world.DWMPlacedFeatureBootstrap;
+import com.adamkali.dwm.world.DWMProcessorListsBootstrap;
+import com.adamkali.dwm.world.DWMStructureSetsBootstrap;
+import com.adamkali.dwm.world.DWMStructuresBootstrap;
+import com.adamkali.dwm.world.DWMVillagePoolsBootstrap;
+import com.adamkali.dwm.world.village.GallifreyVillageProcessor;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
@@ -41,6 +46,8 @@ public class DWMClientDataGenerator implements DataGeneratorEntrypoint {
     public void onInitializeDataGenerator(FabricDataGenerator generator) {
         FabricDataGenerator.Pack pack = generator.createPack();
 
+        GallifreyVillageProcessor.register();
+
         pack.addProvider(AdvancementsProvider::new);
         pack.addProvider(DWMRecipeProvider::new);
         pack.addProvider(DWMLanguageProvider::new);
@@ -53,10 +60,15 @@ public class DWMClientDataGenerator implements DataGeneratorEntrypoint {
 
     @Override
     public void buildRegistry(RegistrySetBuilder registryBuilder) {
+        GallifreyVillageProcessor.register();
         registryBuilder.add(Registries.CONFIGURED_FEATURE, DWMConfiguredFeatureBootstrap::bootstrap);
         registryBuilder.add(Registries.PLACED_FEATURE, DWMPlacedFeatureBootstrap::bootstrap);
         registryBuilder.add(Registries.BIOME, DWMBiomeBootstrap::bootstrap);
         registryBuilder.add(Registries.NOISE_SETTINGS, DWMChunkGeneratorSettingsBootstrap::bootstrap);
+        registryBuilder.add(Registries.PROCESSOR_LIST, DWMProcessorListsBootstrap::bootstrap);
+        registryBuilder.add(Registries.TEMPLATE_POOL, DWMVillagePoolsBootstrap::bootstrap);
+        registryBuilder.add(Registries.STRUCTURE, DWMStructuresBootstrap::bootstrap);
+        registryBuilder.add(Registries.STRUCTURE_SET, DWMStructureSetsBootstrap::bootstrap);
     }
 
     static class AdvancementsProvider extends FabricAdvancementProvider {

@@ -12,6 +12,7 @@ import com.adamkali.dwm.sound.DWMSounds;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
+import com.adamkali.dwm.world.village.GallifreyVillageProcessor;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -28,6 +29,7 @@ public class DWMMain implements ModInitializer {
         DWMStatistics.initialize();
         DWMWoodTypes.initialize();
         DWMBlocks.initialize();
+        GallifreyVillageProcessor.register();
         DWMEntityTypes.initialize();
         DWMItems.initialize();
         DWMBlockEntities.initialize();
