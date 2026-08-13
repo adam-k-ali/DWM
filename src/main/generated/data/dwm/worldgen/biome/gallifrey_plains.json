@@ -76,7 +76,8 @@
     ],
     [
       "minecraft:glow_lichen",
-      "dwm:ash_plains"
+      "dwm:ash_plains",
+      "dwm:gallifrey_flowers_plains"
     ],
     [
       "minecraft:freeze_top_layer"
