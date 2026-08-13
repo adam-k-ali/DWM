@@ -5,6 +5,7 @@ import com.adamkali.dwm.item.DWMItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootSubProvider;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import java.util.concurrent.CompletableFuture;
 
@@ -50,6 +51,11 @@ public class DWMLootTableProvider extends FabricBlockLootSubProvider {
 
         add(DWMBlocks.AZBANTIUM_ORE, createOreDrop(DWMBlocks.AZBANTIUM_ORE, DWMItems.AZBANTIUM));
         dropSelf(DWMBlocks.AZBANTIUM_BLOCK);
+
+        add(DWMBlocks.GALLIFREY_COAL_ORE, createOreDrop(DWMBlocks.GALLIFREY_COAL_ORE, Items.COAL));
+        add(DWMBlocks.GALLIFREY_IRON_ORE, createOreDrop(DWMBlocks.GALLIFREY_IRON_ORE, Items.RAW_IRON));
+        add(DWMBlocks.GALLIFREY_GOLD_ORE, createOreDrop(DWMBlocks.GALLIFREY_GOLD_ORE, Items.RAW_GOLD));
+        add(DWMBlocks.GALLIFREY_DIAMOND_ORE, createOreDrop(DWMBlocks.GALLIFREY_DIAMOND_ORE, Items.DIAMOND));
 
         for (var family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.generateLoot(new WoodFamilyDatagen.LootDropSink() {

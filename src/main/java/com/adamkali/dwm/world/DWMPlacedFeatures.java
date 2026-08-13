@@ -17,6 +17,18 @@ public final class DWMPlacedFeatures {
     public static final ResourceKey<PlacedFeature> SACCHARINE_CANE_BADLANDS = key("saccharine_cane_badlands");
     public static final ResourceKey<PlacedFeature> AZBANTIUM_ORE = key("azbantium_ore");
 
+    public static final ResourceKey<PlacedFeature> GALLIFREY_COAL_ORE_UPPER = key("gallifrey_coal_ore_upper");
+    public static final ResourceKey<PlacedFeature> GALLIFREY_COAL_ORE_LOWER = key("gallifrey_coal_ore_lower");
+    public static final ResourceKey<PlacedFeature> GALLIFREY_IRON_ORE_UPPER = key("gallifrey_iron_ore_upper");
+    public static final ResourceKey<PlacedFeature> GALLIFREY_IRON_ORE_MIDDLE = key("gallifrey_iron_ore_middle");
+    public static final ResourceKey<PlacedFeature> GALLIFREY_IRON_ORE_SMALL = key("gallifrey_iron_ore_small");
+    public static final ResourceKey<PlacedFeature> GALLIFREY_GOLD_ORE = key("gallifrey_gold_ore");
+    public static final ResourceKey<PlacedFeature> GALLIFREY_GOLD_ORE_LOWER = key("gallifrey_gold_ore_lower");
+    public static final ResourceKey<PlacedFeature> GALLIFREY_DIAMOND_ORE = key("gallifrey_diamond_ore");
+    public static final ResourceKey<PlacedFeature> GALLIFREY_DIAMOND_ORE_MEDIUM = key("gallifrey_diamond_ore_medium");
+    public static final ResourceKey<PlacedFeature> GALLIFREY_DIAMOND_ORE_LARGE = key("gallifrey_diamond_ore_large");
+    public static final ResourceKey<PlacedFeature> GALLIFREY_DIAMOND_ORE_BURIED = key("gallifrey_diamond_ore_buried");
+
     private static ResourceKey<PlacedFeature> key(String path) {
         return ResourceKey.create(Registries.PLACED_FEATURE, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, path));
     }

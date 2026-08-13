@@ -10,6 +10,7 @@ import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.data.worldgen.placement.VegetationPlacements;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
@@ -75,6 +76,109 @@ public final class DWMPlacedFeatureBootstrap {
                 CountPlacement.of(8),
                 InSquarePlacement.spread(),
                 HeightRangePlacement.triangle(VerticalAnchor.absolute(-64), VerticalAnchor.absolute(32)),
+                BiomeFilter.biome()
+        );
+
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.GALLIFREY_COAL_ORE_UPPER,
+                configured.getOrThrow(DWMConfiguredFeatures.GALLIFREY_COAL_ORE),
+                CountPlacement.of(30),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.uniform(VerticalAnchor.absolute(136), VerticalAnchor.belowTop(0)),
+                BiomeFilter.biome()
+        );
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.GALLIFREY_COAL_ORE_LOWER,
+                configured.getOrThrow(DWMConfiguredFeatures.GALLIFREY_COAL_ORE_BURIED),
+                CountPlacement.of(20),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.triangle(VerticalAnchor.absolute(0), VerticalAnchor.absolute(192)),
+                BiomeFilter.biome()
+        );
+
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.GALLIFREY_IRON_ORE_UPPER,
+                configured.getOrThrow(DWMConfiguredFeatures.GALLIFREY_IRON_ORE),
+                CountPlacement.of(90),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.triangle(VerticalAnchor.absolute(80), VerticalAnchor.absolute(384)),
+                BiomeFilter.biome()
+        );
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.GALLIFREY_IRON_ORE_MIDDLE,
+                configured.getOrThrow(DWMConfiguredFeatures.GALLIFREY_IRON_ORE),
+                CountPlacement.of(10),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.triangle(VerticalAnchor.absolute(-24), VerticalAnchor.absolute(56)),
+                BiomeFilter.biome()
+        );
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.GALLIFREY_IRON_ORE_SMALL,
+                configured.getOrThrow(DWMConfiguredFeatures.GALLIFREY_IRON_ORE_SMALL),
+                CountPlacement.of(10),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.uniform(VerticalAnchor.aboveBottom(0), VerticalAnchor.absolute(72)),
+                BiomeFilter.biome()
+        );
+
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.GALLIFREY_GOLD_ORE,
+                configured.getOrThrow(DWMConfiguredFeatures.GALLIFREY_GOLD_ORE_BURIED),
+                CountPlacement.of(4),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.triangle(VerticalAnchor.absolute(-64), VerticalAnchor.absolute(32)),
+                BiomeFilter.biome()
+        );
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.GALLIFREY_GOLD_ORE_LOWER,
+                configured.getOrThrow(DWMConfiguredFeatures.GALLIFREY_GOLD_ORE_BURIED),
+                CountPlacement.of(UniformInt.of(0, 1)),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.uniform(VerticalAnchor.absolute(-64), VerticalAnchor.absolute(-48)),
+                BiomeFilter.biome()
+        );
+
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.GALLIFREY_DIAMOND_ORE,
+                configured.getOrThrow(DWMConfiguredFeatures.GALLIFREY_DIAMOND_ORE_SMALL),
+                CountPlacement.of(7),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.triangle(VerticalAnchor.aboveBottom(-80), VerticalAnchor.aboveBottom(80)),
+                BiomeFilter.biome()
+        );
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.GALLIFREY_DIAMOND_ORE_MEDIUM,
+                configured.getOrThrow(DWMConfiguredFeatures.GALLIFREY_DIAMOND_ORE_MEDIUM),
+                CountPlacement.of(2),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.uniform(VerticalAnchor.absolute(-64), VerticalAnchor.absolute(-4)),
+                BiomeFilter.biome()
+        );
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.GALLIFREY_DIAMOND_ORE_LARGE,
+                configured.getOrThrow(DWMConfiguredFeatures.GALLIFREY_DIAMOND_ORE_LARGE),
+                RarityFilter.onAverageOnceEvery(9),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.triangle(VerticalAnchor.aboveBottom(-80), VerticalAnchor.aboveBottom(80)),
+                BiomeFilter.biome()
+        );
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.GALLIFREY_DIAMOND_ORE_BURIED,
+                configured.getOrThrow(DWMConfiguredFeatures.GALLIFREY_DIAMOND_ORE_BURIED),
+                CountPlacement.of(4),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.triangle(VerticalAnchor.aboveBottom(-80), VerticalAnchor.aboveBottom(80)),
                 BiomeFilter.biome()
         );
     }

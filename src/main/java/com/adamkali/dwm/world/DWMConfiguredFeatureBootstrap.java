@@ -66,6 +66,38 @@ public final class DWMConfiguredFeatureBootstrap {
                         )
                 )
         );
+
+        registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_COAL_ORE, DWMBlocks.GALLIFREY_COAL_ORE, 17, 0.0F);
+        registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_COAL_ORE_BURIED, DWMBlocks.GALLIFREY_COAL_ORE, 17, 0.5F);
+        registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_IRON_ORE, DWMBlocks.GALLIFREY_IRON_ORE, 9, 0.0F);
+        registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_IRON_ORE_SMALL, DWMBlocks.GALLIFREY_IRON_ORE, 4, 0.0F);
+        registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_GOLD_ORE, DWMBlocks.GALLIFREY_GOLD_ORE, 9, 0.0F);
+        registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_GOLD_ORE_BURIED, DWMBlocks.GALLIFREY_GOLD_ORE, 9, 0.5F);
+        registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_DIAMOND_ORE_SMALL, DWMBlocks.GALLIFREY_DIAMOND_ORE, 4, 0.5F);
+        registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_DIAMOND_ORE_MEDIUM, DWMBlocks.GALLIFREY_DIAMOND_ORE, 8, 0.5F);
+        registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_DIAMOND_ORE_LARGE, DWMBlocks.GALLIFREY_DIAMOND_ORE, 12, 0.7F);
+        registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_DIAMOND_ORE_BURIED, DWMBlocks.GALLIFREY_DIAMOND_ORE, 8, 1.0F);
+    }
+
+    private static void registerOre(
+            BootstrapContext<ConfiguredFeature<?, ?>> registerable,
+            ResourceKey<ConfiguredFeature<?, ?>> key,
+            Block oreBlock,
+            int size,
+            float discardChanceOnAirExposure
+    ) {
+        registerable.register(
+                key,
+                new ConfiguredFeature<>(
+                        Feature.ORE,
+                        new OreConfiguration(
+                                new TagMatchTest(DWMBlockTags.GALLIFREY_ORE_REPLACEABLES),
+                                oreBlock.defaultBlockState(),
+                                size,
+                                discardChanceOnAirExposure
+                        )
+                )
+        );
     }
 
     private static void registerTree(

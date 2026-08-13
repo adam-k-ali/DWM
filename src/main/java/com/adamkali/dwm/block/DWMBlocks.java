@@ -221,6 +221,11 @@ public class DWMBlocks {
     public static final Block AZBANTIUM_ORE = register(Block::new, DWMBlockSettings.azbantium(), "azbantium_ore");
     public static final Block AZBANTIUM_BLOCK = register(Block::new, DWMBlockSettings.azbantium(), "azbantium_block");
 
+    public static final Block GALLIFREY_COAL_ORE = register(Block::new, DWMBlockSettings.gallifreyVanillaOre(), "gallifrey_coal_ore");
+    public static final Block GALLIFREY_IRON_ORE = register(Block::new, DWMBlockSettings.gallifreyVanillaOre(), "gallifrey_iron_ore");
+    public static final Block GALLIFREY_GOLD_ORE = register(Block::new, DWMBlockSettings.gallifreyVanillaOre(), "gallifrey_gold_ore");
+    public static final Block GALLIFREY_DIAMOND_ORE = register(Block::new, DWMBlockSettings.gallifreyVanillaOre(), "gallifrey_diamond_ore");
+
     public static final Block FLOWER_OF_REMEMBRANCE = register(
             props -> new FlowerBlock(MobEffects.SATURATION, 0.35F, props),
             DWMBlockSettings.gallifreyCrossPlant(),
@@ -462,6 +467,14 @@ public class DWMBlocks {
             AZBANTIUM_BLOCK
     );
 
+    /** Gallifrey-stone-textured ores that drop vanilla coal / raw iron / raw gold / diamond. */
+    public static final List<Block> GALLIFREY_VANILLA_ORES = List.of(
+            GALLIFREY_COAL_ORE,
+            GALLIFREY_IRON_ORE,
+            GALLIFREY_GOLD_ORE,
+            GALLIFREY_DIAMOND_ORE
+    );
+
     /** Placeable Gallifrey decorative plants (items). */
     public static final List<Block> GALLIFREY_PLANTS = List.of(
             FLOWER_OF_REMEMBRANCE,
@@ -642,6 +655,9 @@ public class DWMBlocks {
             content.accept(GALLIFREY_MOSSY_COBBLESTONE);
             content.accept(GALLIFREY_STONE);
             content.accept(AZBANTIUM_ORE);
+            for (Block ore : GALLIFREY_VANILLA_ORES) {
+                content.accept(ore);
+            }
             for (RegisteredWoodFamily family : WOOD_FAMILIES) {
                 content.accept(family.blocks().log());
                 content.accept(family.blocks().leaves());
