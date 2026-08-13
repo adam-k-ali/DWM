@@ -10,7 +10,7 @@ import net.minecraft.world.level.levelgen.SurfaceRules;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 
 /**
- * Gallifrey surface rules: silver grass / dirt / sand tops over Gallifrey stone.
+ * Gallifrey surface rules: deep-red grass / dirt / sand tops over Gallifrey stone.
  */
 public final class GallifreySurfaceRules {
     private static final SurfaceRules.RuleSource BEDROCK = block(Blocks.BEDROCK);

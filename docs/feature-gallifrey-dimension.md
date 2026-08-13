@@ -3,7 +3,7 @@
 See also: [Docs Index](./index.md), [Gallifrey Building](./feature-gallifrey-building.md), [TARDIS Exterior Block](./feature-tardis-block.md)
 
 ## Product Intent
-Give TARDIS travel a unique destination world built from Gallifrey builder blocks—orange-tinted plains with silver grass, forests of Ash woods, and sandy wastes.
+Give TARDIS travel a unique destination world built from Gallifrey builder blocks—burnt-orange skies over deep-red grass plains, forests of Ash woods, and sandy wastes.
 
 ## Player Outcomes
 - Reach Gallifrey via the First Doctor console planet locator (or debug `/execute in dwm:gallifrey run tp @s ~ 128 ~`).
@@ -15,7 +15,7 @@ Give TARDIS travel a unique destination world built from Gallifrey builder block
 - Biomes: `dwm:gallifrey_plains`, `dwm:gallifrey_forest`, `dwm:gallifrey_wastes` (tag `#dwm:is_gallifrey`).
 - Surface rules use Gallifrey grass / dirt / coarse dirt / sand / sandstone / stone (wastes stay sand-forward).
 - Placed tree features for Ash (sparse plains + denser forest), Dark Ash, and Cardinal in forest.
-- Archive colormap and cloud textures imported under `assets/dwm/textures/` for future tinting/sky work; grass block uses pre-colored silver textures.
+- Archive colormap and cloud textures imported under `assets/dwm/textures/` for future tinting/sky work; grass block uses pre-colored deep-red textures.
 - TARDIS `BiomeSelectorLogic` maps `dwm:gallifrey` to `#dwm:is_gallifrey`.
 
 ## How It Works In-Game

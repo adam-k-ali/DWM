@@ -38,7 +38,7 @@ public class DWMBlockSettings {
             .sound(SoundType.GRAVEL);
 
     public static final BlockBehaviour.Properties GALLIFREY_GRASS = BlockBehaviour.Properties.of()
-            .mapColor(MapColor.SNOW)
+            .mapColor(MapColor.COLOR_RED)
             .strength(0.6F)
             .sound(SoundType.GRASS);
 
