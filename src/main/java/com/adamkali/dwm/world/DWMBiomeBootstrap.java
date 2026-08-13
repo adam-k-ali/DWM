@@ -106,6 +106,7 @@ public final class DWMBiomeBootstrap {
         BiomeDefaultFeatures.addDefaultMonsterRoom(generation);
         BiomeDefaultFeatures.addDefaultUndergroundVariety(generation);
         BiomeDefaultFeatures.addDefaultOres(generation);
+        generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.AZBANTIUM_ORE);
         BiomeDefaultFeatures.addDefaultSoftDisks(generation);
         BiomeDefaultFeatures.addDefaultSprings(generation);
         BiomeDefaultFeatures.addSurfaceFreezing(generation);

@@ -51,6 +51,9 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
             gallifreyPlantsTag.add(key(plant));
         }
 
+        builder(DWMBlockTags.GALLIFREY_ORE_REPLACEABLES)
+                .add(key(DWMBlocks.GALLIFREY_STONE));
+
         builder(DWMBlockTags.AZBANTIUM_ORES)
                 .add(key(DWMBlocks.AZBANTIUM_ORE));
 

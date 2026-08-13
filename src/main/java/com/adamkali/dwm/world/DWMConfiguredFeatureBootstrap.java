@@ -1,5 +1,6 @@
 package com.adamkali.dwm.world;
 
+import com.adamkali.dwm.block.DWMBlockTags;
 import com.adamkali.dwm.block.DWMBlocks;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
@@ -12,6 +13,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.BlockColumnConfiguration;
+import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.SimpleBlockConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.TreeConfiguration;
 import net.minecraft.world.level.levelgen.feature.featuresize.TwoLayersFeatureSize;
@@ -19,6 +21,7 @@ import net.minecraft.world.level.levelgen.feature.foliageplacers.BlobFoliagePlac
 import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider;
 import net.minecraft.world.level.levelgen.feature.stateproviders.WeightedStateProvider;
 import net.minecraft.world.level.levelgen.feature.trunkplacers.StraightTrunkPlacer;
+import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
 
 public final class DWMConfiguredFeatureBootstrap {
     private DWMConfiguredFeatureBootstrap() {
@@ -47,6 +50,19 @@ public final class DWMConfiguredFeatureBootstrap {
                         BlockColumnConfiguration.simple(
                                 BiasedToBottomInt.of(2, 4),
                                 BlockStateProvider.simple(DWMBlocks.SACCHARINE_CANE)
+                        )
+                )
+        );
+
+        registerable.register(
+                DWMConfiguredFeatures.AZBANTIUM_ORE,
+                new ConfiguredFeature<>(
+                        Feature.ORE,
+                        new OreConfiguration(
+                                new TagMatchTest(DWMBlockTags.GALLIFREY_ORE_REPLACEABLES),
+                                DWMBlocks.AZBANTIUM_ORE.defaultBlockState(),
+                                9,
+                                0.5F
                         )
                 )
         );
