@@ -29,6 +29,7 @@
     "fabric-gametest": [
       "com.adamkali.dwm.gametest.TardisDoorGameTests",
       "com.adamkali.dwm.gametest.TardisInteriorGameTests",
+      "com.adamkali.dwm.gametest.TardisLandingGameTests",
       "com.adamkali.dwm.gametest.AshWoodFamilyGameTests",
       "com.adamkali.dwm.gametest.DarkAshWoodFamilyGameTests",
       "com.adamkali.dwm.gametest.CardinalWoodFamilyGameTests",
