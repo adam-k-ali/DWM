@@ -7,7 +7,7 @@
   "display": {
     "gui": {
       "rotation": [30, 225, 0],
-      "translation": [0, -8, 0],
+      "translation": [0, -2.125, 0],
       "scale": [0.31, 0.31, 0.31]
     },
     "ground": {
@@ -16,8 +16,8 @@
       "scale": [0.15, 0.15, 0.15]
     },
     "fixed": {
-      "rotation": [0, 0, 0],
-      "translation": [0, -8, 0],
+      "rotation": [0, 180, 0],
+      "translation": [0, -2.125, 0],
       "scale": [0.25, 0.25, 0.25]
     },
     "thirdperson_righthand": {
