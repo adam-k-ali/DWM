@@ -1,6 +1,7 @@
 package com.adamkali.dwm.datagen;
 
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.item.DWMItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricLanguageProvider;
@@ -249,6 +250,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
     }
 
     private static void addMisc(TranslationBuilder t) {
+        t.add(DWMEntityTypes.TARDIS_SEAT, "TARDIS Seat");
         t.add("dimension.dwm.gallifrey", "Gallifrey");
         t.add("biome.dwm.gallifrey_plains", "Gallifrey Plains");
         t.add("biome.dwm.gallifrey_forest", "Gallifrey Forest");

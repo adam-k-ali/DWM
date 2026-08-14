@@ -23,8 +23,14 @@ public final class TardisDecorShapes {
     /** Small chair: ~11×11 footprint, height ~1.12. */
     public static final VoxelShape SMALL_CHAIR = box(2.5, 0.0, 2.0, 13.5, 18.0, 13.0);
 
+    /** Cushion top of {@link #SMALL_CHAIR} mesh (7/16). */
+    public static final double SMALL_CHAIR_SEAT_Y = 7.0 / 16.0;
+
     /** Large chair: ~12×10.5 footprint, height ~1.56. */
     public static final VoxelShape LARGE_CHAIR = box(2.0, 0.0, 2.5, 14.0, 25.0, 13.0);
+
+    /** Cushion top of {@link #LARGE_CHAIR} mesh (9.1/16). */
+    public static final double LARGE_CHAIR_SEAT_Y = 9.1 / 16.0;
 
     /** Column after +8 X/Z shift into block space: 8×8 centered, height ~1.78. */
     public static final VoxelShape COLUMN = box(4.0, 0.0, 4.0, 12.0, 28.5, 12.0);

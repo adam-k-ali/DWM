@@ -10,7 +10,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.vehicle.boat.Boat;
 
@@ -18,6 +17,7 @@ public final class DWMEntityTypes {
     public static EntityType<Boat> ASH_BOAT;
     public static EntityType<Boat> DARK_ASH_BOAT;
     public static EntityType<Boat> CARDINAL_BOAT;
+    public static EntityType<TardisSeatEntity> TARDIS_SEAT;
 
     private DWMEntityTypes() {
     }
@@ -29,6 +29,25 @@ public final class DWMEntityTypes {
         ASH_BOAT = DWMBlocks.ASH.boatEntity();
         DARK_ASH_BOAT = DWMBlocks.DARK_ASH.boatEntity();
         CARDINAL_BOAT = DWMBlocks.CARDINAL.boatEntity();
+        TARDIS_SEAT = registerSeat();
+    }
+
+    private static EntityType<TardisSeatEntity> registerSeat() {
+        Identifier id = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "tardis_seat");
+        ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, id);
+        return Registry.register(
+                BuiltInRegistries.ENTITY_TYPE,
+                key,
+                EntityType.Builder.of(TardisSeatEntity::new, MobCategory.MISC)
+                        .sized(0.5F, 0.1F)
+                        .passengerAttachments(0.0F)
+                        .noSummon()
+                        .fireImmune()
+                        .noLootTable()
+                        .clientTrackingRange(10)
+                        .updateInterval(Integer.MAX_VALUE)
+                        .build(key)
+        );
     }
 
     public static EntityType<Boat> registerBoat(String path, java.util.function.Supplier<net.minecraft.world.item.Item> boatItem) {

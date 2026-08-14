@@ -17,7 +17,7 @@ Enable players to quickly build coherent Doctor Who-inspired interiors and exter
   - TARDIS Wall
   - Chronoplasm Powder variants (multiple colors)
 - Interior decor props (placeable, craftable from white TARDIS wall):
-  - Small / large TARDIS chairs
+  - Small / large TARDIS chairs (sittable: empty-hand use; sneak to stand)
   - Decorational column
   - TARDIS globe
   - Compact / full TARDIS scanners
@@ -28,6 +28,7 @@ Enable players to quickly build coherent Doctor Who-inspired interiors and exter
 1. Gather base resources.
 2. Craft themed block components from provided recipes.
 3. Combine families to create room panels, corridors, and console-like spaces.
+4. Sit in TARDIS chairs with an empty hand; sneak to dismount.
 
 ## Known Constraints
 - Current focus is on strong decorative breadth and consistency.

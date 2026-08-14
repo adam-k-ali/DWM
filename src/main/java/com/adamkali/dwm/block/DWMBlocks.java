@@ -154,11 +154,11 @@ public class DWMBlocks {
     public static final Block TARDIS_DOOR_BUTTON = register(TardisButtonBlock::new, DWMBlockSettings.BUTTON_SETTINGS, "tardis_door_button");
 
     public static final Block TARDIS_CHAIR_SMALL = register(
-            settings -> new TardisDecorBlock(settings, TardisDecorShapes.SMALL_CHAIR),
+            settings -> new TardisChairBlock(settings, TardisDecorShapes.SMALL_CHAIR, TardisDecorShapes.SMALL_CHAIR_SEAT_Y),
             DWMBlockSettings.TARDIS_DECOR_SETTINGS,
             "tardis_chair_small");
     public static final Block TARDIS_CHAIR_LARGE = register(
-            settings -> new TardisDecorBlock(settings, TardisDecorShapes.LARGE_CHAIR),
+            settings -> new TardisChairBlock(settings, TardisDecorShapes.LARGE_CHAIR, TardisDecorShapes.LARGE_CHAIR_SEAT_Y),
             DWMBlockSettings.TARDIS_DECOR_SETTINGS,
             "tardis_chair_large");
     public static final Block DECORATIONAL_COLUMN = register(
