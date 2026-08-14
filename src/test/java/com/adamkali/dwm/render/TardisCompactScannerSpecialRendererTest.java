@@ -19,7 +19,7 @@ class TardisCompactScannerSpecialRendererTest {
     }
 
     @Test
-    void emitExtents_matchesCompactScannerCentered() {
+    void emitExtents_matchesCompactScannerJsonCornerOrigin() {
         List<Vector3fc> corners = new ArrayList<>();
         TardisCompactScannerSpecialRenderer.emitExtents(corners::add);
         assertEquals(8, corners.size());
@@ -40,16 +40,19 @@ class TardisCompactScannerSpecialRendererTest {
         }
 
         var box = TardisDecorShapes.COMPACT_SCANNER.bounds();
-        assertEquals((float) (box.minX - 0.5), minX, EPSILON);
+        assertEquals((float) box.minX, minX, EPSILON);
         assertEquals((float) box.minY, minY, EPSILON);
-        assertEquals((float) (box.minZ - 0.5), minZ, EPSILON);
-        assertEquals((float) (box.maxX - 0.5), maxX, EPSILON);
+        assertEquals((float) box.minZ, minZ, EPSILON);
+        assertEquals((float) box.maxX, maxX, EPSILON);
         assertEquals((float) box.maxY, maxY, EPSILON);
-        assertEquals((float) (box.maxZ - 0.5), maxZ, EPSILON);
+        assertEquals((float) box.maxZ, maxZ, EPSILON);
 
-        // Regression: must span 1 wide × 1 deep × 2 tall, not a unit cube.
-        assertEquals(1.0f, maxX - minX, EPSILON);
-        assertEquals(2.0f, maxY - minY, EPSILON);
-        assertEquals(1.0f, maxZ - minZ, EPSILON);
+        // Regression: must span 1 wide × 1 deep × 2 tall in JSON corner space.
+        assertEquals(0.0f, minX, EPSILON);
+        assertEquals(0.0f, minY, EPSILON);
+        assertEquals(0.0f, minZ, EPSILON);
+        assertEquals(1.0f, maxX, EPSILON);
+        assertEquals(2.0f, maxY, EPSILON);
+        assertEquals(1.0f, maxZ, EPSILON);
     }
 }
