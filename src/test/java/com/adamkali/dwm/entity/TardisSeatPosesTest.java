@@ -6,6 +6,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TardisSeatPosesTest {
@@ -39,5 +41,15 @@ class TardisSeatPosesTest {
         assertEquals(0.5, large.x, EPSILON);
         assertEquals(TardisDecorShapes.SMALL_CHAIR_SEAT_Y, small.y, EPSILON);
         assertEquals(TardisDecorShapes.LARGE_CHAIR_SEAT_Y, large.y, EPSILON);
+    }
+
+    @Test
+    void dismountCandidates_preferOpenSideThenSidesThenFacing() {
+        assertEquals(
+                List.of(Direction.SOUTH, Direction.EAST, Direction.WEST, Direction.NORTH),
+                TardisSeatPoses.dismountCandidateDirections(Direction.NORTH));
+        assertEquals(
+                List.of(Direction.WEST, Direction.SOUTH, Direction.NORTH, Direction.EAST),
+                TardisSeatPoses.dismountCandidateDirections(Direction.EAST));
     }
 }
