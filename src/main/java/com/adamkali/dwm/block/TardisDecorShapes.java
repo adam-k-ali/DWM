@@ -35,6 +35,14 @@ public final class TardisDecorShapes {
     /** Column after +8 X/Z shift into block space: 8×8 centered, height ~1.78. */
     public static final VoxelShape COLUMN = box(4.0, 0.0, 4.0, 12.0, 28.5, 12.0);
 
+    /**
+     * Ceiling vent: full 16×16 base plate plus ~12-diameter cylinder to Y=16
+     * (one block tall; plate sits at the bottom of the cell).
+     */
+    public static final VoxelShape CEILING_VENT = Shapes.or(
+            box(0.0, 0.0, 0.0, 16.0, 2.25, 16.0),
+            box(2.0, 2.0, 2.0, 14.0, 16.0, 14.0));
+
     /** Globe: ~9×4 footprint centered, height ~2.1. */
     public static final VoxelShape GLOBE = box(3.5, 0.0, 6.0, 12.5, 33.5, 10.0);
 

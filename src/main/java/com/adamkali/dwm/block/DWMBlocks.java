@@ -165,6 +165,10 @@ public class DWMBlocks {
             settings -> new TardisDecorBlock(settings, TardisDecorShapes.COLUMN),
             DWMBlockSettings.TARDIS_DECOR_SETTINGS,
             "decorational_column");
+    public static final Block TARDIS_CEILING_VENT = register(
+            settings -> new TardisDecorBlock(settings, TardisDecorShapes.CEILING_VENT),
+            DWMBlockSettings.TARDIS_DECOR_SETTINGS,
+            "tardis_ceiling_vent");
     public static final Block TARDIS_GLOBE = register(
             settings -> new TardisDecorEntityBlock(settings, TardisDecorShapes.GLOBE),
             DWMBlockSettings.TARDIS_DECOR_SETTINGS,
@@ -652,6 +656,7 @@ public class DWMBlocks {
             content.accept(TARDIS_CHAIR_SMALL);
             content.accept(TARDIS_CHAIR_LARGE);
             content.accept(DECORATIONAL_COLUMN);
+            content.accept(TARDIS_CEILING_VENT);
             content.accept(TARDIS_GLOBE);
             content.accept(TARDIS_COMPACT_SCANNER);
             content.accept(TARDIS_FULL_SCANNER);

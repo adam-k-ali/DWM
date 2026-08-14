@@ -322,6 +322,14 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         .unlockedBy(getHasName(wall), has(wall))
                         .save(output);
 
+                shaped(RecipeCategory.DECORATIONS, DWMBlocks.TARDIS_CEILING_VENT)
+                        .define('#', wall)
+                        .pattern(" # ")
+                        .pattern("# #")
+                        .pattern(" # ")
+                        .unlockedBy(getHasName(wall), has(wall))
+                        .save(output);
+
                 shapeless(RecipeCategory.DECORATIONS, DWMBlocks.TARDIS_GLOBE)
                         .requires(wall)
                         .requires(Items.GLASS_PANE)

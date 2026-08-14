@@ -44,6 +44,16 @@ class TardisDecorBlockTest {
     }
 
     @Test
+    void ceilingVentShape_fillsUnitCubeFootprint() {
+        AABB bounds = TardisDecorShapes.CEILING_VENT.bounds();
+        assertEquals(0.0, bounds.minX, EPSILON);
+        assertEquals(1.0, bounds.maxX, EPSILON);
+        assertEquals(0.0, bounds.minZ, EPSILON);
+        assertEquals(1.0, bounds.maxZ, EPSILON);
+        assertEquals(1.0, bounds.getYsize(), EPSILON);
+    }
+
+    @Test
     void fullScanner_rotatesWithFacing() {
         VoxelShape north = TardisDecorShapes.FULL_SCANNER_NORTH;
         VoxelShape east = TardisDecorShapes.rotateHorizontal(north, Direction.EAST);

@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * Horizontally facing interior decor with JSON block models (chairs, column).
+ * Horizontally facing interior decor with JSON block models (chairs, column, ceiling vent).
  */
 public class TardisDecorBlock extends HorizontalDirectionalBlock {
     private final MapCodec<TardisDecorBlock> codec;

@@ -19,6 +19,7 @@ Enable players to quickly build coherent Doctor Who-inspired interiors and exter
 - Interior decor props (placeable, craftable from white TARDIS wall):
   - Small / large TARDIS chairs (sittable: empty-hand use; sneak to stand)
   - Decorational column
+  - TARDIS ceiling vent
   - TARDIS globe
   - Compact / full TARDIS scanners
 - Localization and item/block presentation for these families.
