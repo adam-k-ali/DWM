@@ -242,6 +242,67 @@ class FirstDoctorConsoleControlsTest {
                 FirstDoctorConsoleControls.Panel6Control.FAST_RETURN,
                 FirstDoctorConsoleControls.resolvePanel6LookHit(facing, pos, fastReturnEye, look, 5.0)
         );
+
+        AABB stabilisers = FirstDoctorConsoleControls.stabilisersWorldBox(pos, facing);
+        Vec3 stabilisersEye = new Vec3(stabilisers.getCenter().x, stabilisers.getCenter().y + 1.5, stabilisers.getCenter().z);
+        assertEquals(
+                FirstDoctorConsoleControls.Panel6Control.STABILISERS,
+                FirstDoctorConsoleControls.resolvePanel6LookHit(facing, pos, stabilisersEye, look, 5.0)
+        );
+    }
+
+    @Test
+    void stabilisersBox_sitsOnPanel6BottomRowAwayFromRotor() {
+        AABB box = FirstDoctorConsoleControls.stabilisersBox(Direction.NORTH);
+        assertTrue(box.minY > 0.3, "stabilisers should sit on panel deck, was minY=" + box.minY);
+        assertTrue(box.maxY < 2.0, "stabilisers should stay near console top, was maxY=" + box.maxY);
+        assertTrue(
+                FirstDoctorConsoleControls.stabilisersDistanceFromCenter(Direction.NORTH) > 0.45,
+                "stabilisers should be out on Panel6 deck, not at the time rotor"
+        );
+        // Bottom row is farther from the rotor (block center) than the middle-row lever.
+        assertTrue(
+                FirstDoctorConsoleControls.stabilisersDistanceFromCenter(Direction.NORTH)
+                        > FirstDoctorConsoleControls.leverDistanceFromCenter(Direction.NORTH),
+                "bottom-row stabilisers should be farther from center than the middle-row lever"
+        );
+    }
+
+    @Test
+    void resolvePanel6LookHit_prefersStabilisersOverLeverFromOuterDeck() {
+        Direction facing = Direction.NORTH;
+        BlockPos pos = BlockPos.ZERO;
+        AABB stabilisers = FirstDoctorConsoleControls.stabilisersWorldBox(pos, facing);
+        Vec3 eye = new Vec3(stabilisers.getCenter().x, stabilisers.getCenter().y + 1.5, stabilisers.getCenter().z);
+        Vec3 look = new Vec3(0, -1, 0);
+        assertEquals(
+                FirstDoctorConsoleControls.Panel6Control.STABILISERS,
+                FirstDoctorConsoleControls.resolvePanel6LookHit(facing, pos, eye, look, 5.0)
+        );
+    }
+
+    @Test
+    void lookRay_hitsStabilisersFromAbove() {
+        Direction facing = Direction.NORTH;
+        BlockPos pos = BlockPos.ZERO;
+        AABB box = FirstDoctorConsoleControls.stabilisersWorldBox(pos, facing);
+        Vec3 center = box.getCenter();
+        Vec3 eye = new Vec3(center.x, center.y + 1.5, center.z);
+        Vec3 look = new Vec3(0, -1, 0);
+        assertTrue(FirstDoctorConsoleControls.isStabilisersLookHit(facing, pos, eye, look, 5.0));
+    }
+
+    @Test
+    void resolveLookTarget_includesStabilisers() {
+        Direction facing = Direction.NORTH;
+        BlockPos pos = BlockPos.ZERO;
+        AABB stabilisers = FirstDoctorConsoleControls.stabilisersWorldBox(pos, facing);
+        Vec3 eye = new Vec3(stabilisers.getCenter().x, stabilisers.getCenter().y + 1.5, stabilisers.getCenter().z);
+        Vec3 look = new Vec3(0, -1, 0);
+        assertEquals(
+                FirstDoctorConsoleControls.LookTarget.STABILISERS,
+                FirstDoctorConsoleControls.resolveLookTarget(facing, pos, eye, look, 5.0)
+        );
     }
 
     @Test

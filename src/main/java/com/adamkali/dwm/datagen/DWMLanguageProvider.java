@@ -274,6 +274,10 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.fast_return_selected", "Fast return (%s/%s): %s %s, %s, %s");
         t.add("dwm.console.fast_return_empty", "No previous location");
         t.add("dwm.console.fast_return_unavailable", "Fast return unavailable");
+        t.add("dwm.console.stabilisers", "Stabilisers");
+        t.add("dwm.console.stabilisers_on", "Stabilisers: On");
+        t.add("dwm.console.stabilisers_off", "Stabilisers: Off");
+        t.add("dwm.console.stabilisers_unavailable", "Stabilisers unavailable");
         t.add("dwm.console.materialisation_lever_pulled", "Materialisation lever engaged");
         t.add("dwm.console.travel_dematerialising", "Dematerialising...");
         t.add("dwm.console.travel_materialising", "Materialising...");
@@ -281,6 +285,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.travel_in_flight", "TARDIS is already in flight");
         t.add("dwm.console.travel_in_progress", "Travel sequence already in progress");
         t.add("dwm.console.travel_player_offline", "Selected player is offline — cannot materialise");
+        t.add("dwm.console.travel_invalid_landing", "No valid landing site nearby — stay in flight");
         t.add("dwm.console.waypoint_unavailable", "Waypoint selector unavailable");
         t.add("dwm.console.waypoint_saved", "Waypoint saved: %s");
         t.add("dwm.console.waypoint_save_failed", "Unable to save waypoint");

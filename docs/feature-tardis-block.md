@@ -31,7 +31,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Materialisation lever travel: first pull dematerialises the exterior; after a short hold the TARDIS enters `IN_FLIGHT`; a second pull materialises at the destination resolved from the active `DestinationMode`.
 - Destination modes: `BIOME` (default — selected dimension/biome landing search), `WAYPOINT` (exact saved exterior coords), `PLAYER` (live online player position at materialise; fails with overlay if offline), `FAST_RETURN` (exact historically visited exterior from LIFO history).
 - First Doctor console Panel3 hosts four dials: biome selector, waypoint selector, player locator, and planet locator (shared dial mesh). Planet locator cycles loaded worlds except `dwm:tardis` (including `dwm:gallifrey`). Waypoint/player dials open GUIs (no `MenuType`) to save/delete/select waypoints (cap 16; current = linked exterior) or select another online player; cycling biome/planet resets mode to `BIOME`.
-- First Doctor console Panel6 hosts the materialisation lever, a basic chameleon circuit dial (cycles shell variant + translucent hologram; advanced chameleon is deferred), and a fast-return switch (cycles historically visited exteriors as the next destination; history cap 16).
+- First Doctor console Panel6 hosts the materialisation lever, a basic chameleon circuit dial (cycles shell variant + translucent hologram; advanced chameleon is deferred), a fast-return switch (cycles historically visited exteriors as the next destination; history cap 16), and a bottom-row stabilisers toggle (default on — precise landing; off scatters the materialise landing within ~4–24 blocks then re-validates; unstabilised flight speeds the time rotor and adds light smoke).
 - First Doctor console time rotor bobbles vertically while the TARDIS is traveling (`DEMATERIALISING` / `IN_FLIGHT` / `MATERIALISING`) and rests when idle.
 - Demat/mat/in-flight play loopable travel SFX (seamless loops) for code-configured phase lengths (`DEMATERIALISING_DURATION_TICKS` / `MATERIALISING_DURATION_TICKS` in `TardisTravelService`); shell vanishes mid-demat at `DEMATERIALISING_SHELL_REMOVE_AT_TICK`; `IN_FLIGHT` uses a higher-pitched demat/mat-derived loop in the interior; materialisation ends with a landing thud.
 
@@ -42,7 +42,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 4. When the door is fully open, walk into the exterior block to teleport to the interior entrance.
 5. From inside, look through open interior doors to see the exterior world (SOTO preview).
 6. Walk into the interior door blocks to return just outside the exterior TARDIS.
-7. At the console: choose a destination — biome + planet dials, a saved waypoint, an online player, or fast return through previous landings — then pull the materialisation lever to dematerialise, wait for `IN_FLIGHT`, and pull again to materialise and land. Optionally cycle the chameleon circuit on Panel6 to preview/set the exterior shell.
+7. At the console: choose a destination — biome + planet dials, a saved waypoint, an online player, or fast return through previous landings — then pull the materialisation lever to dematerialise, wait for `IN_FLIGHT`, and pull again to materialise and land. Optionally cycle the chameleon circuit on Panel6 to preview/set the exterior shell. Toggle stabilisers on Panel6’s bottom row before materialising if you want a precise vs scattered landing.
 
 ## BOTI Notes
 - Visual illusion: does not stream the live `dwm:tardis` dimension to the exterior client.
