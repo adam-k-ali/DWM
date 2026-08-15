@@ -1,0 +1,9 @@
+{
+  "model": {
+    "type": "minecraft:special",
+    "base": "dwm:item/tardis_full_scanner",
+    "model": {
+      "type": "dwm:tardis_full_scanner"
+    }
+  }
+}

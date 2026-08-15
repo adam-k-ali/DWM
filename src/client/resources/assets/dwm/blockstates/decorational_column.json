@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "dwm:block/decorational_column",
+      "y": 180
+    },
+    "facing=south": {
+      "model": "dwm:block/decorational_column"
+    },
+    "facing=east": {
+      "model": "dwm:block/decorational_column",
+      "y": 270
+    },
+    "facing=west": {
+      "model": "dwm:block/decorational_column",
+      "y": 90
+    }
+  }
+}

@@ -153,6 +153,35 @@ public class DWMBlocks {
 
     public static final Block TARDIS_DOOR_BUTTON = register(TardisButtonBlock::new, DWMBlockSettings.BUTTON_SETTINGS, "tardis_door_button");
 
+    public static final Block TARDIS_CHAIR_SMALL = register(
+            settings -> new TardisChairBlock(settings, TardisDecorShapes.SMALL_CHAIR, TardisDecorShapes.SMALL_CHAIR_SEAT_Y),
+            DWMBlockSettings.TARDIS_DECOR_SETTINGS,
+            "tardis_chair_small");
+    public static final Block TARDIS_CHAIR_LARGE = register(
+            settings -> new TardisChairBlock(settings, TardisDecorShapes.LARGE_CHAIR, TardisDecorShapes.LARGE_CHAIR_SEAT_Y),
+            DWMBlockSettings.TARDIS_DECOR_SETTINGS,
+            "tardis_chair_large");
+    public static final Block DECORATIONAL_COLUMN = register(
+            settings -> new TardisDecorBlock(settings, TardisDecorShapes.COLUMN),
+            DWMBlockSettings.TARDIS_DECOR_SETTINGS,
+            "decorational_column");
+    public static final Block TARDIS_CEILING_VENT = register(
+            settings -> new TardisDecorBlock(settings, TardisDecorShapes.CEILING_VENT),
+            DWMBlockSettings.TARDIS_DECOR_SETTINGS,
+            "tardis_ceiling_vent");
+    public static final Block TARDIS_GLOBE = register(
+            settings -> new TardisDecorEntityBlock(settings, TardisDecorShapes.GLOBE),
+            DWMBlockSettings.TARDIS_DECOR_SETTINGS,
+            "tardis_globe");
+    public static final Block TARDIS_COMPACT_SCANNER = register(
+            settings -> new TardisDecorEntityBlock(settings, TardisDecorShapes.COMPACT_SCANNER),
+            DWMBlockSettings.TARDIS_DECOR_SETTINGS,
+            "tardis_compact_scanner");
+    public static final Block TARDIS_FULL_SCANNER = register(
+            settings -> new TardisDecorEntityBlock(settings, TardisDecorShapes.FULL_SCANNER_NORTH),
+            DWMBlockSettings.TARDIS_DECOR_SETTINGS,
+            "tardis_full_scanner");
+
     public static final Block GALLIFREY_STONE = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "gallifrey_stone");
     public static final Block GALLIFREY_STONE_BRICKS = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "gallifrey_stone_bricks");
     public static final Block CHISELED_GALLIFREY_STONE_BRICKS = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "chiseled_gallifrey_stone_bricks");
@@ -623,6 +652,14 @@ public class DWMBlocks {
             content.accept(GRAY_CHRONOPLASM_POWDER);
             content.accept(PURPLE_CHRONOPLASM_POWDER);
             content.accept(TEAL_CHRONOPLASM_POWDER);
+
+            content.accept(TARDIS_CHAIR_SMALL);
+            content.accept(TARDIS_CHAIR_LARGE);
+            content.accept(DECORATIONAL_COLUMN);
+            content.accept(TARDIS_CEILING_VENT);
+            content.accept(TARDIS_GLOBE);
+            content.accept(TARDIS_COMPACT_SCANNER);
+            content.accept(TARDIS_FULL_SCANNER);
 
             for (Block block : GALLIFREY_STONE_BUILDING_BLOCKS) {
                 content.accept(block);

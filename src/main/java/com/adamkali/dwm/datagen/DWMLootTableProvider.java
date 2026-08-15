@@ -211,6 +211,14 @@ public class DWMLootTableProvider extends FabricBlockLootSubProvider {
 
         dropSelf(DWMBlocks.TARDIS_DOOR_BUTTON);
 
+        dropSelf(DWMBlocks.TARDIS_CHAIR_SMALL);
+        dropSelf(DWMBlocks.TARDIS_CHAIR_LARGE);
+        dropSelf(DWMBlocks.DECORATIONAL_COLUMN);
+        dropSelf(DWMBlocks.TARDIS_CEILING_VENT);
+        dropSelf(DWMBlocks.TARDIS_GLOBE);
+        dropSelf(DWMBlocks.TARDIS_COMPACT_SCANNER);
+        dropSelf(DWMBlocks.TARDIS_FULL_SCANNER);
+
         // Unbreakable / special blocks: empty drops, excluded from strict validation if needed.
         excludeFromStrictValidation(DWMBlocks.TARDIS_BLOCK);
         excludeFromStrictValidation(DWMBlocks.TARDIS_INTERIOR_DOOR);

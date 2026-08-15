@@ -1,6 +1,7 @@
 package com.adamkali.dwm.datagen;
 
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.item.DWMItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricLanguageProvider;
@@ -170,6 +171,14 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addBlockItem(t, DWMBlocks.TARDIS_INTERIOR_DOOR, "TARDIS Interior Door");
         addBlockItem(t, DWMBlocks.FIRST_DOCTOR_CONSOLE, "First Doctor Console");
         addBlockItem(t, DWMBlocks.TARDIS_DOOR_BUTTON, "TARDIS Door Button");
+
+        addBlockAndItem(t, DWMBlocks.TARDIS_CHAIR_SMALL, "Small TARDIS Chair");
+        addBlockAndItem(t, DWMBlocks.TARDIS_CHAIR_LARGE, "Large TARDIS Chair");
+        addBlockAndItem(t, DWMBlocks.DECORATIONAL_COLUMN, "Decorational Column");
+        addBlockAndItem(t, DWMBlocks.TARDIS_CEILING_VENT, "TARDIS Ceiling Vent");
+        addBlockAndItem(t, DWMBlocks.TARDIS_GLOBE, "TARDIS Globe");
+        addBlockAndItem(t, DWMBlocks.TARDIS_COMPACT_SCANNER, "Compact TARDIS Scanner");
+        addBlockAndItem(t, DWMBlocks.TARDIS_FULL_SCANNER, "Full TARDIS Scanner");
     }
 
     private static void addGallifreyStoneFamily(TranslationBuilder t) {
@@ -242,6 +251,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
     }
 
     private static void addMisc(TranslationBuilder t) {
+        t.add(DWMEntityTypes.TARDIS_SEAT, "TARDIS Seat");
         t.add("dimension.dwm.gallifrey", "Gallifrey");
         t.add("biome.dwm.gallifrey_plains", "Gallifrey Plains");
         t.add("biome.dwm.gallifrey_forest", "Gallifrey Forest");

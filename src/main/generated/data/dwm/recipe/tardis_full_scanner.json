@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "#": "dwm:white_tardis_wall",
+    "G": "minecraft:glass_pane",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "###",
+    "RGR"
+  ],
+  "result": {
+    "id": "dwm:tardis_full_scanner"
+  }
+}

@@ -15,6 +15,10 @@ public class DWMBlockSettings {
     public static final BlockBehaviour.Properties FIRST_DOCTOR_CONSOLE = BlockBehaviour.Properties.of().strength(-1.0F, 3600000.8F).noOcclusion();
     public static final BlockBehaviour.Properties BUTTON_SETTINGS = BlockBehaviour.Properties.of().strength(0.5F).sound(SoundType.STONE).noCollision();
 
+    /** Breakable interior decor props (chairs, column, ceiling vent, globe, scanners). */
+    public static final BlockBehaviour.Properties TARDIS_DECOR_SETTINGS =
+            BlockBehaviour.Properties.of().strength(2.0F, 3.0F).sound(SoundType.METAL).noOcclusion();
+
     public static final BlockBehaviour.Properties GALLIFREY_STONE = BlockBehaviour.Properties.of()
             .mapColor(MapColor.TERRACOTTA_ORANGE)
             .instrument(NoteBlockInstrument.BASEDRUM)
