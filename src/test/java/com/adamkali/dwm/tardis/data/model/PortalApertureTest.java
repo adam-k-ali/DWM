@@ -30,12 +30,23 @@ class PortalApertureTest {
     }
 
     @Test
-    void firstAndFifthDoctor_doorPlanesDiffer() {
+    void laterDoctorBoxes_shareFirstDoctorDoorPlane() {
         float firstZ = TardisChameleonVariant.FIRST_DOCTOR_BOX.getAperture().z();
-        float fifthZ = TardisChameleonVariant.FIFTH_DOCTOR_BOX.getAperture().z();
-
         assertEquals(-5.5f / 16.0f, firstZ, EPSILON);
-        assertEquals(-6.0f / 16.0f, fifthZ, EPSILON);
+        assertEquals(firstZ, TardisChameleonVariant.THIRD_DOCTOR_BOX.getAperture().z(), EPSILON);
+        assertEquals(firstZ, TardisChameleonVariant.FOURTH_DOCTOR_BOX.getAperture().z(), EPSILON);
+        assertEquals(firstZ, TardisChameleonVariant.FIFTH_DOCTOR_BOX.getAperture().z(), EPSILON);
+        assertEquals(firstZ, TardisChameleonVariant.SIXTH_DOCTOR_BOX.getAperture().z(), EPSILON);
+        assertEquals(firstZ, TardisChameleonVariant.SEVENTH_DOCTOR_BOX.getAperture().z(), EPSILON);
+    }
+
+    @Test
+    void secondDoctor_doorPlaneDiffersFromFirst() {
+        float firstZ = TardisChameleonVariant.FIRST_DOCTOR_BOX.getAperture().z();
+        float secondZ = TardisChameleonVariant.SECOND_DOCTOR_BOX.getAperture().z();
+
+        assertEquals(-6.0f / 16.0f, secondZ, EPSILON);
+        assertTrue(Math.abs(firstZ - secondZ) > EPSILON);
     }
 
     @Test
