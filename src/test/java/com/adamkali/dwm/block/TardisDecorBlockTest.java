@@ -1,14 +1,21 @@
 package com.adamkali.dwm.block;
 
+import com.adamkali.dwm.MinecraftTestBootstrap;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TardisDecorBlockTest {
     private static final double EPSILON = 1e-4;
+
+    @BeforeAll
+    static void bootstrap() {
+        MinecraftTestBootstrap.ensure();
+    }
 
     @Test
     void placementFacing_matchesPlayerLookNotOpposite() {
@@ -51,6 +58,21 @@ class TardisDecorBlockTest {
         assertEquals(0.0, bounds.minZ, EPSILON);
         assertEquals(1.0, bounds.maxZ, EPSILON);
         assertEquals(1.0, bounds.getYsize(), EPSILON);
+    }
+
+    @Test
+    void ceilingVent_emitsLightLevel12() {
+        assertEquals(12, DWMBlocks.TARDIS_CEILING_VENT.defaultBlockState().getLightEmission());
+    }
+
+    @Test
+    void otherDecor_doesNotEmitLight() {
+        assertEquals(0, DWMBlocks.TARDIS_CHAIR_SMALL.defaultBlockState().getLightEmission());
+        assertEquals(0, DWMBlocks.TARDIS_CHAIR_LARGE.defaultBlockState().getLightEmission());
+        assertEquals(0, DWMBlocks.DECORATIONAL_COLUMN.defaultBlockState().getLightEmission());
+        assertEquals(0, DWMBlocks.TARDIS_GLOBE.defaultBlockState().getLightEmission());
+        assertEquals(0, DWMBlocks.TARDIS_COMPACT_SCANNER.defaultBlockState().getLightEmission());
+        assertEquals(0, DWMBlocks.TARDIS_FULL_SCANNER.defaultBlockState().getLightEmission());
     }
 
     @Test

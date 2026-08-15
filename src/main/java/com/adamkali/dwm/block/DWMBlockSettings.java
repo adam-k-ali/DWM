@@ -9,15 +9,41 @@ import net.minecraft.world.level.material.PushReaction;
 
 public class DWMBlockSettings {
     public static final BlockBehaviour.Properties TARDIS_WALL_SETTINGS = BlockBehaviour.Properties.of().strength(2.0F, 3.0F).sound(SoundType.METAL);
+
+    /** Fresh properties for roundels (avoids shared setId / noOcclusion mutation; emits light). */
+    public static BlockBehaviour.Properties tardisRoundel() {
+        return BlockBehaviour.Properties.of()
+                .strength(2.0F, 3.0F)
+                .sound(SoundType.METAL)
+                .lightLevel(state -> 10);
+    }
+
+    /** Roundel B variants: same as {@link #tardisRoundel()} with no occlusion. */
+    public static BlockBehaviour.Properties tardisRoundelNoOcclusion() {
+        return tardisRoundel().noOcclusion();
+    }
+
     public static final BlockBehaviour.Properties CHRONOPLASM_POWDER_SETTINGS = BlockBehaviour.Properties.of().strength(0.5F).sound(SoundType.SAND);
     public static final BlockBehaviour.Properties TARDIS_BLOCK = BlockBehaviour.Properties.of().strength(-1.0F, 3600000.8F).noOcclusion();
     public static final BlockBehaviour.Properties TARDIS_INTERIOR_DOOR = BlockBehaviour.Properties.of().strength(-1.0F, 3600000.8F).noOcclusion();
-    public static final BlockBehaviour.Properties FIRST_DOCTOR_CONSOLE = BlockBehaviour.Properties.of().strength(-1.0F, 3600000.8F).noOcclusion();
+    public static final BlockBehaviour.Properties FIRST_DOCTOR_CONSOLE = BlockBehaviour.Properties.of()
+            .strength(-1.0F, 3600000.8F)
+            .noOcclusion()
+            .lightLevel(state -> 15);
     public static final BlockBehaviour.Properties BUTTON_SETTINGS = BlockBehaviour.Properties.of().strength(0.5F).sound(SoundType.STONE).noCollision();
 
-    /** Breakable interior decor props (chairs, column, ceiling vent, globe, scanners). */
+    /** Breakable interior decor props (chairs, column, globe, scanners). */
     public static final BlockBehaviour.Properties TARDIS_DECOR_SETTINGS =
             BlockBehaviour.Properties.of().strength(2.0F, 3.0F).sound(SoundType.METAL).noOcclusion();
+
+    /** Fresh properties for ceiling vent (avoids shared setId mutation; emits light). */
+    public static BlockBehaviour.Properties tardisCeilingVent() {
+        return BlockBehaviour.Properties.of()
+                .strength(2.0F, 3.0F)
+                .sound(SoundType.METAL)
+                .noOcclusion()
+                .lightLevel(state -> 12);
+    }
 
     public static final BlockBehaviour.Properties GALLIFREY_STONE = BlockBehaviour.Properties.of()
             .mapColor(MapColor.TERRACOTTA_ORANGE)
