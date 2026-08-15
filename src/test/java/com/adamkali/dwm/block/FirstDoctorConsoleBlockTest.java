@@ -5,6 +5,7 @@ import net.minecraft.world.level.block.Blocks;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -25,5 +26,10 @@ class FirstDoctorConsoleBlockTest {
         assertFalse(FirstDoctorConsoleBlock.isPlayerBreakDenied(Blocks.STONE.defaultBlockState()));
         assertFalse(FirstDoctorConsoleBlock.isPlayerBreakDenied(
                 DWMBlocks.WHITE_TARDIS_WALL.defaultBlockState()));
+    }
+
+    @Test
+    void emitsLightLevel15() {
+        assertEquals(15, DWMBlocks.FIRST_DOCTOR_CONSOLE.defaultBlockState().getLightEmission());
     }
 }
