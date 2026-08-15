@@ -8,6 +8,7 @@ import com.adamkali.dwm.tardis.TardisExteriorFacing;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.DestinationMode;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.data.model.TardisExteriorLocation;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.data.model.TardisWaypoint;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
@@ -104,7 +105,7 @@ public final class TardisTravelService {
         }
 
         DestinationMode mode = model.getDestinationMode();
-        String destinationDimension;
+        String destinationDimension = null;
         String destinationBiome = null;
         UUID travelPlayerUuid = null;
         int destX = 0;
@@ -123,6 +124,17 @@ public final class TardisTravelService {
                 destY = waypoint.y;
                 destZ = waypoint.z;
                 destRotation = waypoint.rotation;
+            }
+            case FAST_RETURN -> {
+                TardisExteriorLocation location = FastReturnLogic.selected(model).orElse(null);
+                if (location == null || location.dimension == null || location.dimension.isBlank()) {
+                    return InteractionResult.FAIL;
+                }
+                destinationDimension = location.dimension;
+                destX = location.x;
+                destY = location.y;
+                destZ = location.z;
+                destRotation = location.rotation;
             }
             case PLAYER -> {
                 if (!PlayerLocatorLogic.isOnline(server, model.selectedPlayerUuid)) {
@@ -151,12 +163,9 @@ public final class TardisTravelService {
                 }
                 destinationBiome = model.selectedBiome;
             }
-            default -> {
-                return InteractionResult.FAIL;
-            }
         }
 
-        if (level(server, destinationDimension) == null) {
+        if (destinationDimension == null || destinationDimension.isBlank() || level(server, destinationDimension) == null) {
             return InteractionResult.FAIL;
         }
 
@@ -222,7 +231,7 @@ public final class TardisTravelService {
         ServerLevel destinationWorld;
         BlockPos landing;
         int facingRotation = snapshot.facingRotation();
-        if (mode == DestinationMode.WAYPOINT) {
+        if (isExactCoordMode(mode)) {
             facingRotation = model.travelDestinationRotation;
         }
         Direction doorFacing = TardisExteriorFacing.doorDirection(facingRotation);
@@ -251,13 +260,14 @@ public final class TardisTravelService {
             }
             BlockPos oldPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
             Optional<BlockPos> resolved = resolveLanding(destinationWorld, model, oldPos, doorFacing);
-            if (resolved.isEmpty() && mode == DestinationMode.WAYPOINT) {
+            if (resolved.isEmpty() && isExactCoordMode(mode)) {
                 lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
                 return InteractionResult.FAIL;
             }
             landing = resolved.orElse(oldPos);
         }
 
+        FastReturnLogic.pushDeparted(model);
         placeShell(destinationWorld, landing, snapshot, facingRotation);
         model.setExteriorLocation(
                 destinationWorld.dimension().identifier().toString(),
@@ -266,6 +276,7 @@ public final class TardisTravelService {
                 landing.getZ(),
                 facingRotation
         );
+        FastReturnLogic.resetIndexAfterLanding(model);
         SotoExteriorIndex.register(tardisId, model);
         PortalStreamSyncService.setMetaChanged(tardisId);
 
@@ -484,8 +495,8 @@ public final class TardisTravelService {
             Direction doorFacing
     ) {
         DestinationMode mode = effectiveTravelMode(model);
-        if (mode == DestinationMode.WAYPOINT) {
-            return waypointTargetFromSnapshot(model)
+        if (isExactCoordMode(mode)) {
+            return exactCoordTargetFromSnapshot(model)
                     .flatMap(target -> LandingSiteLogic.findLandingAtOrNearby(world, target, doorFacing));
         }
         Optional<ResourceKey<Biome>> biome = LandingSiteLogic.parseBiome(model.travelDestinationBiome);
@@ -531,7 +542,12 @@ public final class TardisTravelService {
             }
             case WAYPOINT -> WaypointLogic.find(model, model.selectedWaypointId).isPresent();
             case PLAYER -> model.selectedPlayerUuid != null;
+            case FAST_RETURN -> FastReturnLogic.hasSelection(model);
         };
+    }
+
+    static boolean isExactCoordMode(@Nullable DestinationMode mode) {
+        return mode == DestinationMode.WAYPOINT || mode == DestinationMode.FAST_RETURN;
     }
 
     static DestinationMode effectiveTravelMode(@Nullable TardisDataModel model) {
@@ -545,11 +561,15 @@ public final class TardisTravelService {
     }
 
     /**
-     * Pure: BlockPos from flight waypoint snapshot fields.
+     * Pure: BlockPos from flight exact-coord snapshot fields (waypoint or fast return).
      * Package-visible for unit tests.
      */
     static Optional<BlockPos> waypointTargetFromSnapshot(@Nullable TardisDataModel model) {
-        if (model == null || effectiveTravelMode(model) != DestinationMode.WAYPOINT) {
+        return exactCoordTargetFromSnapshot(model);
+    }
+
+    static Optional<BlockPos> exactCoordTargetFromSnapshot(@Nullable TardisDataModel model) {
+        if (model == null || !isExactCoordMode(effectiveTravelMode(model))) {
             return Optional.empty();
         }
         return Optional.of(new BlockPos(

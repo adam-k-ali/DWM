@@ -42,6 +42,9 @@ public class DWMRenderLayerManager {
                 MaterialisationLeverModel.LAYER_LOCATION,
                 MaterialisationLeverModel::getTexturedModelData);
         ModelLayerRegistry.registerModelLayer(
+                FastReturnModel.LAYER_LOCATION,
+                FastReturnModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(
                 TardisGlobeModel.LAYER_LOCATION,
                 TardisGlobeModel::getTexturedModelData);
         ModelLayerRegistry.registerModelLayer(

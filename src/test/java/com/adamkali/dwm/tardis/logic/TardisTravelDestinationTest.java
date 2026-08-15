@@ -62,6 +62,35 @@ class TardisTravelDestinationTest {
     }
 
     @Test
+    void hasValidDestinationSelection_fastReturnRequiresHistoryAndIndex() {
+        model.setDestinationMode(DestinationMode.FAST_RETURN);
+        assertFalse(TardisTravelService.hasValidDestinationSelection(model));
+
+        FastReturnLogic.pushDeparted(model);
+        model.setDestinationMode(DestinationMode.FAST_RETURN);
+        model.selectedFastReturnIndex = 0;
+        assertTrue(TardisTravelService.hasValidDestinationSelection(model));
+
+        model.selectedFastReturnIndex = 5;
+        assertFalse(TardisTravelService.hasValidDestinationSelection(model));
+    }
+
+    @Test
+    void exactCoordSnapshot_includesFastReturn() {
+        model.travelDestinationMode = DestinationMode.FAST_RETURN;
+        model.travelDestinationX = 10;
+        model.travelDestinationY = 64;
+        model.travelDestinationZ = -3;
+
+        Optional<BlockPos> target = TardisTravelService.waypointTargetFromSnapshot(model);
+
+        assertEquals(Optional.of(new BlockPos(10, 64, -3)), target);
+        assertTrue(TardisTravelService.isExactCoordMode(DestinationMode.FAST_RETURN));
+        assertTrue(TardisTravelService.isExactCoordMode(DestinationMode.WAYPOINT));
+        assertFalse(TardisTravelService.isExactCoordMode(DestinationMode.BIOME));
+    }
+
+    @Test
     void waypointTargetFromSnapshot_readsFlightCoords() {
         model.travelDestinationMode = DestinationMode.WAYPOINT;
         model.travelDestinationX = 100;
