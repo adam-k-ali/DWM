@@ -47,6 +47,12 @@ class BotiRelativePosCodecTest {
     }
 
     @Test
+    void packUnpack_SupportsFarCornerOfSeventeenDeepRoom() {
+        BlockPos far = new BlockPos(10, 6, 16);
+        assertEquals(far, BotiRelativePosCodec.unpack(BotiRelativePosCodec.pack(far)));
+    }
+
+    @Test
     void portalChunkPayload_RoundTripsBlockMap() {
         UUID tardisId = UUID.randomUUID();
         BlockPos footprintOrigin = BlockPos.ZERO;

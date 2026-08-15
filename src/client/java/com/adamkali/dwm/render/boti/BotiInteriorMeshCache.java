@@ -56,7 +56,7 @@ public final class BotiInteriorMeshCache {
     private static final long REQUEST_COOLDOWN_MS = 2000L;
     private static final String PLAYER_ENTITY_ID = "minecraft:player";
     /** Local console position in {@link FirstDoctorConsoleRoomLayout}. */
-    private static final BlockPos BLUEPRINT_CONSOLE_POS = new BlockPos(5, 1, 5);
+    private static final BlockPos BLUEPRINT_CONSOLE_POS = FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE;
 
     private static final Map<UUID, CachedSnapshot> SNAPSHOTS = new ConcurrentHashMap<>();
     private static final Map<UUID, Long> LAST_REQUEST_MS = new ConcurrentHashMap<>();

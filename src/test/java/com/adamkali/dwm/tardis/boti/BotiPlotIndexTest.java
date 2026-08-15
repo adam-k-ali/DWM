@@ -1,5 +1,6 @@
 package com.adamkali.dwm.tardis.boti;
 
+import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ class BotiPlotIndexTest {
 
         assertTrue(BotiPlotIndex.isRegistered(id));
         assertEquals(origin, BotiPlotIndex.getOrigin(id));
-        assertEquals(id, BotiPlotIndex.resolve(origin.offset(5, 1, 5)));
+        assertEquals(id, BotiPlotIndex.resolve(origin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE)));
     }
 
     @Test

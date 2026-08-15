@@ -13,21 +13,26 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
 /**
- * Pure First Doctor console-room block layout shared by world placement and client BOTI fallback.
+ * Pure First Doctor console-room block layout shared by world placement constants and client BOTI
+ * fallback. Live interiors are placed from {@code dwm:first_doctor_console_room}; this blueprint is
+ * a coarse same-size box used until a portal stream arrives.
  */
 public final class FirstDoctorConsoleRoomLayout {
     public static final int SIZE_X = 11;
     public static final int SIZE_Y = 7;
-    public static final int SIZE_Z = 11;
+    public static final int SIZE_Z = 17;
 
     /** Local entrance standing position relative to structure origin (feet). */
-    public static final BlockPos LOCAL_ENTRANCE = new BlockPos(5, 1, 1);
+    public static final BlockPos LOCAL_ENTRANCE = new BlockPos(5, 1, 2);
 
     /** Origin cell of the 3×2 interior door bank (lower / slot 0). */
-    public static final BlockPos LOCAL_DOOR_ORIGIN = new BlockPos(4, 1, 0);
+    public static final BlockPos LOCAL_DOOR_ORIGIN = new BlockPos(4, 1, 1);
+
+    /** First Doctor console local position. */
+    public static final BlockPos LOCAL_CONSOLE = new BlockPos(5, 1, 7);
 
     /** Layout version for client mesh cache invalidation. */
-    public static final int LAYOUT_VERSION = 3;
+    public static final int LAYOUT_VERSION = 4;
 
     private static Map<BlockPos, BlockState> cachedPlacements;
 
@@ -77,15 +82,15 @@ public final class FirstDoctorConsoleRoomLayout {
                 placements.put(cell, TardisInteriorDoorBlock.bankCellState(doorFacing, half, slot, true));
             }
         }
-        placements.put(new BlockPos(5, 1, 5), console);
-        placements.put(new BlockPos(6, 1, 5), floor);
-        placements.put(new BlockPos(4, 1, 5), floor);
-        placements.put(new BlockPos(5, 1, 6), floor);
-        placements.put(new BlockPos(5, 1, 4), floor);
-        placements.put(new BlockPos(5, 4, 5), light);
-        placements.put(new BlockPos(0, 2, 5), roundel);
-        placements.put(new BlockPos(SIZE_X - 1, 2, 5), roundel);
-        placements.put(new BlockPos(5, 2, SIZE_Z - 1), roundel);
+        placements.put(LOCAL_CONSOLE, console);
+        placements.put(LOCAL_CONSOLE.east(), floor);
+        placements.put(LOCAL_CONSOLE.west(), floor);
+        placements.put(LOCAL_CONSOLE.south(), floor);
+        placements.put(LOCAL_CONSOLE.north(), floor);
+        placements.put(LOCAL_CONSOLE.above(3), light);
+        placements.put(new BlockPos(0, 2, LOCAL_CONSOLE.getZ()), roundel);
+        placements.put(new BlockPos(SIZE_X - 1, 2, LOCAL_CONSOLE.getZ()), roundel);
+        placements.put(new BlockPos(LOCAL_CONSOLE.getX(), 2, SIZE_Z - 1), roundel);
         return placements;
     }
 }

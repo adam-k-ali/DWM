@@ -2,10 +2,12 @@ package com.adamkali.dwm.gametest;
 
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
+import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
+import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomPlacer;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.interior.TardisEntryGate;
@@ -130,6 +132,54 @@ public class TardisInteriorGameTests {
         if (!TardisEntryGate.canEnter(TardisLogic.getDoorState(model.uuid))) {
             throw new AssertionError("Fully open door must allow entry");
         }
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void consoleRoomPlacer_StampsTardisIdOnDoorAndConsole(GameTestHelper context) {
+        TardisDataLoader.tardisSaveDirectory = context.getLevel().getServer()
+                .getWorldPath(LevelResource.ROOT).resolve("gametest_tardis_data");
+        UUID tardisId = TardisDataLoader.create().uuid;
+
+        // Place relative to the empty GameTest structure so chunks are loaded and assertions
+        // stay within the harness world (not the shared dwm:tardis dimension).
+        BlockPos originRel = new BlockPos(0, 2, 0);
+        BlockPos originAbs = context.absolutePos(originRel);
+        BlockPos entrance = FirstDoctorConsoleRoomPlacer.place(context.getLevel(), originAbs, tardisId);
+
+        BlockPos expectedEntrance = originAbs.offset(FirstDoctorConsoleRoomLayout.LOCAL_ENTRANCE);
+        if (!expectedEntrance.equals(entrance)) {
+            throw new AssertionError("Expected entrance " + expectedEntrance + " but got " + entrance);
+        }
+
+        BlockPos consoleAbs = originAbs.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE);
+        if (!context.getLevel().getBlockState(consoleAbs).is(DWMBlocks.FIRST_DOCTOR_CONSOLE)) {
+            throw new AssertionError("Expected First Doctor console at " + consoleAbs);
+        }
+        if (!(context.getLevel().getBlockEntity(consoleAbs) instanceof FirstDoctorConsoleBlockEntity console)) {
+            throw new AssertionError("Expected FirstDoctorConsoleBlockEntity at " + consoleAbs);
+        }
+        if (!tardisId.equals(console.getTardisId())) {
+            throw new AssertionError("Console tardisId not stamped: " + console.getTardisId());
+        }
+
+        BlockPos doorOriginAbs = originAbs.offset(FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN);
+        Direction facing = Direction.SOUTH;
+        for (DoubleBlockHalf half : DoubleBlockHalf.values()) {
+            for (int slot = 0; slot < TardisInteriorDoorBlock.BANK_WIDTH; slot++) {
+                BlockPos cell = TardisInteriorDoorBlock.cellPos(doorOriginAbs, facing, half, slot);
+                if (!context.getLevel().getBlockState(cell).is(DWMBlocks.TARDIS_INTERIOR_DOOR)) {
+                    throw new AssertionError("Expected interior door bank cell at " + cell);
+                }
+            }
+        }
+        if (!(context.getLevel().getBlockEntity(doorOriginAbs) instanceof TardisInteriorDoorBlockEntity door)) {
+            throw new AssertionError("Expected TardisInteriorDoorBlockEntity at door origin " + doorOriginAbs);
+        }
+        if (!tardisId.equals(door.getTardisId())) {
+            throw new AssertionError("Door tardisId not stamped: " + door.getTardisId());
+        }
+
         context.succeed();
     }
 }

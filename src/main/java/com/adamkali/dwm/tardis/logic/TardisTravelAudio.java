@@ -2,6 +2,7 @@ package com.adamkali.dwm.tardis.logic;
 
 import com.adamkali.dwm.network.TravelAudioS2CPayload;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
+import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
@@ -130,6 +131,6 @@ public final class TardisTravelAudio {
     }
 
     static BlockPos consolePos(UUID tardisId) {
-        return TardisPlotAllocator.plotOrigin(tardisId).offset(5, 1, 5);
+        return TardisPlotAllocator.plotOrigin(tardisId).offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE);
     }
 }

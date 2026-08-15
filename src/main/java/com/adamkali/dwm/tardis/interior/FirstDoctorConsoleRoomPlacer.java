@@ -1,25 +1,35 @@
 package com.adamkali.dwm.tardis.interior;
 
+import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
-import java.util.Map;
+import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
+import com.adamkali.dwm.tardis.logic.FirstDoctorConsoleSync;
+import com.adamkali.dwm.tardis.logic.TardisLogic;
+import com.mojang.logging.LogUtils;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import org.slf4j.Logger;
 
 /**
- * Places the First Doctor console room. Prefers the shipped structure template; falls back to
- * an equivalent programmatic layout if the template cannot be loaded.
+ * Places the First Doctor console room from the shipped {@code dwm:first_doctor_console_room}
+ * structure template, then links interior door / console block entities to the TARDIS id.
  */
 public final class FirstDoctorConsoleRoomPlacer {
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     public static final int SIZE_X = FirstDoctorConsoleRoomLayout.SIZE_X;
     public static final int SIZE_Y = FirstDoctorConsoleRoomLayout.SIZE_Y;
     public static final int SIZE_Z = FirstDoctorConsoleRoomLayout.SIZE_Z;
@@ -39,11 +49,24 @@ public final class FirstDoctorConsoleRoomPlacer {
             }
         }
 
-        // Prefer the programmatic layout for reliability. Template placement can report success
-        // while leaving an empty footprint when chunks were not ready; always build in code.
-        tryPlaceFromTemplate(world, origin);
-        placeProgrammatically(world, origin);
+        if (!tryPlaceFromTemplate(world, origin)) {
+            LOGGER.error(
+                    "Failed to load structure template {}; interior not placed for {}",
+                    TardisDimensions.CONSOLE_ROOM_STRUCTURE_ID,
+                    tardisId
+            );
+            return origin.offset(LOCAL_ENTRANCE);
+        }
+
+        completeInteriorDoorBank(world, origin);
         stampInteriorEntities(world, origin, tardisId);
+
+        TardisChameleonVariant variant = TardisLogic.getVariant(tardisId);
+        if (variant == null) {
+            variant = TardisChameleonVariant.TT_CAPSULE;
+        }
+        FirstDoctorConsoleSync.syncVariant(world.getServer(), tardisId, variant);
+
         return origin.offset(LOCAL_ENTRANCE);
     }
 
@@ -62,9 +85,40 @@ public final class FirstDoctorConsoleRoomPlacer {
         return true;
     }
 
-    static void placeProgrammatically(ServerLevel world, BlockPos origin) {
-        for (Map.Entry<BlockPos, BlockState> entry : buildPlacements().entrySet()) {
-            world.setBlock(origin.offset(entry.getKey()), entry.getValue(), Block.UPDATE_CLIENTS);
+    /**
+     * The shipped template may only contain the door-bank origin cell; fill the remaining five
+     * cells so BER, collision, SOTO, and exit teleport all see a full 3×2 bank.
+     */
+    static void completeInteriorDoorBank(ServerLevel world, BlockPos origin) {
+        BlockPos doorOrigin = origin.offset(FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN);
+        BlockState originState = world.getBlockState(doorOrigin);
+        if (!originState.is(DWMBlocks.TARDIS_INTERIOR_DOOR)
+                || !TardisInteriorDoorBlock.isOrigin(originState)) {
+            Direction facing = Direction.SOUTH;
+            boolean open = false;
+            if (originState.is(DWMBlocks.TARDIS_INTERIOR_DOOR)) {
+                facing = originState.getValue(TardisInteriorDoorBlock.FACING);
+                open = originState.getValue(TardisInteriorDoorBlock.OPEN);
+            }
+            world.setBlock(
+                    doorOrigin,
+                    TardisInteriorDoorBlock.bankCellState(facing, DoubleBlockHalf.LOWER, 0, open),
+                    Block.UPDATE_CLIENTS
+            );
+            originState = world.getBlockState(doorOrigin);
+        }
+
+        Direction facing = originState.getValue(TardisInteriorDoorBlock.FACING);
+        boolean open = originState.getValue(TardisInteriorDoorBlock.OPEN);
+        for (DoubleBlockHalf half : DoubleBlockHalf.values()) {
+            for (int slot = 0; slot < TardisInteriorDoorBlock.BANK_WIDTH; slot++) {
+                BlockPos cell = TardisInteriorDoorBlock.cellPos(doorOrigin, facing, half, slot);
+                world.setBlock(
+                        cell,
+                        TardisInteriorDoorBlock.bankCellState(facing, half, slot, open),
+                        Block.UPDATE_CLIENTS
+                );
+            }
         }
     }
 
@@ -81,9 +135,5 @@ public final class FirstDoctorConsoleRoomPlacer {
                 }
             }
         }
-    }
-
-    static Map<BlockPos, BlockState> buildPlacements() {
-        return FirstDoctorConsoleRoomLayout.placements();
     }
 }
