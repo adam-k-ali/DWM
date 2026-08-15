@@ -11,7 +11,9 @@ public enum DestinationMode {
     /** Exact saved exterior waypoint. */
     WAYPOINT,
     /** Live position of a selected online player at materialise. */
-    PLAYER;
+    PLAYER,
+    /** Exact historically visited exterior from fast-return history. */
+    FAST_RETURN;
 
     public static DestinationMode fromString(@Nullable String value) {
         if (value == null || value.isBlank()) {

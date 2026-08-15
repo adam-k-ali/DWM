@@ -5,6 +5,7 @@ import com.adamkali.dwm.block.FirstDoctorConsoleControls;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.model.tileentity.BiomeSelectorModel;
 import com.adamkali.dwm.model.tileentity.ChameleonCircuitModel;
+import com.adamkali.dwm.model.tileentity.FastReturnModel;
 import com.adamkali.dwm.model.tileentity.FifthDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.FirstDoctorConsoleModel;
 import com.adamkali.dwm.model.tileentity.FirstDoctorTardisModel;
@@ -63,6 +64,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
     private final PlanetLocatorModel planetLocatorModel;
     private final ChameleonCircuitModel chameleonCircuitModel;
     private final MaterialisationLeverModel materialisationLeverModel;
+    private final FastReturnModel fastReturnModel;
     private final HashMap<TardisChameleonVariant, TardisModel> shellModelCache = new HashMap<>();
     private final HashMap<TardisChameleonVariant, Identifier> shellTextureCache = new HashMap<>();
 
@@ -81,6 +83,8 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 context.bakeLayer(ChameleonCircuitModel.LAYER_LOCATION));
         this.materialisationLeverModel = new MaterialisationLeverModel(
                 context.bakeLayer(MaterialisationLeverModel.LAYER_LOCATION));
+        this.fastReturnModel = new FastReturnModel(
+                context.bakeLayer(FastReturnModel.LAYER_LOCATION));
 
         cacheShell(TardisChameleonVariant.TT_CAPSULE,
                 new TTCapsuleModel(context.bakeLayer(TTCapsuleModel.LAYER_LOCATION)),
@@ -208,6 +212,19 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 animState,
                 poseStack,
                 RenderTypes.entityCutout(MaterialisationLeverModel.TEXTURE_LOCATION),
+                state.lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                0,
+                state.breakProgress);
+        poseStack.popPose();
+
+        poseStack.pushPose();
+        applyPanel6FastReturnTransforms(poseStack);
+        submitNodeCollector.submitModel(
+                fastReturnModel,
+                animState,
+                poseStack,
+                RenderTypes.entityCutout(FastReturnModel.TEXTURE_LOCATION),
                 state.lightCoords,
                 OverlayTexture.NO_OVERLAY,
                 0,
@@ -352,6 +369,15 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 FirstDoctorConsoleControls.PANEL6_YAW_RAD,
                 FirstDoctorConsoleControls.LEVER_SCALE,
                 FirstDoctorConsoleControls.LEVER_MOUNT_X_PX
+        );
+    }
+
+    static void applyPanel6FastReturnTransforms(PoseStack matrices) {
+        applyPanelControlTransforms(
+                matrices,
+                FirstDoctorConsoleControls.PANEL6_YAW_RAD,
+                FirstDoctorConsoleControls.FAST_RETURN_SCALE,
+                FirstDoctorConsoleControls.FAST_RETURN_MOUNT_X_PX
         );
     }
 

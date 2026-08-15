@@ -42,6 +42,15 @@ public class TardisDataModel {
     /** Selected player uuid when {@link #destinationMode} is {@link DestinationMode#PLAYER}. */
     public @Nullable UUID selectedPlayerUuid;
 
+    /**
+     * LIFO exterior landing history for fast return (cap enforced by {@code FastReturnLogic}).
+     * Index 0 is the most recently departed exterior.
+     */
+    public List<TardisExteriorLocation> locationHistory = new ArrayList<>();
+
+    /** Cursor into {@link #locationHistory} when {@link #destinationMode} is {@link DestinationMode#FAST_RETURN}. */
+    public int selectedFastReturnIndex;
+
     /** Current exterior travel phase name ({@link TardisTravelPhase}). */
     public String travelPhase = TardisTravelPhase.IDLE.name();
 
@@ -57,7 +66,7 @@ public class TardisDataModel {
     /** Destination mode snapshotted when travel starts. */
     public @Nullable DestinationMode travelDestinationMode;
 
-    /** Waypoint/exact coords snapshotted at demat (meaningful for {@link DestinationMode#WAYPOINT}). */
+    /** Waypoint/fast-return exact coords snapshotted at demat. */
     public int travelDestinationX;
     public int travelDestinationY;
     public int travelDestinationZ;
@@ -75,6 +84,8 @@ public class TardisDataModel {
         this.travelPhase = TardisTravelPhase.IDLE.name();
         this.destinationMode = DestinationMode.BIOME;
         this.waypoints = new ArrayList<>();
+        this.locationHistory = new ArrayList<>();
+        this.selectedFastReturnIndex = 0;
     }
 
     public TardisTravelPhase getTravelPhase() {
@@ -106,12 +117,23 @@ public class TardisDataModel {
     }
 
     /**
-     * Clears waypoint/player selection and resets mode to {@link DestinationMode#BIOME}.
+     * Ensures {@link #locationHistory} is non-null after Gson load of older saves.
+     */
+    public List<TardisExteriorLocation> getLocationHistory() {
+        if (locationHistory == null) {
+            locationHistory = new ArrayList<>();
+        }
+        return locationHistory;
+    }
+
+    /**
+     * Clears waypoint/player/fast-return selection and resets mode to {@link DestinationMode#BIOME}.
      */
     public void clearNonBiomeDestinationSelection() {
         this.destinationMode = DestinationMode.BIOME;
         this.selectedWaypointId = null;
         this.selectedPlayerUuid = null;
+        this.selectedFastReturnIndex = 0;
         setChanged();
     }
 
@@ -156,6 +178,8 @@ public class TardisDataModel {
                 + ", waypoints=" + (waypoints == null ? 0 : waypoints.size())
                 + ", selectedWaypointId=" + selectedWaypointId
                 + ", selectedPlayerUuid=" + selectedPlayerUuid
+                + ", locationHistory=" + (locationHistory == null ? 0 : locationHistory.size())
+                + ", selectedFastReturnIndex=" + selectedFastReturnIndex
                 + ", travelPhase=" + travelPhase + ", travelPhaseTicks=" + travelPhaseTicks
                 + ", travelDestinationBiome=" + travelDestinationBiome
                 + ", travelDestinationDimension=" + travelDestinationDimension
@@ -180,6 +204,8 @@ public class TardisDataModel {
                     && Objects.equals(this.getWaypoints(), other.getWaypoints())
                     && Objects.equals(this.selectedWaypointId, other.selectedWaypointId)
                     && Objects.equals(this.selectedPlayerUuid, other.selectedPlayerUuid)
+                    && Objects.equals(this.getLocationHistory(), other.getLocationHistory())
+                    && this.selectedFastReturnIndex == other.selectedFastReturnIndex
                     && Objects.equals(this.travelPhase, other.travelPhase)
                     && this.travelPhaseTicks == other.travelPhaseTicks
                     && Objects.equals(this.travelDestinationBiome, other.travelDestinationBiome)

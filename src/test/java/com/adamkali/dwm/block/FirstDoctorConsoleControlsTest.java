@@ -235,6 +235,48 @@ class FirstDoctorConsoleControlsTest {
                 FirstDoctorConsoleControls.Panel6Control.LEVER,
                 FirstDoctorConsoleControls.resolvePanel6LookHit(facing, pos, leverEye, look, 5.0)
         );
+
+        AABB fastReturn = FirstDoctorConsoleControls.fastReturnWorldBox(pos, facing);
+        Vec3 fastReturnEye = new Vec3(fastReturn.getCenter().x, fastReturn.getCenter().y + 1.5, fastReturn.getCenter().z);
+        assertEquals(
+                FirstDoctorConsoleControls.Panel6Control.FAST_RETURN,
+                FirstDoctorConsoleControls.resolvePanel6LookHit(facing, pos, fastReturnEye, look, 5.0)
+        );
+    }
+
+    @Test
+    void fastReturnBox_sitsOnPanel6DeckAwayFromCenter() {
+        AABB box = FirstDoctorConsoleControls.fastReturnBox(Direction.NORTH);
+        assertTrue(box.minY > 0.4, "fast return should sit on panel deck, was minY=" + box.minY);
+        assertTrue(box.maxY < 2.0, "fast return should stay near console top, was maxY=" + box.maxY);
+        assertTrue(
+                FirstDoctorConsoleControls.fastReturnDistanceFromCenter(Direction.NORTH) > 0.45,
+                "fast return should be out on Panel6 deck, not at the time rotor"
+        );
+    }
+
+    @Test
+    void lookRay_hitsFastReturnFromAbove() {
+        Direction facing = Direction.NORTH;
+        BlockPos pos = BlockPos.ZERO;
+        AABB box = FirstDoctorConsoleControls.fastReturnWorldBox(pos, facing);
+        Vec3 center = box.getCenter();
+        Vec3 eye = new Vec3(center.x, center.y + 1.5, center.z);
+        Vec3 look = new Vec3(0, -1, 0);
+        assertTrue(FirstDoctorConsoleControls.isFastReturnLookHit(facing, pos, eye, look, 5.0));
+    }
+
+    @Test
+    void resolvePanel6LookHit_prefersFastReturnOverLeverWhenCloser() {
+        Direction facing = Direction.NORTH;
+        BlockPos pos = BlockPos.ZERO;
+        AABB fastReturn = FirstDoctorConsoleControls.fastReturnWorldBox(pos, facing);
+        Vec3 eye = new Vec3(fastReturn.getCenter().x, fastReturn.getCenter().y + 1.5, fastReturn.getCenter().z);
+        Vec3 look = new Vec3(0, -1, 0);
+        assertEquals(
+                FirstDoctorConsoleControls.Panel6Control.FAST_RETURN,
+                FirstDoctorConsoleControls.resolvePanel6LookHit(facing, pos, eye, look, 5.0)
+        );
     }
 
     @Test
@@ -255,6 +297,13 @@ class FirstDoctorConsoleControlsTest {
         assertEquals(
                 FirstDoctorConsoleControls.LookTarget.CHAMELEON_CIRCUIT,
                 FirstDoctorConsoleControls.resolveLookTarget(facing, pos, chameleonEye, look, 5.0)
+        );
+
+        AABB fastReturn = FirstDoctorConsoleControls.fastReturnWorldBox(pos, facing);
+        Vec3 fastReturnEye = new Vec3(fastReturn.getCenter().x, fastReturn.getCenter().y + 1.5, fastReturn.getCenter().z);
+        assertEquals(
+                FirstDoctorConsoleControls.LookTarget.FAST_RETURN,
+                FirstDoctorConsoleControls.resolveLookTarget(facing, pos, fastReturnEye, look, 5.0)
         );
     }
 

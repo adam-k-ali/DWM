@@ -270,6 +270,10 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.dimension_unavailable", "No dimensions available");
         t.add("dwm.console.chameleon_circuit", "Chameleon circuit");
         t.add("dwm.console.materialisation_lever", "Materialisation lever");
+        t.add("dwm.console.fast_return", "Fast return");
+        t.add("dwm.console.fast_return_selected", "Fast return (%s/%s): %s %s, %s, %s");
+        t.add("dwm.console.fast_return_empty", "No previous location");
+        t.add("dwm.console.fast_return_unavailable", "Fast return unavailable");
         t.add("dwm.console.materialisation_lever_pulled", "Materialisation lever engaged");
         t.add("dwm.console.travel_dematerialising", "Dematerialising...");
         t.add("dwm.console.travel_materialising", "Materialising...");

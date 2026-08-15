@@ -43,15 +43,19 @@ public final class FirstDoctorConsoleControls {
     public static final float PLAYER_LOCATOR_MOUNT_X_PX = 1.25F;
     public static final float PLANET_LOCATOR_MOUNT_X_PX = 3.75F;
 
-    /** Panel6: chameleon left of center; lever stays centered. */
+    /** Panel6: chameleon left of center; lever centered; fast return right of lever. */
     public static final float CHAMELEON_CIRCUIT_MOUNT_X_PX = -4.0F;
     public static final float LEVER_MOUNT_X_PX = CONTROL_MOUNT_X_PX;
+    public static final float FAST_RETURN_MOUNT_X_PX = 4.0F;
 
     /** Uniform scale — the raw 14px dial is oversized for the Panel3 deck. */
     public static final float SELECTOR_SCALE = 0.1125F;
 
     /** Uniform scale for the materialisation lever on Panel6. */
     public static final float LEVER_SCALE = 0.2F;
+
+    /** Uniform scale for the fast-return switch on Panel6 (matches lever). */
+    public static final float FAST_RETURN_SCALE = LEVER_SCALE;
 
     /** Full selector footprint in selector-local pixels (14×2×14) before {@link #SELECTOR_SCALE}. */
     private static final float SEL_MIN_X = -7.0F;
@@ -69,6 +73,14 @@ public final class FirstDoctorConsoleControls {
     private static final float LEV_MAX_Y = 8.2F;
     private static final float LEV_MAX_Z = 9.0F;
 
+    /** Fast-return footprint in switch-local pixels before {@link #FAST_RETURN_SCALE}. */
+    private static final float FR_MIN_X = -3.0F;
+    private static final float FR_MIN_Y = 0.0F;
+    private static final float FR_MIN_Z = -8.0F;
+    private static final float FR_MAX_X = 3.0F;
+    private static final float FR_MAX_Y = 3.6F;
+    private static final float FR_MAX_Z = 8.3F;
+
     private static final float Y_SCALE = 0.8F;
     private static final float PX = 1.0F / 16.0F;
     private static final double REACH = 5.0;
@@ -84,7 +96,8 @@ public final class FirstDoctorConsoleControls {
     /** Panel6 controls resolved by look-ray (prefer closest on overlap). */
     public enum Panel6Control {
         CHAMELEON,
-        LEVER
+        LEVER,
+        FAST_RETURN
     }
 
     /**
@@ -97,7 +110,8 @@ public final class FirstDoctorConsoleControls {
         PLAYER_LOCATOR,
         PLANET_LOCATOR,
         CHAMELEON_CIRCUIT,
-        MATERIALISATION_LEVER
+        MATERIALISATION_LEVER,
+        FAST_RETURN
     }
 
     private FirstDoctorConsoleControls() {
@@ -260,6 +274,29 @@ public final class FirstDoctorConsoleControls {
         return lookHitsBox(materialisationLeverWorldBox(pos, facing), eyePos, lookDir, reach);
     }
 
+    public static AABB fastReturnBox(Direction facing) {
+        return controlBox(facing, PANEL6_YAW_RAD, FAST_RETURN_SCALE, FAST_RETURN_MOUNT_X_PX,
+                FR_MIN_X, FR_MIN_Y, FR_MIN_Z, FR_MAX_X, FR_MAX_Y, FR_MAX_Z);
+    }
+
+    public static AABB fastReturnWorldBox(BlockPos pos, Direction facing) {
+        return fastReturnBox(facing).move(pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    public static boolean isFastReturnLookHit(Direction facing, BlockPos pos, Player player) {
+        return isFastReturnLookHit(facing, pos, player.getEyePosition(), player.getViewVector(1.0F), REACH);
+    }
+
+    public static boolean isFastReturnLookHit(
+            Direction facing,
+            BlockPos pos,
+            Vec3 eyePos,
+            Vec3 lookDir,
+            double reach
+    ) {
+        return lookHitsBox(fastReturnWorldBox(pos, facing), eyePos, lookDir, reach);
+    }
+
     /**
      * When multiple Panel3 dials are along the look ray, returns the closest hit.
      * Ties (coplanar dial tops) break toward the AABB whose center is nearest the eye in XZ.
@@ -297,8 +334,8 @@ public final class FirstDoctorConsoleControls {
     }
 
     /**
-     * When chameleon and lever rays both hit, returns the closer control.
-     * Returns {@code null} when neither is hit.
+     * When Panel6 control rays overlap, returns the closer control.
+     * Returns {@code null} when none are hit.
      */
     public static @Nullable Panel6Control resolvePanel6LookHit(
             Direction facing,
@@ -307,25 +344,23 @@ public final class FirstDoctorConsoleControls {
             Vec3 lookDir,
             double reach
     ) {
-        AABB chameleonBox = chameleonCircuitWorldBox(pos, facing);
-        AABB leverBox = materialisationLeverWorldBox(pos, facing);
-        double chameleonDist = lookHitDistance(chameleonBox, eyePos, lookDir, reach);
-        double leverDist = lookHitDistance(leverBox, eyePos, lookDir, reach);
-        if (chameleonDist < 0.0 && leverDist < 0.0) {
-            return null;
+        Panel6Control best = null;
+        double bestDist = Double.POSITIVE_INFINITY;
+        double bestHoriz = Double.POSITIVE_INFINITY;
+        for (Panel6Control control : Panel6Control.values()) {
+            AABB box = panel6WorldBox(control, pos, facing);
+            double dist = lookHitDistance(box, eyePos, lookDir, reach);
+            if (dist < 0.0) {
+                continue;
+            }
+            double horiz = horizontalDistanceSq(eyePos, box.getCenter());
+            if (dist < bestDist || (dist == bestDist && horiz < bestHoriz)) {
+                bestDist = dist;
+                bestHoriz = horiz;
+                best = control;
+            }
         }
-        if (chameleonDist < 0.0) {
-            return Panel6Control.LEVER;
-        }
-        if (leverDist < 0.0) {
-            return Panel6Control.CHAMELEON;
-        }
-        double chameleonHoriz = horizontalDistanceSq(eyePos, chameleonBox.getCenter());
-        double leverHoriz = horizontalDistanceSq(eyePos, leverBox.getCenter());
-        if (chameleonDist < leverDist || (chameleonDist == leverDist && chameleonHoriz <= leverHoriz)) {
-            return Panel6Control.CHAMELEON;
-        }
-        return Panel6Control.LEVER;
+        return best;
     }
 
     public static @Nullable Panel6Control resolvePanel6LookHit(Direction facing, BlockPos pos, Player player) {
@@ -377,6 +412,7 @@ public final class FirstDoctorConsoleControls {
             case PLANET_LOCATOR -> planetLocatorWorldBox(pos, facing);
             case CHAMELEON_CIRCUIT -> chameleonCircuitWorldBox(pos, facing);
             case MATERIALISATION_LEVER -> materialisationLeverWorldBox(pos, facing);
+            case FAST_RETURN -> fastReturnWorldBox(pos, facing);
             case NONE -> new AABB(0, 0, 0, 0, 0, 0);
         };
     }
@@ -446,6 +482,12 @@ public final class FirstDoctorConsoleControls {
         return Math.hypot(c.x - 0.5, c.z - 0.5);
     }
 
+    /** Horizontal distance from block center to fast-return switch center (for tests / tuning). */
+    public static double fastReturnDistanceFromCenter(Direction facing) {
+        Vec3 c = fastReturnBox(facing).getCenter();
+        return Math.hypot(c.x - 0.5, c.z - 0.5);
+    }
+
     private static AABB selectorBox(Direction facing, float mountXPx) {
         return controlBox(facing, PANEL3_YAW_RAD, SELECTOR_SCALE, mountXPx,
                 SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
@@ -457,6 +499,14 @@ public final class FirstDoctorConsoleControls {
             case WAYPOINT -> waypointSelectorWorldBox(pos, facing);
             case PLAYER -> playerLocatorWorldBox(pos, facing);
             case PLANET -> planetLocatorWorldBox(pos, facing);
+        };
+    }
+
+    private static AABB panel6WorldBox(Panel6Control control, BlockPos pos, Direction facing) {
+        return switch (control) {
+            case CHAMELEON -> chameleonCircuitWorldBox(pos, facing);
+            case LEVER -> materialisationLeverWorldBox(pos, facing);
+            case FAST_RETURN -> fastReturnWorldBox(pos, facing);
         };
     }
 

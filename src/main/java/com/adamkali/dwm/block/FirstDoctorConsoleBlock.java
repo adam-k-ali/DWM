@@ -6,7 +6,9 @@ import com.adamkali.dwm.network.OpenWaypointScreen;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.data.model.TardisExteriorLocation;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
+import com.adamkali.dwm.tardis.logic.FastReturnLogic;
 import com.adamkali.dwm.tardis.logic.PlayerLocatorLogic;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
@@ -164,6 +166,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         return switch (panel6) {
             case LEVER -> handleMaterialisationLever(world, pos, player, serverWorld, tardisId);
             case CHAMELEON -> handleChameleonCircuit(world, pos, player, serverWorld, console, tardisId);
+            case FAST_RETURN -> handleFastReturn(world, pos, player, tardisId);
         };
     }
 
@@ -181,6 +184,9 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         }
         if (panel6 == FirstDoctorConsoleControls.Panel6Control.CHAMELEON) {
             return "dwm.console.chameleon_unavailable";
+        }
+        if (panel6 == FirstDoctorConsoleControls.Panel6Control.FAST_RETURN) {
+            return "dwm.console.fast_return_unavailable";
         }
         return "dwm.console.travel_unavailable";
     }
@@ -333,6 +339,54 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         player.sendOverlayMessage(Component.translatable("dwm.console.chameleon_selected", variantName));
         playClick(world, pos);
         return InteractionResult.SUCCESS;
+    }
+
+    private static InteractionResult handleFastReturn(
+            Level world,
+            BlockPos pos,
+            Player player,
+            UUID tardisId
+    ) {
+        if (TardisTravelService.isTraveling(tardisId)) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.travel_in_flight"));
+            return InteractionResult.CONSUME;
+        }
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.fast_return_unavailable"));
+            return InteractionResult.CONSUME;
+        }
+        Optional<TardisExteriorLocation> selected = FastReturnLogic.cycle(model);
+        if (selected.isEmpty()) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.fast_return_empty"));
+            return InteractionResult.CONSUME;
+        }
+        TardisExteriorLocation location = selected.get();
+        int total = model.getLocationHistory().size();
+        int indexDisplay = model.selectedFastReturnIndex + 1;
+        Component dimensionName = dimensionDisplayName(location.dimension);
+        player.sendOverlayMessage(Component.translatable(
+                "dwm.console.fast_return_selected",
+                indexDisplay,
+                total,
+                dimensionName,
+                location.x,
+                location.y,
+                location.z
+        ));
+        playClick(world, pos);
+        return InteractionResult.SUCCESS;
+    }
+
+    private static Component dimensionDisplayName(@Nullable String dimensionId) {
+        if (dimensionId == null || dimensionId.isBlank()) {
+            return Component.literal("?");
+        }
+        Identifier id = Identifier.tryParse(dimensionId);
+        if (id == null) {
+            return Component.literal(dimensionId);
+        }
+        return Component.translatable(id.toLanguageKey("dimension"));
     }
 
     private static void playClick(Level world, BlockPos pos) {

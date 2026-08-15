@@ -102,4 +102,23 @@ class TardisDataModelExteriorTest {
         assertEquals(9, loaded.travelDestinationX);
         assertEquals(model, loaded);
     }
+
+    @Test
+    void locationHistory_SerializesThroughGson() {
+        TardisDataModel model = new TardisDataModel();
+        model.getLocationHistory().add(new TardisExteriorLocation("minecraft:overworld", 10, 64, -3, 4));
+        model.getLocationHistory().add(new TardisExteriorLocation("minecraft:the_nether", 0, 70, 0, 2));
+        model.selectedFastReturnIndex = 1;
+        model.setDestinationMode(DestinationMode.FAST_RETURN);
+
+        Gson gson = new Gson();
+        TardisDataModel loaded = gson.fromJson(gson.toJson(model), TardisDataModel.class);
+
+        assertEquals(2, loaded.getLocationHistory().size());
+        assertEquals("minecraft:overworld", loaded.getLocationHistory().getFirst().dimension);
+        assertEquals(10, loaded.getLocationHistory().getFirst().x);
+        assertEquals(1, loaded.selectedFastReturnIndex);
+        assertEquals(DestinationMode.FAST_RETURN, loaded.getDestinationMode());
+        assertEquals(model, loaded);
+    }
 }

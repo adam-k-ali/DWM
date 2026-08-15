@@ -18,5 +18,6 @@ class DestinationModeTest {
         assertEquals(DestinationMode.BIOME, DestinationMode.fromString("biome"));
         assertEquals(DestinationMode.WAYPOINT, DestinationMode.fromString("WAYPOINT"));
         assertEquals(DestinationMode.PLAYER, DestinationMode.fromString("Player"));
+        assertEquals(DestinationMode.FAST_RETURN, DestinationMode.fromString("fast_return"));
     }
 }

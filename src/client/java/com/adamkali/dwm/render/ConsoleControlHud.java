@@ -71,6 +71,7 @@ public final class ConsoleControlHud {
             case PLANET_LOCATOR -> Component.translatable("dwm.console.planet_locator");
             case CHAMELEON_CIRCUIT -> Component.translatable("dwm.console.chameleon_circuit");
             case MATERIALISATION_LEVER -> Component.translatable("dwm.console.materialisation_lever");
+            case FAST_RETURN -> Component.translatable("dwm.console.fast_return");
             case NONE -> null;
         };
     }
