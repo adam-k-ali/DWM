@@ -2,6 +2,7 @@ package com.adamkali.dwm.tardis.logic;
 
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
+import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import net.minecraft.core.BlockPos;
@@ -35,7 +36,8 @@ public final class FirstDoctorConsoleSync {
         if (interior == null) {
             return;
         }
-        BlockPos consolePos = TardisPlotAllocator.plotOrigin(tardisId).offset(5, 1, 5);
+        BlockPos consolePos = TardisPlotAllocator.plotOrigin(tardisId)
+                .offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE);
         if (interior.getBlockEntity(consolePos) instanceof FirstDoctorConsoleBlockEntity console) {
             console.setSyncedVariant(variant);
         }

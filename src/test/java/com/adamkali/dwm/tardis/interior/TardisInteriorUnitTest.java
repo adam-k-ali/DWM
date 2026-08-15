@@ -92,15 +92,22 @@ class TardisInteriorUnitTest {
         assertEquals(FirstDoctorConsoleRoomLayout.SIZE_Y, FirstDoctorConsoleRoomPlacer.SIZE_Y);
         assertEquals(FirstDoctorConsoleRoomLayout.SIZE_Z, FirstDoctorConsoleRoomPlacer.SIZE_Z);
         assertEquals(FirstDoctorConsoleRoomLayout.LOCAL_ENTRANCE, FirstDoctorConsoleRoomPlacer.LOCAL_ENTRANCE);
-        assertEquals(3, FirstDoctorConsoleRoomLayout.LAYOUT_VERSION);
+        assertEquals(11, FirstDoctorConsoleRoomLayout.SIZE_X);
+        assertEquals(7, FirstDoctorConsoleRoomLayout.SIZE_Y);
+        assertEquals(17, FirstDoctorConsoleRoomLayout.SIZE_Z);
+        assertEquals(new BlockPos(5, 1, 2), FirstDoctorConsoleRoomLayout.LOCAL_ENTRANCE);
+        assertEquals(new BlockPos(4, 1, 1), FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN);
+        assertEquals(new BlockPos(5, 1, 7), FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE);
+        assertEquals(4, FirstDoctorConsoleRoomLayout.LAYOUT_VERSION);
+        assertTrue(FirstDoctorConsoleRoomLayout.SIZE_Z < TardisPlotAllocator.PLOT_SPACING);
     }
 
     @Test
     void consoleRoomLayout_PlacesFirstDoctorConsoleWithoutStackedRoundel() {
         Map<BlockPos, BlockState> placements = FirstDoctorConsoleRoomLayout.placements();
-        BlockPos consolePos = new BlockPos(5, 1, 5);
+        BlockPos consolePos = FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE;
         assertEquals(DWMBlocks.FIRST_DOCTOR_CONSOLE, placements.get(consolePos).getBlock());
-        assertTrue(placements.get(new BlockPos(5, 2, 5)).isAir(), "no stacked roundel above console");
+        assertTrue(placements.get(consolePos.above()).isAir(), "no stacked roundel above console");
 
         Map<BlockPos, BlockState> boti = FirstDoctorConsoleRoomLayout.botiVisiblePlacements();
         assertEquals(DWMBlocks.FIRST_DOCTOR_CONSOLE, boti.get(consolePos).getBlock(),

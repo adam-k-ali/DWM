@@ -45,8 +45,8 @@ class BotiInteriorMeshCacheTest {
         Map<BlockPos, BlockState> visible = BotiInteriorMeshCache.getVisibleBlocks(id);
         assertEquals(FirstDoctorConsoleRoomLayout.botiVisiblePlacements(), visible);
         assertFalse(BotiInteriorMeshCache.hasSnapshot(id));
-        assertTrue(visible.containsKey(new BlockPos(5, 1, 5)));
-        assertEquals(DWMBlocks.FIRST_DOCTOR_CONSOLE, visible.get(new BlockPos(5, 1, 5)).getBlock());
+        assertTrue(visible.containsKey(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE));
+        assertEquals(DWMBlocks.FIRST_DOCTOR_CONSOLE, visible.get(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE).getBlock());
     }
 
     @Test
@@ -56,7 +56,7 @@ class BotiInteriorMeshCacheTest {
         assertEquals(1, entities.size());
         BlockEntity be = entities.getFirst();
         assertInstanceOf(FirstDoctorConsoleBlockEntity.class, be);
-        assertEquals(new BlockPos(5, 1, 5), be.getBlockPos());
+        assertEquals(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE, be.getBlockPos());
         assertFalse(BotiInteriorMeshCache.hasSnapshot(id));
     }
 

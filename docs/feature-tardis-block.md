@@ -46,7 +46,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 
 ## BOTI Notes
 - Visual illusion: does not stream the live `dwm:tardis` dimension to the exterior client.
-- When the interior has been generated, the preview shows a synced portal stream (meta + chunk columns + live entities) of the 11×7×11 console-room footprint. Until then (or if no chunks yet), it falls back to `FirstDoctorConsoleRoomLayout` (blocks only).
+- When the interior has been generated, the preview shows a synced portal stream (meta + chunk columns + live entities) of the 11×7×17 console-room footprint. Until then (or if no chunks yet), it falls back to `FirstDoctorConsoleRoomLayout` (blocks only).
 - Shared portal stream format (with SOTO): shell metadata + atmosphere + sparse chunks + entity spawn/update/remove, keyed by `PortalStreamKind.BOTI`. The client reconstructs synthetic BEs/entities and best-effort renders via `BlockEntityRenderDispatcher` / `EntityRenderDispatcher` (vanilla + mods). Entity poses are client-interpolated between sync samples. Players use a dedicated `OtherClientPlayerEntity` path because `EntityType.PLAYER` is not saveable. Interior doors remain excluded from BOTI (no dedicated interior-door BER in the exterior preview yet).
 - Uses the shared deferred portal FBO pipeline (`render.portal`) with a hitch-fixed look-in camera at the interior door plane; composite UV crop uses each chameleon's `PortalAperture`. No stencil framebuffer required.
 - May not work with Fabulous graphics / order-independent transparency; disable via `enableDoorPortals` if needed.
@@ -57,13 +57,12 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Stream keyed by `PortalStreamKind.SOTO`; meta revision and chunk/entity lifecycle match BOTI's wire format.
 
 ## Known Constraints
-- Interior visuals use existing roundel/wall blocks; console props are simplified.
+- Interior visuals use the shipped `first_doctor_console_room` structure (11×7×17) with decor props; console and interior-door bank are linked to the exterior via `tardisId` on placement.
 - Door open/closed for entry is server-authoritative; swing animation still updates locally on both sides.
 - Shared exterior BOTI door aperture table per chameleon variant (`PortalAperture`); interior SOTO uses one classic 3×2 opening aperture.
 - Shared single full-window portal FBO: last END_MAIN writer wins when multiple door portals render in one frame (no FBO pooling yet).
 - Exterior SOTO footprint is axis-aligned (not rotated with exterior facing). Exit teleport and SOTO look-out follow the chameleon shell door facing (`TardisExteriorFacing`), which is opposite the raw `FACING_ROTATION` skull/banner south=0 convention because of shell BER transforms.
 
 ## Future Opportunities
-- Richer First Doctor console props.
 - Per-chameleon BOTI / SOTO aperture meshes.
 - Ownership and multi-room corridors.

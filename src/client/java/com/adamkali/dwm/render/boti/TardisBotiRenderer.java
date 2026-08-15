@@ -24,7 +24,8 @@ public final class TardisBotiRenderer {
     public static final double INTERIOR_DOOR_CENTER_X = 5.5;
     /** Door blocks at y=1..2 span [1, 3); geometric center. */
     public static final double INTERIOR_DOOR_CENTER_Y = 2.0;
-    public static final double INTERIOR_DOOR_PLANE_Z = 0.0;
+    /** Door bank sits on local z=1 in the shipped console-room template. */
+    public static final double INTERIOR_DOOR_PLANE_Z = 1.0;
 
     private TardisBotiRenderer() {
     }
