@@ -43,7 +43,7 @@ class TardisLogicDestinationModeTest {
             assertTrue(next.isPresent());
             assertEquals(values[0], next.get());
             assertEquals(values[0], model.variant);
-            sync.verify(() -> FirstDoctorConsoleSync.syncVariant(null, tardisId, values[0]));
+            sync.verify(() -> FirstDoctorConsoleSync.syncFromModel(null, tardisId));
         }
     }
 

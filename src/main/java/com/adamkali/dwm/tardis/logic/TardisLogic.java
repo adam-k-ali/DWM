@@ -87,7 +87,7 @@ public class TardisLogic {
         tardis.variant = variant;
         tardis.setChanged();
         PortalStreamSyncService.setMetaChanged(tardisId);
-        FirstDoctorConsoleSync.syncVariant(server, tardisId, variant);
+        FirstDoctorConsoleSync.syncFromModel(server, tardisId);
     }
 
     /**

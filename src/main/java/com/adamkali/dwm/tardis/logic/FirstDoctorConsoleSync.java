@@ -3,7 +3,6 @@ package com.adamkali.dwm.tardis.logic;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
-import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
@@ -20,84 +19,35 @@ import java.util.UUID;
 
 /**
  * Syncs console-facing state onto the First Doctor console block entity for client rendering.
- * Other agents may call {@link #syncVariant} / {@link #syncStabilisers} after model changes
- * initiated outside console click handlers.
+ * Call {@link #syncFromModel} after model changes initiated outside the console tick refresh.
  */
 public final class FirstDoctorConsoleSync {
     private FirstDoctorConsoleSync() {
     }
 
     /**
-     * Writes {@code variant} onto the interior console BE for {@code tardisId} and pushes a client update.
+     * Rebuilds the console display snapshot from {@code tardisId}'s model (keeping the current
+     * environment reading when present) and pushes cloak onto the linked exterior BE.
      */
-    public static void syncVariant(
+    public static void syncFromModel(
             @Nullable MinecraftServer server,
-            @Nullable UUID tardisId,
-            @Nullable TardisChameleonVariant variant
+            @Nullable UUID tardisId
     ) {
-        FirstDoctorConsoleBlockEntity console = findConsole(server, tardisId);
-        if (console != null && variant != null) {
-            console.setSyncedVariant(variant);
+        if (server == null || tardisId == null) {
+            return;
         }
-    }
-
-    /**
-     * Writes cloak state onto the interior console and linked exterior BEs.
-     */
-    public static void syncCloak(
-            @Nullable MinecraftServer server,
-            @Nullable UUID tardisId,
-            boolean cloaked
-    ) {
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            return;
+        }
         FirstDoctorConsoleBlockEntity console = findConsole(server, tardisId);
         if (console != null) {
-            console.setSyncedCloaked(cloaked);
+            ExteriorEnvironmentReadout.Reading reading = console.syncedDisplay().reading();
+            console.setSyncedDisplay(ConsoleDisplayState.from(model, reading));
         }
         TardisBlockEntity exterior = findExterior(server, tardisId);
         if (exterior != null) {
-            exterior.setSyncedCloaked(cloaked);
-        }
-    }
-
-    /**
-     * Writes door-lock state onto the interior console BE.
-     */
-    public static void syncDoorsLocked(
-            @Nullable MinecraftServer server,
-            @Nullable UUID tardisId,
-            boolean locked
-    ) {
-        FirstDoctorConsoleBlockEntity console = findConsole(server, tardisId);
-        if (console != null) {
-            console.setSyncedDoorsLocked(locked);
-        }
-    }
-
-    /**
-     * Writes coordinate-lock flags onto the interior console BE.
-     */
-    public static void syncCoordinateLocks(
-            @Nullable MinecraftServer server,
-            @Nullable UUID tardisId,
-            @Nullable TardisDataModel model
-    ) {
-        FirstDoctorConsoleBlockEntity console = findConsole(server, tardisId);
-        if (console != null && model != null) {
-            console.setSyncedCoordinateLocks(model.lockX, model.lockY, model.lockZ);
-        }
-    }
-
-    /**
-     * Writes stabilisers enabled state onto the interior console BE and pushes a client update.
-     */
-    public static void syncStabilisers(
-            @Nullable MinecraftServer server,
-            @Nullable UUID tardisId,
-            boolean enabled
-    ) {
-        FirstDoctorConsoleBlockEntity console = findConsole(server, tardisId);
-        if (console != null) {
-            console.setSyncedStabilisersEnabled(enabled);
+            exterior.setSyncedCloaked(model.cloaked);
         }
     }
 
