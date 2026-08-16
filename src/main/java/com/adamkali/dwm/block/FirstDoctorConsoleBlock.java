@@ -20,6 +20,7 @@ import com.adamkali.dwm.tardis.logic.StabiliserLogic;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.adamkali.dwm.tardis.logic.TelepathicCircuitLogic;
+import com.adamkali.dwm.text.DimensionNames;
 import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import org.jetbrains.annotations.Nullable;
@@ -319,7 +320,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             return InteractionResult.CONSUME;
         }
 
-        Component dimensionName = Component.translatable(selected.get().toLanguageKey("dimension"));
+        Component dimensionName = DimensionNames.of(selected.get());
         player.sendOverlayMessage(Component.translatable("dwm.console.dimension_selected", dimensionName));
         playClick(world, pos);
         return InteractionResult.SUCCESS;
@@ -553,11 +554,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         if (dimensionId == null || dimensionId.isBlank()) {
             return Component.literal("?");
         }
-        Identifier id = Identifier.tryParse(dimensionId);
-        if (id == null) {
-            return Component.literal(dimensionId);
-        }
-        return Component.translatable(id.toLanguageKey("dimension"));
+        return DimensionNames.of(dimensionId);
     }
 
     private static void playClick(Level world, BlockPos pos) {
