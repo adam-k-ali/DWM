@@ -26,6 +26,9 @@ public class FirstDoctorConsoleModel extends EntityModel<TardisRenderState> {
     /** Radians per tick for one full up/down cycle (~3 seconds at 20 TPS). */
     public static final float ROTOR_BOB_SPEED = (float) (Math.PI / 30.0);
 
+    /** Speed multiplier while traveling with stabilisers off. Amplitude is unchanged. */
+    public static final float ROTOR_BOB_UNSTABILISED_SPEED_FACTOR = 1.5f;
+
     private final ModelPart timeRotor;
 
     public FirstDoctorConsoleModel(ModelPart root) {
@@ -42,11 +45,24 @@ public class FirstDoctorConsoleModel extends EntityModel<TardisRenderState> {
      * @param active    whether the TARDIS is traveling
      */
     public static float rotorBobOffset(float timeTicks, boolean active) {
+        return rotorBobOffset(timeTicks, active, true);
+    }
+
+    /**
+     * Like {@link #rotorBobOffset(float, boolean)} with optional unstabilised speed boost.
+     * Amplitude stays {@link #ROTOR_BOB_AMPLITUDE}; only angular speed increases when
+     * {@code stabilisersEnabled} is false.
+     */
+    public static float rotorBobOffset(float timeTicks, boolean active, boolean stabilisersEnabled) {
         if (!active) {
             return 0.0f;
         }
+        float speed = ROTOR_BOB_SPEED;
+        if (!stabilisersEnabled) {
+            speed *= ROTOR_BOB_UNSTABILISED_SPEED_FACTOR;
+        }
         // cos: 1 → -1 → 1 maps to offset 0 → -amplitude → 0
-        float downAmount = (1.0f - (float) Math.cos(timeTicks * ROTOR_BOB_SPEED)) * 0.5f;
+        float downAmount = (1.0f - (float) Math.cos(timeTicks * speed)) * 0.5f;
         return -downAmount * ROTOR_BOB_AMPLITUDE;
     }
 

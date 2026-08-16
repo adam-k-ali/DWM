@@ -54,6 +54,36 @@ class FirstDoctorConsoleModelTest {
     }
 
     @Test
+    void rotorBobOffset_unstabilisedKeepsAmplitudeButFasterPeriod() {
+        float troughTime = (float) (Math.PI / FirstDoctorConsoleModel.ROTOR_BOB_SPEED);
+        float troughStable = FirstDoctorConsoleModel.rotorBobOffset(troughTime, true, true);
+        float troughUnstable = FirstDoctorConsoleModel.rotorBobOffset(
+                troughTime / FirstDoctorConsoleModel.ROTOR_BOB_UNSTABILISED_SPEED_FACTOR,
+                true,
+                false
+        );
+        assertEquals(-FirstDoctorConsoleModel.ROTOR_BOB_AMPLITUDE, troughStable, EPSILON);
+        assertEquals(-FirstDoctorConsoleModel.ROTOR_BOB_AMPLITUDE, troughUnstable, EPSILON);
+
+        float midStable = FirstDoctorConsoleModel.rotorBobOffset(
+                (float) (Math.PI / (2.0 * FirstDoctorConsoleModel.ROTOR_BOB_SPEED)),
+                true,
+                true
+        );
+        float midUnstableSameTime = FirstDoctorConsoleModel.rotorBobOffset(
+                (float) (Math.PI / (2.0 * FirstDoctorConsoleModel.ROTOR_BOB_SPEED)),
+                true,
+                false
+        );
+        assertEquals(-FirstDoctorConsoleModel.ROTOR_BOB_AMPLITUDE * 0.5f, midStable, EPSILON);
+        // Same wall-clock tick with faster angular speed → deeper into the cycle than half.
+        assertTrue(
+                midUnstableSameTime < midStable - EPSILON,
+                "unstabilised bob should advance further at the same tick"
+        );
+    }
+
+    @Test
     void setAngles_movesTimeRotorPivotY() {
         ModelPart root = FirstDoctorConsoleModel.getTexturedModelData().bakeRoot();
         FirstDoctorConsoleModel model = new FirstDoctorConsoleModel(root);

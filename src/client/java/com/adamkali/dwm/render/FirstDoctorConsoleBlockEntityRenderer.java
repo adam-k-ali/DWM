@@ -16,6 +16,7 @@ import com.adamkali.dwm.model.tileentity.PlayerLocatorModel;
 import com.adamkali.dwm.model.tileentity.SecondDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.SeventhDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.SixthDoctorTardisModel;
+import com.adamkali.dwm.model.tileentity.StabilisersModel;
 import com.adamkali.dwm.model.tileentity.TTCapsuleModel;
 import com.adamkali.dwm.model.tileentity.TardisModel;
 import com.adamkali.dwm.model.tileentity.ThirdDoctorTardisModel;
@@ -36,6 +37,7 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.level.Level;
@@ -65,6 +67,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
     private final ChameleonCircuitModel chameleonCircuitModel;
     private final MaterialisationLeverModel materialisationLeverModel;
     private final FastReturnModel fastReturnModel;
+    private final StabilisersModel stabilisersModel;
     private final HashMap<TardisChameleonVariant, TardisModel> shellModelCache = new HashMap<>();
     private final HashMap<TardisChameleonVariant, Identifier> shellTextureCache = new HashMap<>();
 
@@ -85,6 +88,8 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 context.bakeLayer(MaterialisationLeverModel.LAYER_LOCATION));
         this.fastReturnModel = new FastReturnModel(
                 context.bakeLayer(FastReturnModel.LAYER_LOCATION));
+        this.stabilisersModel = new StabilisersModel(
+                context.bakeLayer(StabilisersModel.LAYER_LOCATION));
 
         cacheShell(TardisChameleonVariant.TT_CAPSULE,
                 new TTCapsuleModel(context.bakeLayer(TTCapsuleModel.LAYER_LOCATION)),
@@ -138,10 +143,38 @@ public class FirstDoctorConsoleBlockEntityRenderer
         TardisTravelPhase phase = TardisLogic.getTravelPhase(entity.getTardisId());
         Level world = entity.getLevel();
         float timeTicks = world == null ? partialTicks : world.getGameTime() + partialTicks;
-        state.rotorBobOffset = FirstDoctorConsoleModel.rotorBobOffset(timeTicks, phase.isTraveling());
+        boolean stabilisersEnabled = entity.isSyncedStabilisersEnabled();
+        state.stabilisersEnabled = stabilisersEnabled;
+        state.traveling = phase.isTraveling();
+        state.rotorBobOffset = FirstDoctorConsoleModel.rotorBobOffset(
+                timeTicks, phase.isTraveling(), stabilisersEnabled);
         state.variant = entity.getSyncedVariant();
         state.hologramYawDegrees = hologramYawDegrees(timeTicks);
         state.hologramBobOffset = hologramBobOffset(timeTicks);
+
+        if (world != null && world.isClientSide() && state.traveling && !stabilisersEnabled) {
+            spawnUnstabilisedRotorSmoke(world, entity.getBlockPos());
+        }
+    }
+
+    /** Light smoke around the time rotor while traveling with stabilisers off. */
+    private static void spawnUnstabilisedRotorSmoke(Level world, net.minecraft.core.BlockPos pos) {
+        var random = world.getRandom();
+        if (random.nextFloat() > 0.35F) {
+            return;
+        }
+        double x = pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.35;
+        double y = pos.getY() + 1.35 + random.nextDouble() * 0.45;
+        double z = pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.35;
+        world.addParticle(
+                random.nextBoolean() ? ParticleTypes.SMOKE : ParticleTypes.LARGE_SMOKE,
+                x,
+                y,
+                z,
+                0.0,
+                0.02,
+                0.0
+        );
     }
 
     /** Continuous turntable yaw in degrees from game time. */
@@ -163,6 +196,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
     ) {
         TardisRenderState animState = new TardisRenderState();
         animState.setRotorBobOffset(state.rotorBobOffset);
+        animState.setStabilisersEnabled(state.stabilisersEnabled);
 
         poseStack.pushPose();
         applyTransforms(poseStack, state.facing);
@@ -225,6 +259,19 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 animState,
                 poseStack,
                 RenderTypes.entityCutout(FastReturnModel.TEXTURE_LOCATION),
+                state.lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                0,
+                state.breakProgress);
+        poseStack.popPose();
+
+        poseStack.pushPose();
+        applyPanel6StabilisersTransforms(poseStack);
+        submitNodeCollector.submitModel(
+                stabilisersModel,
+                animState,
+                poseStack,
+                RenderTypes.entityCutout(StabilisersModel.TEXTURE_LOCATION),
                 state.lightCoords,
                 OverlayTexture.NO_OVERLAY,
                 0,
@@ -381,11 +428,40 @@ public class FirstDoctorConsoleBlockEntityRenderer
         );
     }
 
+    static void applyPanel6StabilisersTransforms(PoseStack matrices) {
+        applyPanelControlTransforms(
+                matrices,
+                FirstDoctorConsoleControls.PANEL6_YAW_RAD,
+                FirstDoctorConsoleControls.STABILISERS_SCALE,
+                FirstDoctorConsoleControls.STABILISERS_MOUNT_X_PX,
+                FirstDoctorConsoleControls.STABILISERS_MOUNT_Y_PX,
+                FirstDoctorConsoleControls.STABILISERS_MOUNT_Z_PX
+        );
+    }
+
     private static void applyPanelControlTransforms(
             PoseStack matrices,
             float panelYawRad,
             float scale,
             float mountXPx
+    ) {
+        applyPanelControlTransforms(
+                matrices,
+                panelYawRad,
+                scale,
+                mountXPx,
+                FirstDoctorConsoleControls.CONTROL_MOUNT_Y_PX,
+                FirstDoctorConsoleControls.CONTROL_MOUNT_Z_PX
+        );
+    }
+
+    private static void applyPanelControlTransforms(
+            PoseStack matrices,
+            float panelYawRad,
+            float scale,
+            float mountXPx,
+            float mountYPx,
+            float mountZPx
     ) {
         matrices.translate(0.0, FirstDoctorConsoleControls.PANEL_PIVOT_Y_PX * PX, 0.0);
         matrices.mulPose(Axis.YP.rotation(panelYawRad));
@@ -399,8 +475,8 @@ public class FirstDoctorConsoleBlockEntityRenderer
 
         matrices.translate(
                 mountXPx * PX,
-                FirstDoctorConsoleControls.CONTROL_MOUNT_Y_PX * PX,
-                FirstDoctorConsoleControls.CONTROL_MOUNT_Z_PX * PX
+                mountYPx * PX,
+                mountZPx * PX
         );
         matrices.scale(scale, scale, scale);
     }

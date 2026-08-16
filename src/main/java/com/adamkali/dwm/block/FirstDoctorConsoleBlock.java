@@ -9,7 +9,9 @@ import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisExteriorLocation;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.logic.FastReturnLogic;
+import com.adamkali.dwm.tardis.logic.FirstDoctorConsoleSync;
 import com.adamkali.dwm.tardis.logic.PlayerLocatorLogic;
+import com.adamkali.dwm.tardis.logic.StabiliserLogic;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.mojang.serialization.MapCodec;
@@ -167,6 +169,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             case LEVER -> handleMaterialisationLever(world, pos, player, serverWorld, tardisId);
             case CHAMELEON -> handleChameleonCircuit(world, pos, player, serverWorld, console, tardisId);
             case FAST_RETURN -> handleFastReturn(world, pos, player, tardisId);
+            case STABILISERS -> handleStabilisers(world, pos, player, serverWorld, console, tardisId);
         };
     }
 
@@ -187,6 +190,9 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         }
         if (panel6 == FirstDoctorConsoleControls.Panel6Control.FAST_RETURN) {
             return "dwm.console.fast_return_unavailable";
+        }
+        if (panel6 == FirstDoctorConsoleControls.Panel6Control.STABILISERS) {
+            return "dwm.console.stabilisers_unavailable";
         }
         return "dwm.console.travel_unavailable";
     }
@@ -213,7 +219,12 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         if (phase.awaitsMaterialise()) {
             result = TardisTravelService.requestMaterialise(tardisId, serverWorld.getServer());
             if (result == InteractionResult.FAIL) {
-                player.sendOverlayMessage(Component.translatable("dwm.console.travel_player_offline"));
+                String reason = TardisTravelService.peekLastMaterialiseFailureReason();
+                if (TardisTravelService.FAIL_INVALID_LANDING.equals(reason)) {
+                    player.sendOverlayMessage(Component.translatable("dwm.console.travel_invalid_landing"));
+                } else {
+                    player.sendOverlayMessage(Component.translatable("dwm.console.travel_player_offline"));
+                }
                 return InteractionResult.CONSUME;
             }
             successKey = "dwm.console.travel_materialising";
@@ -374,6 +385,28 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
                 location.y,
                 location.z
         ));
+        playClick(world, pos);
+        return InteractionResult.SUCCESS;
+    }
+
+    private static InteractionResult handleStabilisers(
+            Level world,
+            BlockPos pos,
+            Player player,
+            ServerLevel serverWorld,
+            FirstDoctorConsoleBlockEntity console,
+            UUID tardisId
+    ) {
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.stabilisers_unavailable"));
+            return InteractionResult.CONSUME;
+        }
+        boolean enabled = StabiliserLogic.toggle(model);
+        console.setSyncedStabilisersEnabled(enabled);
+        FirstDoctorConsoleSync.syncStabilisers(serverWorld.getServer(), tardisId, enabled);
+        player.sendOverlayMessage(Component.translatable(
+                enabled ? "dwm.console.stabilisers_on" : "dwm.console.stabilisers_off"));
         playClick(world, pos);
         return InteractionResult.SUCCESS;
     }

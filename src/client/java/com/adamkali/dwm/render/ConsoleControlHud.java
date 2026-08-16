@@ -4,6 +4,7 @@ import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.FirstDoctorConsoleBlock;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls.LookTarget;
+import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.minecraft.client.DeltaTracker;
@@ -14,6 +15,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -50,7 +52,10 @@ public final class ConsoleControlHud {
 
         Direction facing = state.getValueOrElse(FirstDoctorConsoleBlock.FACING, Direction.NORTH);
         LookTarget target = FirstDoctorConsoleControls.resolveLookTarget(facing, pos, client.player);
-        Component label = labelFor(target);
+        BlockEntity be = client.level.getBlockEntity(pos);
+        boolean stabilisersOn = !(be instanceof FirstDoctorConsoleBlockEntity console)
+                || console.isSyncedStabilisersEnabled();
+        Component label = labelFor(target, stabilisersOn);
         if (label == null) {
             return;
         }
@@ -63,7 +68,7 @@ public final class ConsoleControlHud {
         graphics.text(client.font, label, x, y, color);
     }
 
-    private static Component labelFor(LookTarget target) {
+    private static Component labelFor(LookTarget target, boolean stabilisersOn) {
         return switch (target) {
             case BIOME_SELECTOR -> Component.translatable("dwm.console.biome_selector");
             case WAYPOINT_SELECTOR -> Component.translatable("dwm.console.waypoint_selector");
@@ -72,6 +77,8 @@ public final class ConsoleControlHud {
             case CHAMELEON_CIRCUIT -> Component.translatable("dwm.console.chameleon_circuit");
             case MATERIALISATION_LEVER -> Component.translatable("dwm.console.materialisation_lever");
             case FAST_RETURN -> Component.translatable("dwm.console.fast_return");
+            case STABILISERS -> Component.translatable(
+                    stabilisersOn ? "dwm.console.stabilisers_on" : "dwm.console.stabilisers_off");
             case NONE -> null;
         };
     }

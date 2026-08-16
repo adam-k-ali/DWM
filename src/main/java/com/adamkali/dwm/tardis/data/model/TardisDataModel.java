@@ -51,6 +51,13 @@ public class TardisDataModel {
     /** Cursor into {@link #locationHistory} when {@link #destinationMode} is {@link DestinationMode#FAST_RETURN}. */
     public int selectedFastReturnIndex;
 
+    /**
+     * When true (default), materialise uses the resolved landing exactly.
+     * When false, landing scatters around the resolved destination.
+     * Boxed so Gson loads of older saves (missing field) stay default-on via null.
+     */
+    public Boolean stabilisersEnabled = Boolean.TRUE;
+
     /** Current exterior travel phase name ({@link TardisTravelPhase}). */
     public String travelPhase = TardisTravelPhase.IDLE.name();
 
@@ -86,6 +93,7 @@ public class TardisDataModel {
         this.waypoints = new ArrayList<>();
         this.locationHistory = new ArrayList<>();
         this.selectedFastReturnIndex = 0;
+        this.stabilisersEnabled = Boolean.TRUE;
     }
 
     public TardisTravelPhase getTravelPhase() {
@@ -180,6 +188,7 @@ public class TardisDataModel {
                 + ", selectedPlayerUuid=" + selectedPlayerUuid
                 + ", locationHistory=" + (locationHistory == null ? 0 : locationHistory.size())
                 + ", selectedFastReturnIndex=" + selectedFastReturnIndex
+                + ", stabilisersEnabled=" + stabilisersEnabled
                 + ", travelPhase=" + travelPhase + ", travelPhaseTicks=" + travelPhaseTicks
                 + ", travelDestinationBiome=" + travelDestinationBiome
                 + ", travelDestinationDimension=" + travelDestinationDimension
@@ -206,6 +215,7 @@ public class TardisDataModel {
                     && Objects.equals(this.selectedPlayerUuid, other.selectedPlayerUuid)
                     && Objects.equals(this.getLocationHistory(), other.getLocationHistory())
                     && this.selectedFastReturnIndex == other.selectedFastReturnIndex
+                    && Objects.equals(this.stabilisersEnabled, other.stabilisersEnabled)
                     && Objects.equals(this.travelPhase, other.travelPhase)
                     && this.travelPhaseTicks == other.travelPhaseTicks
                     && Objects.equals(this.travelDestinationBiome, other.travelDestinationBiome)

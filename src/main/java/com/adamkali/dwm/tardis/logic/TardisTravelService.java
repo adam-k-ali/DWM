@@ -267,6 +267,19 @@ public final class TardisTravelService {
             landing = resolved.orElse(oldPos);
         }
 
+        Optional<BlockPos> scattered = StabiliserLogic.applyScatter(
+                destinationWorld,
+                landing,
+                doorFacing,
+                model,
+                destinationWorld.getRandom()
+        );
+        if (scattered.isEmpty()) {
+            lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
+            return InteractionResult.FAIL;
+        }
+        landing = scattered.get();
+
         FastReturnLogic.pushDeparted(model);
         placeShell(destinationWorld, landing, snapshot, facingRotation);
         model.setExteriorLocation(

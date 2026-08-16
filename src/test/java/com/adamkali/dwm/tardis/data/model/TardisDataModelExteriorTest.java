@@ -1,7 +1,9 @@
 package com.adamkali.dwm.tardis.data.model;
 
-import com.google.gson.Gson;
 import com.adamkali.dwm.MinecraftTestBootstrap;
+import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.logic.StabiliserLogic;
+import com.google.gson.Gson;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -120,5 +122,21 @@ class TardisDataModelExteriorTest {
         assertEquals(1, loaded.selectedFastReturnIndex);
         assertEquals(DestinationMode.FAST_RETURN, loaded.getDestinationMode());
         assertEquals(model, loaded);
+    }
+
+    @Test
+    void stabilisersEnabled_SerializesThroughGson() {
+        TardisDataModel model = new TardisDataModel();
+        assertTrue(StabiliserLogic.isEnabled(model));
+        model.stabilisersEnabled = false;
+
+        Gson gson = new Gson();
+        TardisDataModel loaded = gson.fromJson(gson.toJson(model), TardisDataModel.class);
+
+        assertFalse(StabiliserLogic.isEnabled(loaded));
+        assertEquals(model, loaded);
+
+        TardisDataModel legacy = gson.fromJson("{\"uuid\":\"" + model.uuid + "\"}", TardisDataModel.class);
+        assertTrue(StabiliserLogic.isEnabled(legacy), "missing field must default on");
     }
 }

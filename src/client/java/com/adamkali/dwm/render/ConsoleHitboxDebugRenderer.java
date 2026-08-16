@@ -27,6 +27,7 @@ import net.minecraft.world.phys.AABB;
  *   <li>White — chameleon circuit</li>
  *   <li>Orange — materialisation lever</li>
  *   <li>Red — fast return</li>
+ *   <li>Blue — stabilisers</li>
  * </ul>
  */
 public final class ConsoleHitboxDebugRenderer {
@@ -38,6 +39,7 @@ public final class ConsoleHitboxDebugRenderer {
     private static final int CHAMELEON_COLOR = 0xFFFFFFFF;
     private static final int LEVER_COLOR = 0xFFFF8C1A;
     private static final int FAST_RETURN_COLOR = 0xFFFF3333;
+    private static final int STABILISERS_COLOR = 0xFF3399FF;
     private static final int RANGE = 16;
 
     private ConsoleHitboxDebugRenderer() {
@@ -106,6 +108,10 @@ public final class ConsoleHitboxDebugRenderer {
                         Gizmos.cuboid(
                                 FirstDoctorConsoleControls.fastReturnWorldBox(mutable, facing),
                                 GizmoStyle.stroke(FAST_RETURN_COLOR)
+                        );
+                        Gizmos.cuboid(
+                                FirstDoctorConsoleControls.stabilisersWorldBox(mutable, facing),
+                                GizmoStyle.stroke(STABILISERS_COLOR)
                         );
                     }
                 }

@@ -19,12 +19,13 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 /**
- * Block entity for the First Doctor console. Holds {@code tardisId} for control interactions
- * and a synced chameleon variant for the Panel6 hologram preview.
+ * Block entity for the First Doctor console. Holds {@code tardisId} for control interactions,
+ * a synced chameleon variant for the Panel6 hologram preview, and synced stabilisers state.
  */
 public class FirstDoctorConsoleBlockEntity extends BlockEntity {
     private @Nullable UUID tardisId;
     private TardisChameleonVariant syncedVariant = TardisChameleonVariant.TT_CAPSULE;
+    private boolean syncedStabilisersEnabled = true;
 
     public FirstDoctorConsoleBlockEntity(BlockPos pos, BlockState state) {
         super(DWMBlockEntities.FIRST_DOCTOR_CONSOLE_BLOCK_ENTITY, pos, state);
@@ -49,6 +50,23 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
     public void setSyncedVariant(@Nullable TardisChameleonVariant variant) {
         this.syncedVariant = variant == null ? TardisChameleonVariant.TT_CAPSULE : variant;
         setChanged();
+        notifyClients();
+    }
+
+    public boolean isSyncedStabilisersEnabled() {
+        return syncedStabilisersEnabled;
+    }
+
+    /**
+     * Updates the stabilisers dial pose and notifies tracking clients when on the server.
+     */
+    public void setSyncedStabilisersEnabled(boolean enabled) {
+        this.syncedStabilisersEnabled = enabled;
+        setChanged();
+        notifyClients();
+    }
+
+    private void notifyClients() {
         if (level != null && !level.isClientSide()) {
             BlockState state = getBlockState();
             level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
@@ -62,6 +80,7 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
             output.store("tardisId", UUIDUtil.CODEC, tardisId);
         }
         output.putString("syncedVariant", getSyncedVariant().getId().toString());
+        output.putBoolean("syncedStabilisersEnabled", syncedStabilisersEnabled);
     }
 
     @Override
@@ -69,6 +88,7 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
         super.loadAdditional(input);
         tardisId = input.read("tardisId", UUIDUtil.CODEC).orElse(null);
         syncedVariant = parseVariant(input.getStringOr("syncedVariant", ""));
+        syncedStabilisersEnabled = input.getBooleanOr("syncedStabilisersEnabled", true);
     }
 
     private static TardisChameleonVariant parseVariant(String id) {

@@ -7,10 +7,13 @@ public class TardisRenderState extends EntityRenderState {
     private float doorSwingProgress;
     /** Vertical time-rotor bob offset in model units (0 when landed). */
     private float rotorBobOffset;
+    /** Console stabilisers toggle (default on). Used by {@code StabilisersModel}. */
+    private boolean stabilisersEnabled = true;
 
     public TardisRenderState() {
         this.doorSwingProgress = 0.0f;
         this.rotorBobOffset = 0.0f;
+        this.stabilisersEnabled = true;
     }
 
     public void setDoorSwingProgress(float doorSwingProgress) {
@@ -27,5 +30,13 @@ public class TardisRenderState extends EntityRenderState {
 
     public float getRotorBobOffset() {
         return this.rotorBobOffset;
+    }
+
+    public void setStabilisersEnabled(boolean stabilisersEnabled) {
+        this.stabilisersEnabled = stabilisersEnabled;
+    }
+
+    public boolean isStabilisersEnabled() {
+        return this.stabilisersEnabled;
     }
 }

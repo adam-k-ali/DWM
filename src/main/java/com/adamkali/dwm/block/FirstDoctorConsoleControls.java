@@ -48,6 +48,14 @@ public final class FirstDoctorConsoleControls {
     public static final float LEVER_MOUNT_X_PX = CONTROL_MOUNT_X_PX;
     public static final float FAST_RETURN_MOUNT_X_PX = 4.0F;
 
+    /**
+     * Panel6 bottom (outer) row — player-facing cuboid top center.
+     * Middle-row mounts keep {@link #CONTROL_MOUNT_Y_PX} / {@link #CONTROL_MOUNT_Z_PX}.
+     */
+    public static final float STABILISERS_MOUNT_X_PX = 0.0F;
+    public static final float STABILISERS_MOUNT_Y_PX = 7.081F;
+    public static final float STABILISERS_MOUNT_Z_PX = -3.661F;
+
     /** Uniform scale — the raw 14px dial is oversized for the Panel3 deck. */
     public static final float SELECTOR_SCALE = 0.1125F;
 
@@ -56,6 +64,9 @@ public final class FirstDoctorConsoleControls {
 
     /** Uniform scale for the fast-return switch on Panel6 (matches lever). */
     public static final float FAST_RETURN_SCALE = LEVER_SCALE;
+
+    /** Uniform scale for the stabilisers control on Panel6 bottom row. */
+    public static final float STABILISERS_SCALE = 0.18F;
 
     /** Full selector footprint in selector-local pixels (14×2×14) before {@link #SELECTOR_SCALE}. */
     private static final float SEL_MIN_X = -7.0F;
@@ -81,6 +92,14 @@ public final class FirstDoctorConsoleControls {
     private static final float FR_MAX_Y = 3.6F;
     private static final float FR_MAX_Z = 8.3F;
 
+    /** Stabilisers footprint in control-local pixels before {@link #STABILISERS_SCALE}. */
+    private static final float STAB_MIN_X = -9.0F;
+    private static final float STAB_MIN_Y = 0.0F;
+    private static final float STAB_MIN_Z = -9.0F;
+    private static final float STAB_MAX_X = 8.0F;
+    private static final float STAB_MAX_Y = 8.2F;
+    private static final float STAB_MAX_Z = 9.0F;
+
     private static final float Y_SCALE = 0.8F;
     private static final float PX = 1.0F / 16.0F;
     private static final double REACH = 5.0;
@@ -97,7 +116,8 @@ public final class FirstDoctorConsoleControls {
     public enum Panel6Control {
         CHAMELEON,
         LEVER,
-        FAST_RETURN
+        FAST_RETURN,
+        STABILISERS
     }
 
     /**
@@ -111,7 +131,8 @@ public final class FirstDoctorConsoleControls {
         PLANET_LOCATOR,
         CHAMELEON_CIRCUIT,
         MATERIALISATION_LEVER,
-        FAST_RETURN
+        FAST_RETURN,
+        STABILISERS
     }
 
     private FirstDoctorConsoleControls() {
@@ -297,6 +318,41 @@ public final class FirstDoctorConsoleControls {
         return lookHitsBox(fastReturnWorldBox(pos, facing), eyePos, lookDir, reach);
     }
 
+    public static AABB stabilisersBox(Direction facing) {
+        return controlBox(
+                facing,
+                PANEL6_YAW_RAD,
+                STABILISERS_SCALE,
+                STABILISERS_MOUNT_X_PX,
+                STABILISERS_MOUNT_Y_PX,
+                STABILISERS_MOUNT_Z_PX,
+                STAB_MIN_X,
+                STAB_MIN_Y,
+                STAB_MIN_Z,
+                STAB_MAX_X,
+                STAB_MAX_Y,
+                STAB_MAX_Z
+        );
+    }
+
+    public static AABB stabilisersWorldBox(BlockPos pos, Direction facing) {
+        return stabilisersBox(facing).move(pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    public static boolean isStabilisersLookHit(Direction facing, BlockPos pos, Player player) {
+        return isStabilisersLookHit(facing, pos, player.getEyePosition(), player.getViewVector(1.0F), REACH);
+    }
+
+    public static boolean isStabilisersLookHit(
+            Direction facing,
+            BlockPos pos,
+            Vec3 eyePos,
+            Vec3 lookDir,
+            double reach
+    ) {
+        return lookHitsBox(stabilisersWorldBox(pos, facing), eyePos, lookDir, reach);
+    }
+
     /**
      * When multiple Panel3 dials are along the look ray, returns the closest hit.
      * Ties (coplanar dial tops) break toward the AABB whose center is nearest the eye in XZ.
@@ -413,6 +469,7 @@ public final class FirstDoctorConsoleControls {
             case CHAMELEON_CIRCUIT -> chameleonCircuitWorldBox(pos, facing);
             case MATERIALISATION_LEVER -> materialisationLeverWorldBox(pos, facing);
             case FAST_RETURN -> fastReturnWorldBox(pos, facing);
+            case STABILISERS -> stabilisersWorldBox(pos, facing);
             case NONE -> new AABB(0, 0, 0, 0, 0, 0);
         };
     }
@@ -488,6 +545,12 @@ public final class FirstDoctorConsoleControls {
         return Math.hypot(c.x - 0.5, c.z - 0.5);
     }
 
+    /** Horizontal distance from block center to stabilisers control center (for tests / tuning). */
+    public static double stabilisersDistanceFromCenter(Direction facing) {
+        Vec3 c = stabilisersBox(facing).getCenter();
+        return Math.hypot(c.x - 0.5, c.z - 0.5);
+    }
+
     private static AABB selectorBox(Direction facing, float mountXPx) {
         return controlBox(facing, PANEL3_YAW_RAD, SELECTOR_SCALE, mountXPx,
                 SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
@@ -507,6 +570,7 @@ public final class FirstDoctorConsoleControls {
             case CHAMELEON -> chameleonCircuitWorldBox(pos, facing);
             case LEVER -> materialisationLeverWorldBox(pos, facing);
             case FAST_RETURN -> fastReturnWorldBox(pos, facing);
+            case STABILISERS -> stabilisersWorldBox(pos, facing);
         };
     }
 
@@ -540,6 +604,36 @@ public final class FirstDoctorConsoleControls {
             float maxY,
             float maxZ
     ) {
+        return controlBox(
+                facing,
+                panelYawRad,
+                scale,
+                mountXPx,
+                CONTROL_MOUNT_Y_PX,
+                CONTROL_MOUNT_Z_PX,
+                minX,
+                minY,
+                minZ,
+                maxX,
+                maxY,
+                maxZ
+        );
+    }
+
+    private static AABB controlBox(
+            Direction facing,
+            float panelYawRad,
+            float scale,
+            float mountXPx,
+            float mountYPx,
+            float mountZPx,
+            float minX,
+            float minY,
+            float minZ,
+            float maxX,
+            float maxY,
+            float maxZ
+    ) {
         double outMinX = Double.POSITIVE_INFINITY;
         double outMinY = Double.POSITIVE_INFINITY;
         double outMinZ = Double.POSITIVE_INFINITY;
@@ -553,7 +647,8 @@ public final class FirstDoctorConsoleControls {
         for (float x : xs) {
             for (float y : ys) {
                 for (float z : zs) {
-                    Vec3 p = controlLocalToBlockLocal(x, y, z, facing, panelYawRad, scale, mountXPx);
+                    Vec3 p = controlLocalToBlockLocal(
+                            x, y, z, facing, panelYawRad, scale, mountXPx, mountYPx, mountZPx);
                     outMinX = Math.min(outMinX, p.x);
                     outMinY = Math.min(outMinY, p.y);
                     outMinZ = Math.min(outMinZ, p.z);
@@ -579,9 +674,24 @@ public final class FirstDoctorConsoleControls {
             float scale,
             float mountXPx
     ) {
+        return controlLocalToBlockLocal(
+                px, py, pz, facing, panelYawRad, scale, mountXPx, CONTROL_MOUNT_Y_PX, CONTROL_MOUNT_Z_PX);
+    }
+
+    static Vec3 controlLocalToBlockLocal(
+            double px,
+            double py,
+            double pz,
+            Direction facing,
+            float panelYawRad,
+            float scale,
+            float mountXPx,
+            float mountYPx,
+            float mountZPx
+    ) {
         double x = px * scale + mountXPx;
-        double y = py * scale + CONTROL_MOUNT_Y_PX;
-        double z = pz * scale + CONTROL_MOUNT_Z_PX;
+        double y = py * scale + mountYPx;
+        double z = pz * scale + mountZPx;
 
         double cosP = Math.cos(DECK_PITCH_RAD);
         double sinP = Math.sin(DECK_PITCH_RAD);

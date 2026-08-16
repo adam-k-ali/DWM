@@ -12,6 +12,10 @@ public class FirstDoctorConsoleBlockEntityRenderState extends BlockEntityRenderS
     public float rotorBobOffset;
     /** Synced chameleon variant for the Panel6 hologram shell. */
     public TardisChameleonVariant variant = TardisChameleonVariant.TT_CAPSULE;
+    /** Synced stabilisers toggle for Panel6 dial pose and unstabilised flight FX. */
+    public boolean stabilisersEnabled = true;
+    /** Whether the TARDIS is currently traveling (for rotor smoke FX). */
+    public boolean traveling;
     /** Continuous turntable yaw for the chameleon hologram (degrees). */
     public float hologramYawDegrees;
     /** Vertical bob offset for the chameleon hologram (blocks, deck-local Y). */
