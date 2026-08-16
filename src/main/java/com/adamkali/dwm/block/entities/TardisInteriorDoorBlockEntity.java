@@ -1,7 +1,9 @@
 package com.adamkali.dwm.block.entities;
 
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
+import com.adamkali.dwm.tardis.data.model.TardisDoorState;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
+import com.adamkali.dwm.tardis.logic.TardisLogic;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -21,8 +23,9 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 /**
- * Origin-cell state for a 3×2 interior door bank. {@link TardisInteriorDoorBlock#OPEN} on the
- * blockstates is the source of truth for open/closed; this BE owns swing animation and tardisId.
+ * Origin-cell state for a 3×2 interior door bank. Linked doors mirror
+ * {@code TardisDataModel.doorState.isOpen} onto {@link TardisInteriorDoorBlock#OPEN};
+ * this BE owns local swing animation and tardisId.
  */
 public class TardisInteriorDoorBlockEntity extends BlockEntity implements BlockEntityTicker<TardisInteriorDoorBlockEntity> {
     private @Nullable UUID tardisId;
@@ -63,7 +66,14 @@ public class TardisInteriorDoorBlockEntity extends BlockEntity implements BlockE
     }
 
     public void setOpen(boolean open) {
+        setOpen(open, false);
+    }
+
+    public void setOpen(boolean open, boolean snapSwing) {
         this.open = open;
+        if (snapSwing) {
+            this.doorSwing = open ? 1.0f : 0.0f;
+        }
         setChanged();
         if (level != null) {
             BlockState state = getBlockState();
@@ -73,6 +83,16 @@ public class TardisInteriorDoorBlockEntity extends BlockEntity implements BlockE
 
     @Override
     public void tick(Level world, BlockPos pos, BlockState state, TardisInteriorDoorBlockEntity blockEntity) {
+        if (tardisId != null && !world.isClientSide()) {
+            TardisLogic.updateDoorState(tardisId, world);
+            TardisDoorState doorState = TardisLogic.getDoorState(tardisId);
+            if (doorState != null
+                    && state.hasProperty(TardisInteriorDoorBlock.OPEN)
+                    && state.getValue(TardisInteriorDoorBlock.OPEN) != doorState.isOpen) {
+                TardisInteriorDoorBlock.setOpen(world, pos, state, doorState.isOpen, true);
+                state = world.getBlockState(pos);
+            }
+        }
         if (state.hasProperty(TardisInteriorDoorBlock.OPEN)) {
             open = state.getValue(TardisInteriorDoorBlock.OPEN);
         }

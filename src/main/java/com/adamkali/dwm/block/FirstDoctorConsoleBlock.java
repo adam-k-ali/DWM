@@ -517,10 +517,9 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             player.sendOverlayMessage(Component.translatable("dwm.console.door_lock_unavailable"));
             return InteractionResult.CONSUME;
         }
-        boolean locked = DoorLockLogic.toggle(model);
-        FirstDoctorConsoleSync.syncFromModel(serverWorld.getServer(), tardisId);
-        player.sendOverlayMessage(Component.translatable(
-                locked ? "dwm.console.doors_locked" : "dwm.console.doors_unlocked"));
+        if (!DoorLockLogic.toggleForPlayer(model, player, serverWorld.getServer(), tardisId)) {
+            return InteractionResult.CONSUME;
+        }
         playClick(world, pos);
         return InteractionResult.SUCCESS;
     }

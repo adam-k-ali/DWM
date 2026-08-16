@@ -16,7 +16,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 ## Implemented Now
 - Placeable `tardis_block` with block entity backing data.
 - Persistent per-instance identity data (including UUID and variant metadata).
-- Interactive door state transitions with sound feedback.
+- Interactive door state: exterior and interior share {@code TardisDataModel.doorState}; clicking either side opens/closes both.
 - Custom client rendering for TARDIS model presentation.
 - Exterior BOTI (bigger on the inside): deferred portal FBO composites a hitch-fixed console-room look-in through the chameleon door aperture when `doorSwing >= 0.15`.
 - Interior SOTO (smaller on the outside): deferred portal FBO composites a hitch-fixed exterior look-out through the classic interior door aperture when interior `doorSwing >= 0.15`.
@@ -46,20 +46,21 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Panel1 readers sample the **linked exterior** (not the interior) about once a second: oxygen (0 if waterlogged/no air; reduced Nether/End), pressure (Y vs sea level / dimension), temperature (biome), radiation (high Nether, medium End, low Overworld with a thunder bump). In flight or with no exterior they show no signal. Needles and HUD use the synced 0–1 reading; click repeats the HUD as an overlay.
 - Panel5 refueler is a **placeholder** artron gauge (`Artron reserves: stable`); the needle is parked cosmetically. No fuel system exists yet.
 - Panel4 cloak is a perception filter (`TardisDataModel.cloaked`): the exterior BER skips shell, doors, and BOTI while collision and door-click remain. SOTO from inside is unchanged. Overlay: `Cloak engaged` / `Cloak disengaged`.
-- Panel4 door lock (`doorsLocked`) blocks **opening** only; closing always works on exterior and interior doors. Overlay: `Doors locked` / `Doors unlocked`. Clicking a locked closed door shows `Doors are locked`.
+- Panel4 door lock (`doorsLocked`) blocks **opening** only; closing always works on exterior and interior doors. Lock and unlock only apply when doors are **fully closed**. Overlay: `Doors locked` / `Doors unlocked` / `Doors must be closed`. Clicking a locked closed door shows `Doors are locked`.
+- The TARDIS key is crafted from gold nuggets and iron. An owner can bind an unbound key to their TARDIS; it stores that TARDIS UUID (not the owner), so a future ownership transfer will not invalidate it. Anyone holding a bound key can toggle that TARDIS's door lock while the doors are closed.
 - Panel2 telepathic circuit arms `DestinationMode.TELEPATHIC` onto the using player's bed/respawn, or world spawn if none. Overlay: locked onto your home / world spawn.
 - Panel3 coordinate lock is not a destination mode: X/Y/Z toggles pin those axes to the current exterior after landing resolve + scatter, then re-validate. Invalid pin fails materialise with the existing invalid-landing overlay. HUD: `X axis locked` / `unlocked` (same for Y/Z).
 - First Doctor console time rotor bobbles vertically while the TARDIS is traveling (`DEMATERIALISING` / `IN_FLIGHT` / `MATERIALISING`) and rests when idle.
-- Demat/mat/in-flight play loopable travel SFX (seamless loops) for code-configured phase lengths (`DEMATERIALISING_DURATION_TICKS` / `MATERIALISING_DURATION_TICKS` in `TardisTravelService`); shell vanishes mid-demat at `DEMATERIALISING_SHELL_REMOVE_AT_TICK`; `IN_FLIGHT` uses a higher-pitched demat/mat-derived loop in the interior; materialisation ends with a landing thud.
+- Demat/mat/in-flight play loopable travel SFX (seamless loops) for code-configured phase lengths (`DEMATERIALISING_DURATION_TICKS` / `MATERIALISING_DURATION_TICKS` in `TardisTravelService`); shell vanishes mid-demat at `DEMATERIALISING_SHELL_REMOVE_AT_TICK`; `IN_FLIGHT` uses a higher-pitched demat/mat-derived loop in the interior; materialisation ends with a landing thud. Demat forces doors closed; materialise auto-opens them unless they are locked.
 
 ## How It Works In-Game
 1. Place the TARDIS block.
-2. Interact with the block to toggle door-state behavior (server-authoritative).
+2. Interact with the exterior or interior doors to toggle shared door-state behavior (server-authoritative).
 3. As the door opens, the console room becomes visible through the doorway (client preview).
 4. When the door is fully open, walk into the exterior block to teleport to the interior entrance.
 5. From inside, look through open interior doors to see the exterior world (SOTO preview).
 6. Walk into the interior door blocks to return just outside the exterior TARDIS.
-7. At the console: choose a destination — biome + planet dials, a saved waypoint, an online player, fast return through previous landings, or the telepathic circuit (home bed / world spawn) — then pull the materialisation lever to dematerialise, wait for `IN_FLIGHT`, and pull again to materialise and land. Optionally cycle the chameleon circuit on Panel6 to preview/set the exterior shell. Toggle stabilisers on Panel6’s bottom row before materialising if you want a precise vs scattered landing. Panel3 coordinate locks can pin X/Y/Z to the current exterior after scatter. Panel4 cloak hides the exterior shell; the door lock blocks opening only. Panel1 readers show the linked exterior atmosphere.
+7. At the console: choose a destination — biome + planet dials, a saved waypoint, an online player, fast return through previous landings, or the telepathic circuit (home bed / world spawn) — then pull the materialisation lever to dematerialise, wait for `IN_FLIGHT`, and pull again to materialise and land. Optionally cycle the chameleon circuit on Panel6 to preview/set the exterior shell. Toggle stabilisers on Panel6’s bottom row before materialising if you want a precise vs scattered landing. Panel3 coordinate locks can pin X/Y/Z to the current exterior after scatter. Panel4 cloak hides the exterior shell; the door lock blocks opening and can only be toggled while doors are closed. Panel1 readers show the linked exterior atmosphere.
 
 ## BOTI Notes
 - Visual illusion: does not stream the live `dwm:tardis` dimension to the exterior client.

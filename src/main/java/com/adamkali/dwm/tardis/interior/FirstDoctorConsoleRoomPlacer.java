@@ -4,6 +4,8 @@ import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
+import com.adamkali.dwm.tardis.data.TardisDataLoader;
+import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.logic.FirstDoctorConsoleSync;
 import com.mojang.logging.LogUtils;
 import java.util.Optional;
@@ -58,6 +60,7 @@ public final class FirstDoctorConsoleRoomPlacer {
 
         completeInteriorDoorBank(world, origin);
         stampInteriorEntities(world, origin, tardisId);
+        applyDoorOpenFromModel(world, origin, tardisId);
         FirstDoctorConsoleSync.syncFromModel(world.getServer(), tardisId);
 
         return origin.offset(LOCAL_ENTRANCE);
@@ -112,6 +115,20 @@ public final class FirstDoctorConsoleRoomPlacer {
                         Block.UPDATE_CLIENTS
                 );
             }
+        }
+    }
+
+    private static void applyDoorOpenFromModel(ServerLevel world, BlockPos origin, UUID tardisId) {
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        boolean open = model != null && model.doorState.isOpen;
+        BlockPos doorOrigin = origin.offset(FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN);
+        BlockState originState = world.getBlockState(doorOrigin);
+        if (!originState.is(DWMBlocks.TARDIS_INTERIOR_DOOR)) {
+            return;
+        }
+        TardisInteriorDoorBlock.setOpen(world, doorOrigin, originState, open, true);
+        if (world.getBlockEntity(doorOrigin) instanceof TardisInteriorDoorBlockEntity door) {
+            door.setOpen(open, true);
         }
     }
 

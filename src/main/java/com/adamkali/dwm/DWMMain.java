@@ -7,6 +7,7 @@ import com.adamkali.dwm.block.entities.DWMBlockEntities;
 import com.adamkali.dwm.command.TardisCommands;
 import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.entity.DWMEntityTypes;
+import com.adamkali.dwm.item.DWMDataComponents;
 import com.adamkali.dwm.item.DWMItems;
 import com.adamkali.dwm.network.ServerPayloadTypeRegistry;
 import com.adamkali.dwm.sound.DWMSounds;
@@ -30,6 +31,7 @@ public class DWMMain implements ModInitializer {
         DWMWoodTypes.initialize();
         DWMBlocks.initialize();
         DWMEntityTypes.initialize();
+        DWMDataComponents.initialize();
         DWMItems.initialize();
         DWMBlockEntities.initialize();
         DWMSounds.initialize();
