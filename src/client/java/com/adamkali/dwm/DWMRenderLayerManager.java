@@ -63,6 +63,9 @@ public class DWMRenderLayerManager {
                 TelepathicCircuitModel.LAYER_LOCATION,
                 TelepathicCircuitModel::getTexturedModelData);
         ModelLayerRegistry.registerModelLayer(
+                CoordinateLockModel.LAYER_LOCATION,
+                CoordinateLockModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(
                 TardisGlobeModel.LAYER_LOCATION,
                 TardisGlobeModel::getTexturedModelData);
         ModelLayerRegistry.registerModelLayer(

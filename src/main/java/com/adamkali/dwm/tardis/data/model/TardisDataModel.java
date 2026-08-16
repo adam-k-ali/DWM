@@ -64,6 +64,11 @@ public class TardisDataModel {
     /** When true, doors refuse opening. Closing is always allowed. */
     public boolean doorsLocked;
 
+    /** Pin landing X/Y/Z to the current exterior after resolve + scatter. */
+    public boolean lockX;
+    public boolean lockY;
+    public boolean lockZ;
+
     /** Current exterior travel phase name ({@link TardisTravelPhase}). */
     public String travelPhase = TardisTravelPhase.IDLE.name();
 
@@ -197,6 +202,7 @@ public class TardisDataModel {
                 + ", stabilisersEnabled=" + stabilisersEnabled
                 + ", cloaked=" + cloaked
                 + ", doorsLocked=" + doorsLocked
+                + ", lockX=" + lockX + ", lockY=" + lockY + ", lockZ=" + lockZ
                 + ", travelPhase=" + travelPhase + ", travelPhaseTicks=" + travelPhaseTicks
                 + ", travelDestinationBiome=" + travelDestinationBiome
                 + ", travelDestinationDimension=" + travelDestinationDimension
@@ -226,6 +232,9 @@ public class TardisDataModel {
                     && Objects.equals(this.stabilisersEnabled, other.stabilisersEnabled)
                     && this.cloaked == other.cloaked
                     && this.doorsLocked == other.doorsLocked
+                    && this.lockX == other.lockX
+                    && this.lockY == other.lockY
+                    && this.lockZ == other.lockZ
                     && Objects.equals(this.travelPhase, other.travelPhase)
                     && this.travelPhaseTicks == other.travelPhaseTicks
                     && Objects.equals(this.travelDestinationBiome, other.travelDestinationBiome)

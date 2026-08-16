@@ -39,4 +39,12 @@ class Dwm033ControlModelTest {
         assertNotNull(root.getChild("light"));
         assertNotNull(root.getChild("light2"));
     }
+
+    @Test
+    void coordinateLock_bakesAxisSwitches() {
+        ModelPart root = assertDoesNotThrow(() -> CoordinateLockModel.getTexturedModelData().bakeRoot());
+        assertNotNull(root.getChild("coord_button_x").getChild("switch"));
+        assertNotNull(root.getChild("coord_button_y").getChild("switch3"));
+        assertNotNull(root.getChild("coord_button_z").getChild("switch2"));
+    }
 }

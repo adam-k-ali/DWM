@@ -461,7 +461,10 @@ class FirstDoctorConsoleControlsTest {
                 FirstDoctorConsoleControls.LookTarget.REFUELER,
                 FirstDoctorConsoleControls.LookTarget.TELEPATHIC_CIRCUIT,
                 FirstDoctorConsoleControls.LookTarget.CLOAK,
-                FirstDoctorConsoleControls.LookTarget.DOOR_LOCK
+                FirstDoctorConsoleControls.LookTarget.DOOR_LOCK,
+                FirstDoctorConsoleControls.LookTarget.COORDINATE_LOCK_X,
+                FirstDoctorConsoleControls.LookTarget.COORDINATE_LOCK_Y,
+                FirstDoctorConsoleControls.LookTarget.COORDINATE_LOCK_Z
         };
         for (FirstDoctorConsoleControls.LookTarget target : targets) {
             double dist = FirstDoctorConsoleControls.distanceFromCenter(target, facing);

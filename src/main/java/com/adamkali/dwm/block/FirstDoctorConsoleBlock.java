@@ -10,8 +10,8 @@ import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisExteriorLocation;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.logic.CloakLogic;
+import com.adamkali.dwm.tardis.logic.CoordinateLockLogic;
 import com.adamkali.dwm.tardis.logic.DoorLockLogic;
-import com.adamkali.dwm.tardis.logic.TelepathicCircuitLogic;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
 import com.adamkali.dwm.tardis.logic.FastReturnLogic;
 import com.adamkali.dwm.tardis.logic.FirstDoctorConsoleSync;
@@ -19,6 +19,7 @@ import com.adamkali.dwm.tardis.logic.PlayerLocatorLogic;
 import com.adamkali.dwm.tardis.logic.StabiliserLogic;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
+import com.adamkali.dwm.tardis.logic.TelepathicCircuitLogic;
 import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import org.jetbrains.annotations.Nullable;
@@ -199,6 +200,9 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             case TELEPATHIC_CIRCUIT -> handleTelepathic(world, pos, player, tardisId);
             case CLOAK -> handleCloak(world, pos, player, serverWorld, console, tardisId);
             case DOOR_LOCK -> handleDoorLock(world, pos, player, serverWorld, console, tardisId);
+            case COORDINATE_LOCK_X -> handleCoordinateLock(world, pos, player, serverWorld, console, tardisId, CoordinateLockLogic.Axis.X);
+            case COORDINATE_LOCK_Y -> handleCoordinateLock(world, pos, player, serverWorld, console, tardisId, CoordinateLockLogic.Axis.Y);
+            case COORDINATE_LOCK_Z -> handleCoordinateLock(world, pos, player, serverWorld, console, tardisId, CoordinateLockLogic.Axis.Z);
             case NONE -> InteractionResult.PASS;
         };
     }
@@ -218,6 +222,8 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             case TELEPATHIC_CIRCUIT -> "dwm.console.telepathic_unavailable";
             case CLOAK -> "dwm.console.cloak_unavailable";
             case DOOR_LOCK -> "dwm.console.door_lock_unavailable";
+            case COORDINATE_LOCK_X, COORDINATE_LOCK_Y, COORDINATE_LOCK_Z ->
+                    "dwm.console.coordinate_lock_unavailable";
             case MATERIALISATION_LEVER, NONE -> "dwm.console.travel_unavailable";
         };
     }
@@ -522,6 +528,33 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         FirstDoctorConsoleSync.syncDoorsLocked(serverWorld.getServer(), tardisId, locked);
         player.sendOverlayMessage(Component.translatable(
                 locked ? "dwm.console.doors_locked" : "dwm.console.doors_unlocked"));
+        playClick(world, pos);
+        return InteractionResult.SUCCESS;
+    }
+
+    private static InteractionResult handleCoordinateLock(
+            Level world,
+            BlockPos pos,
+            Player player,
+            ServerLevel serverWorld,
+            FirstDoctorConsoleBlockEntity console,
+            UUID tardisId,
+            CoordinateLockLogic.Axis axis
+    ) {
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.coordinate_lock_unavailable"));
+            return InteractionResult.CONSUME;
+        }
+        boolean locked = CoordinateLockLogic.toggle(model, axis);
+        console.setSyncedAxisLock(axis, locked);
+        FirstDoctorConsoleSync.syncCoordinateLocks(serverWorld.getServer(), tardisId, model);
+        String axisKey = switch (axis) {
+            case X -> locked ? "dwm.console.lock_x_on" : "dwm.console.lock_x_off";
+            case Y -> locked ? "dwm.console.lock_y_on" : "dwm.console.lock_y_off";
+            case Z -> locked ? "dwm.console.lock_z_on" : "dwm.console.lock_z_off";
+        };
+        player.sendOverlayMessage(Component.translatable(axisKey));
         playClick(world, pos);
         return InteractionResult.SUCCESS;
     }

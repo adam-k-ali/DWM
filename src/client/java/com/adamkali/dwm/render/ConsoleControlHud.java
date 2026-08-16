@@ -93,6 +93,18 @@ public final class ConsoleControlHud {
                     console != null && console.isSyncedDoorsLocked()
                             ? "dwm.console.doors_locked"
                             : "dwm.console.doors_unlocked");
+            case COORDINATE_LOCK_X -> Component.translatable(
+                    console != null && console.isSyncedLockX()
+                            ? "dwm.console.lock_x_on"
+                            : "dwm.console.lock_x_off");
+            case COORDINATE_LOCK_Y -> Component.translatable(
+                    console != null && console.isSyncedLockY()
+                            ? "dwm.console.lock_y_on"
+                            : "dwm.console.lock_y_off");
+            case COORDINATE_LOCK_Z -> Component.translatable(
+                    console != null && console.isSyncedLockZ()
+                            ? "dwm.console.lock_z_on"
+                            : "dwm.console.lock_z_off");
             case NONE -> null;
         };
     }

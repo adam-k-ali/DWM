@@ -8,6 +8,7 @@ import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.logic.CoordinateLockLogic;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +39,7 @@ import net.minecraft.world.phys.AABB;
 /**
  * Block entity for the First Doctor console. Holds {@code tardisId} for control interactions,
  * a synced chameleon variant for the Panel6 hologram preview, and synced console instruments
- * (stabilisers, cloak, door lock, and exterior environment readings).
+ * (stabilisers, cloak, door lock, coordinate locks, exterior environment readings).
  * Server tick maintains one {@link ConsoleControlInteractionEntity} per control.
  */
 public class FirstDoctorConsoleBlockEntity extends BlockEntity {
@@ -52,6 +53,9 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
     private boolean syncedStabilisersEnabled = true;
     private boolean syncedCloaked;
     private boolean syncedDoorsLocked;
+    private boolean syncedLockX;
+    private boolean syncedLockY;
+    private boolean syncedLockZ;
     private boolean syncedNoSignal = true;
     private float syncedOxygen;
     private float syncedPressure;
@@ -183,6 +187,36 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
         notifyClients();
     }
 
+    public boolean isSyncedLockX() {
+        return syncedLockX;
+    }
+
+    public boolean isSyncedLockY() {
+        return syncedLockY;
+    }
+
+    public boolean isSyncedLockZ() {
+        return syncedLockZ;
+    }
+
+    public void setSyncedAxisLock(CoordinateLockLogic.Axis axis, boolean locked) {
+        switch (axis) {
+            case X -> syncedLockX = locked;
+            case Y -> syncedLockY = locked;
+            case Z -> syncedLockZ = locked;
+        }
+        setChanged();
+        notifyClients();
+    }
+
+    public void setSyncedCoordinateLocks(boolean lockX, boolean lockY, boolean lockZ) {
+        this.syncedLockX = lockX;
+        this.syncedLockY = lockY;
+        this.syncedLockZ = lockZ;
+        setChanged();
+        notifyClients();
+    }
+
     public ExteriorEnvironmentReadout.Reading syncedReading() {
         if (syncedNoSignal) {
             return ExteriorEnvironmentReadout.Reading.none();
@@ -231,6 +265,9 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
         }
         if (syncedDoorsLocked != model.doorsLocked) {
             setSyncedDoorsLocked(model.doorsLocked);
+        }
+        if (syncedLockX != model.lockX || syncedLockY != model.lockY || syncedLockZ != model.lockZ) {
+            setSyncedCoordinateLocks(model.lockX, model.lockY, model.lockZ);
         }
     }
 
@@ -287,6 +324,9 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
         output.putBoolean("syncedStabilisersEnabled", syncedStabilisersEnabled);
         output.putBoolean("syncedCloaked", syncedCloaked);
         output.putBoolean("syncedDoorsLocked", syncedDoorsLocked);
+        output.putBoolean("syncedLockX", syncedLockX);
+        output.putBoolean("syncedLockY", syncedLockY);
+        output.putBoolean("syncedLockZ", syncedLockZ);
         output.putBoolean("syncedNoSignal", syncedNoSignal);
         output.putFloat("syncedOxygen", syncedOxygen);
         output.putFloat("syncedPressure", syncedPressure);
@@ -302,6 +342,9 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
         syncedStabilisersEnabled = input.getBooleanOr("syncedStabilisersEnabled", true);
         syncedCloaked = input.getBooleanOr("syncedCloaked", false);
         syncedDoorsLocked = input.getBooleanOr("syncedDoorsLocked", false);
+        syncedLockX = input.getBooleanOr("syncedLockX", false);
+        syncedLockY = input.getBooleanOr("syncedLockY", false);
+        syncedLockZ = input.getBooleanOr("syncedLockZ", false);
         syncedNoSignal = input.getBooleanOr("syncedNoSignal", true);
         syncedOxygen = input.getFloatOr("syncedOxygen", 0.0F);
         syncedPressure = input.getFloatOr("syncedPressure", 0.0F);
