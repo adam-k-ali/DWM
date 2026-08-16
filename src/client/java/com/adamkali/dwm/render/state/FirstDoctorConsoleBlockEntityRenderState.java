@@ -20,4 +20,9 @@ public class FirstDoctorConsoleBlockEntityRenderState extends BlockEntityRenderS
     public float hologramYawDegrees;
     /** Vertical bob offset for the chameleon hologram (blocks, deck-local Y). */
     public float hologramBobOffset;
+    public boolean readerNoSignal = true;
+    public float oxygen;
+    public float pressure;
+    public float temperature;
+    public float radiation;
 }

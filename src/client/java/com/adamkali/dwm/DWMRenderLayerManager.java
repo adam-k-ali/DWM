@@ -48,6 +48,12 @@ public class DWMRenderLayerManager {
                 StabilisersModel.LAYER_LOCATION,
                 StabilisersModel::getTexturedModelData);
         ModelLayerRegistry.registerModelLayer(
+                ReaderModel.LAYER_LOCATION,
+                ReaderModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(
+                RadiationReaderModel.LAYER_LOCATION,
+                RadiationReaderModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(
                 TardisGlobeModel.LAYER_LOCATION,
                 TardisGlobeModel::getTexturedModelData);
         ModelLayerRegistry.registerModelLayer(

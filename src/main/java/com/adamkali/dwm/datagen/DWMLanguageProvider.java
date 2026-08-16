@@ -303,6 +303,14 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.player_locator_offline", "That player is no longer online");
         t.add("dwm.console.chameleon_unavailable", "Chameleon circuit unavailable");
         t.add("dwm.console.chameleon_selected", "Chameleon: %s");
+        t.add("dwm.console.oxygen", "Oxygen: %s%%");
+        t.add("dwm.console.pressure", "Pressure: %s%%");
+        t.add("dwm.console.temperature", "Temperature: %s%%");
+        t.add("dwm.console.radiation", "Radiation: %s%%");
+        t.add("dwm.console.reader_no_signal", "No exterior signal");
+        t.add("dwm.console.reader_unavailable", "Reader unavailable");
+        t.add("dwm.console.refueler_stable", "Artron reserves: stable");
+        t.add("dwm.console.refueler_unavailable", "Refueler unavailable");
         t.add("dwm.gui.waypoint.title", "Waypoint Selector");
         t.add("dwm.gui.waypoint.save", "Save");
         t.add("dwm.gui.waypoint.rename", "Rename");

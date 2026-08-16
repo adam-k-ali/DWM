@@ -15,11 +15,58 @@ import net.minecraft.world.phys.Vec3;
  * <p>Panel deck chain: panel pivot/yaw → deck bone pivot/pitch → control mount offset.
  */
 public final class FirstDoctorConsoleControls {
+    /**
+     * Hex faces of the First Doctor console. Opposite pairs: Environment↔Security,
+     * Communications↔Systems, Navigation↔Helm.
+     */
+    public enum ConsolePanel {
+        ENVIRONMENT(1, 0.0F, "Environment"),
+        COMMUNICATIONS(2, 1.047198F, "Communications"),
+        NAVIGATION(3, 2.094395F, "Navigation"),
+        SECURITY(4, -3.141593F, "Security"),
+        SYSTEMS(5, -2.094395F, "Systems"),
+        HELM(6, -1.047198F, "Helm");
+
+        private final int index;
+        private final float yawRad;
+        private final String purpose;
+
+        ConsolePanel(int index, float yawRad, String purpose) {
+            this.index = index;
+            this.yawRad = yawRad;
+            this.purpose = purpose;
+        }
+
+        public int index() {
+            return index;
+        }
+
+        public float yawRad() {
+            return yawRad;
+        }
+
+        public String purpose() {
+            return purpose;
+        }
+    }
+
+    /** Panel1 Y rotation in the console model (radians). */
+    public static final float PANEL1_YAW_RAD = ConsolePanel.ENVIRONMENT.yawRad();
+
+    /** Panel2 Y rotation in the console model (radians). */
+    public static final float PANEL2_YAW_RAD = ConsolePanel.COMMUNICATIONS.yawRad();
+
     /** Panel3 Y rotation in the console model (radians). */
-    public static final float PANEL3_YAW_RAD = 2.094395F;
+    public static final float PANEL3_YAW_RAD = ConsolePanel.NAVIGATION.yawRad();
+
+    /** Panel4 Y rotation in the console model (radians). */
+    public static final float PANEL4_YAW_RAD = ConsolePanel.SECURITY.yawRad();
+
+    /** Panel5 Y rotation in the console model (radians). */
+    public static final float PANEL5_YAW_RAD = ConsolePanel.SYSTEMS.yawRad();
 
     /** Panel6 Y rotation in the console model (radians). */
-    public static final float PANEL6_YAW_RAD = -1.047198F;
+    public static final float PANEL6_YAW_RAD = ConsolePanel.HELM.yawRad();
 
     /** Panel pivot Y in model pixels (matches Panel ModelTransform). */
     public static final float PANEL_PIVOT_Y_PX = 14.0F;
@@ -49,12 +96,23 @@ public final class FirstDoctorConsoleControls {
     public static final float FAST_RETURN_MOUNT_X_PX = 4.0F;
 
     /**
-     * Panel6 bottom (outer) row — player-facing cuboid top center.
+     * Top (inner) row — toward the rotor, compact widget cuboid top center.
+     * Inner cuboid: {@code (-5, 5.081, 5.339) 10×4×5} → top center ≈ {@code (0, 9.081, 7.839)}.
+     */
+    public static final float TOP_MOUNT_X_PX = 0.0F;
+    public static final float TOP_MOUNT_Y_PX = 9.081F;
+    public static final float TOP_MOUNT_Z_PX = 7.839F;
+
+    /**
+     * Bottom (outer) row — player-facing cuboid top center.
      * Middle-row mounts keep {@link #CONTROL_MOUNT_Y_PX} / {@link #CONTROL_MOUNT_Z_PX}.
      */
     public static final float STABILISERS_MOUNT_X_PX = 0.0F;
     public static final float STABILISERS_MOUNT_Y_PX = 7.081F;
     public static final float STABILISERS_MOUNT_Z_PX = -3.661F;
+    public static final float BOTTOM_MOUNT_X_PX = STABILISERS_MOUNT_X_PX;
+    public static final float BOTTOM_MOUNT_Y_PX = STABILISERS_MOUNT_Y_PX;
+    public static final float BOTTOM_MOUNT_Z_PX = STABILISERS_MOUNT_Z_PX;
 
     /** Uniform scale — the raw 14px dial is oversized for the Panel3 deck. */
     public static final float SELECTOR_SCALE = 0.1125F;
@@ -67,6 +125,21 @@ public final class FirstDoctorConsoleControls {
 
     /** Uniform scale for the stabilisers control on Panel6 bottom row. */
     public static final float STABILISERS_SCALE = 0.18F;
+
+    /** Shared 16×3×16 environment / refueler dial. */
+    public static final float READER_SCALE = SELECTOR_SCALE;
+
+    /** Taller unique radiation mesh on Panel1 bottom. */
+    public static final float RADIATION_SCALE = 0.10F;
+
+
+
+
+
+    /** Panel1 middle-row reader layout (deck-local X). */
+    public static final float OXYGEN_READER_MOUNT_X_PX = -3.75F;
+    public static final float PRESSURE_READER_MOUNT_X_PX = 0.0F;
+    public static final float TEMPERATURE_READER_MOUNT_X_PX = 3.75F;
 
     /** Full selector footprint in selector-local pixels (14×2×14) before {@link #SELECTOR_SCALE}. */
     private static final float SEL_MIN_X = -7.0F;
@@ -106,6 +179,41 @@ public final class FirstDoctorConsoleControls {
     private static final float STAB_MAX_Y = 7.0F;
     private static final float STAB_MAX_Z = 4.0F;
 
+    /** Shared reader dial footprint (16×3×16) before {@link #READER_SCALE}. */
+    private static final float RDR_MIN_X = -8.0F;
+    private static final float RDR_MIN_Y = 0.0F;
+    private static final float RDR_MIN_Z = -8.0F;
+    private static final float RDR_MAX_X = 8.0F;
+    private static final float RDR_MAX_Y = 3.0F;
+    private static final float RDR_MAX_Z = 8.0F;
+
+    /** Radiation reader footprint before {@link #RADIATION_SCALE}. */
+    private static final float RAD_MIN_X = -7.0F;
+    private static final float RAD_MIN_Y = 0.0F;
+    private static final float RAD_MIN_Z = -11.0F;
+    private static final float RAD_MAX_X = 7.0F;
+    private static final float RAD_MAX_Y = 6.0F;
+    private static final float RAD_MAX_Z = 8.0F;
+
+
+
+
+
+    private record ControlLayout(
+            float panelYaw,
+            float scale,
+            float mountX,
+            float mountY,
+            float mountZ,
+            float minX,
+            float minY,
+            float minZ,
+            float maxX,
+            float maxY,
+            float maxZ
+    ) {
+    }
+
     private static final float Y_SCALE = 0.8F;
     private static final float PX = 1.0F / 16.0F;
     private static final double REACH = 5.0;
@@ -138,7 +246,12 @@ public final class FirstDoctorConsoleControls {
         CHAMELEON_CIRCUIT,
         MATERIALISATION_LEVER,
         FAST_RETURN,
-        STABILISERS;
+        STABILISERS,
+        OXYGEN_READER,
+        PRESSURE_READER,
+        TEMPERATURE_READER,
+        RADIATION_READER,
+        REFUELER;
 
         /** Controls that spawn interaction entities (excludes {@link #NONE}). */
         public static LookTarget[] interactiveValues() {
@@ -519,47 +632,106 @@ public final class FirstDoctorConsoleControls {
     }
 
     private static AABB worldBoxFor(LookTarget target, BlockPos pos, Direction facing) {
-        return switch (target) {
-            case BIOME_SELECTOR -> biomeSelectorWorldBox(pos, facing);
-            case WAYPOINT_SELECTOR -> waypointSelectorWorldBox(pos, facing);
-            case PLAYER_LOCATOR -> playerLocatorWorldBox(pos, facing);
-            case PLANET_LOCATOR -> planetLocatorWorldBox(pos, facing);
-            case CHAMELEON_CIRCUIT -> chameleonCircuitWorldBox(pos, facing);
-            case MATERIALISATION_LEVER -> materialisationLeverWorldBox(pos, facing);
-            case FAST_RETURN -> fastReturnWorldBox(pos, facing);
-            case STABILISERS -> stabilisersWorldBox(pos, facing);
-            case NONE -> new AABB(0, 0, 0, 0, 0, 0);
-        };
+        return unpaddedBoxFor(target, facing).move(pos.getX(), pos.getY(), pos.getZ());
     }
 
     private static AABB unpaddedBoxFor(LookTarget target, Direction facing) {
+        if (target == LookTarget.NONE) {
+            return new AABB(0, 0, 0, 0, 0, 0);
+        }
+        ControlLayout layout = layout(target);
+        return controlBox(
+                facing,
+                layout.panelYaw,
+                layout.scale,
+                layout.mountX,
+                layout.mountY,
+                layout.mountZ,
+                layout.minX,
+                layout.minY,
+                layout.minZ,
+                layout.maxX,
+                layout.maxY,
+                layout.maxZ
+        );
+    }
+
+    private static ControlLayout layout(LookTarget target) {
         return switch (target) {
-            case BIOME_SELECTOR -> selectorBox(facing, BIOME_SELECTOR_MOUNT_X_PX);
-            case WAYPOINT_SELECTOR -> selectorBox(facing, WAYPOINT_SELECTOR_MOUNT_X_PX);
-            case PLAYER_LOCATOR -> selectorBox(facing, PLAYER_LOCATOR_MOUNT_X_PX);
-            case PLANET_LOCATOR -> selectorBox(facing, PLANET_LOCATOR_MOUNT_X_PX);
-            case CHAMELEON_CIRCUIT -> controlBox(facing, PANEL6_YAW_RAD, SELECTOR_SCALE, CHAMELEON_CIRCUIT_MOUNT_X_PX,
+            case BIOME_SELECTOR -> middle(PANEL3_YAW_RAD, SELECTOR_SCALE, BIOME_SELECTOR_MOUNT_X_PX,
                     SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
-            case MATERIALISATION_LEVER -> controlBox(facing, PANEL6_YAW_RAD, LEVER_SCALE, LEVER_MOUNT_X_PX,
+            case WAYPOINT_SELECTOR -> middle(PANEL3_YAW_RAD, SELECTOR_SCALE, WAYPOINT_SELECTOR_MOUNT_X_PX,
+                    SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
+            case PLAYER_LOCATOR -> middle(PANEL3_YAW_RAD, SELECTOR_SCALE, PLAYER_LOCATOR_MOUNT_X_PX,
+                    SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
+            case PLANET_LOCATOR -> middle(PANEL3_YAW_RAD, SELECTOR_SCALE, PLANET_LOCATOR_MOUNT_X_PX,
+                    SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
+            case CHAMELEON_CIRCUIT -> middle(PANEL6_YAW_RAD, SELECTOR_SCALE, CHAMELEON_CIRCUIT_MOUNT_X_PX,
+                    SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
+            case MATERIALISATION_LEVER -> middle(PANEL6_YAW_RAD, LEVER_SCALE, LEVER_MOUNT_X_PX,
                     LEV_MIN_X, LEV_MIN_Y, LEV_MIN_Z, LEV_MAX_X, LEV_MAX_Y, LEV_MAX_Z);
-            case FAST_RETURN -> controlBox(facing, PANEL6_YAW_RAD, FAST_RETURN_SCALE, FAST_RETURN_MOUNT_X_PX,
+            case FAST_RETURN -> middle(PANEL6_YAW_RAD, FAST_RETURN_SCALE, FAST_RETURN_MOUNT_X_PX,
                     FR_MIN_X, FR_MIN_Y, FR_MIN_Z, FR_MAX_X, FR_MAX_Y, FR_MAX_Z);
-            case STABILISERS -> controlBox(
-                    facing,
-                    PANEL6_YAW_RAD,
-                    STABILISERS_SCALE,
-                    STABILISERS_MOUNT_X_PX,
-                    STABILISERS_MOUNT_Y_PX,
-                    STABILISERS_MOUNT_Z_PX,
-                    STAB_MIN_X,
-                    STAB_MIN_Y,
-                    STAB_MIN_Z,
-                    STAB_MAX_X,
-                    STAB_MAX_Y,
-                    STAB_MAX_Z
-            );
-            case NONE -> new AABB(0, 0, 0, 0, 0, 0);
+            case STABILISERS -> bottom(PANEL6_YAW_RAD, STABILISERS_SCALE, STABILISERS_MOUNT_X_PX,
+                    STAB_MIN_X, STAB_MIN_Y, STAB_MIN_Z, STAB_MAX_X, STAB_MAX_Y, STAB_MAX_Z);
+            case OXYGEN_READER -> middle(PANEL1_YAW_RAD, READER_SCALE, OXYGEN_READER_MOUNT_X_PX,
+                    RDR_MIN_X, RDR_MIN_Y, RDR_MIN_Z, RDR_MAX_X, RDR_MAX_Y, RDR_MAX_Z);
+            case PRESSURE_READER -> middle(PANEL1_YAW_RAD, READER_SCALE, PRESSURE_READER_MOUNT_X_PX,
+                    RDR_MIN_X, RDR_MIN_Y, RDR_MIN_Z, RDR_MAX_X, RDR_MAX_Y, RDR_MAX_Z);
+            case TEMPERATURE_READER -> middle(PANEL1_YAW_RAD, READER_SCALE, TEMPERATURE_READER_MOUNT_X_PX,
+                    RDR_MIN_X, RDR_MIN_Y, RDR_MIN_Z, RDR_MAX_X, RDR_MAX_Y, RDR_MAX_Z);
+            case RADIATION_READER -> bottom(PANEL1_YAW_RAD, RADIATION_SCALE, 0.0F,
+                    RAD_MIN_X, RAD_MIN_Y, RAD_MIN_Z, RAD_MAX_X, RAD_MAX_Y, RAD_MAX_Z);
+            case REFUELER -> middle(PANEL5_YAW_RAD, READER_SCALE, 0.0F,
+                    RDR_MIN_X, RDR_MIN_Y, RDR_MIN_Z, RDR_MAX_X, RDR_MAX_Y, RDR_MAX_Z);
+            case NONE -> new ControlLayout(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
         };
+    }
+
+    private static ControlLayout middle(
+            float yaw,
+            float scale,
+            float mountX,
+            float minX,
+            float minY,
+            float minZ,
+            float maxX,
+            float maxY,
+            float maxZ
+    ) {
+        return new ControlLayout(
+                yaw, scale, mountX, CONTROL_MOUNT_Y_PX, CONTROL_MOUNT_Z_PX,
+                minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
+    private static ControlLayout bottom(
+            float yaw,
+            float scale,
+            float mountX,
+            float minX,
+            float minY,
+            float minZ,
+            float maxX,
+            float maxY,
+            float maxZ
+    ) {
+        return new ControlLayout(
+                yaw, scale, mountX, BOTTOM_MOUNT_Y_PX, BOTTOM_MOUNT_Z_PX,
+                minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
+    public static AABB boxFor(LookTarget target, Direction facing) {
+        return unpaddedBoxFor(target, facing);
+    }
+
+    public static AABB worldBoxForTarget(LookTarget target, BlockPos pos, Direction facing) {
+        return worldBoxFor(target, pos, facing);
+    }
+
+    public static double distanceFromCenter(LookTarget target, Direction facing) {
+        AABB box = unpaddedBoxFor(target, facing);
+        Vec3 c = box.getCenter();
+        return Math.hypot(c.x - 0.5, c.z - 0.5);
     }
 
     /**
