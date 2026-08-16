@@ -32,6 +32,11 @@ public class DWMItems {
     public static final Item SONIC_FIFTH_DOCTOR = register(
             SonicScrewdriverItem::new,
             "sonic_fifth_doctor");
+    public static final Item TARDIS_KEY = register(
+            TardisKeyItem::new,
+            new Item.Properties().stacksTo(1),
+            "tardis_key"
+    );
 
     public static final Item AZBANTIUM = register(Item::new, "azbantium");
 
@@ -113,6 +118,7 @@ public class DWMItems {
             content.accept(SONIC_THIRD_DOCTOR);
             content.accept(SONIC_FOURTH_DOCTOR);
             content.accept(SONIC_FIFTH_DOCTOR);
+            content.accept(TARDIS_KEY);
             content.accept(AZBANTIUM_SHOVEL);
             content.accept(AZBANTIUM_PICKAXE);
             content.accept(AZBANTIUM_AXE);

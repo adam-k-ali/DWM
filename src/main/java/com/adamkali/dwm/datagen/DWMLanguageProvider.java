@@ -56,6 +56,12 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItem(t, DWMItems.SONIC_THIRD_DOCTOR, "Sonic Screwdriver (Third Doctor)");
         addItem(t, DWMItems.SONIC_FOURTH_DOCTOR, "Sonic Screwdriver (Fourth Doctor)");
         addItem(t, DWMItems.SONIC_FIFTH_DOCTOR, "Sonic Screwdriver (Fifth Doctor)");
+        addItem(t, DWMItems.TARDIS_KEY, "TARDIS Key");
+        t.add("dwm.key.bound", "Key bound to this TARDIS");
+        t.add("dwm.key.bind_not_owner", "Only the TARDIS owner can bind a key");
+        t.add("dwm.key.wrong_tardis", "This key is bound to another TARDIS");
+        t.add("dwm.key.tooltip.unbound", "Unbound");
+        t.add("dwm.key.tooltip.bound", "Bound to a TARDIS");
     }
 
     private static void addBuildingBlocks(TranslationBuilder t) {
@@ -321,6 +327,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.doors_locked", "Doors locked");
         t.add("dwm.console.doors_unlocked", "Doors unlocked");
         t.add("dwm.console.doors_are_locked", "Doors are locked");
+        t.add("dwm.console.doors_must_be_closed", "Doors must be closed");
         t.add("dwm.console.door_lock_unavailable", "Door lock unavailable");
         t.add("dwm.console.lock_x_on", "X axis locked");
         t.add("dwm.console.lock_x_off", "X axis unlocked");
