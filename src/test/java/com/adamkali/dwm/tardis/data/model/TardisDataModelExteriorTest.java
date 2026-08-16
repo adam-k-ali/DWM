@@ -139,4 +139,19 @@ class TardisDataModelExteriorTest {
         TardisDataModel legacy = gson.fromJson("{\"uuid\":\"" + model.uuid + "\"}", TardisDataModel.class);
         assertTrue(StabiliserLogic.isEnabled(legacy), "missing field must default on");
     }
+
+    @Test
+    void cloak_serializeThroughGsonAndDefaultOff() {
+        TardisDataModel model = new TardisDataModel();
+        model.cloaked = true;
+
+        Gson gson = new Gson();
+        TardisDataModel loaded = gson.fromJson(gson.toJson(model), TardisDataModel.class);
+
+        assertTrue(loaded.cloaked);
+        assertEquals(model, loaded);
+
+        TardisDataModel legacy = gson.fromJson("{\"uuid\":\"" + model.uuid + "\"}", TardisDataModel.class);
+        assertFalse(legacy.cloaked);
+    }
 }

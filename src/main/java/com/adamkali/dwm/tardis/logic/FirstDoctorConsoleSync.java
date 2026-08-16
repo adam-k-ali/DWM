@@ -1,11 +1,17 @@
 package com.adamkali.dwm.tardis.logic;
 
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
+import com.adamkali.dwm.block.entities.TardisBlockEntity;
+import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
+import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +38,24 @@ public final class FirstDoctorConsoleSync {
         FirstDoctorConsoleBlockEntity console = findConsole(server, tardisId);
         if (console != null && variant != null) {
             console.setSyncedVariant(variant);
+        }
+    }
+
+    /**
+     * Writes cloak state onto the interior console and linked exterior BEs.
+     */
+    public static void syncCloak(
+            @Nullable MinecraftServer server,
+            @Nullable UUID tardisId,
+            boolean cloaked
+    ) {
+        FirstDoctorConsoleBlockEntity console = findConsole(server, tardisId);
+        if (console != null) {
+            console.setSyncedCloaked(cloaked);
+        }
+        TardisBlockEntity exterior = findExterior(server, tardisId);
+        if (exterior != null) {
+            exterior.setSyncedCloaked(cloaked);
         }
     }
 
@@ -64,6 +88,32 @@ public final class FirstDoctorConsoleSync {
                 .offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE);
         if (interior.getBlockEntity(consolePos) instanceof FirstDoctorConsoleBlockEntity console) {
             return console;
+        }
+        return null;
+    }
+
+    private static @Nullable TardisBlockEntity findExterior(
+            @Nullable MinecraftServer server,
+            @Nullable UUID tardisId
+    ) {
+        if (server == null || tardisId == null) {
+            return null;
+        }
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null || !model.hasExteriorLocation || model.exteriorDimension == null) {
+            return null;
+        }
+        Identifier identifier = Identifier.tryParse(model.exteriorDimension);
+        if (identifier == null) {
+            return null;
+        }
+        ServerLevel exterior = server.getLevel(ResourceKey.create(Registries.DIMENSION, identifier));
+        if (exterior == null) {
+            return null;
+        }
+        BlockPos pos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
+        if (exterior.getBlockEntity(pos) instanceof TardisBlockEntity tardis) {
+            return tardis;
         }
         return null;
     }

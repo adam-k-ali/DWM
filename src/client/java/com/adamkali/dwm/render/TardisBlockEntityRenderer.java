@@ -78,6 +78,8 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         state.partialTicks = partialTicks;
         state.tardisId = entity.getTardisId();
         state.shouldRenderBoti = TardisBotiRenderer.shouldRender(doorState);
+        state.cloaked = entity.isSyncedCloaked()
+                || (entity.getTardisIdOrNull() != null && TardisLogic.isCloaked(entity.getTardisIdOrNull()));
     }
 
     @Override
@@ -87,6 +89,9 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
             SubmitNodeCollector submitNodeCollector,
             CameraRenderState camera
     ) {
+        if (state.cloaked) {
+            return;
+        }
         TardisModel model = modelCache.get(state.variant);
         Identifier texture = textureCache.get(state.variant);
         if (model == null || texture == null) {

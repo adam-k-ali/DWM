@@ -193,6 +193,21 @@ class TardisLogicTest {
     }
 
     @Test
+    void cloakFlag_persistsOnModelAndEquals() {
+        testTardis.uuid = testTardisId;
+        testTardis.cloaked = true;
+        TardisDataModel copy = new TardisDataModel();
+        copy.uuid = testTardisId;
+        copy.doorState = testTardis.doorState;
+        copy.variant = testTardis.variant;
+        copy.cloaked = true;
+        assertEquals(testTardis, copy);
+        assertTrue(CloakLogic.isCloaked(testTardis));
+        assertFalse(CloakLogic.toggle(testTardis));
+        assertFalse(testTardis.cloaked);
+    }
+
+    @Test
     void getTravelPhase_returnsModelPhase() {
         try (MockedStatic<TardisDataLoader> mockedStatic = Mockito.mockStatic(TardisDataLoader.class)) {
             mockedStatic.when(() -> TardisDataLoader.get(testTardisId)).thenReturn(testTardis);

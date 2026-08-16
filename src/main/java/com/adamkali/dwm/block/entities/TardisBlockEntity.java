@@ -29,6 +29,7 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
     private UUID tardisId;
     private @Nullable BlockPos interiorEntrance;
     private boolean interiorGenerated;
+    private boolean syncedCloaked;
 
     public TardisBlockEntity(UUID tardisId, BlockPos pos, BlockState state) {
         super(DWMBlockEntities.TARDIS_BLOCK_ENTITY, pos, state);
@@ -55,8 +56,14 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
     public void tick(Level world, BlockPos pos, BlockState state, TardisBlockEntity blockEntity) {
         if (this.tardisId != null) {
             TardisLogic.updateDoorState(this.tardisId);
-            if (!world.isClientSide() && this.interiorGenerated && !BotiPlotIndex.isRegistered(this.tardisId)) {
-                BotiPlotIndex.register(this.tardisId);
+            if (!world.isClientSide()) {
+                boolean cloaked = TardisLogic.isCloaked(this.tardisId);
+                if (cloaked != syncedCloaked) {
+                    setSyncedCloaked(cloaked);
+                }
+                if (this.interiorGenerated && !BotiPlotIndex.isRegistered(this.tardisId)) {
+                    BotiPlotIndex.register(this.tardisId);
+                }
             }
         }
     }
@@ -69,6 +76,7 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
 
         output.store("tardisId", UUIDUtil.CODEC, this.tardisId);
         output.putBoolean("interiorGenerated", this.interiorGenerated);
+        output.putBoolean("syncedCloaked", this.syncedCloaked);
         if (this.interiorEntrance != null) {
             output.putInt("interiorEntranceX", this.interiorEntrance.getX());
             output.putInt("interiorEntranceY", this.interiorEntrance.getY());
@@ -84,6 +92,7 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
 
         this.tardisId = input.read("tardisId", UUIDUtil.CODEC).orElse(null);
         this.interiorGenerated = input.getBooleanOr("interiorGenerated", false);
+        this.syncedCloaked = input.getBooleanOr("syncedCloaked", false);
         if (input.getInt("interiorEntranceX").isPresent()) {
             this.interiorEntrance = new BlockPos(
                     input.getIntOr("interiorEntranceX", 0),
@@ -114,6 +123,19 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
     public void setInteriorEntrance(@Nullable BlockPos interiorEntrance) {
         this.interiorEntrance = interiorEntrance;
         setChanged();
+    }
+
+    public boolean isSyncedCloaked() {
+        return syncedCloaked;
+    }
+
+    public void setSyncedCloaked(boolean cloaked) {
+        this.syncedCloaked = cloaked;
+        setChanged();
+        if (level != null && !level.isClientSide()) {
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+        }
     }
 
     public boolean isInteriorGenerated() {

@@ -311,6 +311,9 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.reader_unavailable", "Reader unavailable");
         t.add("dwm.console.refueler_stable", "Artron reserves: stable");
         t.add("dwm.console.refueler_unavailable", "Refueler unavailable");
+        t.add("dwm.console.cloak_on", "Cloak engaged");
+        t.add("dwm.console.cloak_off", "Cloak disengaged");
+        t.add("dwm.console.cloak_unavailable", "Cloak unavailable");
         t.add("dwm.gui.waypoint.title", "Waypoint Selector");
         t.add("dwm.gui.waypoint.save", "Save");
         t.add("dwm.gui.waypoint.rename", "Rename");

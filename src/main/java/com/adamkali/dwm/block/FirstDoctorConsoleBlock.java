@@ -9,6 +9,7 @@ import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisExteriorLocation;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
+import com.adamkali.dwm.tardis.logic.CloakLogic;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
 import com.adamkali.dwm.tardis.logic.FastReturnLogic;
 import com.adamkali.dwm.tardis.logic.FirstDoctorConsoleSync;
@@ -193,6 +194,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             case TEMPERATURE_READER -> handleReader(player, console, ExteriorEnvironmentReadout.Reading::temperature, "dwm.console.temperature");
             case RADIATION_READER -> handleReader(player, console, ExteriorEnvironmentReadout.Reading::radiation, "dwm.console.radiation");
             case REFUELER -> handleRefueler(player);
+            case CLOAK -> handleCloak(world, pos, player, serverWorld, console, tardisId);
             case NONE -> InteractionResult.PASS;
         };
     }
@@ -209,6 +211,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             case OXYGEN_READER, PRESSURE_READER, TEMPERATURE_READER, RADIATION_READER ->
                     "dwm.console.reader_unavailable";
             case REFUELER -> "dwm.console.refueler_unavailable";
+            case CLOAK -> "dwm.console.cloak_unavailable";
             case MATERIALISATION_LEVER, NONE -> "dwm.console.travel_unavailable";
         };
     }
@@ -445,6 +448,28 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
 
     private static InteractionResult handleRefueler(Player player) {
         player.sendOverlayMessage(Component.translatable("dwm.console.refueler_stable"));
+        return InteractionResult.SUCCESS;
+    }
+
+    private static InteractionResult handleCloak(
+            Level world,
+            BlockPos pos,
+            Player player,
+            ServerLevel serverWorld,
+            FirstDoctorConsoleBlockEntity console,
+            UUID tardisId
+    ) {
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.cloak_unavailable"));
+            return InteractionResult.CONSUME;
+        }
+        boolean cloaked = CloakLogic.toggle(model);
+        console.setSyncedCloaked(cloaked);
+        FirstDoctorConsoleSync.syncCloak(serverWorld.getServer(), tardisId, cloaked);
+        player.sendOverlayMessage(Component.translatable(
+                cloaked ? "dwm.console.cloak_on" : "dwm.console.cloak_off"));
+        playClick(world, pos);
         return InteractionResult.SUCCESS;
     }
 

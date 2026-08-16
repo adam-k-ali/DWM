@@ -292,6 +292,10 @@ public class TardisLogic {
         return tardis.getDestinationMode();
     }
 
+    public static boolean isCloaked(@Nullable UUID tardisId) {
+        return CloakLogic.isCloaked(TardisDataLoader.get(tardisId));
+    }
+
     public static TardisTravelPhase getTravelPhase(@Nullable UUID tardisId) {
         TardisDataModel tardis = TardisDataLoader.get(tardisId);
         if (tardis == null) {
