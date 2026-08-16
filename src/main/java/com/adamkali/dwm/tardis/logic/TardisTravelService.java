@@ -313,8 +313,10 @@ public final class TardisTravelService {
         SotoExteriorIndex.register(tardisId, model);
         PortalStreamSyncService.setMetaChanged(tardisId);
 
-        model.doorState.isOpen = true;
-        model.doorState.doorSwing = 0.0f;
+        if (!model.doorsLocked) {
+            model.doorState.isOpen = true;
+            model.doorState.doorSwing = 0.0f;
+        }
         model.travelPhaseTicks = MATERIALISING_DURATION_TICKS;
         model.setChanged();
         model.setTravelPhase(TardisTravelPhase.MATERIALISING);

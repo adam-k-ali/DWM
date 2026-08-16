@@ -115,6 +115,18 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 generateAzbantiumRecipes();
                 generateGallifreyVanillaOreRecipes();
                 generateInteriorDecorRecipes();
+                generateTardisKeyRecipe();
+            }
+
+            private void generateTardisKeyRecipe() {
+                shaped(RecipeCategory.TOOLS, DWMItems.TARDIS_KEY)
+                        .define('G', Items.GOLD_NUGGET)
+                        .define('I', Items.IRON_INGOT)
+                        .pattern("GG")
+                        .pattern("G ")
+                        .pattern("I ")
+                        .unlockedBy(getHasName(Items.GOLD_NUGGET), has(Items.GOLD_NUGGET))
+                        .save(output);
             }
 
             private void generateGallifreyVanillaOreRecipes() {

@@ -61,7 +61,7 @@ public class TardisDataModel {
     /** Perception filter: hide the exterior shell/doors/BOTI. Default off. */
     public boolean cloaked;
 
-    /** When true, doors refuse opening. Closing is always allowed. */
+    /** When true, doors refuse opening. Closing is always allowed. Lock/unlock requires closed doors. */
     public boolean doorsLocked;
 
     /** Pin landing X/Y/Z to the current exterior after resolve + scatter. */

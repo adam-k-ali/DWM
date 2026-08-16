@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "G": "minecraft:gold_nugget",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "GG",
+    "G ",
+    "I "
+  ],
+  "result": {
+    "id": "dwm:tardis_key"
+  }
+}
