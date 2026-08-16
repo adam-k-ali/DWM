@@ -6,6 +6,7 @@ import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.model.tileentity.BiomeSelectorModel;
 import com.adamkali.dwm.model.tileentity.ChameleonCircuitModel;
 import com.adamkali.dwm.model.tileentity.CloakLeverModel;
+import com.adamkali.dwm.model.tileentity.DoorLockModel;
 import com.adamkali.dwm.model.tileentity.FastReturnModel;
 import com.adamkali.dwm.model.tileentity.FifthDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.FirstDoctorConsoleModel;
@@ -75,6 +76,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
     private final ReaderModel readerModel;
     private final RadiationReaderModel radiationReaderModel;
     private final CloakLeverModel cloakLeverModel;
+    private final DoorLockModel doorLockModel;
     private final HashMap<TardisChameleonVariant, TardisModel> shellModelCache = new HashMap<>();
     private final HashMap<TardisChameleonVariant, Identifier> shellTextureCache = new HashMap<>();
 
@@ -101,6 +103,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
         this.radiationReaderModel = new RadiationReaderModel(
                 context.bakeLayer(RadiationReaderModel.LAYER_LOCATION));
         this.cloakLeverModel = new CloakLeverModel(context.bakeLayer(CloakLeverModel.LAYER_LOCATION));
+        this.doorLockModel = new DoorLockModel(context.bakeLayer(DoorLockModel.LAYER_LOCATION));
 
         cacheShell(TardisChameleonVariant.TT_CAPSULE,
                 new TTCapsuleModel(context.bakeLayer(TTCapsuleModel.LAYER_LOCATION)),
@@ -163,6 +166,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
         state.hologramYawDegrees = hologramYawDegrees(timeTicks);
         state.hologramBobOffset = hologramBobOffset(timeTicks);
         state.cloaked = entity.isSyncedCloaked();
+        state.doorsLocked = entity.isSyncedDoorsLocked();
         ExteriorEnvironmentReadout.Reading reading = entity.syncedReading();
         state.readerNoSignal = reading.noSignal();
         state.oxygen = reading.needle(reading.oxygen());
@@ -216,6 +220,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
         animState.setRotorBobOffset(state.rotorBobOffset);
         animState.setStabilisersEnabled(state.stabilisersEnabled);
         animState.setCloaked(state.cloaked);
+        animState.setDoorsLocked(state.doorsLocked);
 
         poseStack.pushPose();
         applyTransforms(poseStack, state.facing);
@@ -342,6 +347,13 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 0.0F,
                 FirstDoctorConsoleControls.CONTROL_MOUNT_Y_PX,
                 FirstDoctorConsoleControls.CONTROL_MOUNT_Z_PX);
+        submitMounted(poseStack, submitNodeCollector, state, animState,
+                doorLockModel, DoorLockModel.TEXTURE_LOCATION,
+                FirstDoctorConsoleControls.PANEL4_YAW_RAD,
+                FirstDoctorConsoleControls.DOOR_LOCK_SCALE,
+                0.0F,
+                FirstDoctorConsoleControls.BOTTOM_MOUNT_Y_PX,
+                FirstDoctorConsoleControls.BOTTOM_MOUNT_Z_PX);
 
         poseStack.popPose();
     }

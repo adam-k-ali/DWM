@@ -4,9 +4,11 @@ import com.adamkali.dwm.block.entities.DWMBlockEntities;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.tardis.interior.TardisInteriorDoorShapes;
 import com.adamkali.dwm.tardis.interior.TardisInteriorService;
+import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -178,6 +180,15 @@ public class TardisInteriorDoorBlock extends Block implements EntityBlock {
     protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
         if (player.isShiftKeyDown()) {
             return InteractionResult.PASS;
+        }
+        if (world.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+        boolean currentlyOpen = state.getValue(OPEN);
+        TardisInteriorDoorBlockEntity origin = getOriginEntity(world, pos, state);
+        if (!currentlyOpen && origin != null && TardisLogic.areDoorsLocked(origin.getTardisId())) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.doors_are_locked"));
+            return InteractionResult.CONSUME;
         }
         toggleOpen(world, pos, state);
         return InteractionResult.SUCCESS;

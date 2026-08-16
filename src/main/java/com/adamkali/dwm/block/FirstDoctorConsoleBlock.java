@@ -10,6 +10,7 @@ import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisExteriorLocation;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.logic.CloakLogic;
+import com.adamkali.dwm.tardis.logic.DoorLockLogic;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
 import com.adamkali.dwm.tardis.logic.FastReturnLogic;
 import com.adamkali.dwm.tardis.logic.FirstDoctorConsoleSync;
@@ -195,6 +196,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             case RADIATION_READER -> handleReader(player, console, ExteriorEnvironmentReadout.Reading::radiation, "dwm.console.radiation");
             case REFUELER -> handleRefueler(player);
             case CLOAK -> handleCloak(world, pos, player, serverWorld, console, tardisId);
+            case DOOR_LOCK -> handleDoorLock(world, pos, player, serverWorld, console, tardisId);
             case NONE -> InteractionResult.PASS;
         };
     }
@@ -212,6 +214,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
                     "dwm.console.reader_unavailable";
             case REFUELER -> "dwm.console.refueler_unavailable";
             case CLOAK -> "dwm.console.cloak_unavailable";
+            case DOOR_LOCK -> "dwm.console.door_lock_unavailable";
             case MATERIALISATION_LEVER, NONE -> "dwm.console.travel_unavailable";
         };
     }
@@ -469,6 +472,28 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         FirstDoctorConsoleSync.syncCloak(serverWorld.getServer(), tardisId, cloaked);
         player.sendOverlayMessage(Component.translatable(
                 cloaked ? "dwm.console.cloak_on" : "dwm.console.cloak_off"));
+        playClick(world, pos);
+        return InteractionResult.SUCCESS;
+    }
+
+    private static InteractionResult handleDoorLock(
+            Level world,
+            BlockPos pos,
+            Player player,
+            ServerLevel serverWorld,
+            FirstDoctorConsoleBlockEntity console,
+            UUID tardisId
+    ) {
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.door_lock_unavailable"));
+            return InteractionResult.CONSUME;
+        }
+        boolean locked = DoorLockLogic.toggle(model);
+        console.setSyncedDoorsLocked(locked);
+        FirstDoctorConsoleSync.syncDoorsLocked(serverWorld.getServer(), tardisId, locked);
+        player.sendOverlayMessage(Component.translatable(
+                locked ? "dwm.console.doors_locked" : "dwm.console.doors_unlocked"));
         playClick(world, pos);
         return InteractionResult.SUCCESS;
     }

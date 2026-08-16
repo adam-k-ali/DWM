@@ -12,6 +12,7 @@ public class TardisRenderState extends EntityRenderState {
     /** 0–1 needle pose for the currently submitted reader / refueler. */
     private float needle;
     private boolean cloaked;
+    private boolean doorsLocked;
 
     public TardisRenderState() {
         this.doorSwingProgress = 0.0f;
@@ -57,6 +58,14 @@ public class TardisRenderState extends EntityRenderState {
 
     public boolean isCloaked() {
         return this.cloaked;
+    }
+
+    public void setDoorsLocked(boolean doorsLocked) {
+        this.doorsLocked = doorsLocked;
+    }
+
+    public boolean areDoorsLocked() {
+        return this.doorsLocked;
     }
 
 }

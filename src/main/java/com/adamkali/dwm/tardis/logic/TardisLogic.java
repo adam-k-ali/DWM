@@ -34,6 +34,10 @@ public class TardisLogic {
             return InteractionResult.PASS;
         }
 
+        if (DoorLockLogic.blocksOpen(tardis, tardis.doorState.isOpen)) {
+            return InteractionResult.FAIL;
+        }
+
         tardis.doorState.isOpen = !tardis.doorState.isOpen;
         tardis.setChanged();
         PortalStreamSyncService.setMetaChanged(tardisId);
@@ -294,6 +298,10 @@ public class TardisLogic {
 
     public static boolean isCloaked(@Nullable UUID tardisId) {
         return CloakLogic.isCloaked(TardisDataLoader.get(tardisId));
+    }
+
+    public static boolean areDoorsLocked(@Nullable UUID tardisId) {
+        return DoorLockLogic.isLocked(TardisDataLoader.get(tardisId));
     }
 
     public static TardisTravelPhase getTravelPhase(@Nullable UUID tardisId) {

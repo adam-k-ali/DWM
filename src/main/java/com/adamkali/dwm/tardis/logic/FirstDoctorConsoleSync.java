@@ -60,6 +60,20 @@ public final class FirstDoctorConsoleSync {
     }
 
     /**
+     * Writes door-lock state onto the interior console BE.
+     */
+    public static void syncDoorsLocked(
+            @Nullable MinecraftServer server,
+            @Nullable UUID tardisId,
+            boolean locked
+    ) {
+        FirstDoctorConsoleBlockEntity console = findConsole(server, tardisId);
+        if (console != null) {
+            console.setSyncedDoorsLocked(locked);
+        }
+    }
+
+    /**
      * Writes stabilisers enabled state onto the interior console BE and pushes a client update.
      */
     public static void syncStabilisers(

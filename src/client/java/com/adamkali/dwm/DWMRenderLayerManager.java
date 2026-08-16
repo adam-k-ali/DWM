@@ -57,6 +57,9 @@ public class DWMRenderLayerManager {
                 CloakLeverModel.LAYER_LOCATION,
                 CloakLeverModel::getTexturedModelData);
         ModelLayerRegistry.registerModelLayer(
+                DoorLockModel.LAYER_LOCATION,
+                DoorLockModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(
                 TardisGlobeModel.LAYER_LOCATION,
                 TardisGlobeModel::getTexturedModelData);
         ModelLayerRegistry.registerModelLayer(

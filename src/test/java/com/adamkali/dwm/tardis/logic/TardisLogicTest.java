@@ -193,6 +193,23 @@ class TardisLogicTest {
     }
 
     @Test
+    void toggleDoor_whenLocked_blocksOpenAndAllowsClose() {
+        try (MockedStatic<TardisDataLoader> mockedStatic = Mockito.mockStatic(TardisDataLoader.class)) {
+            mockedStatic.when(() -> TardisDataLoader.get(testTardisId)).thenReturn(testTardis);
+            testTardis.doorsLocked = true;
+            testTardis.doorState.isOpen = false;
+
+            assertEquals(InteractionResult.FAIL, TardisLogic.toggleDoor(testTardisId));
+            assertFalse(testTardis.doorState.isOpen);
+            assertTrue(TardisLogic.areDoorsLocked(testTardisId));
+
+            testTardis.doorState.isOpen = true;
+            assertEquals(InteractionResult.SUCCESS, TardisLogic.toggleDoor(testTardisId));
+            assertFalse(testTardis.doorState.isOpen);
+        }
+    }
+
+    @Test
     void cloakFlag_persistsOnModelAndEquals() {
         testTardis.uuid = testTardisId;
         testTardis.cloaked = true;
