@@ -5,7 +5,11 @@ import com.adamkali.dwm.block.FirstDoctorConsoleControls;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls.LookTarget;
 import com.adamkali.dwm.entity.ConsoleControlInteractionEntity;
 import com.adamkali.dwm.entity.DWMEntityTypes;
+import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
+import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
+import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumMap;
@@ -20,6 +24,9 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -30,16 +37,24 @@ import net.minecraft.world.phys.AABB;
 
 /**
  * Block entity for the First Doctor console. Holds {@code tardisId} for control interactions,
- * a synced chameleon variant for the Panel6 hologram preview, and synced stabilisers state.
+ * a synced chameleon variant for the Panel6 hologram preview, and synced console instruments
+ * (stabilisers and exterior environment readings).
  * Server tick maintains one {@link ConsoleControlInteractionEntity} per control.
  */
 public class FirstDoctorConsoleBlockEntity extends BlockEntity {
     /** Search radius so outer-deck controls (outside the 1×1 cell) are found. */
     private static final double CONTROL_SEARCH_PADDING = 2.5;
 
+    private static final int READOUT_INTERVAL_TICKS = 20;
+
     private @Nullable UUID tardisId;
     private TardisChameleonVariant syncedVariant = TardisChameleonVariant.TT_CAPSULE;
     private boolean syncedStabilisersEnabled = true;
+    private boolean syncedNoSignal = true;
+    private float syncedOxygen;
+    private float syncedPressure;
+    private float syncedTemperature;
+    private float syncedRadiation;
 
     public FirstDoctorConsoleBlockEntity(BlockPos pos, BlockState state) {
         super(DWMBlockEntities.FIRST_DOCTOR_CONSOLE_BLOCK_ENTITY, pos, state);
@@ -52,6 +67,9 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
             FirstDoctorConsoleBlockEntity console
     ) {
         console.maintainControlEntities(world, pos, state);
+        if (world.getGameTime() % READOUT_INTERVAL_TICKS == 0 && world instanceof ServerLevel serverWorld) {
+            console.refreshLinkedState(serverWorld);
+        }
     }
 
     private void maintainControlEntities(Level world, BlockPos pos, BlockState state) {
@@ -143,6 +161,64 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
         notifyClients();
     }
 
+    public ExteriorEnvironmentReadout.Reading syncedReading() {
+        if (syncedNoSignal) {
+            return ExteriorEnvironmentReadout.Reading.none();
+        }
+        return new ExteriorEnvironmentReadout.Reading(
+                false, syncedOxygen, syncedPressure, syncedTemperature, syncedRadiation);
+    }
+
+    public void setSyncedReading(ExteriorEnvironmentReadout.Reading reading) {
+        boolean noSignal = reading == null || reading.noSignal();
+        float oxygen = noSignal ? 0.0F : reading.oxygen();
+        float pressure = noSignal ? 0.0F : reading.pressure();
+        float temperature = noSignal ? 0.0F : reading.temperature();
+        float radiation = noSignal ? 0.0F : reading.radiation();
+        if (this.syncedNoSignal == noSignal
+                && this.syncedOxygen == oxygen
+                && this.syncedPressure == pressure
+                && this.syncedTemperature == temperature
+                && this.syncedRadiation == radiation) {
+            return;
+        }
+        this.syncedNoSignal = noSignal;
+        this.syncedOxygen = oxygen;
+        this.syncedPressure = pressure;
+        this.syncedTemperature = temperature;
+        this.syncedRadiation = radiation;
+        setChanged();
+        notifyClients();
+    }
+
+    private void refreshLinkedState(ServerLevel interiorWorld) {
+        refreshEnvironmentReadout(interiorWorld);
+    }
+
+    private void refreshEnvironmentReadout(ServerLevel interiorWorld) {
+        if (tardisId == null) {
+            setSyncedReading(ExteriorEnvironmentReadout.Reading.none());
+            return;
+        }
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null || !model.hasExteriorLocation || model.exteriorDimension == null) {
+            setSyncedReading(ExteriorEnvironmentReadout.Reading.none());
+            return;
+        }
+        boolean inFlight = TardisTravelService.isTraveling(tardisId);
+        ServerLevel exterior = resolveExterior(interiorWorld, model.exteriorDimension);
+        BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
+        setSyncedReading(ExteriorEnvironmentReadout.sample(exterior, exteriorPos, inFlight));
+    }
+
+    private static @Nullable ServerLevel resolveExterior(ServerLevel interiorWorld, String dimensionId) {
+        Identifier identifier = Identifier.tryParse(dimensionId);
+        if (identifier == null) {
+            return null;
+        }
+        return interiorWorld.getServer().getLevel(ResourceKey.create(Registries.DIMENSION, identifier));
+    }
+
     private void notifyClients() {
         if (level != null && !level.isClientSide()) {
             BlockState state = getBlockState();
@@ -170,6 +246,11 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
         }
         output.putString("syncedVariant", getSyncedVariant().getId().toString());
         output.putBoolean("syncedStabilisersEnabled", syncedStabilisersEnabled);
+        output.putBoolean("syncedNoSignal", syncedNoSignal);
+        output.putFloat("syncedOxygen", syncedOxygen);
+        output.putFloat("syncedPressure", syncedPressure);
+        output.putFloat("syncedTemperature", syncedTemperature);
+        output.putFloat("syncedRadiation", syncedRadiation);
     }
 
     @Override
@@ -178,6 +259,11 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
         tardisId = input.read("tardisId", UUIDUtil.CODEC).orElse(null);
         syncedVariant = parseVariant(input.getStringOr("syncedVariant", ""));
         syncedStabilisersEnabled = input.getBooleanOr("syncedStabilisersEnabled", true);
+        syncedNoSignal = input.getBooleanOr("syncedNoSignal", true);
+        syncedOxygen = input.getFloatOr("syncedOxygen", 0.0F);
+        syncedPressure = input.getFloatOr("syncedPressure", 0.0F);
+        syncedTemperature = input.getFloatOr("syncedTemperature", 0.0F);
+        syncedRadiation = input.getFloatOr("syncedRadiation", 0.0F);
     }
 
     private static TardisChameleonVariant parseVariant(String id) {

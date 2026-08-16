@@ -82,14 +82,17 @@ public final class ConsoleHitboxDebugRenderer {
                             );
                         }
 
-                        drawPose(mutable, facing, LookTarget.BIOME_SELECTOR, BIOME_COLOR);
-                        drawPose(mutable, facing, LookTarget.WAYPOINT_SELECTOR, WAYPOINT_COLOR);
-                        drawPose(mutable, facing, LookTarget.PLAYER_LOCATOR, PLAYER_COLOR);
-                        drawPose(mutable, facing, LookTarget.PLANET_LOCATOR, PLANET_COLOR);
-                        drawPose(mutable, facing, LookTarget.CHAMELEON_CIRCUIT, CHAMELEON_COLOR);
-                        drawPose(mutable, facing, LookTarget.MATERIALISATION_LEVER, LEVER_COLOR);
-                        drawPose(mutable, facing, LookTarget.FAST_RETURN, FAST_RETURN_COLOR);
-                        drawPose(mutable, facing, LookTarget.STABILISERS, STABILISERS_COLOR);
+                        int[] colors = {
+                                BIOME_COLOR, WAYPOINT_COLOR, PLAYER_COLOR, PLANET_COLOR,
+                                CHAMELEON_COLOR, LEVER_COLOR, FAST_RETURN_COLOR, STABILISERS_COLOR,
+                                0xFF66FFCC, 0xFF66CCFF, 0xFFFF9966, 0xFFCC66FF,
+                                0xFF99FF66, 0xFFFF66AA, 0xFFAAAAFF, 0xFFFFCC66,
+                                0xFF66FF66, 0xFFFF6666, 0xFF66AAFF
+                        };
+                        LookTarget[] targets = LookTarget.interactiveValues();
+                        for (int i = 0; i < targets.length; i++) {
+                            drawPose(mutable, facing, targets[i], colors[i % colors.length]);
+                        }
                     }
                 }
             }

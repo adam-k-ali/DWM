@@ -9,6 +9,8 @@ public class TardisRenderState extends EntityRenderState {
     private float rotorBobOffset;
     /** Console stabilisers toggle (default on). Used by {@code StabilisersModel}. */
     private boolean stabilisersEnabled = true;
+    /** 0–1 needle pose for the currently submitted reader / refueler. */
+    private float needle;
 
     public TardisRenderState() {
         this.doorSwingProgress = 0.0f;
@@ -39,4 +41,13 @@ public class TardisRenderState extends EntityRenderState {
     public boolean isStabilisersEnabled() {
         return this.stabilisersEnabled;
     }
+
+    public void setNeedle(float needle) {
+        this.needle = Mth.clamp(needle, 0.0f, 1.0f);
+    }
+
+    public float getNeedle() {
+        return this.needle;
+    }
+
 }

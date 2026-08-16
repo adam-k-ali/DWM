@@ -16,6 +16,7 @@ import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Crosshair tooltip for First Doctor console controls (via interaction entities).
@@ -46,14 +47,14 @@ public final class ConsoleControlHud {
 
         LookTarget target = control.getLookTarget();
         BlockPos consolePos = control.getConsolePos();
-        boolean stabilisersOn = true;
+        FirstDoctorConsoleBlockEntity console = null;
         if (consolePos != null) {
             BlockEntity be = client.level.getBlockEntity(consolePos);
-            if (be instanceof FirstDoctorConsoleBlockEntity console) {
-                stabilisersOn = console.isSyncedStabilisersEnabled();
+            if (be instanceof FirstDoctorConsoleBlockEntity found) {
+                console = found;
             }
         }
-        Component label = labelFor(target, stabilisersOn);
+        Component label = labelFor(target, console);
         if (label == null) {
             return;
         }
@@ -66,7 +67,8 @@ public final class ConsoleControlHud {
         graphics.text(client.font, label, x, y, color);
     }
 
-    private static Component labelFor(LookTarget target, boolean stabilisersOn) {
+    private static Component labelFor(LookTarget target, @Nullable FirstDoctorConsoleBlockEntity console) {
+        boolean stabilisersOn = console == null || console.isSyncedStabilisersEnabled();
         return switch (target) {
             case BIOME_SELECTOR -> Component.translatable("dwm.console.biome_selector");
             case WAYPOINT_SELECTOR -> Component.translatable("dwm.console.waypoint_selector");
@@ -77,7 +79,25 @@ public final class ConsoleControlHud {
             case FAST_RETURN -> Component.translatable("dwm.console.fast_return");
             case STABILISERS -> Component.translatable(
                     stabilisersOn ? "dwm.console.stabilisers_on" : "dwm.console.stabilisers_off");
+            case OXYGEN_READER -> readerLabel(console, reading -> reading.oxygen(), "dwm.console.oxygen");
+            case PRESSURE_READER -> readerLabel(console, reading -> reading.pressure(), "dwm.console.pressure");
+            case TEMPERATURE_READER -> readerLabel(console, reading -> reading.temperature(), "dwm.console.temperature");
+            case RADIATION_READER -> readerLabel(console, reading -> reading.radiation(), "dwm.console.radiation");
+            case REFUELER -> Component.translatable("dwm.console.refueler_stable");
             case NONE -> null;
         };
+    }
+
+    private static Component readerLabel(
+            @Nullable FirstDoctorConsoleBlockEntity console,
+            java.util.function.ToDoubleFunction<com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout.Reading> value,
+            String key
+    ) {
+        if (console == null || console.syncedReading().noSignal()) {
+            return Component.translatable("dwm.console.reader_no_signal");
+        }
+        var reading = console.syncedReading();
+        int percent = Math.round(reading.needle((float) value.applyAsDouble(reading)) * 100.0F);
+        return Component.translatable(key, percent);
     }
 }

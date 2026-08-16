@@ -13,6 +13,8 @@ import com.adamkali.dwm.model.tileentity.FourthDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.MaterialisationLeverModel;
 import com.adamkali.dwm.model.tileentity.PlanetLocatorModel;
 import com.adamkali.dwm.model.tileentity.PlayerLocatorModel;
+import com.adamkali.dwm.model.tileentity.RadiationReaderModel;
+import com.adamkali.dwm.model.tileentity.ReaderModel;
 import com.adamkali.dwm.model.tileentity.SecondDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.SeventhDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.SixthDoctorTardisModel;
@@ -21,6 +23,7 @@ import com.adamkali.dwm.model.tileentity.TTCapsuleModel;
 import com.adamkali.dwm.model.tileentity.TardisModel;
 import com.adamkali.dwm.model.tileentity.ThirdDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.WaypointSelectorModel;
+import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
 import com.adamkali.dwm.render.state.FirstDoctorConsoleBlockEntityRenderState;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
@@ -68,6 +71,8 @@ public class FirstDoctorConsoleBlockEntityRenderer
     private final MaterialisationLeverModel materialisationLeverModel;
     private final FastReturnModel fastReturnModel;
     private final StabilisersModel stabilisersModel;
+    private final ReaderModel readerModel;
+    private final RadiationReaderModel radiationReaderModel;
     private final HashMap<TardisChameleonVariant, TardisModel> shellModelCache = new HashMap<>();
     private final HashMap<TardisChameleonVariant, Identifier> shellTextureCache = new HashMap<>();
 
@@ -90,6 +95,9 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 context.bakeLayer(FastReturnModel.LAYER_LOCATION));
         this.stabilisersModel = new StabilisersModel(
                 context.bakeLayer(StabilisersModel.LAYER_LOCATION));
+        this.readerModel = new ReaderModel(context.bakeLayer(ReaderModel.LAYER_LOCATION));
+        this.radiationReaderModel = new RadiationReaderModel(
+                context.bakeLayer(RadiationReaderModel.LAYER_LOCATION));
 
         cacheShell(TardisChameleonVariant.TT_CAPSULE,
                 new TTCapsuleModel(context.bakeLayer(TTCapsuleModel.LAYER_LOCATION)),
@@ -151,6 +159,12 @@ public class FirstDoctorConsoleBlockEntityRenderer
         state.variant = entity.getSyncedVariant();
         state.hologramYawDegrees = hologramYawDegrees(timeTicks);
         state.hologramBobOffset = hologramBobOffset(timeTicks);
+        ExteriorEnvironmentReadout.Reading reading = entity.syncedReading();
+        state.readerNoSignal = reading.noSignal();
+        state.oxygen = reading.needle(reading.oxygen());
+        state.pressure = reading.needle(reading.pressure());
+        state.temperature = reading.needle(reading.temperature());
+        state.radiation = reading.needle(reading.radiation());
 
         if (world != null && world.isClientSide() && state.traveling && !stabilisersEnabled) {
             spawnUnstabilisedRotorSmoke(world, entity.getBlockPos());
@@ -278,6 +292,99 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 state.breakProgress);
         poseStack.popPose();
 
+        submitReader(poseStack, submitNodeCollector, state, animState,
+                ReaderModel.OXYGEN_TEXTURE, state.oxygen,
+                FirstDoctorConsoleControls.PANEL1_YAW_RAD,
+                FirstDoctorConsoleControls.READER_SCALE,
+                FirstDoctorConsoleControls.OXYGEN_READER_MOUNT_X_PX,
+                FirstDoctorConsoleControls.CONTROL_MOUNT_Y_PX,
+                FirstDoctorConsoleControls.CONTROL_MOUNT_Z_PX);
+        submitReader(poseStack, submitNodeCollector, state, animState,
+                ReaderModel.PRESSURE_TEXTURE, state.pressure,
+                FirstDoctorConsoleControls.PANEL1_YAW_RAD,
+                FirstDoctorConsoleControls.READER_SCALE,
+                FirstDoctorConsoleControls.PRESSURE_READER_MOUNT_X_PX,
+                FirstDoctorConsoleControls.CONTROL_MOUNT_Y_PX,
+                FirstDoctorConsoleControls.CONTROL_MOUNT_Z_PX);
+        submitReader(poseStack, submitNodeCollector, state, animState,
+                ReaderModel.TEMPERATURE_TEXTURE, state.temperature,
+                FirstDoctorConsoleControls.PANEL1_YAW_RAD,
+                FirstDoctorConsoleControls.READER_SCALE,
+                FirstDoctorConsoleControls.TEMPERATURE_READER_MOUNT_X_PX,
+                FirstDoctorConsoleControls.CONTROL_MOUNT_Y_PX,
+                FirstDoctorConsoleControls.CONTROL_MOUNT_Z_PX);
+        animState.setNeedle(state.radiation);
+        submitMounted(poseStack, submitNodeCollector, state, animState,
+                radiationReaderModel, RadiationReaderModel.TEXTURE_LOCATION,
+                FirstDoctorConsoleControls.PANEL1_YAW_RAD,
+                FirstDoctorConsoleControls.RADIATION_SCALE,
+                0.0F,
+                FirstDoctorConsoleControls.BOTTOM_MOUNT_Y_PX,
+                FirstDoctorConsoleControls.BOTTOM_MOUNT_Z_PX);
+        submitReader(poseStack, submitNodeCollector, state, animState,
+                ReaderModel.REFUELER_TEXTURE, ReaderModel.REFUELER_NEEDLE,
+                FirstDoctorConsoleControls.PANEL5_YAW_RAD,
+                FirstDoctorConsoleControls.READER_SCALE,
+                0.0F,
+                FirstDoctorConsoleControls.CONTROL_MOUNT_Y_PX,
+                FirstDoctorConsoleControls.CONTROL_MOUNT_Z_PX);
+
+        poseStack.popPose();
+    }
+
+    private void submitReader(
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            FirstDoctorConsoleBlockEntityRenderState state,
+            TardisRenderState animState,
+            Identifier texture,
+            float needle,
+            float panelYawRad,
+            float scale,
+            float mountXPx,
+            float mountYPx,
+            float mountZPx
+    ) {
+        animState.setNeedle(needle);
+        submitMounted(
+                poseStack,
+                submitNodeCollector,
+                state,
+                animState,
+                readerModel,
+                texture,
+                panelYawRad,
+                scale,
+                mountXPx,
+                mountYPx,
+                mountZPx
+        );
+    }
+
+    private void submitMounted(
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            FirstDoctorConsoleBlockEntityRenderState state,
+            TardisRenderState animState,
+            net.minecraft.client.model.Model<? super TardisRenderState> controlModel,
+            Identifier texture,
+            float panelYawRad,
+            float scale,
+            float mountXPx,
+            float mountYPx,
+            float mountZPx
+    ) {
+        poseStack.pushPose();
+        applyPanelControlTransforms(poseStack, panelYawRad, scale, mountXPx, mountYPx, mountZPx);
+        submitNodeCollector.submitModel(
+                controlModel,
+                animState,
+                poseStack,
+                RenderTypes.entityCutout(texture),
+                state.lightCoords,
+                OverlayTexture.NO_OVERLAY,
+                0,
+                state.breakProgress);
         poseStack.popPose();
     }
 

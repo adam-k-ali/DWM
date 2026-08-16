@@ -13,6 +13,40 @@ class FirstDoctorConsoleControlsTest {
     private static final double EPSILON = 1e-3;
 
     @Test
+    void consolePanel_encodesSixPurposesAndYaws() {
+        assertEquals(1, FirstDoctorConsoleControls.ConsolePanel.ENVIRONMENT.index());
+        assertEquals("Environment", FirstDoctorConsoleControls.ConsolePanel.ENVIRONMENT.purpose());
+        assertEquals(0.0F, FirstDoctorConsoleControls.PANEL1_YAW_RAD, EPSILON);
+        assertEquals(1.047198F, FirstDoctorConsoleControls.PANEL2_YAW_RAD, EPSILON);
+        assertEquals(2.094395F, FirstDoctorConsoleControls.PANEL3_YAW_RAD, EPSILON);
+        assertEquals(-3.141593F, FirstDoctorConsoleControls.PANEL4_YAW_RAD, EPSILON);
+        assertEquals(-2.094395F, FirstDoctorConsoleControls.PANEL5_YAW_RAD, EPSILON);
+        assertEquals(-1.047198F, FirstDoctorConsoleControls.PANEL6_YAW_RAD, EPSILON);
+        assertEquals(
+                FirstDoctorConsoleControls.ConsolePanel.NAVIGATION.yawRad(),
+                FirstDoctorConsoleControls.PANEL3_YAW_RAD,
+                EPSILON
+        );
+        assertEquals(
+                FirstDoctorConsoleControls.ConsolePanel.HELM.yawRad(),
+                FirstDoctorConsoleControls.PANEL6_YAW_RAD,
+                EPSILON
+        );
+    }
+
+    @Test
+    void threeRowMounts_topIsCloserToRotorThanBottom() {
+        assertEquals(9.081F, FirstDoctorConsoleControls.TOP_MOUNT_Y_PX, EPSILON);
+        assertEquals(7.839F, FirstDoctorConsoleControls.TOP_MOUNT_Z_PX, EPSILON);
+        assertEquals(8.081F, FirstDoctorConsoleControls.CONTROL_MOUNT_Y_PX, EPSILON);
+        assertEquals(2.339F, FirstDoctorConsoleControls.CONTROL_MOUNT_Z_PX, EPSILON);
+        assertEquals(7.081F, FirstDoctorConsoleControls.BOTTOM_MOUNT_Y_PX, EPSILON);
+        assertEquals(-3.661F, FirstDoctorConsoleControls.BOTTOM_MOUNT_Z_PX, EPSILON);
+        assertTrue(FirstDoctorConsoleControls.TOP_MOUNT_Z_PX > FirstDoctorConsoleControls.CONTROL_MOUNT_Z_PX);
+        assertTrue(FirstDoctorConsoleControls.CONTROL_MOUNT_Z_PX > FirstDoctorConsoleControls.BOTTOM_MOUNT_Z_PX);
+    }
+
+    @Test
     void biomeSelectorBox_sitsOnPanelDeckAwayFromCenter() {
         AABB box = FirstDoctorConsoleControls.biomeSelectorBox(Direction.NORTH);
         assertTrue(box.minY > 0.5, "selector should sit on panel deck, was minY=" + box.minY);
@@ -414,6 +448,39 @@ class FirstDoctorConsoleControlsTest {
         double stabDist = Math.hypot(stabilisers.position().x - 0.5, stabilisers.position().z - 0.5);
         assertTrue(leverDist > 0.45, "lever should be out on Panel6 deck");
         assertTrue(stabDist > leverDist, "stabilisers should be farther out than lever");
+    }
+
+    @Test
+    void dwm033Boxes_sitOnAssignedPanelsAndStayOffRotor() {
+        Direction facing = Direction.NORTH;
+        FirstDoctorConsoleControls.LookTarget[] targets = {
+                FirstDoctorConsoleControls.LookTarget.OXYGEN_READER,
+                FirstDoctorConsoleControls.LookTarget.PRESSURE_READER,
+                FirstDoctorConsoleControls.LookTarget.TEMPERATURE_READER,
+                FirstDoctorConsoleControls.LookTarget.RADIATION_READER,
+                FirstDoctorConsoleControls.LookTarget.REFUELER
+        };
+        for (FirstDoctorConsoleControls.LookTarget target : targets) {
+            double dist = FirstDoctorConsoleControls.distanceFromCenter(target, facing);
+            assertTrue(dist > 0.45, target + " should sit on a panel deck, dist=" + dist);
+            AABB box = FirstDoctorConsoleControls.boxFor(target, facing);
+            assertFalse(box.contains(0.5, 1.0, 0.5), target + " must stay off the rotor");
+        }
+
+        double oxygen = FirstDoctorConsoleControls.distanceFromCenter(
+                FirstDoctorConsoleControls.LookTarget.OXYGEN_READER, facing);
+        double radiation = FirstDoctorConsoleControls.distanceFromCenter(
+                FirstDoctorConsoleControls.LookTarget.RADIATION_READER, facing);
+        assertTrue(radiation > oxygen, "radiation should sit on the outer row");
+
+        AABB oxygenBox = FirstDoctorConsoleControls.boxFor(
+                FirstDoctorConsoleControls.LookTarget.OXYGEN_READER, facing);
+        AABB pressureBox = FirstDoctorConsoleControls.boxFor(
+                FirstDoctorConsoleControls.LookTarget.PRESSURE_READER, facing);
+        AABB temperatureBox = FirstDoctorConsoleControls.boxFor(
+                FirstDoctorConsoleControls.LookTarget.TEMPERATURE_READER, facing);
+        assertCentersDistinct(oxygenBox, pressureBox);
+        assertCentersDistinct(pressureBox, temperatureBox);
     }
 
     private static void assertCentersDistinct(AABB a, AABB b) {

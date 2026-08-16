@@ -9,6 +9,7 @@ import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisExteriorLocation;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
+import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
 import com.adamkali.dwm.tardis.logic.FastReturnLogic;
 import com.adamkali.dwm.tardis.logic.FirstDoctorConsoleSync;
 import com.adamkali.dwm.tardis.logic.PlayerLocatorLogic;
@@ -187,6 +188,11 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             case CHAMELEON_CIRCUIT -> handleChameleonCircuit(world, pos, player, serverWorld, console, tardisId);
             case FAST_RETURN -> handleFastReturn(world, pos, player, tardisId);
             case STABILISERS -> handleStabilisers(world, pos, player, serverWorld, console, tardisId);
+            case OXYGEN_READER -> handleReader(player, console, ExteriorEnvironmentReadout.Reading::oxygen, "dwm.console.oxygen");
+            case PRESSURE_READER -> handleReader(player, console, ExteriorEnvironmentReadout.Reading::pressure, "dwm.console.pressure");
+            case TEMPERATURE_READER -> handleReader(player, console, ExteriorEnvironmentReadout.Reading::temperature, "dwm.console.temperature");
+            case RADIATION_READER -> handleReader(player, console, ExteriorEnvironmentReadout.Reading::radiation, "dwm.console.radiation");
+            case REFUELER -> handleRefueler(player);
             case NONE -> InteractionResult.PASS;
         };
     }
@@ -200,6 +206,9 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             case CHAMELEON_CIRCUIT -> "dwm.console.chameleon_unavailable";
             case FAST_RETURN -> "dwm.console.fast_return_unavailable";
             case STABILISERS -> "dwm.console.stabilisers_unavailable";
+            case OXYGEN_READER, PRESSURE_READER, TEMPERATURE_READER, RADIATION_READER ->
+                    "dwm.console.reader_unavailable";
+            case REFUELER -> "dwm.console.refueler_unavailable";
             case MATERIALISATION_LEVER, NONE -> "dwm.console.travel_unavailable";
         };
     }
@@ -415,6 +424,27 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         player.sendOverlayMessage(Component.translatable(
                 enabled ? "dwm.console.stabilisers_on" : "dwm.console.stabilisers_off"));
         playClick(world, pos);
+        return InteractionResult.SUCCESS;
+    }
+
+    private static InteractionResult handleReader(
+            Player player,
+            FirstDoctorConsoleBlockEntity console,
+            java.util.function.ToDoubleFunction<ExteriorEnvironmentReadout.Reading> value,
+            String key
+    ) {
+        ExteriorEnvironmentReadout.Reading reading = console.syncedReading();
+        if (reading.noSignal()) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.reader_no_signal"));
+            return InteractionResult.CONSUME;
+        }
+        int percent = Math.round(reading.needle((float) value.applyAsDouble(reading)) * 100.0F);
+        player.sendOverlayMessage(Component.translatable(key, percent));
+        return InteractionResult.SUCCESS;
+    }
+
+    private static InteractionResult handleRefueler(Player player) {
+        player.sendOverlayMessage(Component.translatable("dwm.console.refueler_stable"));
         return InteractionResult.SUCCESS;
     }
 
