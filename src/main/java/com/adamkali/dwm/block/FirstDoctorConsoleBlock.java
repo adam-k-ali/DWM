@@ -189,20 +189,20 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             case WAYPOINT_SELECTOR -> handleWaypointSelector(world, pos, serverPlayer, tardisId);
             case PLAYER_LOCATOR -> handlePlayerLocator(world, pos, serverPlayer, serverWorld, tardisId);
             case MATERIALISATION_LEVER -> handleMaterialisationLever(world, pos, player, serverWorld, tardisId);
-            case CHAMELEON_CIRCUIT -> handleChameleonCircuit(world, pos, player, serverWorld, console, tardisId);
+            case CHAMELEON_CIRCUIT -> handleChameleonCircuit(world, pos, player, serverWorld, tardisId);
             case FAST_RETURN -> handleFastReturn(world, pos, player, tardisId);
-            case STABILISERS -> handleStabilisers(world, pos, player, serverWorld, console, tardisId);
+            case STABILISERS -> handleStabilisers(world, pos, player, serverWorld, tardisId);
             case OXYGEN_READER -> handleReader(player, console, ExteriorEnvironmentReadout.Reading::oxygen, "dwm.console.oxygen");
             case PRESSURE_READER -> handleReader(player, console, ExteriorEnvironmentReadout.Reading::pressure, "dwm.console.pressure");
             case TEMPERATURE_READER -> handleReader(player, console, ExteriorEnvironmentReadout.Reading::temperature, "dwm.console.temperature");
             case RADIATION_READER -> handleReader(player, console, ExteriorEnvironmentReadout.Reading::radiation, "dwm.console.radiation");
             case REFUELER -> handleRefueler(player);
             case TELEPATHIC_CIRCUIT -> handleTelepathic(world, pos, player, tardisId);
-            case CLOAK -> handleCloak(world, pos, player, serverWorld, console, tardisId);
-            case DOOR_LOCK -> handleDoorLock(world, pos, player, serverWorld, console, tardisId);
-            case COORDINATE_LOCK_X -> handleCoordinateLock(world, pos, player, serverWorld, console, tardisId, CoordinateLockLogic.Axis.X);
-            case COORDINATE_LOCK_Y -> handleCoordinateLock(world, pos, player, serverWorld, console, tardisId, CoordinateLockLogic.Axis.Y);
-            case COORDINATE_LOCK_Z -> handleCoordinateLock(world, pos, player, serverWorld, console, tardisId, CoordinateLockLogic.Axis.Z);
+            case CLOAK -> handleCloak(world, pos, player, serverWorld, tardisId);
+            case DOOR_LOCK -> handleDoorLock(world, pos, player, serverWorld, tardisId);
+            case COORDINATE_LOCK_X -> handleCoordinateLock(world, pos, player, serverWorld, tardisId, CoordinateLockLogic.Axis.X);
+            case COORDINATE_LOCK_Y -> handleCoordinateLock(world, pos, player, serverWorld, tardisId, CoordinateLockLogic.Axis.Y);
+            case COORDINATE_LOCK_Z -> handleCoordinateLock(world, pos, player, serverWorld, tardisId, CoordinateLockLogic.Axis.Z);
             case NONE -> InteractionResult.PASS;
         };
     }
@@ -366,7 +366,6 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             BlockPos pos,
             Player player,
             ServerLevel serverWorld,
-            FirstDoctorConsoleBlockEntity console,
             UUID tardisId
     ) {
         Optional<TardisChameleonVariant> next =
@@ -375,8 +374,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             player.sendOverlayMessage(Component.translatable("dwm.console.chameleon_unavailable"));
             return InteractionResult.CONSUME;
         }
-        // cycleVariant already syncs via FirstDoctorConsoleSync; keep local BE fresh for same-tick hologram.
-        console.setSyncedVariant(next.get());
+        // cycleVariant already syncs via FirstDoctorConsoleSync.syncFromModel.
         Component variantName = Component.translatable(next.get().getId().toLanguageKey());
         player.sendOverlayMessage(Component.translatable("dwm.console.chameleon_selected", variantName));
         playClick(world, pos);
@@ -425,7 +423,6 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             BlockPos pos,
             Player player,
             ServerLevel serverWorld,
-            FirstDoctorConsoleBlockEntity console,
             UUID tardisId
     ) {
         TardisDataModel model = TardisDataLoader.get(tardisId);
@@ -434,8 +431,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             return InteractionResult.CONSUME;
         }
         boolean enabled = StabiliserLogic.toggle(model);
-        console.setSyncedStabilisersEnabled(enabled);
-        FirstDoctorConsoleSync.syncStabilisers(serverWorld.getServer(), tardisId, enabled);
+        FirstDoctorConsoleSync.syncFromModel(serverWorld.getServer(), tardisId);
         player.sendOverlayMessage(Component.translatable(
                 enabled ? "dwm.console.stabilisers_on" : "dwm.console.stabilisers_off"));
         playClick(world, pos);
@@ -448,7 +444,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             java.util.function.ToDoubleFunction<ExteriorEnvironmentReadout.Reading> value,
             String key
     ) {
-        ExteriorEnvironmentReadout.Reading reading = console.syncedReading();
+        ExteriorEnvironmentReadout.Reading reading = console.syncedDisplay().reading();
         if (reading.noSignal()) {
             player.sendOverlayMessage(Component.translatable("dwm.console.reader_no_signal"));
             return InteractionResult.CONSUME;
@@ -493,7 +489,6 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             BlockPos pos,
             Player player,
             ServerLevel serverWorld,
-            FirstDoctorConsoleBlockEntity console,
             UUID tardisId
     ) {
         TardisDataModel model = TardisDataLoader.get(tardisId);
@@ -502,8 +497,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             return InteractionResult.CONSUME;
         }
         boolean cloaked = CloakLogic.toggle(model);
-        console.setSyncedCloaked(cloaked);
-        FirstDoctorConsoleSync.syncCloak(serverWorld.getServer(), tardisId, cloaked);
+        FirstDoctorConsoleSync.syncFromModel(serverWorld.getServer(), tardisId);
         player.sendOverlayMessage(Component.translatable(
                 cloaked ? "dwm.console.cloak_on" : "dwm.console.cloak_off"));
         playClick(world, pos);
@@ -515,7 +509,6 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             BlockPos pos,
             Player player,
             ServerLevel serverWorld,
-            FirstDoctorConsoleBlockEntity console,
             UUID tardisId
     ) {
         TardisDataModel model = TardisDataLoader.get(tardisId);
@@ -524,8 +517,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             return InteractionResult.CONSUME;
         }
         boolean locked = DoorLockLogic.toggle(model);
-        console.setSyncedDoorsLocked(locked);
-        FirstDoctorConsoleSync.syncDoorsLocked(serverWorld.getServer(), tardisId, locked);
+        FirstDoctorConsoleSync.syncFromModel(serverWorld.getServer(), tardisId);
         player.sendOverlayMessage(Component.translatable(
                 locked ? "dwm.console.doors_locked" : "dwm.console.doors_unlocked"));
         playClick(world, pos);
@@ -537,7 +529,6 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             BlockPos pos,
             Player player,
             ServerLevel serverWorld,
-            FirstDoctorConsoleBlockEntity console,
             UUID tardisId,
             CoordinateLockLogic.Axis axis
     ) {
@@ -547,8 +538,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             return InteractionResult.CONSUME;
         }
         boolean locked = CoordinateLockLogic.toggle(model, axis);
-        console.setSyncedAxisLock(axis, locked);
-        FirstDoctorConsoleSync.syncCoordinateLocks(serverWorld.getServer(), tardisId, model);
+        FirstDoctorConsoleSync.syncFromModel(serverWorld.getServer(), tardisId);
         String axisKey = switch (axis) {
             case X -> locked ? "dwm.console.lock_x_on" : "dwm.console.lock_x_off";
             case Y -> locked ? "dwm.console.lock_y_on" : "dwm.console.lock_y_off";

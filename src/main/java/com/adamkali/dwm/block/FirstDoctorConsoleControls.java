@@ -2,6 +2,11 @@ package com.adamkali.dwm.block;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
@@ -13,6 +18,7 @@ import net.minecraft.world.phys.Vec3;
  * {@code FirstDoctorConsoleBlockEntityRenderer} (center, Y×0.8, facing yaw, panel decks).
  *
  * <p>Panel deck chain: panel pivot/yaw → deck bone pivot/pitch → control mount offset.
+ * Per-control layout lives in the {@link ConsoleControlSpec} catalog.
  */
 public final class FirstDoctorConsoleControls {
     /**
@@ -84,17 +90,6 @@ public final class FirstDoctorConsoleControls {
     public static final float CONTROL_MOUNT_Y_PX = 8.081F;
     public static final float CONTROL_MOUNT_Z_PX = 2.339F;
 
-    /** Panel3 four-dial layout (deck-local X). */
-    public static final float BIOME_SELECTOR_MOUNT_X_PX = -3.75F;
-    public static final float WAYPOINT_SELECTOR_MOUNT_X_PX = -1.25F;
-    public static final float PLAYER_LOCATOR_MOUNT_X_PX = 1.25F;
-    public static final float PLANET_LOCATOR_MOUNT_X_PX = 3.75F;
-
-    /** Panel6: chameleon left of center; lever centered; fast return right of lever. */
-    public static final float CHAMELEON_CIRCUIT_MOUNT_X_PX = -4.0F;
-    public static final float LEVER_MOUNT_X_PX = CONTROL_MOUNT_X_PX;
-    public static final float FAST_RETURN_MOUNT_X_PX = 4.0F;
-
     /**
      * Top (inner) row — toward the rotor, compact widget cuboid top center.
      * Inner cuboid: {@code (-5, 5.081, 5.339) 10×4×5} → top center ≈ {@code (0, 9.081, 7.839)}.
@@ -107,49 +102,33 @@ public final class FirstDoctorConsoleControls {
      * Bottom (outer) row — player-facing cuboid top center.
      * Middle-row mounts keep {@link #CONTROL_MOUNT_Y_PX} / {@link #CONTROL_MOUNT_Z_PX}.
      */
-    public static final float STABILISERS_MOUNT_X_PX = 0.0F;
-    public static final float STABILISERS_MOUNT_Y_PX = 7.081F;
-    public static final float STABILISERS_MOUNT_Z_PX = -3.661F;
-    public static final float BOTTOM_MOUNT_X_PX = STABILISERS_MOUNT_X_PX;
-    public static final float BOTTOM_MOUNT_Y_PX = STABILISERS_MOUNT_Y_PX;
-    public static final float BOTTOM_MOUNT_Z_PX = STABILISERS_MOUNT_Z_PX;
+    public static final float BOTTOM_MOUNT_X_PX = 0.0F;
+    public static final float BOTTOM_MOUNT_Y_PX = 7.081F;
+    public static final float BOTTOM_MOUNT_Z_PX = -3.661F;
 
-    /** Uniform scale — the raw 14px dial is oversized for the Panel3 deck. */
-    public static final float SELECTOR_SCALE = 0.1125F;
+    private static final float BIOME_SELECTOR_MOUNT_X_PX = -3.75F;
+    private static final float WAYPOINT_SELECTOR_MOUNT_X_PX = -1.25F;
+    private static final float PLAYER_LOCATOR_MOUNT_X_PX = 1.25F;
+    private static final float PLANET_LOCATOR_MOUNT_X_PX = 3.75F;
+    private static final float CHAMELEON_CIRCUIT_MOUNT_X_PX = -4.0F;
+    private static final float LEVER_MOUNT_X_PX = CONTROL_MOUNT_X_PX;
+    private static final float FAST_RETURN_MOUNT_X_PX = 4.0F;
+    private static final float STABILISERS_MOUNT_X_PX = 0.0F;
+    private static final float OXYGEN_READER_MOUNT_X_PX = -3.75F;
+    private static final float PRESSURE_READER_MOUNT_X_PX = 0.0F;
+    private static final float TEMPERATURE_READER_MOUNT_X_PX = 3.75F;
 
-    /** Uniform scale for the materialisation lever on Panel6. */
-    public static final float LEVER_SCALE = 0.2F;
+    private static final float SELECTOR_SCALE = 0.1125F;
+    private static final float LEVER_SCALE = 0.2F;
+    private static final float FAST_RETURN_SCALE = LEVER_SCALE;
+    private static final float STABILISERS_SCALE = 0.18F;
+    private static final float READER_SCALE = SELECTOR_SCALE;
+    private static final float RADIATION_SCALE = 0.10F;
+    private static final float TELEPATHIC_SCALE = 0.14F;
+    private static final float CLOAK_SCALE = LEVER_SCALE;
+    private static final float DOOR_LOCK_SCALE = 0.14F;
+    private static final float COORDINATE_LOCK_SCALE = 0.11F;
 
-    /** Uniform scale for the fast-return switch on Panel6 (matches lever). */
-    public static final float FAST_RETURN_SCALE = LEVER_SCALE;
-
-    /** Uniform scale for the stabilisers control on Panel6 bottom row. */
-    public static final float STABILISERS_SCALE = 0.18F;
-
-    /** Shared 16×3×16 environment / refueler dial. */
-    public static final float READER_SCALE = SELECTOR_SCALE;
-
-    /** Taller unique radiation mesh on Panel1 bottom. */
-    public static final float RADIATION_SCALE = 0.10F;
-
-    /** 18×2×8 telepathic strip. */
-    public static final float TELEPATHIC_SCALE = 0.14F;
-
-    /** Cloak lever matches the materialisation lever scale. */
-    public static final float CLOAK_SCALE = LEVER_SCALE;
-
-    /** Wide flat door-lock panel. */
-    public static final float DOOR_LOCK_SCALE = 0.14F;
-
-    /** Wide 39px coordinate-lock instrument. */
-    public static final float COORDINATE_LOCK_SCALE = 0.11F;
-
-    /** Panel1 middle-row reader layout (deck-local X). */
-    public static final float OXYGEN_READER_MOUNT_X_PX = -3.75F;
-    public static final float PRESSURE_READER_MOUNT_X_PX = 0.0F;
-    public static final float TEMPERATURE_READER_MOUNT_X_PX = 3.75F;
-
-    /** Full selector footprint in selector-local pixels (14×2×14) before {@link #SELECTOR_SCALE}. */
     private static final float SEL_MIN_X = -7.0F;
     private static final float SEL_MIN_Y = 0.0F;
     private static final float SEL_MIN_Z = -7.0F;
@@ -157,10 +136,6 @@ public final class FirstDoctorConsoleControls {
     private static final float SEL_MAX_Y = 2.0F;
     private static final float SEL_MAX_Z = 7.0F;
 
-    /**
-     * Lever footprint in lever-local pixels before {@link #LEVER_SCALE}.
-     * Tight widget bounds (handle), not the decorative 18px base plate.
-     */
     private static final float LEV_MIN_X = -2.0F;
     private static final float LEV_MIN_Y = 0.0F;
     private static final float LEV_MIN_Z = -3.0F;
@@ -168,7 +143,6 @@ public final class FirstDoctorConsoleControls {
     private static final float LEV_MAX_Y = 8.0F;
     private static final float LEV_MAX_Z = 3.0F;
 
-    /** Fast-return footprint in switch-local pixels before {@link #FAST_RETURN_SCALE}. */
     private static final float FR_MIN_X = -2.5F;
     private static final float FR_MIN_Y = 0.0F;
     private static final float FR_MIN_Z = -3.0F;
@@ -176,10 +150,6 @@ public final class FirstDoctorConsoleControls {
     private static final float FR_MAX_Y = 3.6F;
     private static final float FR_MAX_Z = 3.0F;
 
-    /**
-     * Stabilisers footprint in control-local pixels before {@link #STABILISERS_SCALE}.
-     * Tight widget bounds, not the decorative 18px base plate.
-     */
     private static final float STAB_MIN_X = -4.0F;
     private static final float STAB_MIN_Y = 0.0F;
     private static final float STAB_MIN_Z = -4.0F;
@@ -187,7 +157,6 @@ public final class FirstDoctorConsoleControls {
     private static final float STAB_MAX_Y = 7.0F;
     private static final float STAB_MAX_Z = 4.0F;
 
-    /** Shared reader dial footprint (16×3×16) before {@link #READER_SCALE}. */
     private static final float RDR_MIN_X = -8.0F;
     private static final float RDR_MIN_Y = 0.0F;
     private static final float RDR_MIN_Z = -8.0F;
@@ -195,7 +164,6 @@ public final class FirstDoctorConsoleControls {
     private static final float RDR_MAX_Y = 3.0F;
     private static final float RDR_MAX_Z = 8.0F;
 
-    /** Radiation reader footprint before {@link #RADIATION_SCALE}. */
     private static final float RAD_MIN_X = -7.0F;
     private static final float RAD_MIN_Y = 0.0F;
     private static final float RAD_MIN_Z = -11.0F;
@@ -203,7 +171,6 @@ public final class FirstDoctorConsoleControls {
     private static final float RAD_MAX_Y = 6.0F;
     private static final float RAD_MAX_Z = 8.0F;
 
-    /** Telepathic strip footprint (18×2×8) before {@link #TELEPATHIC_SCALE}. */
     private static final float TEL_MIN_X = -9.0F;
     private static final float TEL_MIN_Y = 0.0F;
     private static final float TEL_MIN_Z = -4.0F;
@@ -211,7 +178,6 @@ public final class FirstDoctorConsoleControls {
     private static final float TEL_MAX_Y = 2.0F;
     private static final float TEL_MAX_Z = 4.0F;
 
-    /** Cloak lever footprint before {@link #CLOAK_SCALE}. */
     private static final float CLK_MIN_X = -2.0F;
     private static final float CLK_MIN_Y = 0.0F;
     private static final float CLK_MIN_Z = -3.0F;
@@ -219,7 +185,6 @@ public final class FirstDoctorConsoleControls {
     private static final float CLK_MAX_Y = 8.0F;
     private static final float CLK_MAX_Z = 3.0F;
 
-    /** Door lock footprint before {@link #DOOR_LOCK_SCALE}. */
     private static final float DLK_MIN_X = -11.0F;
     private static final float DLK_MIN_Y = 0.0F;
     private static final float DLK_MIN_Z = -6.0F;
@@ -227,7 +192,6 @@ public final class FirstDoctorConsoleControls {
     private static final float DLK_MAX_Y = 2.0F;
     private static final float DLK_MAX_Z = 8.0F;
 
-    /** Per-axis coordinate-lock pads on the wide instrument. */
     private static final float CLKX_MIN_X = 7.0F;
     private static final float CLKX_MAX_X = 14.0F;
     private static final float CLKY_MIN_X = 0.0F;
@@ -239,40 +203,11 @@ public final class FirstDoctorConsoleControls {
     private static final float CLKA_MIN_Z = -12.0F;
     private static final float CLKA_MAX_Z = -6.0F;
 
-    private record ControlLayout(
-            float panelYaw,
-            float scale,
-            float mountX,
-            float mountY,
-            float mountZ,
-            float minX,
-            float minY,
-            float minZ,
-            float maxX,
-            float maxY,
-            float maxZ
-    ) {
-    }
-
     private static final float Y_SCALE = 0.8F;
     private static final float PX = 1.0F / 16.0F;
     private static final double REACH = 5.0;
 
-    /** Panel3 dials resolved by look-ray (prefer closest on overlap). */
-    public enum Panel3Control {
-        BIOME,
-        WAYPOINT,
-        PLAYER,
-        PLANET
-    }
-
-    /** Panel6 controls resolved by look-ray (prefer closest on overlap). */
-    public enum Panel6Control {
-        CHAMELEON,
-        LEVER,
-        FAST_RETURN,
-        STABILISERS
-    }
+    private static final Map<LookTarget, ConsoleControlSpec> CATALOG = buildCatalog();
 
     /**
      * Unified look-ray target for console interaction (GUI / HUD). Prefer closest on overlap.
@@ -329,6 +264,19 @@ public final class FirstDoctorConsoleControls {
     private FirstDoctorConsoleControls() {
     }
 
+    /** Spec for {@code target}, or {@code null} for {@link LookTarget#NONE}. */
+    public static @Nullable ConsoleControlSpec spec(LookTarget target) {
+        if (target == null || target == LookTarget.NONE) {
+            return null;
+        }
+        return CATALOG.get(target);
+    }
+
+    /** All interactive control specs (excludes {@link LookTarget#NONE}). */
+    public static Collection<ConsoleControlSpec> specs() {
+        return Collections.unmodifiableCollection(CATALOG.values());
+    }
+
     /**
      * World-space interaction pose for {@code target} on a console at {@code pos}.
      * Returns {@code null} for {@link LookTarget#NONE}.
@@ -356,292 +304,7 @@ public final class FirstDoctorConsoleControls {
     }
 
     /**
-     * Block-local AABB of the biome selector for the given console facing
-     * (relative to the block's min corner).
-     */
-    public static AABB biomeSelectorBox(Direction facing) {
-        return selectorBox(facing, BIOME_SELECTOR_MOUNT_X_PX);
-    }
-
-    public static AABB biomeSelectorWorldBox(BlockPos pos, Direction facing) {
-        return biomeSelectorBox(facing).move(pos.getX(), pos.getY(), pos.getZ());
-    }
-
-    public static boolean isBiomeSelectorHit(Direction facing, Vec3 blockLocalHit) {
-        return biomeSelectorBox(facing).contains(blockLocalHit);
-    }
-
-    public static boolean isBiomeSelectorHit(Direction facing, BlockPos pos, Vec3 worldHit) {
-        Vec3 local = worldHit.subtract(pos.getX(), pos.getY(), pos.getZ());
-        return isBiomeSelectorHit(facing, local);
-    }
-
-    /**
-     * True when the player's look ray intersects the biome-selector AABB.
-     * Prefer this over block-outline hit positions (those land on the coarse console box).
-     */
-    public static boolean isBiomeSelectorLookHit(Direction facing, BlockPos pos, Player player) {
-        Vec3 eye = player.getEyePosition();
-        Vec3 look = player.getViewVector(1.0F);
-        return isBiomeSelectorLookHit(facing, pos, eye, look, REACH);
-    }
-
-    public static boolean isBiomeSelectorLookHit(
-            Direction facing,
-            BlockPos pos,
-            Vec3 eyePos,
-            Vec3 lookDir,
-            double reach
-    ) {
-        return lookHitsBox(biomeSelectorWorldBox(pos, facing), eyePos, lookDir, reach);
-    }
-
-    public static AABB waypointSelectorBox(Direction facing) {
-        return selectorBox(facing, WAYPOINT_SELECTOR_MOUNT_X_PX);
-    }
-
-    public static AABB waypointSelectorWorldBox(BlockPos pos, Direction facing) {
-        return waypointSelectorBox(facing).move(pos.getX(), pos.getY(), pos.getZ());
-    }
-
-    public static boolean isWaypointSelectorLookHit(Direction facing, BlockPos pos, Player player) {
-        return isWaypointSelectorLookHit(facing, pos, player.getEyePosition(), player.getViewVector(1.0F), REACH);
-    }
-
-    public static boolean isWaypointSelectorLookHit(
-            Direction facing,
-            BlockPos pos,
-            Vec3 eyePos,
-            Vec3 lookDir,
-            double reach
-    ) {
-        return lookHitsBox(waypointSelectorWorldBox(pos, facing), eyePos, lookDir, reach);
-    }
-
-    public static AABB playerLocatorBox(Direction facing) {
-        return selectorBox(facing, PLAYER_LOCATOR_MOUNT_X_PX);
-    }
-
-    public static AABB playerLocatorWorldBox(BlockPos pos, Direction facing) {
-        return playerLocatorBox(facing).move(pos.getX(), pos.getY(), pos.getZ());
-    }
-
-    public static boolean isPlayerLocatorLookHit(Direction facing, BlockPos pos, Player player) {
-        return isPlayerLocatorLookHit(facing, pos, player.getEyePosition(), player.getViewVector(1.0F), REACH);
-    }
-
-    public static boolean isPlayerLocatorLookHit(
-            Direction facing,
-            BlockPos pos,
-            Vec3 eyePos,
-            Vec3 lookDir,
-            double reach
-    ) {
-        return lookHitsBox(playerLocatorWorldBox(pos, facing), eyePos, lookDir, reach);
-    }
-
-    public static AABB planetLocatorBox(Direction facing) {
-        return selectorBox(facing, PLANET_LOCATOR_MOUNT_X_PX);
-    }
-
-    public static AABB planetLocatorWorldBox(BlockPos pos, Direction facing) {
-        return planetLocatorBox(facing).move(pos.getX(), pos.getY(), pos.getZ());
-    }
-
-    public static boolean isPlanetLocatorLookHit(Direction facing, BlockPos pos, Player player) {
-        Vec3 eye = player.getEyePosition();
-        Vec3 look = player.getViewVector(1.0F);
-        return isPlanetLocatorLookHit(facing, pos, eye, look, REACH);
-    }
-
-    public static boolean isPlanetLocatorLookHit(
-            Direction facing,
-            BlockPos pos,
-            Vec3 eyePos,
-            Vec3 lookDir,
-            double reach
-    ) {
-        return lookHitsBox(planetLocatorWorldBox(pos, facing), eyePos, lookDir, reach);
-    }
-
-    public static AABB chameleonCircuitBox(Direction facing) {
-        return controlBox(facing, PANEL6_YAW_RAD, SELECTOR_SCALE, CHAMELEON_CIRCUIT_MOUNT_X_PX,
-                SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
-    }
-
-    public static AABB chameleonCircuitWorldBox(BlockPos pos, Direction facing) {
-        return chameleonCircuitBox(facing).move(pos.getX(), pos.getY(), pos.getZ());
-    }
-
-    public static boolean isChameleonCircuitLookHit(Direction facing, BlockPos pos, Player player) {
-        return isChameleonCircuitLookHit(facing, pos, player.getEyePosition(), player.getViewVector(1.0F), REACH);
-    }
-
-    public static boolean isChameleonCircuitLookHit(
-            Direction facing,
-            BlockPos pos,
-            Vec3 eyePos,
-            Vec3 lookDir,
-            double reach
-    ) {
-        return lookHitsBox(chameleonCircuitWorldBox(pos, facing), eyePos, lookDir, reach);
-    }
-
-    public static AABB materialisationLeverBox(Direction facing) {
-        return controlBox(facing, PANEL6_YAW_RAD, LEVER_SCALE, LEVER_MOUNT_X_PX,
-                LEV_MIN_X, LEV_MIN_Y, LEV_MIN_Z, LEV_MAX_X, LEV_MAX_Y, LEV_MAX_Z);
-    }
-
-    public static AABB materialisationLeverWorldBox(BlockPos pos, Direction facing) {
-        return materialisationLeverBox(facing).move(pos.getX(), pos.getY(), pos.getZ());
-    }
-
-    public static boolean isMaterialisationLeverLookHit(Direction facing, BlockPos pos, Player player) {
-        Vec3 eye = player.getEyePosition();
-        Vec3 look = player.getViewVector(1.0F);
-        return isMaterialisationLeverLookHit(facing, pos, eye, look, REACH);
-    }
-
-    public static boolean isMaterialisationLeverLookHit(
-            Direction facing,
-            BlockPos pos,
-            Vec3 eyePos,
-            Vec3 lookDir,
-            double reach
-    ) {
-        return lookHitsBox(materialisationLeverWorldBox(pos, facing), eyePos, lookDir, reach);
-    }
-
-    public static AABB fastReturnBox(Direction facing) {
-        return controlBox(facing, PANEL6_YAW_RAD, FAST_RETURN_SCALE, FAST_RETURN_MOUNT_X_PX,
-                FR_MIN_X, FR_MIN_Y, FR_MIN_Z, FR_MAX_X, FR_MAX_Y, FR_MAX_Z);
-    }
-
-    public static AABB fastReturnWorldBox(BlockPos pos, Direction facing) {
-        return fastReturnBox(facing).move(pos.getX(), pos.getY(), pos.getZ());
-    }
-
-    public static boolean isFastReturnLookHit(Direction facing, BlockPos pos, Player player) {
-        return isFastReturnLookHit(facing, pos, player.getEyePosition(), player.getViewVector(1.0F), REACH);
-    }
-
-    public static boolean isFastReturnLookHit(
-            Direction facing,
-            BlockPos pos,
-            Vec3 eyePos,
-            Vec3 lookDir,
-            double reach
-    ) {
-        return lookHitsBox(fastReturnWorldBox(pos, facing), eyePos, lookDir, reach);
-    }
-
-    public static AABB stabilisersBox(Direction facing) {
-        return controlBox(
-                facing,
-                PANEL6_YAW_RAD,
-                STABILISERS_SCALE,
-                STABILISERS_MOUNT_X_PX,
-                STABILISERS_MOUNT_Y_PX,
-                STABILISERS_MOUNT_Z_PX,
-                STAB_MIN_X,
-                STAB_MIN_Y,
-                STAB_MIN_Z,
-                STAB_MAX_X,
-                STAB_MAX_Y,
-                STAB_MAX_Z
-        );
-    }
-
-    public static AABB stabilisersWorldBox(BlockPos pos, Direction facing) {
-        return stabilisersBox(facing).move(pos.getX(), pos.getY(), pos.getZ());
-    }
-
-    public static boolean isStabilisersLookHit(Direction facing, BlockPos pos, Player player) {
-        return isStabilisersLookHit(facing, pos, player.getEyePosition(), player.getViewVector(1.0F), REACH);
-    }
-
-    public static boolean isStabilisersLookHit(
-            Direction facing,
-            BlockPos pos,
-            Vec3 eyePos,
-            Vec3 lookDir,
-            double reach
-    ) {
-        return lookHitsBox(stabilisersWorldBox(pos, facing), eyePos, lookDir, reach);
-    }
-
-    /**
-     * When multiple Panel3 dials are along the look ray, returns the closest hit.
-     * Ties (coplanar dial tops) break toward the AABB whose center is nearest the eye in XZ.
-     * Returns {@code null} when none are hit.
-     */
-    public static @Nullable Panel3Control resolvePanel3LookHit(
-            Direction facing,
-            BlockPos pos,
-            Vec3 eyePos,
-            Vec3 lookDir,
-            double reach
-    ) {
-        Panel3Control best = null;
-        double bestDist = Double.POSITIVE_INFINITY;
-        double bestHoriz = Double.POSITIVE_INFINITY;
-        for (Panel3Control control : Panel3Control.values()) {
-            AABB box = panel3WorldBox(control, pos, facing);
-            double dist = lookHitDistance(box, eyePos, lookDir, reach);
-            if (dist < 0.0) {
-                continue;
-            }
-            Vec3 center = box.getCenter();
-            double horiz = horizontalDistanceSq(eyePos, center);
-            if (dist < bestDist || (dist == bestDist && horiz < bestHoriz)) {
-                bestDist = dist;
-                bestHoriz = horiz;
-                best = control;
-            }
-        }
-        return best;
-    }
-
-    public static @Nullable Panel3Control resolvePanel3LookHit(Direction facing, BlockPos pos, Player player) {
-        return resolvePanel3LookHit(facing, pos, player.getEyePosition(), player.getViewVector(1.0F), REACH);
-    }
-
-    /**
-     * When Panel6 control rays overlap, returns the closer control.
-     * Returns {@code null} when none are hit.
-     */
-    public static @Nullable Panel6Control resolvePanel6LookHit(
-            Direction facing,
-            BlockPos pos,
-            Vec3 eyePos,
-            Vec3 lookDir,
-            double reach
-    ) {
-        Panel6Control best = null;
-        double bestDist = Double.POSITIVE_INFINITY;
-        double bestHoriz = Double.POSITIVE_INFINITY;
-        for (Panel6Control control : Panel6Control.values()) {
-            AABB box = panel6WorldBox(control, pos, facing);
-            double dist = lookHitDistance(box, eyePos, lookDir, reach);
-            if (dist < 0.0) {
-                continue;
-            }
-            double horiz = horizontalDistanceSq(eyePos, box.getCenter());
-            if (dist < bestDist || (dist == bestDist && horiz < bestHoriz)) {
-                bestDist = dist;
-                bestHoriz = horiz;
-                best = control;
-            }
-        }
-        return best;
-    }
-
-    public static @Nullable Panel6Control resolvePanel6LookHit(Direction facing, BlockPos pos, Player player) {
-        return resolvePanel6LookHit(facing, pos, player.getEyePosition(), player.getViewVector(1.0F), REACH);
-    }
-
-    /**
-     * Resolves the closest console control along the player's look ray across Panel3 and Panel6.
+     * Resolves the closest console control along the player's look ray.
      * Returns {@link LookTarget#NONE} when nothing is hit.
      */
     public static LookTarget resolveLookTarget(Direction facing, BlockPos pos, Player player) {
@@ -658,10 +321,7 @@ public final class FirstDoctorConsoleControls {
         LookTarget best = LookTarget.NONE;
         double bestDist = Double.POSITIVE_INFINITY;
         double bestHoriz = Double.POSITIVE_INFINITY;
-        for (LookTarget candidate : LookTarget.values()) {
-            if (candidate == LookTarget.NONE) {
-                continue;
-            }
+        for (LookTarget candidate : LookTarget.interactiveValues()) {
             AABB box = worldBoxFor(candidate, pos, facing);
             double dist = lookHitDistance(box, eyePos, lookDir, reach);
             if (dist < 0.0) {
@@ -675,107 +335,6 @@ public final class FirstDoctorConsoleControls {
             }
         }
         return best;
-    }
-
-    private static AABB worldBoxFor(LookTarget target, BlockPos pos, Direction facing) {
-        return unpaddedBoxFor(target, facing).move(pos.getX(), pos.getY(), pos.getZ());
-    }
-
-    private static AABB unpaddedBoxFor(LookTarget target, Direction facing) {
-        if (target == LookTarget.NONE) {
-            return new AABB(0, 0, 0, 0, 0, 0);
-        }
-        ControlLayout layout = layout(target);
-        return controlBox(
-                facing,
-                layout.panelYaw,
-                layout.scale,
-                layout.mountX,
-                layout.mountY,
-                layout.mountZ,
-                layout.minX,
-                layout.minY,
-                layout.minZ,
-                layout.maxX,
-                layout.maxY,
-                layout.maxZ
-        );
-    }
-
-    private static ControlLayout layout(LookTarget target) {
-        return switch (target) {
-            case BIOME_SELECTOR -> middle(PANEL3_YAW_RAD, SELECTOR_SCALE, BIOME_SELECTOR_MOUNT_X_PX,
-                    SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
-            case WAYPOINT_SELECTOR -> middle(PANEL3_YAW_RAD, SELECTOR_SCALE, WAYPOINT_SELECTOR_MOUNT_X_PX,
-                    SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
-            case PLAYER_LOCATOR -> middle(PANEL3_YAW_RAD, SELECTOR_SCALE, PLAYER_LOCATOR_MOUNT_X_PX,
-                    SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
-            case PLANET_LOCATOR -> middle(PANEL3_YAW_RAD, SELECTOR_SCALE, PLANET_LOCATOR_MOUNT_X_PX,
-                    SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
-            case CHAMELEON_CIRCUIT -> middle(PANEL6_YAW_RAD, SELECTOR_SCALE, CHAMELEON_CIRCUIT_MOUNT_X_PX,
-                    SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
-            case MATERIALISATION_LEVER -> middle(PANEL6_YAW_RAD, LEVER_SCALE, LEVER_MOUNT_X_PX,
-                    LEV_MIN_X, LEV_MIN_Y, LEV_MIN_Z, LEV_MAX_X, LEV_MAX_Y, LEV_MAX_Z);
-            case FAST_RETURN -> middle(PANEL6_YAW_RAD, FAST_RETURN_SCALE, FAST_RETURN_MOUNT_X_PX,
-                    FR_MIN_X, FR_MIN_Y, FR_MIN_Z, FR_MAX_X, FR_MAX_Y, FR_MAX_Z);
-            case STABILISERS -> bottom(PANEL6_YAW_RAD, STABILISERS_SCALE, STABILISERS_MOUNT_X_PX,
-                    STAB_MIN_X, STAB_MIN_Y, STAB_MIN_Z, STAB_MAX_X, STAB_MAX_Y, STAB_MAX_Z);
-            case OXYGEN_READER -> middle(PANEL1_YAW_RAD, READER_SCALE, OXYGEN_READER_MOUNT_X_PX,
-                    RDR_MIN_X, RDR_MIN_Y, RDR_MIN_Z, RDR_MAX_X, RDR_MAX_Y, RDR_MAX_Z);
-            case PRESSURE_READER -> middle(PANEL1_YAW_RAD, READER_SCALE, PRESSURE_READER_MOUNT_X_PX,
-                    RDR_MIN_X, RDR_MIN_Y, RDR_MIN_Z, RDR_MAX_X, RDR_MAX_Y, RDR_MAX_Z);
-            case TEMPERATURE_READER -> middle(PANEL1_YAW_RAD, READER_SCALE, TEMPERATURE_READER_MOUNT_X_PX,
-                    RDR_MIN_X, RDR_MIN_Y, RDR_MIN_Z, RDR_MAX_X, RDR_MAX_Y, RDR_MAX_Z);
-            case RADIATION_READER -> bottom(PANEL1_YAW_RAD, RADIATION_SCALE, 0.0F,
-                    RAD_MIN_X, RAD_MIN_Y, RAD_MIN_Z, RAD_MAX_X, RAD_MAX_Y, RAD_MAX_Z);
-            case REFUELER -> middle(PANEL5_YAW_RAD, READER_SCALE, 0.0F,
-                    RDR_MIN_X, RDR_MIN_Y, RDR_MIN_Z, RDR_MAX_X, RDR_MAX_Y, RDR_MAX_Z);
-            case TELEPATHIC_CIRCUIT -> middle(PANEL2_YAW_RAD, TELEPATHIC_SCALE, 0.0F,
-                    TEL_MIN_X, TEL_MIN_Y, TEL_MIN_Z, TEL_MAX_X, TEL_MAX_Y, TEL_MAX_Z);
-            case CLOAK -> middle(PANEL4_YAW_RAD, CLOAK_SCALE, 0.0F,
-                    CLK_MIN_X, CLK_MIN_Y, CLK_MIN_Z, CLK_MAX_X, CLK_MAX_Y, CLK_MAX_Z);
-            case DOOR_LOCK -> bottom(PANEL4_YAW_RAD, DOOR_LOCK_SCALE, 0.0F,
-                    DLK_MIN_X, DLK_MIN_Y, DLK_MIN_Z, DLK_MAX_X, DLK_MAX_Y, DLK_MAX_Z);
-            case COORDINATE_LOCK_X -> bottom(PANEL3_YAW_RAD, COORDINATE_LOCK_SCALE, 0.0F,
-                    CLKX_MIN_X, CLKA_MIN_Y, CLKA_MIN_Z, CLKX_MAX_X, CLKA_MAX_Y, CLKA_MAX_Z);
-            case COORDINATE_LOCK_Y -> bottom(PANEL3_YAW_RAD, COORDINATE_LOCK_SCALE, 0.0F,
-                    CLKY_MIN_X, CLKA_MIN_Y, CLKA_MIN_Z, CLKY_MAX_X, CLKA_MAX_Y, CLKA_MAX_Z);
-            case COORDINATE_LOCK_Z -> bottom(PANEL3_YAW_RAD, COORDINATE_LOCK_SCALE, 0.0F,
-                    CLKZ_MIN_X, CLKA_MIN_Y, CLKA_MIN_Z, CLKZ_MAX_X, CLKA_MAX_Y, CLKA_MAX_Z);
-            case NONE -> new ControlLayout(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-        };
-    }
-
-    private static ControlLayout middle(
-            float yaw,
-            float scale,
-            float mountX,
-            float minX,
-            float minY,
-            float minZ,
-            float maxX,
-            float maxY,
-            float maxZ
-    ) {
-        return new ControlLayout(
-                yaw, scale, mountX, CONTROL_MOUNT_Y_PX, CONTROL_MOUNT_Z_PX,
-                minX, minY, minZ, maxX, maxY, maxZ);
-    }
-
-    private static ControlLayout bottom(
-            float yaw,
-            float scale,
-            float mountX,
-            float minX,
-            float minY,
-            float minZ,
-            float maxX,
-            float maxY,
-            float maxZ
-    ) {
-        return new ControlLayout(
-                yaw, scale, mountX, BOTTOM_MOUNT_Y_PX, BOTTOM_MOUNT_Z_PX,
-                minX, minY, minZ, maxX, maxY, maxZ);
     }
 
     public static AABB boxFor(LookTarget target, Direction facing) {
@@ -793,103 +352,120 @@ public final class FirstDoctorConsoleControls {
     }
 
     /**
-     * When biome and planet rays both hit, returns {@code true} if the biome AABB is closer.
-     * Prefer {@link #resolveLookTarget} for new callers.
+     * True when the look ray intersects {@code target}'s world AABB.
+     * Intended for tests and tooling.
      */
-    public static boolean preferBiomeOverPlanet(
+    public static boolean lookHits(
+            LookTarget target,
             Direction facing,
             BlockPos pos,
             Vec3 eyePos,
             Vec3 lookDir,
             double reach
     ) {
-        double biomeDist = lookHitDistance(biomeSelectorWorldBox(pos, facing), eyePos, lookDir, reach);
-        double planetDist = lookHitDistance(planetLocatorWorldBox(pos, facing), eyePos, lookDir, reach);
-        if (biomeDist < 0) {
+        if (target == LookTarget.NONE) {
             return false;
         }
-        if (planetDist < 0) {
-            return true;
+        return lookHitsBox(worldBoxFor(target, pos, facing), eyePos, lookDir, reach);
+    }
+
+    private static AABB worldBoxFor(LookTarget target, BlockPos pos, Direction facing) {
+        return unpaddedBoxFor(target, facing).move(pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    private static AABB unpaddedBoxFor(LookTarget target, Direction facing) {
+        ConsoleControlSpec layout = spec(target);
+        if (layout == null) {
+            return new AABB(0, 0, 0, 0, 0, 0);
         }
-        return biomeDist <= planetDist;
+        return controlBox(facing, layout);
     }
 
-    public static boolean preferBiomeOverPlanet(Direction facing, BlockPos pos, Player player) {
-        return preferBiomeOverPlanet(facing, pos, player.getEyePosition(), player.getViewVector(1.0F), REACH);
+    private static Map<LookTarget, ConsoleControlSpec> buildCatalog() {
+        EnumMap<LookTarget, ConsoleControlSpec> map = new EnumMap<>(LookTarget.class);
+        put(map, middle(LookTarget.BIOME_SELECTOR, PANEL3_YAW_RAD, SELECTOR_SCALE, BIOME_SELECTOR_MOUNT_X_PX,
+                SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z));
+        put(map, middle(LookTarget.WAYPOINT_SELECTOR, PANEL3_YAW_RAD, SELECTOR_SCALE, WAYPOINT_SELECTOR_MOUNT_X_PX,
+                SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z));
+        put(map, middle(LookTarget.PLAYER_LOCATOR, PANEL3_YAW_RAD, SELECTOR_SCALE, PLAYER_LOCATOR_MOUNT_X_PX,
+                SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z));
+        put(map, middle(LookTarget.PLANET_LOCATOR, PANEL3_YAW_RAD, SELECTOR_SCALE, PLANET_LOCATOR_MOUNT_X_PX,
+                SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z));
+        put(map, middle(LookTarget.CHAMELEON_CIRCUIT, PANEL6_YAW_RAD, SELECTOR_SCALE, CHAMELEON_CIRCUIT_MOUNT_X_PX,
+                SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z));
+        put(map, middle(LookTarget.MATERIALISATION_LEVER, PANEL6_YAW_RAD, LEVER_SCALE, LEVER_MOUNT_X_PX,
+                LEV_MIN_X, LEV_MIN_Y, LEV_MIN_Z, LEV_MAX_X, LEV_MAX_Y, LEV_MAX_Z));
+        put(map, middle(LookTarget.FAST_RETURN, PANEL6_YAW_RAD, FAST_RETURN_SCALE, FAST_RETURN_MOUNT_X_PX,
+                FR_MIN_X, FR_MIN_Y, FR_MIN_Z, FR_MAX_X, FR_MAX_Y, FR_MAX_Z));
+        put(map, bottom(LookTarget.STABILISERS, PANEL6_YAW_RAD, STABILISERS_SCALE, STABILISERS_MOUNT_X_PX,
+                STAB_MIN_X, STAB_MIN_Y, STAB_MIN_Z, STAB_MAX_X, STAB_MAX_Y, STAB_MAX_Z));
+        put(map, middle(LookTarget.OXYGEN_READER, PANEL1_YAW_RAD, READER_SCALE, OXYGEN_READER_MOUNT_X_PX,
+                RDR_MIN_X, RDR_MIN_Y, RDR_MIN_Z, RDR_MAX_X, RDR_MAX_Y, RDR_MAX_Z));
+        put(map, middle(LookTarget.PRESSURE_READER, PANEL1_YAW_RAD, READER_SCALE, PRESSURE_READER_MOUNT_X_PX,
+                RDR_MIN_X, RDR_MIN_Y, RDR_MIN_Z, RDR_MAX_X, RDR_MAX_Y, RDR_MAX_Z));
+        put(map, middle(LookTarget.TEMPERATURE_READER, PANEL1_YAW_RAD, READER_SCALE, TEMPERATURE_READER_MOUNT_X_PX,
+                RDR_MIN_X, RDR_MIN_Y, RDR_MIN_Z, RDR_MAX_X, RDR_MAX_Y, RDR_MAX_Z));
+        put(map, bottom(LookTarget.RADIATION_READER, PANEL1_YAW_RAD, RADIATION_SCALE, 0.0F,
+                RAD_MIN_X, RAD_MIN_Y, RAD_MIN_Z, RAD_MAX_X, RAD_MAX_Y, RAD_MAX_Z));
+        put(map, middle(LookTarget.REFUELER, PANEL5_YAW_RAD, READER_SCALE, 0.0F,
+                RDR_MIN_X, RDR_MIN_Y, RDR_MIN_Z, RDR_MAX_X, RDR_MAX_Y, RDR_MAX_Z));
+        put(map, middle(LookTarget.TELEPATHIC_CIRCUIT, PANEL2_YAW_RAD, TELEPATHIC_SCALE, 0.0F,
+                TEL_MIN_X, TEL_MIN_Y, TEL_MIN_Z, TEL_MAX_X, TEL_MAX_Y, TEL_MAX_Z));
+        put(map, middle(LookTarget.CLOAK, PANEL4_YAW_RAD, CLOAK_SCALE, 0.0F,
+                CLK_MIN_X, CLK_MIN_Y, CLK_MIN_Z, CLK_MAX_X, CLK_MAX_Y, CLK_MAX_Z));
+        put(map, bottom(LookTarget.DOOR_LOCK, PANEL4_YAW_RAD, DOOR_LOCK_SCALE, 0.0F,
+                DLK_MIN_X, DLK_MIN_Y, DLK_MIN_Z, DLK_MAX_X, DLK_MAX_Y, DLK_MAX_Z));
+        put(map, bottom(LookTarget.COORDINATE_LOCK_X, PANEL3_YAW_RAD, COORDINATE_LOCK_SCALE, 0.0F,
+                CLKX_MIN_X, CLKA_MIN_Y, CLKA_MIN_Z, CLKX_MAX_X, CLKA_MAX_Y, CLKA_MAX_Z));
+        put(map, bottom(LookTarget.COORDINATE_LOCK_Y, PANEL3_YAW_RAD, COORDINATE_LOCK_SCALE, 0.0F,
+                CLKY_MIN_X, CLKA_MIN_Y, CLKA_MIN_Z, CLKY_MAX_X, CLKA_MAX_Y, CLKA_MAX_Z));
+        put(map, bottom(LookTarget.COORDINATE_LOCK_Z, PANEL3_YAW_RAD, COORDINATE_LOCK_SCALE, 0.0F,
+                CLKZ_MIN_X, CLKA_MIN_Y, CLKA_MIN_Z, CLKZ_MAX_X, CLKA_MAX_Y, CLKA_MAX_Z));
+
+        for (LookTarget target : LookTarget.interactiveValues()) {
+            if (!map.containsKey(target)) {
+                throw new IllegalStateException("Missing ConsoleControlSpec for " + target);
+            }
+        }
+        return Map.copyOf(map);
     }
 
-    /**
-     * Transforms a point in biome-selector-local model pixels into block-local space (Panel3).
-     */
-    static Vec3 selectorLocalToBlockLocal(double px, double py, double pz, Direction facing) {
-        return controlLocalToBlockLocal(px, py, pz, facing, PANEL3_YAW_RAD, SELECTOR_SCALE, BIOME_SELECTOR_MOUNT_X_PX);
+    private static void put(EnumMap<LookTarget, ConsoleControlSpec> map, ConsoleControlSpec spec) {
+        map.put(spec.target(), spec);
     }
 
-    /**
-     * Transforms a point in planet-locator-local model pixels into block-local space (Panel3).
-     */
-    static Vec3 planetLocatorLocalToBlockLocal(double px, double py, double pz, Direction facing) {
-        return controlLocalToBlockLocal(px, py, pz, facing, PANEL3_YAW_RAD, SELECTOR_SCALE, PLANET_LOCATOR_MOUNT_X_PX);
+    private static ConsoleControlSpec middle(
+            LookTarget target,
+            float yaw,
+            float scale,
+            float mountX,
+            float minX,
+            float minY,
+            float minZ,
+            float maxX,
+            float maxY,
+            float maxZ
+    ) {
+        return new ConsoleControlSpec(
+                target, yaw, scale, mountX, CONTROL_MOUNT_Y_PX, CONTROL_MOUNT_Z_PX,
+                minX, minY, minZ, maxX, maxY, maxZ);
     }
 
-    /**
-     * Transforms a point in lever-local model pixels into block-local space (Panel6).
-     */
-    static Vec3 leverLocalToBlockLocal(double px, double py, double pz, Direction facing) {
-        return controlLocalToBlockLocal(px, py, pz, facing, PANEL6_YAW_RAD, LEVER_SCALE, LEVER_MOUNT_X_PX);
-    }
-
-    /** Horizontal distance from block center to biome selector center (for tests / tuning). */
-    public static double selectorDistanceFromCenter(Direction facing) {
-        Vec3 c = biomeSelectorBox(facing).getCenter();
-        return Math.hypot(c.x - 0.5, c.z - 0.5);
-    }
-
-    /** Horizontal distance from block center to planet locator center (for tests / tuning). */
-    public static double planetLocatorDistanceFromCenter(Direction facing) {
-        Vec3 c = planetLocatorBox(facing).getCenter();
-        return Math.hypot(c.x - 0.5, c.z - 0.5);
-    }
-
-    /** Horizontal distance from block center to lever center (for tests / tuning). */
-    public static double leverDistanceFromCenter(Direction facing) {
-        Vec3 c = materialisationLeverBox(facing).getCenter();
-        return Math.hypot(c.x - 0.5, c.z - 0.5);
-    }
-
-    /** Horizontal distance from block center to fast-return switch center (for tests / tuning). */
-    public static double fastReturnDistanceFromCenter(Direction facing) {
-        Vec3 c = fastReturnBox(facing).getCenter();
-        return Math.hypot(c.x - 0.5, c.z - 0.5);
-    }
-
-    /** Horizontal distance from block center to stabilisers control center (for tests / tuning). */
-    public static double stabilisersDistanceFromCenter(Direction facing) {
-        Vec3 c = stabilisersBox(facing).getCenter();
-        return Math.hypot(c.x - 0.5, c.z - 0.5);
-    }
-
-    private static AABB selectorBox(Direction facing, float mountXPx) {
-        return controlBox(facing, PANEL3_YAW_RAD, SELECTOR_SCALE, mountXPx,
-                SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
-    }
-
-    private static AABB panel3WorldBox(Panel3Control control, BlockPos pos, Direction facing) {
-        return switch (control) {
-            case BIOME -> biomeSelectorWorldBox(pos, facing);
-            case WAYPOINT -> waypointSelectorWorldBox(pos, facing);
-            case PLAYER -> playerLocatorWorldBox(pos, facing);
-            case PLANET -> planetLocatorWorldBox(pos, facing);
-        };
-    }
-
-    private static AABB panel6WorldBox(Panel6Control control, BlockPos pos, Direction facing) {
-        return switch (control) {
-            case CHAMELEON -> chameleonCircuitWorldBox(pos, facing);
-            case LEVER -> materialisationLeverWorldBox(pos, facing);
-            case FAST_RETURN -> fastReturnWorldBox(pos, facing);
-            case STABILISERS -> stabilisersWorldBox(pos, facing);
-        };
+    private static ConsoleControlSpec bottom(
+            LookTarget target,
+            float yaw,
+            float scale,
+            float mountX,
+            float minX,
+            float minY,
+            float minZ,
+            float maxX,
+            float maxY,
+            float maxZ
+    ) {
+        return new ConsoleControlSpec(
+                target, yaw, scale, mountX, BOTTOM_MOUNT_Y_PX, BOTTOM_MOUNT_Z_PX,
+                minX, minY, minZ, maxX, maxY, maxZ);
     }
 
     private static boolean lookHitsBox(AABB box, Vec3 eyePos, Vec3 lookDir, double reach) {
@@ -910,48 +486,7 @@ public final class FirstDoctorConsoleControls {
         return dx * dx + dz * dz;
     }
 
-    private static AABB controlBox(
-            Direction facing,
-            float panelYawRad,
-            float scale,
-            float mountXPx,
-            float minX,
-            float minY,
-            float minZ,
-            float maxX,
-            float maxY,
-            float maxZ
-    ) {
-        return controlBox(
-                facing,
-                panelYawRad,
-                scale,
-                mountXPx,
-                CONTROL_MOUNT_Y_PX,
-                CONTROL_MOUNT_Z_PX,
-                minX,
-                minY,
-                minZ,
-                maxX,
-                maxY,
-                maxZ
-        );
-    }
-
-    private static AABB controlBox(
-            Direction facing,
-            float panelYawRad,
-            float scale,
-            float mountXPx,
-            float mountYPx,
-            float mountZPx,
-            float minX,
-            float minY,
-            float minZ,
-            float maxX,
-            float maxY,
-            float maxZ
-    ) {
+    private static AABB controlBox(Direction facing, ConsoleControlSpec layout) {
         double outMinX = Double.POSITIVE_INFINITY;
         double outMinY = Double.POSITIVE_INFINITY;
         double outMinZ = Double.POSITIVE_INFINITY;
@@ -959,14 +494,13 @@ public final class FirstDoctorConsoleControls {
         double outMaxY = Double.NEGATIVE_INFINITY;
         double outMaxZ = Double.NEGATIVE_INFINITY;
 
-        float[] xs = {minX, maxX};
-        float[] ys = {minY, maxY};
-        float[] zs = {minZ, maxZ};
+        float[] xs = {layout.minX(), layout.maxX()};
+        float[] ys = {layout.minY(), layout.maxY()};
+        float[] zs = {layout.minZ(), layout.maxZ()};
         for (float x : xs) {
             for (float y : ys) {
                 for (float z : zs) {
-                    Vec3 p = controlLocalToBlockLocal(
-                            x, y, z, facing, panelYawRad, scale, mountXPx, mountYPx, mountZPx);
+                    Vec3 p = controlLocalToBlockLocal(x, y, z, facing, layout);
                     outMinX = Math.min(outMinX, p.x);
                     outMinY = Math.min(outMinY, p.y);
                     outMinZ = Math.min(outMinZ, p.z);
@@ -976,11 +510,7 @@ public final class FirstDoctorConsoleControls {
                 }
             }
         }
-        final double pad = 0.0;
-        return new AABB(
-                outMinX - pad, outMinY - pad, outMinZ - pad,
-                outMaxX + pad, outMaxY + pad, outMaxZ + pad
-        );
+        return new AABB(outMinX, outMinY, outMinZ, outMaxX, outMaxY, outMaxZ);
     }
 
     static Vec3 controlLocalToBlockLocal(
@@ -988,12 +518,19 @@ public final class FirstDoctorConsoleControls {
             double py,
             double pz,
             Direction facing,
-            float panelYawRad,
-            float scale,
-            float mountXPx
+            ConsoleControlSpec layout
     ) {
         return controlLocalToBlockLocal(
-                px, py, pz, facing, panelYawRad, scale, mountXPx, CONTROL_MOUNT_Y_PX, CONTROL_MOUNT_Z_PX);
+                px,
+                py,
+                pz,
+                facing,
+                layout.panelYaw(),
+                layout.scale(),
+                layout.mountX(),
+                layout.mountY(),
+                layout.mountZ()
+        );
     }
 
     static Vec3 controlLocalToBlockLocal(

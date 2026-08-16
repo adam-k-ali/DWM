@@ -4,9 +4,7 @@ import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
-import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.logic.FirstDoctorConsoleSync;
-import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.mojang.logging.LogUtils;
 import java.util.Optional;
 import java.util.UUID;
@@ -60,12 +58,7 @@ public final class FirstDoctorConsoleRoomPlacer {
 
         completeInteriorDoorBank(world, origin);
         stampInteriorEntities(world, origin, tardisId);
-
-        TardisChameleonVariant variant = TardisLogic.getVariant(tardisId);
-        if (variant == null) {
-            variant = TardisChameleonVariant.TT_CAPSULE;
-        }
-        FirstDoctorConsoleSync.syncVariant(world.getServer(), tardisId, variant);
+        FirstDoctorConsoleSync.syncFromModel(world.getServer(), tardisId);
 
         return origin.offset(LOCAL_ENTRANCE);
     }

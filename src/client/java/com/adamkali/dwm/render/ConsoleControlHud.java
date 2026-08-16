@@ -4,6 +4,8 @@ import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls.LookTarget;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.entity.ConsoleControlInteractionEntity;
+import com.adamkali.dwm.tardis.logic.ConsoleDisplayState;
+import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.minecraft.client.DeltaTracker;
@@ -54,7 +56,7 @@ public final class ConsoleControlHud {
                 console = found;
             }
         }
-        Component label = labelFor(target, console);
+        Component label = labelFor(target, console == null ? null : console.syncedDisplay());
         if (label == null) {
             return;
         }
@@ -67,8 +69,8 @@ public final class ConsoleControlHud {
         graphics.text(client.font, label, x, y, color);
     }
 
-    private static Component labelFor(LookTarget target, @Nullable FirstDoctorConsoleBlockEntity console) {
-        boolean stabilisersOn = console == null || console.isSyncedStabilisersEnabled();
+    private static Component labelFor(LookTarget target, @Nullable ConsoleDisplayState display) {
+        boolean stabilisersOn = display == null || display.stabilisersEnabled();
         return switch (target) {
             case BIOME_SELECTOR -> Component.translatable("dwm.console.biome_selector");
             case WAYPOINT_SELECTOR -> Component.translatable("dwm.console.waypoint_selector");
@@ -79,30 +81,30 @@ public final class ConsoleControlHud {
             case FAST_RETURN -> Component.translatable("dwm.console.fast_return");
             case STABILISERS -> Component.translatable(
                     stabilisersOn ? "dwm.console.stabilisers_on" : "dwm.console.stabilisers_off");
-            case OXYGEN_READER -> readerLabel(console, reading -> reading.oxygen(), "dwm.console.oxygen");
-            case PRESSURE_READER -> readerLabel(console, reading -> reading.pressure(), "dwm.console.pressure");
-            case TEMPERATURE_READER -> readerLabel(console, reading -> reading.temperature(), "dwm.console.temperature");
-            case RADIATION_READER -> readerLabel(console, reading -> reading.radiation(), "dwm.console.radiation");
+            case OXYGEN_READER -> readerLabel(display, ExteriorEnvironmentReadout.Reading::oxygen, "dwm.console.oxygen");
+            case PRESSURE_READER -> readerLabel(display, ExteriorEnvironmentReadout.Reading::pressure, "dwm.console.pressure");
+            case TEMPERATURE_READER -> readerLabel(display, ExteriorEnvironmentReadout.Reading::temperature, "dwm.console.temperature");
+            case RADIATION_READER -> readerLabel(display, ExteriorEnvironmentReadout.Reading::radiation, "dwm.console.radiation");
             case REFUELER -> Component.translatable("dwm.console.refueler_stable");
             case TELEPATHIC_CIRCUIT -> Component.translatable("dwm.console.telepathic_circuit");
             case CLOAK -> Component.translatable(
-                    console != null && console.isSyncedCloaked()
+                    display != null && display.cloaked()
                             ? "dwm.console.cloak_on"
                             : "dwm.console.cloak_off");
             case DOOR_LOCK -> Component.translatable(
-                    console != null && console.isSyncedDoorsLocked()
+                    display != null && display.doorsLocked()
                             ? "dwm.console.doors_locked"
                             : "dwm.console.doors_unlocked");
             case COORDINATE_LOCK_X -> Component.translatable(
-                    console != null && console.isSyncedLockX()
+                    display != null && display.lockX()
                             ? "dwm.console.lock_x_on"
                             : "dwm.console.lock_x_off");
             case COORDINATE_LOCK_Y -> Component.translatable(
-                    console != null && console.isSyncedLockY()
+                    display != null && display.lockY()
                             ? "dwm.console.lock_y_on"
                             : "dwm.console.lock_y_off");
             case COORDINATE_LOCK_Z -> Component.translatable(
-                    console != null && console.isSyncedLockZ()
+                    display != null && display.lockZ()
                             ? "dwm.console.lock_z_on"
                             : "dwm.console.lock_z_off");
             case NONE -> null;
@@ -110,14 +112,14 @@ public final class ConsoleControlHud {
     }
 
     private static Component readerLabel(
-            @Nullable FirstDoctorConsoleBlockEntity console,
-            java.util.function.ToDoubleFunction<com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout.Reading> value,
+            @Nullable ConsoleDisplayState display,
+            java.util.function.ToDoubleFunction<ExteriorEnvironmentReadout.Reading> value,
             String key
     ) {
-        if (console == null || console.syncedReading().noSignal()) {
+        if (display == null || display.reading().noSignal()) {
             return Component.translatable("dwm.console.reader_no_signal");
         }
-        var reading = console.syncedReading();
+        ExteriorEnvironmentReadout.Reading reading = display.reading();
         int percent = Math.round(reading.needle((float) value.applyAsDouble(reading)) * 100.0F);
         return Component.translatable(key, percent);
     }

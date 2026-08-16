@@ -6,15 +6,15 @@ import com.adamkali.dwm.block.FirstDoctorConsoleControls.LookTarget;
 import com.adamkali.dwm.entity.ConsoleControlInteractionEntity;
 import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
-import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
-import com.adamkali.dwm.tardis.logic.CoordinateLockLogic;
+import com.adamkali.dwm.tardis.logic.ConsoleDisplayState;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -37,9 +37,8 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 
 /**
- * Block entity for the First Doctor console. Holds {@code tardisId} for control interactions,
- * a synced chameleon variant for the Panel6 hologram preview, and synced console instruments
- * (stabilisers, cloak, door lock, coordinate locks, exterior environment readings).
+ * Block entity for the First Doctor console. Holds {@code tardisId} for control interactions
+ * and a synced {@link ConsoleDisplayState} for client instruments / HUD / BER.
  * Server tick maintains one {@link ConsoleControlInteractionEntity} per control.
  */
 public class FirstDoctorConsoleBlockEntity extends BlockEntity {
@@ -49,18 +48,7 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
     private static final int READOUT_INTERVAL_TICKS = 20;
 
     private @Nullable UUID tardisId;
-    private TardisChameleonVariant syncedVariant = TardisChameleonVariant.TT_CAPSULE;
-    private boolean syncedStabilisersEnabled = true;
-    private boolean syncedCloaked;
-    private boolean syncedDoorsLocked;
-    private boolean syncedLockX;
-    private boolean syncedLockY;
-    private boolean syncedLockZ;
-    private boolean syncedNoSignal = true;
-    private float syncedOxygen;
-    private float syncedPressure;
-    private float syncedTemperature;
-    private float syncedRadiation;
+    private ConsoleDisplayState synced = ConsoleDisplayState.defaults();
 
     public FirstDoctorConsoleBlockEntity(BlockPos pos, BlockState state) {
         super(DWMBlockEntities.FIRST_DOCTOR_CONSOLE_BLOCK_ENTITY, pos, state);
@@ -141,150 +129,41 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
         return tardisId;
     }
 
-    public TardisChameleonVariant getSyncedVariant() {
-        return syncedVariant == null ? TardisChameleonVariant.TT_CAPSULE : syncedVariant;
+    public ConsoleDisplayState syncedDisplay() {
+        return synced;
     }
 
     /**
-     * Updates the hologram variant and notifies tracking clients when on the server.
+     * Replaces the synced display snapshot and notifies tracking clients when on the server.
+     * No-ops when the snapshot is equal to the current value.
      */
-    public void setSyncedVariant(@Nullable TardisChameleonVariant variant) {
-        this.syncedVariant = variant == null ? TardisChameleonVariant.TT_CAPSULE : variant;
-        setChanged();
-        notifyClients();
-    }
-
-    public boolean isSyncedStabilisersEnabled() {
-        return syncedStabilisersEnabled;
-    }
-
-    /**
-     * Updates the stabilisers dial pose and notifies tracking clients when on the server.
-     */
-    public void setSyncedStabilisersEnabled(boolean enabled) {
-        this.syncedStabilisersEnabled = enabled;
-        setChanged();
-        notifyClients();
-    }
-
-    public boolean isSyncedCloaked() {
-        return syncedCloaked;
-    }
-
-    public void setSyncedCloaked(boolean cloaked) {
-        this.syncedCloaked = cloaked;
-        setChanged();
-        notifyClients();
-    }
-
-    public boolean isSyncedDoorsLocked() {
-        return syncedDoorsLocked;
-    }
-
-    public void setSyncedDoorsLocked(boolean locked) {
-        this.syncedDoorsLocked = locked;
-        setChanged();
-        notifyClients();
-    }
-
-    public boolean isSyncedLockX() {
-        return syncedLockX;
-    }
-
-    public boolean isSyncedLockY() {
-        return syncedLockY;
-    }
-
-    public boolean isSyncedLockZ() {
-        return syncedLockZ;
-    }
-
-    public void setSyncedAxisLock(CoordinateLockLogic.Axis axis, boolean locked) {
-        switch (axis) {
-            case X -> syncedLockX = locked;
-            case Y -> syncedLockY = locked;
-            case Z -> syncedLockZ = locked;
-        }
-        setChanged();
-        notifyClients();
-    }
-
-    public void setSyncedCoordinateLocks(boolean lockX, boolean lockY, boolean lockZ) {
-        this.syncedLockX = lockX;
-        this.syncedLockY = lockY;
-        this.syncedLockZ = lockZ;
-        setChanged();
-        notifyClients();
-    }
-
-    public ExteriorEnvironmentReadout.Reading syncedReading() {
-        if (syncedNoSignal) {
-            return ExteriorEnvironmentReadout.Reading.none();
-        }
-        return new ExteriorEnvironmentReadout.Reading(
-                false, syncedOxygen, syncedPressure, syncedTemperature, syncedRadiation);
-    }
-
-    public void setSyncedReading(ExteriorEnvironmentReadout.Reading reading) {
-        boolean noSignal = reading == null || reading.noSignal();
-        float oxygen = noSignal ? 0.0F : reading.oxygen();
-        float pressure = noSignal ? 0.0F : reading.pressure();
-        float temperature = noSignal ? 0.0F : reading.temperature();
-        float radiation = noSignal ? 0.0F : reading.radiation();
-        if (this.syncedNoSignal == noSignal
-                && this.syncedOxygen == oxygen
-                && this.syncedPressure == pressure
-                && this.syncedTemperature == temperature
-                && this.syncedRadiation == radiation) {
+    public void setSyncedDisplay(ConsoleDisplayState next) {
+        ConsoleDisplayState safe = next == null ? ConsoleDisplayState.defaults() : next;
+        if (Objects.equals(this.synced, safe)) {
             return;
         }
-        this.syncedNoSignal = noSignal;
-        this.syncedOxygen = oxygen;
-        this.syncedPressure = pressure;
-        this.syncedTemperature = temperature;
-        this.syncedRadiation = radiation;
+        this.synced = safe;
         setChanged();
         notifyClients();
     }
 
     private void refreshLinkedState(ServerLevel interiorWorld) {
-        refreshSecurityState();
-        refreshEnvironmentReadout(interiorWorld);
+        TardisDataModel model = tardisId == null ? null : TardisDataLoader.get(tardisId);
+        ExteriorEnvironmentReadout.Reading reading = sampleReading(interiorWorld, model);
+        setSyncedDisplay(ConsoleDisplayState.from(model, reading));
     }
 
-    private void refreshSecurityState() {
-        if (tardisId == null) {
-            return;
-        }
-        TardisDataModel model = TardisDataLoader.get(tardisId);
-        if (model == null) {
-            return;
-        }
-        if (syncedCloaked != model.cloaked) {
-            setSyncedCloaked(model.cloaked);
-        }
-        if (syncedDoorsLocked != model.doorsLocked) {
-            setSyncedDoorsLocked(model.doorsLocked);
-        }
-        if (syncedLockX != model.lockX || syncedLockY != model.lockY || syncedLockZ != model.lockZ) {
-            setSyncedCoordinateLocks(model.lockX, model.lockY, model.lockZ);
-        }
-    }
-
-    private void refreshEnvironmentReadout(ServerLevel interiorWorld) {
-        if (tardisId == null) {
-            setSyncedReading(ExteriorEnvironmentReadout.Reading.none());
-            return;
-        }
-        TardisDataModel model = TardisDataLoader.get(tardisId);
-        if (model == null || !model.hasExteriorLocation || model.exteriorDimension == null) {
-            setSyncedReading(ExteriorEnvironmentReadout.Reading.none());
-            return;
+    private ExteriorEnvironmentReadout.Reading sampleReading(
+            ServerLevel interiorWorld,
+            @Nullable TardisDataModel model
+    ) {
+        if (tardisId == null || model == null || !model.hasExteriorLocation || model.exteriorDimension == null) {
+            return ExteriorEnvironmentReadout.Reading.none();
         }
         boolean inFlight = TardisTravelService.isTraveling(tardisId);
         ServerLevel exterior = resolveExterior(interiorWorld, model.exteriorDimension);
         BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
-        setSyncedReading(ExteriorEnvironmentReadout.sample(exterior, exteriorPos, inFlight));
+        return ExteriorEnvironmentReadout.sample(exterior, exteriorPos, inFlight);
     }
 
     private static @Nullable ServerLevel resolveExterior(ServerLevel interiorWorld, String dimensionId) {
@@ -320,51 +199,14 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
         if (tardisId != null) {
             output.store("tardisId", UUIDUtil.CODEC, tardisId);
         }
-        output.putString("syncedVariant", getSyncedVariant().getId().toString());
-        output.putBoolean("syncedStabilisersEnabled", syncedStabilisersEnabled);
-        output.putBoolean("syncedCloaked", syncedCloaked);
-        output.putBoolean("syncedDoorsLocked", syncedDoorsLocked);
-        output.putBoolean("syncedLockX", syncedLockX);
-        output.putBoolean("syncedLockY", syncedLockY);
-        output.putBoolean("syncedLockZ", syncedLockZ);
-        output.putBoolean("syncedNoSignal", syncedNoSignal);
-        output.putFloat("syncedOxygen", syncedOxygen);
-        output.putFloat("syncedPressure", syncedPressure);
-        output.putFloat("syncedTemperature", syncedTemperature);
-        output.putFloat("syncedRadiation", syncedRadiation);
+        synced.write(output);
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         tardisId = input.read("tardisId", UUIDUtil.CODEC).orElse(null);
-        syncedVariant = parseVariant(input.getStringOr("syncedVariant", ""));
-        syncedStabilisersEnabled = input.getBooleanOr("syncedStabilisersEnabled", true);
-        syncedCloaked = input.getBooleanOr("syncedCloaked", false);
-        syncedDoorsLocked = input.getBooleanOr("syncedDoorsLocked", false);
-        syncedLockX = input.getBooleanOr("syncedLockX", false);
-        syncedLockY = input.getBooleanOr("syncedLockY", false);
-        syncedLockZ = input.getBooleanOr("syncedLockZ", false);
-        syncedNoSignal = input.getBooleanOr("syncedNoSignal", true);
-        syncedOxygen = input.getFloatOr("syncedOxygen", 0.0F);
-        syncedPressure = input.getFloatOr("syncedPressure", 0.0F);
-        syncedTemperature = input.getFloatOr("syncedTemperature", 0.0F);
-        syncedRadiation = input.getFloatOr("syncedRadiation", 0.0F);
-    }
-
-    private static TardisChameleonVariant parseVariant(String id) {
-        if (id == null || id.isBlank()) {
-            return TardisChameleonVariant.TT_CAPSULE;
-        }
-        Identifier identifier = Identifier.tryParse(id);
-        if (identifier == null) {
-            return TardisChameleonVariant.TT_CAPSULE;
-        }
-        try {
-            return TardisChameleonVariant.fromId(identifier);
-        } catch (IllegalArgumentException ignored) {
-            return TardisChameleonVariant.TT_CAPSULE;
-        }
+        synced = ConsoleDisplayState.read(input);
     }
 
     @Override
