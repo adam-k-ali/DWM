@@ -11,6 +11,7 @@ import com.adamkali.dwm.tardis.data.model.TardisExteriorLocation;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.logic.CloakLogic;
 import com.adamkali.dwm.tardis.logic.DoorLockLogic;
+import com.adamkali.dwm.tardis.logic.TelepathicCircuitLogic;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
 import com.adamkali.dwm.tardis.logic.FastReturnLogic;
 import com.adamkali.dwm.tardis.logic.FirstDoctorConsoleSync;
@@ -195,6 +196,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             case TEMPERATURE_READER -> handleReader(player, console, ExteriorEnvironmentReadout.Reading::temperature, "dwm.console.temperature");
             case RADIATION_READER -> handleReader(player, console, ExteriorEnvironmentReadout.Reading::radiation, "dwm.console.radiation");
             case REFUELER -> handleRefueler(player);
+            case TELEPATHIC_CIRCUIT -> handleTelepathic(world, pos, player, tardisId);
             case CLOAK -> handleCloak(world, pos, player, serverWorld, console, tardisId);
             case DOOR_LOCK -> handleDoorLock(world, pos, player, serverWorld, console, tardisId);
             case NONE -> InteractionResult.PASS;
@@ -213,6 +215,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             case OXYGEN_READER, PRESSURE_READER, TEMPERATURE_READER, RADIATION_READER ->
                     "dwm.console.reader_unavailable";
             case REFUELER -> "dwm.console.refueler_unavailable";
+            case TELEPATHIC_CIRCUIT -> "dwm.console.telepathic_unavailable";
             case CLOAK -> "dwm.console.cloak_unavailable";
             case DOOR_LOCK -> "dwm.console.door_lock_unavailable";
             case MATERIALISATION_LEVER, NONE -> "dwm.console.travel_unavailable";
@@ -451,6 +454,31 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
 
     private static InteractionResult handleRefueler(Player player) {
         player.sendOverlayMessage(Component.translatable("dwm.console.refueler_stable"));
+        return InteractionResult.SUCCESS;
+    }
+
+    private static InteractionResult handleTelepathic(
+            Level world,
+            BlockPos pos,
+            Player player,
+            UUID tardisId
+    ) {
+        if (TardisTravelService.isTraveling(tardisId)) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.travel_in_flight"));
+            return InteractionResult.CONSUME;
+        }
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null || !(player instanceof ServerPlayer serverPlayer)) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.telepathic_unavailable"));
+            return InteractionResult.CONSUME;
+        }
+        TelepathicCircuitLogic.arm(model, serverPlayer.getUUID());
+        TelepathicCircuitLogic.Destination destination = TelepathicCircuitLogic.resolveFor(serverPlayer);
+        player.sendOverlayMessage(Component.translatable(
+                destination.usedHome()
+                        ? "dwm.console.telepathic_home"
+                        : "dwm.console.telepathic_spawn"));
+        playClick(world, pos);
         return InteractionResult.SUCCESS;
     }
 

@@ -60,6 +60,9 @@ public class DWMRenderLayerManager {
                 DoorLockModel.LAYER_LOCATION,
                 DoorLockModel::getTexturedModelData);
         ModelLayerRegistry.registerModelLayer(
+                TelepathicCircuitModel.LAYER_LOCATION,
+                TelepathicCircuitModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(
                 TardisGlobeModel.LAYER_LOCATION,
                 TardisGlobeModel::getTexturedModelData);
         ModelLayerRegistry.registerModelLayer(

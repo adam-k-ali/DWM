@@ -311,6 +311,10 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.reader_unavailable", "Reader unavailable");
         t.add("dwm.console.refueler_stable", "Artron reserves: stable");
         t.add("dwm.console.refueler_unavailable", "Refueler unavailable");
+        t.add("dwm.console.telepathic_circuit", "Telepathic circuit");
+        t.add("dwm.console.telepathic_home", "Telepathic circuit locked onto your home");
+        t.add("dwm.console.telepathic_spawn", "Telepathic circuit locked onto world spawn");
+        t.add("dwm.console.telepathic_unavailable", "Telepathic circuit unavailable");
         t.add("dwm.console.cloak_on", "Cloak engaged");
         t.add("dwm.console.cloak_off", "Cloak disengaged");
         t.add("dwm.console.cloak_unavailable", "Cloak unavailable");

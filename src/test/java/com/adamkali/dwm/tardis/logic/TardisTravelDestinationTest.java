@@ -88,6 +88,16 @@ class TardisTravelDestinationTest {
         assertTrue(TardisTravelService.isExactCoordMode(DestinationMode.FAST_RETURN));
         assertTrue(TardisTravelService.isExactCoordMode(DestinationMode.WAYPOINT));
         assertFalse(TardisTravelService.isExactCoordMode(DestinationMode.BIOME));
+        assertTrue(TardisTravelService.isExactCoordMode(DestinationMode.TELEPATHIC));
+    }
+
+    @Test
+    void hasValidDestinationSelection_telepathicRequiresPlayerUuid() {
+        model.setDestinationMode(DestinationMode.TELEPATHIC);
+        assertFalse(TardisTravelService.hasValidDestinationSelection(model));
+
+        model.selectedPlayerUuid = UUID.randomUUID();
+        assertTrue(TardisTravelService.hasValidDestinationSelection(model));
     }
 
     @Test

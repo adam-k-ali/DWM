@@ -19,5 +19,6 @@ class DestinationModeTest {
         assertEquals(DestinationMode.WAYPOINT, DestinationMode.fromString("WAYPOINT"));
         assertEquals(DestinationMode.PLAYER, DestinationMode.fromString("Player"));
         assertEquals(DestinationMode.FAST_RETURN, DestinationMode.fromString("fast_return"));
+        assertEquals(DestinationMode.TELEPATHIC, DestinationMode.fromString("telepathic"));
     }
 }
