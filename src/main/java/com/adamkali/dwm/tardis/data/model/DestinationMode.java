@@ -13,7 +13,9 @@ public enum DestinationMode {
     /** Live position of a selected online player at materialise. */
     PLAYER,
     /** Exact historically visited exterior from fast-return history. */
-    FAST_RETURN;
+    FAST_RETURN,
+    /** Using player's bed/respawn, or that dimension's world spawn. */
+    TELEPATHIC;
 
     public static DestinationMode fromString(@Nullable String value) {
         if (value == null || value.isBlank()) {

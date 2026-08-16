@@ -32,4 +32,11 @@ class Dwm033ControlModelTest {
         ModelPart root = assertDoesNotThrow(() -> DoorLockModel.getTexturedModelData().bakeRoot());
         assertNotNull(root.getChild("lever"));
     }
+
+    @Test
+    void telepathicCircuit_bakesLights() {
+        ModelPart root = assertDoesNotThrow(() -> TelepathicCircuitModel.getTexturedModelData().bakeRoot());
+        assertNotNull(root.getChild("light"));
+        assertNotNull(root.getChild("light2"));
+    }
 }

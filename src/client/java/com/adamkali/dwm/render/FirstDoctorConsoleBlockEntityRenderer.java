@@ -7,6 +7,7 @@ import com.adamkali.dwm.model.tileentity.BiomeSelectorModel;
 import com.adamkali.dwm.model.tileentity.ChameleonCircuitModel;
 import com.adamkali.dwm.model.tileentity.CloakLeverModel;
 import com.adamkali.dwm.model.tileentity.DoorLockModel;
+import com.adamkali.dwm.model.tileentity.TelepathicCircuitModel;
 import com.adamkali.dwm.model.tileentity.FastReturnModel;
 import com.adamkali.dwm.model.tileentity.FifthDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.FirstDoctorConsoleModel;
@@ -77,6 +78,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
     private final RadiationReaderModel radiationReaderModel;
     private final CloakLeverModel cloakLeverModel;
     private final DoorLockModel doorLockModel;
+    private final TelepathicCircuitModel telepathicCircuitModel;
     private final HashMap<TardisChameleonVariant, TardisModel> shellModelCache = new HashMap<>();
     private final HashMap<TardisChameleonVariant, Identifier> shellTextureCache = new HashMap<>();
 
@@ -104,6 +106,8 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 context.bakeLayer(RadiationReaderModel.LAYER_LOCATION));
         this.cloakLeverModel = new CloakLeverModel(context.bakeLayer(CloakLeverModel.LAYER_LOCATION));
         this.doorLockModel = new DoorLockModel(context.bakeLayer(DoorLockModel.LAYER_LOCATION));
+        this.telepathicCircuitModel = new TelepathicCircuitModel(
+                context.bakeLayer(TelepathicCircuitModel.LAYER_LOCATION));
 
         cacheShell(TardisChameleonVariant.TT_CAPSULE,
                 new TTCapsuleModel(context.bakeLayer(TTCapsuleModel.LAYER_LOCATION)),
@@ -340,6 +344,13 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 FirstDoctorConsoleControls.CONTROL_MOUNT_Z_PX);
 
         poseStack.popPose();
+        submitMounted(poseStack, submitNodeCollector, state, animState,
+                telepathicCircuitModel, TelepathicCircuitModel.TEXTURE_LOCATION,
+                FirstDoctorConsoleControls.PANEL2_YAW_RAD,
+                FirstDoctorConsoleControls.TELEPATHIC_SCALE,
+                0.0F,
+                FirstDoctorConsoleControls.CONTROL_MOUNT_Y_PX,
+                FirstDoctorConsoleControls.CONTROL_MOUNT_Z_PX);
         submitMounted(poseStack, submitNodeCollector, state, animState,
                 cloakLeverModel, CloakLeverModel.TEXTURE_LOCATION,
                 FirstDoctorConsoleControls.PANEL4_YAW_RAD,

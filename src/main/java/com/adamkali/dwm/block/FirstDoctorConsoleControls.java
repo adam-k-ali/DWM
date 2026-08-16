@@ -132,6 +132,9 @@ public final class FirstDoctorConsoleControls {
     /** Taller unique radiation mesh on Panel1 bottom. */
     public static final float RADIATION_SCALE = 0.10F;
 
+    /** 18×2×8 telepathic strip. */
+    public static final float TELEPATHIC_SCALE = 0.14F;
+
     /** Cloak lever matches the materialisation lever scale. */
     public static final float CLOAK_SCALE = LEVER_SCALE;
 
@@ -196,6 +199,14 @@ public final class FirstDoctorConsoleControls {
     private static final float RAD_MAX_X = 7.0F;
     private static final float RAD_MAX_Y = 6.0F;
     private static final float RAD_MAX_Z = 8.0F;
+
+    /** Telepathic strip footprint (18×2×8) before {@link #TELEPATHIC_SCALE}. */
+    private static final float TEL_MIN_X = -9.0F;
+    private static final float TEL_MIN_Y = 0.0F;
+    private static final float TEL_MIN_Z = -4.0F;
+    private static final float TEL_MAX_X = 9.0F;
+    private static final float TEL_MAX_Y = 2.0F;
+    private static final float TEL_MAX_Z = 4.0F;
 
     /** Cloak lever footprint before {@link #CLOAK_SCALE}. */
     private static final float CLK_MIN_X = -2.0F;
@@ -266,6 +277,7 @@ public final class FirstDoctorConsoleControls {
         TEMPERATURE_READER,
         RADIATION_READER,
         REFUELER,
+        TELEPATHIC_CIRCUIT,
         CLOAK,
         DOOR_LOCK;
 
@@ -700,6 +712,8 @@ public final class FirstDoctorConsoleControls {
                     RAD_MIN_X, RAD_MIN_Y, RAD_MIN_Z, RAD_MAX_X, RAD_MAX_Y, RAD_MAX_Z);
             case REFUELER -> middle(PANEL5_YAW_RAD, READER_SCALE, 0.0F,
                     RDR_MIN_X, RDR_MIN_Y, RDR_MIN_Z, RDR_MAX_X, RDR_MAX_Y, RDR_MAX_Z);
+            case TELEPATHIC_CIRCUIT -> middle(PANEL2_YAW_RAD, TELEPATHIC_SCALE, 0.0F,
+                    TEL_MIN_X, TEL_MIN_Y, TEL_MIN_Z, TEL_MAX_X, TEL_MAX_Y, TEL_MAX_Z);
             case CLOAK -> middle(PANEL4_YAW_RAD, CLOAK_SCALE, 0.0F,
                     CLK_MIN_X, CLK_MIN_Y, CLK_MIN_Z, CLK_MAX_X, CLK_MAX_Y, CLK_MAX_Z);
             case DOOR_LOCK -> bottom(PANEL4_YAW_RAD, DOOR_LOCK_SCALE, 0.0F,

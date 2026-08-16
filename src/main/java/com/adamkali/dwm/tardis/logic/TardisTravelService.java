@@ -163,6 +163,22 @@ public final class TardisTravelService {
                 }
                 destinationBiome = model.selectedBiome;
             }
+            case TELEPATHIC -> {
+                if (!PlayerLocatorLogic.isOnline(server, model.selectedPlayerUuid)) {
+                    return InteractionResult.FAIL;
+                }
+                ServerPlayer target = PlayerLocatorLogic.resolve(server, model.selectedPlayerUuid).orElse(null);
+                if (target == null) {
+                    return InteractionResult.FAIL;
+                }
+                TelepathicCircuitLogic.Destination home = TelepathicCircuitLogic.resolveFor(target);
+                destinationDimension = home.dimensionId();
+                destX = home.x();
+                destY = home.y();
+                destZ = home.z();
+                destRotation = model.exteriorRotation;
+                travelPlayerUuid = model.selectedPlayerUuid;
+            }
         }
 
         if (destinationDimension == null || destinationDimension.isBlank() || level(server, destinationDimension) == null) {
@@ -556,11 +572,14 @@ public final class TardisTravelService {
             case WAYPOINT -> WaypointLogic.find(model, model.selectedWaypointId).isPresent();
             case PLAYER -> model.selectedPlayerUuid != null;
             case FAST_RETURN -> FastReturnLogic.hasSelection(model);
+            case TELEPATHIC -> TelepathicCircuitLogic.hasSelection(model);
         };
     }
 
     static boolean isExactCoordMode(@Nullable DestinationMode mode) {
-        return mode == DestinationMode.WAYPOINT || mode == DestinationMode.FAST_RETURN;
+        return mode == DestinationMode.WAYPOINT
+                || mode == DestinationMode.FAST_RETURN
+                || mode == DestinationMode.TELEPATHIC;
     }
 
     static DestinationMode effectiveTravelMode(@Nullable TardisDataModel model) {
