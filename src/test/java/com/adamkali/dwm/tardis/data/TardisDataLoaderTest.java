@@ -2,6 +2,8 @@ package com.adamkali.dwm.tardis.data;
 
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
+import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +17,9 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -238,5 +242,40 @@ public class TardisDataLoaderTest {
 
         assertTrue(TardisDataLoader.findOwnedBy(owner).isPresent());
         assertEquals(model.uuid, TardisDataLoader.findOwnedBy(owner).get().uuid);
+    }
+
+    @Test
+    void findAtInteriorPos_ReturnsModelInsidePlotFootprint() {
+        UUID tardisId = UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        TardisDataModel model = TardisDataLoader.getOrCreate(tardisId);
+        BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
+        BlockPos inside = origin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE);
+
+        Optional<TardisDataModel> found = TardisDataLoader.findAtInteriorPos(inside);
+
+        assertTrue(found.isPresent());
+        assertEquals(model.uuid, found.get().uuid);
+        assertTrue(TardisDataLoader.findAtInteriorPos(origin.offset(TardisPlotAllocator.PLOT_SPACING / 2, 0, 0)).isEmpty());
+        assertTrue(TardisDataLoader.findAtInteriorPos(null).isEmpty());
+    }
+
+    @Test
+    void findAtInteriorPos_LoadsFromDiskWhenNotCached() throws Exception {
+        UUID tardisId = UUID.fromString("11111111-2222-3333-4444-555555555555");
+        TardisDataModel model = TardisDataLoader.getOrCreate(tardisId);
+        model.setChanged();
+        TardisDataLoader.save();
+
+        Field field = TardisDataLoader.class.getDeclaredField("tardisData");
+        field.setAccessible(true);
+        HashMap<?, ?> cache = (HashMap<?, ?>) field.get(null);
+        cache.clear();
+
+        BlockPos inside = TardisPlotAllocator.plotOrigin(tardisId)
+                .offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE);
+        Optional<TardisDataModel> found = TardisDataLoader.findAtInteriorPos(inside);
+
+        assertTrue(found.isPresent());
+        assertEquals(tardisId, found.get().uuid);
     }
 }

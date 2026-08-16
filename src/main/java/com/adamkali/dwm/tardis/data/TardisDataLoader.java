@@ -2,6 +2,8 @@ package com.adamkali.dwm.tardis.data;
 
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
+import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -13,6 +15,7 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
 
 public class TardisDataLoader {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -207,6 +210,32 @@ public class TardisDataLoader {
         ensureAllLoaded();
         for (TardisDataModel model : tardisData.values()) {
             if (Objects.equals(model.ownerUuid, ownerUuid)) {
+                return Optional.of(model);
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Returns the TARDIS whose interior plot contains {@code pos}, if any. Scans disk so uncached
+     * models are included. Does not use {@code BotiPlotIndex} (empty until an interior is entered).
+     */
+    public static Optional<TardisDataModel> findAtInteriorPos(@Nullable BlockPos pos) {
+        if (pos == null) {
+            return Optional.empty();
+        }
+        ensureAllLoaded();
+        for (TardisDataModel model : tardisData.values()) {
+            if (model.uuid == null) {
+                continue;
+            }
+            BlockPos origin = TardisPlotAllocator.plotOrigin(model.uuid);
+            int localX = pos.getX() - origin.getX();
+            int localY = pos.getY() - origin.getY();
+            int localZ = pos.getZ() - origin.getZ();
+            if (localX >= 0 && localX < FirstDoctorConsoleRoomLayout.SIZE_X
+                    && localY >= 0 && localY < FirstDoctorConsoleRoomLayout.SIZE_Y
+                    && localZ >= 0 && localZ < FirstDoctorConsoleRoomLayout.SIZE_Z) {
                 return Optional.of(model);
             }
         }

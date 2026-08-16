@@ -68,6 +68,84 @@ class TardisOwnershipLogicTest {
         assertFalse(TardisOwnershipLogic.tryClaimOnEnter(model.uuid, null));
     }
 
+    @Test
+    void tryForceClaim_overwritesExistingOwnerWhenPlayerOwnsNone() {
+        TardisDataModel model = TardisDataLoader.create();
+        UUID previous = UUID.randomUUID();
+        UUID player = UUID.randomUUID();
+        model.setOwner(previous);
+
+        assertEquals(
+                TardisOwnershipLogic.ForceClaimResult.CLAIMED,
+                TardisOwnershipLogic.tryForceClaim(model.uuid, player)
+        );
+        assertEquals(player, model.ownerUuid);
+    }
+
+    @Test
+    void tryForceClaim_claimsUnownedWhenPlayerOwnsNone() {
+        TardisDataModel model = TardisDataLoader.create();
+        UUID player = UUID.randomUUID();
+
+        assertEquals(
+                TardisOwnershipLogic.ForceClaimResult.CLAIMED,
+                TardisOwnershipLogic.tryForceClaim(model.uuid, player)
+        );
+        assertEquals(player, model.ownerUuid);
+    }
+
+    @Test
+    void tryForceClaim_alreadyOwnerWhenPlayerOwnsThisTardis() {
+        TardisDataModel model = TardisDataLoader.create();
+        UUID player = UUID.randomUUID();
+        model.setOwner(player);
+
+        assertEquals(
+                TardisOwnershipLogic.ForceClaimResult.ALREADY_OWNER,
+                TardisOwnershipLogic.tryForceClaim(model.uuid, player)
+        );
+        assertEquals(player, model.ownerUuid);
+    }
+
+    @Test
+    void tryForceClaim_refusesWhenPlayerOwnsAnother() {
+        UUID player = UUID.randomUUID();
+        TardisDataModel first = TardisDataLoader.create();
+        first.setOwner(player);
+        TardisDataModel second = TardisDataLoader.create();
+        UUID previous = UUID.randomUUID();
+        second.setOwner(previous);
+
+        assertEquals(
+                TardisOwnershipLogic.ForceClaimResult.PLAYER_OWNS_ANOTHER,
+                TardisOwnershipLogic.tryForceClaim(second.uuid, player)
+        );
+        assertEquals(previous, second.ownerUuid);
+        assertEquals(player, first.ownerUuid);
+    }
+
+    @Test
+    void tryForceClaim_unknownWhenTardisMissing() {
+        assertEquals(
+                TardisOwnershipLogic.ForceClaimResult.UNKNOWN,
+                TardisOwnershipLogic.tryForceClaim(UUID.randomUUID(), UUID.randomUUID())
+        );
+    }
+
+    @Test
+    void tryForceClaim_invalidForNulls() {
+        TardisDataModel model = TardisDataLoader.create();
+        assertEquals(
+                TardisOwnershipLogic.ForceClaimResult.INVALID,
+                TardisOwnershipLogic.tryForceClaim(null, UUID.randomUUID())
+        );
+        assertEquals(
+                TardisOwnershipLogic.ForceClaimResult.INVALID,
+                TardisOwnershipLogic.tryForceClaim(model.uuid, null)
+        );
+        assertNull(model.ownerUuid);
+    }
+
     @SuppressWarnings("unchecked")
     private static void clearCache() throws Exception {
         Field field = TardisDataLoader.class.getDeclaredField("tardisData");

@@ -341,6 +341,11 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.command.tardis.rebuild.unknown", "Unknown TARDIS: %s");
         t.add("dwm.command.tardis.rebuild.in_flight", "Cannot rebuild interior while the TARDIS is in flight");
         t.add("dwm.command.tardis.rebuild.failed", "Failed to rebuild TARDIS interior");
+        t.add("dwm.command.tardis.claim.success", "Claimed TARDIS (%s)");
+        t.add("dwm.command.tardis.claim.already_owner", "You already own this TARDIS (%s)");
+        t.add("dwm.command.tardis.claim.already_owns_another", "You already own a TARDIS");
+        t.add("dwm.command.tardis.claim.unknown", "Unknown TARDIS: %s");
+        t.add("dwm.command.tardis.claim.not_inside", "Stand inside a TARDIS interior to claim it, or pass a UUID");
         t.add("dwm.gui.waypoint.title", "Waypoint Selector");
         t.add("dwm.gui.waypoint.save", "Save");
         t.add("dwm.gui.waypoint.rename", "Rename");

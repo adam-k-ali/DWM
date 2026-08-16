@@ -26,6 +26,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Exterior return coordinates stored on `TardisDataModel` for exit teleports.
 - First player to enter an unowned TARDIS claims it (`ownerUuid`) if they do not already own one (one TARDIS per player).
 - `/tardis rebuild` regenerates the owned console room from the current structure template without changing TARDIS UUID or linked data; ops may `/tardis rebuild <uuid>`.
+- Ops `/tardis claim` (permission 2) overwrites ownership to the caller if they do not already own a TARDIS: stand inside an interior, or pass `/tardis claim <uuid>`.
 - Collision entry when the exterior door is open (`doorSwing >= 0.9`); exit via open interior doors.
 - Landing search requires replaceable space in the door-facing column (feet + head), not only the shell cell.
 - Single config toggle `enableDoorPortals` (default on) via Mod Menu / Cloth Config; legacy `enableBoti` / `enableSoto` migrate on load.
@@ -75,8 +76,8 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 
 ## Known Constraints
 - Interior visuals use the shipped `first_doctor_console_room` structure (11×7×17) with decor props; console and interior-door bank are linked to the exterior via `tardisId` on placement.
-- Ownership is first-enter only (no place-time claim); worldgen TARDISes stay unowned until entered. `/tardis rebuild` only targets the caller's owned TARDIS (or any UUID for ops).
-- Door open/closed for entry is server-authoritative and shared between exterior and interior; swing animation still updates locally on both sides.
+- Ownership is first-enter or ops `/tardis claim` (no place-time claim); worldgen TARDISes stay unowned until entered or claimed. `/tardis rebuild` only targets the caller's owned TARDIS (or any UUID for ops).
+- Door open/closed for entry is server-authoritative; swing animation still updates locally on both sides.
 - Shared exterior BOTI door aperture table per chameleon variant (`PortalAperture`); interior SOTO uses one classic 3×2 opening aperture.
 - Shared single full-window portal FBO: last END_MAIN writer wins when multiple door portals render in one frame (no FBO pooling yet).
 - Exterior SOTO footprint is axis-aligned (not rotated with exterior facing). Exit teleport and SOTO look-out follow the chameleon shell door facing (`TardisExteriorFacing`), which is opposite the raw `FACING_ROTATION` skull/banner south=0 convention because of shell BER transforms.
