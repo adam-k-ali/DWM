@@ -101,6 +101,12 @@ public class TardisDataModel {
 
     private transient boolean needsSaving = false;
 
+    /**
+     * Last server tick that advanced {@link #doorState} swing. Not persisted; used so exterior and
+     * interior block entities do not double-step animation in the same tick.
+     */
+    public transient int lastDoorSwingServerTick = Integer.MIN_VALUE;
+
     public TardisDataModel() {
         this.uuid = UUID.randomUUID();
         this.doorState = new TardisDoorState();
