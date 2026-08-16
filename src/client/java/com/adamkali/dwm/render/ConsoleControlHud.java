@@ -1,27 +1,24 @@
 package com.adamkali.dwm.render;
 
 import com.adamkali.dwm.DWMReference;
-import com.adamkali.dwm.block.FirstDoctorConsoleBlock;
-import com.adamkali.dwm.block.FirstDoctorConsoleControls;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls.LookTarget;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
+import com.adamkali.dwm.entity.ConsoleControlInteractionEntity;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 
 /**
- * Crosshair tooltip for First Doctor console controls.
+ * Crosshair tooltip for First Doctor console controls (via interaction entities).
  */
 public final class ConsoleControlHud {
     private static final Identifier ELEMENT_ID =
@@ -40,21 +37,22 @@ public final class ConsoleControlHud {
             return;
         }
         HitResult hit = client.hitResult;
-        if (!(hit instanceof BlockHitResult blockHit) || blockHit.getType() != HitResult.Type.BLOCK) {
+        if (!(hit instanceof EntityHitResult entityHit) || entityHit.getType() != HitResult.Type.ENTITY) {
+            return;
+        }
+        if (!(entityHit.getEntity() instanceof ConsoleControlInteractionEntity control)) {
             return;
         }
 
-        BlockPos pos = blockHit.getBlockPos();
-        BlockState state = client.level.getBlockState(pos);
-        if (!(state.getBlock() instanceof FirstDoctorConsoleBlock)) {
-            return;
+        LookTarget target = control.getLookTarget();
+        BlockPos consolePos = control.getConsolePos();
+        boolean stabilisersOn = true;
+        if (consolePos != null) {
+            BlockEntity be = client.level.getBlockEntity(consolePos);
+            if (be instanceof FirstDoctorConsoleBlockEntity console) {
+                stabilisersOn = console.isSyncedStabilisersEnabled();
+            }
         }
-
-        Direction facing = state.getValueOrElse(FirstDoctorConsoleBlock.FACING, Direction.NORTH);
-        LookTarget target = FirstDoctorConsoleControls.resolveLookTarget(facing, pos, client.player);
-        BlockEntity be = client.level.getBlockEntity(pos);
-        boolean stabilisersOn = !(be instanceof FirstDoctorConsoleBlockEntity console)
-                || console.isSyncedStabilisersEnabled();
         Component label = labelFor(target, stabilisersOn);
         if (label == null) {
             return;

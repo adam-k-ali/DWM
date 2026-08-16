@@ -1,6 +1,7 @@
 package com.adamkali.dwm.tardis.boti;
 
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.entity.ConsoleControlInteractionEntity;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
@@ -243,6 +244,9 @@ public final class BotiInteriorSampler {
      */
     public static BotiEntitySample captureEntity(Entity entity, BlockPos plotOrigin) {
         if (entity == null || entity.isRemoved() || plotOrigin == null) {
+            return null;
+        }
+        if (entity instanceof ConsoleControlInteractionEntity) {
             return null;
         }
         CompoundTag nbt = captureEntityNbt(entity);

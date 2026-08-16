@@ -76,29 +76,35 @@ public final class FirstDoctorConsoleControls {
     private static final float SEL_MAX_Y = 2.0F;
     private static final float SEL_MAX_Z = 7.0F;
 
-    /** Lever footprint in lever-local pixels before {@link #LEVER_SCALE}. */
-    private static final float LEV_MIN_X = -4.0F;
+    /**
+     * Lever footprint in lever-local pixels before {@link #LEVER_SCALE}.
+     * Tight widget bounds (handle), not the decorative 18px base plate.
+     */
+    private static final float LEV_MIN_X = -2.0F;
     private static final float LEV_MIN_Y = 0.0F;
-    private static final float LEV_MIN_Z = -9.0F;
+    private static final float LEV_MIN_Z = -3.0F;
     private static final float LEV_MAX_X = 3.0F;
-    private static final float LEV_MAX_Y = 8.2F;
-    private static final float LEV_MAX_Z = 9.0F;
+    private static final float LEV_MAX_Y = 8.0F;
+    private static final float LEV_MAX_Z = 3.0F;
 
     /** Fast-return footprint in switch-local pixels before {@link #FAST_RETURN_SCALE}. */
-    private static final float FR_MIN_X = -3.0F;
+    private static final float FR_MIN_X = -2.5F;
     private static final float FR_MIN_Y = 0.0F;
-    private static final float FR_MIN_Z = -8.0F;
-    private static final float FR_MAX_X = 3.0F;
+    private static final float FR_MIN_Z = -3.0F;
+    private static final float FR_MAX_X = 2.5F;
     private static final float FR_MAX_Y = 3.6F;
-    private static final float FR_MAX_Z = 8.3F;
+    private static final float FR_MAX_Z = 3.0F;
 
-    /** Stabilisers footprint in control-local pixels before {@link #STABILISERS_SCALE}. */
-    private static final float STAB_MIN_X = -9.0F;
+    /**
+     * Stabilisers footprint in control-local pixels before {@link #STABILISERS_SCALE}.
+     * Tight widget bounds, not the decorative 18px base plate.
+     */
+    private static final float STAB_MIN_X = -4.0F;
     private static final float STAB_MIN_Y = 0.0F;
-    private static final float STAB_MIN_Z = -9.0F;
-    private static final float STAB_MAX_X = 8.0F;
-    private static final float STAB_MAX_Y = 8.2F;
-    private static final float STAB_MAX_Z = 9.0F;
+    private static final float STAB_MIN_Z = -4.0F;
+    private static final float STAB_MAX_X = 4.0F;
+    private static final float STAB_MAX_Y = 7.0F;
+    private static final float STAB_MAX_Z = 4.0F;
 
     private static final float Y_SCALE = 0.8F;
     private static final float PX = 1.0F / 16.0F;
@@ -132,10 +138,62 @@ public final class FirstDoctorConsoleControls {
         CHAMELEON_CIRCUIT,
         MATERIALISATION_LEVER,
         FAST_RETURN,
-        STABILISERS
+        STABILISERS;
+
+        /** Controls that spawn interaction entities (excludes {@link #NONE}). */
+        public static LookTarget[] interactiveValues() {
+            LookTarget[] all = values();
+            LookTarget[] interactive = new LookTarget[all.length - 1];
+            System.arraycopy(all, 1, interactive, 0, interactive.length);
+            return interactive;
+        }
+    }
+
+    /**
+     * Axis-aligned interaction entity pose for a console control.
+     * {@code position} is the bottom-center of the entity in world space.
+     */
+    public record InteractionPose(Vec3 position, float width, float height) {
+        public AABB aabb() {
+            double half = width * 0.5;
+            return new AABB(
+                    position.x - half,
+                    position.y,
+                    position.z - half,
+                    position.x + half,
+                    position.y + height,
+                    position.z + half
+            );
+        }
     }
 
     private FirstDoctorConsoleControls() {
+    }
+
+    /**
+     * World-space interaction pose for {@code target} on a console at {@code pos}.
+     * Returns {@code null} for {@link LookTarget#NONE}.
+     *
+     * <p>The entity is centered on the control AABB so minimum size clamps expand
+     * around the widget instead of only upward (which forced aiming above flat dials).
+     */
+    public static @Nullable InteractionPose interactionPose(LookTarget target, BlockPos pos, Direction facing) {
+        if (target == LookTarget.NONE) {
+            return null;
+        }
+        AABB local = unpaddedBoxFor(target, facing);
+        double xSize = local.getXsize();
+        double zSize = local.getZsize();
+        // Flat dial meshes are only a few scaled pixels tall; clamp so entity picking stays usable.
+        float width = (float) Math.max(Math.min(xSize, zSize), 0.18);
+        float height = (float) Math.max(local.getYsize(), 0.18);
+        Vec3 center = local.getCenter();
+        Vec3 bottomCenter = new Vec3(
+                pos.getX() + center.x,
+                pos.getY() + center.y - height * 0.5,
+                pos.getZ() + center.z
+        );
+        return new InteractionPose(bottomCenter, width, height);
     }
 
     /**
@@ -474,6 +532,36 @@ public final class FirstDoctorConsoleControls {
         };
     }
 
+    private static AABB unpaddedBoxFor(LookTarget target, Direction facing) {
+        return switch (target) {
+            case BIOME_SELECTOR -> selectorBox(facing, BIOME_SELECTOR_MOUNT_X_PX);
+            case WAYPOINT_SELECTOR -> selectorBox(facing, WAYPOINT_SELECTOR_MOUNT_X_PX);
+            case PLAYER_LOCATOR -> selectorBox(facing, PLAYER_LOCATOR_MOUNT_X_PX);
+            case PLANET_LOCATOR -> selectorBox(facing, PLANET_LOCATOR_MOUNT_X_PX);
+            case CHAMELEON_CIRCUIT -> controlBox(facing, PANEL6_YAW_RAD, SELECTOR_SCALE, CHAMELEON_CIRCUIT_MOUNT_X_PX,
+                    SEL_MIN_X, SEL_MIN_Y, SEL_MIN_Z, SEL_MAX_X, SEL_MAX_Y, SEL_MAX_Z);
+            case MATERIALISATION_LEVER -> controlBox(facing, PANEL6_YAW_RAD, LEVER_SCALE, LEVER_MOUNT_X_PX,
+                    LEV_MIN_X, LEV_MIN_Y, LEV_MIN_Z, LEV_MAX_X, LEV_MAX_Y, LEV_MAX_Z);
+            case FAST_RETURN -> controlBox(facing, PANEL6_YAW_RAD, FAST_RETURN_SCALE, FAST_RETURN_MOUNT_X_PX,
+                    FR_MIN_X, FR_MIN_Y, FR_MIN_Z, FR_MAX_X, FR_MAX_Y, FR_MAX_Z);
+            case STABILISERS -> controlBox(
+                    facing,
+                    PANEL6_YAW_RAD,
+                    STABILISERS_SCALE,
+                    STABILISERS_MOUNT_X_PX,
+                    STABILISERS_MOUNT_Y_PX,
+                    STABILISERS_MOUNT_Z_PX,
+                    STAB_MIN_X,
+                    STAB_MIN_Y,
+                    STAB_MIN_Z,
+                    STAB_MAX_X,
+                    STAB_MAX_Y,
+                    STAB_MAX_Z
+            );
+            case NONE -> new AABB(0, 0, 0, 0, 0, 0);
+        };
+    }
+
     /**
      * When biome and planet rays both hit, returns {@code true} if the biome AABB is closer.
      * Prefer {@link #resolveLookTarget} for new callers.
@@ -658,7 +746,7 @@ public final class FirstDoctorConsoleControls {
                 }
             }
         }
-        final double pad = 0.08;
+        final double pad = 0.0;
         return new AABB(
                 outMinX - pad, outMinY - pad, outMinZ - pad,
                 outMaxX + pad, outMaxY + pad, outMaxZ + pad

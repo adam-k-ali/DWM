@@ -1,5 +1,6 @@
 package com.adamkali.dwm.block;
 
+import com.adamkali.dwm.block.entities.DWMBlockEntities;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.network.OpenPlayerLocatorScreen;
 import com.adamkali.dwm.network.OpenWaypointScreen;
@@ -40,6 +41,8 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -60,8 +63,11 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
     /** Approximate hexagonal pedestal: ~1.6×1.6 footprint, ~1.25 blocks tall. */
     public static final VoxelShape COLLISION_SHAPE = Shapes.box(-0.3, 0.0, -0.3, 1.3, 1.25, 1.3);
 
-    /** Outline includes Panel3 selectors so raycast can target them. */
-    public static final VoxelShape OUTLINE_SHAPE = Shapes.box(-0.5, 0.0, -0.5, 1.5, 1.6, 1.5);
+    /**
+     * Outline matches the pedestal, not a solid 3×3 volume. Control picking uses interaction
+     * entities on the outer deck; a large outline box occludes those entities from outside.
+     */
+    public static final VoxelShape OUTLINE_SHAPE = COLLISION_SHAPE;
 
     public FirstDoctorConsoleBlock(Properties settings) {
         super(settings);
@@ -119,6 +125,18 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
     }
 
     @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state, BlockEntityType<T> type) {
+        if (world.isClientSide()) {
+            return null;
+        }
+        return createTickerHelper(
+                type,
+                DWMBlockEntities.FIRST_DOCTOR_CONSOLE_BLOCK_ENTITY,
+                FirstDoctorConsoleBlockEntity::serverTick
+        );
+    }
+
+    @Override
     protected InteractionResult useWithoutItem(
             BlockState state,
             Level world,
@@ -126,23 +144,28 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             Player player,
             BlockHitResult hit
     ) {
+        // Controls are activated via ConsoleControlInteractionEntity hitboxes, not look-ray AABBs.
+        return InteractionResult.PASS;
+    }
+
+    /**
+     * Routes an interaction-entity click to the matching console control handler.
+     */
+    public static InteractionResult activateControl(
+            FirstDoctorConsoleControls.LookTarget target,
+            Level world,
+            BlockPos pos,
+            Player player
+    ) {
+        if (target == FirstDoctorConsoleControls.LookTarget.NONE) {
+            return InteractionResult.PASS;
+        }
         if (player.isShiftKeyDown()) {
             return InteractionResult.PASS;
         }
-
-        Direction facing = state.getValue(FACING);
-        FirstDoctorConsoleControls.Panel3Control panel3 =
-                FirstDoctorConsoleControls.resolvePanel3LookHit(facing, pos, player);
-        FirstDoctorConsoleControls.Panel6Control panel6 =
-                FirstDoctorConsoleControls.resolvePanel6LookHit(facing, pos, player);
-        if (panel3 == null && panel6 == null) {
-            return InteractionResult.PASS;
-        }
-
         if (world.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-
         if (!(world.getBlockEntity(pos) instanceof FirstDoctorConsoleBlockEntity console)
                 || !(world instanceof ServerLevel serverWorld)
                 || !(player instanceof ServerPlayer serverPlayer)) {
@@ -151,50 +174,34 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
 
         UUID tardisId = console.getTardisId();
         if (tardisId == null) {
-            player.sendOverlayMessage(Component.translatable(unavailableKey(panel3, panel6)));
+            player.sendOverlayMessage(Component.translatable(unavailableKey(target)));
             return InteractionResult.CONSUME;
         }
 
-        // Prefer Panel3 when both panels somehow hit (unusual; different deck angles).
-        if (panel3 != null) {
-            return switch (panel3) {
-                case BIOME -> handleBiomeSelector(world, pos, player, serverWorld, tardisId);
-                case PLANET -> handlePlanetLocator(world, pos, player, serverWorld, tardisId);
-                case WAYPOINT -> handleWaypointSelector(world, pos, serverPlayer, tardisId);
-                case PLAYER -> handlePlayerLocator(world, pos, serverPlayer, serverWorld, tardisId);
-            };
-        }
-
-        return switch (panel6) {
-            case LEVER -> handleMaterialisationLever(world, pos, player, serverWorld, tardisId);
-            case CHAMELEON -> handleChameleonCircuit(world, pos, player, serverWorld, console, tardisId);
+        return switch (target) {
+            case BIOME_SELECTOR -> handleBiomeSelector(world, pos, player, serverWorld, tardisId);
+            case PLANET_LOCATOR -> handlePlanetLocator(world, pos, player, serverWorld, tardisId);
+            case WAYPOINT_SELECTOR -> handleWaypointSelector(world, pos, serverPlayer, tardisId);
+            case PLAYER_LOCATOR -> handlePlayerLocator(world, pos, serverPlayer, serverWorld, tardisId);
+            case MATERIALISATION_LEVER -> handleMaterialisationLever(world, pos, player, serverWorld, tardisId);
+            case CHAMELEON_CIRCUIT -> handleChameleonCircuit(world, pos, player, serverWorld, console, tardisId);
             case FAST_RETURN -> handleFastReturn(world, pos, player, tardisId);
             case STABILISERS -> handleStabilisers(world, pos, player, serverWorld, console, tardisId);
+            case NONE -> InteractionResult.PASS;
         };
     }
 
-    private static String unavailableKey(
-            @Nullable FirstDoctorConsoleControls.Panel3Control panel3,
-            @Nullable FirstDoctorConsoleControls.Panel6Control panel6
-    ) {
-        if (panel3 != null) {
-            return switch (panel3) {
-                case PLANET -> "dwm.console.dimension_unavailable";
-                case WAYPOINT -> "dwm.console.waypoint_unavailable";
-                case PLAYER -> "dwm.console.player_locator_unavailable";
-                case BIOME -> "dwm.console.biome_unavailable";
-            };
-        }
-        if (panel6 == FirstDoctorConsoleControls.Panel6Control.CHAMELEON) {
-            return "dwm.console.chameleon_unavailable";
-        }
-        if (panel6 == FirstDoctorConsoleControls.Panel6Control.FAST_RETURN) {
-            return "dwm.console.fast_return_unavailable";
-        }
-        if (panel6 == FirstDoctorConsoleControls.Panel6Control.STABILISERS) {
-            return "dwm.console.stabilisers_unavailable";
-        }
-        return "dwm.console.travel_unavailable";
+    private static String unavailableKey(FirstDoctorConsoleControls.LookTarget target) {
+        return switch (target) {
+            case PLANET_LOCATOR -> "dwm.console.dimension_unavailable";
+            case WAYPOINT_SELECTOR -> "dwm.console.waypoint_unavailable";
+            case PLAYER_LOCATOR -> "dwm.console.player_locator_unavailable";
+            case BIOME_SELECTOR -> "dwm.console.biome_unavailable";
+            case CHAMELEON_CIRCUIT -> "dwm.console.chameleon_unavailable";
+            case FAST_RETURN -> "dwm.console.fast_return_unavailable";
+            case STABILISERS -> "dwm.console.stabilisers_unavailable";
+            case MATERIALISATION_LEVER, NONE -> "dwm.console.travel_unavailable";
+        };
     }
 
     private static InteractionResult handleMaterialisationLever(

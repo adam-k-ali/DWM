@@ -29,5 +29,6 @@ public final class DWMEntityRenderers {
             );
         }
         EntityRendererRegistry.register(DWMEntityTypes.TARDIS_SEAT, NoopRenderer::new);
+        EntityRendererRegistry.register(DWMEntityTypes.CONSOLE_CONTROL, NoopRenderer::new);
     }
 }

@@ -17,8 +17,8 @@ class FirstDoctorConsoleControlsTest {
         AABB box = FirstDoctorConsoleControls.biomeSelectorBox(Direction.NORTH);
         assertTrue(box.minY > 0.5, "selector should sit on panel deck, was minY=" + box.minY);
         assertTrue(box.maxY < 1.7, "selector should stay near console top, was maxY=" + box.maxY);
-        assertTrue(box.getXsize() > 0.2);
-        assertTrue(box.getZsize() > 0.2);
+        assertTrue(box.getXsize() > 0.08);
+        assertTrue(box.getZsize() > 0.08);
         assertTrue(
                 FirstDoctorConsoleControls.selectorDistanceFromCenter(Direction.NORTH) > 0.45,
                 "selector should be out on Panel3 deck, not at the time rotor"
@@ -366,6 +366,54 @@ class FirstDoctorConsoleControlsTest {
                 FirstDoctorConsoleControls.LookTarget.FAST_RETURN,
                 FirstDoctorConsoleControls.resolveLookTarget(facing, pos, fastReturnEye, look, 5.0)
         );
+    }
+
+    @Test
+    void panel6InteractionPoses_doNotOverlap() {
+        Direction facing = Direction.NORTH;
+        BlockPos pos = BlockPos.ZERO;
+        FirstDoctorConsoleControls.LookTarget[] panel6 = {
+                FirstDoctorConsoleControls.LookTarget.CHAMELEON_CIRCUIT,
+                FirstDoctorConsoleControls.LookTarget.MATERIALISATION_LEVER,
+                FirstDoctorConsoleControls.LookTarget.FAST_RETURN,
+                FirstDoctorConsoleControls.LookTarget.STABILISERS
+        };
+        for (int i = 0; i < panel6.length; i++) {
+            FirstDoctorConsoleControls.InteractionPose a =
+                    FirstDoctorConsoleControls.interactionPose(panel6[i], pos, facing);
+            assertNotNull(a);
+            assertTrue(a.height() > 0.05f, panel6[i] + " height");
+            assertTrue(a.width() > 0.05f, panel6[i] + " width");
+            for (int j = i + 1; j < panel6.length; j++) {
+                FirstDoctorConsoleControls.InteractionPose b =
+                        FirstDoctorConsoleControls.interactionPose(panel6[j], pos, facing);
+                assertNotNull(b);
+                assertFalse(
+                        a.aabb().intersects(b.aabb()),
+                        panel6[i] + " must not overlap " + panel6[j]
+                );
+            }
+        }
+    }
+
+    @Test
+    void leverAndStabilisersInteractionPoses_sitOnOuterDeck() {
+        Direction facing = Direction.NORTH;
+        BlockPos pos = BlockPos.ZERO;
+        FirstDoctorConsoleControls.InteractionPose lever =
+                FirstDoctorConsoleControls.interactionPose(
+                        FirstDoctorConsoleControls.LookTarget.MATERIALISATION_LEVER, pos, facing);
+        FirstDoctorConsoleControls.InteractionPose stabilisers =
+                FirstDoctorConsoleControls.interactionPose(
+                        FirstDoctorConsoleControls.LookTarget.STABILISERS, pos, facing);
+        assertNotNull(lever);
+        assertNotNull(stabilisers);
+        assertTrue(lever.position().y > 0.3);
+        assertTrue(stabilisers.position().y > 0.3);
+        double leverDist = Math.hypot(lever.position().x - 0.5, lever.position().z - 0.5);
+        double stabDist = Math.hypot(stabilisers.position().x - 0.5, stabilisers.position().z - 0.5);
+        assertTrue(leverDist > 0.45, "lever should be out on Panel6 deck");
+        assertTrue(stabDist > leverDist, "stabilisers should be farther out than lever");
     }
 
     private static void assertCentersDistinct(AABB a, AABB b) {

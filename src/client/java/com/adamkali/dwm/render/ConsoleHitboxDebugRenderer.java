@@ -3,6 +3,7 @@ package com.adamkali.dwm.render;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.FirstDoctorConsoleBlock;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls;
+import com.adamkali.dwm.block.FirstDoctorConsoleControls.LookTarget;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.Minecraft;
@@ -81,41 +82,25 @@ public final class ConsoleHitboxDebugRenderer {
                             );
                         }
 
-                        Gizmos.cuboid(
-                                FirstDoctorConsoleControls.biomeSelectorWorldBox(mutable, facing),
-                                GizmoStyle.stroke(BIOME_COLOR)
-                        );
-                        Gizmos.cuboid(
-                                FirstDoctorConsoleControls.waypointSelectorWorldBox(mutable, facing),
-                                GizmoStyle.stroke(WAYPOINT_COLOR)
-                        );
-                        Gizmos.cuboid(
-                                FirstDoctorConsoleControls.playerLocatorWorldBox(mutable, facing),
-                                GizmoStyle.stroke(PLAYER_COLOR)
-                        );
-                        Gizmos.cuboid(
-                                FirstDoctorConsoleControls.planetLocatorWorldBox(mutable, facing),
-                                GizmoStyle.stroke(PLANET_COLOR)
-                        );
-                        Gizmos.cuboid(
-                                FirstDoctorConsoleControls.chameleonCircuitWorldBox(mutable, facing),
-                                GizmoStyle.stroke(CHAMELEON_COLOR)
-                        );
-                        Gizmos.cuboid(
-                                FirstDoctorConsoleControls.materialisationLeverWorldBox(mutable, facing),
-                                GizmoStyle.stroke(LEVER_COLOR)
-                        );
-                        Gizmos.cuboid(
-                                FirstDoctorConsoleControls.fastReturnWorldBox(mutable, facing),
-                                GizmoStyle.stroke(FAST_RETURN_COLOR)
-                        );
-                        Gizmos.cuboid(
-                                FirstDoctorConsoleControls.stabilisersWorldBox(mutable, facing),
-                                GizmoStyle.stroke(STABILISERS_COLOR)
-                        );
+                        drawPose(mutable, facing, LookTarget.BIOME_SELECTOR, BIOME_COLOR);
+                        drawPose(mutable, facing, LookTarget.WAYPOINT_SELECTOR, WAYPOINT_COLOR);
+                        drawPose(mutable, facing, LookTarget.PLAYER_LOCATOR, PLAYER_COLOR);
+                        drawPose(mutable, facing, LookTarget.PLANET_LOCATOR, PLANET_COLOR);
+                        drawPose(mutable, facing, LookTarget.CHAMELEON_CIRCUIT, CHAMELEON_COLOR);
+                        drawPose(mutable, facing, LookTarget.MATERIALISATION_LEVER, LEVER_COLOR);
+                        drawPose(mutable, facing, LookTarget.FAST_RETURN, FAST_RETURN_COLOR);
+                        drawPose(mutable, facing, LookTarget.STABILISERS, STABILISERS_COLOR);
                     }
                 }
             }
+        }
+    }
+
+    private static void drawPose(BlockPos pos, Direction facing, LookTarget target, int color) {
+        FirstDoctorConsoleControls.InteractionPose pose =
+                FirstDoctorConsoleControls.interactionPose(target, pos, facing);
+        if (pose != null) {
+            Gizmos.cuboid(pose.aabb(), GizmoStyle.stroke(color));
         }
     }
 }

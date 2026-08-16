@@ -2,11 +2,13 @@ package com.adamkali.dwm.tardis.boti;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.entity.ConsoleControlInteractionEntity;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -103,6 +105,13 @@ class BotiInteriorSamplerTest {
     @Test
     void captureEntity_NullEntityReturnsNull() {
         assertNull(BotiInteriorSampler.captureEntity(null, BlockPos.ZERO));
+    }
+
+    @Test
+    void captureEntity_skipsConsoleControlInteraction() {
+        ConsoleControlInteractionEntity entity = Mockito.mock(ConsoleControlInteractionEntity.class);
+        Mockito.when(entity.isRemoved()).thenReturn(false);
+        assertNull(BotiInteriorSampler.captureEntity(entity, BlockPos.ZERO));
     }
 
     @Test
