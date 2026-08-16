@@ -88,6 +88,10 @@ public final class ConsoleControlHud {
                     console != null && console.isSyncedCloaked()
                             ? "dwm.console.cloak_on"
                             : "dwm.console.cloak_off");
+            case DOOR_LOCK -> Component.translatable(
+                    console != null && console.isSyncedDoorsLocked()
+                            ? "dwm.console.doors_locked"
+                            : "dwm.console.doors_unlocked");
             case NONE -> null;
         };
     }

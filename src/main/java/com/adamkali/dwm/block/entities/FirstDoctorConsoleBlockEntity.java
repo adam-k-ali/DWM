@@ -38,7 +38,7 @@ import net.minecraft.world.phys.AABB;
 /**
  * Block entity for the First Doctor console. Holds {@code tardisId} for control interactions,
  * a synced chameleon variant for the Panel6 hologram preview, and synced console instruments
- * (stabilisers, cloak, and exterior environment readings).
+ * (stabilisers, cloak, door lock, and exterior environment readings).
  * Server tick maintains one {@link ConsoleControlInteractionEntity} per control.
  */
 public class FirstDoctorConsoleBlockEntity extends BlockEntity {
@@ -51,6 +51,7 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
     private TardisChameleonVariant syncedVariant = TardisChameleonVariant.TT_CAPSULE;
     private boolean syncedStabilisersEnabled = true;
     private boolean syncedCloaked;
+    private boolean syncedDoorsLocked;
     private boolean syncedNoSignal = true;
     private float syncedOxygen;
     private float syncedPressure;
@@ -172,6 +173,16 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
         notifyClients();
     }
 
+    public boolean isSyncedDoorsLocked() {
+        return syncedDoorsLocked;
+    }
+
+    public void setSyncedDoorsLocked(boolean locked) {
+        this.syncedDoorsLocked = locked;
+        setChanged();
+        notifyClients();
+    }
+
     public ExteriorEnvironmentReadout.Reading syncedReading() {
         if (syncedNoSignal) {
             return ExteriorEnvironmentReadout.Reading.none();
@@ -217,6 +228,9 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
         }
         if (syncedCloaked != model.cloaked) {
             setSyncedCloaked(model.cloaked);
+        }
+        if (syncedDoorsLocked != model.doorsLocked) {
+            setSyncedDoorsLocked(model.doorsLocked);
         }
     }
 
@@ -272,6 +286,7 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
         output.putString("syncedVariant", getSyncedVariant().getId().toString());
         output.putBoolean("syncedStabilisersEnabled", syncedStabilisersEnabled);
         output.putBoolean("syncedCloaked", syncedCloaked);
+        output.putBoolean("syncedDoorsLocked", syncedDoorsLocked);
         output.putBoolean("syncedNoSignal", syncedNoSignal);
         output.putFloat("syncedOxygen", syncedOxygen);
         output.putFloat("syncedPressure", syncedPressure);
@@ -286,6 +301,7 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
         syncedVariant = parseVariant(input.getStringOr("syncedVariant", ""));
         syncedStabilisersEnabled = input.getBooleanOr("syncedStabilisersEnabled", true);
         syncedCloaked = input.getBooleanOr("syncedCloaked", false);
+        syncedDoorsLocked = input.getBooleanOr("syncedDoorsLocked", false);
         syncedNoSignal = input.getBooleanOr("syncedNoSignal", true);
         syncedOxygen = input.getFloatOr("syncedOxygen", 0.0F);
         syncedPressure = input.getFloatOr("syncedPressure", 0.0F);

@@ -314,6 +314,10 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.cloak_on", "Cloak engaged");
         t.add("dwm.console.cloak_off", "Cloak disengaged");
         t.add("dwm.console.cloak_unavailable", "Cloak unavailable");
+        t.add("dwm.console.doors_locked", "Doors locked");
+        t.add("dwm.console.doors_unlocked", "Doors unlocked");
+        t.add("dwm.console.doors_are_locked", "Doors are locked");
+        t.add("dwm.console.door_lock_unavailable", "Door lock unavailable");
         t.add("dwm.gui.waypoint.title", "Waypoint Selector");
         t.add("dwm.gui.waypoint.save", "Save");
         t.add("dwm.gui.waypoint.rename", "Rename");

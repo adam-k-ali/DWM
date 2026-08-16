@@ -61,6 +61,9 @@ public class TardisDataModel {
     /** Perception filter: hide the exterior shell/doors/BOTI. Default off. */
     public boolean cloaked;
 
+    /** When true, doors refuse opening. Closing is always allowed. */
+    public boolean doorsLocked;
+
     /** Current exterior travel phase name ({@link TardisTravelPhase}). */
     public String travelPhase = TardisTravelPhase.IDLE.name();
 
@@ -193,6 +196,7 @@ public class TardisDataModel {
                 + ", selectedFastReturnIndex=" + selectedFastReturnIndex
                 + ", stabilisersEnabled=" + stabilisersEnabled
                 + ", cloaked=" + cloaked
+                + ", doorsLocked=" + doorsLocked
                 + ", travelPhase=" + travelPhase + ", travelPhaseTicks=" + travelPhaseTicks
                 + ", travelDestinationBiome=" + travelDestinationBiome
                 + ", travelDestinationDimension=" + travelDestinationDimension
@@ -221,6 +225,7 @@ public class TardisDataModel {
                     && this.selectedFastReturnIndex == other.selectedFastReturnIndex
                     && Objects.equals(this.stabilisersEnabled, other.stabilisersEnabled)
                     && this.cloaked == other.cloaked
+                    && this.doorsLocked == other.doorsLocked
                     && Objects.equals(this.travelPhase, other.travelPhase)
                     && this.travelPhaseTicks == other.travelPhaseTicks
                     && Objects.equals(this.travelDestinationBiome, other.travelDestinationBiome)

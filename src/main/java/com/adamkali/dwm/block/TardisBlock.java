@@ -10,6 +10,7 @@ import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -88,8 +89,12 @@ public class TardisBlock extends BaseEntityBlock {
             // Door state lives in a shared TardisDataLoader cache; toggling on both sides in
             // integrated singleplayer immediately undoes the client open. Server is authoritative.
             if (!world.isClientSide()) {
-                tardisBlockEntity.toggleDoor();
+                InteractionResult result = tardisBlockEntity.toggleDoor();
                 tardisBlockEntity.setChanged();
+                if (result == InteractionResult.FAIL
+                        && TardisLogic.areDoorsLocked(tardisBlockEntity.getTardisId())) {
+                    player.sendOverlayMessage(Component.translatable("dwm.console.doors_are_locked"));
+                }
             }
         } else if (!world.isClientSide() && DWMConfig.getBoolean(DWMConfig.ENABLE_CHAMELEON_GUI)) {
             ServerPlayNetworking.send((ServerPlayer) player, new OpenTardisChameleonScreen(tardisBlockEntity.getTardisId()));

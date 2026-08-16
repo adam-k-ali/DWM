@@ -26,4 +26,10 @@ class Dwm033ControlModelTest {
         ModelPart root = assertDoesNotThrow(() -> CloakLeverModel.getTexturedModelData().bakeRoot());
         assertNotNull(root.getChild("lever").getChild("lever_control2"));
     }
+
+    @Test
+    void doorLock_bakesLever() {
+        ModelPart root = assertDoesNotThrow(() -> DoorLockModel.getTexturedModelData().bakeRoot());
+        assertNotNull(root.getChild("lever"));
+    }
 }

@@ -40,7 +40,7 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
         super(DWMBlockEntities.TARDIS_BLOCK_ENTITY, pos, state);
     }
 
-    public void toggleDoor() {
+    public InteractionResult toggleDoor() {
         InteractionResult result = TardisLogic.toggleDoor(this.getTardisId());
         if (result == InteractionResult.SUCCESS) {
             boolean isDoorOpen = Objects.requireNonNull(TardisLogic.getDoorState(this.getTardisId())).isOpen;
@@ -50,6 +50,7 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
                 world.playSound(null, getBlockPos(), soundEvent, SoundSource.BLOCKS, 1.0F, 1.0F);
             }
         }
+        return result;
     }
 
     @Override

@@ -135,6 +135,9 @@ public final class FirstDoctorConsoleControls {
     /** Cloak lever matches the materialisation lever scale. */
     public static final float CLOAK_SCALE = LEVER_SCALE;
 
+    /** Wide flat door-lock panel. */
+    public static final float DOOR_LOCK_SCALE = 0.14F;
+
     /** Panel1 middle-row reader layout (deck-local X). */
     public static final float OXYGEN_READER_MOUNT_X_PX = -3.75F;
     public static final float PRESSURE_READER_MOUNT_X_PX = 0.0F;
@@ -202,6 +205,14 @@ public final class FirstDoctorConsoleControls {
     private static final float CLK_MAX_Y = 8.0F;
     private static final float CLK_MAX_Z = 3.0F;
 
+    /** Door lock footprint before {@link #DOOR_LOCK_SCALE}. */
+    private static final float DLK_MIN_X = -11.0F;
+    private static final float DLK_MIN_Y = 0.0F;
+    private static final float DLK_MIN_Z = -6.0F;
+    private static final float DLK_MAX_X = 11.0F;
+    private static final float DLK_MAX_Y = 2.0F;
+    private static final float DLK_MAX_Z = 8.0F;
+
     private record ControlLayout(
             float panelYaw,
             float scale,
@@ -255,7 +266,8 @@ public final class FirstDoctorConsoleControls {
         TEMPERATURE_READER,
         RADIATION_READER,
         REFUELER,
-        CLOAK;
+        CLOAK,
+        DOOR_LOCK;
 
         /** Controls that spawn interaction entities (excludes {@link #NONE}). */
         public static LookTarget[] interactiveValues() {
@@ -690,6 +702,8 @@ public final class FirstDoctorConsoleControls {
                     RDR_MIN_X, RDR_MIN_Y, RDR_MIN_Z, RDR_MAX_X, RDR_MAX_Y, RDR_MAX_Z);
             case CLOAK -> middle(PANEL4_YAW_RAD, CLOAK_SCALE, 0.0F,
                     CLK_MIN_X, CLK_MIN_Y, CLK_MIN_Z, CLK_MAX_X, CLK_MAX_Y, CLK_MAX_Z);
+            case DOOR_LOCK -> bottom(PANEL4_YAW_RAD, DOOR_LOCK_SCALE, 0.0F,
+                    DLK_MIN_X, DLK_MIN_Y, DLK_MIN_Z, DLK_MAX_X, DLK_MAX_Y, DLK_MAX_Z);
             case NONE -> new ControlLayout(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
         };
     }
