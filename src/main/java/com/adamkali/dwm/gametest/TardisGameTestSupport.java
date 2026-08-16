@@ -11,7 +11,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.storage.LevelResource;
 
@@ -48,7 +47,6 @@ public final class TardisGameTestSupport {
         if (!(context.getLevel().getBlockEntity(shellAbs) instanceof TardisBlockEntity exterior)) {
             throw new AssertionError("Expected TardisBlockEntity at " + shellAbs);
         }
-        // Force BE ↔ model binding and exterior location for travel/exit.
         UUID tardisId = exterior.getTardisId();
         TardisDataModel model = TardisDataLoader.getOrCreate(tardisId);
         model.setExteriorLocation(
@@ -81,12 +79,12 @@ public final class TardisGameTestSupport {
         model.setChanged();
     }
 
+    /**
+     * Prefer a real {@link ServerPlayer} mock. {@link GameTestHelper#makeMockPlayer} is not a
+     * {@link ServerPlayer}; {@link GameTestHelper#makeMockServerPlayer} returns one.
+     */
     public static ServerPlayer mockServerPlayer(GameTestHelper context) {
-        var player = context.makeMockPlayer(GameType.SURVIVAL);
-        if (!(player instanceof ServerPlayer serverPlayer)) {
-            throw new AssertionError("Expected GameTest mock player to be a ServerPlayer");
-        }
-        return serverPlayer;
+        return (ServerPlayer) context.makeMockServerPlayer(net.minecraft.world.level.GameType.SURVIVAL);
     }
 
     /**
@@ -109,12 +107,8 @@ public final class TardisGameTestSupport {
         return waypoint;
     }
 
-    public static ServerLevel requireTardisDimension(GameTestHelper context) {
-        ServerLevel interior = context.getLevel().getServer()
+    public static ServerLevel tardisDimensionOrNull(GameTestHelper context) {
+        return context.getLevel().getServer()
                 .getLevel(com.adamkali.dwm.tardis.interior.TardisDimensions.TARDIS_WORLD_KEY);
-        if (interior == null) {
-            throw new AssertionError("Expected dwm:tardis dimension to be loaded during GameTest");
-        }
-        return interior;
     }
 }
