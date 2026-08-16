@@ -93,6 +93,12 @@ public class TardisDataModel {
     /** Player uuid snapshotted at demat (meaningful for {@link DestinationMode#PLAYER}). */
     public @Nullable UUID travelTargetPlayerUuid;
 
+    /**
+     * Player who claimed this TARDIS (first enter, one TARDIS per player).
+     * Null for unowned / legacy saves.
+     */
+    public @Nullable UUID ownerUuid;
+
     private transient boolean needsSaving = false;
 
     public TardisDataModel() {
@@ -187,6 +193,11 @@ public class TardisDataModel {
         setChanged();
     }
 
+    public void setOwner(@Nullable UUID ownerUuid) {
+        this.ownerUuid = ownerUuid;
+        setChanged();
+    }
+
     @Override
     public String toString() {
         return "TardisDataModel [uuid=" + uuid + ", doorState=" + doorState + ", variant=" + variant
@@ -206,7 +217,8 @@ public class TardisDataModel {
                 + ", travelPhase=" + travelPhase + ", travelPhaseTicks=" + travelPhaseTicks
                 + ", travelDestinationBiome=" + travelDestinationBiome
                 + ", travelDestinationDimension=" + travelDestinationDimension
-                + ", travelDestinationMode=" + travelDestinationMode + ']';
+                + ", travelDestinationMode=" + travelDestinationMode
+                + ", ownerUuid=" + ownerUuid + ']';
     }
 
     @Override
@@ -244,7 +256,8 @@ public class TardisDataModel {
                     && this.travelDestinationY == other.travelDestinationY
                     && this.travelDestinationZ == other.travelDestinationZ
                     && this.travelDestinationRotation == other.travelDestinationRotation
-                    && Objects.equals(this.travelTargetPlayerUuid, other.travelTargetPlayerUuid);
+                    && Objects.equals(this.travelTargetPlayerUuid, other.travelTargetPlayerUuid)
+                    && Objects.equals(this.ownerUuid, other.ownerUuid);
         }
         return false;
     }
