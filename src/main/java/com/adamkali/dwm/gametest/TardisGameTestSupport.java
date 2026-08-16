@@ -80,11 +80,13 @@ public final class TardisGameTestSupport {
     }
 
     /**
-     * Prefer a real {@link ServerPlayer} mock. {@link GameTestHelper#makeMockPlayer} is not a
-     * {@link ServerPlayer}; {@link GameTestHelper#makeMockServerPlayer} returns one.
+     * GameTest {@link GameTestHelper#makeMockPlayer} is not a {@link ServerPlayer}.
+     * {@link GameTestHelper#makeMockServerPlayerInLevel()} wires an embedded connection so
+     * teleport and {@code ServerPlayNetworking.send} paths do not NPE.
      */
+    @SuppressWarnings("removal")
     public static ServerPlayer mockServerPlayer(GameTestHelper context) {
-        return (ServerPlayer) context.makeMockServerPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        return context.makeMockServerPlayerInLevel();
     }
 
     /**
