@@ -132,9 +132,8 @@ public final class FirstDoctorConsoleControls {
     /** Taller unique radiation mesh on Panel1 bottom. */
     public static final float RADIATION_SCALE = 0.10F;
 
-
-
-
+    /** Cloak lever matches the materialisation lever scale. */
+    public static final float CLOAK_SCALE = LEVER_SCALE;
 
     /** Panel1 middle-row reader layout (deck-local X). */
     public static final float OXYGEN_READER_MOUNT_X_PX = -3.75F;
@@ -195,9 +194,13 @@ public final class FirstDoctorConsoleControls {
     private static final float RAD_MAX_Y = 6.0F;
     private static final float RAD_MAX_Z = 8.0F;
 
-
-
-
+    /** Cloak lever footprint before {@link #CLOAK_SCALE}. */
+    private static final float CLK_MIN_X = -2.0F;
+    private static final float CLK_MIN_Y = 0.0F;
+    private static final float CLK_MIN_Z = -3.0F;
+    private static final float CLK_MAX_X = 3.0F;
+    private static final float CLK_MAX_Y = 8.0F;
+    private static final float CLK_MAX_Z = 3.0F;
 
     private record ControlLayout(
             float panelYaw,
@@ -251,7 +254,8 @@ public final class FirstDoctorConsoleControls {
         PRESSURE_READER,
         TEMPERATURE_READER,
         RADIATION_READER,
-        REFUELER;
+        REFUELER,
+        CLOAK;
 
         /** Controls that spawn interaction entities (excludes {@link #NONE}). */
         public static LookTarget[] interactiveValues() {
@@ -684,6 +688,8 @@ public final class FirstDoctorConsoleControls {
                     RAD_MIN_X, RAD_MIN_Y, RAD_MIN_Z, RAD_MAX_X, RAD_MAX_Y, RAD_MAX_Z);
             case REFUELER -> middle(PANEL5_YAW_RAD, READER_SCALE, 0.0F,
                     RDR_MIN_X, RDR_MIN_Y, RDR_MIN_Z, RDR_MAX_X, RDR_MAX_Y, RDR_MAX_Z);
+            case CLOAK -> middle(PANEL4_YAW_RAD, CLOAK_SCALE, 0.0F,
+                    CLK_MIN_X, CLK_MIN_Y, CLK_MIN_Z, CLK_MAX_X, CLK_MAX_Y, CLK_MAX_Z);
             case NONE -> new ControlLayout(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
         };
     }

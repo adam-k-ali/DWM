@@ -54,6 +54,9 @@ public class DWMRenderLayerManager {
                 RadiationReaderModel.LAYER_LOCATION,
                 RadiationReaderModel::getTexturedModelData);
         ModelLayerRegistry.registerModelLayer(
+                CloakLeverModel.LAYER_LOCATION,
+                CloakLeverModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(
                 TardisGlobeModel.LAYER_LOCATION,
                 TardisGlobeModel::getTexturedModelData);
         ModelLayerRegistry.registerModelLayer(

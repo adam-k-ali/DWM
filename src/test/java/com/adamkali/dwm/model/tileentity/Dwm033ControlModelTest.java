@@ -20,4 +20,10 @@ class Dwm033ControlModelTest {
         ModelPart root = assertDoesNotThrow(() -> RadiationReaderModel.getTexturedModelData().bakeRoot());
         assertNotNull(root.getChild("needle"));
     }
+
+    @Test
+    void cloakLever_bakesControl() {
+        ModelPart root = assertDoesNotThrow(() -> CloakLeverModel.getTexturedModelData().bakeRoot());
+        assertNotNull(root.getChild("lever").getChild("lever_control2"));
+    }
 }

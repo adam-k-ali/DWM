@@ -34,7 +34,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
   - **Panel1 Environment (0°)** — exterior atmosphere instruments (oxygen / pressure / temperature readers on the middle row; radiation reader on the bottom row).
   - **Panel2 Communications (+60°)** — distress reserved for DWM-035.
   - **Panel3 Navigation (+120°)** — destination dials (existing).
-  - **Panel4 Security (180°)** — shields reserved for DWM-035.
+  - **Panel4 Security (180°)** — cloak lever (middle); shields reserved for DWM-035.
   - **Panel5 Systems (−120°)** — refueler gauge on the middle row (placeholder artron readout; flight/float reserved for DWM-035).
   - **Panel6 Helm (−60°)** — materialisation, chameleon, fast return, stabilisers (existing).
 - Each panel deck has three cuboid rows: **top** (toward rotor, `TOP_MOUNT_*`), **middle** (`CONTROL_MOUNT_*`), **bottom** (player-facing, `BOTTOM_MOUNT_*` / stabilisers mount).
@@ -42,6 +42,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - First Doctor console Panel6 hosts the materialisation lever, a basic chameleon circuit dial (cycles shell variant + translucent hologram; advanced chameleon is deferred), a fast-return switch (cycles historically visited exteriors as the next destination; history cap 16), and a bottom-row stabilisers toggle (default on — precise landing; off scatters the materialise landing within ~4–24 blocks then re-validates; unstabilised flight speeds the time rotor and adds light smoke).
 - Panel1 readers sample the **linked exterior** (not the interior) about once a second: oxygen (0 if waterlogged/no air; reduced Nether/End), pressure (Y vs sea level / dimension), temperature (biome), radiation (high Nether, medium End, low Overworld with a thunder bump). In flight or with no exterior they show no signal. Needles and HUD use the synced 0–1 reading; click repeats the HUD as an overlay.
 - Panel5 refueler is a **placeholder** artron gauge (`Artron reserves: stable`); the needle is parked cosmetically. No fuel system exists yet.
+- Panel4 cloak is a perception filter (`TardisDataModel.cloaked`): the exterior BER skips shell, doors, and BOTI while collision and door-click remain. SOTO from inside is unchanged. Overlay: `Cloak engaged` / `Cloak disengaged`.
 - First Doctor console time rotor bobbles vertically while the TARDIS is traveling (`DEMATERIALISING` / `IN_FLIGHT` / `MATERIALISING`) and rests when idle.
 - Demat/mat/in-flight play loopable travel SFX (seamless loops) for code-configured phase lengths (`DEMATERIALISING_DURATION_TICKS` / `MATERIALISING_DURATION_TICKS` in `TardisTravelService`); shell vanishes mid-demat at `DEMATERIALISING_SHELL_REMOVE_AT_TICK`; `IN_FLIGHT` uses a higher-pitched demat/mat-derived loop in the interior; materialisation ends with a landing thud.
 
@@ -52,7 +53,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 4. When the door is fully open, walk into the exterior block to teleport to the interior entrance.
 5. From inside, look through open interior doors to see the exterior world (SOTO preview).
 6. Walk into the interior door blocks to return just outside the exterior TARDIS.
-7. At the console: choose a destination — biome + planet dials, a saved waypoint, an online player, fast return through previous landings — then pull the materialisation lever to dematerialise, wait for `IN_FLIGHT`, and pull again to materialise and land. Optionally cycle the chameleon circuit on Panel6 to preview/set the exterior shell. Toggle stabilisers on Panel6’s bottom row before materialising if you want a precise vs scattered landing. Panel1 readers show the linked exterior atmosphere.
+7. At the console: choose a destination — biome + planet dials, a saved waypoint, an online player, fast return through previous landings — then pull the materialisation lever to dematerialise, wait for `IN_FLIGHT`, and pull again to materialise and land. Optionally cycle the chameleon circuit on Panel6 to preview/set the exterior shell. Toggle stabilisers on Panel6’s bottom row before materialising if you want a precise vs scattered landing. Panel1 readers show the linked exterior atmosphere. Panel4 cloak hides the exterior shell.
 
 ## BOTI Notes
 - Visual illusion: does not stream the live `dwm:tardis` dimension to the exterior client.

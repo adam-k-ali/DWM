@@ -458,7 +458,8 @@ class FirstDoctorConsoleControlsTest {
                 FirstDoctorConsoleControls.LookTarget.PRESSURE_READER,
                 FirstDoctorConsoleControls.LookTarget.TEMPERATURE_READER,
                 FirstDoctorConsoleControls.LookTarget.RADIATION_READER,
-                FirstDoctorConsoleControls.LookTarget.REFUELER
+                FirstDoctorConsoleControls.LookTarget.REFUELER,
+                FirstDoctorConsoleControls.LookTarget.CLOAK
         };
         for (FirstDoctorConsoleControls.LookTarget target : targets) {
             double dist = FirstDoctorConsoleControls.distanceFromCenter(target, facing);

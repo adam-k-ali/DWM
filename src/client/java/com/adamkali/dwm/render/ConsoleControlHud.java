@@ -84,6 +84,10 @@ public final class ConsoleControlHud {
             case TEMPERATURE_READER -> readerLabel(console, reading -> reading.temperature(), "dwm.console.temperature");
             case RADIATION_READER -> readerLabel(console, reading -> reading.radiation(), "dwm.console.radiation");
             case REFUELER -> Component.translatable("dwm.console.refueler_stable");
+            case CLOAK -> Component.translatable(
+                    console != null && console.isSyncedCloaked()
+                            ? "dwm.console.cloak_on"
+                            : "dwm.console.cloak_off");
             case NONE -> null;
         };
     }

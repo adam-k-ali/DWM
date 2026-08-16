@@ -5,6 +5,7 @@ import com.adamkali.dwm.block.FirstDoctorConsoleControls;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.model.tileentity.BiomeSelectorModel;
 import com.adamkali.dwm.model.tileentity.ChameleonCircuitModel;
+import com.adamkali.dwm.model.tileentity.CloakLeverModel;
 import com.adamkali.dwm.model.tileentity.FastReturnModel;
 import com.adamkali.dwm.model.tileentity.FifthDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.FirstDoctorConsoleModel;
@@ -73,6 +74,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
     private final StabilisersModel stabilisersModel;
     private final ReaderModel readerModel;
     private final RadiationReaderModel radiationReaderModel;
+    private final CloakLeverModel cloakLeverModel;
     private final HashMap<TardisChameleonVariant, TardisModel> shellModelCache = new HashMap<>();
     private final HashMap<TardisChameleonVariant, Identifier> shellTextureCache = new HashMap<>();
 
@@ -98,6 +100,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
         this.readerModel = new ReaderModel(context.bakeLayer(ReaderModel.LAYER_LOCATION));
         this.radiationReaderModel = new RadiationReaderModel(
                 context.bakeLayer(RadiationReaderModel.LAYER_LOCATION));
+        this.cloakLeverModel = new CloakLeverModel(context.bakeLayer(CloakLeverModel.LAYER_LOCATION));
 
         cacheShell(TardisChameleonVariant.TT_CAPSULE,
                 new TTCapsuleModel(context.bakeLayer(TTCapsuleModel.LAYER_LOCATION)),
@@ -159,6 +162,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
         state.variant = entity.getSyncedVariant();
         state.hologramYawDegrees = hologramYawDegrees(timeTicks);
         state.hologramBobOffset = hologramBobOffset(timeTicks);
+        state.cloaked = entity.isSyncedCloaked();
         ExteriorEnvironmentReadout.Reading reading = entity.syncedReading();
         state.readerNoSignal = reading.noSignal();
         state.oxygen = reading.needle(reading.oxygen());
@@ -211,6 +215,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
         TardisRenderState animState = new TardisRenderState();
         animState.setRotorBobOffset(state.rotorBobOffset);
         animState.setStabilisersEnabled(state.stabilisersEnabled);
+        animState.setCloaked(state.cloaked);
 
         poseStack.pushPose();
         applyTransforms(poseStack, state.facing);
@@ -325,6 +330,15 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 ReaderModel.REFUELER_TEXTURE, ReaderModel.REFUELER_NEEDLE,
                 FirstDoctorConsoleControls.PANEL5_YAW_RAD,
                 FirstDoctorConsoleControls.READER_SCALE,
+                0.0F,
+                FirstDoctorConsoleControls.CONTROL_MOUNT_Y_PX,
+                FirstDoctorConsoleControls.CONTROL_MOUNT_Z_PX);
+
+        poseStack.popPose();
+        submitMounted(poseStack, submitNodeCollector, state, animState,
+                cloakLeverModel, CloakLeverModel.TEXTURE_LOCATION,
+                FirstDoctorConsoleControls.PANEL4_YAW_RAD,
+                FirstDoctorConsoleControls.CLOAK_SCALE,
                 0.0F,
                 FirstDoctorConsoleControls.CONTROL_MOUNT_Y_PX,
                 FirstDoctorConsoleControls.CONTROL_MOUNT_Z_PX);

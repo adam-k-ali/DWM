@@ -38,7 +38,7 @@ import net.minecraft.world.phys.AABB;
 /**
  * Block entity for the First Doctor console. Holds {@code tardisId} for control interactions,
  * a synced chameleon variant for the Panel6 hologram preview, and synced console instruments
- * (stabilisers and exterior environment readings).
+ * (stabilisers, cloak, and exterior environment readings).
  * Server tick maintains one {@link ConsoleControlInteractionEntity} per control.
  */
 public class FirstDoctorConsoleBlockEntity extends BlockEntity {
@@ -50,6 +50,7 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
     private @Nullable UUID tardisId;
     private TardisChameleonVariant syncedVariant = TardisChameleonVariant.TT_CAPSULE;
     private boolean syncedStabilisersEnabled = true;
+    private boolean syncedCloaked;
     private boolean syncedNoSignal = true;
     private float syncedOxygen;
     private float syncedPressure;
@@ -161,6 +162,16 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
         notifyClients();
     }
 
+    public boolean isSyncedCloaked() {
+        return syncedCloaked;
+    }
+
+    public void setSyncedCloaked(boolean cloaked) {
+        this.syncedCloaked = cloaked;
+        setChanged();
+        notifyClients();
+    }
+
     public ExteriorEnvironmentReadout.Reading syncedReading() {
         if (syncedNoSignal) {
             return ExteriorEnvironmentReadout.Reading.none();
@@ -192,7 +203,21 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
     }
 
     private void refreshLinkedState(ServerLevel interiorWorld) {
+        refreshSecurityState();
         refreshEnvironmentReadout(interiorWorld);
+    }
+
+    private void refreshSecurityState() {
+        if (tardisId == null) {
+            return;
+        }
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            return;
+        }
+        if (syncedCloaked != model.cloaked) {
+            setSyncedCloaked(model.cloaked);
+        }
     }
 
     private void refreshEnvironmentReadout(ServerLevel interiorWorld) {
@@ -246,6 +271,7 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
         }
         output.putString("syncedVariant", getSyncedVariant().getId().toString());
         output.putBoolean("syncedStabilisersEnabled", syncedStabilisersEnabled);
+        output.putBoolean("syncedCloaked", syncedCloaked);
         output.putBoolean("syncedNoSignal", syncedNoSignal);
         output.putFloat("syncedOxygen", syncedOxygen);
         output.putFloat("syncedPressure", syncedPressure);
@@ -259,6 +285,7 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
         tardisId = input.read("tardisId", UUIDUtil.CODEC).orElse(null);
         syncedVariant = parseVariant(input.getStringOr("syncedVariant", ""));
         syncedStabilisersEnabled = input.getBooleanOr("syncedStabilisersEnabled", true);
+        syncedCloaked = input.getBooleanOr("syncedCloaked", false);
         syncedNoSignal = input.getBooleanOr("syncedNoSignal", true);
         syncedOxygen = input.getFloatOr("syncedOxygen", 0.0F);
         syncedPressure = input.getFloatOr("syncedPressure", 0.0F);
