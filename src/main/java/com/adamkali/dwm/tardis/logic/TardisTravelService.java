@@ -432,13 +432,13 @@ public final class TardisTravelService {
         }
 
         // Door-close prelude before the configurable demat/vworp window.
-        TardisLogic.updateDoorState(tardisId);
+        ServerLevel exteriorWorld = getExteriorWorld(server, model);
+        TardisLogic.updateDoorState(tardisId, exteriorWorld);
         if (model.doorState.doorSwing > 0.0f) {
             PortalStreamSyncService.setMetaChanged(tardisId);
             return;
         }
 
-        ServerLevel exteriorWorld = getExteriorWorld(server, model);
         if (exteriorWorld == null) {
             abortToIdle(server, tardisId, model);
             return;
@@ -474,7 +474,7 @@ public final class TardisTravelService {
     }
 
     private static void tickMaterialising(MinecraftServer server, UUID tardisId, TardisDataModel model) {
-        TardisLogic.updateDoorState(tardisId);
+        TardisLogic.updateDoorState(tardisId, getExteriorWorld(server, model));
         PortalStreamSyncService.setMetaChanged(tardisId);
         boolean finished = advanceMaterialisingHold(model);
         if (!finished) {

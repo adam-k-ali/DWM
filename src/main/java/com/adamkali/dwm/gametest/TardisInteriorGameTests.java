@@ -183,6 +183,9 @@ public class TardisInteriorGameTests {
         if (!tardisId.equals(door.getTardisId())) {
             throw new AssertionError("Door tardisId not stamped: " + door.getTardisId());
         }
+        if (door.isOpen() || context.getLevel().getBlockState(doorOriginAbs).getValue(TardisInteriorDoorBlock.OPEN)) {
+            throw new AssertionError("Placed interior doors should start closed to match the exterior");
+        }
 
         context.succeed();
     }
@@ -248,5 +251,98 @@ public class TardisInteriorGameTests {
         }
 
         context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void interiorDoor_LinkedUse_TogglesSharedDoorState(GameTestHelper context) {
+        TardisDataLoader.tardisSaveDirectory = context.getLevel().getServer()
+                .getWorldPath(LevelResource.ROOT).resolve("gametest_tardis_data");
+        TardisDataModel model = TardisDataLoader.create();
+
+        Direction facing = Direction.SOUTH;
+        BlockPos originRel = new BlockPos(1, 2, 1);
+        placeClosedDoorBank(context, originRel, facing);
+
+        BlockPos originAbs = context.absolutePos(originRel);
+        if (!(context.getLevel().getBlockEntity(originAbs) instanceof TardisInteriorDoorBlockEntity originDoor)) {
+            throw new AssertionError("Expected origin TardisInteriorDoorBlockEntity");
+        }
+        originDoor.setTardisId(model.uuid);
+
+        Player player = context.makeMockPlayer(GameType.SURVIVAL);
+        BlockState originState = context.getLevel().getBlockState(originAbs);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(originAbs), Direction.NORTH, originAbs, false);
+        originState.useWithoutItem(context.getLevel(), player, hit);
+
+        if (!model.doorState.isOpen) {
+            throw new AssertionError("Interior use should open shared TardisDataModel door state");
+        }
+        assertBankOpen(context, originRel, facing, true);
+        if (!originDoor.isOpen()) {
+            throw new AssertionError("Origin BE should be open after linked toggle");
+        }
+
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void interiorDoor_MirrorsExteriorToggleOnTick(GameTestHelper context) {
+        TardisDataLoader.tardisSaveDirectory = context.getLevel().getServer()
+                .getWorldPath(LevelResource.ROOT).resolve("gametest_tardis_data");
+        TardisDataModel model = TardisDataLoader.create();
+
+        Direction facing = Direction.SOUTH;
+        BlockPos originRel = new BlockPos(1, 2, 1);
+        placeClosedDoorBank(context, originRel, facing);
+
+        BlockPos originAbs = context.absolutePos(originRel);
+        if (!(context.getLevel().getBlockEntity(originAbs) instanceof TardisInteriorDoorBlockEntity originDoor)) {
+            throw new AssertionError("Expected origin TardisInteriorDoorBlockEntity");
+        }
+        originDoor.setTardisId(model.uuid);
+
+        TardisLogic.toggleDoor(model.uuid);
+        if (!model.doorState.isOpen) {
+            throw new AssertionError("Expected exterior toggle to open shared door state");
+        }
+        if (context.getLevel().getBlockState(originAbs).getValue(TardisInteriorDoorBlock.OPEN)) {
+            throw new AssertionError("Interior OPEN should still be closed before origin tick");
+        }
+
+        originDoor.tick(context.getLevel(), originAbs, context.getLevel().getBlockState(originAbs), originDoor);
+        assertBankOpen(context, originRel, facing, true);
+
+        context.succeed();
+    }
+
+    private static void placeClosedDoorBank(GameTestHelper context, BlockPos originRel, Direction facing) {
+        for (DoubleBlockHalf half : DoubleBlockHalf.values()) {
+            for (int slot = 0; slot < TardisInteriorDoorBlock.BANK_WIDTH; slot++) {
+                BlockPos cellRel = TardisInteriorDoorBlock.cellPos(originRel, facing, half, slot);
+                context.setBlock(
+                        cellRel.getX(), cellRel.getY(), cellRel.getZ(),
+                        TardisInteriorDoorBlock.bankCellState(facing, half, slot, false));
+            }
+        }
+    }
+
+    private static void assertBankOpen(
+            GameTestHelper context,
+            BlockPos originRel,
+            Direction facing,
+            boolean expectedOpen
+    ) {
+        for (DoubleBlockHalf half : DoubleBlockHalf.values()) {
+            for (int slot = 0; slot < TardisInteriorDoorBlock.BANK_WIDTH; slot++) {
+                BlockPos cellAbs = context.absolutePos(
+                        TardisInteriorDoorBlock.cellPos(originRel, facing, half, slot));
+                BlockState cellState = context.getLevel().getBlockState(cellAbs);
+                if (cellState.getValue(TardisInteriorDoorBlock.OPEN) != expectedOpen) {
+                    throw new AssertionError(
+                            "Expected OPEN=" + expectedOpen + " at " + cellAbs
+                                    + " but was " + cellState.getValue(TardisInteriorDoorBlock.OPEN));
+                }
+            }
+        }
     }
 }

@@ -53,9 +53,26 @@ public class TardisLogic {
     }
 
     public static void updateDoorState(UUID tardisId) {
+        updateDoorState(tardisId, null);
+    }
+
+    /**
+     * Advances door swing toward the current open/closed target.
+     * When {@code world} has a server, at most one step runs per server tick so exterior and
+     * interior tickers cannot double-speed the shared animation.
+     */
+    public static void updateDoorState(UUID tardisId, @Nullable Level world) {
         TardisDataModel tardis = TardisDataLoader.get(tardisId);
         if (tardis == null) {
             return;
+        }
+        MinecraftServer server = world == null ? null : world.getServer();
+        if (server != null) {
+            int tick = server.getTickCount();
+            if (tardis.lastDoorSwingServerTick == tick) {
+                return;
+            }
+            tardis.lastDoorSwingServerTick = tick;
         }
         float doorSwing = tardis.doorState.doorSwing;
         if (tardis.doorState.isOpen) {

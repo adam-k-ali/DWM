@@ -2,6 +2,9 @@ package com.adamkali.dwm.block;
 
 import com.adamkali.dwm.block.entities.DWMBlockEntities;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
+import com.adamkali.dwm.sound.DWMSounds;
+import com.adamkali.dwm.tardis.data.TardisDataLoader;
+import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.interior.TardisInteriorDoorShapes;
 import com.adamkali.dwm.tardis.interior.TardisInteriorService;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
@@ -31,11 +34,15 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 /**
  * Classic interior double-door bank (3 wide × 2 tall), modeled after vanilla {@code DoorBlock}:
@@ -111,14 +118,19 @@ public class TardisInteriorDoorBlock extends Block implements EntityBlock {
 
     /**
      * Sets {@link #OPEN} on every cell in the bank and drives the origin BE swing target.
+     * Mid-swing clicks are ignored unless {@code ignoreSwing} is true (canonical model sync).
      */
     public static void setOpen(Level world, BlockPos pos, BlockState state, boolean open) {
+        setOpen(world, pos, state, open, false);
+    }
+
+    public static void setOpen(Level world, BlockPos pos, BlockState state, boolean open, boolean ignoreSwing) {
         Direction facing = state.getValue(FACING);
         BlockPos origin = originPos(pos, state);
         TardisInteriorDoorBlockEntity originEntity = null;
         if (world.getBlockEntity(origin) instanceof TardisInteriorDoorBlockEntity door) {
             originEntity = door;
-            if (door.isSwingInProgress()) {
+            if (!ignoreSwing && door.isSwingInProgress()) {
                 return;
             }
         }
@@ -184,11 +196,23 @@ public class TardisInteriorDoorBlock extends Block implements EntityBlock {
         if (world.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-        boolean currentlyOpen = state.getValue(OPEN);
         TardisInteriorDoorBlockEntity origin = getOriginEntity(world, pos, state);
-        if (!currentlyOpen && origin != null && TardisLogic.areDoorsLocked(origin.getTardisId())) {
-            player.sendOverlayMessage(Component.translatable("dwm.console.doors_are_locked"));
-            return InteractionResult.CONSUME;
+        UUID tardisId = origin == null ? null : origin.getTardisId();
+        TardisDataModel model = tardisId == null ? null : TardisDataLoader.get(tardisId);
+        if (model != null) {
+            InteractionResult result = TardisLogic.toggleDoor(tardisId);
+            if (result == InteractionResult.FAIL && TardisLogic.areDoorsLocked(tardisId)) {
+                player.sendOverlayMessage(Component.translatable("dwm.console.doors_are_locked"));
+                return InteractionResult.CONSUME;
+            }
+            if (result != InteractionResult.SUCCESS) {
+                return InteractionResult.CONSUME;
+            }
+            boolean open = model.doorState.isOpen;
+            setOpen(world, pos, state, open, true);
+            SoundEvent sound = open ? DWMSounds.TARDIS_DOOR_OPEN : DWMSounds.TARDIS_DOOR_CLOSE;
+            world.playSound(null, pos, sound, SoundSource.BLOCKS, 1.0F, 1.0F);
+            return InteractionResult.SUCCESS;
         }
         toggleOpen(world, pos, state);
         return InteractionResult.SUCCESS;

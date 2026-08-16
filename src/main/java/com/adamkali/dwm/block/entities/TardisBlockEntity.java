@@ -56,7 +56,7 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
     @Override
     public void tick(Level world, BlockPos pos, BlockState state, TardisBlockEntity blockEntity) {
         if (this.tardisId != null) {
-            TardisLogic.updateDoorState(this.tardisId);
+            TardisLogic.updateDoorState(this.tardisId, world);
             if (!world.isClientSide()) {
                 boolean cloaked = TardisLogic.isCloaked(this.tardisId);
                 if (cloaked != syncedCloaked) {

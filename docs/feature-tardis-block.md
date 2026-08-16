@@ -16,7 +16,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 ## Implemented Now
 - Placeable `tardis_block` with block entity backing data.
 - Persistent per-instance identity data (including UUID and variant metadata).
-- Interactive door state transitions with sound feedback.
+- Interactive door state: exterior and interior share {@code TardisDataModel.doorState}; clicking either side opens/closes both.
 - Custom client rendering for TARDIS model presentation.
 - Exterior BOTI (bigger on the inside): deferred portal FBO composites a hitch-fixed console-room look-in through the chameleon door aperture when `doorSwing >= 0.15`.
 - Interior SOTO (smaller on the outside): deferred portal FBO composites a hitch-fixed exterior look-out through the classic interior door aperture when interior `doorSwing >= 0.15`.
@@ -53,7 +53,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 
 ## How It Works In-Game
 1. Place the TARDIS block.
-2. Interact with the block to toggle door-state behavior (server-authoritative).
+2. Interact with the exterior or interior doors to toggle shared door-state behavior (server-authoritative).
 3. As the door opens, the console room becomes visible through the doorway (client preview).
 4. When the door is fully open, walk into the exterior block to teleport to the interior entrance.
 5. From inside, look through open interior doors to see the exterior world (SOTO preview).
@@ -75,7 +75,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 ## Known Constraints
 - Interior visuals use the shipped `first_doctor_console_room` structure (11×7×17) with decor props; console and interior-door bank are linked to the exterior via `tardisId` on placement.
 - Ownership is first-enter only (no place-time claim); worldgen TARDISes stay unowned until entered. `/tardis rebuild` only targets the caller's owned TARDIS (or any UUID for ops).
-- Door open/closed for entry is server-authoritative; swing animation still updates locally on both sides.
+- Door open/closed for entry is server-authoritative and shared between exterior and interior; swing animation still updates locally on both sides.
 - Shared exterior BOTI door aperture table per chameleon variant (`PortalAperture`); interior SOTO uses one classic 3×2 opening aperture.
 - Shared single full-window portal FBO: last END_MAIN writer wins when multiple door portals render in one frame (no FBO pooling yet).
 - Exterior SOTO footprint is axis-aligned (not rotated with exterior facing). Exit teleport and SOTO look-out follow the chameleon shell door facing (`TardisExteriorFacing`), which is opposite the raw `FACING_ROTATION` skull/banner south=0 convention because of shell BER transforms.
