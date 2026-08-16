@@ -13,6 +13,9 @@ public class TardisRenderState extends EntityRenderState {
     private float needle;
     private boolean cloaked;
     private boolean doorsLocked;
+    private boolean lockX;
+    private boolean lockY;
+    private boolean lockZ;
 
     public TardisRenderState() {
         this.doorSwingProgress = 0.0f;
@@ -68,4 +71,27 @@ public class TardisRenderState extends EntityRenderState {
         return this.doorsLocked;
     }
 
+    public void setLockX(boolean lockX) {
+        this.lockX = lockX;
+    }
+
+    public boolean isLockX() {
+        return this.lockX;
+    }
+
+    public void setLockY(boolean lockY) {
+        this.lockY = lockY;
+    }
+
+    public boolean isLockY() {
+        return this.lockY;
+    }
+
+    public void setLockZ(boolean lockZ) {
+        this.lockZ = lockZ;
+    }
+
+    public boolean isLockZ() {
+        return this.lockZ;
+    }
 }

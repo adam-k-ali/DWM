@@ -294,7 +294,11 @@ public final class TardisTravelService {
             lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
             return InteractionResult.FAIL;
         }
-        landing = scattered.get();
+        landing = CoordinateLockLogic.apply(scattered.get(), model);
+        if (!LandingSiteLogic.isValidLanding(destinationWorld, landing, doorFacing)) {
+            lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
+            return InteractionResult.FAIL;
+        }
 
         FastReturnLogic.pushDeparted(model);
         placeShell(destinationWorld, landing, snapshot, facingRotation);

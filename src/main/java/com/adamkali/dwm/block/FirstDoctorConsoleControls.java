@@ -141,6 +141,9 @@ public final class FirstDoctorConsoleControls {
     /** Wide flat door-lock panel. */
     public static final float DOOR_LOCK_SCALE = 0.14F;
 
+    /** Wide 39px coordinate-lock instrument. */
+    public static final float COORDINATE_LOCK_SCALE = 0.11F;
+
     /** Panel1 middle-row reader layout (deck-local X). */
     public static final float OXYGEN_READER_MOUNT_X_PX = -3.75F;
     public static final float PRESSURE_READER_MOUNT_X_PX = 0.0F;
@@ -224,6 +227,18 @@ public final class FirstDoctorConsoleControls {
     private static final float DLK_MAX_Y = 2.0F;
     private static final float DLK_MAX_Z = 8.0F;
 
+    /** Per-axis coordinate-lock pads on the wide instrument. */
+    private static final float CLKX_MIN_X = 7.0F;
+    private static final float CLKX_MAX_X = 14.0F;
+    private static final float CLKY_MIN_X = 0.0F;
+    private static final float CLKY_MAX_X = 6.0F;
+    private static final float CLKZ_MIN_X = -8.0F;
+    private static final float CLKZ_MAX_X = -1.0F;
+    private static final float CLKA_MIN_Y = 0.0F;
+    private static final float CLKA_MAX_Y = 3.0F;
+    private static final float CLKA_MIN_Z = -12.0F;
+    private static final float CLKA_MAX_Z = -6.0F;
+
     private record ControlLayout(
             float panelYaw,
             float scale,
@@ -279,7 +294,10 @@ public final class FirstDoctorConsoleControls {
         REFUELER,
         TELEPATHIC_CIRCUIT,
         CLOAK,
-        DOOR_LOCK;
+        DOOR_LOCK,
+        COORDINATE_LOCK_X,
+        COORDINATE_LOCK_Y,
+        COORDINATE_LOCK_Z;
 
         /** Controls that spawn interaction entities (excludes {@link #NONE}). */
         public static LookTarget[] interactiveValues() {
@@ -718,6 +736,12 @@ public final class FirstDoctorConsoleControls {
                     CLK_MIN_X, CLK_MIN_Y, CLK_MIN_Z, CLK_MAX_X, CLK_MAX_Y, CLK_MAX_Z);
             case DOOR_LOCK -> bottom(PANEL4_YAW_RAD, DOOR_LOCK_SCALE, 0.0F,
                     DLK_MIN_X, DLK_MIN_Y, DLK_MIN_Z, DLK_MAX_X, DLK_MAX_Y, DLK_MAX_Z);
+            case COORDINATE_LOCK_X -> bottom(PANEL3_YAW_RAD, COORDINATE_LOCK_SCALE, 0.0F,
+                    CLKX_MIN_X, CLKA_MIN_Y, CLKA_MIN_Z, CLKX_MAX_X, CLKA_MAX_Y, CLKA_MAX_Z);
+            case COORDINATE_LOCK_Y -> bottom(PANEL3_YAW_RAD, COORDINATE_LOCK_SCALE, 0.0F,
+                    CLKY_MIN_X, CLKA_MIN_Y, CLKA_MIN_Z, CLKY_MAX_X, CLKA_MAX_Y, CLKA_MAX_Z);
+            case COORDINATE_LOCK_Z -> bottom(PANEL3_YAW_RAD, COORDINATE_LOCK_SCALE, 0.0F,
+                    CLKZ_MIN_X, CLKA_MIN_Y, CLKA_MIN_Z, CLKZ_MAX_X, CLKA_MAX_Y, CLKA_MAX_Z);
             case NONE -> new ControlLayout(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
         };
     }

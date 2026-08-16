@@ -22,6 +22,9 @@ public class FirstDoctorConsoleBlockEntityRenderState extends BlockEntityRenderS
     public float hologramBobOffset;
     public boolean cloaked;
     public boolean doorsLocked;
+    public boolean lockX;
+    public boolean lockY;
+    public boolean lockZ;
     public boolean readerNoSignal = true;
     public float oxygen;
     public float pressure;

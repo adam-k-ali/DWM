@@ -141,20 +141,28 @@ class TardisDataModelExteriorTest {
     }
 
     @Test
-    void cloak_serializeThroughGsonAndDefaultOff() {
+    void cloakAndLocks_serializeThroughGsonAndDefaultOff() {
         TardisDataModel model = new TardisDataModel();
         model.cloaked = true;
         model.doorsLocked = true;
+        model.lockX = true;
+        model.lockZ = true;
 
         Gson gson = new Gson();
         TardisDataModel loaded = gson.fromJson(gson.toJson(model), TardisDataModel.class);
 
         assertTrue(loaded.cloaked);
         assertTrue(loaded.doorsLocked);
+        assertTrue(loaded.lockX);
+        assertFalse(loaded.lockY);
+        assertTrue(loaded.lockZ);
         assertEquals(model, loaded);
 
         TardisDataModel legacy = gson.fromJson("{\"uuid\":\"" + model.uuid + "\"}", TardisDataModel.class);
         assertFalse(legacy.cloaked);
         assertFalse(legacy.doorsLocked);
+        assertFalse(legacy.lockX);
+        assertFalse(legacy.lockY);
+        assertFalse(legacy.lockZ);
     }
 }

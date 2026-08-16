@@ -6,8 +6,8 @@ import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.model.tileentity.BiomeSelectorModel;
 import com.adamkali.dwm.model.tileentity.ChameleonCircuitModel;
 import com.adamkali.dwm.model.tileentity.CloakLeverModel;
+import com.adamkali.dwm.model.tileentity.CoordinateLockModel;
 import com.adamkali.dwm.model.tileentity.DoorLockModel;
-import com.adamkali.dwm.model.tileentity.TelepathicCircuitModel;
 import com.adamkali.dwm.model.tileentity.FastReturnModel;
 import com.adamkali.dwm.model.tileentity.FifthDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.FirstDoctorConsoleModel;
@@ -24,6 +24,7 @@ import com.adamkali.dwm.model.tileentity.SixthDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.StabilisersModel;
 import com.adamkali.dwm.model.tileentity.TTCapsuleModel;
 import com.adamkali.dwm.model.tileentity.TardisModel;
+import com.adamkali.dwm.model.tileentity.TelepathicCircuitModel;
 import com.adamkali.dwm.model.tileentity.ThirdDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.WaypointSelectorModel;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
@@ -79,6 +80,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
     private final CloakLeverModel cloakLeverModel;
     private final DoorLockModel doorLockModel;
     private final TelepathicCircuitModel telepathicCircuitModel;
+    private final CoordinateLockModel coordinateLockModel;
     private final HashMap<TardisChameleonVariant, TardisModel> shellModelCache = new HashMap<>();
     private final HashMap<TardisChameleonVariant, Identifier> shellTextureCache = new HashMap<>();
 
@@ -108,6 +110,8 @@ public class FirstDoctorConsoleBlockEntityRenderer
         this.doorLockModel = new DoorLockModel(context.bakeLayer(DoorLockModel.LAYER_LOCATION));
         this.telepathicCircuitModel = new TelepathicCircuitModel(
                 context.bakeLayer(TelepathicCircuitModel.LAYER_LOCATION));
+        this.coordinateLockModel = new CoordinateLockModel(
+                context.bakeLayer(CoordinateLockModel.LAYER_LOCATION));
 
         cacheShell(TardisChameleonVariant.TT_CAPSULE,
                 new TTCapsuleModel(context.bakeLayer(TTCapsuleModel.LAYER_LOCATION)),
@@ -171,6 +175,9 @@ public class FirstDoctorConsoleBlockEntityRenderer
         state.hologramBobOffset = hologramBobOffset(timeTicks);
         state.cloaked = entity.isSyncedCloaked();
         state.doorsLocked = entity.isSyncedDoorsLocked();
+        state.lockX = entity.isSyncedLockX();
+        state.lockY = entity.isSyncedLockY();
+        state.lockZ = entity.isSyncedLockZ();
         ExteriorEnvironmentReadout.Reading reading = entity.syncedReading();
         state.readerNoSignal = reading.noSignal();
         state.oxygen = reading.needle(reading.oxygen());
@@ -225,6 +232,9 @@ public class FirstDoctorConsoleBlockEntityRenderer
         animState.setStabilisersEnabled(state.stabilisersEnabled);
         animState.setCloaked(state.cloaked);
         animState.setDoorsLocked(state.doorsLocked);
+        animState.setLockX(state.lockX);
+        animState.setLockY(state.lockY);
+        animState.setLockZ(state.lockZ);
 
         poseStack.pushPose();
         applyTransforms(poseStack, state.facing);
@@ -342,8 +352,6 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 0.0F,
                 FirstDoctorConsoleControls.CONTROL_MOUNT_Y_PX,
                 FirstDoctorConsoleControls.CONTROL_MOUNT_Z_PX);
-
-        poseStack.popPose();
         submitMounted(poseStack, submitNodeCollector, state, animState,
                 telepathicCircuitModel, TelepathicCircuitModel.TEXTURE_LOCATION,
                 FirstDoctorConsoleControls.PANEL2_YAW_RAD,
@@ -362,6 +370,13 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 doorLockModel, DoorLockModel.TEXTURE_LOCATION,
                 FirstDoctorConsoleControls.PANEL4_YAW_RAD,
                 FirstDoctorConsoleControls.DOOR_LOCK_SCALE,
+                0.0F,
+                FirstDoctorConsoleControls.BOTTOM_MOUNT_Y_PX,
+                FirstDoctorConsoleControls.BOTTOM_MOUNT_Z_PX);
+        submitMounted(poseStack, submitNodeCollector, state, animState,
+                coordinateLockModel, CoordinateLockModel.TEXTURE_LOCATION,
+                FirstDoctorConsoleControls.PANEL3_YAW_RAD,
+                FirstDoctorConsoleControls.COORDINATE_LOCK_SCALE,
                 0.0F,
                 FirstDoctorConsoleControls.BOTTOM_MOUNT_Y_PX,
                 FirstDoctorConsoleControls.BOTTOM_MOUNT_Z_PX);

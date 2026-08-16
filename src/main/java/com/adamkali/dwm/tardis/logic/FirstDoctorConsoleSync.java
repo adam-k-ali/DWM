@@ -74,6 +74,20 @@ public final class FirstDoctorConsoleSync {
     }
 
     /**
+     * Writes coordinate-lock flags onto the interior console BE.
+     */
+    public static void syncCoordinateLocks(
+            @Nullable MinecraftServer server,
+            @Nullable UUID tardisId,
+            @Nullable TardisDataModel model
+    ) {
+        FirstDoctorConsoleBlockEntity console = findConsole(server, tardisId);
+        if (console != null && model != null) {
+            console.setSyncedCoordinateLocks(model.lockX, model.lockY, model.lockZ);
+        }
+    }
+
+    /**
      * Writes stabilisers enabled state onto the interior console BE and pushes a client update.
      */
     public static void syncStabilisers(
@@ -131,5 +145,4 @@ public final class FirstDoctorConsoleSync {
         }
         return null;
     }
-
 }
