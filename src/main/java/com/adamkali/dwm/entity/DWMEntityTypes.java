@@ -18,6 +18,7 @@ public final class DWMEntityTypes {
     public static EntityType<Boat> DARK_ASH_BOAT;
     public static EntityType<Boat> CARDINAL_BOAT;
     public static EntityType<TardisSeatEntity> TARDIS_SEAT;
+    public static EntityType<ConsoleControlInteractionEntity> CONSOLE_CONTROL;
 
     private DWMEntityTypes() {
     }
@@ -30,6 +31,7 @@ public final class DWMEntityTypes {
         DARK_ASH_BOAT = DWMBlocks.DARK_ASH.boatEntity();
         CARDINAL_BOAT = DWMBlocks.CARDINAL.boatEntity();
         TARDIS_SEAT = registerSeat();
+        CONSOLE_CONTROL = registerConsoleControl();
     }
 
     private static EntityType<TardisSeatEntity> registerSeat() {
@@ -42,6 +44,24 @@ public final class DWMEntityTypes {
                         .sized(0.5F, 0.1F)
                         .passengerAttachments(0.0F)
                         .noSummon()
+                        .fireImmune()
+                        .noLootTable()
+                        .clientTrackingRange(10)
+                        .updateInterval(Integer.MAX_VALUE)
+                        .build(key)
+        );
+    }
+
+    private static EntityType<ConsoleControlInteractionEntity> registerConsoleControl() {
+        Identifier id = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "console_control");
+        ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, id);
+        return Registry.register(
+                BuiltInRegistries.ENTITY_TYPE,
+                key,
+                EntityType.Builder.of(ConsoleControlInteractionEntity::new, MobCategory.MISC)
+                        .sized(0.0F, 0.0F)
+                        .noSummon()
+                        .noSave()
                         .fireImmune()
                         .noLootTable()
                         .clientTrackingRange(10)

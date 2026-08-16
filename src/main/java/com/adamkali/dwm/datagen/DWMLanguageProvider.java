@@ -252,6 +252,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
 
     private static void addMisc(TranslationBuilder t) {
         t.add(DWMEntityTypes.TARDIS_SEAT, "TARDIS Seat");
+        t.add(DWMEntityTypes.CONSOLE_CONTROL, "Console Control");
         t.add("dimension.dwm.gallifrey", "Gallifrey");
         t.add("biome.dwm.gallifrey_plains", "Gallifrey Plains");
         t.add("biome.dwm.gallifrey_forest", "Gallifrey Forest");
