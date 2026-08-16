@@ -2,7 +2,9 @@ package com.adamkali.dwm.command;
 
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.interior.TardisInteriorService;
+import com.adamkali.dwm.tardis.logic.TardisOwnershipLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -19,7 +21,7 @@ import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Registers {@code /tardis rebuild} — regenerates a console room while keeping linked TARDIS data.
+ * Registers {@code /tardis rebuild} and ops {@code /tardis claim}.
  */
 public final class TardisCommands {
     private TardisCommands() {
@@ -37,6 +39,16 @@ public final class TardisCommands {
                                 .then(Commands.argument("uuid", UuidArgument.uuid())
                                         .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                                         .executes(ctx -> rebuildByUuid(
+                                                ctx.getSource(),
+                                                UuidArgument.getUuid(ctx, "uuid")
+                                        ))
+                                )
+                        )
+                        .then(Commands.literal("claim")
+                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                                .executes(ctx -> claimInside(ctx.getSource()))
+                                .then(Commands.argument("uuid", UuidArgument.uuid())
+                                        .executes(ctx -> claimByUuid(
                                                 ctx.getSource(),
                                                 UuidArgument.getUuid(ctx, "uuid")
                                         ))
@@ -78,5 +90,51 @@ public final class TardisCommands {
                 true
         );
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static int claimInside(CommandSourceStack source) throws CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        if (!TardisDimensions.isTardisWorld(player.level())) {
+            source.sendFailure(Component.translatable("dwm.command.tardis.claim.not_inside"));
+            return 0;
+        }
+        Optional<TardisDataModel> atPos = TardisDataLoader.findAtInteriorPos(player.blockPosition());
+        if (atPos.isEmpty()) {
+            source.sendFailure(Component.translatable("dwm.command.tardis.claim.not_inside"));
+            return 0;
+        }
+        return applyClaim(source, player.getUUID(), atPos.get().uuid);
+    }
+
+    private static int claimByUuid(CommandSourceStack source, UUID tardisId) throws CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        return applyClaim(source, player.getUUID(), tardisId);
+    }
+
+    private static int applyClaim(CommandSourceStack source, UUID playerUuid, UUID tardisId) {
+        return switch (TardisOwnershipLogic.tryForceClaim(tardisId, playerUuid)) {
+            case CLAIMED -> {
+                source.sendSuccess(
+                        () -> Component.translatable("dwm.command.tardis.claim.success", tardisId.toString()),
+                        true
+                );
+                yield Command.SINGLE_SUCCESS;
+            }
+            case ALREADY_OWNER -> {
+                source.sendSuccess(
+                        () -> Component.translatable("dwm.command.tardis.claim.already_owner", tardisId.toString()),
+                        true
+                );
+                yield Command.SINGLE_SUCCESS;
+            }
+            case PLAYER_OWNS_ANOTHER -> {
+                source.sendFailure(Component.translatable("dwm.command.tardis.claim.already_owns_another"));
+                yield 0;
+            }
+            case UNKNOWN, INVALID -> {
+                source.sendFailure(Component.translatable("dwm.command.tardis.claim.unknown", tardisId.toString()));
+                yield 0;
+            }
+        };
     }
 }
