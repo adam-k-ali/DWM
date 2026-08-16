@@ -6,19 +6,23 @@ import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
+import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomPlacer;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.interior.TardisEntryGate;
+import com.adamkali.dwm.tardis.interior.TardisInteriorService;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
+import com.adamkali.dwm.tardis.logic.WaypointLogic;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.storage.LevelResource;
@@ -178,6 +182,69 @@ public class TardisInteriorGameTests {
         }
         if (!tardisId.equals(door.getTardisId())) {
             throw new AssertionError("Door tardisId not stamped: " + door.getTardisId());
+        }
+
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void regenerateInterior_ClearsDirtAndKeepsLinkedData(GameTestHelper context) {
+        TardisDataLoader.tardisSaveDirectory = context.getLevel().getServer()
+                .getWorldPath(LevelResource.ROOT).resolve("gametest_tardis_data");
+        var model = TardisDataLoader.create();
+        UUID tardisId = model.uuid;
+        UUID owner = UUID.fromString("11111111-2222-3333-4444-555555555555");
+        model.setOwner(owner);
+        model.setExteriorLocation("minecraft:overworld", 10, 64, 20, 0);
+        if (WaypointLogic.add(model, "Rebuild Keep").isEmpty()) {
+            throw new AssertionError("Expected waypoint to be saved before rebuild");
+        }
+        UUID waypointId = model.getWaypoints().getFirst().id;
+
+        BlockPos originRel = new BlockPos(0, 2, 0);
+        BlockPos originAbs = context.absolutePos(originRel);
+        FirstDoctorConsoleRoomPlacer.place(context.getLevel(), originAbs, tardisId);
+
+        BlockPos dirtyRel = new BlockPos(3, 3, 5);
+        BlockPos dirtyAbs = context.absolutePos(dirtyRel);
+        context.setBlock(dirtyRel.getX(), dirtyRel.getY(), dirtyRel.getZ(), Blocks.GOLD_BLOCK);
+
+        BlockPos entrance = TardisInteriorService.regenerateInterior(context.getLevel(), originAbs, tardisId);
+        if (entrance == null) {
+            throw new AssertionError("regenerateInterior returned null");
+        }
+
+        if (context.getLevel().getBlockState(dirtyAbs).is(Blocks.GOLD_BLOCK)) {
+            throw new AssertionError("Dirty gold block should be cleared by rebuild");
+        }
+
+        BlockPos consoleAbs = originAbs.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE);
+        if (!context.getLevel().getBlockState(consoleAbs).is(DWMBlocks.FIRST_DOCTOR_CONSOLE)) {
+            throw new AssertionError("Expected console after rebuild at " + consoleAbs);
+        }
+        if (!(context.getLevel().getBlockEntity(consoleAbs) instanceof FirstDoctorConsoleBlockEntity console)
+                || !tardisId.equals(console.getTardisId())) {
+            throw new AssertionError("Console must keep same tardisId after rebuild");
+        }
+
+        BlockPos doorOriginAbs = originAbs.offset(FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN);
+        if (!(context.getLevel().getBlockEntity(doorOriginAbs) instanceof TardisInteriorDoorBlockEntity door)
+                || !tardisId.equals(door.getTardisId())) {
+            throw new AssertionError("Door must keep same tardisId after rebuild");
+        }
+
+        TardisDataModel after = TardisDataLoader.get(tardisId);
+        if (after == null) {
+            throw new AssertionError("TARDIS data missing after rebuild");
+        }
+        if (!owner.equals(after.ownerUuid)) {
+            throw new AssertionError("Owner must be preserved after rebuild");
+        }
+        if (after.getWaypoints().stream().noneMatch(w -> waypointId.equals(w.id))) {
+            throw new AssertionError("Waypoint must be preserved after rebuild");
+        }
+        if (!tardisId.equals(after.uuid)) {
+            throw new AssertionError("TARDIS uuid must not change on rebuild");
         }
 
         context.succeed();

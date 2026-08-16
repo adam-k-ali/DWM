@@ -4,6 +4,7 @@ import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.logic.StabiliserLogic;
 import com.google.gson.Gson;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -164,5 +165,21 @@ class TardisDataModelExteriorTest {
         assertFalse(legacy.lockX);
         assertFalse(legacy.lockY);
         assertFalse(legacy.lockZ);
+    }
+
+    @Test
+    void ownerUuid_SerializesThroughGsonAndLegacyNull() {
+        TardisDataModel model = new TardisDataModel();
+        UUID owner = UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        model.setOwner(owner);
+
+        Gson gson = new Gson();
+        TardisDataModel loaded = gson.fromJson(gson.toJson(model), TardisDataModel.class);
+
+        assertEquals(owner, loaded.ownerUuid);
+        assertEquals(model, loaded);
+
+        TardisDataModel legacy = gson.fromJson("{\"uuid\":\"" + model.uuid + "\"}", TardisDataModel.class);
+        assertNull(legacy.ownerUuid);
     }
 }

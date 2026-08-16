@@ -329,6 +329,11 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.lock_z_on", "Z axis locked");
         t.add("dwm.console.lock_z_off", "Z axis unlocked");
         t.add("dwm.console.coordinate_lock_unavailable", "Coordinate lock unavailable");
+        t.add("dwm.command.tardis.rebuild.success", "TARDIS interior rebuilt (%s)");
+        t.add("dwm.command.tardis.rebuild.no_owned", "You do not own a TARDIS — enter an unowned TARDIS to claim one");
+        t.add("dwm.command.tardis.rebuild.unknown", "Unknown TARDIS: %s");
+        t.add("dwm.command.tardis.rebuild.in_flight", "Cannot rebuild interior while the TARDIS is in flight");
+        t.add("dwm.command.tardis.rebuild.failed", "Failed to rebuild TARDIS interior");
         t.add("dwm.gui.waypoint.title", "Waypoint Selector");
         t.add("dwm.gui.waypoint.save", "Save");
         t.add("dwm.gui.waypoint.rename", "Rename");

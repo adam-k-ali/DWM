@@ -4,25 +4,30 @@ import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.tardis.TardisExteriorFacing;
-import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
+import com.adamkali.dwm.tardis.logic.TardisOwnershipLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
+import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
 import com.adamkali.dwm.tardis.soto.SotoExteriorIndex;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.UUID;
 
 public final class TardisInteriorService {
     private TardisInteriorService() {
@@ -81,6 +86,7 @@ public final class TardisInteriorService {
             return false;
         }
         TardisTeleport.teleport(player, interiorWorld, entrance, 0.0f);
+        TardisOwnershipLogic.tryClaimOnEnter(exteriorEntity.getTardisIdOrNull(), player.getUUID());
         return true;
     }
 
@@ -113,6 +119,106 @@ public final class TardisInteriorService {
         float yaw = Direction.getYRot(doorFacing);
         TardisTeleport.teleport(player, exteriorWorld, exitPos, yaw);
         return true;
+    }
+
+    /**
+     * Rebuilds the console room at the deterministic plot in {@code dwm:tardis} for {@code tardisId}.
+     * Preserves all linked TARDIS data (UUID, owner, waypoints, destinations, etc.).
+     *
+     * @return entrance feet position, or null on failure
+     */
+    public static @Nullable BlockPos regenerateInterior(MinecraftServer server, UUID tardisId) {
+        if (server == null || tardisId == null) {
+            return null;
+        }
+        ServerLevel interiorWorld = server.getLevel(TardisDimensions.TARDIS_WORLD_KEY);
+        if (interiorWorld == null) {
+            return null;
+        }
+        return regenerateInterior(interiorWorld, TardisPlotAllocator.plotOrigin(tardisId), tardisId);
+    }
+
+    /**
+     * Clears the room footprint, re-places the structure template, and re-stamps interior entities.
+     * Does not create a new TARDIS id or clear {@link TardisDataModel} fields.
+     *
+     * @return entrance feet position, or null if refused (e.g. traveling)
+     */
+    public static @Nullable BlockPos regenerateInterior(ServerLevel world, BlockPos origin, UUID tardisId) {
+        if (world == null || origin == null || tardisId == null) {
+            return null;
+        }
+        if (TardisTravelService.isTraveling(tardisId)) {
+            return null;
+        }
+
+        int sizeX = FirstDoctorConsoleRoomPlacer.SIZE_X;
+        int sizeY = FirstDoctorConsoleRoomPlacer.SIZE_Y;
+        int sizeZ = FirstDoctorConsoleRoomPlacer.SIZE_Z;
+        BlockPos max = origin.offset(sizeX - 1, sizeY - 1, sizeZ - 1);
+        for (int x = origin.getX() >> 4; x <= max.getX() >> 4; x++) {
+            for (int z = origin.getZ() >> 4; z <= max.getZ() >> 4; z++) {
+                world.getChunk(x, z);
+            }
+        }
+
+        AABB roomBox = new AABB(
+                origin.getX(),
+                origin.getY(),
+                origin.getZ(),
+                origin.getX() + sizeX,
+                origin.getY() + sizeY,
+                origin.getZ() + sizeZ
+        );
+        List<ServerPlayer> occupants = new ArrayList<>(world.getEntitiesOfClass(ServerPlayer.class, roomBox));
+
+        for (int x = 0; x < sizeX; x++) {
+            for (int y = 0; y < sizeY; y++) {
+                for (int z = 0; z < sizeZ; z++) {
+                    world.setBlock(origin.offset(x, y, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+                }
+            }
+        }
+
+        BlockPos entrance = FirstDoctorConsoleRoomPlacer.place(world, origin, tardisId);
+        refreshExteriorInteriorState(world.getServer(), tardisId, entrance);
+        BotiPlotIndex.register(tardisId);
+        PortalStreamSyncService.setMetaChanged(tardisId);
+
+        for (ServerPlayer occupant : occupants) {
+            if (occupant.isAlive()) {
+                TardisTeleport.teleport(occupant, world, entrance, occupant.getYRot());
+            }
+        }
+        return entrance;
+    }
+
+    private static void refreshExteriorInteriorState(
+            @Nullable MinecraftServer server,
+            UUID tardisId,
+            BlockPos entrance
+    ) {
+        if (server == null) {
+            return;
+        }
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        ResourceKey<Level> worldKey = SotoExteriorIndex.getWorldKey(tardisId);
+        BlockPos exteriorPos = SotoExteriorIndex.getExteriorPos(tardisId);
+        if (worldKey == null || exteriorPos == null) {
+            if (model == null || !model.hasExteriorLocation || model.exteriorDimension == null) {
+                return;
+            }
+            worldKey = ResourceKey.create(Registries.DIMENSION, Identifier.parse(model.exteriorDimension));
+            exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
+        }
+        ServerLevel exteriorWorld = server.getLevel(worldKey);
+        if (exteriorWorld == null) {
+            return;
+        }
+        if (exteriorWorld.getBlockEntity(exteriorPos) instanceof TardisBlockEntity exteriorEntity) {
+            exteriorEntity.setInteriorEntrance(entrance);
+            exteriorEntity.setInteriorGenerated(true);
+        }
     }
 
     private static void updateExteriorLocation(ServerLevel exteriorWorld, TardisBlockEntity exteriorEntity) {

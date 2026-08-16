@@ -10,6 +10,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 public class TardisDataLoader {
@@ -158,5 +160,56 @@ public class TardisDataLoader {
         model.uuid = uuid;
         tardisData.put(uuid, model);
         return model;
+    }
+
+    /**
+     * Loads every {@code *.json} under the save directory into the cache (idempotent for already-cached ids).
+     * No-ops when the save directory is unset.
+     */
+    public static void ensureAllLoaded() {
+        if (tardisSaveDirectory == null) {
+            return;
+        }
+        File directory;
+        try {
+            directory = getTardisDataDirectory(false);
+        } catch (RuntimeException e) {
+            return;
+        }
+        if (!directory.exists() || !directory.isDirectory()) {
+            return;
+        }
+        File[] files = directory.listFiles((dir, name) -> name.endsWith(".json"));
+        if (files == null) {
+            return;
+        }
+        for (File file : files) {
+            String name = file.getName();
+            String idPart = name.substring(0, name.length() - ".json".length());
+            try {
+                UUID uuid = UUID.fromString(idPart);
+                if (!tardisData.containsKey(uuid)) {
+                    load(uuid);
+                }
+            } catch (IllegalArgumentException ignored) {
+                // Skip non-UUID filenames.
+            }
+        }
+    }
+
+    /**
+     * Returns the TARDIS owned by {@code ownerUuid}, if any. Scans disk so uncached models are included.
+     */
+    public static Optional<TardisDataModel> findOwnedBy(@Nullable UUID ownerUuid) {
+        if (ownerUuid == null) {
+            return Optional.empty();
+        }
+        ensureAllLoaded();
+        for (TardisDataModel model : tardisData.values()) {
+            if (Objects.equals(model.ownerUuid, ownerUuid)) {
+                return Optional.of(model);
+            }
+        }
+        return Optional.empty();
     }
 }

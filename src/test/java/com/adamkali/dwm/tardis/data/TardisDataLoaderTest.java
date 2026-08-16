@@ -211,5 +211,32 @@ public class TardisDataLoaderTest {
         assertNull(loadedModel, "Corrupted json should be treated as missing model");
     }
 
+    @Test
+    void findOwnedBy_ReturnsOwnedModelAfterCreateAndSetOwner() {
+        UUID owner = UUID.randomUUID();
+        TardisDataModel model = TardisDataLoader.create();
+        model.setOwner(owner);
 
+        assertTrue(TardisDataLoader.findOwnedBy(owner).isPresent());
+        assertEquals(model.uuid, TardisDataLoader.findOwnedBy(owner).get().uuid);
+        assertTrue(TardisDataLoader.findOwnedBy(UUID.randomUUID()).isEmpty());
+        assertTrue(TardisDataLoader.findOwnedBy(null).isEmpty());
+    }
+
+    @Test
+    void findOwnedBy_LoadsFromDiskWhenNotCached() throws Exception {
+        UUID owner = UUID.randomUUID();
+        TardisDataModel model = TardisDataLoader.create();
+        model.setOwner(owner);
+        model.setChanged();
+        TardisDataLoader.save();
+
+        Field field = TardisDataLoader.class.getDeclaredField("tardisData");
+        field.setAccessible(true);
+        HashMap<?, ?> cache = (HashMap<?, ?>) field.get(null);
+        cache.clear();
+
+        assertTrue(TardisDataLoader.findOwnedBy(owner).isPresent());
+        assertEquals(model.uuid, TardisDataLoader.findOwnedBy(owner).get().uuid);
+    }
 }
