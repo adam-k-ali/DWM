@@ -1,5 +1,45 @@
 {
   "26.2": {
+    "1.4.0": {
+      "summary": "Claim and summon your TARDIS — key, Stattenheim remote, and a fuller First Doctor console, plus interior decor, lighting, and shell fade.",
+      "added": [
+        "Block: Decorational Column",
+        "Block: TARDIS Ceiling Vent",
+        "Block: Large TARDIS Chair",
+        "Block: Small TARDIS Chair",
+        "Block: TARDIS Globe",
+        "Block: Compact TARDIS Scanner",
+        "Block: Full TARDIS Scanner",
+        "Item: TARDIS Key",
+        "Item: Stattenheim Remote",
+        "Misc: TARDIS ownership (auto-claim on first interior entry; one TARDIS per player)",
+        "Misc: First Doctor console cloak lever (hides the exterior shell)",
+        "Misc: First Doctor console door lock",
+        "Misc: First Doctor console coordinate lock (pin X/Y/Z after landing)",
+        "Misc: First Doctor console telepathic circuit (home bed or world spawn)",
+        "Misc: First Doctor console environment readers and refueler",
+        "Misc: First Doctor console fast-return switch (previous landings)",
+        "Misc: First Doctor console stabilisers toggle (precise vs scattered landing)",
+        "Misc: /tardis rebuild to restore the console room",
+        "Misc: Ops /tardis claim to assign TARDIS ownership"
+      ],
+      "changed": [
+        "Misc: Interior and exterior TARDIS doors share one door state",
+        "Misc: First Doctor console room placed from the 11x7x17 structure template",
+        "Misc: Exterior shell fades during dematerialisation and materialisation",
+        "Misc: First Doctor console Time_middle rotor spins while travelling",
+        "Misc: Roundels, First Doctor console, and ceiling vents emit light",
+        "Misc: TARDIS chairs are sittable (empty-hand sit; dismount onto the open side)",
+        "Misc: Planet locator shows readable dimension names when translations are missing",
+        "Misc: Ash, Dark Ash, and Cardinal doors render as 3D items",
+        "Misc: Ash, Dark Ash, and Cardinal hanging signs use baked models and distinct textures",
+        "Misc: Dark Ash and Cardinal boats use distinct hull textures",
+        "Misc: Closed TARDIS exterior no longer shows a white entity outline",
+        "Misc: Door leaves draw over bigger-on-the-inside / smaller-on-the-outside previews; BOTI stays aligned while strafing",
+        "Misc: Portal aperture depth aligned for later Doctor chameleon boxes"
+      ],
+      "removed": []
+    },
     "1.3.0": {
       "summary": "Gallifrey survival depth — Azbantium gear, Gallifrey ores and plants, orange sand and badlands, plus console waypoints, player locator, and chameleon hologram.",
       "added": [
@@ -286,7 +326,7 @@
     }
   },
   "promos": {
-    "latest": "26.2-1.3.0",
-    "recommended": "26.2-1.3.0"
+    "latest": "26.2-1.4.0",
+    "recommended": "26.2-1.4.0"
   }
 }
