@@ -1,5 +1,7 @@
 package com.adamkali.dwm;
 
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -10,6 +12,9 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -129,6 +134,46 @@ public class ResourceValidationTests {
                 );
             }
         }
+    }
+
+    /**
+     * Custom wood doors use stacked 3D item models textured from {@code textures/block/{id}_door.png},
+     * not {@code item/generated} sprites.
+     */
+    @Test
+    public void customDoorItemModelsAre3dBlockTextured() throws Exception {
+        Path itemsDir = Path.of("src/main/generated/assets/dwm/items");
+        Path modelsDir = Path.of("src/main/generated/assets/dwm/models");
+        for (String woodTypeId : WOOD_TYPE_IDS) {
+            Path itemDef = itemsDir.resolve(woodTypeId + "_door.json");
+            assertTrue(Files.isRegularFile(itemDef), "Missing generated door item def: " + itemDef);
+            JSONObject def = readJson(itemDef);
+            String modelId = def.getJSONObject("model").getString("model");
+            assertEquals("dwm:item/" + woodTypeId + "_door", modelId);
+
+            Path wrapperPath = modelsDir.resolve("item/" + woodTypeId + "_door.json");
+            JSONObject wrapper = readJson(wrapperPath);
+            assertNotEquals("minecraft:item/generated", wrapper.optString("parent"));
+            assertEquals("dwm:block/" + woodTypeId + "_door", wrapper.getJSONObject("textures").getString("door"));
+
+            String parent = wrapper.getString("parent");
+            assertTrue(parent.startsWith("dwm:item/template_"), "Door item should parent a stacked template: " + parent);
+            Path templatePath = modelsDir.resolve(parent.substring("dwm:".length()) + ".json");
+            JSONObject template = readJson(templatePath);
+            assertEquals("front", template.getString("gui_light"));
+            assertTrue(template.has("elements"));
+            JSONObject display = template.getJSONObject("display");
+            assertFalse(display.has("thirdperson_lefthand"));
+            for (String key : List.of(
+                    "gui", "fixed", "ground", "thirdperson_righthand", "firstperson_righthand", "firstperson_lefthand"
+            )) {
+                assertTrue(display.has(key), "Missing display context " + key + " in " + templatePath);
+            }
+        }
+    }
+
+    private static JSONObject readJson(Path path) throws Exception {
+        return new JSONObject(new JSONTokener(Files.readString(path)));
     }
 
     /**
