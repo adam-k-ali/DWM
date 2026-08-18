@@ -3,6 +3,7 @@ package com.adamkali.dwm.render;
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.model.tileentity.TardisClassicInteriorDoorModel;
+import com.adamkali.dwm.render.portal.PortalDoorRenderer;
 import com.adamkali.dwm.render.soto.TardisSotoRenderer;
 import com.adamkali.dwm.render.state.TardisInteriorDoorBlockEntityRenderState;
 import com.adamkali.dwm.render.state.TardisRenderState;
@@ -144,9 +145,9 @@ public class TardisInteriorDoorBlockEntityRenderer
             TardisInteriorDoorBlockEntityRenderState state
     ) {
         int light = state.lightCoords;
-        submitNodeCollector.submitCustomGeometry(
+        submitNodeCollector.order(PortalDoorRenderer.DOOR_OVERLAY_ORDER).submitCustomGeometry(
                 poseStack,
-                RenderTypes.entityCutout(TardisClassicInteriorDoorModel.TEXTURE_LOCATION),
+                PortalDoorRenderer.doorOverlayRenderType(TardisClassicInteriorDoorModel.TEXTURE_LOCATION),
                 (pose, consumer) -> {
                     PoseStack local = new PoseStack();
                     local.last().set(pose);

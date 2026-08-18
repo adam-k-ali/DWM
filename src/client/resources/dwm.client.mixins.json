@@ -4,6 +4,7 @@
   "package": "com.adamkali.dwm.mixin.client",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "RenderPipelinesMixin"
   ],
   "injectors": {
     "defaultRequire": 1
