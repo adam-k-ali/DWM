@@ -37,6 +37,11 @@ public class DWMItems {
             new Item.Properties().stacksTo(1),
             "tardis_key"
     );
+    public static final Item STATTENHEIM_REMOTE = register(
+            StattenheimRemoteItem::new,
+            new Item.Properties().stacksTo(1),
+            "stattenheim_remote"
+    );
 
     public static final Item AZBANTIUM = register(Item::new, "azbantium");
 
@@ -119,6 +124,7 @@ public class DWMItems {
             content.accept(SONIC_FOURTH_DOCTOR);
             content.accept(SONIC_FIFTH_DOCTOR);
             content.accept(TARDIS_KEY);
+            content.accept(STATTENHEIM_REMOTE);
             content.accept(AZBANTIUM_SHOVEL);
             content.accept(AZBANTIUM_PICKAXE);
             content.accept(AZBANTIUM_AXE);

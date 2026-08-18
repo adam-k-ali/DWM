@@ -116,6 +116,7 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 generateGallifreyVanillaOreRecipes();
                 generateInteriorDecorRecipes();
                 generateTardisKeyRecipe();
+                generateStattenheimRemoteRecipe();
             }
 
             private void generateTardisKeyRecipe() {
@@ -126,6 +127,19 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         .pattern("G ")
                         .pattern("I ")
                         .unlockedBy(getHasName(Items.GOLD_NUGGET), has(Items.GOLD_NUGGET))
+                        .save(output);
+            }
+
+            private void generateStattenheimRemoteRecipe() {
+                shaped(RecipeCategory.TOOLS, DWMItems.STATTENHEIM_REMOTE)
+                        .define('G', Items.GOLD_INGOT)
+                        .define('I', Items.IRON_INGOT)
+                        .define('R', Items.REDSTONE)
+                        .define('E', Items.ENDER_PEARL)
+                        .pattern(" G ")
+                        .pattern("IRI")
+                        .pattern(" E ")
+                        .unlockedBy(getHasName(Items.ENDER_PEARL), has(Items.ENDER_PEARL))
                         .save(output);
             }
 

@@ -1,6 +1,6 @@
 # Feature: TARDIS Exterior Block
 
-See also: [Docs Index](./index.md), [TARDIS Chameleon System](./feature-chameleon-system.md)
+See also: [Docs Index](./index.md), [TARDIS Chameleon System](./feature-chameleon-system.md), [Stattenheim Remote](./feature-stattenheim-remote.md)
 
 ## Product Intent
 Make the TARDIS a tangible world object that is expressive, interactive, and persistent per placement — including travel into a generated interior.
@@ -48,10 +48,11 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Panel4 cloak is a perception filter (`TardisDataModel.cloaked`): the exterior BER skips shell, doors, and BOTI while collision and door-click remain. SOTO from inside is unchanged. Overlay: `Cloak engaged` / `Cloak disengaged`.
 - Panel4 door lock (`doorsLocked`) blocks **opening** only; closing always works on exterior and interior doors. Lock and unlock only apply when doors are **fully closed**. Overlay: `Doors locked` / `Doors unlocked` / `Doors must be closed`. Clicking a locked closed door shows `Doors are locked`.
 - The TARDIS key is crafted from gold nuggets and iron. An owner can bind an unbound key to their TARDIS; it stores that TARDIS UUID (not the owner), so a future ownership transfer will not invalidate it. Anyone holding a bound key can toggle that TARDIS's door lock while the doors are closed.
+- Stattenheim remote: sneak-right-click the ground to summon the owner's TARDIS to that cell (precise landing, door facing the player). Parked shells dematerialise then auto-materialise; an in-flight TARDIS materialises at the click. Exterior fade-out/fade-in during demat/mat. Summon slams the doors shut immediately; they stay closed on landing.
 - Panel2 telepathic circuit arms `DestinationMode.TELEPATHIC` onto the using player's bed/respawn, or world spawn if none. Overlay: locked onto your home / world spawn.
 - Panel3 coordinate lock is not a destination mode: X/Y/Z toggles pin those axes to the current exterior after landing resolve + scatter, then re-validate. Invalid pin fails materialise with the existing invalid-landing overlay. HUD: `X axis locked` / `unlocked` (same for Y/Z).
 - First Doctor console time rotor bobbles vertically while the TARDIS is traveling (`DEMATERIALISING` / `IN_FLIGHT` / `MATERIALISING`) and rests when idle.
-- Demat/mat/in-flight play loopable travel SFX (seamless loops) for code-configured phase lengths (`DEMATERIALISING_DURATION_TICKS` / `MATERIALISING_DURATION_TICKS` in `TardisTravelService`); shell vanishes mid-demat at `DEMATERIALISING_SHELL_REMOVE_AT_TICK`; `IN_FLIGHT` uses a higher-pitched demat/mat-derived loop in the interior; materialisation ends with a landing thud. Exterior shell fades out during dematerialisation and fades in during materialisation. Demat forces doors closed; materialise auto-opens them unless they are locked.
+- Demat/mat/in-flight play loopable travel SFX (seamless loops) for code-configured phase lengths (`DEMATERIALISING_DURATION_TICKS` / `MATERIALISING_DURATION_TICKS` in `TardisTravelService`); shell vanishes mid-demat at `DEMATERIALISING_SHELL_REMOVE_AT_TICK`; `IN_FLIGHT` uses a higher-pitched demat/mat-derived loop in the interior; materialisation ends with a landing thud. Travel does not auto-close or auto-open doors.
 
 ## How It Works In-Game
 1. Place the TARDIS block.

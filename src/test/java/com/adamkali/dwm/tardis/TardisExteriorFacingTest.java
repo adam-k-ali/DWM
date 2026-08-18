@@ -21,4 +21,18 @@ class TardisExteriorFacingTest {
         assertEquals(Direction.SOUTH, TardisExteriorFacing.doorDirection(8));
         assertEquals(Direction.WEST, TardisExteriorFacing.doorDirection(12));
     }
+
+    @Test
+    void facingRotationForDoor_roundTripsCardinalDoors() {
+        for (Direction door : new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            int rotation = TardisExteriorFacing.facingRotationForDoor(door);
+            assertEquals(door, TardisExteriorFacing.doorDirection(rotation), door.getSerializedName());
+        }
+    }
+
+    @Test
+    void facingRotationForDoor_nonHorizontalFallsBackToNorth() {
+        int rotation = TardisExteriorFacing.facingRotationForDoor(Direction.UP);
+        assertEquals(Direction.NORTH, TardisExteriorFacing.doorDirection(rotation));
+    }
 }

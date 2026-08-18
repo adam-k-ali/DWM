@@ -1,5 +1,9 @@
 package com.adamkali.dwm.tardis.logic;
 
+import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.block.TardisInteriorDoorBlock;
+import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
+import com.adamkali.dwm.sound.DWMSounds;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.DestinationMode;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
@@ -7,15 +11,22 @@ import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.data.model.TardisWaypoint;
+import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
+import com.adamkali.dwm.tardis.interior.TardisDimensions;
+import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -82,6 +93,67 @@ public class TardisLogic {
         }
         tardis.doorState.doorSwing = doorSwing;
         tardis.setChanged();
+    }
+
+    /**
+     * Instantly snaps both door leaves shut. Used by the Stattenheim remote.
+     *
+     * @return {@code true} when doors were open or ajar and are now closed
+     */
+    public static boolean slamDoorsClosed(UUID tardisId, @Nullable MinecraftServer server) {
+        if (tardisId == null) {
+            return false;
+        }
+        TardisDataModel tardis = TardisDataLoader.get(tardisId);
+        if (tardis == null || DoorLockLogic.areDoorsClosed(tardis.doorState)) {
+            return false;
+        }
+        tardis.doorState.isOpen = false;
+        tardis.doorState.doorSwing = 0.0f;
+        tardis.setChanged();
+        PortalStreamSyncService.setMetaChanged(tardisId);
+        if (server != null) {
+            snapInteriorDoorsClosed(server, tardisId);
+            playDoorClose(server, tardis, tardisId);
+        }
+        return true;
+    }
+
+    private static void snapInteriorDoorsClosed(MinecraftServer server, UUID tardisId) {
+        ServerLevel interior = server.getLevel(TardisDimensions.TARDIS_WORLD_KEY);
+        if (interior == null) {
+            return;
+        }
+        BlockPos doorOrigin = TardisPlotAllocator.plotOrigin(tardisId)
+                .offset(FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN);
+        BlockState originState = interior.getBlockState(doorOrigin);
+        if (!originState.is(DWMBlocks.TARDIS_INTERIOR_DOOR)) {
+            return;
+        }
+        TardisInteriorDoorBlock.setOpen(interior, doorOrigin, originState, false, true);
+        if (interior.getBlockEntity(doorOrigin) instanceof TardisInteriorDoorBlockEntity door) {
+            door.setOpen(false, true);
+        }
+    }
+
+    private static void playDoorClose(MinecraftServer server, TardisDataModel tardis, UUID tardisId) {
+        if (tardis.hasExteriorLocation && tardis.exteriorDimension != null) {
+            Identifier id = Identifier.tryParse(tardis.exteriorDimension);
+            if (id != null) {
+                ServerLevel exterior = server.getLevel(ResourceKey.create(Registries.DIMENSION, id));
+                if (exterior != null) {
+                    BlockPos exteriorPos = new BlockPos(tardis.exteriorX, tardis.exteriorY, tardis.exteriorZ);
+                    exterior.playSound(null, exteriorPos, DWMSounds.TARDIS_DOOR_CLOSE, SoundSource.BLOCKS, 1.0F, 1.0F);
+                }
+            }
+        }
+        ServerLevel interior = server.getLevel(TardisDimensions.TARDIS_WORLD_KEY);
+        if (interior == null) {
+            return;
+        }
+        BlockPos doorOrigin = TardisPlotAllocator.plotOrigin(tardisId)
+                .offset(FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN);
+        interior.playSound(null, doorOrigin, DWMSounds.TARDIS_DOOR_CLOSE, SoundSource.BLOCKS, 1.0F, 1.0F);
     }
 
     public static void setVariant(UUID tardisId, TardisChameleonVariant variant) {

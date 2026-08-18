@@ -21,6 +21,17 @@ public final class TardisExteriorFacing {
         return rotationToHorizontal(facingRotation).getOpposite();
     }
 
+    /**
+     * {@code FACING_ROTATION} segment whose {@link #doorDirection(int)} is {@code doorFacing}.
+     * Non-horizontal inputs fall back to north-facing doors.
+     */
+    public static int facingRotationForDoor(Direction doorFacing) {
+        Direction horizontal = doorFacing != null && doorFacing.getAxis().isHorizontal()
+                ? doorFacing
+                : Direction.NORTH;
+        return RotationSegment.convertToSegment(horizontal.getOpposite().toYRot());
+    }
+
     private static Direction rotationToHorizontal(int rotation) {
         float yaw = RotationSegment.convertToDegrees(rotation);
         return Direction.fromYRot(yaw);

@@ -148,6 +148,54 @@ class TardisLogicTest {
     }
 
     @Test
+    void slamDoorsClosed_snapsOpenDoors() {
+        try (MockedStatic<TardisDataLoader> mockedStatic = Mockito.mockStatic(TardisDataLoader.class)) {
+            mockedStatic.when(() -> TardisDataLoader.get(testTardisId)).thenReturn(testTardis);
+            testTardis.doorState.isOpen = true;
+            testTardis.doorState.doorSwing = 1.0f;
+
+            assertTrue(TardisLogic.slamDoorsClosed(testTardisId, null));
+            assertFalse(testTardis.doorState.isOpen);
+            assertEquals(0.0f, testTardis.doorState.doorSwing, 0.001f);
+        }
+    }
+
+    @Test
+    void slamDoorsClosed_snapsAjarDoors() {
+        try (MockedStatic<TardisDataLoader> mockedStatic = Mockito.mockStatic(TardisDataLoader.class)) {
+            mockedStatic.when(() -> TardisDataLoader.get(testTardisId)).thenReturn(testTardis);
+            testTardis.doorState.isOpen = false;
+            testTardis.doorState.doorSwing = 0.4f;
+
+            assertTrue(TardisLogic.slamDoorsClosed(testTardisId, null));
+            assertFalse(testTardis.doorState.isOpen);
+            assertEquals(0.0f, testTardis.doorState.doorSwing, 0.001f);
+        }
+    }
+
+    @Test
+    void slamDoorsClosed_noopWhenAlreadyClosed() {
+        try (MockedStatic<TardisDataLoader> mockedStatic = Mockito.mockStatic(TardisDataLoader.class)) {
+            mockedStatic.when(() -> TardisDataLoader.get(testTardisId)).thenReturn(testTardis);
+            testTardis.doorState.isOpen = false;
+            testTardis.doorState.doorSwing = 0.0f;
+
+            assertFalse(TardisLogic.slamDoorsClosed(testTardisId, null));
+            assertFalse(testTardis.doorState.isOpen);
+            assertEquals(0.0f, testTardis.doorState.doorSwing, 0.001f);
+        }
+    }
+
+    @Test
+    void slamDoorsClosed_noopWhenMissing() {
+        try (MockedStatic<TardisDataLoader> mockedStatic = Mockito.mockStatic(TardisDataLoader.class)) {
+            mockedStatic.when(() -> TardisDataLoader.get(testTardisId)).thenReturn(null);
+            assertFalse(TardisLogic.slamDoorsClosed(testTardisId, null));
+            assertFalse(TardisLogic.slamDoorsClosed(null, null));
+        }
+    }
+
+    @Test
     void setVariant_ShouldUpdateVariant() {
         try (MockedStatic<TardisDataLoader> mockedStatic = Mockito.mockStatic(TardisDataLoader.class)) {
             mockedStatic.when(() -> TardisDataLoader.get(testTardisId)).thenReturn(testTardis);

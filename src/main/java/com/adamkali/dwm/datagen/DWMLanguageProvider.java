@@ -62,6 +62,12 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.key.wrong_tardis", "This key is bound to another TARDIS");
         t.add("dwm.key.tooltip.unbound", "Unbound");
         t.add("dwm.key.tooltip.bound", "Bound to a TARDIS");
+        addItem(t, DWMItems.STATTENHEIM_REMOTE, "Stattenheim Remote");
+        t.add("dwm.stattenheim.summoned", "TARDIS incoming");
+        t.add("dwm.stattenheim.no_tardis", "You do not own a TARDIS");
+        t.add("dwm.stattenheim.in_progress", "TARDIS is already travelling");
+        t.add("dwm.stattenheim.invalid_landing", "Cannot land here");
+        t.add("dwm.stattenheim.unavailable", "Cannot summon the TARDIS");
     }
 
     private static void addBuildingBlocks(TranslationBuilder t) {

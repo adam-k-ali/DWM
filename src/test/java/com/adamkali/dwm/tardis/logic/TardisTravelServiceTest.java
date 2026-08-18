@@ -10,6 +10,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -175,5 +176,61 @@ class TardisTravelServiceTest {
         model.travelPhaseTicks = 5;
         assertFalse(TardisTravelService.advanceMaterialisingHold(model));
         assertEquals(5, model.travelPhaseTicks);
+    }
+
+    @Test
+    void startSummonTravel_returnsPassWhenAlreadyTraveling() {
+        try (MockedStatic<TardisDataLoader> loader = Mockito.mockStatic(TardisDataLoader.class)) {
+            loader.when(() -> TardisDataLoader.get(tardisId)).thenReturn(model);
+            model.setExteriorLocation("minecraft:overworld", 0, 64, 0, 0);
+            model.setTravelPhase(TardisTravelPhase.IN_FLIGHT);
+
+            assertEquals(
+                    InteractionResult.PASS,
+                    TardisTravelService.startSummonTravel(
+                            tardisId, null, "minecraft:overworld", new BlockPos(1, 64, 1), 0)
+            );
+            assertFalse(TardisTravelService.isSummonPending(tardisId));
+        }
+    }
+
+    @Test
+    void startSummonTravel_failsWithoutServerOrExterior() {
+        try (MockedStatic<TardisDataLoader> loader = Mockito.mockStatic(TardisDataLoader.class)) {
+            loader.when(() -> TardisDataLoader.get(tardisId)).thenReturn(model);
+            assertEquals(
+                    InteractionResult.FAIL,
+                    TardisTravelService.startSummonTravel(
+                            tardisId, null, "minecraft:overworld", new BlockPos(1, 64, 1), 0)
+            );
+
+            model.setExteriorLocation("minecraft:overworld", 0, 64, 0, 0);
+            assertEquals(
+                    InteractionResult.FAIL,
+                    TardisTravelService.startSummonTravel(
+                            tardisId, null, "minecraft:overworld", new BlockPos(1, 64, 1), 0)
+            );
+        }
+    }
+
+    @Test
+    void consumeSummonPending_clearsFlagOnce() {
+        TardisTravelService.markSummonPendingForTests(tardisId);
+        assertTrue(TardisTravelService.isSummonPending(tardisId));
+        assertTrue(TardisTravelService.consumeSummonPending(tardisId));
+        assertFalse(TardisTravelService.isSummonPending(tardisId));
+        assertFalse(TardisTravelService.consumeSummonPending(tardisId));
+    }
+
+    @Test
+    void materialiseAt_returnsPassWhenNotInFlight() {
+        try (MockedStatic<TardisDataLoader> loader = Mockito.mockStatic(TardisDataLoader.class)) {
+            loader.when(() -> TardisDataLoader.get(tardisId)).thenReturn(model);
+            assertEquals(
+                    InteractionResult.PASS,
+                    TardisTravelService.materialiseAt(
+                            tardisId, null, null, new BlockPos(0, 64, 0), 0)
+            );
+        }
     }
 }
