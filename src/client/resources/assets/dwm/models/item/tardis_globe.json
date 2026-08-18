@@ -1,6 +1,39 @@
 {
-  "parent": "minecraft:item/generated",
+  "parent": "minecraft:builtin/entity",
+  "gui_light": "side",
   "textures": {
-    "layer0": "dwm:block/tardis_globe"
+    "particle": "dwm:entity/tardis_globe"
+  },
+  "display": {
+    "gui": {
+      "rotation": [30, 225, 0],
+      "translation": [0, -2.2, 0],
+      "scale": [0.30, 0.30, 0.30]
+    },
+    "ground": {
+      "rotation": [0, 0, 0],
+      "translation": [0, 3, 0],
+      "scale": [0.15, 0.15, 0.15]
+    },
+    "fixed": {
+      "rotation": [0, 0, 0],
+      "translation": [0, -2.2, 0],
+      "scale": [0.24, 0.24, 0.24]
+    },
+    "thirdperson_righthand": {
+      "rotation": [75, 45, 0],
+      "translation": [0, 2.5, 0],
+      "scale": [0.18, 0.18, 0.18]
+    },
+    "firstperson_righthand": {
+      "rotation": [0, 45, 0],
+      "translation": [0, 0, 0],
+      "scale": [0.19, 0.19, 0.19]
+    },
+    "firstperson_lefthand": {
+      "rotation": [0, 225, 0],
+      "translation": [0, 0, 0],
+      "scale": [0.19, 0.19, 0.19]
+    }
   }
 }

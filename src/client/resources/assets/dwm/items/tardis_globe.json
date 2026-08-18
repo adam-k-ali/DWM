@@ -1,6 +1,9 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "dwm:item/tardis_globe"
+    "type": "minecraft:special",
+    "base": "dwm:item/tardis_globe",
+    "model": {
+      "type": "dwm:tardis_globe"
+    }
   }
 }
