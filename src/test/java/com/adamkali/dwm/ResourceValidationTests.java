@@ -1,5 +1,7 @@
 package com.adamkali.dwm;
 
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -10,6 +12,7 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -89,19 +92,154 @@ public class ResourceValidationTests {
     }
 
     /**
+     * Minecraft 26.2 hanging signs bake wood from {@code textures/block/{id}_hanging_sign.png}.
+     * Guards against missing or copied-Ash atlases (Cardinal previously shared Ash).
+     */
+    @Test
+    public void hangingSignBlockTexturesExistAndAreDistinct() throws Exception {
+        Path root = Path.of("src/client/resources/assets/dwm/textures/block");
+        Set<String> hashes = new HashSet<>();
+        MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+        for (String woodTypeId : WOOD_TYPE_IDS) {
+            Path texture = root.resolve(woodTypeId + "_hanging_sign.png");
+            assertTrue(
+                    Files.isRegularFile(texture) && Files.size(texture) > 0,
+                    "Hanging sign block models expect assets/dwm/textures/block/"
+                            + woodTypeId + "_hanging_sign.png"
+            );
+            String hex = HexFormat.of().formatHex(sha256.digest(Files.readAllBytes(texture)));
+            assertTrue(
+                    hashes.add(hex),
+                    "Hanging sign block texture must be unique per wood type, but "
+                            + texture + " duplicates another family's atlas"
+            );
+        }
+    }
+
+    /**
+     * Ceiling/wall hanging signs must parent vanilla 26.2 templates and sample
+     * {@code dwm:block/{id}_hanging_sign}. Particle-only models would fail this.
+     */
+    @Test
+    public void generatedHangingSignModelsUseBlockTemplates() throws Exception {
+        Path models = Path.of("src/main/generated/assets/dwm/models/block");
+        for (String woodTypeId : WOOD_TYPE_IDS) {
+            String allTexture = "dwm:block/" + woodTypeId + "_hanging_sign";
+            assertHangingSignModel(
+                    models.resolve(woodTypeId + "_hanging_sign_rot_0.json"),
+                    "minecraft:block/template_hanging_sign_rot_0",
+                    allTexture
+            );
+            assertHangingSignModel(
+                    models.resolve(woodTypeId + "_hanging_sign_attached_rot_0.json"),
+                    "minecraft:block/template_attached_hanging_sign_rot_0",
+                    allTexture
+            );
+            assertHangingSignModel(
+                    models.resolve(woodTypeId + "_wall_hanging_sign.json"),
+                    "minecraft:block/template_wall_hanging_sign",
+                    allTexture
+            );
+        }
+    }
+
+    private static void assertHangingSignModel(Path model, String expectedParent, String expectedAll)
+            throws Exception {
+        assertTrue(Files.isRegularFile(model) && Files.size(model) > 0, "Missing hanging sign model: " + model);
+        JSONObject json = new JSONObject(new JSONTokener(Files.readString(model)));
+        assertEquals(expectedParent, json.optString("parent"), "Unexpected parent in " + model);
+        JSONObject textures = json.getJSONObject("textures");
+        assertEquals(expectedAll, textures.getString("all"), "Unexpected #all texture in " + model);
+        assertTrue(
+                textures.getString("particle").startsWith("dwm:block/stripped_"),
+                "Hanging sign particle should be the stripped log in " + model
+        );
+    }
+
+    /**
+     * Minecraft 26.2 standing/wall signs bake wood from {@code textures/block/{id}_sign.png}.
+     * Guards against Cardinal sharing a copied Ash atlas.
+     */
+    @Test
+    public void standingSignBlockTexturesExistAndAreDistinct() throws Exception {
+        assertWoodFamilyPngsExistAndAreDistinct(
+                Path.of("src/client/resources/assets/dwm/textures/block"),
+                "%s_sign.png",
+                "Standing/wall sign block models expect assets/dwm/textures/block/%s_sign.png",
+                "Standing sign block texture must be unique per wood type, but %s duplicates another family's atlas"
+        );
+    }
+
+    /**
+     * Fabric remaps modded wood types to {@code dwm:textures/gui/signs/<id>.png}
+     * for standing-sign edit UI (not referenced from model JSON).
+     */
+    @Test
+    public void standingSignGuiTexturesExistAndAreDistinct() throws Exception {
+        assertWoodFamilyPngsExistAndAreDistinct(
+                Path.of("src/client/resources/assets/dwm/textures/gui/signs"),
+                "%s.png",
+                "Fabric SignEditScreen expects assets/dwm/textures/gui/signs/%s.png for wood type dwm:%s",
+                "Standing sign GUI texture must be unique per wood type, but %s duplicates another family's atlas"
+        );
+    }
+
+    /**
      * Fabric remaps modded wood types to {@code dwm:textures/gui/hanging_signs/<id>.png}
      * for hanging-sign edit UI (not referenced from model JSON).
      */
     @Test
-    public void hangingSignGuiTexturesExist() throws Exception {
-        Path root = Path.of("src/client/resources/assets/dwm/textures/gui/hanging_signs");
+    public void hangingSignGuiTexturesExistAndAreDistinct() throws Exception {
+        assertWoodFamilyPngsExistAndAreDistinct(
+                Path.of("src/client/resources/assets/dwm/textures/gui/hanging_signs"),
+                "%s.png",
+                "Fabric HangingSignEditScreen expects assets/dwm/textures/gui/hanging_signs/%s.png for wood type dwm:%s",
+                "Hanging sign GUI texture must be unique per wood type, but %s duplicates another family's atlas"
+        );
+    }
+
+    /**
+     * Inventory icons for standing signs must exist and not share a copied Ash sprite.
+     */
+    @Test
+    public void standingSignItemTexturesExistAndAreDistinct() throws Exception {
+        assertWoodFamilyPngsExistAndAreDistinct(
+                Path.of("src/client/resources/assets/dwm/textures/item"),
+                "%s_sign.png",
+                "Standing sign items expect assets/dwm/textures/item/%s_sign.png",
+                "Standing sign item texture must be unique per wood type, but %s duplicates another family's atlas"
+        );
+    }
+
+    /**
+     * Inventory icons for hanging signs must exist and not share a copied Ash sprite.
+     */
+    @Test
+    public void hangingSignItemTexturesExistAndAreDistinct() throws Exception {
+        assertWoodFamilyPngsExistAndAreDistinct(
+                Path.of("src/client/resources/assets/dwm/textures/item"),
+                "%s_hanging_sign.png",
+                "Hanging sign items expect assets/dwm/textures/item/%s_hanging_sign.png",
+                "Hanging sign item texture must be unique per wood type, but %s duplicates another family's atlas"
+        );
+    }
+
+    private static void assertWoodFamilyPngsExistAndAreDistinct(
+            Path directory,
+            String filenameFormat,
+            String missingTemplate,
+            String duplicateTemplate
+    ) throws Exception {
+        Set<String> hashes = new HashSet<>();
+        MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
         for (String woodTypeId : WOOD_TYPE_IDS) {
-            Path texture = root.resolve(woodTypeId + ".png");
+            Path texture = directory.resolve(filenameFormat.formatted(woodTypeId));
             assertTrue(
                     Files.isRegularFile(texture) && Files.size(texture) > 0,
-                    "Fabric HangingSignEditScreen expects assets/dwm/textures/gui/hanging_signs/"
-                            + woodTypeId + ".png for wood type dwm:" + woodTypeId
+                    missingTemplate.formatted(woodTypeId, woodTypeId)
             );
+            String hex = HexFormat.of().formatHex(sha256.digest(Files.readAllBytes(texture)));
+            assertTrue(hashes.add(hex), duplicateTemplate.formatted(texture));
         }
     }
 
