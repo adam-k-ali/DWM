@@ -7,8 +7,11 @@ Fly a working TARDIS, land on Gallifrey, and build with Time Lord materials — 
 - Search the overworld for a TARDIS, open the doors, and walk into a First Doctor–style console room
 - Look through open exterior doors for a bigger-on-the-inside preview of the console room
 - Look back out through open interior doors to see the world outside
-- Set a destination at the First Doctor console with biome/planet dials, saved waypoints, or an online player
-- Pull the materialisation lever to dematerialise, fly, and land — with travel and ambient sound
+- Bind a TARDIS Key to lock and unlock the doors
+- Sneak-use a Stattenheim Remote to summon your TARDIS to a clicked block
+- Set a destination at the First Doctor console with biome/planet dials, saved waypoints, an online player, fast return through previous landings, or the telepathic circuit (home bed or world spawn)
+- Cloak the exterior shell, lock the doors, pin X/Y/Z with coordinate lock, toggle stabilisers for precise vs scattered landing, and read exterior atmosphere and artron reserves
+- Pull the materialisation lever to dematerialise, fly, and land.
 - Use the chameleon circuit dial to pick First–Seventh Doctor boxes or the TT Capsule, with a spinning shell hologram
 
 ## Explore Gallifrey
@@ -26,6 +29,7 @@ Fly a working TARDIS, land on Gallifrey, and build with Time Lord materials — 
 - Orange sand and orange sandstone (stairs, slabs, walls, cut, chiseled, and smooth)
 - Flower of Remembrance, Moonlight Bloom, and Saccharine Cane
 - Chronoplasm powder, colored TARDIS walls, and roundels for console-room builds
+- Craftable decor: sittable chairs, Decorational Column, TARDIS Globe, Compact and Full TARDIS Scanners, and TARDIS Ceiling Vent
 
 ## Azbantium
 
@@ -43,6 +47,7 @@ Fly a working TARDIS, land on Gallifrey, and build with Time Lord materials — 
 2. Walk in once the doors are fully open.
 3. At the console, set planet and biome, then pull the materialisation lever.
 4. Pull again in flight to land — try Gallifrey for a first trip.
+5. Craft a TARDIS Key to lock the doors, or a Stattenheim Remote to summon the ship.
 
 ## Community
 
