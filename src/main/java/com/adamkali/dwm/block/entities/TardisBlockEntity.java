@@ -3,6 +3,7 @@ package com.adamkali.dwm.block.entities;
 import com.adamkali.dwm.sound.DWMSounds;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
+import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,6 +31,8 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
     private @Nullable BlockPos interiorEntrance;
     private boolean interiorGenerated;
     private boolean syncedCloaked;
+    private String syncedTravelPhase = TardisTravelPhase.IDLE.name();
+    private long syncedPhaseGameTime;
 
     public TardisBlockEntity(UUID tardisId, BlockPos pos, BlockState state) {
         super(DWMBlockEntities.TARDIS_BLOCK_ENTITY, pos, state);
@@ -78,6 +81,8 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
         output.store("tardisId", UUIDUtil.CODEC, this.tardisId);
         output.putBoolean("interiorGenerated", this.interiorGenerated);
         output.putBoolean("syncedCloaked", this.syncedCloaked);
+        output.putString("syncedTravelPhase", this.syncedTravelPhase);
+        output.putLong("syncedPhaseGameTime", this.syncedPhaseGameTime);
         if (this.interiorEntrance != null) {
             output.putInt("interiorEntranceX", this.interiorEntrance.getX());
             output.putInt("interiorEntranceY", this.interiorEntrance.getY());
@@ -94,6 +99,8 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
         this.tardisId = input.read("tardisId", UUIDUtil.CODEC).orElse(null);
         this.interiorGenerated = input.getBooleanOr("interiorGenerated", false);
         this.syncedCloaked = input.getBooleanOr("syncedCloaked", false);
+        this.syncedTravelPhase = input.getStringOr("syncedTravelPhase", TardisTravelPhase.IDLE.name());
+        this.syncedPhaseGameTime = input.getLongOr("syncedPhaseGameTime", 0L);
         if (input.getInt("interiorEntranceX").isPresent()) {
             this.interiorEntrance = new BlockPos(
                     input.getIntOr("interiorEntranceX", 0),
@@ -133,6 +140,25 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
     public void setSyncedCloaked(boolean cloaked) {
         this.syncedCloaked = cloaked;
         setChanged();
+        sendClientUpdate();
+    }
+
+    public TardisTravelPhase getSyncedTravelPhase() {
+        return TardisTravelPhase.fromString(syncedTravelPhase);
+    }
+
+    public long getSyncedPhaseGameTime() {
+        return syncedPhaseGameTime;
+    }
+
+    public void setSyncedTravelPhase(TardisTravelPhase phase, long gameTime) {
+        this.syncedTravelPhase = phase == null ? TardisTravelPhase.IDLE.name() : phase.name();
+        this.syncedPhaseGameTime = gameTime;
+        setChanged();
+        sendClientUpdate();
+    }
+
+    private void sendClientUpdate() {
         if (level != null && !level.isClientSide()) {
             BlockState state = getBlockState();
             level.sendBlockUpdated(worldPosition, state, state, net.minecraft.world.level.block.Block.UPDATE_CLIENTS);

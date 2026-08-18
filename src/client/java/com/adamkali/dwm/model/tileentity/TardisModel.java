@@ -52,12 +52,16 @@ public abstract class TardisModel extends EntityModel<TardisRenderState> {
      * Renders the exterior shell without door meshes (for BOTI to fill the aperture first).
      */
     public void renderShell(PoseStack matrices, VertexConsumer vertices, int light, int overlay) {
+        renderShell(matrices, vertices, light, overlay, -1);
+    }
+
+    public void renderShell(PoseStack matrices, VertexConsumer vertices, int light, int overlay, int color) {
         List<ModelPart> doors = getDoorParts();
         for (ModelPart door : doors) {
             door.visible = false;
         }
         try {
-            this.renderToBuffer(matrices, vertices, light, overlay, -1);
+            this.renderToBuffer(matrices, vertices, light, overlay, color);
         } finally {
             for (ModelPart door : doors) {
                 door.visible = true;
@@ -69,13 +73,17 @@ public abstract class TardisModel extends EntityModel<TardisRenderState> {
      * Renders only door meshes, applying ancestor transforms so nested doors stay aligned.
      */
     public void renderDoors(PoseStack matrices, VertexConsumer vertices, int light, int overlay) {
+        renderDoors(matrices, vertices, light, overlay, -1);
+    }
+
+    public void renderDoors(PoseStack matrices, VertexConsumer vertices, int light, int overlay, int color) {
         matrices.pushPose();
         try {
             root.translateAndRotate(matrices);
 
             for (String name : DOOR_PART_NAMES) {
                 if (root.hasChild(name)) {
-                    root.getChild(name).render(matrices, vertices, light, overlay);
+                    root.getChild(name).render(matrices, vertices, light, overlay, color);
                 }
             }
 
@@ -85,7 +93,7 @@ public abstract class TardisModel extends EntityModel<TardisRenderState> {
                 main.translateAndRotate(matrices);
                 for (String name : DOOR_PART_NAMES) {
                     if (main.hasChild(name)) {
-                        main.getChild(name).render(matrices, vertices, light, overlay);
+                        main.getChild(name).render(matrices, vertices, light, overlay, color);
                     }
                 }
                 matrices.popPose();
@@ -96,7 +104,7 @@ public abstract class TardisModel extends EntityModel<TardisRenderState> {
                 ModelPart bone = root.getChild("bone");
                 bone.translateAndRotate(matrices);
                 if (bone.hasChild("door")) {
-                    bone.getChild("door").render(matrices, vertices, light, overlay);
+                    bone.getChild("door").render(matrices, vertices, light, overlay, color);
                 }
                 matrices.popPose();
             }

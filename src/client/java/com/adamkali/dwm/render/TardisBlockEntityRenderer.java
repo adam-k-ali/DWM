@@ -16,7 +16,9 @@ import com.adamkali.dwm.render.state.TardisBlockEntityRenderState;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
+import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
+import com.adamkali.dwm.tardis.logic.TardisShellOpacity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import java.util.HashMap;
@@ -25,10 +27,12 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.RotationSegment;
 import net.minecraft.world.phys.Vec3;
@@ -80,6 +84,13 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         state.shouldRenderBoti = TardisBotiRenderer.shouldRender(doorState);
         state.cloaked = entity.isSyncedCloaked()
                 || (entity.getTardisIdOrNull() != null && TardisLogic.isCloaked(entity.getTardisIdOrNull()));
+        TardisTravelPhase phase = entity.getSyncedTravelPhase();
+        float elapsed = 0.0f;
+        var world = entity.getLevel();
+        if (world != null && phase.isTraveling()) {
+            elapsed = (world.getGameTime() - entity.getSyncedPhaseGameTime()) + partialTicks;
+        }
+        state.shellAlpha = TardisShellOpacity.alpha(phase, elapsed);
     }
 
     @Override
@@ -101,7 +112,7 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         TardisRenderState animState = new TardisRenderState();
         animState.setDoorSwingProgress(state.doorSwing);
 
-        if (state.shouldRenderBoti && state.tardisId != null) {
+        if (state.shouldRenderBoti && state.tardisId != null && state.shellAlpha >= 0.999f) {
             // Shell → BOTI → doors so swung doors draw over the interior preview.
             submitShell(model, animState, poseStack, submitNodeCollector, texture, state);
 
@@ -138,15 +149,19 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
     ) {
         poseStack.pushPose();
         applyExteriorTransforms(poseStack, state.rotationDegrees);
-        submitNodeCollector.submitModel(
-                model,
-                animState,
-                poseStack,
-                RenderTypes.entityCutout(texture),
-                state.lightCoords,
-                OverlayTexture.NO_OVERLAY,
-                -1,
-                state.breakProgress);
+        if (state.shellAlpha < 0.999f) {
+            submitTranslucentModel(model, animState, poseStack, submitNodeCollector, texture, state);
+        } else {
+            submitNodeCollector.submitModel(
+                    model,
+                    animState,
+                    poseStack,
+                    RenderTypes.entityCutout(texture),
+                    state.lightCoords,
+                    OverlayTexture.NO_OVERLAY,
+                    -1,
+                    state.breakProgress);
+        }
         poseStack.popPose();
     }
 
@@ -165,14 +180,15 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         poseStack.pushPose();
         applyExteriorTransforms(poseStack, state.rotationDegrees);
         int light = state.lightCoords;
+        int color = shellColor(state);
         submitNodeCollector.submitCustomGeometry(
                 poseStack,
-                RenderTypes.entityCutout(texture),
+                shellRenderType(texture, state),
                 (pose, consumer) -> {
                     PoseStack local = new PoseStack();
                     local.last().set(pose);
                     model.setupAnim(animState);
-                    model.renderShell(local, consumer, light, OverlayTexture.NO_OVERLAY);
+                    model.renderShell(local, consumer, light, OverlayTexture.NO_OVERLAY, color);
                 });
         poseStack.popPose();
     }
@@ -191,14 +207,15 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         poseStack.pushPose();
         applyExteriorTransforms(poseStack, state.rotationDegrees);
         int light = state.lightCoords;
+        int color = shellColor(state);
         submitNodeCollector.submitCustomGeometry(
                 poseStack,
-                RenderTypes.entityCutout(texture),
+                shellRenderType(texture, state),
                 (pose, consumer) -> {
                     PoseStack local = new PoseStack();
                     local.last().set(pose);
                     model.setupAnim(animState);
-                    model.renderDoors(local, consumer, light, OverlayTexture.NO_OVERLAY);
+                    model.renderDoors(local, consumer, light, OverlayTexture.NO_OVERLAY, color);
                 });
         poseStack.popPose();
     }
@@ -208,5 +225,46 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         matrices.mulPose(Axis.XP.rotationDegrees(180.0f));
         matrices.translate(0.25D, -1.5D, -0.25D);
         matrices.mulPose(Axis.YP.rotationDegrees(rotationDegrees - 180.0f));
+    }
+
+    private static void submitTranslucentModel(
+            TardisModel model,
+            TardisRenderState animState,
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            Identifier texture,
+            TardisBlockEntityRenderState state
+    ) {
+        int light = state.lightCoords;
+        int color = shellColor(state);
+        submitNodeCollector.submitCustomGeometry(
+                poseStack,
+                RenderTypes.entityTranslucent(texture),
+                (pose, consumer) -> {
+                    PoseStack local = new PoseStack();
+                    local.last().set(pose);
+                    model.setupAnim(animState);
+                    model.renderToBuffer(local, consumer, light, OverlayTexture.NO_OVERLAY, color);
+                });
+    }
+
+    private static boolean isTranslucent(TardisBlockEntityRenderState state) {
+        return state.shellAlpha < 0.999f;
+    }
+
+    private static int shellColor(TardisBlockEntityRenderState state) {
+        if (!isTranslucent(state)) {
+            return -1;
+        }
+        return ARGB.colorFromFloat(state.shellAlpha, 1.0f, 1.0f, 1.0f);
+    }
+
+    private static RenderType shellRenderType(
+            Identifier texture,
+            TardisBlockEntityRenderState state
+    ) {
+        return isTranslucent(state)
+                ? RenderTypes.entityTranslucent(texture)
+                : RenderTypes.entityCutout(texture);
     }
 }

@@ -51,7 +51,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Panel2 telepathic circuit arms `DestinationMode.TELEPATHIC` onto the using player's bed/respawn, or world spawn if none. Overlay: locked onto your home / world spawn.
 - Panel3 coordinate lock is not a destination mode: X/Y/Z toggles pin those axes to the current exterior after landing resolve + scatter, then re-validate. Invalid pin fails materialise with the existing invalid-landing overlay. HUD: `X axis locked` / `unlocked` (same for Y/Z).
 - First Doctor console time rotor bobbles vertically while the TARDIS is traveling (`DEMATERIALISING` / `IN_FLIGHT` / `MATERIALISING`) and rests when idle.
-- Demat/mat/in-flight play loopable travel SFX (seamless loops) for code-configured phase lengths (`DEMATERIALISING_DURATION_TICKS` / `MATERIALISING_DURATION_TICKS` in `TardisTravelService`); shell vanishes mid-demat at `DEMATERIALISING_SHELL_REMOVE_AT_TICK`; `IN_FLIGHT` uses a higher-pitched demat/mat-derived loop in the interior; materialisation ends with a landing thud. Demat forces doors closed; materialise auto-opens them unless they are locked.
+- Demat/mat/in-flight play loopable travel SFX (seamless loops) for code-configured phase lengths (`DEMATERIALISING_DURATION_TICKS` / `MATERIALISING_DURATION_TICKS` in `TardisTravelService`); shell vanishes mid-demat at `DEMATERIALISING_SHELL_REMOVE_AT_TICK`; `IN_FLIGHT` uses a higher-pitched demat/mat-derived loop in the interior; materialisation ends with a landing thud. Exterior shell fades out during dematerialisation and fades in during materialisation. Demat forces doors closed; materialise auto-opens them unless they are locked.
 
 ## How It Works In-Game
 1. Place the TARDIS block.
