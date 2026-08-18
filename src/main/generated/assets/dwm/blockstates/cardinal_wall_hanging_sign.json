@@ -1,7 +1,19 @@
 {
   "variants": {
-    "": {
+    "facing=east": {
+      "model": "dwm:block/cardinal_wall_hanging_sign",
+      "y": 270
+    },
+    "facing=north": {
+      "model": "dwm:block/cardinal_wall_hanging_sign",
+      "y": 180
+    },
+    "facing=south": {
       "model": "dwm:block/cardinal_wall_hanging_sign"
+    },
+    "facing=west": {
+      "model": "dwm:block/cardinal_wall_hanging_sign",
+      "y": 90
     }
   }
 }

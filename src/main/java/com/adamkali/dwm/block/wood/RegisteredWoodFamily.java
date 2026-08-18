@@ -158,7 +158,9 @@ public final class RegisteredWoodFamily {
                 .fenceGate(blocks.fenceGate())
                 .button(blocks.button())
                 .pressurePlate(blocks.pressurePlate())
-                .sign(blocks.sign(), blocks.wallSign());
+                .sign(blocks.sign(), blocks.wallSign())
+                .strippedLog(blocks.strippedLog())
+                .hangingSign(blocks.hangingSign(), blocks.wallHangingSign());
         if (blocks.door() != null && !has(WoodFamilyFeature.CUSTOM_DOOR_MODEL)) {
             builder.door(blocks.door());
         }
