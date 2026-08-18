@@ -68,7 +68,7 @@ public final class PortalApertureComposite {
 
         submitNodeCollector.submitCustomGeometry(
                 matrices,
-                RenderTypes.entityCutout(PortalSamplingTexture.ID),
+                PortalDoorRenderer.portalCompositeRenderType(),
                 (PoseStack.Pose pose, VertexConsumer consumer) -> {
                     Matrix4f matrix = pose.pose();
                     for (int i = 0; i < 4; i++) {

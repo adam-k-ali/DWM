@@ -12,6 +12,7 @@ import com.adamkali.dwm.model.tileentity.TTCapsuleModel;
 import com.adamkali.dwm.model.tileentity.TardisModel;
 import com.adamkali.dwm.model.tileentity.ThirdDoctorTardisModel;
 import com.adamkali.dwm.render.boti.TardisBotiRenderer;
+import com.adamkali.dwm.render.portal.PortalDoorRenderer;
 import com.adamkali.dwm.render.state.TardisBlockEntityRenderState;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
@@ -208,9 +209,9 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         applyExteriorTransforms(poseStack, state.rotationDegrees);
         int light = state.lightCoords;
         int color = shellColor(state);
-        submitNodeCollector.submitCustomGeometry(
+        submitNodeCollector.order(PortalDoorRenderer.DOOR_OVERLAY_ORDER).submitCustomGeometry(
                 poseStack,
-                shellRenderType(texture, state),
+                PortalDoorRenderer.doorOverlayRenderType(texture),
                 (pose, consumer) -> {
                     PoseStack local = new PoseStack();
                     local.last().set(pose);

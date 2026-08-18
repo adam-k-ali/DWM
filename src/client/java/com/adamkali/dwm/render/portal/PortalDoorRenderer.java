@@ -7,11 +7,20 @@ import com.adamkali.dwm.tardis.interior.TardisPortalGate;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.resources.Identifier;
 
 /**
  * Shared BER loop: schedule portal work, peek last texture, composite or placeholder.
  */
 public final class PortalDoorRenderer {
+    /**
+     * Door leaves flush on a later {@link SubmitNodeCollector#order(int)} than the
+     * aperture preview so they composite after the portal color stamp.
+     */
+    public static final int DOOR_OVERLAY_ORDER = 1;
+
     private PortalDoorRenderer() {
     }
 
@@ -25,6 +34,24 @@ public final class PortalDoorRenderer {
         return DWMConfig.getBoolean(DWMConfig.ENABLE_DOOR_PORTALS)
                 && PortalSupport.isAvailable()
                 && TardisPortalGate.shouldShow(doorState);
+    }
+
+    /**
+     * Later pass than the aperture preview so swung leaves composite over it.
+     * Minecraft flushes {@code submitCustomGeometry} by RenderType, so doors must
+     * not share the shell's {@code entityCutout} bucket.
+     */
+    public static RenderType doorOverlayRenderType(Identifier texture) {
+        return RenderTypes.entityTranslucent(texture);
+    }
+
+    /**
+     * Vanilla emissive translucent pipeline: compiled with the game shaders and
+     * {@code writeDepth=false}, so inward-swinging leaves are not depth-rejected
+     * by the aperture quad.
+     */
+    public static RenderType portalCompositeRenderType() {
+        return RenderTypes.entityTranslucentEmissive(PortalSamplingTexture.ID);
     }
 
     /**
