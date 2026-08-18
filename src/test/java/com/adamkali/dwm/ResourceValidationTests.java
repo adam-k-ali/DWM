@@ -4,7 +4,11 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.util.HashSet;
+import java.util.HexFormat;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -56,6 +60,31 @@ public class ResourceValidationTests {
                 );
         if (!missing.isEmpty()) {
             fail(ModelTextureValidationHelpers.formatMissingReport(missing));
+        }
+    }
+
+    /**
+     * {@code BoatRenderer} loads {@code textures/entity/boat/<id>.png} from each wood
+     * family's model layer. Guards against Dark Ash / Cardinal sharing a copied Ash atlas.
+     */
+    @Test
+    public void boatEntityTexturesExistAndAreDistinct() throws Exception {
+        Path root = Path.of("src/client/resources/assets/dwm/textures/entity/boat");
+        Set<String> hashes = new HashSet<>();
+        MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+        for (String woodTypeId : WOOD_TYPE_IDS) {
+            Path texture = root.resolve(woodTypeId + ".png");
+            assertTrue(
+                    Files.isRegularFile(texture) && Files.size(texture) > 0,
+                    "BoatRenderer expects assets/dwm/textures/entity/boat/"
+                            + woodTypeId + ".png for wood type dwm:" + woodTypeId
+            );
+            String hex = HexFormat.of().formatHex(sha256.digest(Files.readAllBytes(texture)));
+            assertTrue(
+                    hashes.add(hex),
+                    "Boat entity texture must be unique per wood type, but "
+                            + texture + " duplicates another family's atlas"
+            );
         }
     }
 
