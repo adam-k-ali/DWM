@@ -1,6 +1,6 @@
 {
-  "parent": "minecraft:item/generated",
+  "parent": "dwm:item/template_cardinal_door_item",
   "textures": {
-    "layer0": "dwm:item/cardinal_door"
+    "door": "dwm:block/cardinal_door"
   }
 }

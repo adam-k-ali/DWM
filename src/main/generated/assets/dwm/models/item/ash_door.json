@@ -1,6 +1,6 @@
 {
-  "parent": "minecraft:item/generated",
+  "parent": "dwm:item/template_ash_door_item",
   "textures": {
-    "layer0": "dwm:item/ash_door"
+    "door": "dwm:block/ash_door"
   }
 }

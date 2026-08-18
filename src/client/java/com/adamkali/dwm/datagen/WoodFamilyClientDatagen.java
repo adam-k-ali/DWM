@@ -4,6 +4,11 @@ import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.block.wood.WoodFamilyBlocks;
 import com.adamkali.dwm.block.wood.WoodFamilyFeature;
+import com.google.gson.JsonParser;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.HashSet;
+import java.util.Set;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.model.ModelLocationUtils;
@@ -12,6 +17,8 @@ import net.minecraft.client.data.models.model.TexturedModel;
 import net.minecraft.resources.Identifier;
 
 public final class WoodFamilyClientDatagen {
+    private static final Set<Identifier> EMITTED_DOOR_ITEM_TEMPLATES = new HashSet<>();
+
     private WoodFamilyClientDatagen() {
     }
 
@@ -34,12 +41,37 @@ public final class WoodFamilyClientDatagen {
             );
             generator.registerSimpleItemModel(blocks.trapdoor(), bottomModel);
         }
+        if (family.has(WoodFamilyFeature.CUSTOM_DOOR_MODEL) && blocks.door() != null) {
+            emitCustomDoorItemModel(generator, family);
+        }
     }
 
     public static void generateItemModels(ItemModelGenerators generator, RegisteredWoodFamily family) {
         generator.generateFlatItem(family.boatItem(), ModelTemplates.FLAT_ITEM);
-        if (family.has(WoodFamilyFeature.CUSTOM_DOOR_MODEL) && family.doorOrNull() != null) {
-            generator.generateFlatItem(family.doorOrNull().asItem(), ModelTemplates.FLAT_ITEM);
+    }
+
+    private static void emitCustomDoorItemModel(BlockModelGenerators generator, RegisteredWoodFamily family) {
+        try {
+            DoorItemModelAssembler.AssembledDoorItem assembled =
+                    DoorItemModelAssembler.assemble(
+                            DoorItemModelAssembler.resolveBlockModelsDir(),
+                            family.definition().id()
+                    );
+            Identifier templateId = Identifier.fromNamespaceAndPath(
+                    DWMReference.MOD_ID,
+                    assembled.templateModelPath()
+            );
+            Identifier itemId = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, assembled.itemModelPath());
+            if (EMITTED_DOOR_ITEM_TEMPLATES.add(templateId)) {
+                generator.modelOutput.accept(templateId, () -> JsonParser.parseString(assembled.template().toString()));
+            }
+            generator.modelOutput.accept(itemId, () -> JsonParser.parseString(assembled.wrapper().toString()));
+            generator.registerSimpleItemModel(family.blocks().door(), itemId);
+        } catch (IOException e) {
+            throw new UncheckedIOException(
+                    "Failed to assemble custom door item model for " + family.definition().id(),
+                    e
+            );
         }
     }
 }
