@@ -58,4 +58,19 @@ class TardisBotiRendererAlignmentTest {
         // Looking along +Z: a point further into the room should be in front of the camera (-Z in view space).
         assertTrue(deeper.z < 0.0f, "Room depth should project in front of hitch camera");
     }
+
+    @Test
+    void viewPanU_onAxisIsZero() {
+        Vec3 door = new Vec3(0.5, 1.0, 0.5);
+        Vec3 player = new Vec3(0.5, 1.62, 0.5 + 3.0);
+        assertEquals(0.0f, PortalApertureComposite.viewPanU(player, door, Direction.SOUTH), EPSILON);
+    }
+
+    @Test
+    void viewPanU_playerOnDoorRight_isPositive() {
+        Vec3 door = new Vec3(0.5, 1.0, 0.5);
+        Vec3 player = new Vec3(0.5 + 4.0, 1.62, 0.5 + 3.5);
+        float pan = PortalApertureComposite.viewPanU(player, door, Direction.SOUTH);
+        assertTrue(pan > 1.0f, "Strafing right of a south door should pan U positive");
+    }
 }

@@ -12,12 +12,14 @@ import com.adamkali.dwm.model.tileentity.TTCapsuleModel;
 import com.adamkali.dwm.model.tileentity.TardisModel;
 import com.adamkali.dwm.model.tileentity.ThirdDoctorTardisModel;
 import com.adamkali.dwm.render.boti.TardisBotiRenderer;
+import com.adamkali.dwm.render.portal.PortalApertureComposite;
 import com.adamkali.dwm.render.portal.PortalDoorRenderer;
 import com.adamkali.dwm.render.state.TardisBlockEntityRenderState;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
+import com.adamkali.dwm.tardis.TardisExteriorFacing;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisShellOpacity;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -32,6 +34,7 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.state.BlockState;
@@ -80,6 +83,7 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         state.variant = Objects.requireNonNullElse(TardisLogic.getVariant(entity.getTardisId()), TardisChameleonVariant.TT_CAPSULE);
         state.doorSwing = doorState.doorSwing;
         state.rotationDegrees = RotationSegment.convertToDegrees(rotation);
+        state.facingRotation = rotation;
         state.partialTicks = partialTicks;
         state.tardisId = entity.getTardisId();
         state.shouldRenderBoti = TardisBotiRenderer.shouldRender(doorState);
@@ -119,12 +123,20 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
 
             poseStack.pushPose();
             applyExteriorTransforms(poseStack, state.rotationDegrees);
+            Vec3 exteriorDoorCenter = new Vec3(
+                    state.blockPos.getX() + 0.5,
+                    state.blockPos.getY() + 1.0,
+                    state.blockPos.getZ() + 0.5
+            );
+            Direction exteriorOutward = TardisExteriorFacing.doorDirection(state.facingRotation);
+            float viewPanU = PortalApertureComposite.viewPanU(camera.pos, exteriorDoorCenter, exteriorOutward);
             TardisBotiRenderer.render(
                     poseStack,
                     submitNodeCollector,
                     state.partialTicks,
                     state.tardisId,
-                    state.variant
+                    state.variant,
+                    viewPanU
             );
             poseStack.popPose();
 

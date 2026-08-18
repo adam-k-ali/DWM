@@ -11,6 +11,7 @@ public class TardisBlockEntityRenderState extends BlockEntityRenderState {
     public TardisChameleonVariant variant = TardisChameleonVariant.TT_CAPSULE;
     public float doorSwing;
     public float rotationDegrees;
+    public int facingRotation;
     public float partialTicks;
     public boolean shouldRenderBoti;
     public boolean cloaked;

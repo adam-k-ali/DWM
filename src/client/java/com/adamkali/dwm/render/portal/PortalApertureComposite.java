@@ -8,7 +8,10 @@ import org.joml.Matrix4f;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.Direction;
 import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Shared aperture compositing: aspect-matched portal UV crop and placeholder quads.
@@ -18,6 +21,12 @@ import net.minecraft.util.LightCoordsUtil;
  */
 public final class PortalApertureComposite {
     private static final int FULLBRIGHT = LightCoordsUtil.FULL_BRIGHT;
+
+    /**
+     * How hard the hitch-fixed FBO crop tracks viewer azimuth. 1.0 would use the full
+     * leftover letterbox; keep below that so side walls stay out of the doorway.
+     */
+    static final float VIEW_PAN_GAIN = 0.22f;
 
     /** Placeholder ARGB while waiting for the first END_MAIN portal texture. */
     public static final int PLACEHOLDER_ARGB = 0xFF203040;
@@ -30,6 +39,17 @@ public final class PortalApertureComposite {
             SubmitNodeCollector submitNodeCollector,
             PortalAperture aperture,
             PortalRenderer.PortalTexture portalTexture
+    ) {
+        drawPortalComposite(matrices, submitNodeCollector, aperture, portalTexture, 0.0f, 0.0f);
+    }
+
+    public static void drawPortalComposite(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            PortalAperture aperture,
+            PortalRenderer.PortalTexture portalTexture,
+            float viewPanU,
+            float viewPanV
     ) {
         PortalSamplingTexture.bindPortalColor(PortalRenderTarget.getInstance());
 
@@ -56,10 +76,15 @@ public final class PortalApertureComposite {
             cropV = fbAspect / doorAspect;
         }
 
-        float uMin = 0.5f - cropU * 0.5f;
-        float uMax = 0.5f + cropU * 0.5f;
-        float vMin = 0.5f - cropV * 0.5f;
-        float vMax = 0.5f + cropV * 0.5f;
+        float maxShiftU = (1.0f - cropU) * 0.5f;
+        float maxShiftV = (1.0f - cropV) * 0.5f;
+        float shiftU = Mth.clamp(viewPanU * VIEW_PAN_GAIN, -maxShiftU, maxShiftU);
+        float shiftV = Mth.clamp(viewPanV * VIEW_PAN_GAIN, -maxShiftV, maxShiftV);
+
+        float uMin = 0.5f - cropU * 0.5f - shiftU;
+        float uMax = 0.5f + cropU * 0.5f - shiftU;
+        float vMin = 0.5f - cropV * 0.5f - shiftV;
+        float vMax = 0.5f + cropV * 0.5f - shiftV;
         // y0/bottom → vMax; BER X-180 already flips the quad in model space.
         float[] us = {uMin, uMin, uMax, uMax};
         float[] vs = {vMax, vMin, vMin, vMax};
@@ -81,6 +106,25 @@ public final class PortalApertureComposite {
                     }
                 }
         );
+    }
+
+    /**
+     * Signed doorway pan from the viewer: positive when the player is to the door's right.
+     * Composite UVs subtract this so strafing right reveals more of the left interior.
+     */
+    public static float viewPanU(Vec3 playerEye, Vec3 exteriorDoorCenter, Direction exteriorOutward) {
+        if (playerEye == null || exteriorDoorCenter == null || exteriorOutward == null) {
+            return 0.0f;
+        }
+        Vec3 outward = new Vec3(
+                exteriorOutward.getStepX(),
+                exteriorOutward.getStepY(),
+                exteriorOutward.getStepZ()
+        );
+        Vec3 right = new Vec3(outward.z, 0.0, -outward.x);
+        Vec3 delta = playerEye.subtract(exteriorDoorCenter);
+        double localOut = Math.max(delta.dot(outward), 0.25);
+        return (float) (delta.dot(right) / localOut);
     }
 
     public static void drawApertureQuad(

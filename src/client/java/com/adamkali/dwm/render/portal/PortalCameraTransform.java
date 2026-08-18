@@ -10,7 +10,7 @@ import net.minecraft.world.phys.Vec3;
 /**
  * Pure geometry for hitch-fixed portal cameras.
  * <p>
- * BER facades supply eye + look; interior player motion does not dolly or pan the view.
+ * BER facades supply eye + look; interior player motion does not dolly or pan the hitch.
  */
 public final class PortalCameraTransform {
 

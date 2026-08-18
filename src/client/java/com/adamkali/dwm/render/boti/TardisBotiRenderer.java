@@ -16,8 +16,8 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
  * Exterior BOTI: thin facade that builds an interior look-in {@link PortalScene} and
  * delegates schedule/composite to {@link PortalDoorRenderer}.
  * <p>
- * Hitch-fixed camera at the interior door plane looking into the console room; composite UV
- * crop uses each chameleon's {@link PortalAperture}.
+ * Hitch-fixed camera at the interior door plane looking into the console room. Composite UV
+ * crop uses each chameleon's {@link PortalAperture} and can pan with the viewer.
  */
 public final class TardisBotiRenderer {
     /** Interior door opening center (local structure coords). */
@@ -43,7 +43,8 @@ public final class TardisBotiRenderer {
             SubmitNodeCollector submitNodeCollector,
             float tickDelta,
             UUID tardisId,
-            TardisChameleonVariant variant
+            TardisChameleonVariant variant,
+            float viewPanU
     ) {
         if (tardisId == null || variant == null) {
             return;
@@ -54,7 +55,7 @@ public final class TardisBotiRenderer {
                 tickDelta,
                 new BotiPortalContent(tardisId)
         );
-        PortalDoorRenderer.render(matrices, submitNodeCollector, scene, aperture);
+        PortalDoorRenderer.render(matrices, submitNodeCollector, scene, aperture, viewPanU, 0.0f);
     }
 
     /** Expose layout size for tests / debug. */

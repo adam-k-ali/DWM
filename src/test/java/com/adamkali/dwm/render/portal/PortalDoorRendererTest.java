@@ -38,8 +38,8 @@ class PortalDoorRendererTest {
     }
 
     @Test
-    void portalComposite_usesVanillaEmissivePipeline() {
-        assertEquals(
+    void portalComposite_isNotEmissiveTranslucent() {
+        assertNotEquals(
                 RenderTypes.entityTranslucentEmissive(PortalSamplingTexture.ID),
                 PortalDoorRenderer.portalCompositeRenderType()
         );
@@ -58,6 +58,11 @@ class PortalDoorRendererTest {
         var depth = PortalDoorRenderer.portalCompositeRenderType().pipeline().getDepthStencilState();
         assertNotNull(depth);
         assertFalse(depth.writeDepth());
+    }
+
+    @Test
+    void portalComposite_doesNotBlend() {
+        assertFalse(PortalDoorRenderer.portalCompositeRenderType().hasBlending());
     }
 
     @Test
