@@ -208,6 +208,8 @@ public class FirstDoctorConsoleBlockEntityRenderer
         state.traveling = phase.isTraveling();
         state.rotorBobOffset = FirstDoctorConsoleModel.rotorBobOffset(
                 timeTicks, phase.isTraveling(), display.stabilisersEnabled());
+        state.rotorSpinRadians = FirstDoctorConsoleModel.rotorSpinRadians(
+                timeTicks, phase.isTraveling(), display.stabilisersEnabled());
         state.hologramYawDegrees = hologramYawDegrees(timeTicks);
         state.hologramBobOffset = hologramBobOffset(timeTicks);
 
@@ -255,6 +257,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
     ) {
         TardisRenderState animState = new TardisRenderState();
         animState.setRotorBobOffset(state.rotorBobOffset);
+        animState.setRotorSpinRadians(state.rotorSpinRadians);
         applyDisplay(animState, state.display);
 
         poseStack.pushPose();

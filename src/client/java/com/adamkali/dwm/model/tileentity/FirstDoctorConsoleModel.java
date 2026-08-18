@@ -29,11 +29,16 @@ public class FirstDoctorConsoleModel extends EntityModel<TardisRenderState> {
     /** Speed multiplier while traveling with stabilisers off. Amplitude is unchanged. */
     public static final float ROTOR_BOB_UNSTABILISED_SPEED_FACTOR = 1.5f;
 
+    /** Radians per tick for {@code Time_middle} Y-spin (~2 seconds per revolution at 20 TPS). */
+    public static final float ROTOR_SPIN_SPEED = (float) (Math.PI * 2.0 / 40.0);
+
     private final ModelPart timeRotor;
+    private final ModelPart timeMiddle;
 
     public FirstDoctorConsoleModel(ModelPart root) {
         super(root);
         this.timeRotor = root.getChild("time_rotor");
+        this.timeMiddle = this.timeRotor.getChild("Time_middle");
     }
 
     /**
@@ -68,6 +73,31 @@ public class FirstDoctorConsoleModel extends EntityModel<TardisRenderState> {
 
     public static float rotorPivotY(float bobOffset) {
         return bobOffset;
+    }
+
+    /**
+     * Y-axis spin for {@code Time_middle} in radians. Returns 0 when inactive.
+     *
+     * @param timeTicks age + tickDelta (or any continuous time base)
+     * @param active    whether the TARDIS is traveling
+     */
+    public static float rotorSpinRadians(float timeTicks, boolean active) {
+        return rotorSpinRadians(timeTicks, active, true);
+    }
+
+    /**
+     * Like {@link #rotorSpinRadians(float, boolean)} with optional unstabilised speed boost.
+     * Uses the same {@link #ROTOR_BOB_UNSTABILISED_SPEED_FACTOR} as the bob.
+     */
+    public static float rotorSpinRadians(float timeTicks, boolean active, boolean stabilisersEnabled) {
+        if (!active) {
+            return 0.0f;
+        }
+        float speed = ROTOR_SPIN_SPEED;
+        if (!stabilisersEnabled) {
+            speed *= ROTOR_BOB_UNSTABILISED_SPEED_FACTOR;
+        }
+        return timeTicks * speed;
     }
 
     public static LayerDefinition getTexturedModelData() {
@@ -424,5 +454,7 @@ public class FirstDoctorConsoleModel extends EntityModel<TardisRenderState> {
     public void setupAnim(TardisRenderState state) {
         this.timeRotor.resetPose();
         this.timeRotor.y = rotorPivotY(state.getRotorBobOffset());
+        this.timeMiddle.resetPose();
+        this.timeMiddle.yRot = state.getRotorSpinRadians();
     }
 }

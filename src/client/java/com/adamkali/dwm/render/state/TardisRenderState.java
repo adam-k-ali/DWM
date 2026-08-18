@@ -7,6 +7,8 @@ public class TardisRenderState extends EntityRenderState {
     private float doorSwingProgress;
     /** Vertical time-rotor bob offset in model units (0 when landed). */
     private float rotorBobOffset;
+    /** {@code Time_middle} Y-spin in radians (0 when landed). */
+    private float rotorSpinRadians;
     /** Console stabilisers toggle (default on). Used by {@code StabilisersModel}. */
     private boolean stabilisersEnabled = true;
     /** 0–1 needle pose for the currently submitted reader / refueler. */
@@ -20,6 +22,7 @@ public class TardisRenderState extends EntityRenderState {
     public TardisRenderState() {
         this.doorSwingProgress = 0.0f;
         this.rotorBobOffset = 0.0f;
+        this.rotorSpinRadians = 0.0f;
         this.stabilisersEnabled = true;
     }
 
@@ -37,6 +40,14 @@ public class TardisRenderState extends EntityRenderState {
 
     public float getRotorBobOffset() {
         return this.rotorBobOffset;
+    }
+
+    public void setRotorSpinRadians(float rotorSpinRadians) {
+        this.rotorSpinRadians = rotorSpinRadians;
+    }
+
+    public float getRotorSpinRadians() {
+        return this.rotorSpinRadians;
     }
 
     public void setStabilisersEnabled(boolean stabilisersEnabled) {

@@ -51,7 +51,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Stattenheim remote: sneak-right-click the ground to summon the owner's TARDIS to that cell (precise landing, door facing the player). Parked shells dematerialise then auto-materialise; an in-flight TARDIS materialises at the click. Exterior fade-out/fade-in during demat/mat. Summon slams the doors shut immediately; they stay closed on landing.
 - Panel2 telepathic circuit arms `DestinationMode.TELEPATHIC` onto the using player's bed/respawn, or world spawn if none. Overlay: locked onto your home / world spawn.
 - Panel3 coordinate lock is not a destination mode: X/Y/Z toggles pin those axes to the current exterior after landing resolve + scatter, then re-validate. Invalid pin fails materialise with the existing invalid-landing overlay. HUD: `X axis locked` / `unlocked` (same for Y/Z).
-- First Doctor console time rotor bobbles vertically while the TARDIS is traveling (`DEMATERIALISING` / `IN_FLIGHT` / `MATERIALISING`) and rests when idle.
+- First Doctor console time rotor bobbles vertically while the TARDIS is traveling (`DEMATERIALISING` / `IN_FLIGHT` / `MATERIALISING`) and rests when idle; `Time_middle` spins on Y during those same phases (faster with stabilisers off) and is still when idle.
 - Demat/mat/in-flight play loopable travel SFX (seamless loops) for code-configured phase lengths (`DEMATERIALISING_DURATION_TICKS` / `MATERIALISING_DURATION_TICKS` in `TardisTravelService`); shell vanishes mid-demat at `DEMATERIALISING_SHELL_REMOVE_AT_TICK`; `IN_FLIGHT` uses a higher-pitched demat/mat-derived loop in the interior; materialisation ends with a landing thud. Travel does not auto-close or auto-open doors.
 
 ## How It Works In-Game

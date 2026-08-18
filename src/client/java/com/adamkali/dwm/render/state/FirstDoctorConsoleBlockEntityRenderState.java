@@ -10,6 +10,8 @@ import com.adamkali.dwm.tardis.logic.ConsoleDisplayState;
 public class FirstDoctorConsoleBlockEntityRenderState extends BlockEntityRenderState {
     public Direction facing = Direction.NORTH;
     public float rotorBobOffset;
+    /** {@code Time_middle} Y-spin in radians (0 when landed). */
+    public float rotorSpinRadians;
     /** Synced console instruments (variant, toggles, environment readout). */
     public ConsoleDisplayState display = ConsoleDisplayState.defaults();
     /** Whether the TARDIS is currently traveling (for rotor smoke FX). */
