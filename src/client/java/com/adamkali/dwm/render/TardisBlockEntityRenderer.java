@@ -159,7 +159,7 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
                     RenderTypes.entityCutout(texture),
                     state.lightCoords,
                     OverlayTexture.NO_OVERLAY,
-                    -1,
+                    0,
                     state.breakProgress);
         }
         poseStack.popPose();
