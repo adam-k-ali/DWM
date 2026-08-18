@@ -36,7 +36,7 @@ Give players a Gallifrey-themed terrain and builder kit—stone, woods, and Cita
 4. Place flowers on dirt/grass (including Gallifrey terrain) and stack saccharine cane on dirt or sand for set dressing — or gather them from Gallifrey biomes.
 
 ## Known Constraints
-- Some wood accessory textures (for example signs, boats, or GUI icons) may still be provisional.
+- Some wood accessory textures (for example signs or GUI icons) may still be provisional.
 - Roundels, TARDIS walls, and Chronoplasm remain under the separate Building Content System feature.
 - Krubella and plutarch archive textures are opaque cubes (not plant sprites) and are not registered yet.
 
