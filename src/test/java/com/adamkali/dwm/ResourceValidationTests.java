@@ -307,6 +307,27 @@ public class ResourceValidationTests {
         }
     }
 
+    /**
+     * Globe is a BER EntityModel prop; inventory must use the special renderer, not a
+     * {@code minecraft:model} sprite pointing at the missing block atlas.
+     */
+    @Test
+    public void tardisGlobeItemModelIsSpecialRenderer() throws Exception {
+        Path itemDef = Path.of("src/client/resources/assets/dwm/items/tardis_globe.json");
+        JSONObject def = readJson(itemDef);
+        JSONObject model = def.getJSONObject("model");
+        assertEquals("minecraft:special", model.getString("type"));
+        assertEquals("dwm:item/tardis_globe", model.getString("base"));
+        assertEquals("dwm:tardis_globe", model.getJSONObject("model").getString("type"));
+
+        Path baseModel = Path.of("src/client/resources/assets/dwm/models/item/tardis_globe.json");
+        JSONObject base = readJson(baseModel);
+        assertEquals("minecraft:builtin/entity", base.getString("parent"));
+        assertEquals("side", base.getString("gui_light"));
+        assertEquals("dwm:entity/tardis_globe", base.getJSONObject("textures").getString("particle"));
+        assertFalse(base.getJSONObject("display").has("thirdperson_lefthand"));
+    }
+
     private static JSONObject readJson(Path path) throws Exception {
         return new JSONObject(new JSONTokener(Files.readString(path)));
     }
