@@ -27,7 +27,7 @@
 - Avoid touching large generated/resource surfaces unless the task requires it.
 - When fixing bugs, prefer the smallest change that addresses root cause and add regression coverage.
 - If a requested behavior cannot be fully automated/tested, document the limitation and propose follow-up automation.
-- Local product backlog (gitignored) lives in `tickets/` when present — start from `tickets/BOARD.md`; status is the folder (`open/` / `in-progress/` / `done/`). See `tickets/README.md`.
+- Product backlog lives on GitHub: issues in [adam-k-ali/DWM](https://github.com/adam-k-ali/DWM/issues) and the [DWM project board](https://github.com/users/adam-k-ali/projects/7/views/1). Titles keep stable IDs (`DWM-NNN — …`, `E-NNN — …`). Status is Project Status (`Backlog` / `In progress` / `Done`) plus issue state; priority is the project Priority field (`P0`–`P3`). Epics are parent issues with ticket sub-issues. A local `tickets/` folder may exist as a gitignored archive — do not use it as the live board.
 
 ## Fabric-Specific Development Rules
 - Keep Java 25 compatibility.
