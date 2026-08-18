@@ -34,10 +34,6 @@ public final class WoodFamilyClientDatagen {
                 BlockModelGenerators.PlantType.NOT_TINTED
         );
         generator.family(blocks.planks()).generateFor(family.vanillaModelFamily());
-        // Hanging signs are entity-rendered; blockstates stay particle-only (stripped log texture).
-        generator.createParticleOnlyBlock(blocks.hangingSign(), blocks.strippedLog());
-        generator.createParticleOnlyBlock(blocks.wallHangingSign(), blocks.strippedLog());
-        generator.registerSimpleFlatItemModel(blocks.hangingSign().asItem());
         if (family.has(WoodFamilyFeature.CUSTOM_TRAPDOOR_MODEL) && blocks.trapdoor() != null) {
             Identifier bottomModel = Identifier.fromNamespaceAndPath(
                     DWMReference.MOD_ID,

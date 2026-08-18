@@ -1,5 +1,5 @@
 {
-  "parent": "minecraft:block/template_wall_hanging_sign",
+  "parent": "minecraft:block/template_hanging_sign_rot_2",
   "textures": {
     "all": "dwm:block/dark_ash_hanging_sign",
     "particle": "dwm:block/stripped_dark_ash_log"
