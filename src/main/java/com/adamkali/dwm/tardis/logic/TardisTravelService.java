@@ -40,9 +40,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Demat/mat phase lengths are code constants so loopable travel SFX can match gameplay duration.
  */
 public final class TardisTravelService {
-    /** Demat phase length after the door is closed (ticks). Loop SFX runs for this long. */
+    /** Demat phase length (ticks). Loop SFX runs for this long. */
     public static final int DEMATERIALISING_DURATION_TICKS = 200;
-    /** Elapsed ticks after door-closed before exterior shell is removed. Must be &lt; duration. */
+    /** Elapsed ticks after demat start before exterior shell is removed. Must be &lt; duration. */
     public static final int DEMATERIALISING_SHELL_REMOVE_AT_TICK = 80;
     /** Mat phase length after shell placed (ticks). Loop SFX runs for this long. */
     public static final int MATERIALISING_DURATION_TICKS = 160;
@@ -50,6 +50,7 @@ public final class TardisTravelService {
     private static final Set<UUID> ACTIVE = ConcurrentHashMap.newKeySet();
     private static final ConcurrentHashMap<UUID, ShellSnapshot> FLIGHT_SHELLS = new ConcurrentHashMap<>();
     private static final Set<UUID> SHELL_REMOVED = ConcurrentHashMap.newKeySet();
+    private static final Set<UUID> SUMMON_PENDING = ConcurrentHashMap.newKeySet();
 
     /**
      * Reason code for the most recent {@link #requestMaterialise} failure that left the TARDIS in flight.
@@ -204,12 +205,63 @@ public final class TardisTravelService {
         model.travelTargetPlayerUuid = travelPlayerUuid;
         model.travelPhaseTicks = 0;
         model.setTravelPhase(TardisTravelPhase.DEMATERIALISING);
-        if (model.doorState.isOpen || model.doorState.doorSwing > 0.0f) {
-            model.doorState.isOpen = false;
-            model.setChanged();
-            PortalStreamSyncService.setMetaChanged(tardisId);
-        }
         lastMaterialiseFailureReason = null;
+        ACTIVE.add(tardisId);
+        return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * Begins dematerialisation toward an exact summon landing, then auto-materialises
+     * when the TARDIS reaches {@link TardisTravelPhase#IN_FLIGHT}.
+     */
+    public static InteractionResult startSummonTravel(
+            UUID tardisId,
+            MinecraftServer server,
+            String destinationDimension,
+            BlockPos landing,
+            int facingRotation
+    ) {
+        if (tardisId == null || landing == null) {
+            return InteractionResult.FAIL;
+        }
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            return InteractionResult.FAIL;
+        }
+        if (model.getTravelPhase().isTraveling()) {
+            return InteractionResult.PASS;
+        }
+        if (server == null) {
+            return InteractionResult.FAIL;
+        }
+        if (!model.hasExteriorLocation || model.exteriorDimension == null) {
+            return InteractionResult.FAIL;
+        }
+        if (destinationDimension == null || destinationDimension.isBlank() || level(server, destinationDimension) == null) {
+            return InteractionResult.FAIL;
+        }
+
+        ServerLevel exteriorWorld = getExteriorWorld(server, model);
+        if (exteriorWorld == null) {
+            return InteractionResult.FAIL;
+        }
+        BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
+        if (!(exteriorWorld.getBlockEntity(exteriorPos) instanceof TardisBlockEntity)) {
+            return InteractionResult.FAIL;
+        }
+
+        model.travelDestinationMode = DestinationMode.WAYPOINT;
+        model.travelDestinationDimension = destinationDimension;
+        model.travelDestinationBiome = null;
+        model.travelDestinationX = landing.getX();
+        model.travelDestinationY = landing.getY();
+        model.travelDestinationZ = landing.getZ();
+        model.travelDestinationRotation = facingRotation;
+        model.travelTargetPlayerUuid = null;
+        model.travelPhaseTicks = 0;
+        model.setTravelPhase(TardisTravelPhase.DEMATERIALISING);
+        lastMaterialiseFailureReason = null;
+        SUMMON_PENDING.add(tardisId);
         ACTIVE.add(tardisId);
         return InteractionResult.SUCCESS;
     }
@@ -300,6 +352,57 @@ public final class TardisTravelService {
             return InteractionResult.FAIL;
         }
 
+        return completeMaterialise(tardisId, server, model, snapshot, destinationWorld, landing, facingRotation);
+    }
+
+    /**
+     * Places the in-flight shell at an exact landing (no scatter or coordinate locks).
+     * Used by the Stattenheim remote and by summon auto-materialise.
+     */
+    public static InteractionResult materialiseAt(
+            UUID tardisId,
+            MinecraftServer server,
+            ServerLevel destinationWorld,
+            BlockPos landing,
+            int facingRotation
+    ) {
+        if (tardisId == null || landing == null) {
+            return InteractionResult.FAIL;
+        }
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            return InteractionResult.FAIL;
+        }
+        if (model.getTravelPhase() != TardisTravelPhase.IN_FLIGHT) {
+            return InteractionResult.PASS;
+        }
+        if (server == null || destinationWorld == null) {
+            return InteractionResult.FAIL;
+        }
+
+        lastMaterialiseFailureReason = null;
+        ShellSnapshot snapshot = FLIGHT_SHELLS.get(tardisId);
+        if (snapshot == null) {
+            abortToIdle(server, tardisId, model);
+            return InteractionResult.FAIL;
+        }
+        Direction doorFacing = TardisExteriorFacing.doorDirection(facingRotation);
+        if (!LandingSiteLogic.isValidLanding(destinationWorld, landing, doorFacing)) {
+            lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
+            return InteractionResult.FAIL;
+        }
+        return completeMaterialise(tardisId, server, model, snapshot, destinationWorld, landing, facingRotation);
+    }
+
+    private static InteractionResult completeMaterialise(
+            UUID tardisId,
+            MinecraftServer server,
+            TardisDataModel model,
+            ShellSnapshot snapshot,
+            ServerLevel destinationWorld,
+            BlockPos landing,
+            int facingRotation
+    ) {
         FastReturnLogic.pushDeparted(model);
         placeShell(destinationWorld, landing, snapshot, facingRotation);
         if (destinationWorld.getBlockEntity(landing) instanceof TardisBlockEntity be) {
@@ -316,15 +419,12 @@ public final class TardisTravelService {
         SotoExteriorIndex.register(tardisId, model);
         PortalStreamSyncService.setMetaChanged(tardisId);
 
-        if (!model.doorsLocked) {
-            model.doorState.isOpen = true;
-            model.doorState.doorSwing = 0.0f;
-        }
         model.travelPhaseTicks = MATERIALISING_DURATION_TICKS;
         model.setChanged();
         model.setTravelPhase(TardisTravelPhase.MATERIALISING);
         FLIGHT_SHELLS.remove(tardisId);
         SHELL_REMOVED.remove(tardisId);
+        SUMMON_PENDING.remove(tardisId);
         lastMaterialiseFailureReason = null;
         ACTIVE.add(tardisId);
         TardisTravelAudio.startMat(server, tardisId, destinationWorld, landing);
@@ -427,23 +527,33 @@ public final class TardisTravelService {
             }
             boolean enteredFlight = advanceDematerialisingHold(model);
             if (enteredFlight) {
+                SHELL_REMOVED.remove(tardisId);
+                if (consumeSummonPending(tardisId)) {
+                    ServerLevel destinationWorld = getDestinationWorld(server, model);
+                    BlockPos landing = new BlockPos(
+                            model.travelDestinationX,
+                            model.travelDestinationY,
+                            model.travelDestinationZ
+                    );
+                    InteractionResult summoned = materialiseAt(
+                            tardisId,
+                            server,
+                            destinationWorld,
+                            landing,
+                            model.travelDestinationRotation
+                    );
+                    if (summoned == InteractionResult.SUCCESS) {
+                        return;
+                    }
+                }
                 BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
                 ServerLevel exteriorWorld = getExteriorWorld(server, model);
                 TardisTravelAudio.startFlight(server, tardisId, exteriorWorld, exteriorPos);
-                SHELL_REMOVED.remove(tardisId);
-                // FLIGHT_SHELLS kept for materialise.
             }
             return;
         }
 
-        // Door-close prelude before the configurable demat/vworp window.
         ServerLevel exteriorWorld = getExteriorWorld(server, model);
-        TardisLogic.updateDoorState(tardisId, exteriorWorld);
-        if (model.doorState.doorSwing > 0.0f) {
-            PortalStreamSyncService.setMetaChanged(tardisId);
-            return;
-        }
-
         if (exteriorWorld == null) {
             abortToIdle(server, tardisId, model);
             return;
@@ -643,6 +753,7 @@ public final class TardisTravelService {
         model.travelPhaseTicks = 0;
         model.setTravelPhase(TardisTravelPhase.IDLE);
         lastMaterialiseFailureReason = null;
+        SUMMON_PENDING.remove(tardisId);
         ACTIVE.remove(tardisId);
     }
 
@@ -712,7 +823,22 @@ public final class TardisTravelService {
         ACTIVE.clear();
         FLIGHT_SHELLS.clear();
         SHELL_REMOVED.clear();
+        SUMMON_PENDING.clear();
         lastMaterialiseFailureReason = null;
+    }
+
+    /** Test helper: mark a TARDIS to auto-materialise after demat. */
+    static void markSummonPendingForTests(UUID tardisId) {
+        SUMMON_PENDING.add(tardisId);
+    }
+
+    /** Test helper / summon auto-mat: consume the pending flag. */
+    static boolean consumeSummonPending(UUID tardisId) {
+        return tardisId != null && SUMMON_PENDING.remove(tardisId);
+    }
+
+    static boolean isSummonPending(UUID tardisId) {
+        return tardisId != null && SUMMON_PENDING.contains(tardisId);
     }
 
     /** Test helper: seed a flight shell snapshot without a world. */

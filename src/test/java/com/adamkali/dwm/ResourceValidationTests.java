@@ -186,6 +186,19 @@ public class ResourceValidationTests {
     }
 
     /**
+     * Guards against {@code pruneDatagenItemModels} dropping the Stattenheim remote item def
+     * (allowlist must include {@code stattenheim} substring).
+     */
+    @Test
+    public void generatedStattenheimRemoteItemModelExists() throws Exception {
+        Path item = Path.of("src/main/generated/assets/dwm/items/stattenheim_remote.json");
+        assertTrue(
+                Files.isRegularFile(item) && Files.size(item) > 0,
+                "Missing generated Stattenheim remote item model: " + item
+        );
+    }
+
+    /**
      * Guards against {@code pruneDatagenItemModels} dropping Gallifrey vanilla ore item defs
      * (allowlist must include {@code gallifrey} substring).
      */

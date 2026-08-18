@@ -261,7 +261,8 @@ fabricApi {
 // (roundels, sonic, TARDIS, …) live under src/client/resources. Keep only datagen-owned
 // Gallifrey / wood-family / citadel / orange-sand item models in generated
 // (ash covers dark_ash via substring; orange_sand covers cut_/chiseled_/smooth_orange_sandstone;
-// Gallifrey plant IDs lack a shared "gallifrey" prefix so they are listed explicitly).
+// Gallifrey plant IDs lack a shared "gallifrey" prefix so they are listed explicitly;
+// azbantium / stattenheim cover those standalone items).
 tasks.register("pruneDatagenItemModels") {
     group = "fabric"
     description = "Remove generated item models that duplicate hand-maintained client assets"
@@ -279,7 +280,8 @@ tasks.register("pruneDatagenItemModels") {
                     || f.name.contains("flower_of_remembrance")
                     || f.name.contains("moonlight_bloom")
                     || f.name.contains("saccharine_cane")
-                    || f.name.contains("azbantium")) {
+                    || f.name.contains("azbantium")
+                    || f.name.contains("stattenheim")) {
                 return
             }
             f.delete()

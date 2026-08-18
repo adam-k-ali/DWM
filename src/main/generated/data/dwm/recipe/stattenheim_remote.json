@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "E": "minecraft:ender_pearl",
+    "G": "minecraft:gold_ingot",
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    " G ",
+    "IRI",
+    " E "
+  ],
+  "result": {
+    "id": "dwm:stattenheim_remote"
+  }
+}

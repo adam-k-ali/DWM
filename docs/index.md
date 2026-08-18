@@ -7,6 +7,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 ### Stable Features
 - [Sonic Screwdrivers](./feature-sonic-screwdrivers.md)
 - [TARDIS Exterior Block](./feature-tardis-block.md)
+- [Stattenheim Remote](./feature-stattenheim-remote.md)
 - [TARDIS Door Button](./feature-tardis-door-button.md)
 - [Building Content System](./feature-building-content.md)
 - [Gallifrey Building](./feature-gallifrey-building.md)
