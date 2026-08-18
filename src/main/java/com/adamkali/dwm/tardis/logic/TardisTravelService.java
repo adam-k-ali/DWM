@@ -302,6 +302,9 @@ public final class TardisTravelService {
 
         FastReturnLogic.pushDeparted(model);
         placeShell(destinationWorld, landing, snapshot, facingRotation);
+        if (destinationWorld.getBlockEntity(landing) instanceof TardisBlockEntity be) {
+            be.setSyncedTravelPhase(TardisTravelPhase.MATERIALISING, destinationWorld.getGameTime());
+        }
         model.setExteriorLocation(
                 destinationWorld.dimension().identifier().toString(),
                 landing.getX(),
@@ -457,6 +460,7 @@ public final class TardisTravelService {
         SHELL_REMOVED.remove(tardisId);
         model.travelPhaseTicks = DEMATERIALISING_DURATION_TICKS;
         model.setChanged();
+        be.setSyncedTravelPhase(TardisTravelPhase.DEMATERIALISING, exteriorWorld.getGameTime());
         TardisTravelAudio.startDemat(server, tardisId, exteriorWorld, exteriorPos);
     }
 
@@ -485,6 +489,9 @@ public final class TardisTravelService {
         ACTIVE.remove(tardisId);
         ServerLevel exteriorWorld = getExteriorWorld(server, model);
         BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
+        if (exteriorWorld != null && exteriorWorld.getBlockEntity(exteriorPos) instanceof TardisBlockEntity be) {
+            be.setSyncedTravelPhase(TardisTravelPhase.IDLE, exteriorWorld.getGameTime());
+        }
         TardisTravelAudio.stop(server, tardisId, exteriorWorld, exteriorPos);
         playMaterialiseThud(server, tardisId, exteriorWorld, exteriorPos);
     }
