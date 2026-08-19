@@ -2,6 +2,7 @@ package com.adamkali.dwm.render.portal;
 
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
+import com.mojang.blaze3d.platform.BlendFactor;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -61,8 +62,12 @@ class PortalDoorRendererTest {
     }
 
     @Test
-    void portalComposite_doesNotBlend() {
-        assertFalse(PortalDoorRenderer.portalCompositeRenderType().hasBlending());
+    void portalComposite_usesOverwriteBlendForLatePass() {
+        var type = PortalDoorRenderer.portalCompositeRenderType();
+        assertTrue(type.hasBlending(), "blending flag routes submitCustomGeometry after the shell");
+        var blend = type.pipeline().getColorTargetState().blendFunction().orElseThrow();
+        assertEquals(BlendFactor.ONE, blend.color().sourceFactor());
+        assertEquals(BlendFactor.ZERO, blend.color().destFactor());
     }
 
     @Test
