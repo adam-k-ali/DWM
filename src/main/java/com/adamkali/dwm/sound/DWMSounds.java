@@ -15,6 +15,10 @@ public class DWMSounds {
     public static final SoundEvent TARDIS_MATERIALISE_LOOP = register("tardis_materialise_loop");
     public static final SoundEvent TARDIS_FLIGHT_LOOP = register("tardis_flight_loop");
     public static final SoundEvent TARDIS_MATERIALISE_THUD = register("tardis_materialise_thud");
+    public static final SoundEvent BROAKIR_AMBIENT = register("entity.broakir.ambient");
+    public static final SoundEvent BROAKIR_HURT = register("entity.broakir.hurt");
+    public static final SoundEvent BROAKIR_DEATH = register("entity.broakir.death");
+    public static final SoundEvent BROAKIR_STEP = register("entity.broakir.step");
 
     public static void initialize() {
     }

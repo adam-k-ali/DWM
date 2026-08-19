@@ -49,5 +49,40 @@
     "sounds": [
       "dwm:tardis_materialise_thud"
     ]
+  },
+  "entity.broakir.ambient": {
+    "subtitle": "dwm.entity.broakir.ambient.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:entity.baby_pig.ambient",
+        "type": "event"
+      }
+    ]
+  },
+  "entity.broakir.hurt": {
+    "subtitle": "dwm.entity.broakir.hurt.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:entity.baby_pig.hurt",
+        "type": "event"
+      }
+    ]
+  },
+  "entity.broakir.death": {
+    "subtitle": "dwm.entity.broakir.death.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:entity.baby_pig.death",
+        "type": "event"
+      }
+    ]
+  },
+  "entity.broakir.step": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.pig.step",
+        "type": "event"
+      }
+    ]
   }
 }

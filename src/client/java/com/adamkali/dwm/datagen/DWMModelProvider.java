@@ -77,6 +77,7 @@ public class DWMModelProvider extends FabricModelProvider {
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_LEGGINGS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_BOOTS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.STATTENHEIM_REMOTE, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.BROAKIR_SPAWN_EGG, ModelTemplates.FLAT_ITEM);
     }
 
     private static void registerGallifreyPlants(BlockModelGenerators generator) {

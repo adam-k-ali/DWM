@@ -5,6 +5,7 @@ import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.block.wood.WoodFamilyRegistrar;
+import com.adamkali.dwm.entity.DWMEntityTypes;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -15,6 +16,7 @@ import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ShovelItem;
+import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.equipment.ArmorType;
 import java.util.function.Function;
 
@@ -98,6 +100,7 @@ public class DWMItems {
     public static Item CARDINAL_SIGN;
     public static Item CARDINAL_HANGING_SIGN;
     public static Item CARDINAL_BOAT;
+    public static Item BROAKIR_SPAWN_EGG;
 
     public static void initialize() {
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
@@ -113,6 +116,12 @@ public class DWMItems {
         CARDINAL_SIGN = DWMBlocks.CARDINAL.signItem();
         CARDINAL_HANGING_SIGN = DWMBlocks.CARDINAL.hangingSignItem();
         CARDINAL_BOAT = DWMBlocks.CARDINAL.boatItem();
+
+        BROAKIR_SPAWN_EGG = register(
+                SpawnEggItem::new,
+                new Item.Properties().spawnEgg(DWMEntityTypes.BROAKIR),
+                "broakir_spawn_egg"
+        );
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.INGREDIENTS).register(content -> {
             content.accept(AZBANTIUM);
@@ -147,6 +156,10 @@ public class DWMItems {
                 content.accept(family.signItem());
                 content.accept(family.hangingSignItem());
             }
+        });
+
+        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.SPAWN_EGGS).register(content -> {
+            content.accept(BROAKIR_SPAWN_EGG);
         });
     }
 

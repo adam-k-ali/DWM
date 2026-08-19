@@ -107,7 +107,14 @@
       }
     ],
     "axolotls": [],
-    "creature": [],
+    "creature": [
+      {
+        "type": "dwm:broakir",
+        "maxCount": 4,
+        "minCount": 2,
+        "weight": 10
+      }
+    ],
     "misc": [],
     "monster": [
       {

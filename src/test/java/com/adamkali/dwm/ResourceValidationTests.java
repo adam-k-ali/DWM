@@ -450,4 +450,56 @@ public class ResourceValidationTests {
             );
         }
     }
+
+    @Test
+    public void broakirEntityTextureExists() throws Exception {
+        Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/broakir.png");
+        assertTrue(
+                Files.isRegularFile(texture) && Files.size(texture) > 0,
+                "BroakirRenderer expects assets/dwm/textures/entity/broakir.png"
+        );
+    }
+
+    @Test
+    public void broakirSpawnEggTextureExists() throws Exception {
+        Path texture = Path.of("src/client/resources/assets/dwm/textures/item/broakir_spawn_egg.png");
+        assertTrue(
+                Files.isRegularFile(texture) && Files.size(texture) > 0,
+                "Spawn egg item model expects assets/dwm/textures/item/broakir_spawn_egg.png"
+        );
+    }
+
+    /**
+     * Guards against {@code pruneDatagenItemModels} dropping the Broakir spawn egg item def
+     * (allowlist must include {@code broakir} substring).
+     */
+    @Test
+    public void generatedBroakirSpawnEggItemModelExists() throws Exception {
+        Path item = Path.of("src/main/generated/assets/dwm/items/broakir_spawn_egg.json");
+        assertTrue(
+                Files.isRegularFile(item) && Files.size(item) > 0,
+                "Missing generated Broakir spawn egg item model: " + item
+        );
+    }
+
+    @Test
+    public void gallifreyForestAndPlainsSpawnBroakir() throws Exception {
+        assertTrue(biomeHasCreatureSpawn("gallifrey_forest.json", "dwm:broakir"));
+        assertTrue(biomeHasCreatureSpawn("gallifrey_plains.json", "dwm:broakir"));
+        assertFalse(biomeHasCreatureSpawn("gallifrey_wastes.json", "dwm:broakir"));
+        assertFalse(biomeHasCreatureSpawn("gallifrey_badlands.json", "dwm:broakir"));
+    }
+
+    private static boolean biomeHasCreatureSpawn(String biomeFile, String entityId) throws Exception {
+        Path path = Path.of("src/main/generated/data/dwm/worldgen/biome").resolve(biomeFile);
+        assertTrue(Files.isRegularFile(path), "Missing generated biome: " + path);
+        JSONObject biome = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
+        var creatures = biome.getJSONObject("spawners").getJSONArray("creature");
+        for (int i = 0; i < creatures.length(); i++) {
+            if (entityId.equals(creatures.getJSONObject(i).getString("type"))) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
