@@ -265,6 +265,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
     private static void addMisc(TranslationBuilder t) {
         t.add(DWMEntityTypes.TARDIS_SEAT, "TARDIS Seat");
         t.add(DWMEntityTypes.CONSOLE_CONTROL, "Console Control");
+        t.add(DWMEntityTypes.BROAKIR, "Broakir");
+        addItem(t, DWMItems.BROAKIR_SPAWN_EGG, "Broakir Spawn Egg");
         t.add("dimension.dwm.gallifrey", "Gallifrey");
         t.add("biome.dwm.gallifrey_plains", "Gallifrey Plains");
         t.add("biome.dwm.gallifrey_forest", "Gallifrey Forest");
@@ -394,6 +396,9 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.tardis_materialise_loop.subtitle", "TARDIS materialising");
         t.add("dwm.tardis_flight_loop.subtitle", "TARDIS in flight");
         t.add("dwm.tardis_materialise_thud.subtitle", "TARDIS landing");
+        t.add("dwm.entity.broakir.ambient.subtitle", "Broakir squeals");
+        t.add("dwm.entity.broakir.hurt.subtitle", "Broakir hurts");
+        t.add("dwm.entity.broakir.death.subtitle", "Broakir dies");
         t.add("config.dwm.title", "Doctor Who Mod");
         t.add("stat.dwm.sonic_screwdriver_use", "Uses of Sonic Screwdriver");
         t.add("advancements.dwm.sonic_screwdriver", "Sonic Screwdriver");

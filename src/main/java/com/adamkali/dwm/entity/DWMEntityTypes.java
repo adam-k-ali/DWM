@@ -4,6 +4,7 @@ import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.block.wood.WoodFamilyRegistrar;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityType;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -11,7 +12,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.SpawnPlacementTypes;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.level.levelgen.Heightmap;
 
 public final class DWMEntityTypes {
     public static EntityType<Boat> ASH_BOAT;
@@ -19,6 +23,7 @@ public final class DWMEntityTypes {
     public static EntityType<Boat> CARDINAL_BOAT;
     public static EntityType<TardisSeatEntity> TARDIS_SEAT;
     public static EntityType<ConsoleControlInteractionEntity> CONSOLE_CONTROL;
+    public static EntityType<BroakirEntity> BROAKIR;
 
     private DWMEntityTypes() {
     }
@@ -32,6 +37,7 @@ public final class DWMEntityTypes {
         CARDINAL_BOAT = DWMBlocks.CARDINAL.boatEntity();
         TARDIS_SEAT = registerSeat();
         CONSOLE_CONTROL = registerConsoleControl();
+        BROAKIR = registerBroakir();
     }
 
     private static EntityType<TardisSeatEntity> registerSeat() {
@@ -66,6 +72,31 @@ public final class DWMEntityTypes {
                         .noLootTable()
                         .clientTrackingRange(10)
                         .updateInterval(Integer.MAX_VALUE)
+                        .build(key)
+        );
+    }
+
+    private static EntityType<BroakirEntity> registerBroakir() {
+        Identifier id = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "broakir");
+        ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, id);
+        return Registry.register(
+                BuiltInRegistries.ENTITY_TYPE,
+                key,
+                FabricEntityType.Builder.createMob(
+                                BroakirEntity::new,
+                                MobCategory.CREATURE,
+                                mob -> mob
+                                        .spawnPlacement(
+                                                SpawnPlacementTypes.ON_GROUND,
+                                                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                                                (type, level, reason, pos, random) ->
+                                                        Animal.checkAnimalSpawnRules(type, level, reason, pos, random)
+                                        )
+                                        .defaultAttributes(BroakirEntity::createAttributes)
+                        )
+                        .sized(1.4F, 2.3F)
+                        .eyeHeight(2.0F)
+                        .clientTrackingRange(10)
                         .build(key)
         );
     }
