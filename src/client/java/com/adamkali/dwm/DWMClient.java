@@ -7,6 +7,7 @@ import com.adamkali.dwm.render.ConsoleHitboxDebugRenderer;
 import com.adamkali.dwm.render.TardisCompactScannerSpecialRenderer;
 import com.adamkali.dwm.render.TardisFullScannerSpecialRenderer;
 import com.adamkali.dwm.render.TardisGlobeSpecialRenderer;
+import com.adamkali.dwm.render.portal.PortalDoorRenderer;
 import com.adamkali.dwm.render.portal.PortalPerfDebugHud;
 import com.adamkali.dwm.render.portal.PortalPerfDebugLog;
 import com.adamkali.dwm.render.portal.PortalSupport;
@@ -39,6 +40,9 @@ public class DWMClient implements ClientModInitializer {
         ConsoleHitboxDebugRenderer.initialize();
         PortalPerfDebugHud.initialize();
         PortalPerfDebugLog.resetForSession();
+        // ShaderManager compiles RenderPipelines.getStaticPipelines() during the first
+        // resource reload, which is after client init. Register before that snapshot.
+        PortalDoorRenderer.ensurePipelineRegistered();
         PortalSupport.initialize();
         ClientTickEvents.END_CLIENT_TICK.register(client -> PortalSceneStore.clientTick());
     }

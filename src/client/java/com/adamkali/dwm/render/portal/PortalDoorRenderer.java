@@ -5,8 +5,11 @@ import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.tardis.data.model.PortalAperture;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
 import com.adamkali.dwm.tardis.interior.TardisPortalGate;
+import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.BlendFactor;
 import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.vertex.PoseStack;
 
@@ -31,13 +34,21 @@ public final class PortalDoorRenderer {
     public static final int DOOR_OVERLAY_ORDER = 1;
 
     /**
-     * Opaque entity-cutout clone with {@code writeDepth=false}. Covers world color in the
-     * doorway (no translucent blend) so strafing cannot parallax terrain through the
-     * preview, while inward-swinging leaves can still pass the leftover depth.
+     * Opaque overwrite ({@code src=ONE, dst=ZERO}). {@link RenderType#hasBlending()} must be
+     * true so {@code submitCustomGeometry} routes to {@code translucentCustomGeometry}
+     * (after the shell's solid pass). The blend itself replaces dest, so world color
+     * cannot show through while strafing.
+     */
+    static final BlendFunction PORTAL_COMPOSITE_BLEND = new BlendFunction(BlendFactor.ONE, BlendFactor.ZERO);
+
+    /**
+     * Entity-cutout clone with {@code writeDepth=false} and opaque overwrite blend.
+     * Flushes after the shell (blending flag) without mixing world color, and does not
+     * depth-reject inward-swinging leaves.
      * <p>
      * Uses vanilla {@code core/entity} shaders from {@link RenderPipelines#ENTITY_SNIPPET}.
      * Must be {@link RenderPipelines#register}ed before {@link RenderPipelines#getStaticPipelines()}
-     * compiles GPU programs — see client mixin.
+     * compiles GPU programs — see client mixin and {@link com.adamkali.dwm.DWMClient}.
      */
     public static final RenderPipeline PORTAL_COMPOSITE_PIPELINE = RenderPipelines.register(
             RenderPipeline.builder(RenderPipelines.ENTITY_SNIPPET)
@@ -46,6 +57,7 @@ public final class PortalDoorRenderer {
                     .withShaderDefine("PER_FACE_LIGHTING")
                     .withBindGroupLayout(BindGroupLayouts.SAMPLER1)
                     .withCull(false)
+                    .withColorTargetState(new ColorTargetState(PORTAL_COMPOSITE_BLEND))
                     .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
                     .build()
     );
@@ -93,8 +105,8 @@ public final class PortalDoorRenderer {
     }
 
     /**
-     * Opaque doorway stamp: no blend (covers world), {@code writeDepth=false} so
-     * inward-swinging leaves are not depth-rejected by the aperture quad.
+     * Opaque doorway stamp: overwrite blend (late pass, covers world), {@code writeDepth=false}
+     * so inward-swinging leaves are not depth-rejected by the aperture quad.
      */
     public static RenderType portalCompositeRenderType() {
         return PORTAL_COMPOSITE.apply(PortalSamplingTexture.ID);
