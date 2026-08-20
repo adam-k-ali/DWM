@@ -189,6 +189,108 @@ class ScenarioCompilerTest {
     }
 
     @Test
+    void compilesCaptureScreenshotAsANoArgPrimitive(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - launchGame
+                  - captureScreenshot
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(2, plan.steps().size());
+        assertEquals("captureScreenshot", plan.steps().get(1).name());
+        assertTrue(plan.steps().get(1).arguments().isEmpty());
+    }
+
+    @Test
+    void compilesCaptureScreenshotWithName(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - captureScreenshot:
+                      name: after-world-tab
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(1, plan.steps().size());
+        assertEquals("captureScreenshot", plan.steps().get(0).name());
+        assertEquals("after-world-tab.png", plan.steps().get(0).arguments().get("name"));
+    }
+
+    @Test
+    void rejectsCaptureScreenshotUnknownFields(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - captureScreenshot:
+                      type: button
+                      name: Singleplayer
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("captureScreenshot does not accept 'type'"));
+    }
+
+    @Test
+    void rejectsCaptureScreenshotBlankName(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - captureScreenshot:
+                      name: "  "
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("captureScreenshot requires a non-empty string 'name'"));
+    }
+
+    @Test
+    void rejectsCaptureScreenshotPathName(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - captureScreenshot:
+                      name: ../escape.png
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("without path separators"));
+    }
+
+    @Test
     void rejectsUnsupportedElementTypes(@TempDir Path root) throws Exception {
         write(root.resolve("test.yaml"), """
                 ---

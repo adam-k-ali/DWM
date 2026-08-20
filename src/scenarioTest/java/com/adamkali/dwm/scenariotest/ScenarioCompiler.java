@@ -11,7 +11,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class ScenarioCompiler {
-    private static final Set<String> PRIMITIVES = Set.of("launchGame", "assertVisible", "click", "debugScreen");
+    private static final Set<String> PRIMITIVES = Set.of(
+            "launchGame", "assertVisible", "click", "debugScreen", "captureScreenshot"
+    );
     private static final Pattern TEMPLATE = Pattern.compile("\\{\\{\\s*([A-Za-z][A-Za-z0-9_]*)\\s*}}");
 
     private final ScenarioCatalog catalog;
@@ -97,6 +99,10 @@ public final class ScenarioCompiler {
             }
             return;
         }
+        if ("captureScreenshot".equals(name)) {
+            validateCaptureScreenshot(arguments, source);
+            return;
+        }
 
         for (String key : arguments.keySet()) {
             if (!Set.of("type", "name").contains(key)) {
@@ -108,6 +114,26 @@ public final class ScenarioCompiler {
         if (!Set.of("button", "cycle", "tab").contains(arguments.get("type"))) {
             throw new ScenarioException(source + ": unsupported element type '" + arguments.get("type")
                     + "'; supported types: [button, cycle, tab]");
+        }
+    }
+
+    private static void validateCaptureScreenshot(Map<String, Object> arguments, String source) {
+        if (arguments.isEmpty()) {
+            return;
+        }
+        for (String key : arguments.keySet()) {
+            if (!"name".equals(key)) {
+                throw new ScenarioException(source + ": captureScreenshot does not accept '" + key + "'");
+            }
+        }
+        Object value = arguments.get("name");
+        if (!(value instanceof String string) || string.isBlank()) {
+            throw new ScenarioException(source + ": captureScreenshot requires a non-empty string 'name'");
+        }
+        try {
+            arguments.put("name", ScreenshotCapture.normalizeFileName(string));
+        } catch (ScenarioException exception) {
+            throw new ScenarioException(source + ": " + exception.getMessage());
         }
     }
 

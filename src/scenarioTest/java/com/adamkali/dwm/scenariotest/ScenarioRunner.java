@@ -18,6 +18,7 @@ final class ScenarioRunner {
     private final ScenarioReportWriter reportWriter;
     private final Duration stepTimeout;
     private final WidgetFinder widgetFinder = new WidgetFinder();
+    private final ScreenshotCapture screenshotCapture;
     private final Logger logger;
     private final List<ScenarioReportWriter.StepResult> results = new ArrayList<>();
 
@@ -36,6 +37,7 @@ final class ScenarioRunner {
         this.reportWriter = reportWriter;
         this.stepTimeout = stepTimeout;
         this.logger = logger;
+        this.screenshotCapture = new ScreenshotCapture(logger);
     }
 
     void tick(Minecraft client) {
@@ -92,6 +94,7 @@ final class ScenarioRunner {
                 logger.info("{}", widgetFinder.describeVisibleWidgets(screen));
                 yield true;
             }
+            case "captureScreenshot" -> screenshotCapture.tick(client, (String) step.arguments().get("name"));
             default -> throw new ScenarioException("Unsupported primitive step '" + step.name() + "'");
         };
     }

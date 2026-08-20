@@ -26,6 +26,7 @@ Results are written to:
 
 - `build/scenario-test/report.xml` — JUnit XML
 - `build/scenario-test/diagnostics.txt` — current screen and visible widgets
+- `build/scenario-test/run/screenshots/` — PNGs from `captureScreenshot`
 
 The Gradle process exits non-zero when loading, validation, or execution fails.
 
@@ -63,6 +64,16 @@ The MVP primitives are:
 - `debugScreen` — immediately logs the current screen class and every visible
   widget (type, name, active, bounds). It takes no arguments and always
   succeeds on the tick it runs.
+- `captureScreenshot` — captures the current framebuffer (world and GUI) to
+  `build/scenario-test/run/screenshots/`. With no arguments it uses a vanilla
+  timestamped filename. An optional `name` sets the PNG stem. The step waits
+  until the file has been written before succeeding.
+
+```yaml
+- captureScreenshot
+- captureScreenshot:
+    name: after-world-tab
+```
 
 Selectors require an exact rendered `name` and one of these types:
 
