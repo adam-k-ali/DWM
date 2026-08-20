@@ -1,0 +1,16 @@
+---
+name: Assert and Click
+type: command
+---
+parameters:
+  - name: type
+    type: string
+  - name: name
+    type: string
+steps:
+  - assertVisible:
+    - type: "{{ type }}"
+      name: "{{ name }}"
+  - click:
+    - type: "{{ type }}"
+      name: "{{ name }}"

@@ -29,6 +29,10 @@ repositories {
     }
 }
 
+sourceSets {
+    scenarioTest
+}
+
 loom {
     splitEnvironmentSourceSets()
 
@@ -38,6 +42,9 @@ loom {
         "dwm" {
             sourceSet sourceSets.main
             sourceSet sourceSets.client
+        }
+        "dwm-scenario-test" {
+            sourceSet sourceSets.scenarioTest
         }
     }
 
@@ -49,7 +56,46 @@ loom {
             vmArg "-Dfabric-api.gametest.report-file=${layout.buildDirectory.get()}/gametest/report.xml"
             runDir "build/gametest"
         }
+        scenarioTest {
+            client()
+            name "Scenario Test"
+            source = sourceSets.scenarioTest
+            property "dwm.scenario", providers.gradleProperty("scenario").orElse("createWorld").get()
+            property "dwm.scenario.step-timeout-seconds",
+                    providers.gradleProperty("scenarioTimeout").orElse("30").get()
+            property "dwm.scenario.report-file",
+                    layout.buildDirectory.file("scenario-test/report.xml").get().asFile.absolutePath
+            runDir "build/scenario-test/run"
+        }
     }
+}
+
+sourceSets.scenarioTest {
+    compileClasspath += sourceSets.main.output
+    compileClasspath += sourceSets.client.output
+    compileClasspath += sourceSets.client.compileClasspath
+    runtimeClasspath += sourceSets.main.output
+    runtimeClasspath += sourceSets.client.output
+    runtimeClasspath += sourceSets.client.runtimeClasspath
+}
+
+tasks.register("prepareScenarioTestRun") {
+    def optionsFile = layout.buildDirectory.file("scenario-test/run/options.txt")
+    outputs.file(optionsFile)
+    outputs.upToDateWhen { false }
+    doLast {
+        delete(layout.buildDirectory.dir("scenario-test/run/saves"))
+        optionsFile.get().asFile.parentFile.mkdirs()
+        optionsFile.get().asFile.text = """\
+lang:en_us
+skipMultiplayerWarning:true
+onboardAccessibility:false
+"""
+    }
+}
+
+tasks.named("runScenarioTest").configure {
+    dependsOn("prepareScenarioTestRun")
 }
 
 dependencies {
@@ -63,6 +109,9 @@ dependencies {
     testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
     // 5.18+ bundles Byte Buddy with Java 25 classfile support (mockStatic / inline mocks)
     testImplementation "org.mockito:mockito-core:5.20.0"
+    testImplementation sourceSets.scenarioTest.output
+    testImplementation "org.yaml:snakeyaml:2.6"
+    scenarioTestImplementation "org.yaml:snakeyaml:2.6"
 
     implementation "org.json:json:20240303"
     implementation "com.github.erosb:everit-json-schema:1.14.4"

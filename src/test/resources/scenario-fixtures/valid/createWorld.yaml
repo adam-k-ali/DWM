@@ -1,0 +1,9 @@
+---
+name: Fixture Test
+type: test
+---
+steps:
+  - launchGame
+  - assertAndClick:
+    - type: button
+      name: "Singleplayer"
