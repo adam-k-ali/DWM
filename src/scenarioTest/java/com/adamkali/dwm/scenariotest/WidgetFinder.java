@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-final class WidgetFinder {
-    Optional<AbstractWidget> find(Screen screen, Map<String, Object> selector) {
+public final class WidgetFinder {
+    public Optional<AbstractWidget> find(Screen screen, Map<String, Object> selector) {
         if (screen == null) {
             return Optional.empty();
         }
@@ -28,7 +28,7 @@ final class WidgetFinder {
                 .findFirst();
     }
 
-    List<String> visibleWidgets(Screen screen) {
+    public List<String> visibleWidgets(Screen screen) {
         if (screen == null) {
             return List.of();
         }
@@ -38,7 +38,7 @@ final class WidgetFinder {
                 .toList();
     }
 
-    String describeVisibleWidgets(Screen screen) {
+    public String describeVisibleWidgets(Screen screen) {
         StringBuilder dump = new StringBuilder();
         dump.append("debugScreen: ")
                 .append(screen == null ? "<none>" : screen.getClass().getName())

@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 
-final class ScreenshotCapture {
+public final class ScreenshotCapture {
     private static final int NO_DOWNSCALE = 1;
 
     private final Logger logger;
@@ -20,7 +20,7 @@ final class ScreenshotCapture {
         this.logger = logger;
     }
 
-    static String normalizeFileName(String name) {
+    public static String normalizeFileName(String name) {
         if (name == null || name.isBlank()) {
             throw new ScenarioException("captureScreenshot name must be a non-empty string");
         }
@@ -36,7 +36,7 @@ final class ScreenshotCapture {
         return trimmed + ".png";
     }
 
-    boolean tick(Minecraft client, String filename) {
+    public boolean tick(Minecraft client, String filename) {
         Object current = inFlight.get();
         if (current == null) {
             inFlight.set(Pending.INSTANCE);

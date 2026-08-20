@@ -1,23 +1,17 @@
 package com.adamkali.dwm.scenariotest;
 
+import com.adamkali.dwm.scenariotest.primitive.ScenarioPrimitive;
+import com.adamkali.dwm.scenariotest.primitive.ScenarioPrimitiveContext;
+import com.adamkali.dwm.scenariotest.primitive.ScenarioPrimitives;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.TitleScreen;
-import net.minecraft.client.input.CharacterEvent;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.input.MouseButtonInfo;
 import org.slf4j.Logger;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 final class ScenarioRunner {
-    private static final Duration VANILLA_SERVER_TIMEOUT_FLOOR = Duration.ofSeconds(120);
-
     private final ScenarioPlan plan;
     private final ScenarioReportWriter reportWriter;
     private final Duration stepTimeout;
@@ -92,67 +86,17 @@ final class ScenarioRunner {
     }
 
     private boolean execute(ScenarioPlan.Step step, Minecraft client) {
-        Screen screen = client.gui.screen();
-        return switch (step.name()) {
-            case "launchGame" -> screen instanceof TitleScreen;
-            case "assertVisible" -> widgetFinder.find(screen, step.arguments()).isPresent();
-            case "click" -> click(screen, step);
-            case "debugScreen" -> {
-                logger.info("{}", widgetFinder.describeVisibleWidgets(screen));
-                yield true;
-            }
-            case "captureScreenshot" -> screenshotCapture.tick(client, (String) step.arguments().get("name"));
-            case "startVanillaServer" -> vanillaServer.tick(VanillaServerProcess.parsePort(step.arguments().get("port")));
-            case "keyboardInput" -> keyboardInput(screen, step);
-            default -> throw new ScenarioException("Unsupported primitive step '" + step.name() + "'");
-        };
-    }
-
-    private boolean click(Screen screen, ScenarioPlan.Step step) {
-        Optional<AbstractWidget> widget = widgetFinder.find(screen, step.arguments());
-        if (widget.isEmpty() || !widget.get().active) {
-            return false;
+        ScenarioPrimitive primitive = ScenarioPrimitives.find(step.name());
+        if (primitive == null) {
+            throw new ScenarioException("Unsupported primitive step '" + step.name() + "'");
         }
-        AbstractWidget target = widget.get();
-        logger.info("Activating {} on {} (visible widgets: {})",
-                target.getClass().getName(),
-                screen == null ? "<none>" : screen.getClass().getName(),
-                widgetFinder.visibleWidgets(screen));
-        MouseButtonEvent event = new MouseButtonEvent(
-                target.getX() + target.getWidth() / 2.0,
-                target.getY() + target.getHeight() / 2.0,
-                new MouseButtonInfo(0, 0)
-        );
-        return screen.mouseClicked(event, false);
-    }
-
-    private boolean keyboardInput(Screen screen, ScenarioPlan.Step step) {
-        if (screen == null || !(screen.getFocused() instanceof EditBox editBox) || !editBox.canConsumeInput()) {
-            return false;
-        }
-        String text = (String) step.arguments().get("text");
-        logger.info("Typing {} characters into {} on {}",
-                text.length(),
-                editBox.getClass().getName(),
-                screen.getClass().getName());
-        for (int index = 0; index < text.length(); ) {
-            int codepoint = text.codePointAt(index);
-            if (!screen.charTyped(new CharacterEvent(codepoint))) {
-                throw new ScenarioException("keyboardInput rejected codepoint at index " + index
-                        + " in \"" + text + "\" from " + step.source());
-            }
-            index += Character.charCount(codepoint);
-        }
-        return true;
+        return primitive.execute(new ScenarioPrimitiveContext(
+                client, step, widgetFinder, screenshotCapture, vanillaServer, logger));
     }
 
     private Duration timeoutFor(ScenarioPlan.Step step) {
-        if (!"startVanillaServer".equals(step.name())) {
-            return stepTimeout;
-        }
-        return stepTimeout.compareTo(VANILLA_SERVER_TIMEOUT_FLOOR) >= 0
-                ? stepTimeout
-                : VANILLA_SERVER_TIMEOUT_FLOOR;
+        ScenarioPrimitive primitive = ScenarioPrimitives.find(step.name());
+        return primitive == null ? stepTimeout : primitive.timeout(stepTimeout);
     }
 
     private void finish(Minecraft client, RuntimeException failure) {

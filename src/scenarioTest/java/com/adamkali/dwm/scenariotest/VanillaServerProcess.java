@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-final class VanillaServerProcess {
+public final class VanillaServerProcess {
     static final int DEFAULT_PORT = 25565;
     static final String DIR_PROPERTY = "dwm.scenario.vanilla-server-dir";
     static final String JAR_PATH_FILE = "server-jar.path";
@@ -40,7 +40,7 @@ final class VanillaServerProcess {
         this.logger = logger;
     }
 
-    static int parsePort(Object value) {
+    public static int parsePort(Object value) {
         if (value == null) {
             return DEFAULT_PORT;
         }
@@ -91,7 +91,7 @@ final class VanillaServerProcess {
         return "eula=true\n";
     }
 
-    boolean tick(int port) {
+    public boolean tick(int port) {
         synchronized (lock) {
             if (completed) {
                 throw new ScenarioException("startVanillaServer can only run once per scenario");

@@ -1,5 +1,8 @@
 package com.adamkali.dwm.scenariotest;
 
+import com.adamkali.dwm.scenariotest.primitive.ScenarioPrimitive;
+import com.adamkali.dwm.scenariotest.primitive.ScenarioPrimitives;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -11,11 +14,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class ScenarioCompiler {
-    private static final Set<String> PRIMITIVES = Set.of(
-            "launchGame", "assertVisible", "click", "debugScreen", "captureScreenshot",
-            "startVanillaServer", "keyboardInput"
-    );
-    private static final Set<String> SELECTOR_TYPES = Set.of("button", "cycle", "tab", "editbox");
     private static final Pattern TEMPLATE = Pattern.compile("\\{\\{\\s*([A-Za-z][A-Za-z0-9_]*)\\s*}}");
 
     private final ScenarioCatalog catalog;
@@ -40,9 +38,12 @@ public final class ScenarioCompiler {
     ) {
         for (ScenarioDocument.Invocation invocation : invocations) {
             Map<String, Object> arguments = substituteMap(invocation.arguments(), bindings, source);
-            if (PRIMITIVES.contains(invocation.name())) {
-                validatePrimitive(invocation.name(), arguments, source);
-                output.add(new ScenarioPlan.Step(invocation.name(), arguments, source));
+            ScenarioPrimitive primitive = ScenarioPrimitives.find(invocation.name());
+            if (primitive != null) {
+                output.add(new ScenarioPlan.Step(
+                        primitive.name(),
+                        primitive.validate(arguments, source),
+                        source));
                 continue;
             }
 
@@ -92,99 +93,6 @@ public final class ScenarioCompiler {
             bindings.put(parameter.name(), value);
         }
         return bindings;
-    }
-
-    private static void validatePrimitive(String name, Map<String, Object> arguments, String source) {
-        if ("launchGame".equals(name) || "debugScreen".equals(name)) {
-            if (!arguments.isEmpty()) {
-                throw new ScenarioException(source + ": " + name + " does not accept arguments");
-            }
-            return;
-        }
-        if ("captureScreenshot".equals(name)) {
-            validateCaptureScreenshot(arguments, source);
-            return;
-        }
-        if ("startVanillaServer".equals(name)) {
-            validateStartVanillaServer(arguments, source);
-            return;
-        }
-        if ("keyboardInput".equals(name)) {
-            validateKeyboardInput(arguments, source);
-            return;
-        }
-
-        for (String key : arguments.keySet()) {
-            if (!Set.of("type", "name").contains(key)) {
-                throw new ScenarioException(source + ": step '" + name + "' has unknown selector field '" + key + "'");
-            }
-        }
-        requireSelectorString(arguments, "type", name, source);
-        requireSelectorString(arguments, "name", name, source);
-        if (!SELECTOR_TYPES.contains(arguments.get("type"))) {
-            throw new ScenarioException(source + ": unsupported element type '" + arguments.get("type")
-                    + "'; supported types: [button, cycle, tab, editbox]");
-        }
-    }
-
-    private static void validateKeyboardInput(Map<String, Object> arguments, String source) {
-        for (String key : arguments.keySet()) {
-            if (!"text".equals(key)) {
-                throw new ScenarioException(source + ": keyboardInput does not accept '" + key + "'");
-            }
-        }
-        Object value = arguments.get("text");
-        if (!(value instanceof String string) || string.isBlank()) {
-            throw new ScenarioException(source + ": keyboardInput requires a non-empty string 'text'");
-        }
-    }
-
-    private static void validateStartVanillaServer(Map<String, Object> arguments, String source) {
-        if (arguments.isEmpty()) {
-            return;
-        }
-        for (String key : arguments.keySet()) {
-            if (!"port".equals(key)) {
-                throw new ScenarioException(source + ": startVanillaServer does not accept '" + key + "'");
-            }
-        }
-        try {
-            arguments.put("port", VanillaServerProcess.parsePort(arguments.get("port")));
-        } catch (ScenarioException exception) {
-            throw new ScenarioException(source + ": " + exception.getMessage());
-        }
-    }
-
-    private static void validateCaptureScreenshot(Map<String, Object> arguments, String source) {
-        if (arguments.isEmpty()) {
-            return;
-        }
-        for (String key : arguments.keySet()) {
-            if (!"name".equals(key)) {
-                throw new ScenarioException(source + ": captureScreenshot does not accept '" + key + "'");
-            }
-        }
-        Object value = arguments.get("name");
-        if (!(value instanceof String string) || string.isBlank()) {
-            throw new ScenarioException(source + ": captureScreenshot requires a non-empty string 'name'");
-        }
-        try {
-            arguments.put("name", ScreenshotCapture.normalizeFileName(string));
-        } catch (ScenarioException exception) {
-            throw new ScenarioException(source + ": " + exception.getMessage());
-        }
-    }
-
-    private static void requireSelectorString(
-            Map<String, Object> arguments,
-            String key,
-            String step,
-            String source
-    ) {
-        Object value = arguments.get(key);
-        if (!(value instanceof String string) || string.isBlank()) {
-            throw new ScenarioException(source + ": step '" + step + "' requires a non-empty string '" + key + "'");
-        }
     }
 
     private static Map<String, Object> substituteMap(
