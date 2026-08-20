@@ -25,5 +25,6 @@ steps:
       notVisible:
         type: screen
         name: LevelLoadingScreen
+  - openInventory
   - debugScreen
   - captureScreenshot

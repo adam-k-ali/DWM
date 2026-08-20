@@ -190,6 +190,47 @@ class ScenarioCompilerTest {
     }
 
     @Test
+    void compilesOpenInventoryAsANoArgPrimitive(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - launchGame
+                  - openInventory
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(2, plan.steps().size());
+        assertEquals("openInventory", plan.steps().get(1).name());
+        assertTrue(plan.steps().get(1).arguments().isEmpty());
+    }
+
+    @Test
+    void rejectsOpenInventoryArguments(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - openInventory:
+                      type: button
+                      name: Singleplayer
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("openInventory does not accept arguments"));
+    }
+
+    @Test
     void compilesCaptureScreenshotAsANoArgPrimitive(@TempDir Path root) throws Exception {
         write(root.resolve("test.yaml"), """
                 ---
@@ -510,7 +551,7 @@ class ScenarioCompilerTest {
 
         ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(scenarioRoot)).compile("joinVanillaServer");
 
-        assertEquals(14, plan.steps().size());
+        assertEquals(16, plan.steps().size());
         assertEquals("startVanillaServer", plan.steps().get(1).name());
         assertEquals("editbox", plan.steps().get(6).arguments().get("type"));
         assertEquals("Server Address", plan.steps().get(6).arguments().get("name"));
@@ -519,14 +560,16 @@ class ScenarioCompilerTest {
         assertEquals("keyboardInput", plan.steps().get(8).name());
         assertEquals("localhost:25565", plan.steps().get(8).arguments().get("text"));
         assertEquals("keyboardInput \"localhost:25565\"", plan.steps().get(8).displayName());
-        assertEquals("waitUntil", plan.steps().get(11).name());
+        assertEquals("waitUntil", plan.steps().get(12).name());
         @SuppressWarnings("unchecked")
-        Map<String, Object> notVisible = (Map<String, Object>) plan.steps().get(11).arguments().get("notVisible");
+        Map<String, Object> notVisible = (Map<String, Object>) plan.steps().get(12).arguments().get("notVisible");
         assertEquals("screen", notVisible.get("type"));
         assertEquals("LevelLoadingScreen", notVisible.get("name"));
-        assertEquals("waitUntil notVisible \"LevelLoadingScreen\"", plan.steps().get(11).displayName());
-        assertEquals("debugScreen", plan.steps().get(12).name());
-        assertEquals("captureScreenshot", plan.steps().get(13).name());
+        assertEquals("waitUntil notVisible \"LevelLoadingScreen\"", plan.steps().get(12).displayName());
+        assertEquals("openInventory", plan.steps().get(13).name());
+        assertTrue(plan.steps().get(13).arguments().isEmpty());
+        assertEquals("debugScreen", plan.steps().get(14).name());
+        assertEquals("captureScreenshot", plan.steps().get(15).name());
     }
 
     @Test

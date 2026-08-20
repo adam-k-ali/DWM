@@ -14,7 +14,8 @@ public final class ScenarioPrimitives {
             new CaptureScreenshotPrimitive(),
             new StartVanillaServerPrimitive(),
             new KeyboardInputPrimitive(),
-            new WaitUntilPrimitive()
+            new WaitUntilPrimitive(),
+            new OpenInventoryPrimitive()
     ).stream().collect(Collectors.toUnmodifiableMap(ScenarioPrimitive::name, Function.identity()));
 
     private ScenarioPrimitives() {

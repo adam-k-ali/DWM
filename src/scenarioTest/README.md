@@ -85,6 +85,9 @@ The MVP primitives are:
   Exactly one condition is required. `visible` is equivalent to `assertVisible`.
   `notVisible` succeeds as soon as the selector does not match on the current
   tick, including if it has not appeared yet.
+- `openInventory` — waits until a local player exists, then opens the survival
+  or creative inventory GUI. It takes no arguments. If the inventory is already
+  showing, the step succeeds without reopening it.
 
 ```yaml
 - waitUntil:
