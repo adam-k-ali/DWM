@@ -19,6 +19,9 @@ public class DWMSounds {
     public static final SoundEvent BROAKIR_HURT = register("entity.broakir.hurt");
     public static final SoundEvent BROAKIR_DEATH = register("entity.broakir.death");
     public static final SoundEvent BROAKIR_STEP = register("entity.broakir.step");
+    public static final SoundEvent FLUTTERWING_AMBIENT = register("entity.flutterwing.ambient");
+    public static final SoundEvent FLUTTERWING_HURT = register("entity.flutterwing.hurt");
+    public static final SoundEvent FLUTTERWING_DEATH = register("entity.flutterwing.death");
 
     public static void initialize() {
     }

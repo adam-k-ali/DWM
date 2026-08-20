@@ -34,5 +34,6 @@ public class DWMEntityLootTableProvider extends FabricEntityLootSubProvider {
                                         )))
                 )
         );
+        add(DWMEntityTypes.FLUTTERWING, LootTable.lootTable());
     }
 }

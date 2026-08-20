@@ -24,6 +24,7 @@ public final class DWMEntityTypes {
     public static EntityType<TardisSeatEntity> TARDIS_SEAT;
     public static EntityType<ConsoleControlInteractionEntity> CONSOLE_CONTROL;
     public static EntityType<BroakirEntity> BROAKIR;
+    public static EntityType<FlutterwingEntity> FLUTTERWING;
 
     private DWMEntityTypes() {
     }
@@ -38,6 +39,7 @@ public final class DWMEntityTypes {
         TARDIS_SEAT = registerSeat();
         CONSOLE_CONTROL = registerConsoleControl();
         BROAKIR = registerBroakir();
+        FLUTTERWING = registerFlutterwing();
     }
 
     private static EntityType<TardisSeatEntity> registerSeat() {
@@ -96,6 +98,31 @@ public final class DWMEntityTypes {
                         )
                         .sized(1.4F, 2.3F)
                         .eyeHeight(2.0F)
+                        .clientTrackingRange(10)
+                        .build(key)
+        );
+    }
+
+    private static EntityType<FlutterwingEntity> registerFlutterwing() {
+        Identifier id = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "flutterwing");
+        ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, id);
+        return Registry.register(
+                BuiltInRegistries.ENTITY_TYPE,
+                key,
+                FabricEntityType.Builder.createMob(
+                                FlutterwingEntity::new,
+                                MobCategory.CREATURE,
+                                mob -> mob
+                                        .spawnPlacement(
+                                                SpawnPlacementTypes.ON_GROUND,
+                                                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                                                (type, level, reason, pos, random) ->
+                                                        Animal.checkAnimalSpawnRules(type, level, reason, pos, random)
+                                        )
+                                        .defaultAttributes(FlutterwingEntity::createAttributes)
+                        )
+                        .sized(0.9F * FlutterwingEntity.SCALE, 1.5F * FlutterwingEntity.SCALE)
+                        .eyeHeight(1.2F * FlutterwingEntity.SCALE)
                         .clientTrackingRange(10)
                         .build(key)
         );

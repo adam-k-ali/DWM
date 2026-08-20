@@ -3,6 +3,7 @@ package com.adamkali.dwm;
 import com.adamkali.dwm.datagen.DWMBlockTagProvider;
 import com.adamkali.dwm.datagen.DWMItemTagProvider;
 import com.adamkali.dwm.datagen.DWMEntityLootTableProvider;
+import com.adamkali.dwm.datagen.DWMEntityTagProvider;
 import com.adamkali.dwm.datagen.DWMLanguageProvider;
 import com.adamkali.dwm.datagen.DWMLootTableProvider;
 import com.adamkali.dwm.datagen.DWMModelProvider;
@@ -50,6 +51,7 @@ public class DWMClientDataGenerator implements DataGeneratorEntrypoint {
         pack.addProvider(DWMModelProvider::new);
         pack.addProvider(DWMLootTableProvider::new);
         pack.addProvider(DWMEntityLootTableProvider::new);
+        pack.addProvider(DWMEntityTagProvider::new);
         pack.addProvider(DWMWorldgenProvider::new);
     }
 
