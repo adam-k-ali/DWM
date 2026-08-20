@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 
 public final class ScenarioCompiler {
     private static final Set<String> PRIMITIVES = Set.of(
-            "launchGame", "assertVisible", "click", "debugScreen", "captureScreenshot"
+            "launchGame", "assertVisible", "click", "debugScreen", "captureScreenshot", "startVanillaServer"
     );
     private static final Pattern TEMPLATE = Pattern.compile("\\{\\{\\s*([A-Za-z][A-Za-z0-9_]*)\\s*}}");
 
@@ -103,6 +103,10 @@ public final class ScenarioCompiler {
             validateCaptureScreenshot(arguments, source);
             return;
         }
+        if ("startVanillaServer".equals(name)) {
+            validateStartVanillaServer(arguments, source);
+            return;
+        }
 
         for (String key : arguments.keySet()) {
             if (!Set.of("type", "name").contains(key)) {
@@ -114,6 +118,22 @@ public final class ScenarioCompiler {
         if (!Set.of("button", "cycle", "tab").contains(arguments.get("type"))) {
             throw new ScenarioException(source + ": unsupported element type '" + arguments.get("type")
                     + "'; supported types: [button, cycle, tab]");
+        }
+    }
+
+    private static void validateStartVanillaServer(Map<String, Object> arguments, String source) {
+        if (arguments.isEmpty()) {
+            return;
+        }
+        for (String key : arguments.keySet()) {
+            if (!"port".equals(key)) {
+                throw new ScenarioException(source + ": startVanillaServer does not accept '" + key + "'");
+            }
+        }
+        try {
+            arguments.put("port", VanillaServerProcess.parsePort(arguments.get("port")));
+        } catch (ScenarioException exception) {
+            throw new ScenarioException(source + ": " + exception.getMessage());
         }
     }
 

@@ -14,11 +14,14 @@ import java.util.List;
 import java.util.Optional;
 
 final class ScenarioRunner {
+    private static final Duration VANILLA_SERVER_TIMEOUT_FLOOR = Duration.ofSeconds(120);
+
     private final ScenarioPlan plan;
     private final ScenarioReportWriter reportWriter;
     private final Duration stepTimeout;
     private final WidgetFinder widgetFinder = new WidgetFinder();
     private final ScreenshotCapture screenshotCapture;
+    private final VanillaServerProcess vanillaServer;
     private final Logger logger;
     private final List<ScenarioReportWriter.StepResult> results = new ArrayList<>();
 
@@ -38,6 +41,7 @@ final class ScenarioRunner {
         this.stepTimeout = stepTimeout;
         this.logger = logger;
         this.screenshotCapture = new ScreenshotCapture(logger);
+        this.vanillaServer = new VanillaServerProcess(logger);
     }
 
     void tick(Minecraft client) {
@@ -69,8 +73,9 @@ final class ScenarioRunner {
                 stepStartedNanos = 0L;
                 return;
             }
-            if (System.nanoTime() - stepStartedNanos > stepTimeout.toNanos()) {
-                throw new ScenarioException("Timed out after " + stepTimeout.toSeconds()
+            Duration timeout = timeoutFor(step);
+            if (System.nanoTime() - stepStartedNanos > timeout.toNanos()) {
+                throw new ScenarioException("Timed out after " + timeout.toSeconds()
                         + "s waiting for " + step.displayName() + " from " + step.source());
             }
         } catch (RuntimeException exception) {
@@ -95,6 +100,7 @@ final class ScenarioRunner {
                 yield true;
             }
             case "captureScreenshot" -> screenshotCapture.tick(client, (String) step.arguments().get("name"));
+            case "startVanillaServer" -> vanillaServer.tick(VanillaServerProcess.parsePort(step.arguments().get("port")));
             default -> throw new ScenarioException("Unsupported primitive step '" + step.name() + "'");
         };
     }
@@ -117,8 +123,18 @@ final class ScenarioRunner {
         return screen.mouseClicked(event, false);
     }
 
+    private Duration timeoutFor(ScenarioPlan.Step step) {
+        if (!"startVanillaServer".equals(step.name())) {
+            return stepTimeout;
+        }
+        return stepTimeout.compareTo(VANILLA_SERVER_TIMEOUT_FLOOR) >= 0
+                ? stepTimeout
+                : VANILLA_SERVER_TIMEOUT_FLOOR;
+    }
+
     private void finish(Minecraft client, RuntimeException failure) {
         finished = true;
+        vanillaServer.stop();
         String failureMessage = failure == null ? null
                 : failure.getMessage() == null ? failure.getClass().getName() : failure.getMessage();
         String diagnostics = diagnostics(client, failureMessage);

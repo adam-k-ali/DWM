@@ -312,6 +312,126 @@ class ScenarioCompilerTest {
         assertTrue(exception.getMessage().contains("supported types: [button, cycle, tab]"));
     }
 
+    @Test
+    void compilesStartVanillaServerAsANoArgPrimitive(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - launchGame
+                  - startVanillaServer
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(2, plan.steps().size());
+        assertEquals("startVanillaServer", plan.steps().get(1).name());
+        assertTrue(plan.steps().get(1).arguments().isEmpty());
+    }
+
+    @Test
+    void compilesStartVanillaServerWithIntegerPort(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - startVanillaServer:
+                      port: 25565
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(1, plan.steps().size());
+        assertEquals("startVanillaServer", plan.steps().get(0).name());
+        assertEquals(25565, plan.steps().get(0).arguments().get("port"));
+    }
+
+    @Test
+    void compilesStartVanillaServerWithQuotedPort(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - startVanillaServer:
+                      port: "25566"
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(1, plan.steps().size());
+        assertEquals(25566, plan.steps().get(0).arguments().get("port"));
+    }
+
+    @Test
+    void rejectsStartVanillaServerPortZero(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - startVanillaServer:
+                      port: 0
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("startVanillaServer port must be an integer between 1 and 65535"));
+    }
+
+    @Test
+    void rejectsStartVanillaServerPortOutOfRange(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - startVanillaServer:
+                      port: 70000
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("startVanillaServer port must be an integer between 1 and 65535"));
+    }
+
+    @Test
+    void rejectsStartVanillaServerUnknownFields(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - startVanillaServer:
+                      type: button
+                      port: 25565
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("startVanillaServer does not accept 'type'"));
+    }
+
     private static void write(Path path, String content) throws Exception {
         Files.createDirectories(path.getParent());
         Files.writeString(path, content);

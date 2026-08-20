@@ -13,7 +13,8 @@ Run a test by its YAML filename without the extension:
 ```
 
 The client uses an isolated directory under `build/scenario-test/run`. Before
-each run, the harness removes its saved worlds and writes deterministic English
+each run, the harness removes its saved worlds, clears
+`build/scenario-test/vanilla-server/world`, and writes deterministic English
 client options. A display is required.
 
 The default per-step timeout is 30 seconds. Override it when debugging:
@@ -27,6 +28,9 @@ Results are written to:
 - `build/scenario-test/report.xml` — JUnit XML
 - `build/scenario-test/diagnostics.txt` — current screen and visible widgets
 - `build/scenario-test/run/screenshots/` — PNGs from `captureScreenshot`
+- `build/scenario-test/vanilla-server/` — official dedicated-server run dir from
+  `startVanillaServer` (`server-jar.path`, `eula.txt`, `server.properties`,
+  `world/`, `logs/harness.log`)
 
 The Gradle process exits non-zero when loading, validation, or execution fails.
 
@@ -68,6 +72,18 @@ The MVP primitives are:
   `build/scenario-test/run/screenshots/`. With no arguments it uses a vanilla
   timestamped filename. An optional `name` sets the PNG stem. The step waits
   until the file has been written before succeeding.
+- `startVanillaServer` — launches Mojang’s official dedicated-server jar as a
+  child process (no Fabric/DWM on the server). It writes offline-mode superflat
+  settings, waits until `127.0.0.1` accepts TCP connections, and stops the
+  process when the scenario finishes. This step does **not** connect the client.
+  It uses a 120 second timeout floor; `-PscenarioTimeout` still raises that
+  floor when set higher.
+
+```yaml
+- startVanillaServer
+- startVanillaServer:
+    port: 25565
+```
 
 ```yaml
 - captureScreenshot
