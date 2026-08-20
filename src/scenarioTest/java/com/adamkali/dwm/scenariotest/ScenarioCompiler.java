@@ -12,8 +12,10 @@ import java.util.regex.Pattern;
 
 public final class ScenarioCompiler {
     private static final Set<String> PRIMITIVES = Set.of(
-            "launchGame", "assertVisible", "click", "debugScreen", "captureScreenshot", "startVanillaServer"
+            "launchGame", "assertVisible", "click", "debugScreen", "captureScreenshot",
+            "startVanillaServer", "keyboardInput"
     );
+    private static final Set<String> SELECTOR_TYPES = Set.of("button", "cycle", "tab", "editbox");
     private static final Pattern TEMPLATE = Pattern.compile("\\{\\{\\s*([A-Za-z][A-Za-z0-9_]*)\\s*}}");
 
     private final ScenarioCatalog catalog;
@@ -107,6 +109,10 @@ public final class ScenarioCompiler {
             validateStartVanillaServer(arguments, source);
             return;
         }
+        if ("keyboardInput".equals(name)) {
+            validateKeyboardInput(arguments, source);
+            return;
+        }
 
         for (String key : arguments.keySet()) {
             if (!Set.of("type", "name").contains(key)) {
@@ -115,9 +121,21 @@ public final class ScenarioCompiler {
         }
         requireSelectorString(arguments, "type", name, source);
         requireSelectorString(arguments, "name", name, source);
-        if (!Set.of("button", "cycle", "tab").contains(arguments.get("type"))) {
+        if (!SELECTOR_TYPES.contains(arguments.get("type"))) {
             throw new ScenarioException(source + ": unsupported element type '" + arguments.get("type")
-                    + "'; supported types: [button, cycle, tab]");
+                    + "'; supported types: [button, cycle, tab, editbox]");
+        }
+    }
+
+    private static void validateKeyboardInput(Map<String, Object> arguments, String source) {
+        for (String key : arguments.keySet()) {
+            if (!"text".equals(key)) {
+                throw new ScenarioException(source + ": keyboardInput does not accept '" + key + "'");
+            }
+        }
+        Object value = arguments.get("text");
+        if (!(value instanceof String string) || string.isBlank()) {
+            throw new ScenarioException(source + ": keyboardInput requires a non-empty string 'text'");
         }
     }
 

@@ -78,6 +78,9 @@ The MVP primitives are:
   process when the scenario finishes. This step does **not** connect the client.
   It uses a 120 second timeout floor; `-PscenarioTimeout` still raises that
   floor when set higher.
+- `keyboardInput` — waits until a focused, editable text field can consume
+  input, then types the given string once via real `charTyped` events. It does
+  not click or select the field; click the matching `editbox` first.
 
 ```yaml
 - startVanillaServer
@@ -86,16 +89,26 @@ The MVP primitives are:
 ```
 
 ```yaml
+- keyboardInput: "localhost:25565"
+- keyboardInput:
+    text: "localhost:25565"
+```
+
+```yaml
 - captureScreenshot
 - captureScreenshot:
     name: after-world-tab
 ```
 
-Selectors require an exact rendered `name` and one of these types:
+Selectors require an exact `name` and one of these types:
 
 - `button`
 - `cycle`
 - `tab`
+- `editbox`
+
+For `editbox`, `name` is the accessibility narration label (`getMessage()`),
+not the current field value. Direct Connection’s IP field is `"Server Address"`.
 
 ```yaml
 steps:
@@ -105,6 +118,10 @@ steps:
   - click:
     - type: tab
       name: "World"
+  - assertAndClick:
+    - type: editbox
+      name: "Server Address"
+  - keyboardInput: "localhost:25565"
 ```
 
 The single-item list form above and a direct object are both accepted.

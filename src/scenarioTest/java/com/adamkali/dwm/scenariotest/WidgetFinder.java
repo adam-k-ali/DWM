@@ -3,6 +3,7 @@ package com.adamkali.dwm.scenariotest;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.TabButton;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -89,6 +90,7 @@ final class WidgetFinder {
             case "button" -> widget instanceof Button;
             case "cycle" -> widget instanceof CycleButton<?>;
             case "tab" -> widget instanceof TabButton;
+            case "editbox" -> widget instanceof EditBox;
             default -> false;
         };
     }
@@ -102,6 +104,9 @@ final class WidgetFinder {
         }
         if (widget instanceof CycleButton<?>) {
             return "cycle";
+        }
+        if (widget instanceof EditBox) {
+            return "editbox";
         }
         return widget.getClass().getSimpleName();
     }

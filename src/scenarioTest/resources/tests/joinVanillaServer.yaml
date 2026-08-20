@@ -1,0 +1,20 @@
+---
+name: Join Vanilla Server
+type: test
+---
+steps:
+  - launchGame
+  - startVanillaServer
+  - assertAndClick:
+    - type: button
+      name: "Multiplayer"
+  - assertAndClick:
+    - type: button
+      name: "Direct Connection"
+  - assertAndClick:
+    - type: editbox
+      name: "Server Address"
+  - keyboardInput: "localhost:25565"
+  - assertAndClick:
+    - type: button
+      name: "Join Server"

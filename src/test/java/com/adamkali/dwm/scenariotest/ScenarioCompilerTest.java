@@ -309,7 +309,7 @@ class ScenarioCompilerTest {
                 () -> new ScenarioCompiler(catalog).compile("test")
         );
 
-        assertTrue(exception.getMessage().contains("supported types: [button, cycle, tab]"));
+        assertTrue(exception.getMessage().contains("supported types: [button, cycle, tab, editbox]"));
     }
 
     @Test
@@ -430,6 +430,147 @@ class ScenarioCompilerTest {
         );
 
         assertTrue(exception.getMessage().contains("startVanillaServer does not accept 'type'"));
+    }
+
+    @Test
+    void compilesBundledJoinVanillaServerScenario() throws URISyntaxException {
+        Path scenarioRoot = Path.of(getClass().getResource("/tests").toURI());
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(scenarioRoot)).compile("joinVanillaServer");
+
+        assertEquals(11, plan.steps().size());
+        assertEquals("startVanillaServer", plan.steps().get(1).name());
+        assertEquals("editbox", plan.steps().get(6).arguments().get("type"));
+        assertEquals("Server Address", plan.steps().get(6).arguments().get("name"));
+        assertEquals("assertVisible", plan.steps().get(6).name());
+        assertEquals("click", plan.steps().get(7).name());
+        assertEquals("keyboardInput", plan.steps().get(8).name());
+        assertEquals("localhost:25565", plan.steps().get(8).arguments().get("text"));
+        assertEquals("keyboardInput \"localhost:25565\"", plan.steps().get(8).displayName());
+    }
+
+    @Test
+    void compilesKeyboardInputWithTextMap(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - keyboardInput:
+                      text: "hello"
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(1, plan.steps().size());
+        assertEquals("keyboardInput", plan.steps().get(0).name());
+        assertEquals("hello", plan.steps().get(0).arguments().get("text"));
+    }
+
+    @Test
+    void compilesKeyboardInputScalar(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - keyboardInput: "localhost:25565"
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(1, plan.steps().size());
+        assertEquals("keyboardInput", plan.steps().get(0).name());
+        assertEquals("localhost:25565", plan.steps().get(0).arguments().get("text"));
+    }
+
+    @Test
+    void compilesEditboxSelector(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - assertVisible:
+                      type: editbox
+                      name: "Server Address"
+                  - click:
+                      type: editbox
+                      name: "Server Address"
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(2, plan.steps().size());
+        assertEquals("editbox", plan.steps().get(0).arguments().get("type"));
+        assertEquals("Server Address", plan.steps().get(0).arguments().get("name"));
+        assertEquals("editbox", plan.steps().get(1).arguments().get("type"));
+    }
+
+    @Test
+    void rejectsKeyboardInputBlankText(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - keyboardInput:
+                      text: "  "
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("keyboardInput requires a non-empty string 'text'"));
+    }
+
+    @Test
+    void rejectsKeyboardInputUnknownFields(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - keyboardInput:
+                      name: Server Address
+                      text: localhost
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("keyboardInput does not accept 'name'"));
+    }
+
+    @Test
+    void rejectsKeyboardInputWithoutText(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - keyboardInput
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("keyboardInput requires a non-empty string 'text'"));
     }
 
     private static void write(Path path, String content) throws Exception {

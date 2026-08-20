@@ -14,8 +14,11 @@ public record ScenarioPlan(String id, String name, List<Step> steps) {
         }
 
         public String displayName() {
-            Object elementName = arguments.get("name");
-            return elementName == null ? name : name + " \"" + elementName + "\"";
+            Object detail = arguments.get("name");
+            if (detail == null) {
+                detail = arguments.get("text");
+            }
+            return detail == null ? name : name + " \"" + detail + "\"";
         }
     }
 }

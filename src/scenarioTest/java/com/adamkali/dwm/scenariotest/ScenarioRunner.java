@@ -2,8 +2,10 @@ package com.adamkali.dwm.scenariotest;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.input.MouseButtonInfo;
 import org.slf4j.Logger;
@@ -101,6 +103,7 @@ final class ScenarioRunner {
             }
             case "captureScreenshot" -> screenshotCapture.tick(client, (String) step.arguments().get("name"));
             case "startVanillaServer" -> vanillaServer.tick(VanillaServerProcess.parsePort(step.arguments().get("port")));
+            case "keyboardInput" -> keyboardInput(screen, step);
             default -> throw new ScenarioException("Unsupported primitive step '" + step.name() + "'");
         };
     }
@@ -121,6 +124,26 @@ final class ScenarioRunner {
                 new MouseButtonInfo(0, 0)
         );
         return screen.mouseClicked(event, false);
+    }
+
+    private boolean keyboardInput(Screen screen, ScenarioPlan.Step step) {
+        if (screen == null || !(screen.getFocused() instanceof EditBox editBox) || !editBox.canConsumeInput()) {
+            return false;
+        }
+        String text = (String) step.arguments().get("text");
+        logger.info("Typing {} characters into {} on {}",
+                text.length(),
+                editBox.getClass().getName(),
+                screen.getClass().getName());
+        for (int index = 0; index < text.length(); ) {
+            int codepoint = text.codePointAt(index);
+            if (!screen.charTyped(new CharacterEvent(codepoint))) {
+                throw new ScenarioException("keyboardInput rejected codepoint at index " + index
+                        + " in \"" + text + "\" from " + step.source());
+            }
+            index += Character.charCount(codepoint);
+        }
+        return true;
     }
 
     private Duration timeoutFor(ScenarioPlan.Step step) {
