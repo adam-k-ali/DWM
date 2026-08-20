@@ -55,10 +55,10 @@ class FlutterwingEntityTest {
     }
 
     @Test
-    void dimensionsAreScaledDownByEightyPercent() {
+    void dimensionsAreScaledToEightyPercent() {
         assertEquals(0.9F * FlutterwingEntity.SCALE, DWMEntityTypes.FLUTTERWING.getWidth(), 0.001F);
         assertEquals(1.5F * FlutterwingEntity.SCALE, DWMEntityTypes.FLUTTERWING.getHeight(), 0.001F);
-        assertEquals(0.2F, FlutterwingEntity.SCALE, 0.001F);
+        assertEquals(0.8F, FlutterwingEntity.SCALE, 0.001F);
     }
 
     @Test
