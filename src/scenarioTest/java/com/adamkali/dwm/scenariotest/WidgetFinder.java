@@ -37,6 +37,33 @@ final class WidgetFinder {
                 .toList();
     }
 
+    String describeVisibleWidgets(Screen screen) {
+        StringBuilder dump = new StringBuilder();
+        dump.append("debugScreen: ")
+                .append(screen == null ? "<none>" : screen.getClass().getName())
+                .append('\n');
+        if (screen == null) {
+            return dump.toString();
+        }
+        List<AbstractWidget> visible = widgets(screen).stream()
+                .filter(widget -> widget.visible)
+                .toList();
+        for (int i = 0; i < visible.size(); i++) {
+            AbstractWidget widget = visible.get(i);
+            dump.append("  [").append(i).append("] ")
+                    .append(widgetType(widget))
+                    .append(" name=\"").append(widget.getMessage().getString()).append('"')
+                    .append(" active=").append(widget.active)
+                    .append(" bounds=(")
+                    .append(widget.getX()).append(',')
+                    .append(widget.getY()).append(',')
+                    .append(widget.getWidth()).append(',')
+                    .append(widget.getHeight())
+                    .append(")\n");
+        }
+        return dump.toString();
+    }
+
     private static List<AbstractWidget> widgets(ContainerEventHandler root) {
         List<AbstractWidget> widgets = new ArrayList<>();
         collectWidgets(root.children(), widgets);

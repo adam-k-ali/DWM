@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class ScenarioCompiler {
-    private static final Set<String> PRIMITIVES = Set.of("launchGame", "assertVisible", "click");
+    private static final Set<String> PRIMITIVES = Set.of("launchGame", "assertVisible", "click", "debugScreen");
     private static final Pattern TEMPLATE = Pattern.compile("\\{\\{\\s*([A-Za-z][A-Za-z0-9_]*)\\s*}}");
 
     private final ScenarioCatalog catalog;
@@ -91,9 +91,9 @@ public final class ScenarioCompiler {
     }
 
     private static void validatePrimitive(String name, Map<String, Object> arguments, String source) {
-        if ("launchGame".equals(name)) {
+        if ("launchGame".equals(name) || "debugScreen".equals(name)) {
             if (!arguments.isEmpty()) {
-                throw new ScenarioException(source + ": launchGame does not accept arguments");
+                throw new ScenarioException(source + ": " + name + " does not accept arguments");
             }
             return;
         }

@@ -60,6 +60,9 @@ The MVP primitives are:
 - `assertVisible` — waits for a visible matching widget.
 - `click` — waits for an active matching widget and dispatches a real screen
   mouse click at its center.
+- `debugScreen` — immediately logs the current screen class and every visible
+  widget (type, name, active, bounds). It takes no arguments and always
+  succeeds on the tick it runs.
 
 Selectors require an exact rendered `name` and one of these types:
 

@@ -88,6 +88,10 @@ final class ScenarioRunner {
             case "launchGame" -> screen instanceof TitleScreen;
             case "assertVisible" -> widgetFinder.find(screen, step.arguments()).isPresent();
             case "click" -> click(screen, step);
+            case "debugScreen" -> {
+                logger.info("{}", widgetFinder.describeVisibleWidgets(screen));
+                yield true;
+            }
             default -> throw new ScenarioException("Unsupported primitive step '" + step.name() + "'");
         };
     }

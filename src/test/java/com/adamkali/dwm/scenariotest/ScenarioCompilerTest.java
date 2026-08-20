@@ -148,6 +148,47 @@ class ScenarioCompilerTest {
     }
 
     @Test
+    void compilesDebugScreenAsANoArgPrimitive(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - launchGame
+                  - debugScreen
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(2, plan.steps().size());
+        assertEquals("debugScreen", plan.steps().get(1).name());
+        assertTrue(plan.steps().get(1).arguments().isEmpty());
+    }
+
+    @Test
+    void rejectsDebugScreenArguments(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - debugScreen:
+                      type: button
+                      name: Singleplayer
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("debugScreen does not accept arguments"));
+    }
+
+    @Test
     void rejectsUnsupportedElementTypes(@TempDir Path root) throws Exception {
         write(root.resolve("test.yaml"), """
                 ---
