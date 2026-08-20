@@ -49,6 +49,7 @@ public final class DWMBiomeBootstrap {
         MobSpawnSettings.Builder spawns = new MobSpawnSettings.Builder();
         BiomeDefaultFeatures.commonSpawns(spawns);
         addBroakirSpawns(spawns);
+        addFlutterwingSpawns(spawns);
 
         BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(features, carvers);
         addBasicFeatures(generation);
@@ -65,6 +66,7 @@ public final class DWMBiomeBootstrap {
         MobSpawnSettings.Builder spawns = new MobSpawnSettings.Builder();
         BiomeDefaultFeatures.commonSpawns(spawns);
         addBroakirSpawns(spawns);
+        addFlutterwingSpawns(spawns);
 
         BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(features, carvers);
         addBasicFeatures(generation);
@@ -132,6 +134,14 @@ public final class DWMBiomeBootstrap {
                 MobCategory.CREATURE,
                 10,
                 new MobSpawnSettings.SpawnerData(DWMEntityTypes.BROAKIR, 2, 4)
+        );
+    }
+
+    private static void addFlutterwingSpawns(MobSpawnSettings.Builder spawns) {
+        spawns.addSpawn(
+                MobCategory.CREATURE,
+                10,
+                new MobSpawnSettings.SpawnerData(DWMEntityTypes.FLUTTERWING, 2, 4)
         );
     }
 

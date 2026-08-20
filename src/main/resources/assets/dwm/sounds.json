@@ -84,5 +84,36 @@
         "type": "event"
       }
     ]
+  },
+  "entity.flutterwing.ambient": {
+    "subtitle": "dwm.entity.flutterwing.ambient.subtitle",
+    "sounds": [
+      {
+        "name": "dwm:entity/flutterwing/ambient",
+        "volume": 0.55
+      },
+      {
+        "name": "dwm:entity/flutterwing/ambient_2",
+        "volume": 0.55
+      }
+    ]
+  },
+  "entity.flutterwing.hurt": {
+    "subtitle": "dwm.entity.flutterwing.hurt.subtitle",
+    "sounds": [
+      {
+        "name": "dwm:entity/flutterwing/hurt",
+        "volume": 0.8
+      }
+    ]
+  },
+  "entity.flutterwing.death": {
+    "subtitle": "dwm.entity.flutterwing.death.subtitle",
+    "sounds": [
+      {
+        "name": "dwm:entity/flutterwing/death",
+        "volume": 0.85
+      }
+    ]
   }
 }

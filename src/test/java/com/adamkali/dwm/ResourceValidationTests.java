@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
@@ -488,6 +489,104 @@ public class ResourceValidationTests {
         assertTrue(biomeHasCreatureSpawn("gallifrey_plains.json", "dwm:broakir"));
         assertFalse(biomeHasCreatureSpawn("gallifrey_wastes.json", "dwm:broakir"));
         assertFalse(biomeHasCreatureSpawn("gallifrey_badlands.json", "dwm:broakir"));
+    }
+
+    @Test
+    public void flutterwingEntityTexturesExist() throws Exception {
+        String[] variants = {"blue_crystal", "madrigal", "silverband", "wild_endeavour"};
+        for (String variant : variants) {
+            Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/flutterwing/" + variant + ".png");
+            assertTrue(
+                    Files.isRegularFile(texture) && Files.size(texture) > 0,
+                    "FlutterwingRenderer expects assets/dwm/textures/entity/flutterwing/" + variant + ".png"
+            );
+        }
+    }
+
+    @Test
+    public void flutterwingSpawnEggTextureExists() throws Exception {
+        Path texture = Path.of("src/client/resources/assets/dwm/textures/item/flutterwing_spawn_egg.png");
+        assertTrue(
+                Files.isRegularFile(texture) && Files.size(texture) > 0,
+                "Spawn egg item model expects assets/dwm/textures/item/flutterwing_spawn_egg.png"
+        );
+    }
+
+    /**
+     * Guards against {@code pruneDatagenItemModels} dropping the Flutterwing spawn egg item def
+     * (allowlist must include {@code flutterwing} substring).
+     */
+    @Test
+    public void generatedFlutterwingSpawnEggItemModelExists() throws Exception {
+        Path item = Path.of("src/main/generated/assets/dwm/items/flutterwing_spawn_egg.json");
+        assertTrue(
+                Files.isRegularFile(item) && Files.size(item) > 0,
+                "Missing generated Flutterwing spawn egg item model: " + item
+        );
+    }
+
+    @Test
+    public void gallifreyForestAndPlainsSpawnFlutterwing() throws Exception {
+        assertTrue(biomeHasCreatureSpawn("gallifrey_forest.json", "dwm:flutterwing"));
+        assertTrue(biomeHasCreatureSpawn("gallifrey_plains.json", "dwm:flutterwing"));
+        assertFalse(biomeHasCreatureSpawn("gallifrey_wastes.json", "dwm:flutterwing"));
+        assertFalse(biomeHasCreatureSpawn("gallifrey_badlands.json", "dwm:flutterwing"));
+    }
+
+    @Test
+    public void flutterwingIsFallDamageImmune() throws Exception {
+        Path path = Path.of("src/main/generated/data/minecraft/tags/entity_type/fall_damage_immune.json");
+        assertTrue(Files.isRegularFile(path), "Missing generated fall_damage_immune entity tag: " + path);
+        JSONObject tag = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
+        var values = tag.getJSONArray("values");
+        boolean found = false;
+        for (int i = 0; i < values.length(); i++) {
+            if ("dwm:flutterwing".equals(values.getString(i))) {
+                found = true;
+                break;
+            }
+        }
+        assertTrue(found, "fall_damage_immune should include dwm:flutterwing");
+    }
+
+    @Test
+    public void flutterwingSoundFilesExist() throws Exception {
+        String[] names = {"ambient", "ambient_2", "hurt", "death"};
+        for (String name : names) {
+            Path sound = Path.of("src/client/resources/assets/dwm/sounds/entity/flutterwing/" + name + ".ogg");
+            assertTrue(
+                    Files.isRegularFile(sound) && Files.size(sound) > 0,
+                    "Flutterwing sound event expects " + sound
+            );
+        }
+        byte[] ambient = Files.readAllBytes(Path.of("src/client/resources/assets/dwm/sounds/entity/flutterwing/ambient.ogg"));
+        byte[] hurt = Files.readAllBytes(Path.of("src/client/resources/assets/dwm/sounds/entity/flutterwing/hurt.ogg"));
+        byte[] death = Files.readAllBytes(Path.of("src/client/resources/assets/dwm/sounds/entity/flutterwing/death.ogg"));
+        assertFalse(Arrays.equals(ambient, hurt), "ambient and hurt clips should differ");
+        assertFalse(Arrays.equals(hurt, death), "hurt and death clips should differ");
+        assertFalse(Arrays.equals(ambient, death), "ambient and death clips should differ");
+    }
+
+    @Test
+    public void flutterwingSoundsAreCustomNotBeeAliases() throws Exception {
+        Path path = Path.of("src/main/resources/assets/dwm/sounds.json");
+        JSONObject sounds = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
+        String[] events = {
+                "entity.flutterwing.ambient",
+                "entity.flutterwing.hurt",
+                "entity.flutterwing.death"
+        };
+        String json = Files.readString(path);
+        assertFalse(json.contains("minecraft:entity.bee"), "Flutterwing must not alias bee sounds");
+        for (String event : events) {
+            assertTrue(sounds.has(event), "Missing sound event: " + event);
+            var entries = sounds.getJSONObject(event).getJSONArray("sounds");
+            assertTrue(entries.length() > 0, event + " should list at least one clip");
+            for (int i = 0; i < entries.length(); i++) {
+                String name = entries.getJSONObject(i).getString("name");
+                assertTrue(name.startsWith("dwm:entity/flutterwing/"), event + " should use a custom dwm clip, got " + name);
+            }
+        }
     }
 
     private static boolean biomeHasCreatureSpawn(String biomeFile, String entityId) throws Exception {
