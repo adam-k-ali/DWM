@@ -15,6 +15,6 @@ public final class AssertVisiblePrimitive extends SelectorPrimitive {
 
     @Override
     public boolean execute(ScenarioPrimitiveContext context) {
-        return context.widgetFinder().find(context.screen(), context.arguments()).isPresent();
+        return context.widgetFinder().matches(context.screen(), context.arguments());
     }
 }

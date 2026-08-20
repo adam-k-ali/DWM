@@ -81,6 +81,21 @@ The MVP primitives are:
 - `keyboardInput` — waits until a focused, editable text field can consume
   input, then types the given string once via real `charTyped` events. It does
   not click or select the field; click the matching `editbox` first.
+- `waitUntil` — polls until a nested selector is `visible` or `notVisible`.
+  Exactly one condition is required. `visible` is equivalent to `assertVisible`.
+  `notVisible` succeeds as soon as the selector does not match on the current
+  tick, including if it has not appeared yet.
+
+```yaml
+- waitUntil:
+    visible:
+      type: button
+      name: "Singleplayer"
+- waitUntil:
+    notVisible:
+      type: screen
+      name: LevelLoadingScreen
+```
 
 ```yaml
 - startVanillaServer
@@ -106,9 +121,20 @@ Selectors require an exact `name` and one of these types:
 - `cycle`
 - `tab`
 - `editbox`
+- `label`
+- `screen`
 
 For `editbox`, `name` is the accessibility narration label (`getMessage()`),
 not the current field value. Direct Connection’s IP field is `"Server Address"`.
+
+For `label`, `name` is a `StringWidget` message, or the painted status text on
+the vanilla connect screen (for example `"Connecting to the server..."`).
+`click` only targets widgets, so it cannot activate painted connect-screen
+status text.
+
+For `screen`, `name` is the Java simple class name of the current GUI
+(`LevelLoadingScreen`, not the fully qualified name). It matches when that
+screen is open. `click` cannot target `type: screen`.
 
 ```yaml
 steps:

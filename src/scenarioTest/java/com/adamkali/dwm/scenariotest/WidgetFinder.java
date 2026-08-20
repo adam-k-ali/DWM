@@ -4,10 +4,13 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.components.TabButton;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.ConnectScreen;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,14 +31,31 @@ public final class WidgetFinder {
                 .findFirst();
     }
 
+    public boolean matches(Screen screen, Map<String, Object> selector) {
+        if ("screen".equals(selector.get("type"))) {
+            return screen != null && selector.get("name").equals(screen.getClass().getSimpleName());
+        }
+        if (find(screen, selector).isPresent()) {
+            return true;
+        }
+        String expectedName = (String) selector.get("name");
+        return "label".equals(selector.get("type")) && expectedName.equals(connectScreenStatus(screen));
+    }
+
     public List<String> visibleWidgets(Screen screen) {
         if (screen == null) {
             return List.of();
         }
-        return widgets(screen).stream()
+        List<String> visible = new ArrayList<>();
+        String connectStatus = connectScreenStatus(screen);
+        if (connectStatus != null) {
+            visible.add("label:" + connectStatus);
+        }
+        widgets(screen).stream()
                 .filter(widget -> widget.visible)
                 .map(widget -> widgetType(widget) + ":" + widget.getMessage().getString())
-                .toList();
+                .forEach(visible::add);
+        return List.copyOf(visible);
     }
 
     public String describeVisibleWidgets(Screen screen) {
@@ -46,12 +66,17 @@ public final class WidgetFinder {
         if (screen == null) {
             return dump.toString();
         }
+        String connectStatus = connectScreenStatus(screen);
+        int index = 0;
+        if (connectStatus != null) {
+            dump.append("  [").append(index++).append("] ")
+                    .append("label name=\"").append(connectStatus).append("\"\n");
+        }
         List<AbstractWidget> visible = widgets(screen).stream()
                 .filter(widget -> widget.visible)
                 .toList();
-        for (int i = 0; i < visible.size(); i++) {
-            AbstractWidget widget = visible.get(i);
-            dump.append("  [").append(i).append("] ")
+        for (AbstractWidget widget : visible) {
+            dump.append("  [").append(index++).append("] ")
                     .append(widgetType(widget))
                     .append(" name=\"").append(widget.getMessage().getString()).append('"')
                     .append(" active=").append(widget.active)
@@ -63,6 +88,18 @@ public final class WidgetFinder {
                     .append(")\n");
         }
         return dump.toString();
+    }
+
+    private static String connectScreenStatus(Screen screen) {
+        if (!(screen instanceof ConnectScreen connectScreen)) {
+            return null;
+        }
+        Component status = connectScreen.status;
+        if (status == null) {
+            return null;
+        }
+        String text = status.getString();
+        return text.isBlank() ? null : text;
     }
 
     private static List<AbstractWidget> widgets(ContainerEventHandler root) {
@@ -91,6 +128,7 @@ public final class WidgetFinder {
             case "cycle" -> widget instanceof CycleButton<?>;
             case "tab" -> widget instanceof TabButton;
             case "editbox" -> widget instanceof EditBox;
+            case "label" -> widget instanceof StringWidget;
             default -> false;
         };
     }
@@ -107,6 +145,9 @@ public final class WidgetFinder {
         }
         if (widget instanceof EditBox) {
             return "editbox";
+        }
+        if (widget instanceof StringWidget) {
+            return "label";
         }
         return widget.getClass().getSimpleName();
     }

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -299,7 +300,7 @@ class ScenarioCompilerTest {
                 ---
                 steps:
                   - assertVisible:
-                      type: label
+                      type: slider
                       name: Heading
                 """);
 
@@ -309,7 +310,78 @@ class ScenarioCompilerTest {
                 () -> new ScenarioCompiler(catalog).compile("test")
         );
 
-        assertTrue(exception.getMessage().contains("supported types: [button, cycle, tab, editbox]"));
+        assertTrue(exception.getMessage().contains("supported types: [button, cycle, tab, editbox, label, screen]"));
+    }
+
+    @Test
+    void compilesLabelSelector(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - assertVisible:
+                      type: label
+                      name: Heading
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(1, plan.steps().size());
+        assertEquals("label", plan.steps().get(0).arguments().get("type"));
+        assertEquals("Heading", plan.steps().get(0).arguments().get("name"));
+    }
+
+    @Test
+    void compilesScreenSelector(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - assertVisible:
+                      type: screen
+                      name: LevelLoadingScreen
+                  - waitUntil:
+                      notVisible:
+                        type: screen
+                        name: LevelLoadingScreen
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(2, plan.steps().size());
+        assertEquals("screen", plan.steps().get(0).arguments().get("type"));
+        assertEquals("LevelLoadingScreen", plan.steps().get(0).arguments().get("name"));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> notVisible = (Map<String, Object>) plan.steps().get(1).arguments().get("notVisible");
+        assertEquals("screen", notVisible.get("type"));
+        assertEquals("LevelLoadingScreen", notVisible.get("name"));
+        assertEquals("waitUntil notVisible \"LevelLoadingScreen\"", plan.steps().get(1).displayName());
+    }
+
+    @Test
+    void rejectsClickOnScreenSelector(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - click:
+                      type: screen
+                      name: TitleScreen
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("step 'click' cannot target type 'screen'"));
     }
 
     @Test
@@ -438,7 +510,7 @@ class ScenarioCompilerTest {
 
         ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(scenarioRoot)).compile("joinVanillaServer");
 
-        assertEquals(11, plan.steps().size());
+        assertEquals(14, plan.steps().size());
         assertEquals("startVanillaServer", plan.steps().get(1).name());
         assertEquals("editbox", plan.steps().get(6).arguments().get("type"));
         assertEquals("Server Address", plan.steps().get(6).arguments().get("name"));
@@ -447,6 +519,14 @@ class ScenarioCompilerTest {
         assertEquals("keyboardInput", plan.steps().get(8).name());
         assertEquals("localhost:25565", plan.steps().get(8).arguments().get("text"));
         assertEquals("keyboardInput \"localhost:25565\"", plan.steps().get(8).displayName());
+        assertEquals("waitUntil", plan.steps().get(11).name());
+        @SuppressWarnings("unchecked")
+        Map<String, Object> notVisible = (Map<String, Object>) plan.steps().get(11).arguments().get("notVisible");
+        assertEquals("screen", notVisible.get("type"));
+        assertEquals("LevelLoadingScreen", notVisible.get("name"));
+        assertEquals("waitUntil notVisible \"LevelLoadingScreen\"", plan.steps().get(11).displayName());
+        assertEquals("debugScreen", plan.steps().get(12).name());
+        assertEquals("captureScreenshot", plan.steps().get(13).name());
     }
 
     @Test
@@ -571,6 +651,147 @@ class ScenarioCompilerTest {
         );
 
         assertTrue(exception.getMessage().contains("keyboardInput requires a non-empty string 'text'"));
+    }
+
+    @Test
+    void compilesWaitUntilVisible(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - waitUntil:
+                      visible:
+                        type: button
+                        name: Singleplayer
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(1, plan.steps().size());
+        assertEquals("waitUntil", plan.steps().get(0).name());
+        @SuppressWarnings("unchecked")
+        Map<String, Object> visible = (Map<String, Object>) plan.steps().get(0).arguments().get("visible");
+        assertEquals("button", visible.get("type"));
+        assertEquals("Singleplayer", visible.get("name"));
+        assertEquals("waitUntil visible \"Singleplayer\"", plan.steps().get(0).displayName());
+    }
+
+    @Test
+    void compilesWaitUntilNotVisibleListSelector(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - waitUntil:
+                      notVisible:
+                        - type: label
+                          name: "Connecting to the server..."
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(1, plan.steps().size());
+        @SuppressWarnings("unchecked")
+        Map<String, Object> notVisible = (Map<String, Object>) plan.steps().get(0).arguments().get("notVisible");
+        assertEquals("label", notVisible.get("type"));
+        assertEquals("Connecting to the server...", notVisible.get("name"));
+    }
+
+    @Test
+    void rejectsWaitUntilWithoutCondition(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - waitUntil
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("waitUntil requires exactly one of 'visible' or 'notVisible'"));
+    }
+
+    @Test
+    void rejectsWaitUntilWithBothConditions(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - waitUntil:
+                      visible:
+                        type: button
+                        name: Singleplayer
+                      notVisible:
+                        type: label
+                        name: Heading
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("waitUntil requires exactly one of 'visible' or 'notVisible'"));
+    }
+
+    @Test
+    void rejectsWaitUntilUnknownFields(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - waitUntil:
+                      timeout: 30
+                      notVisible:
+                        type: label
+                        name: Heading
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("waitUntil does not accept 'timeout'"));
+    }
+
+    @Test
+    void rejectsWaitUntilInvalidNestedSelector(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - waitUntil:
+                      notVisible:
+                        type: slider
+                        name: Heading
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("unsupported element type 'slider'"));
     }
 
     private static void write(Path path, String content) throws Exception {

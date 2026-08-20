@@ -13,7 +13,8 @@ public final class ScenarioPrimitives {
             new ClickPrimitive(),
             new CaptureScreenshotPrimitive(),
             new StartVanillaServerPrimitive(),
-            new KeyboardInputPrimitive()
+            new KeyboardInputPrimitive(),
+            new WaitUntilPrimitive()
     ).stream().collect(Collectors.toUnmodifiableMap(ScenarioPrimitive::name, Function.identity()));
 
     private ScenarioPrimitives() {

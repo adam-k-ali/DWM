@@ -18,3 +18,12 @@ steps:
   - assertAndClick:
     - type: button
       name: "Join Server"
+  - assertVisible:
+    - type: screen
+      name: LevelLoadingScreen
+  - waitUntil:
+      notVisible:
+        type: screen
+        name: LevelLoadingScreen
+  - debugScreen
+  - captureScreenshot

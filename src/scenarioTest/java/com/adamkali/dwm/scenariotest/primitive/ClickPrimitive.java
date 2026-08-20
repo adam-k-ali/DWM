@@ -1,5 +1,6 @@
 package com.adamkali.dwm.scenariotest.primitive;
 
+import com.adamkali.dwm.scenariotest.ScenarioException;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -16,7 +17,11 @@ public final class ClickPrimitive extends SelectorPrimitive {
 
     @Override
     public Map<String, Object> validate(Map<String, Object> arguments, String source) {
-        return requireSelector(arguments, source);
+        Map<String, Object> selector = requireSelector(arguments, source);
+        if ("screen".equals(selector.get("type"))) {
+            throw new ScenarioException(source + ": step 'click' cannot target type 'screen'");
+        }
+        return selector;
     }
 
     @Override

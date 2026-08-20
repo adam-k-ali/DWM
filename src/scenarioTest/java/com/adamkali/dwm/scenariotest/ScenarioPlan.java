@@ -18,6 +18,17 @@ public record ScenarioPlan(String id, String name, List<Step> steps) {
             if (detail == null) {
                 detail = arguments.get("text");
             }
+            if (detail == null) {
+                for (String condition : List.of("visible", "notVisible")) {
+                    Object nested = arguments.get(condition);
+                    if (nested instanceof Map<?, ?> selector) {
+                        Object nestedName = selector.get("name");
+                        if (nestedName != null) {
+                            return name + " " + condition + " \"" + nestedName + "\"";
+                        }
+                    }
+                }
+            }
             return detail == null ? name : name + " \"" + detail + "\"";
         }
     }
