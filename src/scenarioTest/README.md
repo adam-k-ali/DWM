@@ -78,6 +78,12 @@ The MVP primitives are:
   process when the scenario finishes. This step does **not** connect the client.
   It uses a 120 second timeout floor; `-PscenarioTimeout` still raises that
   floor when set higher.
+- `createWorld` — opens vanilla Create World, applies the given settings, and
+  waits until the local player is in the loaded world. Omitted keys use
+  test-friendly defaults: superflat, creative, peaceful, commands on. An
+  optional `name` overrides vanilla’s “New World”. This step does **not** click
+  through the Create World tabs. It uses a 120 second timeout floor;
+  `-PscenarioTimeout` still raises that floor when set higher.
 - `keyboardInput` — waits until a focused, editable text field can consume
   input, then types the given string once via real `charTyped` events. It does
   not click or select the field; click the matching `editbox` first.
@@ -104,6 +110,16 @@ The MVP primitives are:
 - startVanillaServer
 - startVanillaServer:
     port: 25565
+```
+
+```yaml
+- createWorld
+- createWorld:
+    worldType: superflat
+    gameMode: creative
+    difficulty: peaceful
+    allowCommands: true
+    name: Scenario World
 ```
 
 ```yaml

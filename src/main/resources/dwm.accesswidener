@@ -4,3 +4,4 @@ accessible	method	net/minecraft/client/Camera	setPosition	(DDD)V
 accessible	method	net/minecraft/client/Camera	setPosition	(Lnet/minecraft/world/phys/Vec3;)V
 accessible	method	net/minecraft/client/Camera	setRotation	(FF)V
 accessible	field	net/minecraft/client/gui/screens/ConnectScreen	status	Lnet/minecraft/network/chat/Component;
+accessible	method	net/minecraft/client/gui/screens/worldselection/CreateWorldScreen	onCreate	()V

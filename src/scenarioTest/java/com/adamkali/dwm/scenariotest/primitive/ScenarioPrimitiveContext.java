@@ -1,5 +1,6 @@
 package com.adamkali.dwm.scenariotest.primitive;
 
+import com.adamkali.dwm.scenariotest.CreateWorldProcess;
 import com.adamkali.dwm.scenariotest.ScenarioPlan;
 import com.adamkali.dwm.scenariotest.ScreenshotCapture;
 import com.adamkali.dwm.scenariotest.VanillaServerProcess;
@@ -16,6 +17,7 @@ public record ScenarioPrimitiveContext(
         WidgetFinder widgetFinder,
         ScreenshotCapture screenshotCapture,
         VanillaServerProcess vanillaServer,
+        CreateWorldProcess createWorld,
         Logger logger
 ) {
     public Screen screen() {

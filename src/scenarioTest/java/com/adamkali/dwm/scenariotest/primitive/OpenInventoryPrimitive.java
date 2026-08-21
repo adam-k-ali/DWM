@@ -1,6 +1,8 @@
 package com.adamkali.dwm.scenariotest.primitive;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 
 import java.util.Map;
@@ -18,7 +20,7 @@ public final class OpenInventoryPrimitive extends NoArgPrimitive {
 
     @Override
     public boolean execute(ScenarioPrimitiveContext context) {
-        if (context.screen() instanceof InventoryScreen) {
+        if (isInventoryScreen(context.screen())) {
             return true;
         }
         Minecraft client = context.client();
@@ -27,6 +29,10 @@ public final class OpenInventoryPrimitive extends NoArgPrimitive {
         }
         context.logger().info("Opening inventory on {}", client.player.getName().getString());
         client.gui.setScreen(new InventoryScreen(client.player));
-        return context.screen() instanceof InventoryScreen;
+        return isInventoryScreen(context.screen());
+    }
+
+    private static boolean isInventoryScreen(Screen screen) {
+        return screen instanceof InventoryScreen || screen instanceof CreativeModeInventoryScreen;
     }
 }

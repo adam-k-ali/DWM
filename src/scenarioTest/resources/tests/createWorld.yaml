@@ -4,18 +4,8 @@ type: test
 ---
 steps:
   - launchGame
-  - assertAndClick:
-    - type: button
-      name: "Singleplayer"
-  - assertAndClick:
-    - type: tab
-      name: "World"
-  - assertAndClick:
-    - type: cycle
-      name: "World Type: Default"
-  - assertVisible:
-    - type: cycle
-      name: "World Type: Superflat"
-  - assertAndClick:
-    - type: button
-      name: "Create New World"
+  - createWorld:
+      worldType: superflat
+      gameMode: creative
+  - openInventory
+  - captureScreenshot

@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -19,9 +20,14 @@ class ScenarioCompilerTest {
 
         ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(scenarioRoot)).compile("createWorld");
 
-        assertEquals(10, plan.steps().size());
-        assertEquals("tab", plan.steps().get(3).arguments().get("type"));
-        assertEquals("cycle", plan.steps().get(5).arguments().get("type"));
+        assertEquals(4, plan.steps().size());
+        assertEquals("createWorld", plan.steps().get(1).name());
+        assertEquals("flat", plan.steps().get(1).arguments().get("worldType"));
+        assertEquals("creative", plan.steps().get(1).arguments().get("gameMode"));
+        assertEquals("peaceful", plan.steps().get(1).arguments().get("difficulty"));
+        assertEquals(true, plan.steps().get(1).arguments().get("allowCommands"));
+        assertEquals("openInventory", plan.steps().get(2).name());
+        assertEquals("captureScreenshot", plan.steps().get(3).name());
     }
 
     @Test
@@ -543,6 +549,121 @@ class ScenarioCompilerTest {
         );
 
         assertTrue(exception.getMessage().contains("startVanillaServer does not accept 'type'"));
+    }
+
+    @Test
+    void compilesCreateWorldAsANoArgPrimitive(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - launchGame
+                  - createWorld
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(2, plan.steps().size());
+        assertEquals("createWorld", plan.steps().get(1).name());
+        assertEquals("flat", plan.steps().get(1).arguments().get("worldType"));
+        assertEquals("creative", plan.steps().get(1).arguments().get("gameMode"));
+        assertEquals("peaceful", plan.steps().get(1).arguments().get("difficulty"));
+        assertEquals(true, plan.steps().get(1).arguments().get("allowCommands"));
+        assertFalse(plan.steps().get(1).arguments().containsKey("name"));
+    }
+
+    @Test
+    void compilesCreateWorldWithSettings(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - createWorld:
+                      worldType: superflat
+                      gameMode: creative
+                      difficulty: peaceful
+                      allowCommands: true
+                      name: Scenario World
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(1, plan.steps().size());
+        assertEquals("createWorld", plan.steps().get(0).name());
+        assertEquals("flat", plan.steps().get(0).arguments().get("worldType"));
+        assertEquals("creative", plan.steps().get(0).arguments().get("gameMode"));
+        assertEquals("peaceful", plan.steps().get(0).arguments().get("difficulty"));
+        assertEquals(true, plan.steps().get(0).arguments().get("allowCommands"));
+        assertEquals("Scenario World", plan.steps().get(0).arguments().get("name"));
+        assertEquals("createWorld \"Scenario World\"", plan.steps().get(0).displayName());
+    }
+
+    @Test
+    void rejectsCreateWorldUnknownFields(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - createWorld:
+                      type: button
+                      worldType: superflat
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("createWorld does not accept 'type'"));
+    }
+
+    @Test
+    void rejectsCreateWorldInvalidGameMode(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - createWorld:
+                      gameMode: adventure
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("createWorld gameMode must be one of"));
+    }
+
+    @Test
+    void rejectsCreateWorldBlankName(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - createWorld:
+                      name: "  "
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("createWorld name must be a non-empty string"));
     }
 
     @Test

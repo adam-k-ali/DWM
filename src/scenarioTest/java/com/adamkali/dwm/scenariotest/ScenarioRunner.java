@@ -18,6 +18,7 @@ final class ScenarioRunner {
     private final WidgetFinder widgetFinder = new WidgetFinder();
     private final ScreenshotCapture screenshotCapture;
     private final VanillaServerProcess vanillaServer;
+    private final CreateWorldProcess createWorld;
     private final Logger logger;
     private final List<ScenarioReportWriter.StepResult> results = new ArrayList<>();
 
@@ -38,6 +39,7 @@ final class ScenarioRunner {
         this.logger = logger;
         this.screenshotCapture = new ScreenshotCapture(logger);
         this.vanillaServer = new VanillaServerProcess(logger);
+        this.createWorld = new CreateWorldProcess(logger);
     }
 
     void tick(Minecraft client) {
@@ -91,7 +93,7 @@ final class ScenarioRunner {
             throw new ScenarioException("Unsupported primitive step '" + step.name() + "'");
         }
         return primitive.execute(new ScenarioPrimitiveContext(
-                client, step, widgetFinder, screenshotCapture, vanillaServer, logger));
+                client, step, widgetFinder, screenshotCapture, vanillaServer, createWorld, logger));
     }
 
     private Duration timeoutFor(ScenarioPlan.Step step) {

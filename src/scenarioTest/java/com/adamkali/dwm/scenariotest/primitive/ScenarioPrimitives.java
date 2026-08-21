@@ -13,6 +13,7 @@ public final class ScenarioPrimitives {
             new ClickPrimitive(),
             new CaptureScreenshotPrimitive(),
             new StartVanillaServerPrimitive(),
+            new CreateWorldPrimitive(),
             new KeyboardInputPrimitive(),
             new WaitUntilPrimitive(),
             new OpenInventoryPrimitive()
