@@ -15,6 +15,7 @@ public final class ScenarioPrimitives {
             new StartVanillaServerPrimitive(),
             new CreateWorldPrimitive(),
             new KeyboardInputPrimitive(),
+            new RunCommandPrimitive(),
             new WaitUntilPrimitive(),
             new OpenInventoryPrimitive()
     ).stream().collect(Collectors.toUnmodifiableMap(ScenarioPrimitive::name, Function.identity()));

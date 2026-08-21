@@ -818,6 +818,130 @@ class ScenarioCompilerTest {
     }
 
     @Test
+    void compilesRunCommandWithCommandMap(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - runCommand:
+                      command: "/give @s minecraft:diamond 1"
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(1, plan.steps().size());
+        assertEquals("runCommand", plan.steps().get(0).name());
+        assertEquals("/give @s minecraft:diamond 1", plan.steps().get(0).arguments().get("command"));
+        assertFalse(plan.steps().get(0).arguments().containsKey("text"));
+        assertEquals("runCommand \"/give @s minecraft:diamond 1\"", plan.steps().get(0).displayName());
+    }
+
+    @Test
+    void compilesRunCommandScalar(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - runCommand: "/give @s minecraft:diamond 1"
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(1, plan.steps().size());
+        assertEquals("runCommand", plan.steps().get(0).name());
+        assertEquals("/give @s minecraft:diamond 1", plan.steps().get(0).arguments().get("command"));
+        assertFalse(plan.steps().get(0).arguments().containsKey("text"));
+        assertEquals("runCommand \"/give @s minecraft:diamond 1\"", plan.steps().get(0).displayName());
+    }
+
+    @Test
+    void rejectsRunCommandBlankCommand(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - runCommand:
+                      command: "  "
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("runCommand requires a non-empty string 'command'"));
+    }
+
+    @Test
+    void rejectsRunCommandUnknownFields(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - runCommand:
+                      name: Server Address
+                      command: "/give @s diamond"
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("runCommand does not accept 'name'"));
+    }
+
+    @Test
+    void rejectsRunCommandWithoutCommand(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - runCommand
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("runCommand requires a non-empty string 'command'"));
+    }
+
+    @Test
+    void rejectsRunCommandOverlongCommand(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - runCommand: "%s"
+                """.formatted("a".repeat(257)));
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("runCommand must be at most 256 characters"));
+    }
+
+    @Test
     void compilesWaitUntilVisible(@TempDir Path root) throws Exception {
         write(root.resolve("test.yaml"), """
                 ---

@@ -19,6 +19,9 @@ public record ScenarioPlan(String id, String name, List<Step> steps) {
                 detail = arguments.get("text");
             }
             if (detail == null) {
+                detail = arguments.get("command");
+            }
+            if (detail == null) {
                 for (String condition : List.of("visible", "notVisible")) {
                     Object nested = arguments.get(condition);
                     if (nested instanceof Map<?, ?> selector) {

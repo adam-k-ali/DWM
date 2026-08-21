@@ -94,6 +94,13 @@ The MVP primitives are:
 - `openInventory` — waits until a local player exists, then opens the survival
   or creative inventory GUI. It takes no arguments. If the inventory is already
   showing, the step succeeds without reopening it.
+- `runCommand` — waits until a local player and play connection exist, then
+  sends an in-game slash command as that player (the same path as typing `/give`
+  in chat, without opening the chat GUI). The step succeeds as soon as the
+  command packet is sent; it does not wait for success chat or inventory
+  updates. Cheats (singleplayer) or operator (dedicated server) are required
+  for privileged commands such as `/give`. `startVanillaServer` does not OP
+  the player.
 
 ```yaml
 - waitUntil:
@@ -126,6 +133,12 @@ The MVP primitives are:
 - keyboardInput: "localhost:25565"
 - keyboardInput:
     text: "localhost:25565"
+```
+
+```yaml
+- runCommand: "/give @s minecraft:diamond 1"
+- runCommand:
+    command: "/give @s minecraft:diamond 1"
 ```
 
 ```yaml
