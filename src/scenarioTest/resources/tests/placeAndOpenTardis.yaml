@@ -1,0 +1,40 @@
+---
+name: Place and Open TARDIS
+type: test
+---
+steps:
+  - launchGame
+  - createWorld:
+      worldType: superflat
+      gameMode: creative
+  - closeScreen
+  - runCommand: "/time set day"
+  - runCommand: "/give @s dwm:tardis_block"
+  - waitUntil:
+      holding: dwm:tardis_block
+  - selectHotbar: 0
+  - lookAt:
+      x: "~1"
+      y: "~-1"
+      z: "~"
+  - useItem
+  - waitUntil:
+      block:
+        id: dwm:tardis_block
+        x: "~1"
+        y: "~"
+        z: "~"
+  - selectHotbar: 1
+  - lookAt:
+      x: "~1"
+      y: "~"
+      z: "~"
+  - useItem
+  - waitTicks: 25
+  - runCommand: "/tp @s ~-3 ~1 ~"
+  - lookAt:
+      x: "~3"
+      y: "~"
+      z: "~"
+  - captureScreenshot:
+      name: tardis-door-open

@@ -24,6 +24,9 @@ public record ScenarioPlan(String id, String name, List<Step> steps) {
             if (detail == null) {
                 detail = arguments.get("slot");
             }
+            if (detail == null) {
+                detail = arguments.get("ticks");
+            }
             if (arguments.containsKey("holding")) {
                 return name + " holding \"" + arguments.get("holding") + "\"";
             }

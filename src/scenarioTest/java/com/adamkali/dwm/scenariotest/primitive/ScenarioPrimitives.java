@@ -17,6 +17,7 @@ public final class ScenarioPrimitives {
             new KeyboardInputPrimitive(),
             new RunCommandPrimitive(),
             new WaitUntilPrimitive(),
+            new WaitTicksPrimitive(),
             new OpenInventoryPrimitive(),
             new CloseScreenPrimitive(),
             new SelectHotbarPrimitive(),

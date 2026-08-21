@@ -94,6 +94,10 @@ The MVP primitives are:
   tick, including if it has not appeared yet. Item and block ids may omit
   `minecraft:`. Block coordinates use the same relative/absolute rules as
   `lookAt`.
+- `waitTicks` — waits until the client world's game time has advanced by the
+  given number of ticks. A scalar positive integer is accepted
+  (`waitTicks: 25`), or an object with `ticks`. Use this for short animations
+  that have no `waitUntil` condition (for example door swing).
 - `openInventory` — waits until a local player exists, then opens the survival
   or creative inventory GUI. It takes no arguments. If the inventory is already
   showing, the step succeeds without reopening it.
@@ -153,6 +157,9 @@ The MVP primitives are:
     yaw: 90
     pitch: 45
 - useItem
+- waitTicks: 25
+- waitTicks:
+    ticks: 25
 ```
 
 ```yaml
