@@ -1,0 +1,27 @@
+---
+name: Place Block
+type: test
+---
+steps:
+  - launchGame
+  - createWorld:
+      worldType: superflat
+      gameMode: creative
+  - closeScreen
+  - runCommand: "/give @s minecraft:dirt"
+  - waitUntil:
+      holding: minecraft:dirt
+  - selectHotbar: 0
+  - lookAt:
+      x: "~1"
+      y: "~-1"
+      z: "~"
+  - useItem
+  - waitUntil:
+      block:
+        id: minecraft:dirt
+        x: "~1"
+        y: "~"
+        z: "~"
+  - captureScreenshot:
+      name: placed-dirt

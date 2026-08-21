@@ -1006,7 +1006,7 @@ class ScenarioCompilerTest {
                 () -> new ScenarioCompiler(catalog).compile("test")
         );
 
-        assertTrue(exception.getMessage().contains("waitUntil requires exactly one of 'visible' or 'notVisible'"));
+        assertTrue(exception.getMessage().contains("waitUntil requires exactly one of"));
     }
 
     @Test
@@ -1032,7 +1032,7 @@ class ScenarioCompilerTest {
                 () -> new ScenarioCompiler(catalog).compile("test")
         );
 
-        assertTrue(exception.getMessage().contains("waitUntil requires exactly one of 'visible' or 'notVisible'"));
+        assertTrue(exception.getMessage().contains("waitUntil requires exactly one of"));
     }
 
     @Test
@@ -1080,6 +1080,147 @@ class ScenarioCompilerTest {
         );
 
         assertTrue(exception.getMessage().contains("unsupported element type 'slider'"));
+    }
+
+    @Test
+    void compilesBundledPlaceBlockScenario() throws URISyntaxException {
+        Path scenarioRoot = Path.of(getClass().getResource("/tests").toURI());
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(scenarioRoot)).compile("placeBlock");
+
+        assertEquals(10, plan.steps().size());
+        assertEquals("createWorld", plan.steps().get(1).name());
+        assertEquals("closeScreen", plan.steps().get(2).name());
+        assertEquals("runCommand", plan.steps().get(3).name());
+        assertEquals("waitUntil holding \"minecraft:dirt\"", plan.steps().get(4).displayName());
+        assertEquals(0, plan.steps().get(5).arguments().get("slot"));
+        assertEquals("~1", plan.steps().get(6).arguments().get("x"));
+        assertEquals("useItem", plan.steps().get(7).name());
+        assertEquals("waitUntil block \"minecraft:dirt\"", plan.steps().get(8).displayName());
+        assertEquals("placed-dirt.png", plan.steps().get(9).arguments().get("name"));
+    }
+
+    @Test
+    void compilesCloseScreenAndUseItemAsNoArgPrimitives(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - closeScreen
+                  - useItem
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(2, plan.steps().size());
+        assertEquals("closeScreen", plan.steps().get(0).name());
+        assertTrue(plan.steps().get(0).arguments().isEmpty());
+        assertEquals("useItem", plan.steps().get(1).name());
+        assertTrue(plan.steps().get(1).arguments().isEmpty());
+    }
+
+    @Test
+    void rejectsCloseScreenArguments(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - closeScreen:
+                      type: button
+                      name: Singleplayer
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("closeScreen does not accept arguments"));
+    }
+
+    @Test
+    void compilesSelectHotbarFromSlotAndScalar(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - selectHotbar:
+                      slot: 3
+                  - selectHotbar: 0
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(2, plan.steps().size());
+        assertEquals(3, plan.steps().get(0).arguments().get("slot"));
+        assertEquals("selectHotbar \"3\"", plan.steps().get(0).displayName());
+        assertEquals(0, plan.steps().get(1).arguments().get("slot"));
+        assertEquals("selectHotbar \"0\"", plan.steps().get(1).displayName());
+    }
+
+    @Test
+    void compilesLookAtCoordinatesAndRotation(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - lookAt:
+                      x: "~1"
+                      y: "~-1"
+                      z: "~"
+                  - lookAt:
+                      yaw: 90
+                      pitch: 45
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(2, plan.steps().size());
+        assertEquals("~1", plan.steps().get(0).arguments().get("x"));
+        assertEquals("~-1", plan.steps().get(0).arguments().get("y"));
+        assertEquals("~", plan.steps().get(0).arguments().get("z"));
+        assertEquals("lookAt \"~1 ~-1 ~\"", plan.steps().get(0).displayName());
+        assertEquals(90.0F, plan.steps().get(1).arguments().get("yaw"));
+        assertEquals(45.0F, plan.steps().get(1).arguments().get("pitch"));
+    }
+
+    @Test
+    void compilesWaitUntilHoldingAndBlock(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - waitUntil:
+                      holding: dirt
+                  - waitUntil:
+                      block:
+                        id: minecraft:dirt
+                        x: "~1"
+                        y: "~"
+                        z: "~"
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(2, plan.steps().size());
+        assertEquals("minecraft:dirt", plan.steps().get(0).arguments().get("holding"));
+        assertEquals("waitUntil holding \"minecraft:dirt\"", plan.steps().get(0).displayName());
+        @SuppressWarnings("unchecked")
+        Map<String, Object> block = (Map<String, Object>) plan.steps().get(1).arguments().get("block");
+        assertEquals("minecraft:dirt", block.get("id"));
+        assertEquals("~", block.get("y"));
+        assertEquals("waitUntil block \"minecraft:dirt\"", plan.steps().get(1).displayName());
     }
 
     private static void write(Path path, String content) throws Exception {

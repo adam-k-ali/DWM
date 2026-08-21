@@ -87,13 +87,32 @@ The MVP primitives are:
 - `keyboardInput` — waits until a focused, editable text field can consume
   input, then types the given string once via real `charTyped` events. It does
   not click or select the field; click the matching `editbox` first.
-- `waitUntil` — polls until a nested selector is `visible` or `notVisible`.
-  Exactly one condition is required. `visible` is equivalent to `assertVisible`.
+- `waitUntil` — polls until exactly one condition is true: a nested selector is
+  `visible` or `notVisible`, the main hand is `holding` an item id, or a
+  `block` id is at `x`/`y`/`z`. `visible` is equivalent to `assertVisible`.
   `notVisible` succeeds as soon as the selector does not match on the current
-  tick, including if it has not appeared yet.
+  tick, including if it has not appeared yet. Item and block ids may omit
+  `minecraft:`. Block coordinates use the same relative/absolute rules as
+  `lookAt`.
 - `openInventory` — waits until a local player exists, then opens the survival
   or creative inventory GUI. It takes no arguments. If the inventory is already
   showing, the step succeeds without reopening it.
+- `closeScreen` — waits until a local player exists, then closes the current
+  GUI (`setScreen(null)` / `closeContainer()`). If no screen is open, the step
+  succeeds without changing anything. World actions such as `useItem` wait
+  until the screen is gone.
+- `selectHotbar` — waits until a local player and play connection exist, then
+  selects hotbar slot `0`–`8` and syncs that slot to the server. A scalar
+  integer is accepted.
+- `lookAt` — waits until a local player exists, then aims the camera. Supply
+  either `yaw` and `pitch`, or block coordinates `x`, `y`, and `z`. Coordinate
+  components may be absolute integers or relative (`"~"`, `"~1"`, `"~-1"`).
+  Quote `"~"` in YAML; a bare `~` is YAML null. Relative values use the
+  player's block position. Pitch must be between `-90` and `90`.
+- `useItem` — waits until a local player, game mode, no open screen, and a
+  block crosshair hit exist, then uses the main-hand item on that block (the
+  same path as right-click place/interact). It succeeds as soon as the use is
+  sent; it does not wait for the world to update. Pair with `waitUntil.block`.
 - `runCommand` — waits until a local player and play connection exist, then
   sends an in-game slash command as that player (the same path as typing `/give`
   in chat, without opening the chat GUI). The step succeeds as soon as the
@@ -111,6 +130,29 @@ The MVP primitives are:
     notVisible:
       type: screen
       name: LevelLoadingScreen
+- waitUntil:
+    holding: minecraft:dirt
+- waitUntil:
+    block:
+      id: minecraft:dirt
+      x: "~1"
+      y: "~"
+      z: "~"
+```
+
+```yaml
+- closeScreen
+- selectHotbar: 0
+- selectHotbar:
+    slot: 3
+- lookAt:
+    x: "~1"
+    y: "~-1"
+    z: "~"
+- lookAt:
+    yaw: 90
+    pitch: 45
+- useItem
 ```
 
 ```yaml

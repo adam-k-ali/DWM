@@ -184,6 +184,9 @@ public final class ScenarioCatalog {
         if (value instanceof String text) {
             return Map.of("text", text);
         }
+        if (value instanceof Number number) {
+            return Map.of("text", number.toString());
+        }
         if (value instanceof List<?> list) {
             if (list.size() != 1) {
                 throw new ScenarioException(source + ": step '" + step

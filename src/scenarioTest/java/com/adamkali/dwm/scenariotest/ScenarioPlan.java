@@ -22,6 +22,22 @@ public record ScenarioPlan(String id, String name, List<Step> steps) {
                 detail = arguments.get("command");
             }
             if (detail == null) {
+                detail = arguments.get("slot");
+            }
+            if (arguments.containsKey("holding")) {
+                return name + " holding \"" + arguments.get("holding") + "\"";
+            }
+            if (arguments.get("block") instanceof Map<?, ?> block && block.get("id") != null) {
+                return name + " block \"" + block.get("id") + "\"";
+            }
+            if (arguments.containsKey("x")) {
+                return name + " \"" + arguments.get("x") + " " + arguments.get("y") + " "
+                        + arguments.get("z") + "\"";
+            }
+            if (arguments.containsKey("yaw")) {
+                return name + " \"" + arguments.get("yaw") + " " + arguments.get("pitch") + "\"";
+            }
+            if (detail == null) {
                 for (String condition : List.of("visible", "notVisible")) {
                     Object nested = arguments.get(condition);
                     if (nested instanceof Map<?, ?> selector) {

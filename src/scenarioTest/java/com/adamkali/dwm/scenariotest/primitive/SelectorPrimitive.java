@@ -19,16 +19,21 @@ public abstract class SelectorPrimitive implements ScenarioPrimitive {
     static Map<String, Object> validateSelector(Map<String, Object> arguments, String source, String step) {
         for (String key : arguments.keySet()) {
             if (!SELECTOR_FIELDS.contains(key)) {
-                throw new ScenarioException(source + ": step '" + step + "' has unknown selector field '" + key + "'");
+                throw new ScenarioException(qualify(source,
+                        "step '" + step + "' has unknown selector field '" + key + "'"));
             }
         }
         requireSelectorString(arguments, "type", step, source);
         requireSelectorString(arguments, "name", step, source);
         if (!SELECTOR_TYPES.contains(arguments.get("type"))) {
-            throw new ScenarioException(source + ": unsupported element type '" + arguments.get("type")
-                    + "'; supported types: " + SELECTOR_TYPE_LIST);
+            throw new ScenarioException(qualify(source, "unsupported element type '" + arguments.get("type")
+                    + "'; supported types: " + SELECTOR_TYPE_LIST));
         }
         return arguments;
+    }
+
+    private static String qualify(String source, String message) {
+        return source == null || source.isBlank() ? message : source + ": " + message;
     }
 
     private static void requireSelectorString(
@@ -39,7 +44,8 @@ public abstract class SelectorPrimitive implements ScenarioPrimitive {
     ) {
         Object value = arguments.get(key);
         if (!(value instanceof String string) || string.isBlank()) {
-            throw new ScenarioException(source + ": step '" + step + "' requires a non-empty string '" + key + "'");
+            throw new ScenarioException(qualify(source,
+                    "step '" + step + "' requires a non-empty string '" + key + "'"));
         }
     }
 }

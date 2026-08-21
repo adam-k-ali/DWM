@@ -17,7 +17,11 @@ public final class ScenarioPrimitives {
             new KeyboardInputPrimitive(),
             new RunCommandPrimitive(),
             new WaitUntilPrimitive(),
-            new OpenInventoryPrimitive()
+            new OpenInventoryPrimitive(),
+            new CloseScreenPrimitive(),
+            new SelectHotbarPrimitive(),
+            new LookAtPrimitive(),
+            new UseItemPrimitive()
     ).stream().collect(Collectors.toUnmodifiableMap(ScenarioPrimitive::name, Function.identity()));
 
     private ScenarioPrimitives() {
