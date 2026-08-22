@@ -150,14 +150,11 @@ tasks.named("runScenarioTest").configure {
             if (!linux) {
                 throw new GradleException("scenarioDisplay=xvfb is only supported on Linux.")
             }
-            def whichOut = new ByteArrayOutputStream()
-            def whichResult = project.exec {
-                commandLine "which", "xvfb-run"
-                standardOutput = whichOut
-                errorOutput = OutputStream.nullOutputStream()
-                ignoreExitValue = true
-            }
-            if (whichResult.exitValue != 0) {
+            def which = new ProcessBuilder("which", "xvfb-run")
+                    .redirectErrorStream(true)
+                    .start()
+            which.waitFor()
+            if (which.exitValue() != 0) {
                 throw new GradleException(
                         "scenarioDisplay=xvfb requires xvfb-run on PATH. "
                                 + "Install with: apt install xvfb")
