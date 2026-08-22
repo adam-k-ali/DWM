@@ -6,12 +6,19 @@
 - Current target stack is defined in `gradle.properties` and `build.gradle` (Minecraft, Yarn mappings, Fabric Loader, Fabric API).
 - Objective: maximize safe, repeatable AI-agent-driven development with strong automated verification.
 
-## Codebase Structure
-- `src/main/java`: Common logic that must remain safe on both logical client and logical server.
-- `src/client/java`: Client-only logic (rendering, client integration, client UI/state).
-- `src/test/java`: Automated tests (JUnit and related support code).
-- `src/main/resources`: Common resources (`fabric.mod.json`, data, tags, recipes, structures, lang, worldgen).
-- `src/client/resources`: Client assets (models, blockstates, textures, sounds, item models).
+## Repository Map
+- `src/main/java`: Common logic safe on both logical client and logical server (`com.adamkali.dwm.*`).
+- `src/client/java`: Client-only logic (rendering, HUD, client integration).
+- `src/test/java`: JUnit 5 unit tests and scenario compiler/primitive tests.
+- `src/scenarioTest/`: Local-only Fabric test mod — YAML-driven real-client scenarios (not shipped in the mod jar).
+- `src/main/resources`: Common resources (`fabric.mod.json`, data, tags, recipes, lang, worldgen).
+- `src/main/generated/`: Datagen output — commit intentional changes; delete `.cache/` before commit.
+- `src/client/resources`: Hand-maintained client assets (models, blockstates, textures, sounds).
+- `docs/`: Product-facing feature docs and release policy — read before changing player-visible behaviour.
+- `tools/`: Offline Python scripts (TARDIS SFX generation/analysis); not part of Gradle build.
+- `metadata/`: Modrinth listing (`modrinth.json`, `modrinth-body.md`).
+- `.cursor/skills/`: Agent skills for GameTests, asset import, Blockbench models, MCP verify, etc.
+- `version.json`: Release changelog and Modrinth/CurseForge promos — synced via `./gradlew syncVersionJson`.
 
 ## Agent-First Engineering Principles
 - Prefer small, focused, reviewable diffs over broad rewrites.
@@ -58,9 +65,9 @@
 - If no automated test is added, explicitly state why and what test should be added later.
 
 ## Testing Expectations
-- Unit tests: use JUnit 5 (`fabric-loader-junit` already configured) for core logic and utility behavior.
-- Integration-style tests: use for cross-component behavior where pure unit tests are insufficient.
-- GameTests: use for world/gameplay interactions that require real game context.
+- **Unit tests** (`./gradlew test`): JUnit 5 via `fabric-loader-junit` for logic, codecs, datagen helpers, and scenario compiler/primitives. Included in `./gradlew build` and CI.
+- **GameTests** (`./gradlew runGametest`): Headless dedicated-server in-world tests in `src/main/java/.../gametest/`. Not run by CI today — run locally when GameTest code changes. See `.cursor/skills/fabric-gametest/SKILL.md`.
+- **YAML scenario tests** (`./gradlew runScenarioTest -Pscenario=<id>`): Real Minecraft client driven from YAML in `src/scenarioTest/resources/tests/`. Requires a display; not in CI. See `src/scenarioTest/AGENTS.md`.
 - Keep test runs reproducible and suitable for unattended agent execution.
 
 ## Automation Pipeline For Agents
@@ -74,9 +81,12 @@
 
 ## Build/Test/Validation
 - Main automated commands:
-  - `./gradlew test`
-  - `./gradlew build`
-  - `./gradlew runDatagen` (only when data-driven assets/providers are touched)
+  - `./gradlew test` — JUnit suite
+  - `./gradlew build` — compile all source sets + JUnit (CI gate)
+  - `./gradlew runDatagen` — regenerate `src/main/generated/` (only when datagen providers or promoted assets change); finalized by `pruneDatagenItemModels`
+  - `./gradlew runGametest` — headless GameTests → `build/gametest/report.xml`
+  - `./gradlew runScenarioTest -Pscenario=<yaml-stem>` — client YAML scenarios → `build/scenario-test/report.xml` (display required)
+  - `./gradlew syncVersionJson` / `checkVersionSync` — keep `version.json` aligned with `gradle.properties`
 - If a command fails, surface the failure clearly and fix root causes before handoff where possible.
 
 ## Releases / CI
@@ -126,6 +136,13 @@ After creating or updating a pull request, apply the appropriate label(s) using 
 - **`bug`** — the PR fixes a defect / unintended behaviour
 
 A single PR may carry more than one label if it touches multiple categories.
+
+## Nested Context
+- `src/scenarioTest/AGENTS.md` — YAML client scenario framework (primitives, composite commands, Gradle properties).
+- `src/main/java/com/adamkali/dwm/tardis/AGENTS.md` — TARDIS domain layout (logic vs data vs interior vs portal rendering).
+- `tools/AGENTS.md` — offline Python audio tooling and fixture rules.
+- `.cursor/skills/fabric-gametest/SKILL.md` — authoring and registering Fabric GameTests.
+- `.cursor/skills/asset-import-pipeline/SKILL.md` — promoting archive textures and wiring datagen.
 
 ## Cursor Cloud specific instructions
 

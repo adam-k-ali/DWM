@@ -1,0 +1,11 @@
+---
+name: Create World
+type: test
+---
+steps:
+  - launchGame
+  - createWorld:
+      worldType: superflat
+      gameMode: creative
+  - openInventory
+  - captureScreenshot
