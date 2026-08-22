@@ -15,9 +15,24 @@ Run a test by its YAML filename without the extension:
 The client uses an isolated directory under `build/scenario-test/run`. Before
 each run, the harness removes its saved worlds, clears
 `build/scenario-test/vanilla-server/world`, and writes deterministic English
-client options. A display is required.
+client options.
 
-The default per-step timeout is 30 seconds. Override it when debugging:
+### Display modes
+
+Select the framebuffer strategy with `-PscenarioDisplay` (default `display`):
+
+| Value | Behavior |
+| --- | --- |
+| `display` | Real `$DISPLAY` / GLFW window. Fails fast on Linux when `$DISPLAY` is unset. |
+| `xvfb` | Wraps the client with Loom’s `xvfb-run` path (Linux only). Still boots a real client against a virtual framebuffer; requires `xvfb` installed (`apt install xvfb`). Sets soft-GL-friendly client options and `LIBGL_ALWAYS_SOFTWARE=1`. |
+
+```bash
+./gradlew runScenarioTest -Pscenario=createWorld -PscenarioDisplay=display
+./gradlew runScenarioTest -Pscenario=createWorld -PscenarioDisplay=xvfb -PscenarioTimeout=120
+```
+
+The default per-step timeout is 30 seconds. Override it when debugging (or for
+slow soft-GL CI runs):
 
 ```bash
 ./gradlew runScenarioTest -Pscenario=createWorld -PscenarioTimeout=60
