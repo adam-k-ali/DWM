@@ -81,10 +81,13 @@ sourceSets.scenarioTest {
     runtimeClasspath += sourceSets.client.runtimeClasspath
 }
 
+def scenarioDisplayMode = providers.gradleProperty("scenarioDisplay").orElse("display")
+
 tasks.register("prepareScenarioTestRun") {
     def optionsFile = layout.buildDirectory.file("scenario-test/run/options.txt")
     def vanillaServerDir = layout.buildDirectory.dir("scenario-test/vanilla-server")
     def jarPathFile = layout.buildDirectory.file("scenario-test/vanilla-server/server-jar.path")
+    def displayMode = scenarioDisplayMode
     outputs.file(optionsFile)
     outputs.file(jarPathFile)
     outputs.upToDateWhen { false }
@@ -92,11 +95,24 @@ tasks.register("prepareScenarioTestRun") {
         delete(layout.buildDirectory.dir("scenario-test/run/saves"))
         delete(layout.buildDirectory.dir("scenario-test/vanilla-server/world"))
         optionsFile.get().asFile.parentFile.mkdirs()
-        optionsFile.get().asFile.text = """\
+        def mode = displayMode.get()
+        def options = new StringBuilder("""\
 lang:en_us
 skipMultiplayerWarning:true
 onboardAccessibility:false
-"""
+""")
+        if (mode == "xvfb") {
+            // Soft-GL friendly defaults for CI / headless virtual displays.
+            options.append("""\
+fullscreen:false
+renderDistance:4
+simulationDistance:4
+maxFps:30
+enableVsync:false
+guiScale:1
+""")
+        }
+        optionsFile.get().asFile.text = options.toString()
         def serverDir = vanillaServerDir.get().asFile
         serverDir.mkdirs()
         def serverJar = net.fabricmc.loom.LoomGradleExtension.get(project).minecraftProvider.minecraftServerJar
@@ -106,6 +122,48 @@ onboardAccessibility:false
 
 tasks.named("runScenarioTest").configure {
     dependsOn("prepareScenarioTestRun")
+
+    def mode = scenarioDisplayMode.get()
+    if (!(mode in ["display", "xvfb"])) {
+        throw new GradleException(
+                "Invalid -PscenarioDisplay='${mode}'. Allowed values: display, xvfb.")
+    }
+
+    // Override Loom's CI-env convention so the CLI flag is authoritative.
+    useXvfb = (mode == "xvfb")
+
+    if (mode == "xvfb") {
+        environment "LIBGL_ALWAYS_SOFTWARE", "1"
+    }
+
+    doFirst {
+        def currentMode = scenarioDisplayMode.get()
+        def linux = org.gradle.internal.os.OperatingSystem.current().isLinux()
+        if (currentMode == "display") {
+            def display = System.getenv("DISPLAY")
+            if (linux && (display == null || display.isBlank())) {
+                throw new GradleException(
+                        "scenarioDisplay=display requires \$DISPLAY. "
+                                + "Use -PscenarioDisplay=xvfb for headless/CI runs.")
+            }
+        } else if (currentMode == "xvfb") {
+            if (!linux) {
+                throw new GradleException("scenarioDisplay=xvfb is only supported on Linux.")
+            }
+            def whichOut = new ByteArrayOutputStream()
+            def whichResult = project.exec {
+                commandLine "which", "xvfb-run"
+                standardOutput = whichOut
+                errorOutput = OutputStream.nullOutputStream()
+                ignoreExitValue = true
+            }
+            if (whichResult.exitValue != 0) {
+                throw new GradleException(
+                        "scenarioDisplay=xvfb requires xvfb-run on PATH. "
+                                + "Install with: apt install xvfb")
+            }
+        }
+    }
 }
 
 dependencies {
