@@ -30,7 +30,10 @@ With no arguments, Minecraft chooses a vanilla timestamped filename.
 ## Notes
 
 - The step waits until the file has been written before succeeding.
-- Failure surfaces as a scenario error if screenshot capture reports failure.
+- Tiny PNGs (under ~40KB at the default 854×480 window) are treated as blank/black frames.
+  Screenplay retries capture for a short settle window, then fails the step if the frame stays empty.
+- `runScreenplayTests` clears `build/screenplay/run/screenshots/` before each scenario and
+  fails the suite when archived PNGs still look blank, so CI does not upload leftover or black demos.
 
 ## Related commands
 

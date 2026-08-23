@@ -80,14 +80,11 @@ pauseOnLostFocus:false
                 if (mode == 'xvfb') {
                     options.append("""\
 fullscreen:false
-renderDistance:5
-simulationDistance:5
+renderDistance:4
+simulationDistance:8
 maxFps:30
 enableVsync:false
 guiScale:1
-inactivityFpsLimit:minimized
-pauseOnLostFocus:false
-onboardAccessibility:false
 """)
                 }
                 optionsFile.get().text = options.toString()
@@ -453,6 +450,9 @@ versionCheck = false
                         args << "-PscreenplayTimeout=${timeoutProperty.get()}".toString()
                     }
 
+                    // Avoid archiving leftover screenshots from earlier scenarios in this suite.
+                    project.delete(new File(projectDirFile, "build/${extension.outputDir}/run/screenshots"))
+
                     def archiveDir = new File(resultsDir, scenarioId)
                     archiveDir.mkdirs()
                     def exitValue = ScreenplayPlugin.runNestedGradleWithTransientRetries(
@@ -474,8 +474,23 @@ versionCheck = false
                             into new File(archiveDir, 'screenshots')
                         }
                     }
-
-                    if (exitValue != 0) {
+                    def blankShots = []
+                    def shotsArchive = new File(archiveDir, 'screenshots')
+                    if (shotsArchive.isDirectory()) {
+                        shotsArchive.eachFile { File file ->
+                            if (file.isFile() && file.name.toLowerCase().endsWith('.png')
+                                    && file.length() > 0L && file.length() < 40000L) {
+                                blankShots << "${file.name} (${file.length()} bytes)"
+                            }
+                        }
+                    }
+                    if (!blankShots.isEmpty()) {
+                        logger.error(
+                                "Screenplay screenshots look blank/black for '${scenarioId}': "
+                                        + blankShots.join(', '))
+                        failed << scenarioId
+                        logger.error("Screenplay test '${scenarioId}' failed (blank screenshots)")
+                    } else if (exitValue != 0) {
                         failed << scenarioId
                         logger.error("Screenplay test '${scenarioId}' failed (exit ${exitValue})")
                     } else {

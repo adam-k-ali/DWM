@@ -9,10 +9,25 @@ import net.minecraft.server.packs.resources.ReloadInstance;
 
 import java.lang.reflect.Field;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
 
+/**
+ * Waits for the title screen after resource reload.
+ * <p>
+ * Under Forge/NeoForge + xvfb, Minecraft client ticks can stall while render frames still
+ * run, so {@link LoadingOverlay#tick()} (which invokes {@code onFinish}) may never run on
+ * its own. Screenplay therefore drives {@code tick()} from the scenario loop when reload is
+ * done. Clearing the overlay without {@code onFinish} leaves the client half-initialized and
+ * causes later chunk-load timeouts with solid-black screenshots.
+ */
 public final class LaunchGamePrimitive extends NoArgPrimitive {
     private static Field loadingOverlayReloadField;
     private static boolean loadingOverlayReloadFieldResolved;
+    private static Field loadingOverlayFadeOutStartField;
+    private static boolean loadingOverlayFadeOutStartFieldResolved;
+    private static Field loadingOverlayOnFinishField;
+    private static boolean loadingOverlayOnFinishFieldResolved;
     private static long lastReloadLogNanos;
 
     @Override
@@ -35,25 +50,11 @@ public final class LaunchGamePrimitive extends NoArgPrimitive {
         Overlay overlay = client.gui.overlay();
         maybeLogReloadProgress(context, overlay);
 
-        // Once resource reload reports done, force the title screen. Under Forge/xvfb,
-        // LoadingOverlay.tick() (which normally calls onFinish) may never run because
-        // Minecraft client ticks stall while frames still render.
-        if (overlay instanceof LoadingOverlay && isReloadDone(overlay)) {
-            client.gui.setOverlay(null);
-            if (!(context.screen() instanceof TitleScreen)) {
-                client.gui.setScreen(new TitleScreen());
-            }
-        }
-
-        // Last-resort escape hatch: if reload progress is nearly complete but isDone never
-        // flips (Forge ClientModLoader sync stall under xvfb), still enter the title screen.
-        if (overlay instanceof LoadingOverlay) {
-            float progress = reloadProgress(overlay);
-            if (progress >= 0.99f) {
+        if (overlay instanceof LoadingOverlay loadingOverlay && isReloadDone(overlay)) {
+            // Prefer the real finish path so Minecraft's onFinish callback runs.
+            loadingOverlay.tick();
+            if (hasFadeOutStarted(loadingOverlay) || ensureOnFinishInvoked(loadingOverlay)) {
                 client.gui.setOverlay(null);
-                if (!(context.screen() instanceof TitleScreen)) {
-                    client.gui.setScreen(new TitleScreen());
-                }
             }
         }
 
@@ -83,10 +84,11 @@ public final class LaunchGamePrimitive extends NoArgPrimitive {
             }
             Object reload = field.get(overlay);
             if (reload instanceof ReloadInstance reloadInstance) {
-                context.logger().info("launchGame: overlay={} reloadDone={} progress={}",
+                context.logger().info("launchGame: overlay={} reloadDone={} progress={} fadeOutStarted={}",
                         overlay.getClass().getName(),
                         reloadInstance.isDone(),
-                        reloadInstance.getActualProgress());
+                        reloadInstance.getActualProgress(),
+                        overlay instanceof LoadingOverlay loadingOverlay && hasFadeOutStarted(loadingOverlay));
             }
         } catch (ReflectiveOperationException exception) {
             context.logger().info("launchGame: could not read reload state: {}", exception.toString());
@@ -106,20 +108,50 @@ public final class LaunchGamePrimitive extends NoArgPrimitive {
         }
     }
 
-    private static float reloadProgress(Overlay overlay) {
+    private static boolean hasFadeOutStarted(LoadingOverlay overlay) {
         try {
-            Field field = resolveReloadField(overlay);
+            Field field = resolveFadeOutStartField();
             if (field == null) {
-                return 0f;
+                return false;
             }
-            Object reload = field.get(overlay);
-            if (reload instanceof ReloadInstance reloadInstance) {
-                return reloadInstance.getActualProgress();
-            }
+            return field.getLong(overlay) > -1L;
         } catch (ReflectiveOperationException ignored) {
-            // fall through
+            return false;
         }
-        return 0f;
+    }
+
+    /**
+     * Last-resort: if {@link LoadingOverlay#tick()} could not start fade-out (for example
+     * fade-in gate), invoke {@code onFinish} once so client init still completes.
+     */
+    @SuppressWarnings("unchecked")
+    private static boolean ensureOnFinishInvoked(LoadingOverlay overlay) {
+        if (hasFadeOutStarted(overlay)) {
+            return true;
+        }
+        try {
+            Field onFinishField = resolveOnFinishField();
+            Field fadeOutField = resolveFadeOutStartField();
+            if (onFinishField == null || fadeOutField == null) {
+                return false;
+            }
+            Object onFinish = onFinishField.get(overlay);
+            if (!(onFinish instanceof Consumer<?> consumer)) {
+                return false;
+            }
+            Field reloadField = resolveReloadField(overlay);
+            if (reloadField != null) {
+                Object reload = reloadField.get(overlay);
+                if (reload instanceof ReloadInstance reloadInstance) {
+                    reloadInstance.checkExceptions();
+                }
+            }
+            ((Consumer<Optional<Throwable>>) consumer).accept(Optional.empty());
+            fadeOutField.setLong(overlay, System.currentTimeMillis());
+            return true;
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     private static Field resolveReloadField(Overlay overlay) throws ReflectiveOperationException {
@@ -147,5 +179,33 @@ public final class LaunchGamePrimitive extends NoArgPrimitive {
             }
         }
         return null;
+    }
+
+    private static Field resolveFadeOutStartField() {
+        if (!loadingOverlayFadeOutStartFieldResolved) {
+            loadingOverlayFadeOutStartFieldResolved = true;
+            try {
+                Field field = LoadingOverlay.class.getDeclaredField("fadeOutStart");
+                field.setAccessible(true);
+                loadingOverlayFadeOutStartField = field;
+            } catch (NoSuchFieldException ignored) {
+                loadingOverlayFadeOutStartField = null;
+            }
+        }
+        return loadingOverlayFadeOutStartField;
+    }
+
+    private static Field resolveOnFinishField() {
+        if (!loadingOverlayOnFinishFieldResolved) {
+            loadingOverlayOnFinishFieldResolved = true;
+            try {
+                Field field = LoadingOverlay.class.getDeclaredField("onFinish");
+                field.setAccessible(true);
+                loadingOverlayOnFinishField = field;
+            } catch (NoSuchFieldException ignored) {
+                loadingOverlayOnFinishField = null;
+            }
+        }
+        return loadingOverlayOnFinishField;
     }
 }
