@@ -104,9 +104,10 @@ versionCheck = false
                 }
                 def serverDir = vanillaServerDir.get().asFile
                 serverDir.mkdirs()
-                def serverJar = resolveMinecraftServerJar(project)
+                def serverJar = resolveMinecraftServerJar(project, serverDir)
                 if (serverJar != null) {
                     jarPathFile.get().asFile.text = serverJar.absolutePath
+                    logger.lifecycle("Screenplay vanilla server jar: ${serverJar.absolutePath}")
                 } else {
                     jarPathFile.get().asFile.text = ''
                     logger.warn('Could not resolve Minecraft server jar path for Screenplay vanilla-server harness')
@@ -115,13 +116,16 @@ versionCheck = false
         }
     }
 
-    private static File resolveMinecraftServerJar(Project project) {
+    private static File resolveMinecraftServerJar(Project project, File downloadDir) {
         try {
             def loomClass = Class.forName('net.fabricmc.loom.LoomGradleExtension')
             def getMethod = loomClass.getMethod('get', Project)
             def loomExt = getMethod.invoke(null, project)
             def minecraftProvider = loomExt.minecraftProvider
-            return minecraftProvider.minecraftServerJar as File
+            def loomJar = minecraftProvider.minecraftServerJar as File
+            if (loomJar != null && loomJar.isFile()) {
+                return loomJar
+            }
         } catch (Throwable ignored) {
             // Fall through to non-Loom resolution.
         }
@@ -132,20 +136,65 @@ versionCheck = false
                 return file
             }
         }
-        // Best-effort: locate a cached official server jar under the Gradle caches.
         def userHome = System.getProperty('user.home', '')
         def version = project.findProperty('minecraft_version')?.toString()
         if (userHome && version) {
             def candidates = [
                     new File("${userHome}/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/server/${version}/server-${version}.jar"),
+                    new File("${userHome}/.gradle/caches/fabric-loom/${version}/minecraft-server.jar"),
+                    new File("${userHome}/.gradle/caches/fabric-loom/${version}/minecraft-extracted_server.jar"),
+                    new File("${userHome}/.gradle/caches/minecraftforge/forgegradle/mavenizer/caches/minecraft_tasks/${version}/server.jar"),
                     new File("${userHome}/.gradle/caches/minecraft/${version}/server.jar"),
+                    project.file(".gradle/caches/minecraft/versions/${version}/server.jar"),
+                    project.rootProject.file(".gradle/caches/minecraft/versions/${version}/server.jar"),
+                    // Included-build NeoForge/Forge project caches when run from a sibling.
+                    new File(project.projectDir, ".gradle/caches/minecraft/versions/${version}/server.jar"),
             ]
-            def found = candidates.find { it.isFile() }
+            def found = candidates.find { it != null && it.isFile() }
             if (found != null) {
                 return found
             }
         }
+        if (version) {
+            def downloaded = downloadOfficialServerJar(project, version, downloadDir)
+            if (downloaded != null) {
+                return downloaded
+            }
+        }
         return null
+    }
+
+    private static File downloadOfficialServerJar(Project project, String version, File downloadDir) {
+        try {
+            def slurper = new groovy.json.JsonSlurper()
+            def manifest = slurper.parse(new URI('https://piston-meta.mojang.com/mc/game/version_manifest_v2.json').toURL())
+            def entry = manifest.versions.find { it.id == version }
+            if (entry == null || entry.url == null) {
+                project.logger.warn("Screenplay: Minecraft version '${version}' not found in Mojang version manifest")
+                return null
+            }
+            def versionJson = slurper.parse(new URI(entry.url.toString()).toURL())
+            def server = versionJson.downloads?.server
+            if (server?.url == null) {
+                project.logger.warn("Screenplay: no official server download for Minecraft '${version}'")
+                return null
+            }
+            downloadDir.mkdirs()
+            def dest = new File(downloadDir, 'server.jar')
+            if (dest.isFile() && dest.length() > 0) {
+                return dest
+            }
+            project.logger.lifecycle("Screenplay: downloading official Minecraft ${version} server jar")
+            dest.withOutputStream { out ->
+                new URI(server.url.toString()).toURL().withInputStream { input ->
+                    out << input
+                }
+            }
+            return dest.isFile() && dest.length() > 0 ? dest : null
+        } catch (Throwable exception) {
+            project.logger.warn("Screenplay: could not download official server jar for ${version}: ${exception.message}")
+            return null
+        }
     }
 
     private static void configureLoaderRun(Project project, ScreenplayExtension extension, String loader) {
@@ -318,8 +367,12 @@ versionCheck = false
                         throw new GradleException(
                                 'screenplayDisplay=xvfb requires xvfb-run on PATH. Install with: apt install xvfb')
                     }
-                    // Non-Loom loaders do not auto-wrap the JVM; require an outer xvfb-run (CI) or $DISPLAY.
-                    if (!task.hasProperty('useXvfb')) {
+                    // Only the actual client JavaExec needs $DISPLAY on Forge/NeoForge.
+                    // Fabric's runScreenplay wrapper is a plain task (no useXvfb) that runs
+                    // after runScreenplayClient; do not fail it for missing DISPLAY.
+                    boolean isNonLoomClientExec = (task instanceof org.gradle.process.JavaExecSpec) &&
+                            !task.hasProperty('useXvfb')
+                    if (isNonLoomClientExec) {
                         def display = System.getenv('DISPLAY')
                         if (display == null || display.isBlank()) {
                             throw new GradleException(
