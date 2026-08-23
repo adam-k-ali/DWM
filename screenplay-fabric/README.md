@@ -2,6 +2,8 @@
 
 **Screenplay** is a multi-loader library for real-client Minecraft scenario tests with CI screenshots.
 
+**Documentation:** [Quick start](https://adam-k-ali.github.io/DWM/quickstart/) · [Commands available](https://adam-k-ali.github.io/DWM/reference/commands/) · [Full docs](https://adam-k-ali.github.io/DWM/)
+
 | Module | Role |
 | --- | --- |
 | `screenplay-common` | Shared YAML compiler, runner, primitives (unit-tested here) |

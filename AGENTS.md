@@ -20,6 +20,7 @@
 - `screenplay-common` / `screenplay-fabric`: Screenplay real-client scenario library (Fabric path used by this mod).
 - `screenplay-loaders/`: Included build for `screenplay-forge` and `screenplay-neoforge` (isolated from Loom).
 - `screenplay-gradle-plugin`: Gradle plugin `com.adamkali.screenplay` (`runScreenplay`, `runScreenplayTests`).
+- `screenplay-docs/`: Screenplay GitHub Pages site (MkDocs Material) — published at https://adam-k-ali.github.io/DWM/
 - `metadata/screenplay/`: Screenplay Modrinth listing drafts (`modrinth.json`, `modrinth-body.md`).
 - `.cursor/skills/`: Agent skills for GameTests, asset import, Blockbench models, MCP verify, etc.
 - `version.json`: Release changelog and Modrinth/CurseForge promos — synced via `./gradlew syncVersionJson`.
