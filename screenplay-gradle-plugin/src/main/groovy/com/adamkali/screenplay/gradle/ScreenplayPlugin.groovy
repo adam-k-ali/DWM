@@ -423,14 +423,15 @@ versionCheck = false
                 // first nested executeScreenplay is less likely to flake on first client.jar download.
                 def cacheTaskNames = project.tasks.names
                         .findAll { String name -> name.startsWith('cacheVersionExecutable') }
+                        .collect { it.toString() }
                         .sort()
                 if (!cacheTaskNames.isEmpty()) {
                     logger.lifecycle("Warming Minecraft artifact caches: ${cacheTaskNames.join(', ')}")
                     def warmDir = new File(resultsDir, '_cache-warm')
                     warmDir.mkdirs()
-                    def warmArgs = buildNestedLoaderGradleArgs(
+                    def warmArgs = ScreenplayPlugin.buildNestedLoaderGradleArgs(
                             gradleCommand, gradleWorkingDir, project, cacheTaskNames)
-                    def warmExit = runNestedGradleWithTransientRetries(
+                    def warmExit = ScreenplayPlugin.runNestedGradleWithTransientRetries(
                             warmArgs, gradleWorkingDir, warmDir, 'minecraft-cache-warm', logger)
                     if (warmExit != 0) {
                         throw new GradleException(
@@ -444,17 +445,17 @@ versionCheck = false
                     def runTask = project.extensions.extraProperties.has('screenplayRunTask')
                             ? project.extensions.extraProperties.get('screenplayRunTask').toString()
                             : 'runScreenplay'
-                    def args = buildNestedLoaderGradleArgs(
-                            gradleCommand, gradleWorkingDir, project, [runTask])
-                    args << "-Pscreenplay=${scenarioId}"
-                    args << "-PscreenplayDisplay=${displayMode.get()}"
+                    def args = ScreenplayPlugin.buildNestedLoaderGradleArgs(
+                            gradleCommand, gradleWorkingDir, project, [runTask.toString()])
+                    args << "-Pscreenplay=${scenarioId}".toString()
+                    args << "-PscreenplayDisplay=${displayMode.get()}".toString()
                     if (timeoutProperty.isPresent()) {
-                        args << "-PscreenplayTimeout=${timeoutProperty.get()}"
+                        args << "-PscreenplayTimeout=${timeoutProperty.get()}".toString()
                     }
 
                     def archiveDir = new File(resultsDir, scenarioId)
                     archiveDir.mkdirs()
-                    def exitValue = runNestedGradleWithTransientRetries(
+                    def exitValue = ScreenplayPlugin.runNestedGradleWithTransientRetries(
                             args, gradleWorkingDir, archiveDir, scenarioId, logger)
 
                     ['report.xml', 'metrics.json', 'diagnostics.txt'].each { String fileName ->
@@ -496,25 +497,28 @@ versionCheck = false
      * Builds a nested Gradle command for this loader project.
      * Included-build consumers (dwm-loaders) are invoked via {@code -p} from the repo root wrapper.
      */
-    private static List<String> buildNestedLoaderGradleArgs(
+    static List<String> buildNestedLoaderGradleArgs(
             String gradleCommand,
             File gradleWorkingDir,
             Project project,
-            List<String> taskNames) {
-        def args = [gradleCommand] as List<String>
+            List taskNames) {
+        List<String> args = new ArrayList<>()
+        args.add(gradleCommand.toString())
         def loadersDir = new File(gradleWorkingDir, 'dwm-loaders')
         if (loadersDir.isDirectory() && project.projectDir.absolutePath.startsWith(loadersDir.absolutePath)) {
-            args << '-p'
-            args << 'dwm-loaders'
-            taskNames.each { String taskName ->
-                args << "${project.name}:${taskName}"
+            args.add('-p')
+            args.add('dwm-loaders')
+            taskNames.each { taskName ->
+                args.add("${project.name}:${taskName}".toString())
             }
         } else if (project.path != ':') {
-            taskNames.each { String taskName ->
-                args << "${project.path}:${taskName}"
+            taskNames.each { taskName ->
+                args.add("${project.path}:${taskName}".toString())
             }
         } else {
-            args.addAll(taskNames)
+            taskNames.each { taskName ->
+                args.add(taskName.toString())
+            }
         }
         return args
     }
@@ -523,8 +527,8 @@ versionCheck = false
      * Runs a nested Gradle invocation, retrying when NeoGradle Minecraft artifact cache
      * downloads flake (e.g. cacheVersionExecutableClient*). Real scenario failures are not retried.
      */
-    private static int runNestedGradleWithTransientRetries(
-            List<String> args,
+    static int runNestedGradleWithTransientRetries(
+            List args,
             File gradleWorkingDir,
             File archiveDir,
             String label,
@@ -559,9 +563,12 @@ versionCheck = false
         return exitValue
     }
 
-    private static int runNestedGradleStreaming(List<String> args, File workingDir, File logFile) {
+    private static int runNestedGradleStreaming(List args, File workingDir, File logFile) {
         logFile.parentFile.mkdirs()
-        def pb = new ProcessBuilder(args)
+        // ProcessBuilder requires real Strings (not GString); collect explicitly.
+        List<String> command = new ArrayList<>(args.size())
+        args.each { arg -> command.add(arg.toString()) }
+        def pb = new ProcessBuilder(command)
         pb.directory(workingDir)
         pb.redirectErrorStream(true)
         def process = pb.start()

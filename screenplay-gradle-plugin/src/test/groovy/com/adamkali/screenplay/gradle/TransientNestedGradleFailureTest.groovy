@@ -2,6 +2,7 @@ package com.adamkali.screenplay.gradle
 
 import org.junit.jupiter.api.Test
 
+import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertFalse
 import static org.junit.jupiter.api.Assertions.assertTrue
 
@@ -32,5 +33,20 @@ BUILD SUCCESSFUL in 2m
         assertFalse(ScreenplayPlugin.isTransientNestedGradleFailure(log))
         assertFalse(ScreenplayPlugin.isTransientNestedGradleFailure(''))
         assertFalse(ScreenplayPlugin.isTransientNestedGradleFailure(null))
+    }
+
+    @Test
+    void nestedGradleArgsAreRealStringsForProcessBuilder() {
+        // ProcessBuilder requires real Strings; GString elements caused CI arraycopy failures.
+        def gstringTask = "run${'Screenplay'}"
+        List args = new ArrayList()
+        args.add('/workspace/gradlew')
+        args.add(gstringTask)
+        args.add("-Pscreenplay=${'createWorld'}")
+        List<String> command = new ArrayList<>(args.size())
+        args.each { arg -> command.add(arg.toString()) }
+        def pb = new ProcessBuilder(command)
+        assertEquals(3, pb.command().size())
+        assertTrue(pb.command().every { it instanceof String })
     }
 }
