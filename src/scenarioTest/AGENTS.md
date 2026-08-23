@@ -11,9 +11,10 @@ Full step/selector reference: `README.md` in this directory.
 ## Commands
 - Run a scenario: `./gradlew runScenarioTest -Pscenario=<yaml-filename-stem>`
 - Override step timeout (seconds): `-PscenarioTimeout=60`
-- Reports: `build/scenario-test/report.xml`, `build/scenario-test/diagnostics.txt`
+- Reports: `build/scenario-test/report.xml`, `build/scenario-test/metrics.json`, `build/scenario-test/diagnostics.txt`
 - Screenshots: `build/scenario-test/run/screenshots/`
 - Vanilla server harness dir: `build/scenario-test/vanilla-server/`
+- Perf compare fixtures: `.github/scripts/run_compare_scenario_perf_fixtures.sh`
 
 ## Conventions
 - YAML files live recursively under `resources/tests/`. Role is set by frontmatter `type`: `test` (runnable) or `command` (composite).
@@ -21,10 +22,11 @@ Full step/selector reference: `README.md` in this directory.
 - Add new behaviour as a `ScenarioPrimitive` in `primitive/`, register it in `ScenarioPrimitives`, and add JUnit coverage in `src/test/java/.../scenariotest/`.
 - Composite commands use `{{ parameter }}` templating; cycles and unknown steps fail at compile time.
 - Selectors match exact widget `name` + `type` (`button`, `cycle`, `tab`, `editbox`, `label`, `screen`).
+- Perf metrics stay under `build/scenario-test/metrics.json` (listed in `.gitignore`; never commit local runs). CI uploads them as artifacts; PRs get an advisory upserted comment vs the latest green `main` Scenario Tests artifacts (20% + 50ms floor; does not fail CI).
 
 ## Common Pitfalls
-- **Display required** — unlike GameTests, this harness boots the client; it will not run headless in Cursor Cloud.
-- **Not in CI** — `./gradlew build` compiles this source set but does not execute scenarios.
+- **Display required** — unlike GameTests, this harness boots the client; it will not run headless in Cursor Cloud without `xvfb`.
+- **Scenario execution is a separate workflow** — `./gradlew build` compiles this source set but does not run scenarios; see `.github/workflows/scenario-tests.yml`.
 - Each run deletes saved worlds under `build/scenario-test/run/saves` and clears `build/scenario-test/vanilla-server/world`.
 - `startVanillaServer` and `createWorld` use a 120s timeout floor; `-PscenarioTimeout` only raises it.
 - `runCommand` sends packets immediately — pair with `waitUntil` for inventory/world assertions.

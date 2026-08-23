@@ -62,6 +62,9 @@ tools/fixtures/*.mp3
 tools/fixtures/*.ogg
 tools/fixtures/compare_out/
 
+# scenario harness local perf metrics (CI uploads artifacts; never commit run output)
+build/scenario-test/metrics.json
+
 # accidental dependency jar extracts at repo root
 /LICENSE-fabric-rendering-v1
 /META-INF/
