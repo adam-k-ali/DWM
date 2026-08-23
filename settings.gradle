@@ -24,6 +24,7 @@ plugins {
 includeBuild('screenplay-gradle-plugin')
 // Isolate Forge/NeoGradle from Fabric Loom runs (NeoGradle treats custom Loom run names as run types).
 includeBuild('screenplay-loaders')
+includeBuild('dwm-loaders')
 
 include 'dwm-common'
 include 'screenplay-common'

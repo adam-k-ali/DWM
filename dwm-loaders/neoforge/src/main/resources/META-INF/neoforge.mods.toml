@@ -1,0 +1,27 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="CC0-1.0"
+
+[[mixins]]
+config="dwm.client.mixins.json"
+
+[[mods]]
+modId="dwm"
+version="${mod_version}"
+displayName="Doctor Who Mod"
+authors="adam-k-ali"
+description='''Doctor Who content for Minecraft — TARDISes, Gallifrey, and more.'''
+
+[[dependencies.dwm]]
+modId="neoforge"
+type="required"
+versionRange="[26.2,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.dwm]]
+modId="minecraft"
+type="required"
+versionRange="[26.2]"
+ordering="NONE"
+side="BOTH"
