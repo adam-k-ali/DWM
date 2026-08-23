@@ -39,7 +39,7 @@ dependencies {
 
 sightline {
     loader = 'fabric'
-    testsDir = file('src/scenarioTest/resources/tests')
+    testsDir = file('src/sightlineTests/resources/tests')
 }
 ```
 
@@ -78,9 +78,3 @@ Sightline already covers interactive client scenarios and screenshot capture. Pl
 | Fabric | `sightline-fabric` |
 | Forge | `sightline-forge` |
 | NeoForge | `sightline-neoforge` |
-
-The Doctor Who Mod (DWM) uses the Fabric artifact in-tree as a consumer.
-
-## Community
-
-Join the Discord for feedback and updates: https://discord.gg/pGdRYBh
