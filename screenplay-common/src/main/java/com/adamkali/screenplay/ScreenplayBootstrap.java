@@ -1,11 +1,15 @@
 package com.adamkali.screenplay;
 
 import com.adamkali.screenplay.platform.ScreenplayPlatform;
+import net.minecraft.client.Minecraft;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Shared client bootstrap used by Fabric / Forge / NeoForge entrypoints.
@@ -33,6 +37,7 @@ public final class ScreenplayBootstrap {
             ScenarioRunner runner = new ScenarioRunner(plan, reportWriter, timeout, LOGGER);
             runner.startWatchdog();
             platform.registerEndClientTick(runner::tick);
+            startMainThreadPump(runner);
             LOGGER.info("Loaded scenario '{}' with {} primitive steps", plan.id(), plan.steps().size());
         } catch (RuntimeException exception) {
             LOGGER.error("Could not start scenario '{}'", scenarioId, exception);
@@ -43,6 +48,29 @@ public final class ScreenplayBootstrap {
             }
             System.exit(1);
         }
+    }
+
+    /**
+     * Pump scenario steps onto the Minecraft main thread at ~20 Hz.
+     * Loader tick events can stall under headless Forge/NeoForge while frames still render;
+     * {@link Minecraft#execute(Runnable)} keeps Screenplay advancing regardless.
+     */
+    private static void startMainThreadPump(ScenarioRunner runner) {
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "screenplay-pump");
+            thread.setDaemon(true);
+            return thread;
+        });
+        scheduler.scheduleAtFixedRate(() -> {
+            try {
+                Minecraft client = Minecraft.getInstance();
+                if (client != null) {
+                    client.execute(() -> runner.tick(client));
+                }
+            } catch (Throwable ignored) {
+                // Minecraft may not be ready yet; keep pumping.
+            }
+        }, 100L, 50L, TimeUnit.MILLISECONDS);
     }
 
     private static long readPositiveLong(String property, long defaultValue) {

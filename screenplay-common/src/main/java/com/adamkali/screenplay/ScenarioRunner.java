@@ -23,8 +23,8 @@ final class ScenarioRunner {
     private final List<ScenarioReportWriter.StepResult> results = new ArrayList<>();
 
     private int stepIndex;
-    private long stepStartedNanos;
-    private boolean finished;
+    private volatile long stepStartedNanos;
+    private volatile boolean finished;
     private boolean executing;
     private String lastScreenDiagnostic;
     private long lastDiagnosticNanos;
@@ -56,29 +56,37 @@ final class ScenarioRunner {
                     Thread.currentThread().interrupt();
                     return;
                 }
-                if (finished || stepStartedNanos == 0L || stepIndex >= plan.steps().size()) {
+                if (finished) {
                     continue;
                 }
-                ScenarioPlan.Step step = plan.steps().get(stepIndex);
-                Duration timeout = timeoutFor(step);
-                if (System.nanoTime() - stepStartedNanos > timeout.toNanos()) {
-                    Minecraft client = Minecraft.getInstance();
-                    RuntimeException failure = new ScenarioException("Timed out after " + timeout.toSeconds()
-                            + "s waiting for " + step.displayName() + " from " + step.source()
-                            + " (wall-clock watchdog)");
-                    synchronized (ScenarioRunner.this) {
-                        if (finished) {
-                            return;
-                        }
-                        results.add(new ScenarioReportWriter.StepResult(
-                                step.displayName(),
-                                System.nanoTime() - stepStartedNanos,
-                                false
-                        ));
-                        finishUnlocked(client, failure);
+                ScenarioPlan.Step timedOutStep;
+                Duration timeout;
+                synchronized (ScenarioRunner.this) {
+                    if (finished || stepStartedNanos == 0L || stepIndex >= plan.steps().size()) {
+                        continue;
                     }
-                    return;
+                    timedOutStep = plan.steps().get(stepIndex);
+                    timeout = timeoutFor(timedOutStep);
+                    if (System.nanoTime() - stepStartedNanos <= timeout.toNanos()) {
+                        continue;
+                    }
                 }
+                Minecraft client = Minecraft.getInstance();
+                RuntimeException failure = new ScenarioException("Timed out after " + timeout.toSeconds()
+                        + "s waiting for " + timedOutStep.displayName() + " from " + timedOutStep.source()
+                        + " (wall-clock watchdog)");
+                synchronized (ScenarioRunner.this) {
+                    if (finished || stepStartedNanos == 0L || stepIndex >= plan.steps().size()) {
+                        continue;
+                    }
+                    results.add(new ScenarioReportWriter.StepResult(
+                            timedOutStep.displayName(),
+                            System.nanoTime() - stepStartedNanos,
+                            false
+                    ));
+                    finishUnlocked(client, failure);
+                }
+                return;
             }
         }, "screenplay-watchdog");
         watchdog.setDaemon(true);

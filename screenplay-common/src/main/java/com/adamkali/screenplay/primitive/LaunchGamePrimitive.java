@@ -32,18 +32,28 @@ public final class LaunchGamePrimitive extends NoArgPrimitive {
             return false;
         }
 
-        // LoadingOverlay only advances fade/finish from Overlay.tick(), which is gated on
-        // Minecraft client ticks. Under Forge/xvfb those ticks can stall while frames still
-        // render — drive the overlay from Screenplay so the title screen can appear.
         Overlay overlay = client.gui.overlay();
-        if (overlay != null) {
-            overlay.tick();
-            maybeLogReloadProgress(context, overlay);
-            if (overlay instanceof LoadingOverlay && isReloadDone(overlay)
-                    && !(context.screen() instanceof TitleScreen)) {
-                // onFinish should have swapped to the title screen; force it if fade stalled.
-                client.gui.setOverlay(null);
+        maybeLogReloadProgress(context, overlay);
+
+        // Once resource reload reports done, force the title screen. Under Forge/xvfb,
+        // LoadingOverlay.tick() (which normally calls onFinish) may never run because
+        // Minecraft client ticks stall while frames still render.
+        if (overlay instanceof LoadingOverlay && isReloadDone(overlay)) {
+            client.gui.setOverlay(null);
+            if (!(context.screen() instanceof TitleScreen)) {
                 client.gui.setScreen(new TitleScreen());
+            }
+        }
+
+        // Last-resort escape hatch: if reload progress is nearly complete but isDone never
+        // flips (Forge ClientModLoader sync stall under xvfb), still enter the title screen.
+        if (overlay instanceof LoadingOverlay) {
+            float progress = reloadProgress(overlay);
+            if (progress >= 0.99f) {
+                client.gui.setOverlay(null);
+                if (!(context.screen() instanceof TitleScreen)) {
+                    client.gui.setScreen(new TitleScreen());
+                }
             }
         }
 
@@ -51,7 +61,7 @@ public final class LaunchGamePrimitive extends NoArgPrimitive {
             client.gui.setScreen(new TitleScreen());
             return false;
         }
-        return context.screen() instanceof TitleScreen;
+        return context.screen() instanceof TitleScreen && client.gui.overlay() == null;
     }
 
     private static void maybeLogReloadProgress(ScenarioPrimitiveContext context, Overlay overlay) {
@@ -60,6 +70,11 @@ public final class LaunchGamePrimitive extends NoArgPrimitive {
             return;
         }
         lastReloadLogNanos = now;
+        if (overlay == null) {
+            context.logger().info("launchGame: overlay=<none> screen={}",
+                    context.screen() == null ? "<none>" : context.screen().getClass().getName());
+            return;
+        }
         try {
             Field field = resolveReloadField(overlay);
             if (field == null) {
@@ -91,6 +106,22 @@ public final class LaunchGamePrimitive extends NoArgPrimitive {
         }
     }
 
+    private static float reloadProgress(Overlay overlay) {
+        try {
+            Field field = resolveReloadField(overlay);
+            if (field == null) {
+                return 0f;
+            }
+            Object reload = field.get(overlay);
+            if (reload instanceof ReloadInstance reloadInstance) {
+                return reloadInstance.getActualProgress();
+            }
+        } catch (ReflectiveOperationException ignored) {
+            // fall through
+        }
+        return 0f;
+    }
+
     private static Field resolveReloadField(Overlay overlay) throws ReflectiveOperationException {
         if (!loadingOverlayReloadFieldResolved) {
             loadingOverlayReloadFieldResolved = true;
@@ -105,7 +136,6 @@ public final class LaunchGamePrimitive extends NoArgPrimitive {
         if (loadingOverlayReloadField != null) {
             return loadingOverlayReloadField;
         }
-        // ForgeLoadingOverlay shadows reload on the subclass.
         Class<?> type = overlay.getClass();
         while (type != null && type != Object.class) {
             try {
