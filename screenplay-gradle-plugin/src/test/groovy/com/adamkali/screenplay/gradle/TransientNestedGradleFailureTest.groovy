@@ -36,6 +36,17 @@ BUILD SUCCESSFUL in 2m
     }
 
     @Test
+    void doesNotRetryWhenCacheProviderOnlyAppearsInHealthyTaskGraph() {
+        def log = '''
+> Task :neoforge:cacheVersionExecutableClient26.2 UP-TO-DATE
+net.neoforged.gradle.common.tasks.MinecraftArtifactFileCacheProvider
+Caused by: java.lang.NullPointerException: occlusionShapesByFace is null
+> Task :neoforge:runClient FAILED
+'''
+        assertFalse(ScreenplayPlugin.isTransientNestedGradleFailure(log))
+    }
+
+    @Test
     void nestedGradleArgsAreRealStringsForProcessBuilder() {
         // ProcessBuilder requires real Strings; GString elements caused CI arraycopy failures.
         def gstringTask = "run${'Screenplay'}"

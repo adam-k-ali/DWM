@@ -608,6 +608,12 @@ versionCheck = false
         if (logText == null || logText.isBlank()) {
             return false
         }
+        // In-game client crashes / scenario failures must never be retried as cache flakes.
+        if (logText.contains('ReportedException')
+                || logText.contains('occlusionShapesByFace')
+                || (logText.contains("Screenplay test '") && logText.contains('failed'))) {
+            return false
+        }
         // Prefer task-level signals so in-game scenario failures are not retried.
         if (logText.contains('cacheVersionExecutableClient') && logText.contains('FAILED')) {
             return true
@@ -615,7 +621,10 @@ versionCheck = false
         if (logText.contains('cacheVersionExecutableServer') && logText.contains('FAILED')) {
             return true
         }
-        if (logText.contains('MinecraftArtifactFileCacheProvider')) {
+        // NeoGradle cache provider only when the stage itself failed — the class name
+        // appears in healthy task graphs and must not retry runClient crashes.
+        if (logText.contains('Failed to execute stage')
+                && logText.contains('MinecraftArtifactFileCacheProvider')) {
             return true
         }
         def networkHints = [
