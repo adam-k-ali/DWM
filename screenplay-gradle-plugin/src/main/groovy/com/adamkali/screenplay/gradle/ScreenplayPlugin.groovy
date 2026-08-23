@@ -154,6 +154,10 @@ versionCheck = false
         def reportFile = project.layout.buildDirectory.file("${extension.outputDir}/report.xml").get().asFile.absolutePath
         def vanillaServerDir = project.layout.buildDirectory.dir("${extension.outputDir}/vanilla-server").get().asFile.absolutePath
         def runDir = extension.runDir
+        def testsDirsProperty = extension.allTestsDirs()
+                .findAll { it != null }
+                .collect { project.file(it).absolutePath }
+                .join(File.pathSeparator)
 
         if (loader == 'fabric') {
             def loom = project.extensions.findByName('loom')
@@ -174,6 +178,9 @@ versionCheck = false
             run.property 'screenplay.step-timeout-seconds', timeout.get()
             run.property 'screenplay.report-file', reportFile
             run.property 'screenplay.vanilla-server-dir', vanillaServerDir
+            if (!testsDirsProperty.isBlank()) {
+                run.property 'screenplay.tests-dirs', testsDirsProperty
+            }
             run.runDir runDir
 
             // Stable task name for docs/CI regardless of Loom run config name.
@@ -226,6 +233,9 @@ versionCheck = false
                 run.systemProperty 'screenplay.step-timeout-seconds', timeout.get()
                 run.systemProperty 'screenplay.report-file', reportFile
                 run.systemProperty 'screenplay.vanilla-server-dir', vanillaServerDir
+                if (!testsDirsProperty.isBlank()) {
+                    run.systemProperty 'screenplay.tests-dirs', testsDirsProperty
+                }
             } catch (Throwable ex) {
                 project.logger.warn("Screenplay: could not set system properties on ${loader} run: ${ex.message}")
             }

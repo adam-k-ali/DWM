@@ -1264,6 +1264,70 @@ class ScenarioCompilerTest {
         assertEquals("tardis-interior.png", plan.steps().get(19).arguments().get("name"));
     }
 
+    @Test
+    void loadsFromClasspathWhenDirectoryEnumerationIsEmpty() throws Exception {
+        Path scenarioRoot = Path.of(getClass().getResource("/tests").toURI());
+        ClassLoader directoryBlind = new ClassLoader(null) {
+            @Override
+            public java.util.Enumeration<java.net.URL> getResources(String name) throws java.io.IOException {
+                if ("tests".equals(name)) {
+                    return java.util.Collections.emptyEnumeration();
+                }
+                if (name != null && name.startsWith("tests/")) {
+                    Path file = scenarioRoot.resolve(name.substring("tests/".length()));
+                    if (Files.isRegularFile(file)) {
+                        return java.util.Collections.enumeration(java.util.List.of(file.toUri().toURL()));
+                    }
+                }
+                return java.util.Collections.emptyEnumeration();
+            }
+
+            @Override
+            public java.net.URL getResource(String name) {
+                try {
+                    java.util.Enumeration<java.net.URL> found = getResources(name);
+                    return found.hasMoreElements() ? found.nextElement() : null;
+                } catch (java.io.IOException exception) {
+                    return null;
+                }
+            }
+        };
+
+        ScenarioCatalog catalog = ScenarioCatalog.loadFromResources(directoryBlind);
+
+        assertTrue(catalog.tests().containsKey("createWorld"));
+        assertEquals(4, new ScenarioCompiler(catalog).compile("createWorld").steps().size());
+    }
+
+    @Test
+    void loadsMergedFilesystemRoots(@TempDir Path root) throws Exception {
+        Path harness = root.resolve("harness");
+        Path mod = root.resolve("mod");
+        write(harness.resolve("createWorld.yaml"), """
+                ---
+                name: Create World
+                type: test
+                ---
+                steps:
+                  - launchGame
+                  - createWorld
+                """);
+        write(mod.resolve("placeAndOpenTardis.yaml"), """
+                ---
+                name: Place and open TARDIS
+                type: test
+                ---
+                steps:
+                  - launchGame
+                  - openInventory
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(java.util.List.of(harness, mod));
+
+        assertTrue(catalog.tests().containsKey("createWorld"));
+        assertTrue(catalog.tests().containsKey("placeAndOpenTardis"));
+    }
+
     private static Path resolveScreenplayTests() {
         Path cwd = Path.of("").toAbsolutePath();
         Path[] candidates = {
