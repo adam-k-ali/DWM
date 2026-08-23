@@ -169,6 +169,11 @@ public final class FabricDwmPlatform implements DwmPlatform {
     }
 
     @Override
+    public void addValidBlockEntityBlock(BlockEntityType<?> type, Block block) {
+        type.addValidBlock(block);
+    }
+
+    @Override
     public BlockSetType registerBlockSetType(Identifier id) {
         return new BlockSetTypeBuilder().register(id);
     }

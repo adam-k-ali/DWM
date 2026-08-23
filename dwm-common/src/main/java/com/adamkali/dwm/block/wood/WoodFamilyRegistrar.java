@@ -215,10 +215,10 @@ public final class WoodFamilyRegistrar {
             platform.registerFlammable(blocks.trapdoor(), 5, 20);
         }
 
-        BlockEntityTypes.SIGN.addValidBlock(blocks.sign());
-        BlockEntityTypes.SIGN.addValidBlock(blocks.wallSign());
-        BlockEntityTypes.HANGING_SIGN.addValidBlock(blocks.hangingSign());
-        BlockEntityTypes.HANGING_SIGN.addValidBlock(blocks.wallHangingSign());
+        platform.addValidBlockEntityBlock(BlockEntityTypes.SIGN, blocks.sign());
+        platform.addValidBlockEntityBlock(BlockEntityTypes.SIGN, blocks.wallSign());
+        platform.addValidBlockEntityBlock(BlockEntityTypes.HANGING_SIGN, blocks.hangingSign());
+        platform.addValidBlockEntityBlock(BlockEntityTypes.HANGING_SIGN, blocks.wallHangingSign());
     }
 
     public static void addCreativeTabs(RegisteredWoodFamily family) {
