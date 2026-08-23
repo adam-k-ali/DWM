@@ -91,6 +91,17 @@ onboardAccessibility:false
 """)
                 }
                 optionsFile.get().text = options.toString()
+                // Forge early window (fmlearlywindow) can stall resource reload under xvfb/llvmpipe,
+                // leaving GenericMessageScreen + ForgeLoadingOverlay forever. Disable it for headless runs.
+                if (mode == 'xvfb' && extension.loader in ['forge', 'neoforge']) {
+                    def configDir = new File(runDir, 'config')
+                    configDir.mkdirs()
+                    new File(configDir, 'fml.toml').text = '''\
+earlyWindowControl = false
+earlyWindowProvider = "fmlearlywindow"
+versionCheck = false
+'''
+                }
                 def serverDir = vanillaServerDir.get().asFile
                 serverDir.mkdirs()
                 def serverJar = resolveMinecraftServerJar(project)
