@@ -24,7 +24,14 @@ plugins {
 
 rootProject.name = 'dwm-loaders'
 
-includeBuild('../screenplay-loaders')
+// Project dirs are named forge/neoforge; published artifactIds are screenplay-*.
+// Explicit substitution is required — automatic matching uses project name, not archivesName.
+includeBuild('../screenplay-loaders') {
+	dependencySubstitution {
+		substitute module('com.adamkali.screenplay:screenplay-forge') using project(':forge')
+		substitute module('com.adamkali.screenplay:screenplay-neoforge') using project(':neoforge')
+	}
+}
 
 include 'forge'
 include 'neoforge'
