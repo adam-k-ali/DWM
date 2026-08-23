@@ -1,0 +1,16 @@
+{
+  "promos": {
+    "latest": "1.0.0+26.2",
+    "recommended": "1.0.0+26.2"
+  },
+  "1.0.0+26.2": {
+    "summary": "Initial Screenplay release: real-client YAML scenario harness for Fabric, Forge, and NeoForge.",
+    "added": [
+      "Fabric, Forge, and NeoForge client harness artifacts",
+      "Gradle plugin for runScreenplay / runScreenplayTests with xvfb support",
+      "YAML scenarios, JUnit reports, metrics, and screenshot capture"
+    ],
+    "changed": [],
+    "removed": []
+  }
+}
