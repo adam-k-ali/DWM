@@ -163,6 +163,122 @@ tasks.named("runScenarioTest").configure {
     }
 }
 
+def scenarioTestsRoot = file("src/scenarioTest/resources/tests")
+
+def isScenarioTestYaml = { File yamlFile ->
+    def text = yamlFile.getText("UTF-8").replace("\r\n", "\n")
+    if (!text.startsWith("---\n")) {
+        return false
+    }
+    def closing = text.indexOf("\n---\n", 4)
+    if (closing < 0) {
+        return false
+    }
+    return text.substring(4, closing).readLines().any { line ->
+        line.trim() == "type: test"
+    }
+}
+
+def discoverScenarioTestIds = {
+    if (!scenarioTestsRoot.isDirectory()) {
+        throw new GradleException("Scenario tests directory not found: ${scenarioTestsRoot}")
+    }
+    def ids = [] as TreeSet
+    fileTree(dir: scenarioTestsRoot, includes: ["**/*.yaml", "**/*.yml"]).files.each { File yamlFile ->
+        if (!isScenarioTestYaml(yamlFile)) {
+            return
+        }
+        def name = yamlFile.name
+        def extension = name.lastIndexOf('.')
+        def id = extension < 0 ? name : name.substring(0, extension)
+        if (!ids.add(id)) {
+            throw new GradleException("Duplicate scenario test id '${id}' under ${scenarioTestsRoot}")
+        }
+    }
+    return ids as List
+}
+
+interface ScenarioTestExecOps {
+    @javax.inject.Inject
+    org.gradle.process.ExecOperations getExecOps()
+}
+
+def scenarioTestExecOps = objects.newInstance(ScenarioTestExecOps)
+
+tasks.register("runAllScenarioTests") {
+    group = "verification"
+    description = "Discover all type:test YAML scenarios and run each via runScenarioTest"
+
+    def displayMode = scenarioDisplayMode
+    def timeoutProperty = providers.gradleProperty("scenarioTimeout")
+    def projectDirFile = layout.projectDirectory.asFile
+    def resultsRoot = layout.buildDirectory.dir("scenario-test/results")
+    def execOps = scenarioTestExecOps.execOps
+
+    doLast {
+        def scenarioIds = discoverScenarioTestIds()
+        if (scenarioIds.isEmpty()) {
+            throw new GradleException("No scenario tests (type: test) found under ${scenarioTestsRoot}")
+        }
+
+        logger.lifecycle("Discovered ${scenarioIds.size()} scenario test(s): ${scenarioIds.join(', ')}")
+
+        def gradleWrapper = new File(projectDirFile, "gradlew")
+        def gradleCommand = gradleWrapper.exists() ? gradleWrapper.absolutePath : "gradle"
+        def failed = []
+        def resultsDir = resultsRoot.get().asFile
+        project.delete(resultsDir)
+        resultsDir.mkdirs()
+
+        scenarioIds.each { String scenarioId ->
+            logger.lifecycle("Running scenario test '${scenarioId}'")
+            def args = [gradleCommand, "runScenarioTest", "-Pscenario=${scenarioId}"]
+            args << "-PscenarioDisplay=${displayMode.get()}"
+            if (timeoutProperty.isPresent()) {
+                args << "-PscenarioTimeout=${timeoutProperty.get()}"
+            }
+            def result = execOps.exec {
+                workingDir projectDirFile
+                commandLine args
+                ignoreExitValue = true
+            }
+
+            def archiveDir = new File(resultsDir, scenarioId)
+            archiveDir.mkdirs()
+            ["report.xml", "metrics.json", "diagnostics.txt"].each { String fileName ->
+                def source = new File(projectDirFile, "build/scenario-test/${fileName}")
+                if (source.isFile()) {
+                    project.copy {
+                        from source
+                        into archiveDir
+                    }
+                }
+            }
+            def screenshots = new File(projectDirFile, "build/scenario-test/run/screenshots")
+            if (screenshots.isDirectory()) {
+                project.copy {
+                    from screenshots
+                    into new File(archiveDir, "screenshots")
+                }
+            }
+
+            if (result.exitValue != 0) {
+                failed << scenarioId
+                logger.error("Scenario test '${scenarioId}' failed (exit ${result.exitValue})")
+            } else {
+                logger.lifecycle("Scenario test '${scenarioId}' passed")
+            }
+        }
+
+        if (!failed.isEmpty()) {
+            throw new GradleException(
+                    "Failed scenario test(s): ${failed.join(', ')} "
+                            + "(${failed.size()} of ${scenarioIds.size()})")
+        }
+        logger.lifecycle("All ${scenarioIds.size()} scenario test(s) passed")
+    }
+}
+
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
