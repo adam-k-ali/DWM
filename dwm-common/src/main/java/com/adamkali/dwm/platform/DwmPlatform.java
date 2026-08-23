@@ -100,6 +100,8 @@ public interface DwmPlatform {
 
     void registerFlammable(Block block, int burnOdds, int spreadOdds);
 
+    void addValidBlockEntityBlock(BlockEntityType<?> type, Block block);
+
     BlockSetType registerBlockSetType(Identifier id);
 
     WoodType registerWoodType(Identifier id, BlockSetType setType);
