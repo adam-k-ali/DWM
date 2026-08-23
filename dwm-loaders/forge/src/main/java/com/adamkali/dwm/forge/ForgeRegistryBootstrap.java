@@ -1,8 +1,12 @@
 package com.adamkali.dwm.forge;
 
+import com.adamkali.dwm.DWMReference;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.GameData;
 import net.minecraftforge.registries.RegistryManager;
@@ -18,6 +22,10 @@ import java.lang.reflect.Field;
  * <p>Forge locks {@code NamespacedWrapper} against direct vanilla registration and freezes
  * mapped registries before mod constructors. Until DWM migrates to DeferredRegister /
  * RegisterEvent, this bootstrap mirrors the window Forge opens around RegisterEvent.
+ *
+ * <p>Early registration can also skip loader bake hooks that call
+ * {@link BlockState#initCache()}; {@link #initBlockStateCachesAfterRegistration()} fills
+ * occlusion shape caches so chunk meshing does not NPE on DWM neighbors.
  */
 final class ForgeRegistryBootstrap {
     private static final Logger LOGGER = LoggerFactory.getLogger("dwm");
@@ -38,6 +46,21 @@ final class ForgeRegistryBootstrap {
             }
             clearNamespacedWrapperLock(registry);
         }
+    }
+
+    static void initBlockStateCachesAfterRegistration() {
+        int states = 0;
+        for (Block block : BuiltInRegistries.BLOCK) {
+            Identifier id = BuiltInRegistries.BLOCK.getKey(block);
+            if (id == null || !DWMReference.MOD_ID.equals(id.getNamespace())) {
+                continue;
+            }
+            for (BlockState state : block.getStateDefinition().getPossibleStates()) {
+                state.initCache();
+                states++;
+            }
+        }
+        LOGGER.debug("Initialized occlusion caches for {} DWM block states", states);
     }
 
     private static void clearNamespacedWrapperLock(Registry<?> registry) {

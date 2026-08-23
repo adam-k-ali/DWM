@@ -19,6 +19,7 @@ public final class ForgeDwmMod {
         // Fabric-style Registry.register in DwmCommon needs open vanilla/Forge registries.
         ForgeRegistryBootstrap.unlockForFabricStyleRegistration();
         DwmCommon.init();
+        ForgeRegistryBootstrap.initBlockStateCachesAfterRegistration();
         platform.buildNetwork();
 
         if (FMLLoader.getDist() == Dist.CLIENT) {

@@ -20,6 +20,7 @@ public final class NeoForgeDwmMod {
         NeoForgeRegistryBootstrap.unlockForFabricStyleRegistration();
         DwmCommon.init();
         NeoForgeRegistryBootstrap.syncBlockItemMapAfterRegistration();
+        NeoForgeRegistryBootstrap.initBlockStateCachesAfterRegistration();
 
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
             DwmClientServices.set(new NeoForgeDwmClientPlatform(modBus));
