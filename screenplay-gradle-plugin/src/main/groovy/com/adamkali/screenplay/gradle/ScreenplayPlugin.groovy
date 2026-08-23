@@ -407,11 +407,11 @@ versionCheck = false
                 if (missing) {
                     throw new GradleException("Screenplay tests directory not found: ${missing}")
                 }
-                def scenarioIds = discoverScenarioTestIds(testsDirs)
+                def scenarioIds = discoverScenarioTestIds(testsDirs, extension.loader)
                 if (scenarioIds.isEmpty()) {
                     throw new GradleException("No scenario tests (type: test) found under ${testsDirs}")
                 }
-                logger.lifecycle("Discovered ${scenarioIds.size()} Screenplay test(s): ${scenarioIds.join(', ')}")
+                logger.lifecycle("Discovered ${scenarioIds.size()} Screenplay test(s) for loader '${extension.loader}': ${scenarioIds.join(', ')}")
 
                 def gradleWrapper = findGradleWrapper(projectDirFile)
                 def gradleCommand = gradleWrapper != null ? gradleWrapper.absolutePath : 'gradle'
@@ -499,11 +499,11 @@ versionCheck = false
         return null
     }
 
-    private static List discoverScenarioTestIds(List<File> scenarioTestsRoots) {
+    private static List discoverScenarioTestIds(List<File> scenarioTestsRoots, String loader) {
         def ids = [] as TreeSet
         scenarioTestsRoots.each { File scenarioTestsRoot ->
             projectFileTree(scenarioTestsRoot).each { File yamlFile ->
-                if (!isScenarioTestYaml(yamlFile)) {
+                if (!isScenarioTestYaml(yamlFile, loader)) {
                     return
                 }
                 def name = yamlFile.name
@@ -527,7 +527,7 @@ versionCheck = false
         return files
     }
 
-    private static boolean isScenarioTestYaml(File yamlFile) {
+    private static boolean isScenarioTestYaml(File yamlFile, String loader) {
         def text = yamlFile.getText('UTF-8').replace('\r\n', '\n')
         if (!text.startsWith('---\n')) {
             return false
@@ -536,9 +536,21 @@ versionCheck = false
         if (closing < 0) {
             return false
         }
-        return text.substring(4, closing).readLines().any { line ->
-            line.trim() == 'type: test'
+        def frontmatter = text.substring(4, closing).readLines()
+        if (!frontmatter.any { line -> line.trim() == 'type: test' }) {
+            return false
         }
+        // Optional frontmatter: loaders: [fabric, forge] — omit to run on all loaders.
+        def loadersLine = frontmatter.find { line -> line.trim().startsWith('loaders:') }
+        if (loadersLine == null || loader == null || loader.isBlank()) {
+            return true
+        }
+        def allowed = loadersLine.substring(loadersLine.indexOf(':') + 1)
+                .replaceAll(/[\[\]]/, '')
+                .split(',')
+                .collect { it.trim().toLowerCase() }
+                .findAll { !it.isEmpty() }
+        return allowed.isEmpty() || allowed.contains(loader.trim().toLowerCase())
     }
 }
 
