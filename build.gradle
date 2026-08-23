@@ -198,6 +198,13 @@ def discoverScenarioTestIds = {
     return ids as List
 }
 
+interface ScenarioTestExecOps {
+    @javax.inject.Inject
+    org.gradle.process.ExecOperations getExecOps()
+}
+
+def scenarioTestExecOps = objects.newInstance(ScenarioTestExecOps)
+
 tasks.register("runAllScenarioTests") {
     group = "verification"
     description = "Discover all type:test YAML scenarios and run each via runScenarioTest"
@@ -206,6 +213,7 @@ tasks.register("runAllScenarioTests") {
     def timeoutProperty = providers.gradleProperty("scenarioTimeout")
     def projectDirFile = layout.projectDirectory.asFile
     def resultsRoot = layout.buildDirectory.dir("scenario-test/results")
+    def execOps = scenarioTestExecOps.execOps
 
     doLast {
         def scenarioIds = discoverScenarioTestIds()
@@ -219,7 +227,7 @@ tasks.register("runAllScenarioTests") {
         def gradleCommand = gradleWrapper.exists() ? gradleWrapper.absolutePath : "gradle"
         def failed = []
         def resultsDir = resultsRoot.get().asFile
-        delete(resultsDir)
+        project.delete(resultsDir)
         resultsDir.mkdirs()
 
         scenarioIds.each { String scenarioId ->
@@ -229,7 +237,7 @@ tasks.register("runAllScenarioTests") {
             if (timeoutProperty.isPresent()) {
                 args << "-PscenarioTimeout=${timeoutProperty.get()}"
             }
-            def result = exec {
+            def result = execOps.exec {
                 workingDir projectDirFile
                 commandLine args
                 ignoreExitValue = true
@@ -240,13 +248,17 @@ tasks.register("runAllScenarioTests") {
             ["report.xml", "metrics.json", "diagnostics.txt"].each { String fileName ->
                 def source = new File(projectDirFile, "build/scenario-test/${fileName}")
                 if (source.isFile()) {
-                    ant.copy(file: source, tofile: new File(archiveDir, fileName))
+                    project.copy {
+                        from source
+                        into archiveDir
+                    }
                 }
             }
             def screenshots = new File(projectDirFile, "build/scenario-test/run/screenshots")
             if (screenshots.isDirectory()) {
-                ant.copy(todir: new File(archiveDir, "screenshots")) {
-                    fileset(dir: screenshots)
+                project.copy {
+                    from screenshots
+                    into new File(archiveDir, "screenshots")
                 }
             }
 
