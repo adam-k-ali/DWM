@@ -113,3 +113,40 @@ Ship a patch immediately for:
 | [`.github/workflows/sync-modrinth-project.yml`](../.github/workflows/sync-modrinth-project.yml) | `workflow_dispatch` | PATCH Modrinth project listing from [`metadata/`](../metadata/) (Modrinth only; CurseForge listing stays manual) |
 
 CircleCI is retired; do not add draft GitHub releases on every `main` merge.
+
+## Screenplay releases
+
+Screenplay (Modrinth project `RdazTKdM`, slug `screenplay`) is published separately from DWM. Do not use DWM `v*` tags for Screenplay.
+
+Public release id and git tag:
+
+```text
+screenplay-v{screenplay_version}
+```
+
+Example: `screenplay-v1.0.0+26.2` → Gradle `screenplay_version` `1.0.0+26.2` (Minecraft from `minecraft_version` / the `+26.2` suffix).
+
+| Field | Source |
+| --- | --- |
+| `screenplay_version` | [`gradle.properties`](../gradle.properties) |
+| Changelog + promos | [`metadata/screenplay/version.json`](../metadata/screenplay/version.json) |
+| Listing drafts | [`metadata/screenplay/`](../metadata/screenplay/) (`modrinth.json` + `modrinth-body.md`; no `discord_url`) |
+
+### Screenplay distribution checklist
+
+1. On `main`, bump `screenplay_version` in `gradle.properties` (and `screenplay-loaders/gradle.properties` when needed).
+2. Fill `summary` and `added` / `changed` / `removed` for the new version in `metadata/screenplay/version.json`, and set `promos.latest` / `promos.recommended`.
+3. Confirm `./gradlew :screenplay-fabric:build` and `./gradlew -p screenplay-loaders :forge:build :neoforge:build` are green.
+4. Commit, merge to `main`, then create and push tag `screenplay-v{screenplay_version}` (manually, or via **Create Screenplay Release Tag**).
+5. Confirm **Release Screenplay** succeeds:
+   - GitHub Release with Fabric, Forge, and NeoForge jars and notes from `metadata/screenplay/version.json`
+   - Modrinth multi-loader version upload to project `RdazTKdM` (Fabric API optional dependency)
+6. Optionally run **Sync Modrinth Screenplay** to PATCH the listing from `metadata/screenplay/` (Discord stays blank).
+
+Uses the same `MODRINTH_TOKEN` secret as DWM (`VERSION_CREATE` for releases, `PROJECT_WRITE` for listing sync). No CurseForge or Discord announce for Screenplay.
+
+| Workflow | Trigger | Purpose |
+| --- | --- | --- |
+| [`.github/workflows/create-screenplay-release-tag.yml`](../.github/workflows/create-screenplay-release-tag.yml) | `workflow_dispatch` | Create and push `screenplay-v*` from `metadata/screenplay/version.json` `promos.latest` if missing; then dispatch Release Screenplay |
+| [`.github/workflows/release-screenplay.yml`](../.github/workflows/release-screenplay.yml) | push of tags `screenplay-v*`, or `workflow_dispatch` | Build loader jars; publish GitHub Release and Modrinth version |
+| [`.github/workflows/sync-modrinth-screenplay.yml`](../.github/workflows/sync-modrinth-screenplay.yml) | `workflow_dispatch` | PATCH Modrinth Screenplay listing from [`metadata/screenplay/`](../metadata/screenplay/) |

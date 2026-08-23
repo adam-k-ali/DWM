@@ -7,8 +7,8 @@ The harness lives in the `screenplay-*` Gradle modules (`screenplay-fabric` on t
 ## Local Context
 YAML scenarios drive the **real Minecraft client** via Screenplay. Primitives and the compiler ship in `screenplay-common`. Mod scenarios stay under `resources/tests/` (e.g. `placeAndOpenTardis.yaml`). Vanilla demos ship inside `screenplay-common` resources.
 
-Full product docs: `screenplay-fabric/README.md` and `metadata/screenplay/modrinth-body.md`.
-Step/selector reference for authors: this directory’s `README.md`.
+Full docs (quick start + API reference): https://adam-k-ali.github.io/DWM/
+Also: `screenplay-fabric/README.md`, `metadata/screenplay/modrinth-body.md`, and this directory’s `README.md`.
 
 ## Commands
 - Fabric: `./gradlew runScreenplay -Pscreenplay=<yaml-filename-stem>` / `./gradlew runScreenplayTests`

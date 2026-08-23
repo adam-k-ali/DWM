@@ -2,6 +2,8 @@
 
 Real-client Minecraft tests with CI screenshots — built for humans and agents.
 
+**Docs:** [https://adam-k-ali.github.io/DWM/](https://adam-k-ali.github.io/DWM/) (quick start + command API reference)
+
 Screenplay boots the **real Minecraft client**, drives deterministic YAML scenarios (UI clicks, world actions, commands), and captures **screenshots and JUnit reports** you can inspect in CI or feed to coding agents.
 
 ## Why not GameTest alone?

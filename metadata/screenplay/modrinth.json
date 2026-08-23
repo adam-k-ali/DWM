@@ -1,4 +1,5 @@
 {
+  "project_id": "RdazTKdM",
   "description": "Real-client Minecraft scenario tests with CI screenshots for Fabric, Forge, and NeoForge — built for humans and agents.",
   "categories": [
     "library",

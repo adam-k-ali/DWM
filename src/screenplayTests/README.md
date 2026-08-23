@@ -4,6 +4,9 @@ This directory holds mod-owned **Screenplay** YAML scenarios. The harness ships
 as the `screenplay-*` Gradle modules (`screenplay-fabric` on the client run).
 It is not included in the production mod jar.
 
+Full documentation (quick start + command API reference):
+https://adam-k-ali.github.io/DWM/
+
 ## Running a scenario
 
 Run a test by its YAML filename without the extension:
@@ -98,7 +101,7 @@ steps:
 
 Supported frontmatter types are:
 
-- `test` — an executable scenario selected with `-Pscenario`.
+- `test` — an executable scenario selected with `-Pscreenplay`.
 - `command` — a reusable composite command.
 
 The filename stem is the stable ID. For example,
