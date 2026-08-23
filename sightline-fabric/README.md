@@ -2,8 +2,6 @@
 
 **Sightline** is a multi-loader library for real-client Minecraft scenario tests with CI screenshots.
 
-This repository vendors Sightline as Gradle subprojects and consumes the Fabric artifact from DWM.
-
 | Module | Role |
 | --- | --- |
 | `sightline-common` | Shared YAML compiler, runner, primitives (unit-tested here) |
@@ -12,7 +10,7 @@ This repository vendors Sightline as Gradle subprojects and consumes the Fabric 
 | `sightline-loaders/neoforge` | NeoForge client mod + access transformer (included build) |
 | `sightline-gradle-plugin` | `com.adamkali.sightline` plugin (`runSightline`, `runSightlineTests`, xvfb) |
 
-Forge/NeoForge live in the `sightline-loaders` included build so NeoGradle does not conflict with Fabric Loom run configs in the DWM root project.
+Forge and NeoForge live in the `sightline-loaders` included build so NeoGradle does not conflict with Fabric Loom run configs in a Fabric root project.
 
 ```bash
 ./gradlew -p sightline-loaders :forge:compileJava :neoforge:compileJava
@@ -20,11 +18,10 @@ Forge/NeoForge live in the `sightline-loaders` included build so NeoGradle does 
 
 Marketing listing drafts: [`metadata/sightline/`](../metadata/sightline/).
 
-## Consumer commands (DWM / Fabric)
+## Consumer commands (Fabric)
 
 ```bash
 ./gradlew runSightline -Psightline=createWorld -PsightlineDisplay=xvfb
-./gradlew runSightline -Psightline=placeAndOpenTardis -PsightlineDisplay=xvfb
 ./gradlew runSightlineTests -PsightlineDisplay=xvfb
 ./gradlew :sightline-common:test
 ```
@@ -33,7 +30,7 @@ Gradle properties: `-Psightline=<id>`, `-PsightlineTimeout=<seconds>`, `-Psightl
 
 System properties (set by the plugin): `sightline`, `sightline.step-timeout-seconds`, `sightline.report-file`, `sightline.vanilla-server-dir`.
 
-Outputs land under `build/sightline/`.
+Default YAML root: `src/sightlineTests/resources/tests/`. Outputs land under `build/sightline/`.
 
 ## Extending primitives
 
