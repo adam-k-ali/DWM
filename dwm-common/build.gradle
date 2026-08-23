@@ -1,0 +1,30 @@
+plugins {
+    id 'java-library'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = 'dwm-common'
+}
+
+// Source-holder module: gameplay lives here and is embedded by the Fabric root
+// and by dwm-loaders (Forge/NeoForge). Do not compile Minecraft sources here —
+// Loom remapping + access wideners are applied by each loader consumer.
+sourceSets {
+    main {
+        java.srcDirs = []
+        resources.srcDirs = ['src/main/resources']
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 25
+}

@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DoorItemModelAssemblerTest {
     private static final double DELTA = 1e-6;
-    private static final Path BLOCK_MODELS = Path.of("src/client/resources/assets/dwm/models/block");
+    private static final Path BLOCK_MODELS = Path.of("dwm-common/src/client/resources/assets/dwm/models/block");
 
     @Test
     void stacksSegmentsWithYOffsets() {

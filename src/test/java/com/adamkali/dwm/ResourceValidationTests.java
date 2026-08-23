@@ -47,7 +47,7 @@ public class ResourceValidationTests {
     public void validateItemModels() {
         assertTrue(JsonValidationHelpers.validateJsonFiles(
                 "src/test/resources/schemas/item_model.schema.json",
-                "src/client/resources/assets/dwm/models/item"
+                "dwm-common/src/client/resources/assets/dwm/models/item"
         ));
     }
 
@@ -57,11 +57,11 @@ public class ResourceValidationTests {
      */
     @Test
     public void modelDefinedTexturesExist() throws Exception {
-        Path textureRoot = Path.of("src/client/resources/assets/dwm/textures");
+        Path textureRoot = Path.of("dwm-common/src/client/resources/assets/dwm/textures");
         List<ModelTextureValidationHelpers.MissingTexture> missing =
                 ModelTextureValidationHelpers.collectMissingModelTextures(
                         textureRoot,
-                        Path.of("src/client/resources/assets/dwm/models"),
+                        Path.of("dwm-common/src/client/resources/assets/dwm/models"),
                         Path.of("src/main/generated/assets/dwm/models")
                 );
         if (!missing.isEmpty()) {
@@ -75,7 +75,7 @@ public class ResourceValidationTests {
      */
     @Test
     public void boatEntityTexturesExistAndAreDistinct() throws Exception {
-        Path root = Path.of("src/client/resources/assets/dwm/textures/entity/boat");
+        Path root = Path.of("dwm-common/src/client/resources/assets/dwm/textures/entity/boat");
         Set<String> hashes = new HashSet<>();
         MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
         for (String woodTypeId : WOOD_TYPE_IDS) {
@@ -100,7 +100,7 @@ public class ResourceValidationTests {
      */
     @Test
     public void hangingSignBlockTexturesExistAndAreDistinct() throws Exception {
-        Path root = Path.of("src/client/resources/assets/dwm/textures/block");
+        Path root = Path.of("dwm-common/src/client/resources/assets/dwm/textures/block");
         Set<String> hashes = new HashSet<>();
         MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
         for (String woodTypeId : WOOD_TYPE_IDS) {
@@ -166,7 +166,7 @@ public class ResourceValidationTests {
     @Test
     public void standingSignBlockTexturesExistAndAreDistinct() throws Exception {
         assertWoodFamilyPngsExistAndAreDistinct(
-                Path.of("src/client/resources/assets/dwm/textures/block"),
+                Path.of("dwm-common/src/client/resources/assets/dwm/textures/block"),
                 "%s_sign.png",
                 "Standing/wall sign block models expect assets/dwm/textures/block/%s_sign.png",
                 "Standing sign block texture must be unique per wood type, but %s duplicates another family's atlas"
@@ -180,7 +180,7 @@ public class ResourceValidationTests {
     @Test
     public void standingSignGuiTexturesExistAndAreDistinct() throws Exception {
         assertWoodFamilyPngsExistAndAreDistinct(
-                Path.of("src/client/resources/assets/dwm/textures/gui/signs"),
+                Path.of("dwm-common/src/client/resources/assets/dwm/textures/gui/signs"),
                 "%s.png",
                 "Fabric SignEditScreen expects assets/dwm/textures/gui/signs/%s.png for wood type dwm:%s",
                 "Standing sign GUI texture must be unique per wood type, but %s duplicates another family's atlas"
@@ -194,7 +194,7 @@ public class ResourceValidationTests {
     @Test
     public void hangingSignGuiTexturesExistAndAreDistinct() throws Exception {
         assertWoodFamilyPngsExistAndAreDistinct(
-                Path.of("src/client/resources/assets/dwm/textures/gui/hanging_signs"),
+                Path.of("dwm-common/src/client/resources/assets/dwm/textures/gui/hanging_signs"),
                 "%s.png",
                 "Fabric HangingSignEditScreen expects assets/dwm/textures/gui/hanging_signs/%s.png for wood type dwm:%s",
                 "Hanging sign GUI texture must be unique per wood type, but %s duplicates another family's atlas"
@@ -207,7 +207,7 @@ public class ResourceValidationTests {
     @Test
     public void standingSignItemTexturesExistAndAreDistinct() throws Exception {
         assertWoodFamilyPngsExistAndAreDistinct(
-                Path.of("src/client/resources/assets/dwm/textures/item"),
+                Path.of("dwm-common/src/client/resources/assets/dwm/textures/item"),
                 "%s_sign.png",
                 "Standing sign items expect assets/dwm/textures/item/%s_sign.png",
                 "Standing sign item texture must be unique per wood type, but %s duplicates another family's atlas"
@@ -220,7 +220,7 @@ public class ResourceValidationTests {
     @Test
     public void hangingSignItemTexturesExistAndAreDistinct() throws Exception {
         assertWoodFamilyPngsExistAndAreDistinct(
-                Path.of("src/client/resources/assets/dwm/textures/item"),
+                Path.of("dwm-common/src/client/resources/assets/dwm/textures/item"),
                 "%s_hanging_sign.png",
                 "Hanging sign items expect assets/dwm/textures/item/%s_hanging_sign.png",
                 "Hanging sign item texture must be unique per wood type, but %s duplicates another family's atlas"
@@ -314,14 +314,14 @@ public class ResourceValidationTests {
      */
     @Test
     public void tardisGlobeItemModelIsSpecialRenderer() throws Exception {
-        Path itemDef = Path.of("src/client/resources/assets/dwm/items/tardis_globe.json");
+        Path itemDef = Path.of("dwm-common/src/client/resources/assets/dwm/items/tardis_globe.json");
         JSONObject def = readJson(itemDef);
         JSONObject model = def.getJSONObject("model");
         assertEquals("minecraft:special", model.getString("type"));
         assertEquals("dwm:item/tardis_globe", model.getString("base"));
         assertEquals("dwm:tardis_globe", model.getJSONObject("model").getString("type"));
 
-        Path baseModel = Path.of("src/client/resources/assets/dwm/models/item/tardis_globe.json");
+        Path baseModel = Path.of("dwm-common/src/client/resources/assets/dwm/models/item/tardis_globe.json");
         JSONObject base = readJson(baseModel);
         assertEquals("minecraft:builtin/entity", base.getString("parent"));
         assertEquals("side", base.getString("gui_light"));
@@ -454,7 +454,7 @@ public class ResourceValidationTests {
 
     @Test
     public void broakirEntityTextureExists() throws Exception {
-        Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/broakir.png");
+        Path texture = Path.of("dwm-common/src/client/resources/assets/dwm/textures/entity/broakir.png");
         assertTrue(
                 Files.isRegularFile(texture) && Files.size(texture) > 0,
                 "BroakirRenderer expects assets/dwm/textures/entity/broakir.png"
@@ -463,7 +463,7 @@ public class ResourceValidationTests {
 
     @Test
     public void broakirSpawnEggTextureExists() throws Exception {
-        Path texture = Path.of("src/client/resources/assets/dwm/textures/item/broakir_spawn_egg.png");
+        Path texture = Path.of("dwm-common/src/client/resources/assets/dwm/textures/item/broakir_spawn_egg.png");
         assertTrue(
                 Files.isRegularFile(texture) && Files.size(texture) > 0,
                 "Spawn egg item model expects assets/dwm/textures/item/broakir_spawn_egg.png"
@@ -495,7 +495,7 @@ public class ResourceValidationTests {
     public void flutterwingEntityTexturesExist() throws Exception {
         String[] variants = {"blue_crystal", "madrigal", "silverband", "wild_endeavour"};
         for (String variant : variants) {
-            Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/flutterwing/" + variant + ".png");
+            Path texture = Path.of("dwm-common/src/client/resources/assets/dwm/textures/entity/flutterwing/" + variant + ".png");
             assertTrue(
                     Files.isRegularFile(texture) && Files.size(texture) > 0,
                     "FlutterwingRenderer expects assets/dwm/textures/entity/flutterwing/" + variant + ".png"
@@ -505,7 +505,7 @@ public class ResourceValidationTests {
 
     @Test
     public void flutterwingSpawnEggTextureExists() throws Exception {
-        Path texture = Path.of("src/client/resources/assets/dwm/textures/item/flutterwing_spawn_egg.png");
+        Path texture = Path.of("dwm-common/src/client/resources/assets/dwm/textures/item/flutterwing_spawn_egg.png");
         assertTrue(
                 Files.isRegularFile(texture) && Files.size(texture) > 0,
                 "Spawn egg item model expects assets/dwm/textures/item/flutterwing_spawn_egg.png"
@@ -553,15 +553,15 @@ public class ResourceValidationTests {
     public void flutterwingSoundFilesExist() throws Exception {
         String[] names = {"ambient", "ambient_2", "hurt", "death"};
         for (String name : names) {
-            Path sound = Path.of("src/client/resources/assets/dwm/sounds/entity/flutterwing/" + name + ".ogg");
+            Path sound = Path.of("dwm-common/src/client/resources/assets/dwm/sounds/entity/flutterwing/" + name + ".ogg");
             assertTrue(
                     Files.isRegularFile(sound) && Files.size(sound) > 0,
                     "Flutterwing sound event expects " + sound
             );
         }
-        byte[] ambient = Files.readAllBytes(Path.of("src/client/resources/assets/dwm/sounds/entity/flutterwing/ambient.ogg"));
-        byte[] hurt = Files.readAllBytes(Path.of("src/client/resources/assets/dwm/sounds/entity/flutterwing/hurt.ogg"));
-        byte[] death = Files.readAllBytes(Path.of("src/client/resources/assets/dwm/sounds/entity/flutterwing/death.ogg"));
+        byte[] ambient = Files.readAllBytes(Path.of("dwm-common/src/client/resources/assets/dwm/sounds/entity/flutterwing/ambient.ogg"));
+        byte[] hurt = Files.readAllBytes(Path.of("dwm-common/src/client/resources/assets/dwm/sounds/entity/flutterwing/hurt.ogg"));
+        byte[] death = Files.readAllBytes(Path.of("dwm-common/src/client/resources/assets/dwm/sounds/entity/flutterwing/death.ogg"));
         assertFalse(Arrays.equals(ambient, hurt), "ambient and hurt clips should differ");
         assertFalse(Arrays.equals(hurt, death), "hurt and death clips should differ");
         assertFalse(Arrays.equals(ambient, death), "ambient and death clips should differ");
@@ -569,7 +569,7 @@ public class ResourceValidationTests {
 
     @Test
     public void flutterwingSoundsAreCustomNotBeeAliases() throws Exception {
-        Path path = Path.of("src/main/resources/assets/dwm/sounds.json");
+        Path path = Path.of("dwm-common/src/main/resources/assets/dwm/sounds.json");
         JSONObject sounds = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
         String[] events = {
                 "entity.flutterwing.ambient",

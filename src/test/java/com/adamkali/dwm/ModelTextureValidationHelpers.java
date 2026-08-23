@@ -31,7 +31,7 @@ public final class ModelTextureValidationHelpers {
      * Collects missing {@code dwm:} textures referenced by model {@code textures} maps.
      *
      * @param textureRoot directory containing {@code block/}, {@code item/}, etc. PNG trees
-     *                    (typically {@code src/client/resources/assets/dwm/textures})
+     *                    (typically {@code dwm-common/src/client/resources/assets/dwm/textures})
      * @param modelRoots  model trees to scan (client + generated)
      */
     public static List<MissingTexture> collectMissingModelTextures(Path textureRoot, Path... modelRoots)
