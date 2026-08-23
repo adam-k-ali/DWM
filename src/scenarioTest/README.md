@@ -16,11 +16,11 @@ Discover every `type: test` YAML under `resources/tests/` and run each one
 (fresh client per scenario):
 
 ```bash
-./gradlew runAllSightlineTests
-./gradlew runAllSightlineTests -PsightlineDisplay=xvfb -PsightlineTimeout=120
+./gradlew runSightlineTests
+./gradlew runSightlineTests -PsightlineDisplay=xvfb -PsightlineTimeout=120
 ```
 
-`runAllSightlineTests` skips `type: command` documents, continues after individual
+`runSightlineTests` skips `type: command` documents, continues after individual
 failures, and fails the aggregate with the list of failed scenario IDs.
 
 The client uses an isolated directory under `build/sightline/run`. Before
@@ -57,7 +57,7 @@ Results are written to:
 - `build/sightline/diagnostics.txt` — current screen and visible widgets
 - `build/sightline/run/screenshots/` — PNGs from `captureScreenshot`
 - `build/sightline/results/<id>/` — per-scenario copies of report, metrics,
-  diagnostics, and screenshots written by `runAllSightlineTests`
+  diagnostics, and screenshots written by `runSightlineTests`
 - `build/sightline/vanilla-server/` — official dedicated-server run dir from
   `startVanillaServer` (`server-jar.path`, `eula.txt`, `server.properties`,
   `world/`, `logs/harness.log`)
@@ -67,7 +67,7 @@ The Gradle process exits non-zero when loading, validation, or execution fails.
 ### Performance vs main (CI)
 
 The [Sightline Tests](../../.github/workflows/scenario-tests.yml) workflow runs
-`runAllSightlineTests` and uploads `build/sightline/results/*/metrics.json`
+`runSightlineTests` and uploads `build/sightline/results/*/metrics.json`
 (plus the last-run top-level files). On pull requests, a follow-up job
 downloads the latest successful `main` run’s artifacts, compares totals and
 matching step names with

@@ -235,7 +235,7 @@ guiScale:1
 
         def execOps = project.objects.newInstance(SightlineExecOps).execOps
 
-        project.tasks.register('runAllSightlineTests') {
+        project.tasks.register('runSightlineTests') {
             group = 'verification'
             description = 'Discover all type:test YAML scenarios and run each via runSightline'
 

@@ -19,7 +19,7 @@
 - `metadata/`: Modrinth listing (`modrinth.json`, `modrinth-body.md`).
 - `sightline-common` / `sightline-fabric`: Sightline real-client scenario library (Fabric path used by DWM).
 - `sightline-loaders/`: Included build for `sightline-forge` and `sightline-neoforge` (isolated from Loom).
-- `sightline-gradle-plugin`: Gradle plugin `com.adamkali.sightline` (`runSightline`, `runAllSightlineTests`).
+- `sightline-gradle-plugin`: Gradle plugin `com.adamkali.sightline` (`runSightline`, `runSightlineTests`).
 - `metadata/sightline/`: Sightline Modrinth listing drafts (`modrinth.json`, `modrinth-body.md`).
 - `.cursor/skills/`: Agent skills for GameTests, asset import, Blockbench models, MCP verify, etc.
 - `version.json`: Release changelog and Modrinth/CurseForge promos — synced via `./gradlew syncVersionJson`.

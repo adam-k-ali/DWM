@@ -22,7 +22,7 @@ Sightline fills that gap with a Playwright-style client harness — scriptable, 
 
 ## Agent-friendly
 
-Agents can run `./gradlew runSightline` / `runAllSightlineTests`, read `report.xml` / `metrics.json` / screenshots, and iterate without a human babysitting a GUI. Deterministic options, wiped saves, and stable scenario IDs keep runs reproducible.
+Agents can run `./gradlew runSightline` / `runSightlineTests`, read `report.xml` / `metrics.json` / screenshots, and iterate without a human babysitting a GUI. Deterministic options, wiped saves, and stable scenario IDs keep runs reproducible.
 
 ## Quick start (Fabric)
 

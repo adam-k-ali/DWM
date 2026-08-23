@@ -14,7 +14,7 @@ class SightlineExtension {
     File testsDir
 
     /**
-     * Additional YAML roots to scan for {@code runAllSightlineTests} discovery.
+     * Additional YAML roots to scan for {@code runSightlineTests} discovery.
      */
     List<File> extraTestsDirs = []
 

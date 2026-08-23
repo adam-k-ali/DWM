@@ -46,7 +46,7 @@ jobs:
       - name: Run all Sightline tests
         run: |
           chmod +x ./gradlew
-          ./gradlew runAllSightlineTests \
+          ./gradlew runSightlineTests \
             -PsightlineDisplay=xvfb \
             -PsightlineTimeout=120
         env:
