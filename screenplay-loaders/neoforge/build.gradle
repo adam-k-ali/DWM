@@ -1,0 +1,80 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.neoforged.gradle.userdev' version '7.1.38'
+}
+
+version = project.screenplay_version
+group = project.screenplay_maven_group
+
+base {
+    archivesName = 'screenplay-neoforge'
+}
+
+java {
+    withSourcesJar()
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+minecraft {
+    accessTransformers.file project.file('src/main/resources/META-INF/accesstransformer.cfg')
+}
+
+runs {
+    configureEach {
+        workingDirectory project.layout.projectDirectory.dir('run').dir(name)
+        systemProperty 'forge.logging.markers', 'REGISTRIES'
+        systemProperty 'forge.logging.console.level', 'debug'
+        modSource project.sourceSets.main
+    }
+    client {
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "net.neoforged:neoforge:${project.neoforge_version}"
+    implementation 'org.yaml:snakeyaml:2.6'
+}
+
+def screenplayCommon = rootProject.file('../screenplay-common')
+
+sourceSets.main {
+    java {
+        srcDir new File(screenplayCommon, 'src/main/java')
+    }
+    resources {
+        srcDir new File(screenplayCommon, 'src/main/resources')
+    }
+}
+
+processResources {
+    var replaceProperties = [
+            mod_version: project.version
+    ]
+    inputs.properties replaceProperties
+    filesMatching(['META-INF/neoforge.mods.toml']) {
+        expand replaceProperties
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+}
+
+publishing {
+    publications {
+        create('mavenJava', MavenPublication) {
+            artifactId = 'screenplay-neoforge'
+            from components.java
+        }
+    }
+    repositories {
+    }
+}

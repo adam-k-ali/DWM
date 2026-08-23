@@ -23,7 +23,7 @@ run_case() {
     cat "$OUT/$name.md" >&2
     exit 1
   fi
-  if ! grep -q '<!-- dwm-sightline-perf -->' "$OUT/$name.md"; then
+  if ! grep -q '<!-- dwm-screenplay-perf -->' "$OUT/$name.md"; then
     echo "FAIL $name: missing comment marker" >&2
     exit 1
   fi

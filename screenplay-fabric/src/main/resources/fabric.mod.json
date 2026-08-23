@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "screenplay",
+  "version": "${version}",
+  "name": "Screenplay",
+  "description": "Real-client Minecraft scenario tests with CI screenshots.",
+  "authors": [
+    "adam-k-ali"
+  ],
+  "contact": {
+    "homepage": "https://modrinth.com/mod/screenplay",
+    "sources": "https://github.com/adam-k-ali/DWM"
+  },
+  "license": "All Rights Reserved",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.adamkali.screenplay.fabric.FabricScreenplayClient"
+    ]
+  },
+  "accessWidener": "screenplay.accesswidener",
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~26.2",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}

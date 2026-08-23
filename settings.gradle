@@ -21,11 +21,11 @@ plugins {
 	id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
 
-includeBuild('sightline-gradle-plugin')
+includeBuild('screenplay-gradle-plugin')
 // Isolate Forge/NeoGradle from Fabric Loom runs (NeoGradle treats custom Loom run names as run types).
-includeBuild('sightline-loaders')
+includeBuild('screenplay-loaders')
 
-include 'sightline-common'
-include 'sightline-fabric'
+include 'screenplay-common'
+include 'screenplay-fabric'
 
 rootProject.name = 'dwm'

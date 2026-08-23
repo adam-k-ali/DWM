@@ -1,7 +1,7 @@
 plugins {
     id 'net.fabricmc.fabric-loom' version "${loom_version}"
     id 'maven-publish'
-    id 'com.adamkali.sightline'
+    id 'com.adamkali.screenplay'
 }
 
 version = project.mod_version
@@ -31,8 +31,8 @@ repositories {
 }
 
 sourceSets {
-    // Mod-owned Sightline YAML scenarios (resources only; default src/sightlineTests/resources).
-    sightlineTests
+    // Mod-owned Screenplay YAML scenarios (resources only; default src/screenplayTests/resources).
+    screenplayTests
 }
 
 loom {
@@ -45,8 +45,8 @@ loom {
             sourceSet sourceSets.main
             sourceSet sourceSets.client
         }
-        "sightline" {
-            sourceSet project(':sightline-fabric').sourceSets.main
+        "screenplay" {
+            sourceSet project(':screenplay-fabric').sourceSets.main
         }
     }
 
@@ -58,26 +58,26 @@ loom {
             vmArg "-Dfabric-api.gametest.report-file=${layout.buildDirectory.get()}/gametest/report.xml"
             runDir "build/gametest"
         }
-        sightlineClient {
+        screenplayClient {
             client()
-            name "Sightline"
-            runDir "build/sightline/run"
+            name "Screenplay"
+            runDir "build/screenplay/run"
         }
     }
 }
 
-sightline {
+screenplay {
     loader = 'fabric'
-    testsDir = file('src/sightlineTests/resources/tests')
-    extraTestsDirs = [file('sightline-common/src/main/resources/tests')]
-    runDir = 'build/sightline/run'
-    outputDir = 'sightline'
+    testsDir = file('src/screenplayTests/resources/tests')
+    extraTestsDirs = [file('screenplay-common/src/main/resources/tests')]
+    runDir = 'build/screenplay/run'
+    outputDir = 'screenplay'
 }
 
-// Ensure mod-owned YAML scenarios are on the Sightline client classpath.
+// Ensure mod-owned YAML scenarios are on the Screenplay client classpath.
 tasks.configureEach { task ->
-    if (task.name in ['runSightline', 'runSightlineClient'] && task instanceof JavaExec) {
-        task.classpath += sourceSets.sightlineTests.output
+    if (task.name in ['runScreenplay', 'runScreenplayClient'] && task instanceof JavaExec) {
+        task.classpath += sourceSets.screenplayTests.output
     }
 }
 
@@ -103,8 +103,8 @@ dependencies {
 
     implementation("com.mixpanel:mixpanel-java:1.5.1")
 
-    // Sightline harness — runtime for client runs; Loom loads it via mods.sightline sourceSet.
-    runtimeOnly project(':sightline-fabric')
+    // Screenplay harness — runtime for client runs; Loom loads it via mods.screenplay sourceSet.
+    runtimeOnly project(':screenplay-fabric')
 }
 
 
