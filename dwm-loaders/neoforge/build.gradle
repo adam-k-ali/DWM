@@ -74,7 +74,7 @@ screenplay {
     loader = 'neoforge'
     testsDir = rootProject.file('../src/screenplayTests/resources/tests')
     extraTestsDirs = [rootProject.file('../screenplay-common/src/main/resources/tests')]
-    runDir = '../../build/screenplay-neoforge/run'
+    runDir = 'build/screenplay/run'
     outputDir = 'screenplay'
 }
 
