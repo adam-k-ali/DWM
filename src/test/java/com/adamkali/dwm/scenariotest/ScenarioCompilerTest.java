@@ -1223,6 +1223,47 @@ class ScenarioCompilerTest {
         assertEquals("waitUntil block \"minecraft:dirt\"", plan.steps().get(1).displayName());
     }
 
+    @Test
+    void compilesWalkUntilDimensionAndCoordinates(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - walkUntil:
+                      dimension: dwm:tardis
+                  - walkUntil:
+                      x: "~3"
+                      y: "~"
+                      z: "~"
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(2, plan.steps().size());
+        assertEquals("dwm:tardis", plan.steps().get(0).arguments().get("dimension"));
+        assertEquals("walkUntil dimension \"dwm:tardis\"", plan.steps().get(0).displayName());
+        assertEquals("~3", plan.steps().get(1).arguments().get("x"));
+        assertEquals("~", plan.steps().get(1).arguments().get("y"));
+        assertEquals("~", plan.steps().get(1).arguments().get("z"));
+        assertEquals("walkUntil \"~3 ~ ~\"", plan.steps().get(1).displayName());
+    }
+
+    @Test
+    void compilesBundledPlaceAndOpenTardisScenario() throws URISyntaxException {
+        Path scenarioRoot = Path.of(getClass().getResource("/tests").toURI());
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(scenarioRoot)).compile("placeAndOpenTardis");
+
+        assertEquals(20, plan.steps().size());
+        assertEquals("captureScreenshot", plan.steps().get(16).name());
+        assertEquals("tardis-door-open.png", plan.steps().get(16).arguments().get("name"));
+        assertEquals("walkUntil dimension \"dwm:tardis\"", plan.steps().get(17).displayName());
+        assertEquals(40, plan.steps().get(18).arguments().get("ticks"));
+        assertEquals("tardis-interior.png", plan.steps().get(19).arguments().get("name"));
+    }
+
     private static void write(Path path, String content) throws Exception {
         Files.createDirectories(path.getParent());
         Files.writeString(path, content);

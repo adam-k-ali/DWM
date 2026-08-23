@@ -30,6 +30,9 @@ public record ScenarioPlan(String id, String name, List<Step> steps) {
             if (arguments.containsKey("holding")) {
                 return name + " holding \"" + arguments.get("holding") + "\"";
             }
+            if (arguments.containsKey("dimension")) {
+                return name + " dimension \"" + arguments.get("dimension") + "\"";
+            }
             if (arguments.get("block") instanceof Map<?, ?> block && block.get("id") != null) {
                 return name + " block \"" + block.get("id") + "\"";
             }

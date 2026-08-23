@@ -128,6 +128,12 @@ The MVP primitives are:
   components may be absolute integers or relative (`"~"`, `"~1"`, `"~-1"`).
   Quote `"~"` in YAML; a bare `~` is YAML null. Relative values use the
   player's block position. Pitch must be between `-90` and `90`.
+- `walkUntil` — waits until a local player exists and no GUI is open, then holds
+  forward movement (`keyUp`) until one end condition is met: block coordinates
+  `x`/`y`/`z` (same relative/absolute rules as `lookAt`; re-aims at the target
+  each tick), or `dimension` (a namespaced world id such as `dwm:tardis`).
+  Exactly one mode is required. The forward key is released when the step
+  succeeds.
 - `useItem` — waits until a local player, game mode, no open screen, and a
   block crosshair hit exist, then uses the main-hand item on that block (the
   same path as right-click place/interact). It succeeds as soon as the use is
@@ -171,6 +177,12 @@ The MVP primitives are:
 - lookAt:
     yaw: 90
     pitch: 45
+- walkUntil:
+    x: "~3"
+    y: "~"
+    z: "~"
+- walkUntil:
+    dimension: dwm:tardis
 - useItem
 - waitTicks: 25
 - waitTicks:
