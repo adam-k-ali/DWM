@@ -74,3 +74,6 @@ build/screenplay/metrics.json
 
 # Loom / local Fabric tooling caches
 .fabric/
+
+# MkDocs local build output
+screenplay-docs/site/
