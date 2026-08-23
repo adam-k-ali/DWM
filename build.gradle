@@ -66,6 +66,16 @@ loom {
     }
 }
 
+// Embed shared gameplay from dwm-common (Screenplay-style single Fabric artifact).
+sourceSets.main {
+    java.srcDir project(':dwm-common').file('src/main/java')
+    resources.srcDir project(':dwm-common').file('src/main/resources')
+}
+sourceSets.client {
+    java.srcDir project(':dwm-common').file('src/client/java')
+    resources.srcDir project(':dwm-common').file('src/client/resources')
+}
+
 screenplay {
     loader = 'fabric'
     testsDir = file('src/screenplayTests/resources/tests')

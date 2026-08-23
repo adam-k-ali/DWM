@@ -89,12 +89,17 @@ public final class DoorItemModelAssembler {
      * Walk parents until the hand-authored door wrappers are found.
      */
     public static Path resolveBlockModelsDir() {
-        Path relative = Path.of("src/client/resources/assets/dwm/models/block");
+        Path[] relatives = {
+                Path.of("dwm-common/src/client/resources/assets/dwm/models/block"),
+                Path.of("src/client/resources/assets/dwm/models/block")
+        };
         Path dir = Path.of(System.getProperty("user.dir", "")).toAbsolutePath().normalize();
         while (dir != null) {
-            Path candidate = dir.resolve(relative);
-            if (Files.isRegularFile(candidate.resolve("ash_door_bottom_left.json"))) {
-                return candidate;
+            for (Path relative : relatives) {
+                Path candidate = dir.resolve(relative);
+                if (Files.isRegularFile(candidate.resolve("ash_door_bottom_left.json"))) {
+                    return candidate;
+                }
             }
             dir = dir.getParent();
         }
