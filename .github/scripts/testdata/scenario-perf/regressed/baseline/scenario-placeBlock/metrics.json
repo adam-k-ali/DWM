@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "placeBlock",
+  "scenarioName": "Place Block",
+  "passed": true,
+  "totalMs": 10000.0,
+  "steps": [
+    {"name": "useItem", "ms": 10.0, "passed": true},
+    {"name": "waitUntil block \"minecraft:dirt\"", "ms": 40.0, "passed": true}
+  ]
+}
