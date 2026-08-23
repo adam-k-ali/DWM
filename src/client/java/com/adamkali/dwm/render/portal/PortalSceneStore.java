@@ -9,10 +9,10 @@ import com.adamkali.dwm.network.SyncPortalMetaS2CPayload;
 import com.adamkali.dwm.network.UnloadPortalChunkS2CPayload;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
+import com.adamkali.dwm.platform.DwmClientServices;
 import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
 import com.adamkali.dwm.tardis.portal.PortalShellState;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 
 import java.util.Map;
@@ -136,7 +136,7 @@ public final class PortalSceneStore {
             return;
         }
         LAST_REQUEST_MS.put(key, now);
-        ClientPlayNetworking.send(new RequestPortalStreamC2SPayload(kind, tardisId));
+        DwmClientServices.get().sendToServer(new RequestPortalStreamC2SPayload(kind, tardisId));
     }
 
     public static void invalidate(PortalStreamKind kind, UUID tardisId) {

@@ -4,8 +4,6 @@ import com.adamkali.dwm.ClientTardis;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -16,7 +14,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
-@Environment(EnvType.CLIENT)
 public class TardisChameleonGui extends Screen {
     private static final Identifier BACKGROUND = Identifier.withDefaultNamespace("popup/background");
     private static final TardisChameleonVariant[] variants = TardisChameleonVariant.values();

@@ -1,7 +1,7 @@
 package com.adamkali.dwm;
 
 import com.adamkali.dwm.analytics.AnalyticsManager;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import com.adamkali.dwm.platform.DwmClientServices;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -31,7 +31,7 @@ public class ClientAnalyticsManager {
                 DELIVERY_INTERVAL_MS,
                 TimeUnit.MILLISECONDS);
 
-        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> shutdown());
+        DwmClientServices.get().registerClientStopping(client -> shutdown());
     }
 
     private static void shutdown() {

@@ -1,22 +1,24 @@
 package com.adamkali.dwm;
 
 import com.adamkali.dwm.block.entities.DWMBlockEntities;
+import com.adamkali.dwm.platform.DwmClientPlatform;
+import com.adamkali.dwm.platform.DwmClientServices;
 import com.adamkali.dwm.render.FirstDoctorConsoleBlockEntityRenderer;
 import com.adamkali.dwm.render.TardisBlockEntityRenderer;
 import com.adamkali.dwm.render.TardisDecorBlockEntityRenderer;
 import com.adamkali.dwm.render.TardisInteriorDoorBlockEntityRenderer;
-import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 
 public class DWMBlockEntityRendererFactories {
     public static void initialize() {
-        BlockEntityRendererRegistry.register(DWMBlockEntities.TARDIS_BLOCK_ENTITY, TardisBlockEntityRenderer::new);
-        BlockEntityRendererRegistry.register(
+        DwmClientPlatform platform = DwmClientServices.get();
+        platform.registerBlockEntityRenderer(DWMBlockEntities.TARDIS_BLOCK_ENTITY, TardisBlockEntityRenderer::new);
+        platform.registerBlockEntityRenderer(
                 DWMBlockEntities.TARDIS_INTERIOR_DOOR_BLOCK_ENTITY,
                 TardisInteriorDoorBlockEntityRenderer::new);
-        BlockEntityRendererRegistry.register(
+        platform.registerBlockEntityRenderer(
                 DWMBlockEntities.FIRST_DOCTOR_CONSOLE_BLOCK_ENTITY,
                 FirstDoctorConsoleBlockEntityRenderer::new);
-        BlockEntityRendererRegistry.register(
+        platform.registerBlockEntityRenderer(
                 DWMBlockEntities.TARDIS_DECOR_BLOCK_ENTITY,
                 TardisDecorBlockEntityRenderer::new);
     }

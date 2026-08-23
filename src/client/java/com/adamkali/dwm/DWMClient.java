@@ -2,6 +2,8 @@ package com.adamkali.dwm;
 
 import com.adamkali.dwm.network.ClientPayloadTypeRegistry;
 import com.adamkali.dwm.client.DWMEntityRenderers;
+import com.adamkali.dwm.platform.DwmClientServices;
+import com.adamkali.dwm.platform.fabric.FabricDwmClientPlatform;
 import com.adamkali.dwm.render.ConsoleControlHud;
 import com.adamkali.dwm.render.ConsoleHitboxDebugRenderer;
 import com.adamkali.dwm.render.TardisCompactScannerSpecialRenderer;
@@ -14,13 +16,13 @@ import com.adamkali.dwm.render.portal.PortalSupport;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.sound.TardisHumController;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.renderer.special.SpecialModelRenderers;
 import net.minecraft.resources.Identifier;
 
 public class DWMClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
+        DwmClientServices.set(new FabricDwmClientPlatform());
         SpecialModelRenderers.ID_MAPPER.put(
                 Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "tardis_full_scanner"),
                 TardisFullScannerSpecialRenderer.Unbaked.MAP_CODEC);
@@ -44,6 +46,6 @@ public class DWMClient implements ClientModInitializer {
         // resource reload, which is after client init. Register before that snapshot.
         PortalDoorRenderer.ensurePipelineRegistered();
         PortalSupport.initialize();
-        ClientTickEvents.END_CLIENT_TICK.register(client -> PortalSceneStore.clientTick());
+        DwmClientServices.get().registerEndClientTick(client -> PortalSceneStore.clientTick());
     }
 }
