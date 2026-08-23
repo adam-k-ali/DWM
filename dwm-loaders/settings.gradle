@@ -8,9 +8,14 @@ pluginManagement {
 			name = 'NeoForged'
 			url = 'https://maven.neoforged.net/releases'
 		}
+		maven {
+			name = 'Fabric'
+			url = 'https://maven.fabricmc.net/'
+		}
 		mavenCentral()
 		gradlePluginPortal()
 	}
+	includeBuild('../screenplay-gradle-plugin')
 }
 
 plugins {
@@ -18,6 +23,8 @@ plugins {
 }
 
 rootProject.name = 'dwm-loaders'
+
+includeBuild('../screenplay-loaders')
 
 include 'forge'
 include 'neoforge'

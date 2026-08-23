@@ -11,14 +11,12 @@ Full product docs: `screenplay-fabric/README.md` and `metadata/screenplay/modrin
 Step/selector reference for authors: this directory’s `README.md`.
 
 ## Commands
-- Run a scenario: `./gradlew runScreenplay -Pscreenplay=<yaml-filename-stem>`
-- Run all discovered `type: test` scenarios: `./gradlew runScreenplayTests`
+- Fabric: `./gradlew runScreenplay -Pscreenplay=<yaml-filename-stem>` / `./gradlew runScreenplayTests`
+- Forge: `./gradlew -p dwm-loaders :forge:runScreenplay` / `:forge:runScreenplayTests`
+- NeoForge: `./gradlew -p dwm-loaders :neoforge:executeScreenplay` / `:neoforge:runScreenplayTests`
 - Override step timeout (seconds): `-PscreenplayTimeout=60`
 - Display mode: `-PscreenplayDisplay=display|xvfb` (default `display`)
-- Reports: `build/screenplay/report.xml`, `build/screenplay/metrics.json`, `build/screenplay/diagnostics.txt`
-- Per-scenario archives from `runScreenplayTests`: `build/screenplay/results/<id>/`
-- Screenshots: `build/screenplay/run/screenshots/`
-- Vanilla server harness dir: `build/screenplay/vanilla-server/`
+- Reports: `build/screenplay/` (Fabric) or `dwm-loaders/<loader>/build/screenplay/`
 - Unit tests for the harness: `./gradlew :screenplay-common:test`
 
 ## Conventions
@@ -29,6 +27,6 @@ Step/selector reference for authors: this directory’s `README.md`.
 
 ## Common Pitfalls
 - **Display required** — use `-PscreenplayDisplay=xvfb` for headless/CI Linux runs.
-- **CI** — `.github/workflows/scenario-tests.yml` runs `./gradlew runScreenplayTests` with xvfb.
+- **CI** — `.github/workflows/scenario-tests.yml` runs Screenplay on Fabric, Forge, and NeoForge under xvfb (perf compare remains Fabric-primary).
 - Each run deletes saved worlds under `build/screenplay/run/saves` and clears `build/screenplay/vanilla-server/world`.
 - Quote relative coords in YAML: `"~"` not bare `~` (YAML null).

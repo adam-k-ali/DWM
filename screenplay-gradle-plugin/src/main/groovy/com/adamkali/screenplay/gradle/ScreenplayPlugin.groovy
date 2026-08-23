@@ -101,8 +101,29 @@ guiScale:1
             def minecraftProvider = loomExt.minecraftProvider
             return minecraftProvider.minecraftServerJar as File
         } catch (Throwable ignored) {
-            return null
+            // Fall through to non-Loom resolution.
         }
+        def override = project.findProperty('screenplayServerJar')
+        if (override != null) {
+            def file = project.file(override.toString())
+            if (file.isFile()) {
+                return file
+            }
+        }
+        // Best-effort: locate a cached official server jar under the Gradle caches.
+        def userHome = System.getProperty('user.home', '')
+        def version = project.findProperty('minecraft_version')?.toString()
+        if (userHome && version) {
+            def candidates = [
+                    new File("${userHome}/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/server/${version}/server-${version}.jar"),
+                    new File("${userHome}/.gradle/caches/minecraft/${version}/server.jar"),
+            ]
+            def found = candidates.find { it.isFile() }
+            if (found != null) {
+                return found
+            }
+        }
+        return null
     }
 
     private static void configureLoaderRun(Project project, ScreenplayExtension extension, String loader) {
@@ -152,37 +173,100 @@ guiScale:1
                 runsContainer = project.extensions.runs
             }
             if (runsContainer == null) {
-                project.logger.warn("Screenplay: no runs container found for loader '${loader}'")
-                return
+                throw new GradleException("Screenplay: no runs container found for loader '${loader}'")
             }
-            def run = runsContainer.findByName('screenplayClient') ?: runsContainer.findByName('screenplay')
-            if (run == null && runsContainer.metaClass.respondsTo(runsContainer, 'create', String)) {
-                run = runsContainer.create('screenplayClient')
-            } else if (run == null && runsContainer.metaClass.respondsTo(runsContainer, 'register', String)) {
-                run = runsContainer.register('screenplayClient').get()
+            def run
+            if (loader == 'neoforge') {
+                // NeoGradle findByName/create of unknown run types throws — only use client/server.
+                run = runsContainer.findByName('client')
+            } else {
+                run = runsContainer.findByName('screenplayClient') ?: runsContainer.findByName('screenplay')
+                if (run == null && runsContainer.metaClass.respondsTo(runsContainer, 'create', String)) {
+                    run = runsContainer.create('screenplayClient')
+                } else if (run == null && runsContainer.metaClass.respondsTo(runsContainer, 'register', String)) {
+                    run = runsContainer.register('screenplayClient').get()
+                }
+                if (run == null) {
+                    run = runsContainer.findByName('client')
+                }
             }
             if (run == null) {
-                project.logger.warn("Screenplay: could not create '${loader}' run named screenplayClient")
-                return
+                throw new GradleException("Screenplay: could not create or find a client run for '${loader}'")
             }
             if (run.hasProperty('workingDirectory')) {
-                run.workingDirectory = project.layout.projectDirectory.dir(runDir)
+                run.workingDirectory = project.file(runDir)
+            }
+            // NeoGradle NamedDomainObjectContainer uses workingDirectory = ...
+            try {
+                run.workingDirectory project.layout.projectDirectory.dir(runDir)
+            } catch (Throwable ignored) {
             }
             if (run.metaClass.respondsTo(run, 'systemProperty', String, Object)) {
                 run.systemProperty 'screenplay', scenarioId.get()
                 run.systemProperty 'screenplay.step-timeout-seconds', timeout.get()
                 run.systemProperty 'screenplay.report-file', reportFile
                 run.systemProperty 'screenplay.vanilla-server-dir', vanillaServerDir
+            } else {
+                try {
+                    run.systemProperty 'screenplay', scenarioId.get()
+                    run.systemProperty 'screenplay.step-timeout-seconds', timeout.get()
+                    run.systemProperty 'screenplay.report-file', reportFile
+                    run.systemProperty 'screenplay.vanilla-server-dir', vanillaServerDir
+                } catch (Throwable ignored) {
+                    project.logger.warn("Screenplay: could not set system properties on ${loader} run")
+                }
             }
+
+            // NeoGradle treats any task named run* as a run-type request. Avoid that prefix.
+            def screenplayTaskName = loader == 'neoforge' ? 'executeScreenplay' : 'runScreenplay'
+            def delegateCandidates = loader == 'neoforge'
+                    ? ['runClient']
+                    : ['runScreenplayClient', 'run_screenplayClient', 'runClient']
+            def delegateTask = delegateCandidates.find { name ->
+                project.tasks.names.contains(name)
+            }
+            if (project.tasks.findByName(screenplayTaskName) == null) {
+                project.tasks.register(screenplayTaskName) {
+                    group = 'verification'
+                    description = 'Run a Screenplay YAML scenario in the real Minecraft client'
+                    if (delegateTask != null) {
+                        dependsOn delegateTask
+                    } else if (loader == 'neoforge') {
+                        dependsOn 'runClient'
+                    } else {
+                        project.afterEvaluate {
+                            def late = ['runScreenplayClient', 'run_screenplayClient', 'runClient'].find { name ->
+                                project.tasks.names.contains(name)
+                            }
+                            if (late != null) {
+                                project.tasks.named(screenplayTaskName).configure { dependsOn late }
+                            } else {
+                                logger.warn("Screenplay: no client run task found for ${loader}; ${screenplayTaskName} may no-op")
+                            }
+                        }
+                    }
+                }
+            }
+            project.extensions.extraProperties.set('screenplayRunTask', screenplayTaskName)
         } catch (Throwable ex) {
-            project.logger.warn("Screenplay could not fully configure ${loader} run: ${ex.message}")
+            throw new GradleException("Screenplay could not configure ${loader} run: ${ex.message}", ex)
         }
     }
 
     private static void configureDisplayOnRunTask(Project project, ScreenplayExtension extension) {
         def displayMode = project.providers.gradleProperty('screenplayDisplay').orElse('display')
+        def screenplayRunTask = project.providers.provider {
+            project.extensions.extraProperties.has('screenplayRunTask')
+                    ? project.extensions.extraProperties.get('screenplayRunTask').toString()
+                    : 'runScreenplay'
+        }
         project.tasks.configureEach { task ->
-            if (!(task.name in ['runScreenplay', 'runScreenplayClient'])) {
+            def runTaskName = screenplayRunTask.get()
+            if (!(task.name in [runTaskName, 'runScreenplay', 'runScreenplayClient', 'executeScreenplay'])) {
+                return
+            }
+            // Only attach prepare/display gating to the Screenplay entry task (and Fabric client run).
+            if (!(task.name in [runTaskName, 'runScreenplay', 'runScreenplayClient', 'executeScreenplay'])) {
                 return
             }
             task.dependsOn('prepareScreenplayRun')
@@ -238,6 +322,8 @@ guiScale:1
         project.tasks.register('runScreenplayTests') {
             group = 'verification'
             description = 'Discover all type:test YAML scenarios and run each via runScreenplay'
+            // NeoGradle rejects unknown run* task names during registration of sibling tasks;
+            // runScreenplayTests is fine as a plain task (not mapped to a run config).
 
             doLast {
                 def missing = testsDirs.findAll { !it.isDirectory() }
@@ -250,8 +336,9 @@ guiScale:1
                 }
                 logger.lifecycle("Discovered ${scenarioIds.size()} Screenplay test(s): ${scenarioIds.join(', ')}")
 
-                def gradleWrapper = new File(projectDirFile, 'gradlew')
-                def gradleCommand = gradleWrapper.exists() ? gradleWrapper.absolutePath : 'gradle'
+                def gradleWrapper = findGradleWrapper(projectDirFile)
+                def gradleCommand = gradleWrapper != null ? gradleWrapper.absolutePath : 'gradle'
+                def gradleWorkingDir = gradleWrapper != null ? gradleWrapper.parentFile : projectDirFile
                 def failed = []
                 def resultsDir = resultsRoot.get().asFile
                 project.delete(resultsDir)
@@ -259,13 +346,29 @@ guiScale:1
 
                 scenarioIds.each { String scenarioId ->
                     logger.lifecycle("Running Screenplay test '${scenarioId}'")
-                    def args = [gradleCommand, 'runScreenplay', "-Pscreenplay=${scenarioId}"]
+                    def runTask = project.extensions.extraProperties.has('screenplayRunTask')
+                            ? project.extensions.extraProperties.get('screenplayRunTask').toString()
+                            : 'runScreenplay'
+                    def args = [gradleCommand]
+                    // Included-build consumers (dwm-loaders) are invoked via -p from the repo root wrapper.
+                    def wrappersRoot = gradleWorkingDir
+                    def loadersDir = new File(wrappersRoot, 'dwm-loaders')
+                    if (loadersDir.isDirectory() && project.projectDir.absolutePath.startsWith(loadersDir.absolutePath)) {
+                        args << '-p'
+                        args << 'dwm-loaders'
+                        args << "${project.name}:${runTask}"
+                    } else if (project.path != ':') {
+                        args << "${project.path}:${runTask}"
+                    } else {
+                        args << runTask
+                    }
+                    args << "-Pscreenplay=${scenarioId}"
                     args << "-PscreenplayDisplay=${displayMode.get()}"
                     if (timeoutProperty.isPresent()) {
                         args << "-PscreenplayTimeout=${timeoutProperty.get()}"
                     }
                     def result = execOps.exec {
-                        workingDir projectDirFile
+                        workingDir gradleWorkingDir
                         commandLine args
                         ignoreExitValue = true
                     }
@@ -305,6 +408,18 @@ guiScale:1
                 logger.lifecycle("All ${scenarioIds.size()} Screenplay test(s) passed")
             }
         }
+    }
+
+    private static File findGradleWrapper(File startDir) {
+        File dir = startDir
+        while (dir != null) {
+            def wrapper = new File(dir, 'gradlew')
+            if (wrapper.isFile()) {
+                return wrapper
+            }
+            dir = dir.parentFile
+        }
+        return null
     }
 
     private static List discoverScenarioTestIds(List<File> scenarioTestsRoots) {

@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'net.neoforged.gradle.userdev' version '7.1.38'
+    id 'com.adamkali.screenplay'
 }
 
 version = project.mod_version
@@ -44,10 +45,13 @@ dependencies {
     implementation 'org.json:json:20240303'
     implementation 'com.github.erosb:everit-json-schema:1.14.4'
     implementation 'com.mixpanel:mixpanel-java:1.5.1'
+    runtimeOnly 'com.adamkali.screenplay:screenplay-neoforge'
 }
 
 def dwmCommon = rootProject.file('../dwm-common')
 def rootGenerated = rootProject.file('../src/main/generated')
+def screenplayTests = rootProject.file('../src/screenplayTests/resources')
+def screenplayCommonTests = rootProject.file('../screenplay-common/src/main/resources')
 
 sourceSets.main {
     java {
@@ -58,7 +62,17 @@ sourceSets.main {
         srcDir new File(dwmCommon, 'src/main/resources')
         srcDir new File(dwmCommon, 'src/client/resources')
         srcDir rootGenerated
+        srcDir screenplayTests
+        srcDir screenplayCommonTests
     }
+}
+
+screenplay {
+    loader = 'neoforge'
+    testsDir = rootProject.file('../src/screenplayTests/resources/tests')
+    extraTestsDirs = [rootProject.file('../screenplay-common/src/main/resources/tests')]
+    runDir = '../../build/screenplay-neoforge/run'
+    outputDir = 'screenplay'
 }
 
 processResources {

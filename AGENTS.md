@@ -1,19 +1,21 @@
 # AGENTS.md
 
 ## Project Snapshot
-- Project type: Minecraft Fabric mod (`fabric-loom`) using Gradle.
+- Project type: Minecraft multi-loader mod (Fabric primary via `fabric-loom`; Forge/NeoForge via `dwm-loaders` included build).
 - Language/runtime baseline: Java 25.
-- Current target stack is defined in `gradle.properties` and `build.gradle` (Minecraft, Yarn mappings, Fabric Loader, Fabric API).
+- Current target stack is defined in `gradle.properties` and `build.gradle` (Minecraft, Yarn mappings, Fabric Loader, Fabric API, Forge, NeoForge).
 - Objective: maximize safe, repeatable AI-agent-driven development with strong automated verification.
 
 ## Repository Map
-- `src/main/java`: Common logic safe on both logical client and logical server (`com.adamkali.dwm.*`).
-- `src/client/java`: Client-only logic (rendering, HUD, client integration).
+- `dwm-common/`: Shared gameplay + client render (loader-neutral; talks through `DwmPlatform` / `DwmClientPlatform`).
+- Root project: Fabric adapters (`platform/fabric`), entrypoints, datagen, GameTests, Screenplay Fabric runs; embeds `dwm-common` sources.
+- `dwm-loaders/`: Included build for `dwm-forge` and `dwm-neoforge` (isolated from Loom); embeds `dwm-common`.
+- `src/main/java` / `src/client/java`: Fabric-only adapters, datagen, GameTests (shared code lives under `dwm-common`).
 - `src/test/java`: JUnit 5 unit tests and scenario compiler/primitive tests.
 - `src/screenplayTests/`: Mod-owned Screenplay YAML scenarios (resources only; not shipped in the mod jar).
-- `src/main/resources`: Common resources (`fabric.mod.json`, data, tags, recipes, lang, worldgen).
+- `src/main/resources`: Fabric metadata (`fabric.mod.json`, mixins, access widener).
 - `src/main/generated/`: Datagen output — commit intentional changes; delete `.cache/` before commit.
-- `src/client/resources`: Hand-maintained client assets (models, blockstates, textures, sounds).
+- `dwm-common/src/*/resources`: Shared assets/data consumed by all loaders.
 - `docs/`: Product-facing feature docs and release policy — read before changing player-visible behaviour.
 - `tools/`: Offline Python scripts (TARDIS SFX generation/analysis); not part of Gradle build.
 - `metadata/`: Modrinth listing (`modrinth.json`, `modrinth-body.md`).
@@ -70,8 +72,13 @@
 
 ## Testing Expectations
 - **Unit tests** (`./gradlew test`): JUnit 5 via `fabric-loader-junit` for logic, codecs, datagen helpers, and scenario compiler/primitives. Included in `./gradlew build` and CI.
-- **GameTests** (`./gradlew runGametest`): Headless dedicated-server in-world tests in `src/main/java/.../gametest/`. Not run by CI today — run locally when GameTest code changes. See `.cursor/skills/fabric-gametest/SKILL.md`.
-- **Screenplay tests** (`./gradlew runScreenplay -Pscreenplay=<id>`): Real Minecraft client driven from YAML (mod scenarios in `src/screenplayTests/resources/tests/` + library demos). Requires a display; CI uses xvfb. See `src/screenplayTests/AGENTS.md` and `screenplay-fabric/README.md`.
+- **GameTests** (`./gradlew runGametest`): Headless dedicated-server in-world tests (Fabric-only). Not run by CI today — run locally when GameTest code changes. See `.cursor/skills/fabric-gametest/SKILL.md`.
+- **Screenplay tests** (real client YAML):
+  - Fabric: `./gradlew runScreenplay -Pscreenplay=<id>` / `./gradlew runScreenplayTests`
+  - Forge: `./gradlew -p dwm-loaders :forge:runScreenplayTests`
+  - NeoForge: `./gradlew -p dwm-loaders :neoforge:runScreenplayTests` (entry task is `executeScreenplay` to avoid NeoGradle run-type clashes)
+  - Requires a display; CI uses xvfb (`-PscreenplayDisplay=xvfb`). See `src/screenplayTests/AGENTS.md`.
+- **Forge/NeoForge compile**: `./gradlew -p dwm-loaders :forge:compileJava :neoforge:compileJava`
 - Keep test runs reproducible and suitable for unattended agent execution.
 
 ## Automation Pipeline For Agents

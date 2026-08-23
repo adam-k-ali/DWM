@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '[7.0.17,8)'
+    id 'com.adamkali.screenplay'
 }
 
 version = project.mod_version
@@ -28,7 +29,16 @@ minecraft {
         }
         register('client')
         register('server')
+        register('screenplayClient')
     }
+}
+
+screenplay {
+    loader = 'forge'
+    testsDir = rootProject.file('../src/screenplayTests/resources/tests')
+    extraTestsDirs = [rootProject.file('../screenplay-common/src/main/resources/tests')]
+    runDir = '../../build/screenplay-forge/run'
+    outputDir = 'screenplay'
 }
 
 repositories {
@@ -43,10 +53,14 @@ dependencies {
     implementation 'org.json:json:20240303'
     implementation 'com.github.erosb:everit-json-schema:1.14.4'
     implementation 'com.mixpanel:mixpanel-java:1.5.1'
+    // Screenplay Forge client harness (composite includeBuild).
+    runtimeOnly 'com.adamkali.screenplay:screenplay-forge'
 }
 
 def dwmCommon = rootProject.file('../dwm-common')
 def rootGenerated = rootProject.file('../src/main/generated')
+def screenplayTests = rootProject.file('../src/screenplayTests/resources')
+def screenplayCommonTests = rootProject.file('../screenplay-common/src/main/resources')
 
 sourceSets.main {
     java {
@@ -57,6 +71,8 @@ sourceSets.main {
         srcDir new File(dwmCommon, 'src/main/resources')
         srcDir new File(dwmCommon, 'src/client/resources')
         srcDir rootGenerated
+        srcDir screenplayTests
+        srcDir screenplayCommonTests
     }
 }
 
@@ -85,3 +101,4 @@ publishing {
     repositories {
     }
 }
+
