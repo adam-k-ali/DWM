@@ -129,7 +129,16 @@ public final class NeoForgeDwmPlatform implements DwmPlatform {
         if (modifiers == null) {
             return;
         }
-        CreativeTabOutput output = event::accept;
+        CreativeTabOutput output = item -> {
+            if (item == null) {
+                return;
+            }
+            ItemStack stack = new ItemStack(item);
+            if (stack.isEmpty()) {
+                return;
+            }
+            event.accept(stack);
+        };
         for (Consumer<CreativeTabOutput> modifier : modifiers) {
             modifier.accept(output);
         }

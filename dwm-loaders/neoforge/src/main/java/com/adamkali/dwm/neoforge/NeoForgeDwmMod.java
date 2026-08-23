@@ -17,9 +17,9 @@ public final class NeoForgeDwmMod {
     public NeoForgeDwmMod(IEventBus modBus) {
         DwmServices.set(new NeoForgeDwmPlatform(modBus));
         // Fabric-style Registry.register in DwmCommon needs open vanilla registries.
-        // NeoForge freezes them before mod construction; temporarily reopen for init.
-        net.neoforged.neoforge.registries.GameData.unfreezeData();
+        NeoForgeRegistryBootstrap.unlockForFabricStyleRegistration();
         DwmCommon.init();
+        NeoForgeRegistryBootstrap.syncBlockItemMapAfterRegistration();
 
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
             DwmClientServices.set(new NeoForgeDwmClientPlatform(modBus));
