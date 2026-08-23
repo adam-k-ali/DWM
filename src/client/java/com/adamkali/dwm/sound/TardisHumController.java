@@ -1,7 +1,7 @@
 package com.adamkali.dwm.sound;
 
+import com.adamkali.dwm.platform.DwmClientServices;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 
@@ -15,7 +15,7 @@ public final class TardisHumController {
     }
 
     public static void initialize() {
-        ClientTickEvents.END_CLIENT_TICK.register(TardisHumController::onEndTick);
+        DwmClientServices.get().registerEndClientTick(TardisHumController::onEndTick);
     }
 
     private static void onEndTick(Minecraft client) {

@@ -4,10 +4,10 @@ import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls.LookTarget;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.entity.ConsoleControlInteractionEntity;
+import com.adamkali.dwm.platform.DwmClientPlatform;
+import com.adamkali.dwm.platform.DwmClientServices;
 import com.adamkali.dwm.tardis.logic.ConsoleDisplayState;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -31,7 +31,8 @@ public final class ConsoleControlHud {
     }
 
     public static void initialize() {
-        HudElementRegistry.attachElementAfter(VanillaHudElements.CROSSHAIR, ELEMENT_ID, ConsoleControlHud::extract);
+        DwmClientPlatform platform = DwmClientServices.get();
+        platform.attachHudAfter(platform.hudAnchorCrosshair(), ELEMENT_ID, ConsoleControlHud::extract);
     }
 
     private static void extract(GuiGraphicsExtractor graphics, DeltaTracker tickCounter) {

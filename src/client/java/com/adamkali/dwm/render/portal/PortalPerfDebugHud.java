@@ -2,8 +2,8 @@ package com.adamkali.dwm.render.portal;
 
 import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.config.DWMConfig;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
+import com.adamkali.dwm.platform.DwmClientPlatform;
+import com.adamkali.dwm.platform.DwmClientServices;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -50,7 +50,8 @@ public final class PortalPerfDebugHud {
 
     public static void initialize() {
         // No DEBUG element in Fabric 1.21+ VanillaHudElements; MISC_OVERLAYS is the early HUD slot.
-        HudElementRegistry.attachElementAfter(VanillaHudElements.MISC_OVERLAYS, ELEMENT_ID, PortalPerfDebugHud::extract);
+        DwmClientPlatform platform = DwmClientServices.get();
+        platform.attachHudAfter(platform.hudAnchorMiscOverlays(), ELEMENT_ID, PortalPerfDebugHud::extract);
     }
 
     private static void extract(GuiGraphicsExtractor graphics, DeltaTracker tickCounter) {

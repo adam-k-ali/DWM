@@ -4,8 +4,8 @@ import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.FirstDoctorConsoleBlock;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls.LookTarget;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
+import com.adamkali.dwm.platform.DwmClientPlatform;
+import com.adamkali.dwm.platform.DwmClientServices;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.debug.DebugScreenEntries;
 import net.minecraft.core.BlockPos;
@@ -47,10 +47,10 @@ public final class ConsoleHitboxDebugRenderer {
     }
 
     public static void initialize() {
-        LevelRenderEvents.BEFORE_GIZMOS.register(ConsoleHitboxDebugRenderer::beforeGizmos);
+        DwmClientServices.get().registerLevelRenderBeforeGizmos(ConsoleHitboxDebugRenderer::beforeGizmos);
     }
 
-    private static void beforeGizmos(LevelRenderContext context) {
+    private static void beforeGizmos(DwmClientPlatform.LevelRenderCtx context) {
         Minecraft client = Minecraft.getInstance();
         Level world = client.level;
         if (world == null || client.player == null) {

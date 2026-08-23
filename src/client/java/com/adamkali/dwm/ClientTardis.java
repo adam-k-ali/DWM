@@ -6,8 +6,8 @@ import com.adamkali.dwm.network.SaveWaypointC2SPayload;
 import com.adamkali.dwm.network.SelectPlayerC2SPayload;
 import com.adamkali.dwm.network.SelectWaypointC2SPayload;
 import com.adamkali.dwm.network.UpdateTardisChameleonC2SPayload;
+import com.adamkali.dwm.platform.DwmClientServices;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,26 +25,26 @@ public class ClientTardis {
     }
 
     public void updateChameleonVariant(@NotNull TardisChameleonVariant variant) {
-        ClientPlayNetworking.send(new UpdateTardisChameleonC2SPayload(variant.getId(), this.tardisId));
+        DwmClientServices.get().sendToServer(new UpdateTardisChameleonC2SPayload(variant.getId(), this.tardisId));
     }
 
     public void saveWaypoint(@Nullable String name) {
-        ClientPlayNetworking.send(new SaveWaypointC2SPayload(this.tardisId, name == null ? "" : name));
+        DwmClientServices.get().sendToServer(new SaveWaypointC2SPayload(this.tardisId, name == null ? "" : name));
     }
 
     public void deleteWaypoint(@NotNull UUID waypointId) {
-        ClientPlayNetworking.send(new DeleteWaypointC2SPayload(this.tardisId, waypointId));
+        DwmClientServices.get().sendToServer(new DeleteWaypointC2SPayload(this.tardisId, waypointId));
     }
 
     public void renameWaypoint(@NotNull UUID waypointId, @NotNull String name) {
-        ClientPlayNetworking.send(new RenameWaypointC2SPayload(this.tardisId, waypointId, name));
+        DwmClientServices.get().sendToServer(new RenameWaypointC2SPayload(this.tardisId, waypointId, name));
     }
 
     public void selectWaypoint(@Nullable UUID waypointId) {
-        ClientPlayNetworking.send(new SelectWaypointC2SPayload(this.tardisId, waypointId));
+        DwmClientServices.get().sendToServer(new SelectWaypointC2SPayload(this.tardisId, waypointId));
     }
 
     public void selectPlayer(@Nullable UUID playerUuid) {
-        ClientPlayNetworking.send(new SelectPlayerC2SPayload(this.tardisId, playerUuid));
+        DwmClientServices.get().sendToServer(new SelectPlayerC2SPayload(this.tardisId, playerUuid));
     }
 }

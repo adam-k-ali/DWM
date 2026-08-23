@@ -1,7 +1,8 @@
 package com.adamkali.dwm;
 
 import com.adamkali.dwm.model.tileentity.*;
-import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
+import com.adamkali.dwm.platform.DwmClientPlatform;
+import com.adamkali.dwm.platform.DwmClientServices;
 
 /**
  * Registers entity/block-entity model layers. Terrain cutout/translucent layers are
@@ -9,69 +10,70 @@ import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
  */
 public class DWMRenderLayerManager {
     private static void registerEntityRenderLayers() {
-        ModelLayerRegistry.registerModelLayer(TTCapsuleModel.LAYER_LOCATION, TTCapsuleModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(FirstDoctorTardisModel.LAYER_LOCATION, FirstDoctorTardisModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(SecondDoctorTardisModel.LAYER_LOCATION, SecondDoctorTardisModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(ThirdDoctorTardisModel.LAYER_LOCATION, ThirdDoctorTardisModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(FourthDoctorTardisModel.LAYER_LOCATION, FourthDoctorTardisModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(FifthDoctorTardisModel.LAYER_LOCATION, FifthDoctorTardisModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(SixthDoctorTardisModel.LAYER_LOCATION, SixthDoctorTardisModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(SeventhDoctorTardisModel.LAYER_LOCATION, SeventhDoctorTardisModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        DwmClientPlatform platform = DwmClientServices.get();
+        platform.registerModelLayer(TTCapsuleModel.LAYER_LOCATION, TTCapsuleModel::getTexturedModelData);
+        platform.registerModelLayer(FirstDoctorTardisModel.LAYER_LOCATION, FirstDoctorTardisModel::getTexturedModelData);
+        platform.registerModelLayer(SecondDoctorTardisModel.LAYER_LOCATION, SecondDoctorTardisModel::getTexturedModelData);
+        platform.registerModelLayer(ThirdDoctorTardisModel.LAYER_LOCATION, ThirdDoctorTardisModel::getTexturedModelData);
+        platform.registerModelLayer(FourthDoctorTardisModel.LAYER_LOCATION, FourthDoctorTardisModel::getTexturedModelData);
+        platform.registerModelLayer(FifthDoctorTardisModel.LAYER_LOCATION, FifthDoctorTardisModel::getTexturedModelData);
+        platform.registerModelLayer(SixthDoctorTardisModel.LAYER_LOCATION, SixthDoctorTardisModel::getTexturedModelData);
+        platform.registerModelLayer(SeventhDoctorTardisModel.LAYER_LOCATION, SeventhDoctorTardisModel::getTexturedModelData);
+        platform.registerModelLayer(
                 TardisClassicInteriorDoorModel.LAYER_LOCATION,
                 TardisClassicInteriorDoorModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 FirstDoctorConsoleModel.LAYER_LOCATION,
                 FirstDoctorConsoleModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 BiomeSelectorModel.LAYER_LOCATION,
                 BiomeSelectorModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 PlanetLocatorModel.LAYER_LOCATION,
                 PlanetLocatorModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 WaypointSelectorModel.LAYER_LOCATION,
                 WaypointSelectorModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 PlayerLocatorModel.LAYER_LOCATION,
                 PlayerLocatorModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 ChameleonCircuitModel.LAYER_LOCATION,
                 ChameleonCircuitModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 MaterialisationLeverModel.LAYER_LOCATION,
                 MaterialisationLeverModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 FastReturnModel.LAYER_LOCATION,
                 FastReturnModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 StabilisersModel.LAYER_LOCATION,
                 StabilisersModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 ReaderModel.LAYER_LOCATION,
                 ReaderModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 RadiationReaderModel.LAYER_LOCATION,
                 RadiationReaderModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 CloakLeverModel.LAYER_LOCATION,
                 CloakLeverModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 DoorLockModel.LAYER_LOCATION,
                 DoorLockModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 TelepathicCircuitModel.LAYER_LOCATION,
                 TelepathicCircuitModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 CoordinateLockModel.LAYER_LOCATION,
                 CoordinateLockModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 TardisGlobeModel.LAYER_LOCATION,
                 TardisGlobeModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 TardisCompactScannerModel.LAYER_LOCATION,
                 TardisCompactScannerModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
+        platform.registerModelLayer(
                 TardisFullScannerModel.LAYER_LOCATION,
                 TardisFullScannerModel::getTexturedModelData);
     }

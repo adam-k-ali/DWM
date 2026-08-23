@@ -1,8 +1,8 @@
 package com.adamkali.dwm.render.portal;
 
+import com.adamkali.dwm.platform.DwmClientPlatform;
+import com.adamkali.dwm.platform.DwmClientServices;
 import com.mojang.logging.LogUtils;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.GraphicsPreset;
 import net.minecraft.client.Minecraft;
 import org.slf4j.Logger;
@@ -26,10 +26,11 @@ public final class PortalSupport {
             return;
         }
         initialized = true;
-        LevelRenderEvents.START_MAIN.register(context -> PortalRenderTarget.beginClientFrame());
+        DwmClientPlatform platform = DwmClientServices.get();
+        platform.registerLevelRenderStartMain(context -> PortalRenderTarget.beginClientFrame());
         // Portal FBO clear/mesh draws must not run mid-BER (blacks out world/items on 26.2).
-        LevelRenderEvents.END_MAIN.register(context -> PortalScheduler.flushEndMain());
-        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
+        platform.registerLevelRenderEndMain(context -> PortalScheduler.flushEndMain());
+        platform.registerClientStopping(client -> {
             PortalRenderTarget.closeGlobal();
             PortalFeatureFlush.closeGlobal();
         });

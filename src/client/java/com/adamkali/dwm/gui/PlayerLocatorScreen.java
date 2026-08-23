@@ -4,8 +4,6 @@ import com.adamkali.dwm.ClientTardis;
 import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.network.OpenPlayerLocatorScreen;
 import com.adamkali.dwm.text.DimensionNames;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -27,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Environment(EnvType.CLIENT)
 public class PlayerLocatorScreen extends Screen {
     private static final Identifier BACKGROUND = Identifier.withDefaultNamespace("popup/background");
     private static final Identifier ICON_SELECTED =
