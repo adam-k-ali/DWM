@@ -1,5 +1,6 @@
 package com.adamkali.dwm.command;
 
+import com.adamkali.dwm.platform.DwmServices;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
@@ -11,7 +12,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import java.util.Optional;
 import java.util.UUID;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.UuidArgument;
@@ -28,7 +28,7 @@ public final class TardisCommands {
     }
 
     public static void initialize() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, buildContext, selection) -> register(dispatcher));
+        DwmServices.get().registerCommands((dispatcher, buildContext, selection) -> register(dispatcher));
     }
 
     static void register(CommandDispatcher<CommandSourceStack> dispatcher) {

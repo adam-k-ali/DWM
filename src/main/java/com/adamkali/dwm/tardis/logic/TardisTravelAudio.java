@@ -1,17 +1,17 @@
 package com.adamkali.dwm.tardis.logic;
 
 import com.adamkali.dwm.network.TravelAudioS2CPayload;
+import com.adamkali.dwm.platform.DwmServices;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -46,8 +46,8 @@ public final class TardisTravelAudio {
             Identifier exteriorDim = exteriorWorld.dimension().identifier();
             TravelAudioS2CPayload exteriorStop = new TravelAudioS2CPayload(
                     tardisId, TravelAudioS2CPayload.STOP, exteriorDim, exteriorPos, false);
-            for (ServerPlayer player : PlayerLookup.around(exteriorWorld, exteriorPos, EXTERIOR_RANGE)) {
-                ServerPlayNetworking.send(player, exteriorStop);
+            for (ServerPlayer player : DwmServices.get().playersAround(exteriorWorld, Vec3.atCenterOf(exteriorPos), EXTERIOR_RANGE)) {
+                DwmServices.get().sendToPlayer(player, exteriorStop);
             }
         }
 
@@ -62,7 +62,7 @@ public final class TardisTravelAudio {
         for (ServerPlayer player : interior.players()) {
             if (BotiInteriorSampler.isInsideFootprint(player.blockPosition(), origin)
                     || player.blockPosition().closerThan(console, EXTERIOR_RANGE)) {
-                ServerPlayNetworking.send(player, interiorCue);
+                DwmServices.get().sendToPlayer(player, interiorCue);
             }
         }
     }
@@ -81,8 +81,8 @@ public final class TardisTravelAudio {
                 tardisId, TravelAudioS2CPayload.STOP, TardisDimensions.DIMENSION_ID, consolePos(tardisId), true);
 
         if (exteriorWorld != null) {
-            for (ServerPlayer player : PlayerLookup.around(exteriorWorld, pos, EXTERIOR_RANGE)) {
-                ServerPlayNetworking.send(player, exteriorStop);
+            for (ServerPlayer player : DwmServices.get().playersAround(exteriorWorld, Vec3.atCenterOf(pos), EXTERIOR_RANGE)) {
+                DwmServices.get().sendToPlayer(player, exteriorStop);
             }
         }
         ServerLevel interior = server.getLevel(TardisDimensions.TARDIS_WORLD_KEY);
@@ -91,7 +91,7 @@ public final class TardisTravelAudio {
             for (ServerPlayer player : interior.players()) {
                 if (BotiInteriorSampler.isInsideFootprint(player.blockPosition(), origin)
                         || player.blockPosition().closerThan(consolePos(tardisId), EXTERIOR_RANGE)) {
-                    ServerPlayNetworking.send(player, interiorStop);
+                    DwmServices.get().sendToPlayer(player, interiorStop);
                 }
             }
         }
@@ -110,8 +110,8 @@ public final class TardisTravelAudio {
         Identifier exteriorDim = exteriorWorld.dimension().identifier();
         TravelAudioS2CPayload exteriorCue = new TravelAudioS2CPayload(
                 tardisId, action, exteriorDim, exteriorPos, false);
-        for (ServerPlayer player : PlayerLookup.around(exteriorWorld, exteriorPos, EXTERIOR_RANGE)) {
-            ServerPlayNetworking.send(player, exteriorCue);
+        for (ServerPlayer player : DwmServices.get().playersAround(exteriorWorld, Vec3.atCenterOf(exteriorPos), EXTERIOR_RANGE)) {
+            DwmServices.get().sendToPlayer(player, exteriorCue);
         }
 
         BlockPos console = consolePos(tardisId);
@@ -125,7 +125,7 @@ public final class TardisTravelAudio {
         for (ServerPlayer player : interior.players()) {
             if (BotiInteriorSampler.isInsideFootprint(player.blockPosition(), origin)
                     || player.blockPosition().closerThan(console, EXTERIOR_RANGE)) {
-                ServerPlayNetworking.send(player, interiorCue);
+                DwmServices.get().sendToPlayer(player, interiorCue);
             }
         }
     }

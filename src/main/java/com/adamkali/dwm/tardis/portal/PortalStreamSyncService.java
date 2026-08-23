@@ -19,12 +19,7 @@ import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import com.adamkali.dwm.tardis.soto.SotoExteriorIndex;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
-import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import com.adamkali.dwm.platform.DwmServices;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -65,13 +60,14 @@ public final class PortalStreamSyncService {
     }
 
     public static void initialize() {
-        PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockEntity) -> {
+        var platform = DwmServices.get();
+        platform.registerAfterBlockBreak((world, player, pos, state, blockEntity) -> {
             if (!world.isClientSide()) {
                 markDirtyAt(world.dimension(), pos);
             }
         });
 
-        UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
+        platform.registerUseBlock((player, world, hand, hitResult) -> {
             if (!world.isClientSide()) {
                 markDirtyAt(world.dimension(), hitResult.getBlockPos());
                 markDirtyAt(world.dimension(), hitResult.getBlockPos().relative(hitResult.getDirection()));
@@ -79,8 +75,8 @@ public final class PortalStreamSyncService {
             return InteractionResult.PASS;
         });
 
-        ServerTickEvents.END_SERVER_TICK.register(PortalStreamSyncService::onEndTick);
-        ServerLifecycleEvents.SERVER_STOPPED.register(server -> clear());
+        platform.registerEndServerTick(PortalStreamSyncService::onEndTick);
+        platform.registerServerStopped(server -> clear());
     }
 
     public static void clear() {
@@ -221,7 +217,7 @@ public final class PortalStreamSyncService {
         SyncPortalPerfS2CPayload payload = SyncPortalPerfS2CPayload.fromSnapshot(snap);
         for (ServerPlayer viewer : Set.copyOf(TICK_VIEWERS)) {
             if (viewer != null && !viewer.hasDisconnected()) {
-                ServerPlayNetworking.send(viewer, payload);
+                DwmServices.get().sendToPlayer(viewer, payload);
             }
         }
     }
@@ -270,7 +266,7 @@ public final class PortalStreamSyncService {
                         kind, tardisId, revision, ctx.shell(), ctx.atmosphere()
                 );
                 for (ServerPlayer viewer : viewers) {
-                    ServerPlayNetworking.send(viewer, payload);
+                    DwmServices.get().sendToPlayer(viewer, payload);
                     PortalStreamPerfStats.noteMetaPacket();
                 }
             }
@@ -344,12 +340,12 @@ public final class PortalStreamSyncService {
             ServerPlayer player = server.getPlayerList().getPlayer(key.playerId);
             if (player != null) {
                 for (long packed : SENT_CHUNKS.getOrDefault(key, Set.of())) {
-                    ServerPlayNetworking.send(player, new UnloadPortalChunkS2CPayload(
+                    DwmServices.get().sendToPlayer(player, new UnloadPortalChunkS2CPayload(
                             streamKey.kind, streamKey.tardisId, ChunkPos.getX(packed), ChunkPos.getZ(packed)
                     ));
                 }
                 for (UUID entityId : TRACKED_ENTITIES.getOrDefault(key, Set.of())) {
-                    ServerPlayNetworking.send(player, new SyncPortalEntityRemoveS2CPayload(
+                    DwmServices.get().sendToPlayer(player, new SyncPortalEntityRemoveS2CPayload(
                             streamKey.kind, streamKey.tardisId, entityId
                     ));
                     PortalStreamPerfStats.noteEntityRemove();
@@ -367,7 +363,7 @@ public final class PortalStreamSyncService {
             if (interiorWorld != null) {
                 BlockPos doorOrigin = TardisPlotAllocator.plotOrigin(tardisId)
                         .offset(FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN);
-                viewers.addAll(PlayerLookup.tracking(interiorWorld, doorOrigin));
+                viewers.addAll(DwmServices.get().playersTracking(interiorWorld, doorOrigin));
             }
         } else {
             TardisDataModel model = TardisDataLoader.get(tardisId);
@@ -376,7 +372,7 @@ public final class PortalStreamSyncService {
                 ServerLevel exteriorWorld = server.getLevel(worldKey);
                 if (exteriorWorld != null) {
                     BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
-                    viewers.addAll(PlayerLookup.tracking(exteriorWorld, exteriorPos));
+                    viewers.addAll(DwmServices.get().playersTracking(exteriorWorld, exteriorPos));
                 }
             }
         }
@@ -394,7 +390,7 @@ public final class PortalStreamSyncService {
 
     private static void sendMeta(ServerPlayer player, SceneContext ctx) {
         int revision = META_REVISIONS.merge(ctx.tardisId(), 1, Integer::sum);
-        ServerPlayNetworking.send(player, SyncPortalMetaS2CPayload.of(
+        DwmServices.get().sendToPlayer(player, SyncPortalMetaS2CPayload.of(
                 ctx.kind(), ctx.tardisId(), revision, ctx.shell(), ctx.atmosphere()
         ));
         PortalStreamPerfStats.noteMetaPacket();
@@ -408,7 +404,7 @@ public final class PortalStreamSyncService {
             for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
                 PortalStreamSample sample = ctx.sampleChunk(cx, cz);
                 PortalStreamPerfStats.noteChunkSample();
-                ServerPlayNetworking.send(
+                DwmServices.get().sendToPlayer(
                         player,
                         SyncPortalChunkS2CPayload.fromSample(ctx.kind(), ctx.tardisId(), ctx.footprintOrigin(), sample)
                 );
@@ -434,7 +430,7 @@ public final class PortalStreamSyncService {
         for (long packed : Set.copyOf(sent)) {
             if (!desired.contains(packed)) {
                 sent.remove(packed);
-                ServerPlayNetworking.send(player, new UnloadPortalChunkS2CPayload(
+                DwmServices.get().sendToPlayer(player, new UnloadPortalChunkS2CPayload(
                         ctx.kind(), ctx.tardisId(), ChunkPos.getX(packed), ChunkPos.getZ(packed)
                 ));
             }
@@ -447,7 +443,7 @@ public final class PortalStreamSyncService {
             int cz = ChunkPos.getZ(packed);
             PortalStreamSample sample = ctx.sampleChunk(cx, cz);
             PortalStreamPerfStats.noteChunkSample();
-            ServerPlayNetworking.send(
+            DwmServices.get().sendToPlayer(
                     player,
                     SyncPortalChunkS2CPayload.fromSample(ctx.kind(), ctx.tardisId(), ctx.footprintOrigin(), sample)
             );
@@ -474,7 +470,7 @@ public final class PortalStreamSyncService {
             int cz = ChunkPos.getZ(packed);
             PortalStreamSample sample = ctx.sampleChunk(cx, cz);
             PortalStreamPerfStats.noteChunkSample();
-            ServerPlayNetworking.send(
+            DwmServices.get().sendToPlayer(
                     player,
                     SyncPortalChunkS2CPayload.fromSample(ctx.kind(), ctx.tardisId(), ctx.footprintOrigin(), sample)
             );
@@ -496,7 +492,7 @@ public final class PortalStreamSyncService {
             }
             liveIds.add(entity.getUUID());
             if (tracked.contains(entity.getUUID())) {
-                ServerPlayNetworking.send(
+                DwmServices.get().sendToPlayer(
                         player,
                         SyncPortalEntityUpdateS2CPayload.fromEntity(ctx.kind(), ctx.tardisId(), entity, ctx.footprintOrigin())
                 );
@@ -507,7 +503,7 @@ public final class PortalStreamSyncService {
                 if (spawn.typeId() == null || spawn.typeId().getPath().isEmpty()) {
                     continue;
                 }
-                ServerPlayNetworking.send(player, spawn);
+                DwmServices.get().sendToPlayer(player, spawn);
                 PortalStreamPerfStats.noteEntitySpawn();
                 tracked.add(entity.getUUID());
             }
@@ -515,7 +511,7 @@ public final class PortalStreamSyncService {
         for (UUID id : Set.copyOf(tracked)) {
             if (!liveIds.contains(id)) {
                 tracked.remove(id);
-                ServerPlayNetworking.send(player, new SyncPortalEntityRemoveS2CPayload(ctx.kind(), ctx.tardisId(), id));
+                DwmServices.get().sendToPlayer(player, new SyncPortalEntityRemoveS2CPayload(ctx.kind(), ctx.tardisId(), id));
                 PortalStreamPerfStats.noteEntityRemove();
             }
         }

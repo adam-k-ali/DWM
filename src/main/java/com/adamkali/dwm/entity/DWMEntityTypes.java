@@ -4,7 +4,7 @@ import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.block.wood.WoodFamilyRegistrar;
-import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityType;
+import com.adamkali.dwm.platform.DwmServices;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -81,51 +81,49 @@ public final class DWMEntityTypes {
     private static EntityType<BroakirEntity> registerBroakir() {
         Identifier id = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "broakir");
         ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, id);
-        return Registry.register(
+        EntityType<BroakirEntity> type = Registry.register(
                 BuiltInRegistries.ENTITY_TYPE,
                 key,
-                FabricEntityType.Builder.createMob(
-                                BroakirEntity::new,
-                                MobCategory.CREATURE,
-                                mob -> mob
-                                        .spawnPlacement(
-                                                SpawnPlacementTypes.ON_GROUND,
-                                                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                                                (type, level, reason, pos, random) ->
-                                                        Animal.checkAnimalSpawnRules(type, level, reason, pos, random)
-                                        )
-                                        .defaultAttributes(BroakirEntity::createAttributes)
-                        )
+                EntityType.Builder.of(BroakirEntity::new, MobCategory.CREATURE)
                         .sized(1.4F, 2.3F)
                         .eyeHeight(2.0F)
                         .clientTrackingRange(10)
                         .build(key)
         );
+        var platform = DwmServices.get();
+        platform.registerSpawnPlacement(
+                type,
+                SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                (entityType, level, reason, pos, random) ->
+                        Animal.checkAnimalSpawnRules(entityType, level, reason, pos, random)
+        );
+        platform.registerDefaultAttributes(type, BroakirEntity::createAttributes);
+        return type;
     }
 
     private static EntityType<FlutterwingEntity> registerFlutterwing() {
         Identifier id = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "flutterwing");
         ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, id);
-        return Registry.register(
+        EntityType<FlutterwingEntity> type = Registry.register(
                 BuiltInRegistries.ENTITY_TYPE,
                 key,
-                FabricEntityType.Builder.createMob(
-                                FlutterwingEntity::new,
-                                MobCategory.CREATURE,
-                                mob -> mob
-                                        .spawnPlacement(
-                                                SpawnPlacementTypes.ON_GROUND,
-                                                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                                                (type, level, reason, pos, random) ->
-                                                        Animal.checkAnimalSpawnRules(type, level, reason, pos, random)
-                                        )
-                                        .defaultAttributes(FlutterwingEntity::createAttributes)
-                        )
+                EntityType.Builder.of(FlutterwingEntity::new, MobCategory.CREATURE)
                         .sized(0.9F * FlutterwingEntity.SCALE, 1.5F * FlutterwingEntity.SCALE)
                         .eyeHeight(1.2F * FlutterwingEntity.SCALE)
                         .clientTrackingRange(10)
                         .build(key)
         );
+        var platform = DwmServices.get();
+        platform.registerSpawnPlacement(
+                type,
+                SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                (entityType, level, reason, pos, random) ->
+                        Animal.checkAnimalSpawnRules(entityType, level, reason, pos, random)
+        );
+        platform.registerDefaultAttributes(type, FlutterwingEntity::createAttributes);
+        return type;
     }
 
     public static EntityType<Boat> registerBoat(String path, java.util.function.Supplier<net.minecraft.world.item.Item> boatItem) {

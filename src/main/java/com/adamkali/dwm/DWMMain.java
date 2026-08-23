@@ -10,13 +10,14 @@ import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.item.DWMDataComponents;
 import com.adamkali.dwm.item.DWMItems;
 import com.adamkali.dwm.network.ServerPayloadTypeRegistry;
+import com.adamkali.dwm.platform.DwmServices;
+import com.adamkali.dwm.platform.fabric.FabricDwmPlatform;
 import com.adamkali.dwm.sound.DWMSounds;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.world.level.storage.LevelResource;
 import org.slf4j.Logger;
 
@@ -25,6 +26,7 @@ public class DWMMain implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        DwmServices.set(new FabricDwmPlatform());
         LOGGER.info("Initializing Doctor Who Mod");
         DWMConfig.init();
         DWMStatistics.initialize();
@@ -39,10 +41,10 @@ public class DWMMain implements ModInitializer {
         PortalStreamSyncService.initialize();
         TardisTravelService.initialize();
         TardisCommands.initialize();
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+        DwmServices.get().registerServerStarted(server -> {
             TardisDataLoader.tardisSaveDirectory = server.getWorldPath(LevelResource.ROOT).resolve("tardis_data");
         });
-        ServerLifecycleEvents.AFTER_SAVE.register((server, flush, force) -> {
+        DwmServices.get().registerAfterSave((server, flush, force) -> {
             TardisDataLoader.save();
         });
 

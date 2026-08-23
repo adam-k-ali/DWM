@@ -14,7 +14,7 @@ import com.adamkali.dwm.tardis.data.model.TardisWaypoint;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.soto.SotoExteriorIndex;
 import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import com.adamkali.dwm.platform.DwmServices;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
@@ -74,7 +74,7 @@ public final class TardisTravelService {
     }
 
     public static void initialize() {
-        ServerTickEvents.END_SERVER_TICK.register(TardisTravelService::onEndTick);
+        DwmServices.get().registerEndServerTick(TardisTravelService::onEndTick);
     }
 
     /**
