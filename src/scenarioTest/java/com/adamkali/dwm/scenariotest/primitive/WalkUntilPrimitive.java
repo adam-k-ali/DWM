@@ -19,6 +19,7 @@ public final class WalkUntilPrimitive implements ScenarioPrimitive {
     private static final Set<String> KEYS = Set.of("x", "y", "z", "dimension");
 
     private boolean holdingForward;
+    private BlockPos absoluteTarget;
 
     @Override
     public String name() {
@@ -42,13 +43,22 @@ public final class WalkUntilPrimitive implements ScenarioPrimitive {
             return false;
         }
 
+        Map<String, Object> arguments = context.arguments();
         if (!holdingForward) {
+            if (!arguments.containsKey("dimension")) {
+                BlockPos origin = player.blockPosition();
+                absoluteTarget = new BlockPos(
+                        ScenarioCoordinates.parse(arguments.get("x"), "walkUntil x").resolve(origin.getX()),
+                        ScenarioCoordinates.parse(arguments.get("y"), "walkUntil y").resolve(origin.getY()),
+                        ScenarioCoordinates.parse(arguments.get("z"), "walkUntil z").resolve(origin.getZ())
+                );
+                context.logger().info("Walking toward absolute {}", absoluteTarget);
+            }
             client.options.keyUp.setDown(true);
             holdingForward = true;
             context.logger().info("Holding forward for walkUntil");
         }
 
-        Map<String, Object> arguments = context.arguments();
         boolean done;
         if (arguments.containsKey("dimension")) {
             String expected = (String) arguments.get("dimension");
@@ -58,16 +68,10 @@ public final class WalkUntilPrimitive implements ScenarioPrimitive {
                 context.logger().debug("Waiting for dimension {} (current {})", expected, actual);
             }
         } else {
-            BlockPos origin = player.blockPosition();
-            BlockPos target = new BlockPos(
-                    ScenarioCoordinates.parse(arguments.get("x"), "walkUntil x").resolve(origin.getX()),
-                    ScenarioCoordinates.parse(arguments.get("y"), "walkUntil y").resolve(origin.getY()),
-                    ScenarioCoordinates.parse(arguments.get("z"), "walkUntil z").resolve(origin.getZ())
-            );
-            player.lookAt(EntityAnchorArgument.Anchor.EYES, Vec3.atCenterOf(target));
-            done = player.blockPosition().equals(target);
+            player.lookAt(EntityAnchorArgument.Anchor.EYES, Vec3.atCenterOf(absoluteTarget));
+            done = player.blockPosition().equals(absoluteTarget);
             if (!done) {
-                context.logger().debug("Walking toward {} from {}", target, player.blockPosition());
+                context.logger().debug("Walking toward {} from {}", absoluteTarget, player.blockPosition());
             }
         }
 
@@ -83,6 +87,7 @@ public final class WalkUntilPrimitive implements ScenarioPrimitive {
     private void releaseForward(Minecraft client) {
         client.options.keyUp.setDown(false);
         holdingForward = false;
+        absoluteTarget = null;
     }
 
     public static Map<String, Object> normalize(Map<String, Object> arguments) {
