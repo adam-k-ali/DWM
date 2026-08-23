@@ -23,7 +23,7 @@ Entry orchestration for doors/travel generally flows: block/BE interaction → `
 ## Commands
 - Unit tests: `./gradlew test --tests "com.adamkali.dwm.tardis.*"`
 - GameTests (door/interior/landing/console): `./gradlew runGametest`
-- YAML client flows (UI/world creation): `./gradlew runScenarioTest -Pscenario=placeAndOpenTardis` (see `src/scenarioTest/AGENTS.md`)
+- YAML client flows (UI/world creation): `./gradlew runSightline -Psightline=placeAndOpenTardis` (see `src/sightlineTests/AGENTS.md`)
 
 ## Conventions
 - **Server authoritative** — mutate `TardisDataModel` on the server; sync to clients via existing payloads/render state, not client-side persistence.

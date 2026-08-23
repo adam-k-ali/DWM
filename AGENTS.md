@@ -10,13 +10,17 @@
 - `src/main/java`: Common logic safe on both logical client and logical server (`com.adamkali.dwm.*`).
 - `src/client/java`: Client-only logic (rendering, HUD, client integration).
 - `src/test/java`: JUnit 5 unit tests and scenario compiler/primitive tests.
-- `src/scenarioTest/`: Local-only Fabric test mod — YAML-driven real-client scenarios (not shipped in the mod jar).
+- `src/sightlineTests/`: Mod-owned Sightline YAML scenarios (resources only; not shipped in the mod jar).
 - `src/main/resources`: Common resources (`fabric.mod.json`, data, tags, recipes, lang, worldgen).
 - `src/main/generated/`: Datagen output — commit intentional changes; delete `.cache/` before commit.
 - `src/client/resources`: Hand-maintained client assets (models, blockstates, textures, sounds).
 - `docs/`: Product-facing feature docs and release policy — read before changing player-visible behaviour.
 - `tools/`: Offline Python scripts (TARDIS SFX generation/analysis); not part of Gradle build.
 - `metadata/`: Modrinth listing (`modrinth.json`, `modrinth-body.md`).
+- `sightline-common` / `sightline-fabric`: Sightline real-client scenario library (Fabric path used by this mod).
+- `sightline-loaders/`: Included build for `sightline-forge` and `sightline-neoforge` (isolated from Loom).
+- `sightline-gradle-plugin`: Gradle plugin `com.adamkali.sightline` (`runSightline`, `runSightlineTests`).
+- `metadata/sightline/`: Sightline Modrinth listing drafts (`modrinth.json`, `modrinth-body.md`).
 - `.cursor/skills/`: Agent skills for GameTests, asset import, Blockbench models, MCP verify, etc.
 - `version.json`: Release changelog and Modrinth/CurseForge promos — synced via `./gradlew syncVersionJson`.
 
@@ -67,7 +71,7 @@
 ## Testing Expectations
 - **Unit tests** (`./gradlew test`): JUnit 5 via `fabric-loader-junit` for logic, codecs, datagen helpers, and scenario compiler/primitives. Included in `./gradlew build` and CI.
 - **GameTests** (`./gradlew runGametest`): Headless dedicated-server in-world tests in `src/main/java/.../gametest/`. Not run by CI today — run locally when GameTest code changes. See `.cursor/skills/fabric-gametest/SKILL.md`.
-- **YAML scenario tests** (`./gradlew runScenarioTest -Pscenario=<id>`): Real Minecraft client driven from YAML in `src/scenarioTest/resources/tests/`. Requires a display; not in CI. See `src/scenarioTest/AGENTS.md`.
+- **Sightline tests** (`./gradlew runSightline -Psightline=<id>`): Real Minecraft client driven from YAML (mod scenarios in `src/sightlineTests/resources/tests/` + library demos). Requires a display; CI uses xvfb. See `src/sightlineTests/AGENTS.md` and `sightline-fabric/README.md`.
 - Keep test runs reproducible and suitable for unattended agent execution.
 
 ## Automation Pipeline For Agents
@@ -85,7 +89,7 @@
   - `./gradlew build` — compile all source sets + JUnit (CI gate)
   - `./gradlew runDatagen` — regenerate `src/main/generated/` (only when datagen providers or promoted assets change); finalized by `pruneDatagenItemModels`
   - `./gradlew runGametest` — headless GameTests → `build/gametest/report.xml`
-  - `./gradlew runScenarioTest -Pscenario=<yaml-stem>` — client YAML scenarios → `build/scenario-test/report.xml` (display required)
+  - `./gradlew runSightline -Psightline=<yaml-stem>` — client YAML scenarios → `build/sightline/report.xml` (display required)
   - `./gradlew syncVersionJson` / `checkVersionSync` — keep `version.json` aligned with `gradle.properties`
 - If a command fails, surface the failure clearly and fix root causes before handoff where possible.
 
@@ -138,7 +142,7 @@ After creating or updating a pull request, apply the appropriate label(s) using 
 A single PR may carry more than one label if it touches multiple categories.
 
 ## Nested Context
-- `src/scenarioTest/AGENTS.md` — YAML client scenario framework (primitives, composite commands, Gradle properties).
+- `src/sightlineTests/AGENTS.md` — YAML client scenario framework (primitives, composite commands, Gradle properties).
 - `src/main/java/com/adamkali/dwm/tardis/AGENTS.md` — TARDIS domain layout (logic vs data vs interior vs portal rendering).
 - `tools/AGENTS.md` — offline Python audio tooling and fixture rules.
 - `.cursor/skills/fabric-gametest/SKILL.md` — authoring and registering Fabric GameTests.
@@ -151,7 +155,7 @@ These notes are for agents running in the Cursor Cloud VM. The standard build/te
 - Java 25 is what Gradle targets (`./gradlew` picks up the system JDK; no `JAVA_HOME` tweaking needed). Local agents may need `JAVA_HOME` pointed at a JDK 25 install.
 - The startup update script runs `./gradlew dependencies -q`, which resolves all configurations and lets Fabric Loom provision Minecraft, Yarn mappings, and remap the mod dependencies. The very first Loom configuration on a cold cache is slow and network-heavy (it decompiles Minecraft and remaps ~50 mods from `maven.fabricmc.net`, `maven.shedaniel.me`, `maven.terraformersmc.com`, and Maven Central); once cached, subsequent Gradle invocations are fast.
 - Running the mod end-to-end without a display: use `./gradlew runGametest`. This boots a real headless Minecraft server, loads the mod, and executes the registered in-world Fabric GameTests (TARDIS door/interior flows and chameleon networking). It is the best headless smoke test of core gameplay.
-- YAML client scenario tests (`./gradlew runScenarioTest`) boot a real Fabric client. In this headless VM use `-PscenarioDisplay=xvfb` (requires `xvfb` / Mesa); `-PscenarioDisplay=display` needs a real `$DISPLAY`. See `src/scenarioTest/README.md`. Prefer `runGametest` for server-side gameplay smoke tests.
+- YAML client scenario tests (`./gradlew runSightline`) boot a real Fabric client. In this headless VM use `-PsightlineDisplay=xvfb` (requires `xvfb` / Mesa); `-PsightlineDisplay=display` needs a real `$DISPLAY`. See `src/sightlineTests/README.md`. Prefer `runGametest` for server-side gameplay smoke tests.
 - `./gradlew runClient` and `./gradlew runServer` start the actual game; `runClient` needs a GUI/display and will not work in the headless VM. Prefer `runGametest` for automated verification.
 - `./gradlew build` also compiles the `client` source set and runs the full JUnit suite, so a green `build` covers both compile and unit-test confidence.
 - `./gradlew runDatagen` writes generated resources under `src/main/generated/` and also leaves an untracked `src/main/generated/.cache/` directory — delete that `.cache` dir before committing to avoid stray churn.

@@ -1,6 +1,7 @@
 plugins {
     id 'net.fabricmc.fabric-loom' version "${loom_version}"
     id 'maven-publish'
+    id 'com.adamkali.sightline'
 }
 
 version = project.mod_version
@@ -30,7 +31,8 @@ repositories {
 }
 
 sourceSets {
-    scenarioTest
+    // Mod-owned Sightline YAML scenarios (resources only; default src/sightlineTests/resources).
+    sightlineTests
 }
 
 loom {
@@ -43,8 +45,8 @@ loom {
             sourceSet sourceSets.main
             sourceSet sourceSets.client
         }
-        "dwm-scenario-test" {
-            sourceSet sourceSets.scenarioTest
+        "sightline" {
+            sourceSet project(':sightline-fabric').sourceSets.main
         }
     }
 
@@ -56,226 +58,26 @@ loom {
             vmArg "-Dfabric-api.gametest.report-file=${layout.buildDirectory.get()}/gametest/report.xml"
             runDir "build/gametest"
         }
-        scenarioTest {
+        sightlineClient {
             client()
-            name "Scenario Test"
-            source = sourceSets.scenarioTest
-            property "dwm.scenario", providers.gradleProperty("scenario").orElse("createWorld").get()
-            property "dwm.scenario.step-timeout-seconds",
-                    providers.gradleProperty("scenarioTimeout").orElse("30").get()
-            property "dwm.scenario.report-file",
-                    layout.buildDirectory.file("scenario-test/report.xml").get().asFile.absolutePath
-            property "dwm.scenario.vanilla-server-dir",
-                    layout.buildDirectory.dir("scenario-test/vanilla-server").get().asFile.absolutePath
-            runDir "build/scenario-test/run"
+            name "Sightline"
+            runDir "build/sightline/run"
         }
     }
 }
 
-sourceSets.scenarioTest {
-    compileClasspath += sourceSets.main.output
-    compileClasspath += sourceSets.client.output
-    compileClasspath += sourceSets.client.compileClasspath
-    runtimeClasspath += sourceSets.main.output
-    runtimeClasspath += sourceSets.client.output
-    runtimeClasspath += sourceSets.client.runtimeClasspath
+sightline {
+    loader = 'fabric'
+    testsDir = file('src/sightlineTests/resources/tests')
+    extraTestsDirs = [file('sightline-common/src/main/resources/tests')]
+    runDir = 'build/sightline/run'
+    outputDir = 'sightline'
 }
 
-def scenarioDisplayMode = providers.gradleProperty("scenarioDisplay").orElse("display")
-
-tasks.register("prepareScenarioTestRun") {
-    def optionsFile = layout.buildDirectory.file("scenario-test/run/options.txt")
-    def vanillaServerDir = layout.buildDirectory.dir("scenario-test/vanilla-server")
-    def jarPathFile = layout.buildDirectory.file("scenario-test/vanilla-server/server-jar.path")
-    def displayMode = scenarioDisplayMode
-    outputs.file(optionsFile)
-    outputs.file(jarPathFile)
-    outputs.upToDateWhen { false }
-    doLast {
-        delete(layout.buildDirectory.dir("scenario-test/run/saves"))
-        delete(layout.buildDirectory.dir("scenario-test/vanilla-server/world"))
-        optionsFile.get().asFile.parentFile.mkdirs()
-        def mode = displayMode.get()
-        def options = new StringBuilder("""\
-lang:en_us
-skipMultiplayerWarning:true
-onboardAccessibility:false
-""")
-        if (mode == "xvfb") {
-            // Soft-GL friendly defaults for CI / headless virtual displays.
-            options.append("""\
-fullscreen:false
-renderDistance:4
-simulationDistance:4
-maxFps:30
-enableVsync:false
-guiScale:1
-""")
-        }
-        optionsFile.get().asFile.text = options.toString()
-        def serverDir = vanillaServerDir.get().asFile
-        serverDir.mkdirs()
-        def serverJar = net.fabricmc.loom.LoomGradleExtension.get(project).minecraftProvider.minecraftServerJar
-        jarPathFile.get().asFile.text = serverJar.absolutePath
-    }
-}
-
-tasks.named("runScenarioTest").configure {
-    dependsOn("prepareScenarioTestRun")
-
-    def mode = scenarioDisplayMode.get()
-    if (!(mode in ["display", "xvfb"])) {
-        throw new GradleException(
-                "Invalid -PscenarioDisplay='${mode}'. Allowed values: display, xvfb.")
-    }
-
-    // Override Loom's CI-env convention so the CLI flag is authoritative.
-    useXvfb = (mode == "xvfb")
-
-    if (mode == "xvfb") {
-        environment "LIBGL_ALWAYS_SOFTWARE", "1"
-    }
-
-    doFirst {
-        def currentMode = scenarioDisplayMode.get()
-        def linux = org.gradle.internal.os.OperatingSystem.current().isLinux()
-        if (currentMode == "display") {
-            def display = System.getenv("DISPLAY")
-            if (linux && (display == null || display.isBlank())) {
-                throw new GradleException(
-                        "scenarioDisplay=display requires \$DISPLAY. "
-                                + "Use -PscenarioDisplay=xvfb for headless/CI runs.")
-            }
-        } else if (currentMode == "xvfb") {
-            if (!linux) {
-                throw new GradleException("scenarioDisplay=xvfb is only supported on Linux.")
-            }
-            def which = new ProcessBuilder("which", "xvfb-run")
-                    .redirectErrorStream(true)
-                    .start()
-            which.waitFor()
-            if (which.exitValue() != 0) {
-                throw new GradleException(
-                        "scenarioDisplay=xvfb requires xvfb-run on PATH. "
-                                + "Install with: apt install xvfb")
-            }
-        }
-    }
-}
-
-def scenarioTestsRoot = file("src/scenarioTest/resources/tests")
-
-def isScenarioTestYaml = { File yamlFile ->
-    def text = yamlFile.getText("UTF-8").replace("\r\n", "\n")
-    if (!text.startsWith("---\n")) {
-        return false
-    }
-    def closing = text.indexOf("\n---\n", 4)
-    if (closing < 0) {
-        return false
-    }
-    return text.substring(4, closing).readLines().any { line ->
-        line.trim() == "type: test"
-    }
-}
-
-def discoverScenarioTestIds = {
-    if (!scenarioTestsRoot.isDirectory()) {
-        throw new GradleException("Scenario tests directory not found: ${scenarioTestsRoot}")
-    }
-    def ids = [] as TreeSet
-    fileTree(dir: scenarioTestsRoot, includes: ["**/*.yaml", "**/*.yml"]).files.each { File yamlFile ->
-        if (!isScenarioTestYaml(yamlFile)) {
-            return
-        }
-        def name = yamlFile.name
-        def extension = name.lastIndexOf('.')
-        def id = extension < 0 ? name : name.substring(0, extension)
-        if (!ids.add(id)) {
-            throw new GradleException("Duplicate scenario test id '${id}' under ${scenarioTestsRoot}")
-        }
-    }
-    return ids as List
-}
-
-interface ScenarioTestExecOps {
-    @javax.inject.Inject
-    org.gradle.process.ExecOperations getExecOps()
-}
-
-def scenarioTestExecOps = objects.newInstance(ScenarioTestExecOps)
-
-tasks.register("runAllScenarioTests") {
-    group = "verification"
-    description = "Discover all type:test YAML scenarios and run each via runScenarioTest"
-
-    def displayMode = scenarioDisplayMode
-    def timeoutProperty = providers.gradleProperty("scenarioTimeout")
-    def projectDirFile = layout.projectDirectory.asFile
-    def resultsRoot = layout.buildDirectory.dir("scenario-test/results")
-    def execOps = scenarioTestExecOps.execOps
-
-    doLast {
-        def scenarioIds = discoverScenarioTestIds()
-        if (scenarioIds.isEmpty()) {
-            throw new GradleException("No scenario tests (type: test) found under ${scenarioTestsRoot}")
-        }
-
-        logger.lifecycle("Discovered ${scenarioIds.size()} scenario test(s): ${scenarioIds.join(', ')}")
-
-        def gradleWrapper = new File(projectDirFile, "gradlew")
-        def gradleCommand = gradleWrapper.exists() ? gradleWrapper.absolutePath : "gradle"
-        def failed = []
-        def resultsDir = resultsRoot.get().asFile
-        project.delete(resultsDir)
-        resultsDir.mkdirs()
-
-        scenarioIds.each { String scenarioId ->
-            logger.lifecycle("Running scenario test '${scenarioId}'")
-            def args = [gradleCommand, "runScenarioTest", "-Pscenario=${scenarioId}"]
-            args << "-PscenarioDisplay=${displayMode.get()}"
-            if (timeoutProperty.isPresent()) {
-                args << "-PscenarioTimeout=${timeoutProperty.get()}"
-            }
-            def result = execOps.exec {
-                workingDir projectDirFile
-                commandLine args
-                ignoreExitValue = true
-            }
-
-            def archiveDir = new File(resultsDir, scenarioId)
-            archiveDir.mkdirs()
-            ["report.xml", "metrics.json", "diagnostics.txt"].each { String fileName ->
-                def source = new File(projectDirFile, "build/scenario-test/${fileName}")
-                if (source.isFile()) {
-                    project.copy {
-                        from source
-                        into archiveDir
-                    }
-                }
-            }
-            def screenshots = new File(projectDirFile, "build/scenario-test/run/screenshots")
-            if (screenshots.isDirectory()) {
-                project.copy {
-                    from screenshots
-                    into new File(archiveDir, "screenshots")
-                }
-            }
-
-            if (result.exitValue != 0) {
-                failed << scenarioId
-                logger.error("Scenario test '${scenarioId}' failed (exit ${result.exitValue})")
-            } else {
-                logger.lifecycle("Scenario test '${scenarioId}' passed")
-            }
-        }
-
-        if (!failed.isEmpty()) {
-            throw new GradleException(
-                    "Failed scenario test(s): ${failed.join(', ')} "
-                            + "(${failed.size()} of ${scenarioIds.size()})")
-        }
-        logger.lifecycle("All ${scenarioIds.size()} scenario test(s) passed")
+// Ensure mod-owned YAML scenarios are on the Sightline client classpath.
+tasks.configureEach { task ->
+    if (task.name in ['runSightline', 'runSightlineClient'] && task instanceof JavaExec) {
+        task.classpath += sourceSets.sightlineTests.output
     }
 }
 
@@ -290,9 +92,6 @@ dependencies {
     testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
     // 5.18+ bundles Byte Buddy with Java 25 classfile support (mockStatic / inline mocks)
     testImplementation "org.mockito:mockito-core:5.20.0"
-    testImplementation sourceSets.scenarioTest.output
-    testImplementation "org.yaml:snakeyaml:2.6"
-    scenarioTestImplementation "org.yaml:snakeyaml:2.6"
 
     implementation "org.json:json:20240303"
     implementation "com.github.erosb:everit-json-schema:1.14.4"
@@ -304,7 +103,10 @@ dependencies {
 
     implementation("com.mixpanel:mixpanel-java:1.5.1")
 
+    // Sightline harness — runtime for client runs; Loom loads it via mods.sightline sourceSet.
+    runtimeOnly project(':sightline-fabric')
 }
+
 
 processResources {
     inputs.property "version", project.version

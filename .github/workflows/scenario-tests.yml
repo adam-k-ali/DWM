@@ -1,4 +1,4 @@
-name: Scenario Tests
+name: Sightline Tests
 
 on:
   push:
@@ -43,12 +43,12 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Run all scenario tests
+      - name: Run all Sightline tests
         run: |
           chmod +x ./gradlew
-          ./gradlew runAllScenarioTests \
-            -PscenarioDisplay=xvfb \
-            -PscenarioTimeout=120
+          ./gradlew runSightlineTests \
+            -PsightlineDisplay=xvfb \
+            -PsightlineTimeout=120
         env:
           _JAVA_OPTIONS: -Xmx3200m
           GRADLE_OPTS: -Dorg.gradle.daemon=false
@@ -57,18 +57,18 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: scenario-tests
+          name: sightline-tests
           path: |
-            build/scenario-test/results/
-            build/scenario-test/report.xml
-            build/scenario-test/metrics.json
-            build/scenario-test/diagnostics.txt
-            build/scenario-test/run/screenshots/
-            build/scenario-test/vanilla-server/logs/
+            build/sightline/results/
+            build/sightline/report.xml
+            build/sightline/metrics.json
+            build/sightline/diagnostics.txt
+            build/sightline/run/screenshots/
+            build/sightline/vanilla-server/logs/
           if-no-files-found: ignore
 
   compare-perf:
-    name: Compare scenario performance
+    name: Compare Sightline performance
     needs: scenario
     if: always() && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -80,11 +80,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download current scenario artifacts
+      - name: Download current Sightline artifacts
         uses: actions/download-artifact@v4
         with:
           path: perf/current
-          pattern: scenario-*
+          pattern: sightline-*
           merge-multiple: false
 
       - name: Download latest green main baseline artifacts
@@ -104,7 +104,7 @@ jobs:
           RUN_ID="$(echo "$RUN_JSON" | jq -r '.[0].databaseId // empty')"
           RUN_URL="$(echo "$RUN_JSON" | jq -r '.[0].url // empty')"
           if [[ -z "$RUN_ID" ]]; then
-            echo "No successful main Scenario Tests run found yet."
+            echo "No successful main Sightline Tests run found yet."
             exit 0
           fi
           printf 'run [#%s](%s) on `main`\n' "$RUN_ID" "$RUN_URL" > perf/baseline-label.txt
@@ -123,7 +123,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const marker = '<!-- dwm-scenario-perf -->';
+            const marker = '<!-- dwm-sightline-perf -->';
             const body = fs.readFileSync('perf/comment.md', 'utf8');
             if (!body.includes(marker)) {
               throw new Error('compare output missing marker ' + marker);
@@ -146,7 +146,7 @@ jobs:
                 comment_id: existing.id,
                 body,
               });
-              core.info(`Updated existing scenario perf comment ${existing.id}`);
+              core.info(`Updated existing Sightline perf comment ${existing.id}`);
             } else {
               const created = await github.rest.issues.createComment({
                 owner,
@@ -154,5 +154,5 @@ jobs:
                 issue_number,
                 body,
               });
-              core.info(`Created scenario perf comment ${created.data.id}`);
+              core.info(`Created Sightline perf comment ${created.data.id}`);
             }
