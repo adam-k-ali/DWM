@@ -12,6 +12,17 @@ Run a test by its YAML filename without the extension:
 ./gradlew runScenarioTest -Pscenario=createWorld
 ```
 
+Discover every `type: test` YAML under `resources/tests/` and run each one
+(fresh client per scenario):
+
+```bash
+./gradlew runAllScenarioTests
+./gradlew runAllScenarioTests -PscenarioDisplay=xvfb -PscenarioTimeout=120
+```
+
+`runAllScenarioTests` skips `type: command` documents, continues after individual
+failures, and fails the aggregate with the list of failed scenario IDs.
+
 The client uses an isolated directory under `build/scenario-test/run`. Before
 each run, the harness removes its saved worlds, clears
 `build/scenario-test/vanilla-server/world`, and writes deterministic English
@@ -45,6 +56,8 @@ Results are written to:
   (listed in `.gitignore`; CI uploads the file as a workflow artifact)
 - `build/scenario-test/diagnostics.txt` — current screen and visible widgets
 - `build/scenario-test/run/screenshots/` — PNGs from `captureScreenshot`
+- `build/scenario-test/results/<id>/` — per-scenario copies of report, metrics,
+  diagnostics, and screenshots written by `runAllScenarioTests`
 - `build/scenario-test/vanilla-server/` — official dedicated-server run dir from
   `startVanillaServer` (`server-jar.path`, `eula.txt`, `server.properties`,
   `world/`, `logs/harness.log`)
@@ -53,8 +66,9 @@ The Gradle process exits non-zero when loading, validation, or execution fails.
 
 ### Performance vs main (CI)
 
-The [Scenario Tests](../../.github/workflows/scenario-tests.yml) workflow uploads
-`metrics.json` with each matrix artifact. On pull requests, a follow-up job
+The [Scenario Tests](../../.github/workflows/scenario-tests.yml) workflow runs
+`runAllScenarioTests` and uploads `build/scenario-test/results/*/metrics.json`
+(plus the last-run top-level files). On pull requests, a follow-up job
 downloads the latest successful `main` run’s artifacts, compares totals and
 matching step names with
 [`.github/scripts/compare-scenario-perf.py`](../../.github/scripts/compare-scenario-perf.py)
