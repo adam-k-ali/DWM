@@ -2,7 +2,6 @@ package com.adamkali.dwm.tardis.interior;
 
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.config.DWMConfig;
-import com.adamkali.dwm.config.DWMConfigManager;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
@@ -18,11 +17,8 @@ import net.minecraft.world.level.Level;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -37,7 +33,7 @@ class TardisInteriorPreloadServiceTest {
         TardisInteriorPreloadService.clear();
         BotiPlotIndex.clear();
         PortalStreamSyncService.clear();
-        resetConfig();
+        setDoorPortals(true);
     }
 
     @AfterEach
@@ -49,14 +45,13 @@ class TardisInteriorPreloadServiceTest {
     }
 
     @Test
-    void requestPreload_EnqueuesIdempotently() {
+    void requestPreload_EnqueuesIdempotently() throws Exception {
+        setDoorPortals(true);
         ServerLevel world = mockExteriorWorld();
         TardisBlockEntity exterior = mockExterior(world, false);
 
-        try (MockedStatic<DWMConfigManager> ignored = mockConfig(true)) {
-            TardisInteriorPreloadService.requestPreload(world, exterior);
-            TardisInteriorPreloadService.requestPreload(world, exterior);
-        }
+        TardisInteriorPreloadService.requestPreload(world, exterior);
+        TardisInteriorPreloadService.requestPreload(world, exterior);
 
         assertEquals(1, TardisInteriorPreloadService.pendingJobCount());
         assertTrue(TardisInteriorPreloadService.hasJob(TARDIS_ID));
@@ -64,26 +59,24 @@ class TardisInteriorPreloadServiceTest {
     }
 
     @Test
-    void requestPreload_NoOpsWhenDoorPortalsDisabled() {
+    void requestPreload_NoOpsWhenDoorPortalsDisabled() throws Exception {
+        setDoorPortals(false);
         ServerLevel world = mockExteriorWorld();
         TardisBlockEntity exterior = mockExterior(world, false);
 
-        try (MockedStatic<DWMConfigManager> ignored = mockConfig(false)) {
-            TardisInteriorPreloadService.requestPreload(world, exterior);
-        }
+        TardisInteriorPreloadService.requestPreload(world, exterior);
 
         assertEquals(0, TardisInteriorPreloadService.pendingJobCount());
     }
 
     @Test
-    void requestPreload_RegistersPlotWhenAlreadyGenerated() {
+    void requestPreload_RegistersPlotWhenAlreadyGenerated() throws Exception {
+        setDoorPortals(true);
         ServerLevel world = mockExteriorWorld();
         TardisBlockEntity exterior = mockExterior(world, true);
         when(exterior.getInteriorEntrance()).thenReturn(BlockPos.ZERO);
 
-        try (MockedStatic<DWMConfigManager> ignored = mockConfig(true)) {
-            TardisInteriorPreloadService.requestPreload(world, exterior);
-        }
+        TardisInteriorPreloadService.requestPreload(world, exterior);
 
         assertEquals(0, TardisInteriorPreloadService.pendingJobCount());
         assertTrue(BotiPlotIndex.isRegistered(TARDIS_ID));
@@ -91,6 +84,7 @@ class TardisInteriorPreloadServiceTest {
 
     @Test
     void cancel_RemovesPendingJob() {
+        @SuppressWarnings("unchecked")
         ResourceKey<Level> dim = mock(ResourceKey.class);
         TardisInteriorPreloadService.enqueueForTest(TARDIS_ID, dim, BlockPos.ZERO);
         assertTrue(TardisInteriorPreloadService.hasJob(TARDIS_ID));
@@ -103,6 +97,7 @@ class TardisInteriorPreloadServiceTest {
 
     @Test
     void tick_StaysLoadingUntilChunksPresent() {
+        @SuppressWarnings("unchecked")
         ResourceKey<Level> dim = mock(ResourceKey.class);
         TardisInteriorPreloadService.enqueueForTest(TARDIS_ID, dim, new BlockPos(10, 64, 10));
 
@@ -117,11 +112,12 @@ class TardisInteriorPreloadServiceTest {
 
         assertEquals(TardisInteriorPreloadService.Phase.LOADING, TardisInteriorPreloadService.getPhase(TARDIS_ID));
         assertEquals(1, TardisInteriorPreloadService.pendingJobCount());
-        verify(chunkSource, never()).getChunk(anyInt(), anyInt());
+        verify(chunkSource, never()).getChunkNow(anyInt(), anyInt());
     }
 
     @Test
     void tick_AdvancesToReadyWhenChunksLoaded_ThenDropsWithoutExterior() {
+        @SuppressWarnings("unchecked")
         ResourceKey<Level> dim = mock(ResourceKey.class);
         TardisInteriorPreloadService.enqueueForTest(TARDIS_ID, dim, new BlockPos(10, 64, 10));
 
@@ -169,15 +165,19 @@ class TardisInteriorPreloadServiceTest {
         return exterior;
     }
 
-    private static MockedStatic<DWMConfigManager> mockConfig(boolean doorPortals) {
-        MockedStatic<DWMConfigManager> configManager = Mockito.mockStatic(DWMConfigManager.class);
+    @SuppressWarnings("unchecked")
+    private static void setDoorPortals(boolean enabled) throws Exception {
+        Field initializedField = DWMConfig.class.getDeclaredField("initialized");
+        initializedField.setAccessible(true);
+        initializedField.setBoolean(null, true);
+        Field configField = DWMConfig.class.getDeclaredField("config");
+        configField.setAccessible(true);
         HashMap<String, Object> map = new HashMap<>();
-        map.put(DWMConfig.ENABLE_DOOR_PORTALS.getKey(), doorPortals);
-        configManager.when(DWMConfigManager::load).thenReturn(map);
-        DWMConfig.init();
-        return configManager;
+        map.put(DWMConfig.ENABLE_DOOR_PORTALS.getKey(), enabled);
+        configField.set(null, map);
     }
 
+    @SuppressWarnings("unchecked")
     private static void resetConfig() throws Exception {
         Field initializedField = DWMConfig.class.getDeclaredField("initialized");
         initializedField.setAccessible(true);
