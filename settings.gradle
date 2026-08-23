@@ -4,7 +4,28 @@ pluginManagement {
 			name = 'Fabric'
 			url = 'https://maven.fabricmc.net/'
 		}
+		maven {
+			name = 'Forge'
+			url = 'https://maven.minecraftforge.net/'
+		}
+		maven {
+			name = 'NeoForged'
+			url = 'https://maven.neoforged.net/releases'
+		}
 		mavenCentral()
 		gradlePluginPortal()
 	}
 }
+
+plugins {
+	id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+includeBuild('sightline-gradle-plugin')
+
+include 'sightline-common'
+include 'sightline-fabric'
+include 'sightline-forge'
+include 'sightline-neoforge'
+
+rootProject.name = 'dwm'

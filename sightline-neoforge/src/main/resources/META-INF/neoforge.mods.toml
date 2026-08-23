@@ -1,0 +1,24 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="All Rights Reserved"
+
+[[mods]]
+modId="sightline"
+version="${mod_version}"
+displayName="Sightline"
+authors="adam-k-ali"
+description='''Real-client Minecraft scenario tests with CI screenshots.'''
+
+[[dependencies.sightline]]
+modId="neoforge"
+type="required"
+versionRange="[26.2,)"
+ordering="NONE"
+side="CLIENT"
+
+[[dependencies.sightline]]
+modId="minecraft"
+type="required"
+versionRange="[26.2]"
+ordering="NONE"
+side="CLIENT"

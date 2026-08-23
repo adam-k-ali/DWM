@@ -1,36 +1,34 @@
 # AGENTS.md
 
 ## Scope
-This file applies to `src/scenarioTest/` — a separate Loom source set and Fabric mod (`dwm-scenario-test`) that is **not** bundled into the production mod jar.
+This file applies to `src/scenarioTest/` — DWM-owned **Sightline** YAML scenarios only.
+The harness lives in the `sightline-*` Gradle modules (`sightline-fabric` on the client run classpath). It is not bundled into the production DWM jar.
 
 ## Local Context
-YAML scenarios drive the **real Minecraft client** by dispatching widget clicks, keyboard input, and in-world actions. The compiler (`ScenarioCompiler`) validates documents at load time; primitives live under `com.adamkali.dwm.scenariotest.primitive`. Unit tests for compiler/primitives are in `src/test/java/.../scenariotest/` and run with `./gradlew test`.
+YAML scenarios drive the **real Minecraft client** via Sightline. Primitives and the compiler ship in `sightline-common`. DWM scenarios stay under `resources/tests/` (e.g. `placeAndOpenTardis.yaml`). Vanilla demos ship inside `sightline-common` resources.
 
-Full step/selector reference: `README.md` in this directory.
+Full product docs: `sightline-fabric/README.md` and `metadata/sightline/modrinth-body.md`.
+Step/selector reference for authors: this directory’s `README.md`.
 
 ## Commands
-- Run a scenario: `./gradlew runScenarioTest -Pscenario=<yaml-filename-stem>`
-- Run all discovered `type: test` scenarios: `./gradlew runAllScenarioTests`
-- Override step timeout (seconds): `-PscenarioTimeout=60`
-- Display mode: `-PscenarioDisplay=display|xvfb` (default `display`)
-- Reports: `build/scenario-test/report.xml`, `build/scenario-test/metrics.json`, `build/scenario-test/diagnostics.txt`
-- Per-scenario archives from `runAllScenarioTests`: `build/scenario-test/results/<id>/`
-- Screenshots: `build/scenario-test/run/screenshots/`
-- Vanilla server harness dir: `build/scenario-test/vanilla-server/`
-- Perf compare fixtures: `.github/scripts/run_compare_scenario_perf_fixtures.sh`
+- Run a scenario: `./gradlew runSightline -Psightline=<yaml-filename-stem>`
+- Run all discovered `type: test` scenarios: `./gradlew runAllSightlineTests`
+- Override step timeout (seconds): `-PsightlineTimeout=60`
+- Display mode: `-PsightlineDisplay=display|xvfb` (default `display`)
+- Reports: `build/sightline/report.xml`, `build/sightline/metrics.json`, `build/sightline/diagnostics.txt`
+- Per-scenario archives from `runAllSightlineTests`: `build/sightline/results/<id>/`
+- Screenshots: `build/sightline/run/screenshots/`
+- Vanilla server harness dir: `build/sightline/vanilla-server/`
+- Unit tests for the harness: `./gradlew :sightline-common:test`
 
 ## Conventions
 - YAML files live recursively under `resources/tests/`. Role is set by frontmatter `type`: `test` (runnable) or `command` (composite).
-- Stable ID is the **filename stem** (e.g. `subflows/assertAndClick.yaml` → `assertAndClick`). Duplicate IDs across directories are rejected.
-- Add new behaviour as a `ScenarioPrimitive` in `primitive/`, register it in `ScenarioPrimitives`, and add JUnit coverage in `src/test/java/.../scenariotest/`.
-- Composite commands use `{{ parameter }}` templating; cycles and unknown steps fail at compile time.
+- Stable ID is the **filename stem**. Duplicate IDs across DWM + Sightline demo roots are rejected by `runAllSightlineTests`.
+- Prefer adding shared primitives upstream in `sightline-common`; DWM-only steps can use `ServiceLoader` registration.
 - Selectors match exact widget `name` + `type` (`button`, `cycle`, `tab`, `editbox`, `label`, `screen`).
-- Perf metrics stay under `build/scenario-test/metrics.json` (listed in `.gitignore`; never commit local runs). CI uploads them as artifacts; PRs get an advisory upserted comment vs the latest green `main` Scenario Tests artifacts (20% + 50ms floor; does not fail CI).
 
 ## Common Pitfalls
-- **Display required** — unlike GameTests, this harness boots the client; use `-PscenarioDisplay=xvfb` for headless/CI Linux runs.
-- **CI** — `.github/workflows/scenario-tests.yml` runs `./gradlew runAllScenarioTests` with xvfb. `./gradlew build` compiles this source set but does not execute scenarios.
-- Each run deletes saved worlds under `build/scenario-test/run/saves` and clears `build/scenario-test/vanilla-server/world`.
-- `startVanillaServer` and `createWorld` use a 120s timeout floor; `-PscenarioTimeout` only raises it.
-- `runCommand` sends packets immediately — pair with `waitUntil` for inventory/world assertions.
+- **Display required** — use `-PsightlineDisplay=xvfb` for headless/CI Linux runs.
+- **CI** — `.github/workflows/scenario-tests.yml` runs `./gradlew runAllSightlineTests` with xvfb.
+- Each run deletes saved worlds under `build/sightline/run/saves` and clears `build/sightline/vanilla-server/world`.
 - Quote relative coords in YAML: `"~"` not bare `~` (YAML null).

@@ -1,36 +1,36 @@
 # YAML client scenarios
 
-This source set contains a local-only Fabric test mod that starts the real
-Minecraft client and drives its widgets from YAML scenarios. It is not included
-in the production mod jar.
+This directory holds DWM-owned **Sightline** YAML scenarios. The harness ships
+as the `sightline-*` Gradle modules (`sightline-fabric` on the client run).
+It is not included in the production DWM jar.
 
 ## Running a scenario
 
 Run a test by its YAML filename without the extension:
 
 ```bash
-./gradlew runScenarioTest -Pscenario=createWorld
+./gradlew runSightline -Psightline=createWorld
 ```
 
 Discover every `type: test` YAML under `resources/tests/` and run each one
 (fresh client per scenario):
 
 ```bash
-./gradlew runAllScenarioTests
-./gradlew runAllScenarioTests -PscenarioDisplay=xvfb -PscenarioTimeout=120
+./gradlew runAllSightlineTests
+./gradlew runAllSightlineTests -PsightlineDisplay=xvfb -PsightlineTimeout=120
 ```
 
-`runAllScenarioTests` skips `type: command` documents, continues after individual
+`runAllSightlineTests` skips `type: command` documents, continues after individual
 failures, and fails the aggregate with the list of failed scenario IDs.
 
-The client uses an isolated directory under `build/scenario-test/run`. Before
+The client uses an isolated directory under `build/sightline/run`. Before
 each run, the harness removes its saved worlds, clears
-`build/scenario-test/vanilla-server/world`, and writes deterministic English
+`build/sightline/vanilla-server/world`, and writes deterministic English
 client options.
 
 ### Display modes
 
-Select the framebuffer strategy with `-PscenarioDisplay` (default `display`):
+Select the framebuffer strategy with `-PsightlineDisplay` (default `display`):
 
 | Value | Behavior |
 | --- | --- |
@@ -38,27 +38,27 @@ Select the framebuffer strategy with `-PscenarioDisplay` (default `display`):
 | `xvfb` | Wraps the client with Loom’s `xvfb-run` path (Linux only). Still boots a real client against a virtual framebuffer; requires `xvfb` installed (`apt install xvfb`). Sets soft-GL-friendly client options and `LIBGL_ALWAYS_SOFTWARE=1`. |
 
 ```bash
-./gradlew runScenarioTest -Pscenario=createWorld -PscenarioDisplay=display
-./gradlew runScenarioTest -Pscenario=createWorld -PscenarioDisplay=xvfb -PscenarioTimeout=120
+./gradlew runSightline -Psightline=createWorld -PsightlineDisplay=display
+./gradlew runSightline -Psightline=createWorld -PsightlineDisplay=xvfb -PsightlineTimeout=120
 ```
 
 The default per-step timeout is 30 seconds. Override it when debugging (or for
 slow soft-GL CI runs):
 
 ```bash
-./gradlew runScenarioTest -Pscenario=createWorld -PscenarioTimeout=60
+./gradlew runSightline -Psightline=createWorld -PsightlineTimeout=60
 ```
 
 Results are written to:
 
-- `build/scenario-test/report.xml` — JUnit XML
-- `build/scenario-test/metrics.json` — wall-clock step timings for perf compare
+- `build/sightline/report.xml` — JUnit XML
+- `build/sightline/metrics.json` — wall-clock step timings for perf compare
   (listed in `.gitignore`; CI uploads the file as a workflow artifact)
-- `build/scenario-test/diagnostics.txt` — current screen and visible widgets
-- `build/scenario-test/run/screenshots/` — PNGs from `captureScreenshot`
-- `build/scenario-test/results/<id>/` — per-scenario copies of report, metrics,
-  diagnostics, and screenshots written by `runAllScenarioTests`
-- `build/scenario-test/vanilla-server/` — official dedicated-server run dir from
+- `build/sightline/diagnostics.txt` — current screen and visible widgets
+- `build/sightline/run/screenshots/` — PNGs from `captureScreenshot`
+- `build/sightline/results/<id>/` — per-scenario copies of report, metrics,
+  diagnostics, and screenshots written by `runAllSightlineTests`
+- `build/sightline/vanilla-server/` — official dedicated-server run dir from
   `startVanillaServer` (`server-jar.path`, `eula.txt`, `server.properties`,
   `world/`, `logs/harness.log`)
 
@@ -66,14 +66,14 @@ The Gradle process exits non-zero when loading, validation, or execution fails.
 
 ### Performance vs main (CI)
 
-The [Scenario Tests](../../.github/workflows/scenario-tests.yml) workflow runs
-`runAllScenarioTests` and uploads `build/scenario-test/results/*/metrics.json`
+The [Sightline Tests](../../.github/workflows/scenario-tests.yml) workflow runs
+`runAllSightlineTests` and uploads `build/sightline/results/*/metrics.json`
 (plus the last-run top-level files). On pull requests, a follow-up job
 downloads the latest successful `main` run’s artifacts, compares totals and
 matching step names with
 [`.github/scripts/compare-scenario-perf.py`](../../.github/scripts/compare-scenario-perf.py)
 (default: 20% slower **and** more than 50ms), and upserts a single PR comment
-marked `<!-- dwm-scenario-perf -->`. The compare is **advisory** — regressions
+marked `<!-- dwm-sightline-perf -->`. The compare is **advisory** — regressions
 do not fail CI.
 
 Local fixture check for the compare script:
@@ -117,21 +117,21 @@ The MVP primitives are:
   widget (type, name, active, bounds). It takes no arguments and always
   succeeds on the tick it runs.
 - `captureScreenshot` — captures the current framebuffer (world and GUI) to
-  `build/scenario-test/run/screenshots/`. With no arguments it uses a vanilla
+  `build/sightline/run/screenshots/`. With no arguments it uses a vanilla
   timestamped filename. An optional `name` sets the PNG stem. The step waits
   until the file has been written before succeeding.
 - `startVanillaServer` — launches Mojang’s official dedicated-server jar as a
   child process (no Fabric/DWM on the server). It writes offline-mode superflat
   settings, waits until `127.0.0.1` accepts TCP connections, and stops the
   process when the scenario finishes. This step does **not** connect the client.
-  It uses a 120 second timeout floor; `-PscenarioTimeout` still raises that
+  It uses a 120 second timeout floor; `-PsightlineTimeout` still raises that
   floor when set higher.
 - `createWorld` — opens vanilla Create World, applies the given settings, and
   waits until the local player is in the loaded world. Omitted keys use
   test-friendly defaults: superflat, creative, peaceful, commands on. An
   optional `name` overrides vanilla’s “New World”. This step does **not** click
   through the Create World tabs. It uses a 120 second timeout floor;
-  `-PscenarioTimeout` still raises that floor when set higher.
+  `-PsightlineTimeout` still raises that floor when set higher.
 - `keyboardInput` — waits until a focused, editable text field can consume
   input, then types the given string once via real `charTyped` events. It does
   not click or select the field; click the matching `editbox` first.
