@@ -25,6 +25,11 @@ minecraft {
         configureEach {
             workingDir = layout.projectDirectory.dir('run')
             systemProperty 'eventbus.api.strictRuntimeChecks', 'true'
+            mods {
+                screenplay {
+                    source sourceSets.main
+                }
+            }
         }
         register('client')
     }
@@ -45,6 +50,9 @@ dependencies {
 def screenplayCommon = rootProject.file('../screenplay-common')
 
 sourceSets.main {
+    // FML discovers each classpath entry with mods.toml as its own ModFile.
+    // Keep classes + resources in one directory so @Mod and mods.toml share a root.
+    output.resourcesDir = layout.buildDirectory.dir('classes/java/main').get().asFile
     java {
         srcDir new File(screenplayCommon, 'src/main/java')
     }
@@ -66,6 +74,21 @@ processResources {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release = 25
+}
+
+// ForgeGradle 7.0.35 + Gradle 9.5: SlimeLauncherMetadata conventions map
+// outputDirectory onto runsJson of the same task; Gradle rejects querying that
+// mapped output during the task action. Rebind via locationOnly.
+tasks.configureEach { task ->
+    if (!task.name.startsWith('slimeLauncherMetadata')) {
+        return
+    }
+    def outputDirectory = task.hasProperty('outputDirectory') ? task.outputDirectory : null
+    def runsJson = task.hasProperty('runsJson') ? task.runsJson : null
+    if (outputDirectory == null || runsJson == null) {
+        return
+    }
+    runsJson.set(outputDirectory.locationOnly.map { dir -> dir.file('launcher/runs.json') })
 }
 
 publishing {

@@ -52,9 +52,11 @@ dependencies {
 def dwmCommon = rootProject.file('../dwm-common')
 def rootGenerated = rootProject.file('../src/main/generated')
 def screenplayTests = rootProject.file('../src/screenplayTests/resources')
-def screenplayCommonTests = rootProject.file('../screenplay-common/src/main/resources')
 
 sourceSets.main {
+    // NeoForge/FML discovers each classpath entry with mods.toml as its own ModFile.
+    // Keep classes + resources in one directory so @Mod and mods.toml share a root.
+    output.resourcesDir = layout.buildDirectory.dir('classes/java/main').get().asFile
     java {
         srcDir new File(dwmCommon, 'src/main/java')
         srcDir new File(dwmCommon, 'src/client/java')
@@ -63,8 +65,8 @@ sourceSets.main {
         srcDir new File(dwmCommon, 'src/main/resources')
         srcDir new File(dwmCommon, 'src/client/resources')
         srcDir rootGenerated
+        // Mod-owned scenarios only — screenplay-neoforge jar already ships harness demos.
         srcDir screenplayTests
-        srcDir screenplayCommonTests
     }
 }
 

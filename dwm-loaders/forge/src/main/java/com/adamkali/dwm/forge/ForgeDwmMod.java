@@ -16,6 +16,8 @@ public final class ForgeDwmMod {
     public ForgeDwmMod() {
         ForgeDwmPlatform platform = new ForgeDwmPlatform();
         DwmServices.set(platform);
+        // Fabric-style Registry.register in DwmCommon needs open vanilla/Forge registries.
+        ForgeRegistryBootstrap.unlockForFabricStyleRegistration();
         DwmCommon.init();
         platform.buildNetwork();
 
