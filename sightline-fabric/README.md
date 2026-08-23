@@ -8,9 +8,15 @@ This repository vendors Sightline as Gradle subprojects and consumes the Fabric 
 | --- | --- |
 | `sightline-common` | Shared YAML compiler, runner, primitives (unit-tested here) |
 | `sightline-fabric` | Fabric client mod + access widener (embeds common) |
-| `sightline-forge` | Forge client mod + access transformer |
-| `sightline-neoforge` | NeoForge client mod + access transformer |
+| `sightline-loaders/forge` | Forge client mod + access transformer (included build) |
+| `sightline-loaders/neoforge` | NeoForge client mod + access transformer (included build) |
 | `sightline-gradle-plugin` | `com.adamkali.sightline` plugin (`runSightline`, `runAllSightlineTests`, xvfb) |
+
+Forge/NeoForge live in the `sightline-loaders` included build so NeoGradle does not conflict with Fabric Loom run configs in the DWM root project.
+
+```bash
+./gradlew -p sightline-loaders :forge:compileJava :neoforge:compileJava
+```
 
 Marketing listing drafts: [`metadata/sightline/`](../metadata/sightline/).
 

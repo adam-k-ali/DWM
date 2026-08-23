@@ -17,7 +17,8 @@
 - `docs/`: Product-facing feature docs and release policy — read before changing player-visible behaviour.
 - `tools/`: Offline Python scripts (TARDIS SFX generation/analysis); not part of Gradle build.
 - `metadata/`: Modrinth listing (`modrinth.json`, `modrinth-body.md`).
-- `sightline-common` / `sightline-fabric` / `sightline-forge` / `sightline-neoforge`: Sightline real-client scenario library (multi-loader).
+- `sightline-common` / `sightline-fabric`: Sightline real-client scenario library (Fabric path used by DWM).
+- `sightline-loaders/`: Included build for `sightline-forge` and `sightline-neoforge` (isolated from Loom).
 - `sightline-gradle-plugin`: Gradle plugin `com.adamkali.sightline` (`runSightline`, `runAllSightlineTests`).
 - `metadata/sightline/`: Sightline Modrinth listing drafts (`modrinth.json`, `modrinth-body.md`).
 - `.cursor/skills/`: Agent skills for GameTests, asset import, Blockbench models, MCP verify, etc.

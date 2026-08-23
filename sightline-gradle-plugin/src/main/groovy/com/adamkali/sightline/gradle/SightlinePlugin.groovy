@@ -118,10 +118,12 @@ guiScale:1
                 throw new GradleException('Fabric loader selected but loom extension is missing')
             }
             // Prefer configuring an existing run if the consumer already declared one.
+            // Use name "sightlineClient" (not "sightline") so NeoGradle sibling projects
+            // do not treat it as an unknown NeoGradle run type.
             def runs = loom.runs
-            def run = runs.findByName('sightline')
+            def run = runs.findByName('sightlineClient') ?: runs.findByName('sightline')
             if (run == null) {
-                run = runs.create('sightline')
+                run = runs.create('sightlineClient')
                 run.client()
                 run.name = 'Sightline'
             }
@@ -130,6 +132,15 @@ guiScale:1
             run.property 'sightline.report-file', reportFile
             run.property 'sightline.vanilla-server-dir', vanillaServerDir
             run.runDir runDir
+
+            // Stable task name for docs/CI regardless of Loom run config name.
+            if (project.tasks.findByName('runSightline') == null) {
+                project.tasks.register('runSightline') {
+                    group = 'verification'
+                    description = 'Run a Sightline YAML scenario in the real Minecraft client'
+                    dependsOn 'runSightlineClient'
+                }
+            }
             return
         }
 
@@ -144,14 +155,14 @@ guiScale:1
                 project.logger.warn("Sightline: no runs container found for loader '${loader}'")
                 return
             }
-            def run = runsContainer.findByName('sightline')
+            def run = runsContainer.findByName('sightlineClient') ?: runsContainer.findByName('sightline')
             if (run == null && runsContainer.metaClass.respondsTo(runsContainer, 'create', String)) {
-                run = runsContainer.create('sightline')
+                run = runsContainer.create('sightlineClient')
             } else if (run == null && runsContainer.metaClass.respondsTo(runsContainer, 'register', String)) {
-                run = runsContainer.register('sightline').get()
+                run = runsContainer.register('sightlineClient').get()
             }
             if (run == null) {
-                project.logger.warn("Sightline: could not create '${loader}' run named sightline")
+                project.logger.warn("Sightline: could not create '${loader}' run named sightlineClient")
                 return
             }
             if (run.hasProperty('workingDirectory')) {
@@ -171,30 +182,36 @@ guiScale:1
     private static void configureDisplayOnRunTask(Project project, SightlineExtension extension) {
         def displayMode = project.providers.gradleProperty('sightlineDisplay').orElse('display')
         project.tasks.configureEach { task ->
-            if (task.name != 'runSightline') {
+            if (!(task.name in ['runSightline', 'runSightlineClient'])) {
                 return
             }
             task.dependsOn('prepareSightlineRun')
-            task.doFirst {
-                def mode = displayMode.get()
-                if (!(mode in ['display', 'xvfb'])) {
-                    throw new GradleException("Invalid -PsightlineDisplay='${mode}'. Allowed values: display, xvfb.")
-                }
+
+            def mode = displayMode.get()
+            if (!(mode in ['display', 'xvfb'])) {
+                throw new GradleException("Invalid -PsightlineDisplay='${mode}'. Allowed values: display, xvfb.")
+            }
+            // Loom run tasks are JavaExec; the runSightline alias may be a plain DefaultTask.
+            if (task instanceof org.gradle.process.JavaExecSpec) {
                 if (task.hasProperty('useXvfb')) {
                     task.useXvfb = (mode == 'xvfb')
                 }
                 if (mode == 'xvfb') {
                     task.environment 'LIBGL_ALWAYS_SOFTWARE', '1'
                 }
+            }
+
+            task.doFirst {
+                def currentMode = displayMode.get()
                 def linux = org.gradle.internal.os.OperatingSystem.current().isLinux()
-                if (mode == 'display') {
+                if (currentMode == 'display') {
                     def display = System.getenv('DISPLAY')
                     if (linux && (display == null || display.isBlank())) {
                         throw new GradleException(
                                 'sightlineDisplay=display requires $DISPLAY. '
                                         + 'Use -PsightlineDisplay=xvfb for headless/CI runs.')
                     }
-                } else if (mode == 'xvfb') {
+                } else if (currentMode == 'xvfb') {
                     if (!linux) {
                         throw new GradleException('sightlineDisplay=xvfb is only supported on Linux.')
                     }

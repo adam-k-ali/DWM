@@ -22,10 +22,10 @@ plugins {
 }
 
 includeBuild('sightline-gradle-plugin')
+// Isolate Forge/NeoGradle from Fabric Loom runs (NeoGradle treats custom Loom run names as run types).
+includeBuild('sightline-loaders')
 
 include 'sightline-common'
 include 'sightline-fabric'
-include 'sightline-forge'
-include 'sightline-neoforge'
 
 rootProject.name = 'dwm'

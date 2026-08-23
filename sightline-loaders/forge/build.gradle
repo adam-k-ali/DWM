@@ -1,14 +1,14 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.1.38'
+    id 'net.minecraftforge.gradle' version '[7.0.17,8)'
 }
 
 version = project.sightline_version
 group = project.sightline_maven_group
 
 base {
-    archivesName = 'sightline-neoforge'
+    archivesName = 'sightline-forge'
 }
 
 java {
@@ -19,35 +19,37 @@ java {
 }
 
 minecraft {
-    accessTransformers.file project.file('src/main/resources/META-INF/accesstransformer.cfg')
-}
+    accessTransformer.from project.file('src/main/resources/META-INF/accesstransformer.cfg')
 
-runs {
-    configureEach {
-        workingDirectory project.layout.projectDirectory.dir('run').dir(name)
-        systemProperty 'forge.logging.markers', 'REGISTRIES'
-        systemProperty 'forge.logging.console.level', 'debug'
-        modSource project.sourceSets.main
-    }
-    client {
+    runs {
+        configureEach {
+            workingDir = layout.projectDirectory.dir('run')
+            systemProperty 'eventbus.api.strictRuntimeChecks', 'true'
+        }
+        register('client')
     }
 }
 
 repositories {
+    minecraft.mavenizer(it)
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
     mavenCentral()
 }
 
 dependencies {
-    implementation "net.neoforged:neoforge:${project.neoforge_version}"
+    implementation minecraft.dependency("net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}")
     implementation 'org.yaml:snakeyaml:2.6'
 }
 
+def sightlineCommon = rootProject.file('../sightline-common')
+
 sourceSets.main {
     java {
-        srcDir project(':sightline-common').file('src/main/java')
+        srcDir new File(sightlineCommon, 'src/main/java')
     }
     resources {
-        srcDir project(':sightline-common').file('src/main/resources')
+        srcDir new File(sightlineCommon, 'src/main/resources')
     }
 }
 
@@ -56,7 +58,7 @@ processResources {
             mod_version: project.version
     ]
     inputs.properties replaceProperties
-    filesMatching(['META-INF/neoforge.mods.toml']) {
+    filesMatching('META-INF/mods.toml') {
         expand replaceProperties
     }
 }
@@ -69,7 +71,7 @@ tasks.withType(JavaCompile).configureEach {
 publishing {
     publications {
         create('mavenJava', MavenPublication) {
-            artifactId = 'sightline-neoforge'
+            artifactId = 'sightline-forge'
             from components.java
         }
     }

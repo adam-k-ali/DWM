@@ -31,12 +31,8 @@ repositories {
 }
 
 sourceSets {
-    // DWM-owned Sightline YAML scenarios (resources only).
-    scenarioTest {
-        resources {
-            srcDir 'src/scenarioTest/resources'
-        }
-    }
+    // DWM-owned Sightline YAML scenarios (resources only; default src/scenarioTest/resources).
+    scenarioTest
 }
 
 loom {
@@ -62,7 +58,7 @@ loom {
             vmArg "-Dfabric-api.gametest.report-file=${layout.buildDirectory.get()}/gametest/report.xml"
             runDir "build/gametest"
         }
-        sightline {
+        sightlineClient {
             client()
             name "Sightline"
             runDir "build/sightline/run"
@@ -80,7 +76,7 @@ sightline {
 
 // Ensure DWM YAML scenarios are on the Sightline client classpath.
 tasks.configureEach { task ->
-    if (task.name == 'runSightline' && task instanceof JavaExec) {
+    if (task.name in ['runSightline', 'runSightlineClient'] && task instanceof JavaExec) {
         task.classpath += sourceSets.scenarioTest.output
     }
 }
