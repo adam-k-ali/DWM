@@ -57,12 +57,12 @@ jobs:
                 -PscreenplayTimeout=120
               ;;
             forge)
-              ./gradlew -p dwm-loaders :forge:runScreenplayTests \
+              xvfb-run -a ./gradlew -p dwm-loaders :forge:runScreenplayTests \
                 -PscreenplayDisplay=xvfb \
                 -PscreenplayTimeout=120
               ;;
             neoforge)
-              ./gradlew -p dwm-loaders :neoforge:runScreenplayTests \
+              xvfb-run -a ./gradlew -p dwm-loaders :neoforge:runScreenplayTests \
                 -PscreenplayDisplay=xvfb \
                 -PscreenplayTimeout=120
               ;;

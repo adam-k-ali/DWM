@@ -53,21 +53,29 @@ class ScreenplayPlugin implements Plugin<Project> {
         project.tasks.register('prepareScreenplayRun') {
             group = 'verification'
             description = 'Prepare Screenplay run directory, options.txt, and vanilla server jar path'
-            def optionsFile = project.layout.buildDirectory.file("${extension.outputDir}/run/options.txt")
+            // Game working directory (may differ from outputDir on Forge/NeoForge).
+            def runDirProvider = project.provider {
+                project.file(extension.runDir)
+            }
+            def optionsFile = project.provider {
+                new File(runDirProvider.get(), 'options.txt')
+            }
             def vanillaServerDir = project.layout.buildDirectory.dir("${extension.outputDir}/vanilla-server")
             def jarPathFile = project.layout.buildDirectory.file("${extension.outputDir}/vanilla-server/server-jar.path")
             outputs.file(optionsFile)
             outputs.file(jarPathFile)
             outputs.upToDateWhen { false }
             doLast {
-                project.delete(project.layout.buildDirectory.dir("${extension.outputDir}/run/saves"))
+                def runDir = runDirProvider.get()
+                runDir.mkdirs()
+                project.delete(new File(runDir, 'saves'))
                 project.delete(project.layout.buildDirectory.dir("${extension.outputDir}/vanilla-server/world"))
-                optionsFile.get().asFile.parentFile.mkdirs()
                 def mode = displayMode.get()
                 def options = new StringBuilder("""\
 lang:en_us
 skipMultiplayerWarning:true
 onboardAccessibility:false
+pauseOnLostFocus:false
 """)
                 if (mode == 'xvfb') {
                     options.append("""\
@@ -79,7 +87,7 @@ enableVsync:false
 guiScale:1
 """)
                 }
-                optionsFile.get().asFile.text = options.toString()
+                optionsFile.get().text = options.toString()
                 def serverDir = vanillaServerDir.get().asFile
                 serverDir.mkdirs()
                 def serverJar = resolveMinecraftServerJar(project)
@@ -175,79 +183,56 @@ guiScale:1
             if (runsContainer == null) {
                 throw new GradleException("Screenplay: no runs container found for loader '${loader}'")
             }
-            def run
-            if (loader == 'neoforge') {
-                // NeoGradle findByName/create of unknown run types throws — only use client/server.
-                run = runsContainer.findByName('client')
-            } else {
-                run = runsContainer.findByName('screenplayClient') ?: runsContainer.findByName('screenplay')
-                if (run == null && runsContainer.metaClass.respondsTo(runsContainer, 'create', String)) {
-                    run = runsContainer.create('screenplayClient')
-                } else if (run == null && runsContainer.metaClass.respondsTo(runsContainer, 'register', String)) {
-                    run = runsContainer.register('screenplayClient').get()
-                }
-                if (run == null) {
-                    run = runsContainer.findByName('client')
-                }
-            }
+            // Forge launcher runs.json only defines client/server/data/… — custom names
+            // like screenplayClient have no mainClass. NeoGradle also rejects unknown run types.
+            // Both loaders reuse the stock 'client' run for Screenplay.
+            def run = runsContainer.findByName('client')
             if (run == null) {
-                throw new GradleException("Screenplay: could not create or find a client run for '${loader}'")
+                throw new GradleException("Screenplay: could not find a client run for '${loader}'")
             }
-            if (run.hasProperty('workingDirectory')) {
-                run.workingDirectory = project.file(runDir)
-            }
-            // NeoGradle NamedDomainObjectContainer uses workingDirectory = ...
+            // ForgeGradle: workingDir; NeoGradle: workingDirectory
             try {
-                run.workingDirectory project.layout.projectDirectory.dir(runDir)
+                if (run.hasProperty('workingDir')) {
+                    run.workingDir.set(project.layout.projectDirectory.dir(runDir))
+                }
             } catch (Throwable ignored) {
             }
-            if (run.metaClass.respondsTo(run, 'systemProperty', String, Object)) {
+            try {
+                if (run.hasProperty('workingDirectory')) {
+                    run.workingDirectory.set(project.layout.projectDirectory.dir(runDir))
+                }
+            } catch (Throwable ignored) {
+                try {
+                    run.workingDirectory = project.file(runDir)
+                } catch (Throwable ignored2) {
+                }
+            }
+            try {
                 run.systemProperty 'screenplay', scenarioId.get()
                 run.systemProperty 'screenplay.step-timeout-seconds', timeout.get()
                 run.systemProperty 'screenplay.report-file', reportFile
                 run.systemProperty 'screenplay.vanilla-server-dir', vanillaServerDir
-            } else {
-                try {
-                    run.systemProperty 'screenplay', scenarioId.get()
-                    run.systemProperty 'screenplay.step-timeout-seconds', timeout.get()
-                    run.systemProperty 'screenplay.report-file', reportFile
-                    run.systemProperty 'screenplay.vanilla-server-dir', vanillaServerDir
-                } catch (Throwable ignored) {
-                    project.logger.warn("Screenplay: could not set system properties on ${loader} run")
-                }
+            } catch (Throwable ex) {
+                project.logger.warn("Screenplay: could not set system properties on ${loader} run: ${ex.message}")
             }
 
             // NeoGradle treats any task named run* as a run-type request. Avoid that prefix.
             def screenplayTaskName = loader == 'neoforge' ? 'executeScreenplay' : 'runScreenplay'
-            def delegateCandidates = loader == 'neoforge'
-                    ? ['runClient']
-                    : ['runScreenplayClient', 'run_screenplayClient', 'runClient']
-            def delegateTask = delegateCandidates.find { name ->
-                project.tasks.names.contains(name)
-            }
+            def delegateTask = project.tasks.names.contains('runClient') ? 'runClient' : null
+
             if (project.tasks.findByName(screenplayTaskName) == null) {
                 project.tasks.register(screenplayTaskName) {
                     group = 'verification'
                     description = 'Run a Screenplay YAML scenario in the real Minecraft client'
                     if (delegateTask != null) {
                         dependsOn delegateTask
-                    } else if (loader == 'neoforge') {
-                        dependsOn 'runClient'
                     } else {
-                        project.afterEvaluate {
-                            def late = ['runScreenplayClient', 'run_screenplayClient', 'runClient'].find { name ->
-                                project.tasks.names.contains(name)
-                            }
-                            if (late != null) {
-                                project.tasks.named(screenplayTaskName).configure { dependsOn late }
-                            } else {
-                                logger.warn("Screenplay: no client run task found for ${loader}; ${screenplayTaskName} may no-op")
-                            }
-                        }
+                        dependsOn 'runClient'
                     }
                 }
             }
             project.extensions.extraProperties.set('screenplayRunTask', screenplayTaskName)
+            project.extensions.extraProperties.set('screenplayDelegateTask', delegateTask ?: 'runClient')
         } catch (Throwable ex) {
             throw new GradleException("Screenplay could not configure ${loader} run: ${ex.message}", ex)
         }
@@ -260,13 +245,16 @@ guiScale:1
                     ? project.extensions.extraProperties.get('screenplayRunTask').toString()
                     : 'runScreenplay'
         }
+        def screenplayDelegateTask = project.providers.provider {
+            project.extensions.extraProperties.has('screenplayDelegateTask')
+                    ? project.extensions.extraProperties.get('screenplayDelegateTask').toString()
+                    : 'runScreenplayClient'
+        }
         project.tasks.configureEach { task ->
             def runTaskName = screenplayRunTask.get()
-            if (!(task.name in [runTaskName, 'runScreenplay', 'runScreenplayClient', 'executeScreenplay'])) {
-                return
-            }
-            // Only attach prepare/display gating to the Screenplay entry task (and Fabric client run).
-            if (!(task.name in [runTaskName, 'runScreenplay', 'runScreenplayClient', 'executeScreenplay'])) {
+            def delegateName = screenplayDelegateTask.get()
+            def screenplayTasks = [runTaskName, 'runScreenplay', 'runScreenplayClient', 'executeScreenplay', delegateName] as Set
+            if (!(task.name in screenplayTasks)) {
                 return
             }
             task.dependsOn('prepareScreenplayRun')
@@ -275,7 +263,8 @@ guiScale:1
             if (!(mode in ['display', 'xvfb'])) {
                 throw new GradleException("Invalid -PscreenplayDisplay='${mode}'. Allowed values: display, xvfb.")
             }
-            // Loom run tasks are JavaExec; the runScreenplay alias may be a plain DefaultTask.
+            // Loom run tasks are JavaExec with useXvfb; Forge/NeoForge runClient is plain JavaExec.
+            // For loaders without useXvfb, CI/agents should invoke Gradle under xvfb-run so $DISPLAY is set.
             if (task instanceof org.gradle.process.JavaExecSpec) {
                 if (task.hasProperty('useXvfb')) {
                     task.useXvfb = (mode == 'xvfb')
@@ -304,6 +293,17 @@ guiScale:1
                     if (which.exitValue() != 0) {
                         throw new GradleException(
                                 'screenplayDisplay=xvfb requires xvfb-run on PATH. Install with: apt install xvfb')
+                    }
+                    // Non-Loom loaders do not auto-wrap the JVM; require an outer xvfb-run (CI) or $DISPLAY.
+                    if (!task.hasProperty('useXvfb')) {
+                        def display = System.getenv('DISPLAY')
+                        if (display == null || display.isBlank()) {
+                            throw new GradleException(
+                                    'screenplayDisplay=xvfb on Forge/NeoForge requires $DISPLAY. '
+                                            + 'Invoke Gradle under xvfb-run, e.g. '
+                                            + '`xvfb-run -a ./gradlew -p dwm-loaders :forge:runScreenplayTests '
+                                            + '-PscreenplayDisplay=xvfb`.')
+                        }
                     }
                 }
             }

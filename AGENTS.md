@@ -75,8 +75,8 @@
 - **GameTests** (`./gradlew runGametest`): Headless dedicated-server in-world tests (Fabric-only). Not run by CI today — run locally when GameTest code changes. See `.cursor/skills/fabric-gametest/SKILL.md`.
 - **Screenplay tests** (real client YAML):
   - Fabric: `./gradlew runScreenplay -Pscreenplay=<id>` / `./gradlew runScreenplayTests`
-  - Forge: `./gradlew -p dwm-loaders :forge:runScreenplayTests`
-  - NeoForge: `./gradlew -p dwm-loaders :neoforge:runScreenplayTests` (entry task is `executeScreenplay` to avoid NeoGradle run-type clashes)
+  - Forge: `xvfb-run -a ./gradlew -p dwm-loaders :forge:runScreenplayTests` (ForgeGradle has no Loom `useXvfb`; wrap with `xvfb-run`)
+  - NeoForge: `xvfb-run -a ./gradlew -p dwm-loaders :neoforge:runScreenplayTests` (entry task is `executeScreenplay` to avoid NeoGradle run-type clashes)
   - Requires a display; CI uses xvfb (`-PscreenplayDisplay=xvfb`). See `src/screenplayTests/AGENTS.md`.
 - **Forge/NeoForge compile**: `./gradlew -p dwm-loaders :forge:compileJava :neoforge:compileJava`
 - Keep test runs reproducible and suitable for unattended agent execution.
@@ -163,7 +163,7 @@ These notes are for agents running in the Cursor Cloud VM. The standard build/te
 - The startup update script runs `./gradlew dependencies -q`, which resolves all configurations and lets Fabric Loom provision Minecraft, Yarn mappings, and remap the mod dependencies. The very first Loom configuration on a cold cache is slow and network-heavy (it decompiles Minecraft and remaps ~50 mods from `maven.fabricmc.net`, `maven.shedaniel.me`, `maven.terraformersmc.com`, and Maven Central); once cached, subsequent Gradle invocations are fast.
 - Running the mod end-to-end without a display: use `./gradlew runGametest`. This boots a real headless Minecraft server, loads the mod, and executes the registered in-world Fabric GameTests (TARDIS door/interior flows and chameleon networking). It is the best headless smoke test of core gameplay.
 - YAML client scenario tests (`./gradlew runScreenplay`) boot a real Fabric client. In this headless VM use `-PscreenplayDisplay=xvfb` (requires `xvfb` / Mesa); `-PscreenplayDisplay=display` needs a real `$DISPLAY`. See `src/screenplayTests/README.md`. Prefer `runGametest` for server-side gameplay smoke tests.
-- Forge/NeoForge compile: `./gradlew -p dwm-loaders :forge:compileJava :neoforge:compileJava`. Screenplay on those loaders: `./gradlew -p dwm-loaders :forge:runScreenplayTests` / `:neoforge:runScreenplayTests` with `-PscreenplayDisplay=xvfb`.
+- Forge/NeoForge compile: `./gradlew -p dwm-loaders :forge:compileJava :neoforge:compileJava`. Screenplay on those loaders: `xvfb-run -a ./gradlew -p dwm-loaders :forge:runScreenplayTests` / `:neoforge:runScreenplayTests` with `-PscreenplayDisplay=xvfb`.
 - `./gradlew runClient` and `./gradlew runServer` start the actual game; `runClient` needs a GUI/display and will not work in the headless VM. Prefer `runGametest` for automated verification.
 - `./gradlew build` also compiles the `client` source set and runs the full JUnit suite, so a green `build` covers both compile and unit-test confidence.
 - `./gradlew runDatagen` writes generated resources under `src/main/generated/` and also leaves an untracked `src/main/generated/.cache/` directory — delete that `.cache` dir before committing to avoid stray churn.

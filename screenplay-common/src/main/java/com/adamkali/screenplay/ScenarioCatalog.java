@@ -42,9 +42,19 @@ public final class ScenarioCatalog {
 
         Map<String, ScenarioDocument> tests = new LinkedHashMap<>();
         Map<String, ScenarioDocument> commands = new LinkedHashMap<>();
+        java.util.HashSet<String> seenRoots = new java.util.HashSet<>();
         while (roots.hasMoreElements()) {
             URL rootUrl = roots.nextElement();
             Path root = toPath(rootUrl);
+            String rootKey;
+            try {
+                rootKey = root.toAbsolutePath().normalize().toString();
+            } catch (RuntimeException ignored) {
+                rootKey = rootUrl.toString();
+            }
+            if (!seenRoots.add(rootKey)) {
+                continue;
+            }
             loadInto(root, tests, commands);
         }
         return new ScenarioCatalog(tests, commands);
@@ -96,6 +106,11 @@ public final class ScenarioCatalog {
                                 document.type() == ScenarioDocument.Type.TEST ? tests : commands;
                         ScenarioDocument previous = target.putIfAbsent(document.id(), document);
                         if (previous != null) {
+                            // Overlapping classpath roots (e.g. merged resourcesDir == classesDir)
+                            // can surface the same YAML twice; identical sources are safe to skip.
+                            if (previous.source().equals(document.source())) {
+                                return;
+                            }
                             throw new ScenarioException("Duplicate " + document.type().name().toLowerCase(Locale.ROOT)
                                     + " id '" + document.id() + "' in " + previous.source()
                                     + " and " + document.source());

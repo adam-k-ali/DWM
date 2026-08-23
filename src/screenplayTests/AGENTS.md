@@ -12,10 +12,10 @@ Step/selector reference for authors: this directory’s `README.md`.
 
 ## Commands
 - Fabric: `./gradlew runScreenplay -Pscreenplay=<yaml-filename-stem>` / `./gradlew runScreenplayTests`
-- Forge: `./gradlew -p dwm-loaders :forge:runScreenplay` / `:forge:runScreenplayTests`
-- NeoForge: `./gradlew -p dwm-loaders :neoforge:executeScreenplay` / `:neoforge:runScreenplayTests`
+- Forge: `xvfb-run -a ./gradlew -p dwm-loaders :forge:runScreenplay` / `:forge:runScreenplayTests`
+- NeoForge: `xvfb-run -a ./gradlew -p dwm-loaders :neoforge:executeScreenplay` / `:neoforge:runScreenplayTests`
 - Override step timeout (seconds): `-PscreenplayTimeout=60`
-- Display mode: `-PscreenplayDisplay=display|xvfb` (default `display`)
+- Display mode: `-PscreenplayDisplay=display|xvfb` (default `display`). Forge/NeoForge lack Loom `useXvfb` — wrap Gradle with `xvfb-run -a` so `$DISPLAY` is set.
 - Reports: `build/screenplay/` (Fabric) or `dwm-loaders/<loader>/build/screenplay/`
 - Unit tests for the harness: `./gradlew :screenplay-common:test`
 
