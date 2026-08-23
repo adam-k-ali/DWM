@@ -22,7 +22,8 @@ public final class ScenarioPrimitives {
             new CloseScreenPrimitive(),
             new SelectHotbarPrimitive(),
             new LookAtPrimitive(),
-            new UseItemPrimitive()
+            new UseItemPrimitive(),
+            new WalkUntilPrimitive()
     ).stream().collect(Collectors.toUnmodifiableMap(ScenarioPrimitive::name, Function.identity()));
 
     private ScenarioPrimitives() {

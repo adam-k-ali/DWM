@@ -38,3 +38,8 @@ steps:
       z: "~"
   - captureScreenshot:
       name: tardis-door-open
+  - walkUntil:
+      dimension: dwm:tardis
+  - waitTicks: 40
+  - captureScreenshot:
+      name: tardis-interior
