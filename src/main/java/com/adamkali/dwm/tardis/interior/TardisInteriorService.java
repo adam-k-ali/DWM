@@ -4,6 +4,7 @@ import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.tardis.TardisExteriorFacing;
+import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
@@ -35,6 +36,8 @@ public final class TardisInteriorService {
 
     /**
      * Ensures the interior exists for this exterior TARDIS, recording the entrance on the block entity.
+     * Sync path used by enter / rebuild — may force-load chunks. Approach preload uses
+     * {@link TardisInteriorPreloadService} instead.
      *
      * @return entrance feet position in the TARDIS dimension, or null on failure
      */
@@ -43,6 +46,9 @@ public final class TardisInteriorService {
         if (tardisId == null) {
             return null;
         }
+
+        // Sync enter wins over deferred preload.
+        TardisInteriorPreloadService.cancel(tardisId);
 
         MinecraftServer server = exteriorWorld.getServer();
         ServerLevel interiorWorld = server.getLevel(TardisDimensions.TARDIS_WORLD_KEY);
@@ -62,11 +68,43 @@ public final class TardisInteriorService {
             }
         }
 
-        BlockPos entrance = FirstDoctorConsoleRoomPlacer.place(interiorWorld, origin, tardisId);
+        return placeInterior(exteriorWorld, exteriorEntity, interiorWorld, origin, true);
+    }
+
+    /**
+     * Deferred-preload place: assumes footprint chunks are already loaded (no force-load).
+     *
+     * @return true when placement bookkeeping completed
+     */
+    static boolean placeInteriorDeferred(
+            ServerLevel exteriorWorld,
+            TardisBlockEntity exteriorEntity,
+            ServerLevel interiorWorld
+    ) {
+        UUID tardisId = exteriorEntity.getTardisIdOrNull();
+        if (tardisId == null) {
+            return false;
+        }
+        updateExteriorLocation(exteriorWorld, exteriorEntity);
+        BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
+        return placeInterior(exteriorWorld, exteriorEntity, interiorWorld, origin, false) != null;
+    }
+
+    private static @Nullable BlockPos placeInterior(
+            ServerLevel exteriorWorld,
+            TardisBlockEntity exteriorEntity,
+            ServerLevel interiorWorld,
+            BlockPos origin,
+            boolean forceLoadChunks
+    ) {
+        UUID tardisId = exteriorEntity.getTardisId();
+        BlockPos entrance = forceLoadChunks
+                ? FirstDoctorConsoleRoomPlacer.place(interiorWorld, origin, tardisId)
+                : FirstDoctorConsoleRoomPlacer.placeAssumingChunksLoaded(interiorWorld, origin, tardisId);
         exteriorEntity.setInteriorEntrance(entrance);
         exteriorEntity.setInteriorGenerated(true);
         BotiPlotIndex.register(tardisId);
-        PortalStreamSyncService.setMetaChanged(tardisId);
+        PortalStreamSyncService.markBotiFootprintDirty(tardisId);
         return entrance;
     }
 
@@ -155,12 +193,7 @@ public final class TardisInteriorService {
         int sizeX = FirstDoctorConsoleRoomPlacer.SIZE_X;
         int sizeY = FirstDoctorConsoleRoomPlacer.SIZE_Y;
         int sizeZ = FirstDoctorConsoleRoomPlacer.SIZE_Z;
-        BlockPos max = origin.offset(sizeX - 1, sizeY - 1, sizeZ - 1);
-        for (int x = origin.getX() >> 4; x <= max.getX() >> 4; x++) {
-            for (int z = origin.getZ() >> 4; z <= max.getZ() >> 4; z++) {
-                world.getChunk(x, z);
-            }
-        }
+        BotiInteriorSampler.forceLoadFootprintChunks(world, origin);
 
         AABB roomBox = new AABB(
                 origin.getX(),
@@ -183,7 +216,7 @@ public final class TardisInteriorService {
         BlockPos entrance = FirstDoctorConsoleRoomPlacer.place(world, origin, tardisId);
         refreshExteriorInteriorState(world.getServer(), tardisId, entrance);
         BotiPlotIndex.register(tardisId);
-        PortalStreamSyncService.setMetaChanged(tardisId);
+        PortalStreamSyncService.markBotiFootprintDirty(tardisId);
 
         for (ServerPlayer occupant : occupants) {
             if (occupant.isAlive()) {

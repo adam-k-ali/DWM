@@ -1,14 +1,17 @@
 package com.adamkali.dwm.block.entities;
 
+import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.sound.DWMSounds;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
+import com.adamkali.dwm.tardis.interior.TardisInteriorPreloadService;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.UUID;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.UUIDUtil;
@@ -16,6 +19,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
@@ -60,13 +64,18 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
     public void tick(Level world, BlockPos pos, BlockState state, TardisBlockEntity blockEntity) {
         if (this.tardisId != null) {
             TardisLogic.updateDoorState(this.tardisId, world);
-            if (!world.isClientSide()) {
+            if (!world.isClientSide() && world instanceof ServerLevel serverLevel) {
                 boolean cloaked = TardisLogic.isCloaked(this.tardisId);
                 if (cloaked != syncedCloaked) {
                     setSyncedCloaked(cloaked);
                 }
                 if (this.interiorGenerated && !BotiPlotIndex.isRegistered(this.tardisId)) {
                     BotiPlotIndex.register(this.tardisId);
+                }
+                // Cheap enqueue when players track the shell — deferred place avoids MSPT hitch.
+                if (DWMConfig.getBoolean(DWMConfig.ENABLE_DOOR_PORTALS)
+                        && !PlayerLookup.tracking(serverLevel, pos).isEmpty()) {
+                    TardisInteriorPreloadService.requestPreload(serverLevel, this);
                 }
             }
         }
