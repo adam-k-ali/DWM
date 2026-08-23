@@ -1,0 +1,20 @@
+package com.adamkali.screenplay.primitive;
+
+import java.util.Map;
+
+public final class AssertVisiblePrimitive extends SelectorPrimitive {
+    @Override
+    public String name() {
+        return "assertVisible";
+    }
+
+    @Override
+    public Map<String, Object> validate(Map<String, Object> arguments, String source) {
+        return requireSelector(arguments, source);
+    }
+
+    @Override
+    public boolean execute(ScenarioPrimitiveContext context) {
+        return context.widgetFinder().matches(context.screen(), context.arguments());
+    }
+}

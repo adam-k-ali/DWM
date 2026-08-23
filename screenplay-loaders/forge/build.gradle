@@ -1,0 +1,80 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '[7.0.17,8)'
+}
+
+version = project.screenplay_version
+group = project.screenplay_maven_group
+
+base {
+    archivesName = 'screenplay-forge'
+}
+
+java {
+    withSourcesJar()
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+minecraft {
+    accessTransformer.from project.file('src/main/resources/META-INF/accesstransformer.cfg')
+
+    runs {
+        configureEach {
+            workingDir = layout.projectDirectory.dir('run')
+            systemProperty 'eventbus.api.strictRuntimeChecks', 'true'
+        }
+        register('client')
+    }
+}
+
+repositories {
+    minecraft.mavenizer(it)
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
+    mavenCentral()
+}
+
+dependencies {
+    implementation minecraft.dependency("net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}")
+    implementation 'org.yaml:snakeyaml:2.6'
+}
+
+def screenplayCommon = rootProject.file('../screenplay-common')
+
+sourceSets.main {
+    java {
+        srcDir new File(screenplayCommon, 'src/main/java')
+    }
+    resources {
+        srcDir new File(screenplayCommon, 'src/main/resources')
+    }
+}
+
+processResources {
+    var replaceProperties = [
+            mod_version: project.version
+    ]
+    inputs.properties replaceProperties
+    filesMatching('META-INF/mods.toml') {
+        expand replaceProperties
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+}
+
+publishing {
+    publications {
+        create('mavenJava', MavenPublication) {
+            artifactId = 'screenplay-forge'
+            from components.java
+        }
+    }
+    repositories {
+    }
+}

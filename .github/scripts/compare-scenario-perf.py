@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 
-MARKER = "<!-- dwm-sightline-perf -->"
+MARKER = "<!-- dwm-screenplay-perf -->"
 DEFAULT_TOLERANCE = 0.20
 DEFAULT_FLOOR_MS = 50.0
 
