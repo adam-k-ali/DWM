@@ -1,8 +1,8 @@
 # YAML client scenarios
 
-This directory holds DWM-owned **Sightline** YAML scenarios. The harness ships
+This directory holds mod-owned **Sightline** YAML scenarios. The harness ships
 as the `sightline-*` Gradle modules (`sightline-fabric` on the client run).
-It is not included in the production DWM jar.
+It is not included in the production mod jar.
 
 ## Running a scenario
 

@@ -1,11 +1,11 @@
 # AGENTS.md
 
 ## Scope
-This file applies to `src/scenarioTest/` — DWM-owned **Sightline** YAML scenarios only.
-The harness lives in the `sightline-*` Gradle modules (`sightline-fabric` on the client run classpath). It is not bundled into the production DWM jar.
+This file applies to `src/sightlineTests/` — mod-owned **Sightline** YAML scenarios only.
+The harness lives in the `sightline-*` Gradle modules (`sightline-fabric` on the client run classpath). It is not bundled into the production mod jar.
 
 ## Local Context
-YAML scenarios drive the **real Minecraft client** via Sightline. Primitives and the compiler ship in `sightline-common`. DWM scenarios stay under `resources/tests/` (e.g. `placeAndOpenTardis.yaml`). Vanilla demos ship inside `sightline-common` resources.
+YAML scenarios drive the **real Minecraft client** via Sightline. Primitives and the compiler ship in `sightline-common`. Mod scenarios stay under `resources/tests/` (e.g. `placeAndOpenTardis.yaml`). Vanilla demos ship inside `sightline-common` resources.
 
 Full product docs: `sightline-fabric/README.md` and `metadata/sightline/modrinth-body.md`.
 Step/selector reference for authors: this directory’s `README.md`.
@@ -23,8 +23,8 @@ Step/selector reference for authors: this directory’s `README.md`.
 
 ## Conventions
 - YAML files live recursively under `resources/tests/`. Role is set by frontmatter `type`: `test` (runnable) or `command` (composite).
-- Stable ID is the **filename stem**. Duplicate IDs across DWM + Sightline demo roots are rejected by `runSightlineTests`.
-- Prefer adding shared primitives upstream in `sightline-common`; DWM-only steps can use `ServiceLoader` registration.
+- Stable ID is the **filename stem**. Duplicate IDs across mod + Sightline demo roots are rejected by `runSightlineTests`.
+- Prefer adding shared primitives upstream in `sightline-common`; mod-only steps can use `ServiceLoader` registration.
 - Selectors match exact widget `name` + `type` (`button`, `cycle`, `tab`, `editbox`, `label`, `screen`).
 
 ## Common Pitfalls

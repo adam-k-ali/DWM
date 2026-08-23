@@ -1252,7 +1252,7 @@ class ScenarioCompilerTest {
 
     @Test
     void compilesBundledPlaceAndOpenTardisScenario() {
-        Path scenarioRoot = resolveDwmScenarioTests();
+        Path scenarioRoot = resolveSightlineTests();
 
         ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(scenarioRoot)).compile("placeAndOpenTardis");
 
@@ -1264,19 +1264,19 @@ class ScenarioCompilerTest {
         assertEquals("tardis-interior.png", plan.steps().get(19).arguments().get("name"));
     }
 
-    private static Path resolveDwmScenarioTests() {
+    private static Path resolveSightlineTests() {
         Path cwd = Path.of("").toAbsolutePath();
         Path[] candidates = {
-                cwd.resolve("src/scenarioTest/resources/tests"),
-                cwd.getParent().resolve("src/scenarioTest/resources/tests"),
-                cwd.resolve("../src/scenarioTest/resources/tests").normalize()
+                cwd.resolve("src/sightlineTests/resources/tests"),
+                cwd.getParent().resolve("src/sightlineTests/resources/tests"),
+                cwd.resolve("../src/sightlineTests/resources/tests").normalize()
         };
         for (Path candidate : candidates) {
             if (Files.isDirectory(candidate) && Files.isRegularFile(candidate.resolve("placeAndOpenTardis.yaml"))) {
                 return candidate;
             }
         }
-        throw new IllegalStateException("Could not find DWM scenario tests directory from " + cwd);
+        throw new IllegalStateException("Could not find Sightline tests directory from " + cwd);
     }
 
     private static void write(Path path, String content) throws Exception {

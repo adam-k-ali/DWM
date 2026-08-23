@@ -31,8 +31,8 @@ repositories {
 }
 
 sourceSets {
-    // DWM-owned Sightline YAML scenarios (resources only; default src/scenarioTest/resources).
-    scenarioTest
+    // Mod-owned Sightline YAML scenarios (resources only; default src/sightlineTests/resources).
+    sightlineTests
 }
 
 loom {
@@ -68,16 +68,16 @@ loom {
 
 sightline {
     loader = 'fabric'
-    testsDir = file('src/scenarioTest/resources/tests')
+    testsDir = file('src/sightlineTests/resources/tests')
     extraTestsDirs = [file('sightline-common/src/main/resources/tests')]
     runDir = 'build/sightline/run'
     outputDir = 'sightline'
 }
 
-// Ensure DWM YAML scenarios are on the Sightline client classpath.
+// Ensure mod-owned YAML scenarios are on the Sightline client classpath.
 tasks.configureEach { task ->
     if (task.name in ['runSightline', 'runSightlineClient'] && task instanceof JavaExec) {
-        task.classpath += sourceSets.scenarioTest.output
+        task.classpath += sourceSets.sightlineTests.output
     }
 }
 

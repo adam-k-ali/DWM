@@ -191,7 +191,7 @@ public final class VanillaServerProcess {
         String dir = System.getProperty(DIR_PROPERTY);
         if (dir == null || dir.isBlank()) {
             throw new ScenarioException("System property '" + DIR_PROPERTY
-                    + "' is missing. Run prepareScenarioTestRun first.");
+                    + "' is missing. Run prepareSightlineRun first.");
         }
         return Path.of(dir);
     }
@@ -200,7 +200,7 @@ public final class VanillaServerProcess {
         Path jarPathFile = dir.resolve(JAR_PATH_FILE);
         if (!Files.isRegularFile(jarPathFile)) {
             throw new ScenarioException("Vanilla server jar path file is missing: " + jarPathFile
-                    + ". Run prepareScenarioTestRun first.");
+                    + ". Run prepareSightlineRun first.");
         }
         String raw;
         try {
@@ -210,12 +210,12 @@ public final class VanillaServerProcess {
         }
         if (raw.isEmpty()) {
             throw new ScenarioException("Vanilla server jar path file is empty: " + jarPathFile
-                    + ". Run prepareScenarioTestRun first.");
+                    + ". Run prepareSightlineRun first.");
         }
         Path jar = Path.of(raw);
         if (!Files.isRegularFile(jar)) {
             throw new ScenarioException("Vanilla server jar is missing: " + jar
-                    + ". Run prepareScenarioTestRun first.");
+                    + ". Run prepareSightlineRun first.");
         }
         return jar;
     }

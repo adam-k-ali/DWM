@@ -29,7 +29,7 @@ class SightlineExtension {
     String outputDir = 'sightline'
 
     SightlineExtension(Project project) {
-        this.testsDir = project.file('src/scenarioTest/resources/tests')
+        this.testsDir = project.file('src/sightlineTests/resources/tests')
     }
 
     List<File> allTestsDirs() {
