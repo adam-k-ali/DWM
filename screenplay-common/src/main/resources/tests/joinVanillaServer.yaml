@@ -14,7 +14,7 @@ steps:
   - assertAndClick:
     - type: editbox
       name: "Server Address"
-  - keyboardInput: "localhost:25565"
+  - keyboardInput: "127.0.0.1:25565"
   - assertAndClick:
     - type: button
       name: "Join Server"

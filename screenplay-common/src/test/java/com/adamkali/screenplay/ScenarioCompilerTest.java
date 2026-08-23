@@ -679,8 +679,8 @@ class ScenarioCompilerTest {
         assertEquals("assertVisible", plan.steps().get(6).name());
         assertEquals("click", plan.steps().get(7).name());
         assertEquals("keyboardInput", plan.steps().get(8).name());
-        assertEquals("localhost:25565", plan.steps().get(8).arguments().get("text"));
-        assertEquals("keyboardInput \"localhost:25565\"", plan.steps().get(8).displayName());
+        assertEquals("127.0.0.1:25565", plan.steps().get(8).arguments().get("text"));
+        assertEquals("keyboardInput \"127.0.0.1:25565\"", plan.steps().get(8).displayName());
         assertEquals("waitUntil", plan.steps().get(12).name());
         @SuppressWarnings("unchecked")
         Map<String, Object> notVisible = (Map<String, Object>) plan.steps().get(12).arguments().get("notVisible");
