@@ -5,11 +5,8 @@ import com.adamkali.dwm.item.DWMCreativeTabs;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.item.DWMItems;
-import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
-import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
-import net.fabricmc.fabric.api.registry.StrippableBlockRegistry;
+import com.adamkali.dwm.platform.DwmServices;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.vehicle.boat.Boat;
 import net.minecraft.world.item.BoatItem;
 import net.minecraft.world.item.HangingSignItem;
@@ -196,26 +193,26 @@ public final class WoodFamilyRegistrar {
 
     public static void wireRuntime(RegisteredWoodFamily family) {
         WoodFamilyBlocks blocks = family.blocks();
+        var platform = DwmServices.get();
 
-        StrippableBlockRegistry.register(blocks.log(), blocks.strippedLog());
-        StrippableBlockRegistry.register(blocks.wood(), blocks.strippedWood());
+        platform.registerStrippable(blocks.log(), blocks.strippedLog());
+        platform.registerStrippable(blocks.wood(), blocks.strippedWood());
 
-        FlammableBlockRegistry flammable = FlammableBlockRegistry.getDefaultInstance();
-        flammable.add(blocks.planks(), 5, 20);
-        flammable.add(blocks.slab(), 5, 20);
-        flammable.add(blocks.fenceGate(), 5, 20);
-        flammable.add(blocks.fence(), 5, 20);
-        flammable.add(blocks.stairs(), 5, 20);
-        flammable.add(blocks.log(), 5, 5);
-        flammable.add(blocks.strippedLog(), 5, 5);
-        flammable.add(blocks.wood(), 5, 5);
-        flammable.add(blocks.strippedWood(), 5, 5);
-        flammable.add(blocks.leaves(), 30, 60);
+        platform.registerFlammable(blocks.planks(), 5, 20);
+        platform.registerFlammable(blocks.slab(), 5, 20);
+        platform.registerFlammable(blocks.fenceGate(), 5, 20);
+        platform.registerFlammable(blocks.fence(), 5, 20);
+        platform.registerFlammable(blocks.stairs(), 5, 20);
+        platform.registerFlammable(blocks.log(), 5, 5);
+        platform.registerFlammable(blocks.strippedLog(), 5, 5);
+        platform.registerFlammable(blocks.wood(), 5, 5);
+        platform.registerFlammable(blocks.strippedWood(), 5, 5);
+        platform.registerFlammable(blocks.leaves(), 30, 60);
         if (blocks.door() != null) {
-            flammable.add(blocks.door(), 5, 20);
+            platform.registerFlammable(blocks.door(), 5, 20);
         }
         if (blocks.trapdoor() != null) {
-            flammable.add(blocks.trapdoor(), 5, 20);
+            platform.registerFlammable(blocks.trapdoor(), 5, 20);
         }
 
         BlockEntityTypes.SIGN.addValidBlock(blocks.sign());
@@ -226,17 +223,18 @@ public final class WoodFamilyRegistrar {
 
     public static void addCreativeTabs(RegisteredWoodFamily family) {
         WoodFamilyBlocks blocks = family.blocks();
-        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.BUILDING_BLOCKS).register(content -> {
+        var platform = DwmServices.get();
+        platform.modifyCreativeTab(DWMCreativeTabs.BUILDING_BLOCKS, content -> {
             for (Block block : family.buildingBlocks()) {
                 content.accept(block);
             }
         });
-        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.NATURAL_BLOCKS).register(content -> {
+        platform.modifyCreativeTab(DWMCreativeTabs.NATURAL_BLOCKS, content -> {
             content.accept(blocks.log());
             content.accept(blocks.leaves());
             content.accept(blocks.sapling());
         });
-        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.REDSTONE_BLOCKS).register(content -> {
+        platform.modifyCreativeTab(DWMCreativeTabs.REDSTONE_BLOCKS, content -> {
             content.accept(blocks.button());
             content.accept(blocks.pressurePlate());
             if (blocks.trapdoor() != null) {
@@ -246,8 +244,8 @@ public final class WoodFamilyRegistrar {
                 content.accept(blocks.door());
             }
         });
-        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.TOOLS_AND_UTILITIES).register(content -> content.accept(family.boatItem()));
-        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.FUNCTIONAL_BLOCKS).register(content -> {
+        platform.modifyCreativeTab(DWMCreativeTabs.TOOLS_AND_UTILITIES, content -> content.accept(family.boatItem()));
+        platform.modifyCreativeTab(DWMCreativeTabs.FUNCTIONAL_BLOCKS, content -> {
             content.accept(family.signItem());
             content.accept(family.hangingSignItem());
         });

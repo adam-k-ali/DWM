@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.UUID;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import com.adamkali.dwm.platform.DwmServices;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.UUIDUtil;
@@ -74,7 +74,7 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
                 }
                 // Cheap enqueue when players track the shell — deferred place avoids MSPT hitch.
                 if (DWMConfig.getBoolean(DWMConfig.ENABLE_DOOR_PORTALS)
-                        && !PlayerLookup.tracking(serverLevel, pos).isEmpty()) {
+                        && DwmServices.get().hasTrackingPlayers(serverLevel, pos)) {
                     TardisInteriorPreloadService.requestPreload(serverLevel, this);
                 }
             }

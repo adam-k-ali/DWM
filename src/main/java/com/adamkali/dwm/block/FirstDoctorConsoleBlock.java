@@ -20,9 +20,9 @@ import com.adamkali.dwm.tardis.logic.StabiliserLogic;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.adamkali.dwm.tardis.logic.TelepathicCircuitLogic;
+import com.adamkali.dwm.platform.DwmServices;
 import com.adamkali.dwm.text.DimensionNames;
 import com.mojang.serialization.MapCodec;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -337,7 +337,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             return InteractionResult.CONSUME;
         }
         TardisDataModel model = TardisDataLoader.get(tardisId);
-        ServerPlayNetworking.send(player, OpenWaypointScreen.of(tardisId, model));
+        DwmServices.get().sendToPlayer(player, OpenWaypointScreen.of(tardisId, model));
         playClick(world, pos);
         return InteractionResult.SUCCESS;
     }
@@ -357,7 +357,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
                 PlayerLocatorLogic.listOnlineExcluding(serverWorld.getServer(), player.getUUID());
         TardisDataModel model = TardisDataLoader.get(tardisId);
         UUID selectedPlayerUuid = model == null ? null : model.selectedPlayerUuid;
-        ServerPlayNetworking.send(player, OpenPlayerLocatorScreen.of(tardisId, players, selectedPlayerUuid));
+        DwmServices.get().sendToPlayer(player, OpenPlayerLocatorScreen.of(tardisId, players, selectedPlayerUuid));
         playClick(world, pos);
         return InteractionResult.SUCCESS;
     }

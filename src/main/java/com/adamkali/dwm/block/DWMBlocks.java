@@ -8,10 +8,7 @@ import com.adamkali.dwm.block.wood.WoodFamilyDefinition;
 import com.adamkali.dwm.block.wood.WoodFamilyFeature;
 import com.adamkali.dwm.block.wood.WoodFamilyRegistrar;
 import com.adamkali.dwm.item.DWMItemTags;
-import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
-import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
-import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
-import net.fabricmc.fabric.api.registry.CompostableRegistry;
+import com.adamkali.dwm.platform.DwmServices;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -526,14 +523,15 @@ public class DWMBlocks {
     public static void initialize() {
         DWMWoodTypes.initialize();
 
-        CompostableRegistry.INSTANCE.add(FLOWER_OF_REMEMBRANCE.asItem(), 0.65F);
-        CompostableRegistry.INSTANCE.add(MOONLIGHT_BLOOM.asItem(), 0.65F);
-        CompostableRegistry.INSTANCE.add(SACCHARINE_CANE.asItem(), 0.50F);
+        var platform = DwmServices.get();
+        platform.registerCompostable(FLOWER_OF_REMEMBRANCE.asItem(), 0.65F);
+        platform.registerCompostable(MOONLIGHT_BLOOM.asItem(), 0.65F);
+        platform.registerCompostable(SACCHARINE_CANE.asItem(), 0.50F);
 
-        PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) ->
+        platform.registerBeforeBlockBreak((world, player, pos, state, blockEntity) ->
                 !FirstDoctorConsoleBlock.isPlayerBreakDenied(state));
 
-        AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
+        platform.registerAttackBlock((player, world, hand, pos, direction) -> {
             if (FirstDoctorConsoleBlock.isPlayerBreakDenied(world.getBlockState(pos))) {
                 return InteractionResult.FAIL;
             }
@@ -544,7 +542,7 @@ public class DWMBlocks {
             WoodFamilyRegistrar.wireRuntime(family);
         }
 
-        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.BUILDING_BLOCKS).register(content -> {
+        platform.modifyCreativeTab(DWMCreativeTabs.BUILDING_BLOCKS, content -> {
             content.accept(BLACK_ROUNDEL_A);
             content.accept(BLUE_ROUNDEL_A);
             content.accept(BROWN_ROUNDEL_A);
@@ -682,7 +680,7 @@ public class DWMBlocks {
             }
         });
 
-        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.NATURAL_BLOCKS).register(content -> {
+        platform.modifyCreativeTab(DWMCreativeTabs.NATURAL_BLOCKS, content -> {
             content.accept(GALLIFREY_GRASS_BLOCK);
             content.accept(GALLIFREY_DIRT);
             content.accept(GALLIFREY_COARSE_DIRT);
@@ -705,7 +703,7 @@ public class DWMBlocks {
             }
         });
 
-        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.REDSTONE_BLOCKS).register(content -> {
+        platform.modifyCreativeTab(DWMCreativeTabs.REDSTONE_BLOCKS, content -> {
             content.accept(TARDIS_DOOR_BUTTON);
             for (RegisteredWoodFamily family : WOOD_FAMILIES) {
                 content.accept(family.blocks().button());
@@ -719,7 +717,7 @@ public class DWMBlocks {
             }
         });
 
-        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.FUNCTIONAL_BLOCKS).register(content -> {
+        platform.modifyCreativeTab(DWMCreativeTabs.FUNCTIONAL_BLOCKS, content -> {
             content.accept(FIRST_DOCTOR_CONSOLE);
         });
     }

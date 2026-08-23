@@ -4,11 +4,11 @@ import com.adamkali.dwm.block.entities.DWMBlockEntities;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.network.OpenTardisChameleonScreen;
+import com.adamkali.dwm.platform.DwmServices;
 import com.adamkali.dwm.tardis.interior.TardisEntryGate;
 import com.adamkali.dwm.tardis.interior.TardisInteriorService;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.mojang.serialization.MapCodec;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -97,7 +97,7 @@ public class TardisBlock extends BaseEntityBlock {
                 }
             }
         } else if (!world.isClientSide() && DWMConfig.getBoolean(DWMConfig.ENABLE_CHAMELEON_GUI)) {
-            ServerPlayNetworking.send((ServerPlayer) player, new OpenTardisChameleonScreen(tardisBlockEntity.getTardisId()));
+            DwmServices.get().sendToPlayer((ServerPlayer) player, new OpenTardisChameleonScreen(tardisBlockEntity.getTardisId()));
         }
 
         return InteractionResult.SUCCESS;

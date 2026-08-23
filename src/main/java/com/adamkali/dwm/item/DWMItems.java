@@ -6,7 +6,7 @@ import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.block.wood.WoodFamilyRegistrar;
 import com.adamkali.dwm.entity.DWMEntityTypes;
-import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
+import com.adamkali.dwm.platform.DwmServices;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -129,11 +129,11 @@ public class DWMItems {
                 "flutterwing_spawn_egg"
         );
 
-        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.INGREDIENTS).register(content -> {
+        DwmServices.get().modifyCreativeTab(DWMCreativeTabs.INGREDIENTS, content -> {
             content.accept(AZBANTIUM);
         });
 
-        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.TOOLS_AND_UTILITIES).register(content -> {
+        DwmServices.get().modifyCreativeTab(DWMCreativeTabs.TOOLS_AND_UTILITIES, content -> {
             content.accept(SONIC_SECOND_DOCTOR);
             content.accept(SONIC_THIRD_DOCTOR);
             content.accept(SONIC_FOURTH_DOCTOR);
@@ -149,7 +149,7 @@ public class DWMItems {
             }
         });
 
-        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.COMBAT).register(content -> {
+        DwmServices.get().modifyCreativeTab(DWMCreativeTabs.COMBAT, content -> {
             content.accept(AZBANTIUM_SWORD);
             content.accept(AZBANTIUM_HELMET);
             content.accept(AZBANTIUM_CHESTPLATE);
@@ -157,14 +157,14 @@ public class DWMItems {
             content.accept(AZBANTIUM_BOOTS);
         });
 
-        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.FUNCTIONAL_BLOCKS).register(content -> {
+        DwmServices.get().modifyCreativeTab(DWMCreativeTabs.FUNCTIONAL_BLOCKS, content -> {
             for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
                 content.accept(family.signItem());
                 content.accept(family.hangingSignItem());
             }
         });
 
-        CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.SPAWN_EGGS).register(content -> {
+        DwmServices.get().modifyCreativeTab(DWMCreativeTabs.SPAWN_EGGS, content -> {
             content.accept(BROAKIR_SPAWN_EGG);
             content.accept(FLUTTERWING_SPAWN_EGG);
         });
