@@ -15,7 +15,7 @@ import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityT
 import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
-import net.fabricmc.fabric.api.registry.CompostableItemRegistry;
+import net.fabricmc.fabric.api.registry.CompostableRegistry;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
 import net.fabricmc.fabric.api.registry.StrippableBlockRegistry;
 import net.minecraft.core.BlockPos;
@@ -34,7 +34,7 @@ import net.minecraft.world.entity.SpawnPlacementType;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.ItemLike;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -149,12 +149,13 @@ public final class FabricDwmPlatform implements DwmPlatform {
 
     @Override
     public void modifyCreativeTab(ResourceKey<CreativeModeTab> tab, Consumer<CreativeTabOutput> modifier) {
-        CreativeModeTabEvents.modifyOutputEvent(tab).register(content -> modifier.accept(content::accept));
+        CreativeModeTabEvents.modifyOutputEvent(tab).register(content ->
+                modifier.accept((ItemLike item) -> content.accept(item)));
     }
 
     @Override
     public void registerCompostable(ItemLike item, float chance) {
-        CompostableItemRegistry.INSTANCE.add(item, chance);
+        CompostableRegistry.INSTANCE.add(item, chance);
     }
 
     @Override
