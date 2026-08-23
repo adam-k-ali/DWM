@@ -31,6 +31,7 @@ public final class ScreenplayBootstrap {
             ScenarioPlan plan = new ScenarioCompiler(catalog).compile(scenarioId);
             Duration timeout = Duration.ofSeconds(readPositiveLong(TIMEOUT_PROPERTY, 30L));
             ScenarioRunner runner = new ScenarioRunner(plan, reportWriter, timeout, LOGGER);
+            runner.startWatchdog();
             platform.registerEndClientTick(runner::tick);
             LOGGER.info("Loaded scenario '{}' with {} primitive steps", plan.id(), plan.steps().size());
         } catch (RuntimeException exception) {

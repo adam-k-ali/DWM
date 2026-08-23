@@ -80,11 +80,14 @@ pauseOnLostFocus:false
                 if (mode == 'xvfb') {
                     options.append("""\
 fullscreen:false
-renderDistance:4
-simulationDistance:4
+renderDistance:5
+simulationDistance:5
 maxFps:30
 enableVsync:false
 guiScale:1
+inactivityFpsLimit:minimized
+pauseOnLostFocus:false
+onboardAccessibility:false
 """)
                 }
                 optionsFile.get().text = options.toString()
