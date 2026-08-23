@@ -26,8 +26,9 @@ import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * BOTI portal content: hitch-fixed interior look-in with synced ghost terrain (preferred)
- * or blueprint console room fallback from {@link BotiInteriorMeshCache}.
+ * BOTI portal content: hitch-fixed interior look-in from synced ghost terrain
+ * ({@link SotoGhostMeshCache}). Ready only once real streamed meshes exist — approach preload
+ * warms the stream before the door opens.
  */
 public final class BotiPortalContent implements PortalContent {
     private static final int FULLBRIGHT = LightCoordsUtil.pack(15, 15);
@@ -45,8 +46,6 @@ public final class BotiPortalContent implements PortalContent {
             return false;
         }
         PortalSceneStore.requestIfNeeded(PortalStreamKind.BOTI, tardisId);
-        // Same spirit as SOTO: skip the full-window FBO until ghost meshes exist.
-        // Blueprint fallback remains available as a BER placeholder when not ready.
         return SotoGhostMeshCache.hasMeshes(PortalStreamKind.BOTI, tardisId);
     }
 
@@ -72,14 +71,6 @@ public final class BotiPortalContent implements PortalContent {
 
     @Override
     public void renderInto(PortalContentContext context) {
-        if (SotoGhostMeshCache.hasMeshes(PortalStreamKind.BOTI, tardisId)) {
-            renderGhostInto(context);
-        } else {
-            renderBlueprintFallback(context);
-        }
-    }
-
-    private void renderGhostInto(PortalContentContext context) {
         UUID id = tardisId;
         float tickDelta = context.tickDelta();
         PortalCameraTransform.Result hitch = context.hitch();
@@ -153,40 +144,6 @@ public final class BotiPortalContent implements PortalContent {
                 }
             }
         } catch (Throwable ignored) {
-        } finally {
-            PortalPerfStats.end(PortalPerfStats.Stage.GHOST_FEATURES, featuresStart);
-        }
-    }
-
-    private void renderBlueprintFallback(PortalContentContext context) {
-        long featuresStart = PortalPerfStats.begin();
-        try {
-            PortalFeatureFlush featureFlush = context.featureFlush();
-            if (featureFlush == null) {
-                return;
-            }
-            PoseStack sceneMatrices = context.sceneMatrices();
-            SubmitNodeStorage submitStorage = context.submitStorage();
-            CameraRenderState cameraState = context.cameraState();
-            Matrix4fStack featureModelView = RenderSystem.getModelViewStack();
-            featureModelView.pushMatrix();
-            try {
-                context.portalCamera().getViewRotationMatrix(featureModelView);
-                BotiInteriorMeshCache.renderForPortal(
-                        sceneMatrices,
-                        submitStorage,
-                        cameraState,
-                        context.portalCamera(),
-                        FULLBRIGHT,
-                        context.tickDelta(),
-                        tardisId
-                );
-                context.bindTarget();
-                featureFlush.renderAllFeatures(submitStorage);
-                context.bindTarget();
-            } finally {
-                featureModelView.popMatrix();
-            }
         } finally {
             PortalPerfStats.end(PortalPerfStats.Stage.GHOST_FEATURES, featuresStart);
         }

@@ -171,10 +171,10 @@ public final class BotiInteriorSampler {
     }
 
     /**
-     * Ensures footprint chunks are loaded (and briefly ticketed) so entity queries work even when
-     * no player is in {@code dwm:tardis}.
+     * Ticket-only keep-alive for the console-room footprint. Does not call {@code getChunk}
+     * (avoids synchronous force-loads — used by deferred interior preload).
      */
-    public static void ensureFootprintChunksLoaded(ServerLevel world, BlockPos plotOrigin) {
+    public static void addFootprintTickets(ServerLevel world, BlockPos plotOrigin) {
         if (world == null || plotOrigin == null) {
             return;
         }
@@ -182,11 +182,53 @@ public final class BotiInteriorSampler {
         var chunkManager = world.getChunkSource();
         for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
             for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
-                ChunkPos chunkPos = new ChunkPos(cx, cz);
-                chunkManager.addTicketWithRadius(BOTI_TICKET, chunkPos, 2);
+                chunkManager.addTicketWithRadius(BOTI_TICKET, new ChunkPos(cx, cz), 2);
+            }
+        }
+    }
+
+    /**
+     * True when every footprint column is already present in the chunk cache (no force-load).
+     */
+    public static boolean areFootprintChunksLoaded(ServerLevel world, BlockPos plotOrigin) {
+        if (world == null || plotOrigin == null) {
+            return false;
+        }
+        int[] bounds = footprintChunkBounds(plotOrigin);
+        var chunkManager = world.getChunkSource();
+        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
+            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
+                if (!chunkManager.hasChunk(cx, cz)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Synchronously force-loads footprint chunks (blocking). Prefer {@link #addFootprintTickets}
+     * + {@link #areFootprintChunksLoaded} for approach-time preload.
+     */
+    public static void forceLoadFootprintChunks(ServerLevel world, BlockPos plotOrigin) {
+        if (world == null || plotOrigin == null) {
+            return;
+        }
+        addFootprintTickets(world, plotOrigin);
+        int[] bounds = footprintChunkBounds(plotOrigin);
+        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
+            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
                 world.getChunk(cx, cz);
             }
         }
+    }
+
+    /**
+     * Ensures footprint chunks are loaded (and briefly ticketed) so entity queries work even when
+     * no player is in {@code dwm:tardis}.
+     */
+    public static void ensureFootprintChunksLoaded(ServerLevel world, BlockPos plotOrigin) {
+        forceLoadFootprintChunks(world, plotOrigin);
     }
 
     /** True if any non-removed entity intersects the plot footprint. */

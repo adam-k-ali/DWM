@@ -7,6 +7,7 @@ import com.adamkali.dwm.network.SyncPortalEntityUpdateS2CPayload;
 import com.adamkali.dwm.network.SyncPortalMetaS2CPayload;
 import com.adamkali.dwm.network.SyncPortalPerfS2CPayload;
 import com.adamkali.dwm.network.UnloadPortalChunkS2CPayload;
+import com.adamkali.dwm.tardis.interior.TardisInteriorPreloadService;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
@@ -94,6 +95,7 @@ public final class PortalStreamSyncService {
         SotoExteriorIndex.clear();
         BotiPlotIndex.clear();
         PortalStreamPerfStats.clear();
+        TardisInteriorPreloadService.clear();
         tickCounter = 0;
     }
 
@@ -101,6 +103,35 @@ public final class PortalStreamSyncService {
         if (tardisId != null) {
             META_DIRTY.add(tardisId);
         }
+    }
+
+    /**
+     * Marks every BOTI footprint chunk column dirty so already-streamed empty samples are re-sent
+     * after interior place / rebuild.
+     */
+    public static void markBotiFootprintDirty(UUID tardisId) {
+        if (tardisId == null) {
+            return;
+        }
+        META_DIRTY.add(tardisId);
+        BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
+        int[] bounds = BotiInteriorSampler.footprintChunkBounds(origin);
+        StreamKey streamKey = new StreamKey(PortalStreamKind.BOTI, tardisId);
+        Set<Long> dirty = DIRTY_CHUNKS.computeIfAbsent(streamKey, id -> ConcurrentHashMap.newKeySet());
+        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
+            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
+                dirty.add(ChunkPos.pack(cx, cz));
+            }
+        }
+    }
+
+    /** Test helper: number of dirty BOTI footprint columns for {@code tardisId}. */
+    public static int botiDirtyChunkCountForTest(UUID tardisId) {
+        if (tardisId == null) {
+            return 0;
+        }
+        Set<Long> dirty = DIRTY_CHUNKS.get(new StreamKey(PortalStreamKind.BOTI, tardisId));
+        return dirty == null ? 0 : dirty.size();
     }
 
     /** @deprecated Prefer {@link #setMetaChanged(UUID)}. */
@@ -165,6 +196,7 @@ public final class PortalStreamSyncService {
         if (diag) {
             PortalStreamPerfStats.beginTick(server);
         }
+        TardisInteriorPreloadService.tick(server);
         markShellAnimatingDirty();
         long metaStart = PortalStreamPerfStats.begin();
         flushMeta(server);
@@ -495,7 +527,8 @@ public final class PortalStreamSyncService {
             SotoExteriorSampler.addStreamTickets(ctx.world(), ctx.anchorPos());
             SotoExteriorSampler.keepMobAiActive(ctx.world(), ctx.anchorPos());
         } else {
-            BotiInteriorSampler.ensureFootprintChunksLoaded(ctx.world(), ctx.footprintOrigin());
+            // Ticket-only while streaming; force-load only when sampling entities needs it.
+            BotiInteriorSampler.addFootprintTickets(ctx.world(), ctx.footprintOrigin());
             BotiInteriorSampler.keepMobAiActive(ctx.world(), ctx.tardisId());
         }
     }

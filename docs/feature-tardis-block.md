@@ -65,7 +65,8 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 
 ## BOTI Notes
 - Visual illusion: does not stream the live `dwm:tardis` dimension to the exterior client.
-- When the interior has been generated, the preview shows a synced portal stream (meta + chunk columns + live entities) of the 11×7×17 console-room footprint. Until then (or if no chunks yet), it falls back to `FirstDoctorConsoleRoomLayout` (blocks only).
+- When the player is near the exterior shell, the server deferred-preloads the console room (ticket chunks, then place on a later tick) and the client warms the BOTI portal stream so real ghost meshes are ready when the door opens.
+- Preview shows a synced portal stream (meta + chunk columns + live entities) of the 11×7×17 console-room footprint via `SotoGhostMeshCache`. Until meshes arrive the doorway stays blank (no blueprint fallback).
 - Shared portal stream format (with SOTO): shell metadata + atmosphere + sparse chunks + entity spawn/update/remove, keyed by `PortalStreamKind.BOTI`. The client reconstructs synthetic BEs/entities and best-effort renders via `BlockEntityRenderDispatcher` / `EntityRenderDispatcher` (vanilla + mods). Entity poses are client-interpolated between sync samples. Players use a dedicated `OtherClientPlayerEntity` path because `EntityType.PLAYER` is not saveable. Interior doors remain excluded from BOTI (no dedicated interior-door BER in the exterior preview yet).
 - Uses the shared deferred portal FBO pipeline (`render.portal`) with a hitch-fixed look-in camera at the interior door plane; composite UV crop uses each chameleon's `PortalAperture`. No stencil framebuffer required.
 - May not work with Fabulous graphics / order-independent transparency; disable via `enableDoorPortals` if needed.

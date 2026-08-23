@@ -4,6 +4,7 @@ import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
+import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.logic.FirstDoctorConsoleSync;
@@ -40,15 +41,19 @@ public final class FirstDoctorConsoleRoomPlacer {
     private FirstDoctorConsoleRoomPlacer() {
     }
 
+    /**
+     * Places the console room after force-loading footprint chunks (sync enter / rebuild path).
+     * Prefer {@link #placeAssumingChunksLoaded} when chunks were ticketed asynchronously first.
+     */
     public static BlockPos place(ServerLevel world, BlockPos origin, UUID tardisId) {
-        // Far UUID-derived plots are often unloaded; load the structure footprint before placing.
-        BlockPos max = origin.offset(SIZE_X - 1, SIZE_Y - 1, SIZE_Z - 1);
-        for (int x = origin.getX() >> 4; x <= max.getX() >> 4; x++) {
-            for (int z = origin.getZ() >> 4; z <= max.getZ() >> 4; z++) {
-                world.getChunk(x, z);
-            }
-        }
+        BotiInteriorSampler.forceLoadFootprintChunks(world, origin);
+        return placeAssumingChunksLoaded(world, origin, tardisId);
+    }
 
+    /**
+     * Places the console room assuming footprint columns are already loaded (deferred preload).
+     */
+    public static BlockPos placeAssumingChunksLoaded(ServerLevel world, BlockPos origin, UUID tardisId) {
         if (!tryPlaceFromTemplate(world, origin)) {
             LOGGER.error(
                     "Failed to load structure template {}; interior not placed for {}",

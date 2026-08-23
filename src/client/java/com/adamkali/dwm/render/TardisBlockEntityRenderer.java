@@ -11,9 +11,11 @@ import com.adamkali.dwm.model.tileentity.SixthDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.TTCapsuleModel;
 import com.adamkali.dwm.model.tileentity.TardisModel;
 import com.adamkali.dwm.model.tileentity.ThirdDoctorTardisModel;
+import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.render.boti.TardisBotiRenderer;
 import com.adamkali.dwm.render.portal.PortalApertureComposite;
 import com.adamkali.dwm.render.portal.PortalDoorRenderer;
+import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.render.state.TardisBlockEntityRenderState;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
@@ -22,6 +24,7 @@ import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.TardisExteriorFacing;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisShellOpacity;
+import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import java.util.HashMap;
@@ -89,6 +92,12 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         state.shouldRenderBoti = TardisBotiRenderer.shouldRender(doorState);
         state.cloaked = entity.isSyncedCloaked()
                 || (entity.getTardisIdOrNull() != null && TardisLogic.isCloaked(entity.getTardisIdOrNull()));
+        // Warm BOTI portal stream while the shell is in view — before the door opens.
+        if (state.tardisId != null
+                && !state.cloaked
+                && DWMConfig.getBoolean(DWMConfig.ENABLE_DOOR_PORTALS)) {
+            PortalSceneStore.requestIfNeeded(PortalStreamKind.BOTI, state.tardisId);
+        }
         TardisTravelPhase phase = entity.getSyncedTravelPhase();
         float elapsed = 0.0f;
         var world = entity.getLevel();

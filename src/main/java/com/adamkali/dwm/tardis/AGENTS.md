@@ -11,7 +11,7 @@ TARDIS gameplay spans persistence, server-authoritative logic, world placement, 
 |---------|----------------|
 | `tardis.logic` | Server-side rules and orchestration (`TardisLogic`, travel, locks, circuits, landing). Prefer extracting testable pure logic here. |
 | `tardis.data` / `data.model` | Persistence (`TardisDataLoader`, JSON on disk) and immutable-ish state models (`TardisDataModel`, waypoints, door/travel phase). |
-| `tardis.interior` | Interior dimension layout, plot allocation, room placement (`TardisInteriorService`, `FirstDoctorConsoleRoomLayout`). |
+| `tardis.interior` | Interior dimension layout, plot allocation, room placement, deferred approach preload (`TardisInteriorService`, `TardisInteriorPreloadService`, `FirstDoctorConsoleRoomLayout`). |
 | `tardis.portal` | Portal stream sampling/sync between exterior aperture and interior view (`PortalStreamSyncService`). |
 | `tardis.boti` | Bigger-on-the-inside interior mesh sampling and relative position codec (shared data for client BOTI renderer). |
 | `tardis.soto` | Scanning-the-outside exterior sampling and atmosphere (chameleon/SOTO path). |
@@ -29,7 +29,7 @@ Entry orchestration for doors/travel generally flows: block/BE interaction → `
 - **Server authoritative** — mutate `TardisDataModel` on the server; sync to clients via existing payloads/render state, not client-side persistence.
 - **Logic extraction** — new rules belong in focused `*Logic` classes with JUnit tests under `src/test/java/.../tardis/logic/`.
 - **GameTests** — redirect TARDIS saves in tests: `TardisDataLoader.tardisSaveDirectory = context.getWorld().getServer().getSavePath(WorldSavePath.ROOT).resolve("gametest_tardis_data");`
-- **Rendering** — portal/BOTI changes stay in `src/client/java`; keep mesh/cache logic testable where possible (`BotiInteriorMeshCacheTest`, etc.).
+- **Rendering** — portal/BOTI changes stay in `src/client/java`; keep ghost-mesh / preload logic testable where possible (`TardisInteriorPreloadService` tests, `SotoGhostMeshCacheTest`, etc.).
 - Blocks register in `DWMBlocks`; TARDIS-specific blocks often pair with dedicated BEs and datagen in `com.adamkali.dwm.datagen`.
 
 ## Common Pitfalls
