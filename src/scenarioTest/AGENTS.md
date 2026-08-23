@@ -22,7 +22,7 @@ Full step/selector reference: `README.md` in this directory.
 - Add new behaviour as a `ScenarioPrimitive` in `primitive/`, register it in `ScenarioPrimitives`, and add JUnit coverage in `src/test/java/.../scenariotest/`.
 - Composite commands use `{{ parameter }}` templating; cycles and unknown steps fail at compile time.
 - Selectors match exact widget `name` + `type` (`button`, `cycle`, `tab`, `editbox`, `label`, `screen`).
-- Perf metrics stay under `build/scenario-test/metrics.json` (gitignored). CI uploads them; PRs get an advisory upserted comment vs the latest green `main` Scenario Tests artifacts (20% + 50ms floor; does not fail CI).
+- Perf metrics stay under `build/scenario-test/metrics.json` (listed in `.gitignore`; never commit local runs). CI uploads them as artifacts; PRs get an advisory upserted comment vs the latest green `main` Scenario Tests artifacts (20% + 50ms floor; does not fail CI).
 
 ## Common Pitfalls
 - **Display required** — unlike GameTests, this harness boots the client; it will not run headless in Cursor Cloud without `xvfb`.

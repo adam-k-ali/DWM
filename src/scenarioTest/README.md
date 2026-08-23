@@ -42,7 +42,7 @@ Results are written to:
 
 - `build/scenario-test/report.xml` — JUnit XML
 - `build/scenario-test/metrics.json` — wall-clock step timings for perf compare
-  (under `build/`, so local runs are gitignored)
+  (gitignored; CI uploads the file as a workflow artifact)
 - `build/scenario-test/diagnostics.txt` — current screen and visible widgets
 - `build/scenario-test/run/screenshots/` — PNGs from `captureScreenshot`
 - `build/scenario-test/vanilla-server/` — official dedicated-server run dir from
