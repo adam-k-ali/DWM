@@ -1,13 +1,18 @@
 package com.adamkali.screenplay.primitive;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.AccessibilityOnboardingScreen;
 import net.minecraft.client.gui.screens.LoadingOverlay;
 import net.minecraft.client.gui.screens.Overlay;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.server.packs.resources.ReloadInstance;
 
 import java.lang.reflect.Field;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -20,6 +25,9 @@ import java.util.function.Consumer;
  * its own. Screenplay therefore drives {@code tick()} from the scenario loop when reload is
  * done. Clearing the overlay without {@code onFinish} leaves the client half-initialized and
  * causes later chunk-load timeouts with solid-black screenshots.
+ * <p>
+ * Forge may then show {@code LoadingErrorScreen} for warnings-only loads; that screen's
+ * Continue path sets the current screen to {@code null} so the title screen can appear.
  */
 public final class LaunchGamePrimitive extends NoArgPrimitive {
     private static Field loadingOverlayReloadField;
@@ -62,7 +70,54 @@ public final class LaunchGamePrimitive extends NoArgPrimitive {
             client.gui.setScreen(new TitleScreen());
             return false;
         }
+        if (dismissLoaderErrorScreenIfPresent(client, context)) {
+            return false;
+        }
         return context.screen() instanceof TitleScreen && client.gui.overlay() == null;
+    }
+
+    /**
+     * Forge (and similar loaders) can present a warnings-only error screen after reload.
+     * Screenplay stays loader-agnostic: detect by class name and click Continue / proceed.
+     */
+    private static boolean dismissLoaderErrorScreenIfPresent(Minecraft client, ScenarioPrimitiveContext context) {
+        Screen screen = context.screen();
+        if (screen == null) {
+            return false;
+        }
+        String className = screen.getClass().getName();
+        if (!className.endsWith("LoadingErrorScreen") && !className.contains(".LoadingErrorScreen")) {
+            return false;
+        }
+        if (clickContinueButton(screen)) {
+            context.logger().info("Accepted loader warning screen {}", className);
+            return true;
+        }
+        // Warnings-only Forge path: Continue sets screen to null; TitleScreen follows.
+        client.gui.setScreen(null);
+        context.logger().info("Cleared loader warning screen {} (no Continue button matched)", className);
+        return true;
+    }
+
+    private static boolean clickContinueButton(Screen screen) {
+        for (var child : screen.children()) {
+            if (!(child instanceof Button button) || !button.visible || !button.active) {
+                continue;
+            }
+            String message = button.getMessage().getString().toLowerCase(Locale.ROOT);
+            if (!(message.contains("continue") || message.contains("proceed") || message.contains("launch"))) {
+                continue;
+            }
+            MouseButtonEvent event = new MouseButtonEvent(
+                    button.getX() + button.getWidth() / 2.0,
+                    button.getY() + button.getHeight() / 2.0,
+                    new MouseButtonInfo(0, 0)
+            );
+            if (screen.mouseClicked(event, false)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void maybeLogReloadProgress(ScenarioPrimitiveContext context, Overlay overlay) {
