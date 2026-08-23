@@ -41,6 +41,8 @@ slow soft-GL CI runs):
 Results are written to:
 
 - `build/scenario-test/report.xml` — JUnit XML
+- `build/scenario-test/metrics.json` — wall-clock step timings for perf compare
+  (under `build/`, so local runs are gitignored)
 - `build/scenario-test/diagnostics.txt` — current screen and visible widgets
 - `build/scenario-test/run/screenshots/` — PNGs from `captureScreenshot`
 - `build/scenario-test/vanilla-server/` — official dedicated-server run dir from
@@ -48,6 +50,23 @@ Results are written to:
   `world/`, `logs/harness.log`)
 
 The Gradle process exits non-zero when loading, validation, or execution fails.
+
+### Performance vs main (CI)
+
+The [Scenario Tests](../../.github/workflows/scenario-tests.yml) workflow uploads
+`metrics.json` with each matrix artifact. On pull requests, a follow-up job
+downloads the latest successful `main` run’s artifacts, compares totals and
+matching step names with
+[`.github/scripts/compare-scenario-perf.py`](../../.github/scripts/compare-scenario-perf.py)
+(default: 20% slower **and** more than 50ms), and upserts a single PR comment
+marked `<!-- dwm-scenario-perf -->`. The compare is **advisory** — regressions
+do not fail CI.
+
+Local fixture check for the compare script:
+
+```bash
+.github/scripts/run_compare_scenario_perf_fixtures.sh
+```
 
 ## Files and discovery
 
