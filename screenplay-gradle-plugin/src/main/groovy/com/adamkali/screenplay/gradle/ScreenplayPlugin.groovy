@@ -394,8 +394,6 @@ versionCheck = false
         def resultsRoot = project.layout.buildDirectory.dir("${extension.outputDir}/results")
         def testsDirs = extension.allTestsDirs()
 
-        def execOps = project.objects.newInstance(ScreenplayExecOps).execOps
-
         project.tasks.register('runScreenplayTests') {
             group = 'verification'
             description = 'Discover all type:test YAML scenarios and run each via runScreenplay'
@@ -421,37 +419,44 @@ versionCheck = false
                 project.delete(resultsDir)
                 resultsDir.mkdirs()
 
+                // Warm NeoGradle Minecraft artifact caches before scenarios (with retries) so the
+                // first nested executeScreenplay is less likely to flake on first client.jar download.
+                def cacheTaskNames = project.tasks.names
+                        .findAll { String name -> name.startsWith('cacheVersionExecutable') }
+                        .sort()
+                if (!cacheTaskNames.isEmpty()) {
+                    logger.lifecycle("Warming Minecraft artifact caches: ${cacheTaskNames.join(', ')}")
+                    def warmDir = new File(resultsDir, '_cache-warm')
+                    warmDir.mkdirs()
+                    def warmArgs = buildNestedLoaderGradleArgs(
+                            gradleCommand, gradleWorkingDir, project, cacheTaskNames)
+                    def warmExit = runNestedGradleWithTransientRetries(
+                            warmArgs, gradleWorkingDir, warmDir, 'minecraft-cache-warm', logger)
+                    if (warmExit != 0) {
+                        throw new GradleException(
+                                "Failed to warm Minecraft artifact caches "
+                                        + "(${cacheTaskNames.join(', ')}); exit ${warmExit}")
+                    }
+                }
+
                 scenarioIds.each { String scenarioId ->
                     logger.lifecycle("Running Screenplay test '${scenarioId}'")
                     def runTask = project.extensions.extraProperties.has('screenplayRunTask')
                             ? project.extensions.extraProperties.get('screenplayRunTask').toString()
                             : 'runScreenplay'
-                    def args = [gradleCommand]
-                    // Included-build consumers (dwm-loaders) are invoked via -p from the repo root wrapper.
-                    def wrappersRoot = gradleWorkingDir
-                    def loadersDir = new File(wrappersRoot, 'dwm-loaders')
-                    if (loadersDir.isDirectory() && project.projectDir.absolutePath.startsWith(loadersDir.absolutePath)) {
-                        args << '-p'
-                        args << 'dwm-loaders'
-                        args << "${project.name}:${runTask}"
-                    } else if (project.path != ':') {
-                        args << "${project.path}:${runTask}"
-                    } else {
-                        args << runTask
-                    }
+                    def args = buildNestedLoaderGradleArgs(
+                            gradleCommand, gradleWorkingDir, project, [runTask])
                     args << "-Pscreenplay=${scenarioId}"
                     args << "-PscreenplayDisplay=${displayMode.get()}"
                     if (timeoutProperty.isPresent()) {
                         args << "-PscreenplayTimeout=${timeoutProperty.get()}"
                     }
-                    def result = execOps.exec {
-                        workingDir gradleWorkingDir
-                        commandLine args
-                        ignoreExitValue = true
-                    }
 
                     def archiveDir = new File(resultsDir, scenarioId)
                     archiveDir.mkdirs()
+                    def exitValue = runNestedGradleWithTransientRetries(
+                            args, gradleWorkingDir, archiveDir, scenarioId, logger)
+
                     ['report.xml', 'metrics.json', 'diagnostics.txt'].each { String fileName ->
                         def source = new File(projectDirFile, "build/${extension.outputDir}/${fileName}")
                         if (source.isFile()) {
@@ -469,9 +474,9 @@ versionCheck = false
                         }
                     }
 
-                    if (result.exitValue != 0) {
+                    if (exitValue != 0) {
                         failed << scenarioId
-                        logger.error("Screenplay test '${scenarioId}' failed (exit ${result.exitValue})")
+                        logger.error("Screenplay test '${scenarioId}' failed (exit ${exitValue})")
                     } else {
                         logger.lifecycle("Screenplay test '${scenarioId}' passed")
                     }
@@ -485,6 +490,122 @@ versionCheck = false
                 logger.lifecycle("All ${scenarioIds.size()} Screenplay test(s) passed")
             }
         }
+    }
+
+    /**
+     * Builds a nested Gradle command for this loader project.
+     * Included-build consumers (dwm-loaders) are invoked via {@code -p} from the repo root wrapper.
+     */
+    private static List<String> buildNestedLoaderGradleArgs(
+            String gradleCommand,
+            File gradleWorkingDir,
+            Project project,
+            List<String> taskNames) {
+        def args = [gradleCommand] as List<String>
+        def loadersDir = new File(gradleWorkingDir, 'dwm-loaders')
+        if (loadersDir.isDirectory() && project.projectDir.absolutePath.startsWith(loadersDir.absolutePath)) {
+            args << '-p'
+            args << 'dwm-loaders'
+            taskNames.each { String taskName ->
+                args << "${project.name}:${taskName}"
+            }
+        } else if (project.path != ':') {
+            taskNames.each { String taskName ->
+                args << "${project.path}:${taskName}"
+            }
+        } else {
+            args.addAll(taskNames)
+        }
+        return args
+    }
+
+    /**
+     * Runs a nested Gradle invocation, retrying when NeoGradle Minecraft artifact cache
+     * downloads flake (e.g. cacheVersionExecutableClient*). Real scenario failures are not retried.
+     */
+    private static int runNestedGradleWithTransientRetries(
+            List<String> args,
+            File gradleWorkingDir,
+            File archiveDir,
+            String label,
+            org.gradle.api.logging.Logger logger) {
+        final int maxAttempts = 3
+        int exitValue = 1
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            def logFile = new File(archiveDir, "nested-gradle-attempt-${attempt}.log")
+            if (attempt > 1) {
+                logger.lifecycle(
+                        "Retrying '${label}' (attempt ${attempt}/${maxAttempts}) "
+                                + 'after transient Gradle cache/download failure')
+                try {
+                    Thread.sleep(2000L * (attempt - 1))
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt()
+                }
+            }
+            exitValue = runNestedGradleStreaming(args, gradleWorkingDir, logFile)
+            if (exitValue == 0) {
+                return 0
+            }
+            def logText = logFile.isFile() ? logFile.getText('UTF-8') : ''
+            if (attempt < maxAttempts && isTransientNestedGradleFailure(logText)) {
+                logger.warn(
+                        "'${label}' hit a transient Minecraft cache/download failure "
+                                + "(attempt ${attempt}/${maxAttempts}); will retry")
+                continue
+            }
+            break
+        }
+        return exitValue
+    }
+
+    private static int runNestedGradleStreaming(List<String> args, File workingDir, File logFile) {
+        logFile.parentFile.mkdirs()
+        def pb = new ProcessBuilder(args)
+        pb.directory(workingDir)
+        pb.redirectErrorStream(true)
+        def process = pb.start()
+        logFile.withOutputStream { fos ->
+            def buffer = new byte[8192]
+            def input = process.inputStream
+            int read
+            while ((read = input.read(buffer)) >= 0) {
+                if (read == 0) {
+                    continue
+                }
+                fos.write(buffer, 0, read)
+                System.out.write(buffer, 0, read)
+            }
+            System.out.flush()
+        }
+        return process.waitFor()
+    }
+
+    /** Visible for tests — NeoGradle/network flakes that should not fail the Screenplay suite. */
+    static boolean isTransientNestedGradleFailure(String logText) {
+        if (logText == null || logText.isBlank()) {
+            return false
+        }
+        // Prefer task-level signals so in-game scenario failures are not retried.
+        if (logText.contains('cacheVersionExecutableClient') && logText.contains('FAILED')) {
+            return true
+        }
+        if (logText.contains('cacheVersionExecutableServer') && logText.contains('FAILED')) {
+            return true
+        }
+        if (logText.contains('MinecraftArtifactFileCacheProvider')) {
+            return true
+        }
+        def networkHints = [
+                'Connection reset',
+                'Read timed out',
+                'SocketTimeoutException',
+                'UnknownHostException',
+                'Could not GET ',
+                'javax.net.ssl.SSLException',
+                'Premature end of Content-Length',
+        ]
+        return networkHints.any { hint -> logText.contains(hint) }
     }
 
     private static File findGradleWrapper(File startDir) {
@@ -552,10 +673,5 @@ versionCheck = false
                 .findAll { !it.isEmpty() }
         return allowed.isEmpty() || allowed.contains(loader.trim().toLowerCase())
     }
-}
-
-interface ScreenplayExecOps {
-    @javax.inject.Inject
-    org.gradle.process.ExecOperations getExecOps()
 }
 
