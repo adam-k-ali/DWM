@@ -1,7 +1,5 @@
 package com.adamkali.dwm.neoforge;
 
-import net.minecraft.core.MappedRegistry;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -29,12 +27,8 @@ final class NeoForgeRegistryBootstrap {
     }
 
     static void unlockForFabricStyleRegistration() {
+        // Unfreezes every MappedRegistry in BuiltInRegistries (NeoForge API).
         GameData.unfreezeData();
-        for (Registry<?> registry : BuiltInRegistries.REGISTRY) {
-            if (registry instanceof MappedRegistry<?> mapped) {
-                mapped.unfreeze();
-            }
-        }
     }
 
     static void syncBlockItemMapAfterRegistration() {
