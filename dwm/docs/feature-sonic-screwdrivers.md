@@ -14,6 +14,7 @@ Give players a recognizable Doctor Who utility tool that feels versatile, tactil
 - Craftable sonic variants: Second, Third, Fourth, and Fifth Doctor.
 - Shared sonic interaction logic with context-sensitive outcomes.
 - Custom sonic use sounds and usage stat tracking.
+- First-hour sonic advancements (Doctor Who tab): obtain a sonic, then use it on an iron door.
 
 ## How It Works In-Game
 1. Craft a sonic screwdriver variant.

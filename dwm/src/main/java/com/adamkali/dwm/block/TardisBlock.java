@@ -1,5 +1,6 @@
 package com.adamkali.dwm.block;
 
+import com.adamkali.dwm.advancement.DWMCriteria;
 import com.adamkali.dwm.block.entities.DWMBlockEntities;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.config.DWMConfig;
@@ -94,6 +95,9 @@ public class TardisBlock extends BaseEntityBlock {
             // Door state lives in a shared TardisDataLoader cache; toggling on both sides in
             // integrated singleplayer immediately undoes the client open. Server is authoritative.
             if (!world.isClientSide()) {
+                if (player instanceof ServerPlayer serverPlayer) {
+                    DWMCriteria.FIND_TARDIS.trigger(serverPlayer);
+                }
                 InteractionResult result = tardisBlockEntity.toggleDoor();
                 tardisBlockEntity.setChanged();
                 if (result == InteractionResult.FAIL

@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:dwm/root",
+  "criteria": {
+    "find_tardis": {
+      "trigger": "dwm:find_tardis"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.find_tardis.description"
+    },
+    "icon": {
+      "id": "dwm:tardis_block"
+    },
+    "title": {
+      "translate": "advancements.dwm.find_tardis"
+    }
+  },
+  "requirements": [
+    [
+      "find_tardis"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

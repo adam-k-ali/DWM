@@ -4,6 +4,8 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.jupiter.api.Test;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -309,23 +311,119 @@ public class ResourceValidationTests {
     }
 
     /**
+     * Sonic screwdrivers use a 16×16 GUI sprite via {@code display_context}, with the
+     * thin 3D mesh as fallback for hands / ground / frames. UV atlases must not be
+     * reused as inventory icons.
+     */
+    @Test
+    public void sonicItemModelsUseGuiSprites() throws Exception {
+        String[] ids = {
+                "sonic_second_doctor",
+                "sonic_third_doctor",
+                "sonic_fourth_doctor",
+                "sonic_fifth_doctor",
+        };
+        Set<String> guiHashes = new HashSet<>();
+        Set<String> atlasHashes = new HashSet<>();
+        MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+        Path textures = Path.of("src/client/resources/assets/dwm/textures/item");
+        for (String id : ids) {
+            Path itemDef = Path.of("src/client/resources/assets/dwm/items/" + id + ".json");
+            JSONObject def = readJson(itemDef);
+            JSONObject model = def.getJSONObject("model");
+            assertEquals("minecraft:select", model.getString("type"), id);
+            assertEquals("minecraft:display_context", model.getString("property"), id);
+
+            var cases = model.getJSONArray("cases");
+            assertEquals(1, cases.length(), id + " should have one display_context case");
+            JSONObject guiCase = cases.getJSONObject(0);
+            assertEquals("gui", guiCase.getString("when"), id);
+            assertEquals(
+                    "dwm:item/" + id + "_gui",
+                    guiCase.getJSONObject("model").getString("model"),
+                    id
+            );
+            JSONObject fallback = model.getJSONObject("fallback");
+            assertEquals("minecraft:model", fallback.getString("type"), id);
+            assertEquals("dwm:item/" + id, fallback.getString("model"), id);
+
+            Path guiModelPath = Path.of("src/client/resources/assets/dwm/models/item/" + id + "_gui.json");
+            JSONObject guiModel = readJson(guiModelPath);
+            assertEquals("minecraft:item/generated", guiModel.getString("parent"), id);
+            assertEquals(
+                    "dwm:item/" + id + "_gui",
+                    guiModel.getJSONObject("textures").getString("layer0"),
+                    id
+            );
+
+            Path guiPng = textures.resolve(id + "_gui.png");
+            assertTrue(Files.isRegularFile(guiPng) && Files.size(guiPng) > 0, "Missing GUI sprite: " + guiPng);
+            BufferedImage image = ImageIO.read(guiPng.toFile());
+            assertEquals(16, image.getWidth(), "GUI sprite width for " + id);
+            assertEquals(16, image.getHeight(), "GUI sprite height for " + id);
+            String guiHex = HexFormat.of().formatHex(sha256.digest(Files.readAllBytes(guiPng)));
+            assertTrue(guiHashes.add(guiHex), "GUI sprite must be unique, but " + guiPng + " duplicates another");
+
+            Path atlasPng = textures.resolve(id + ".png");
+            assertTrue(Files.isRegularFile(atlasPng) && Files.size(atlasPng) > 0, "Missing 3D UV atlas: " + atlasPng);
+            String atlasHex = HexFormat.of().formatHex(sha256.digest(Files.readAllBytes(atlasPng)));
+            atlasHashes.add(atlasHex);
+            assertNotEquals(guiHex, atlasHex, id + " GUI sprite must not be a copy of the 3D UV atlas");
+        }
+        for (String guiHex : guiHashes) {
+            assertFalse(atlasHashes.contains(guiHex), "GUI sprite hash collides with a sonic UV atlas");
+        }
+    }
+
+    /**
      * Globe is a BER EntityModel prop; inventory must use the special renderer, not a
      * {@code minecraft:model} sprite pointing at the missing block atlas.
      */
     @Test
     public void tardisGlobeItemModelIsSpecialRenderer() throws Exception {
-        Path itemDef = Path.of("src/client/resources/assets/dwm/items/tardis_globe.json");
+        assertSpecialItemRenderer(
+                "tardis_globe",
+                "dwm:entity/tardis_globe"
+        );
+    }
+
+    /**
+     * First Doctor console is a BER EntityModel; inventory must use the special renderer
+     * instead of a flat wall-sprite placeholder.
+     */
+    @Test
+    public void firstDoctorConsoleItemModelIsSpecialRenderer() throws Exception {
+        assertSpecialItemRenderer(
+                "first_doctor_console",
+                "dwm:entity/first_white_base_console"
+        );
+    }
+
+    /**
+     * TARDIS exterior is a BER EntityModel; inventory must use the special renderer
+     * instead of a flat item sprite.
+     */
+    @Test
+    public void tardisBlockItemModelIsSpecialRenderer() throws Exception {
+        assertSpecialItemRenderer(
+                "tardis_block",
+                "dwm:entity/first_doctor_box"
+        );
+    }
+
+    private static void assertSpecialItemRenderer(String id, String expectedParticle) throws Exception {
+        Path itemDef = Path.of("src/client/resources/assets/dwm/items/" + id + ".json");
         JSONObject def = readJson(itemDef);
         JSONObject model = def.getJSONObject("model");
         assertEquals("minecraft:special", model.getString("type"));
-        assertEquals("dwm:item/tardis_globe", model.getString("base"));
-        assertEquals("dwm:tardis_globe", model.getJSONObject("model").getString("type"));
+        assertEquals("dwm:item/" + id, model.getString("base"));
+        assertEquals("dwm:" + id, model.getJSONObject("model").getString("type"));
 
-        Path baseModel = Path.of("src/client/resources/assets/dwm/models/item/tardis_globe.json");
+        Path baseModel = Path.of("src/client/resources/assets/dwm/models/item/" + id + ".json");
         JSONObject base = readJson(baseModel);
         assertEquals("minecraft:builtin/entity", base.getString("parent"));
         assertEquals("side", base.getString("gui_light"));
-        assertEquals("dwm:entity/tardis_globe", base.getJSONObject("textures").getString("particle"));
+        assertEquals(expectedParticle, base.getJSONObject("textures").getString("particle"));
         assertFalse(base.getJSONObject("display").has("thirdperson_lefthand"));
     }
 
@@ -547,6 +645,49 @@ public class ResourceValidationTests {
             }
         }
         assertTrue(found, "fall_damage_immune should include dwm:flutterwing");
+    }
+
+    /**
+     * Minecraft 26.2 prepends {@code textures/} and appends {@code .png} to advancement
+     * background IDs. The Doctor Who root must use {@code dwm:block/gallifrey_stone}, not
+     * the pre-26.2 {@code textures/...png} form that resolves to a doubled path.
+     */
+    @Test
+    public void doctorWhoAdvancementBackgroundUsesModernTextureId() throws Exception {
+        Path rootAdvancement = Path.of("src/main/generated/data/minecraft/advancement/dwm/root.json");
+        assertTrue(Files.isRegularFile(rootAdvancement), "Missing generated root advancement: " + rootAdvancement);
+        JSONObject root = new JSONObject(new JSONTokener(Files.newBufferedReader(rootAdvancement)));
+        String background = root.getJSONObject("display").getString("background");
+        assertEquals("dwm:block/gallifrey_stone", background);
+        assertFalse(background.contains("textures/"), "background must not include textures/ prefix: " + background);
+        assertFalse(background.endsWith(".png"), "background must not include .png suffix: " + background);
+
+        Path texture = Path.of("src/client/resources/assets/dwm/textures/block/gallifrey_stone.png");
+        assertTrue(
+                Files.isRegularFile(texture) && Files.size(texture) > 0,
+                "Advancement tab background expects " + texture
+        );
+    }
+
+    /**
+     * Parent obtain-sonic and child Knock Knock must use distinct icons so adjacent
+     * Doctor Who tab tiles are not visually identical.
+     */
+    @Test
+    public void sonicAdvancementIconsAreDistinct() throws Exception {
+        Path obtainSonic = Path.of("src/main/generated/data/minecraft/advancement/dwm/sonic_screwdriver.json");
+        Path knockKnock = Path.of("src/main/generated/data/minecraft/advancement/dwm/sonic_iron_door.json");
+        assertTrue(Files.isRegularFile(obtainSonic), "Missing generated advancement: " + obtainSonic);
+        assertTrue(Files.isRegularFile(knockKnock), "Missing generated advancement: " + knockKnock);
+
+        String obtainIcon = new JSONObject(new JSONTokener(Files.newBufferedReader(obtainSonic)))
+                .getJSONObject("display").getJSONObject("icon").getString("id");
+        String knockIcon = new JSONObject(new JSONTokener(Files.newBufferedReader(knockKnock)))
+                .getJSONObject("display").getJSONObject("icon").getString("id");
+
+        assertEquals("dwm:sonic_third_doctor", obtainIcon);
+        assertEquals("minecraft:iron_door", knockIcon);
+        assertNotEquals(obtainIcon, knockIcon);
     }
 
     @Test

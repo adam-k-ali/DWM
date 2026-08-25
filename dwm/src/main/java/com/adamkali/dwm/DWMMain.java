@@ -1,5 +1,6 @@
 package com.adamkali.dwm;
 
+import com.adamkali.dwm.advancement.DWMCriteria;
 import com.adamkali.dwm.analytics.DWMStatistics;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.DWMWoodTypes;
@@ -28,6 +29,7 @@ public class DWMMain implements ModInitializer {
     public void onInitialize() {
         LOGGER.info("Initializing Doctor Who Mod");
         DWMConfig.init();
+        DWMCriteria.initialize();
         DWMStatistics.initialize();
         DWMWoodTypes.initialize();
         DWMBlocks.initialize();

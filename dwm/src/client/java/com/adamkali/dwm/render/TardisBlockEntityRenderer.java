@@ -242,7 +242,8 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         poseStack.popPose();
     }
 
-    private static void applyExteriorTransforms(PoseStack matrices, float rotationDegrees) {
+    /** Shared by the block BER and {@link TardisBlockSpecialRenderer} item path. */
+    static void applyExteriorTransforms(PoseStack matrices, float rotationDegrees) {
         matrices.scale(2.0f, 2.0f, 2.0f);
         matrices.mulPose(Axis.XP.rotationDegrees(180.0f));
         matrices.translate(0.25D, -1.5D, -0.25D);

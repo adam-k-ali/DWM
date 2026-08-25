@@ -1,0 +1,27 @@
+{
+  "criteria": {
+    "tick": {
+      "trigger": "minecraft:tick"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "background": "dwm:block/gallifrey_stone",
+    "description": {
+      "translate": "advancements.dwm.root.description"
+    },
+    "icon": {
+      "id": "dwm:gallifrey_grass_block"
+    },
+    "show_toast": false,
+    "title": {
+      "translate": "advancements.dwm.root"
+    }
+  },
+  "requirements": [
+    [
+      "tick"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

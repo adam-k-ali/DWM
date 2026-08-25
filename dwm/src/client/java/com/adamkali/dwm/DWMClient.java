@@ -4,6 +4,8 @@ import com.adamkali.dwm.network.ClientPayloadTypeRegistry;
 import com.adamkali.dwm.client.DWMEntityRenderers;
 import com.adamkali.dwm.render.ConsoleControlHud;
 import com.adamkali.dwm.render.ConsoleHitboxDebugRenderer;
+import com.adamkali.dwm.render.FirstDoctorConsoleSpecialRenderer;
+import com.adamkali.dwm.render.TardisBlockSpecialRenderer;
 import com.adamkali.dwm.render.TardisCompactScannerSpecialRenderer;
 import com.adamkali.dwm.render.TardisFullScannerSpecialRenderer;
 import com.adamkali.dwm.render.TardisGlobeSpecialRenderer;
@@ -30,6 +32,12 @@ public class DWMClient implements ClientModInitializer {
         SpecialModelRenderers.ID_MAPPER.put(
                 Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "tardis_globe"),
                 TardisGlobeSpecialRenderer.Unbaked.MAP_CODEC);
+        SpecialModelRenderers.ID_MAPPER.put(
+                Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "first_doctor_console"),
+                FirstDoctorConsoleSpecialRenderer.Unbaked.MAP_CODEC);
+        SpecialModelRenderers.ID_MAPPER.put(
+                Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "tardis_block"),
+                TardisBlockSpecialRenderer.Unbaked.MAP_CODEC);
         DWMRenderLayerManager.initialize();
         DWMEntityRenderers.initialize();
         ClientAnalyticsManager.initialize();
