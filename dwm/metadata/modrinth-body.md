@@ -19,6 +19,9 @@ Fly a working TARDIS, land on Gallifrey, and build with Time Lord materials — 
 - Travel to the Gallifrey destination dimension from the console planet locator
 - Choose among Gallifrey Plains, Forest, Wastes, and Badlands before you materialise
 - Explore deep-red grass, orange sand and badlands, Gallifrey stone, and themed woods
+- Meet Time Lord wanderers on plains and forest, in four robe variants
+- Spot Broakir on plains and forest, and Flutterwings in four species (Blue Crystal, Madrigal, Silverband, Wild Endeavour)
+- Tame Mewing Dogs in the forest with a bone — they sit, follow, take a dyed collar, and breed
 - Find Flower of Remembrance and Moonlight Bloom on plains and forest, and Saccharine Cane on wastes and badlands
 - Mine Azbantium veins and Gallifrey-textured coal, iron, gold, and diamond ores
 
