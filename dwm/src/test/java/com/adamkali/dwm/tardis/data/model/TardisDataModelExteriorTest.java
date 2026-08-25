@@ -1,7 +1,9 @@
 package com.adamkali.dwm.tardis.data.model;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
+import com.adamkali.dwm.tardis.data.model.TardisCircuit;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
 import com.adamkali.dwm.tardis.logic.StabiliserLogic;
 import com.google.gson.Gson;
 import java.util.UUID;
@@ -181,5 +183,26 @@ class TardisDataModelExteriorTest {
 
         TardisDataModel legacy = gson.fromJson("{\"uuid\":\"" + model.uuid + "\"}", TardisDataModel.class);
         assertNull(legacy.ownerUuid);
+    }
+
+    @Test
+    void circuitFlags_serializeThroughGsonAndLegacyNullMeansFitted() {
+        TardisDataModel model = new TardisDataModel();
+        model.planetLocatorFitted = Boolean.FALSE;
+        model.waypointsFitted = Boolean.FALSE;
+        model.remoteSummonFitted = Boolean.TRUE;
+
+        Gson gson = new Gson();
+        TardisDataModel loaded = gson.fromJson(gson.toJson(model), TardisDataModel.class);
+
+        assertFalse(CircuitFittedLogic.isFitted(loaded, TardisCircuit.PLANET_LOCATOR));
+        assertFalse(CircuitFittedLogic.isFitted(loaded, TardisCircuit.WAYPOINTS));
+        assertTrue(CircuitFittedLogic.isFitted(loaded, TardisCircuit.REMOTE_SUMMON));
+        assertEquals(model, loaded);
+
+        TardisDataModel legacy = gson.fromJson("{\"uuid\":\"" + model.uuid + "\"}", TardisDataModel.class);
+        for (TardisCircuit circuit : TardisCircuit.values()) {
+            assertTrue(CircuitFittedLogic.isFitted(legacy, circuit), circuit.name());
+        }
     }
 }

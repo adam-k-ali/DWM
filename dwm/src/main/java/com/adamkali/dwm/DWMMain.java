@@ -14,6 +14,7 @@ import com.adamkali.dwm.sound.DWMSounds;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
+import com.adamkali.dwm.tardis.worldgen.DWMStructureProcessors;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -35,6 +36,7 @@ public class DWMMain implements ModInitializer {
         DWMItems.initialize();
         DWMBlockEntities.initialize();
         DWMSounds.initialize();
+        DWMStructureProcessors.initialize();
         ServerPayloadTypeRegistry.initialize();
         PortalStreamSyncService.initialize();
         TardisTravelService.initialize();

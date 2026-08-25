@@ -7,7 +7,7 @@
         "element_type": "minecraft:single_pool_element",
         "location": "dwm:tardis_block",
         "projection": "rigid",
-        "processors": "minecraft:empty"
+        "processors": "dwm:tardis_worldgen_marker"
       }
     }
   ]

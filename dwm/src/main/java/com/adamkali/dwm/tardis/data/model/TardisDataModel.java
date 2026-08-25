@@ -99,6 +99,21 @@ public class TardisDataModel {
      */
     public @Nullable UUID ownerUuid;
 
+    /**
+     * Circuit fitted flags. Boxed so Gson loads of older saves (missing field) stay
+     * working via null — see {@link com.adamkali.dwm.tardis.logic.CircuitFittedLogic}.
+     */
+    public Boolean planetLocatorFitted;
+    public Boolean waypointsFitted;
+    public Boolean playerLocatorFitted;
+    public Boolean telepathicFitted;
+    public Boolean fastReturnFitted;
+    public Boolean cloakFitted;
+    public Boolean chameleonFitted;
+    public Boolean coordinateLocksFitted;
+    public Boolean stabilisersFitted;
+    public Boolean remoteSummonFitted;
+
     private transient boolean needsSaving = false;
 
     /**
@@ -117,6 +132,16 @@ public class TardisDataModel {
         this.locationHistory = new ArrayList<>();
         this.selectedFastReturnIndex = 0;
         this.stabilisersEnabled = Boolean.TRUE;
+        this.planetLocatorFitted = Boolean.TRUE;
+        this.waypointsFitted = Boolean.TRUE;
+        this.playerLocatorFitted = Boolean.TRUE;
+        this.telepathicFitted = Boolean.TRUE;
+        this.fastReturnFitted = Boolean.TRUE;
+        this.cloakFitted = Boolean.TRUE;
+        this.chameleonFitted = Boolean.TRUE;
+        this.coordinateLocksFitted = Boolean.TRUE;
+        this.stabilisersFitted = Boolean.TRUE;
+        this.remoteSummonFitted = Boolean.TRUE;
     }
 
     public TardisTravelPhase getTravelPhase() {
@@ -224,7 +249,18 @@ public class TardisDataModel {
                 + ", travelDestinationBiome=" + travelDestinationBiome
                 + ", travelDestinationDimension=" + travelDestinationDimension
                 + ", travelDestinationMode=" + travelDestinationMode
-                + ", ownerUuid=" + ownerUuid + ']';
+                + ", ownerUuid=" + ownerUuid
+                + ", planetLocatorFitted=" + planetLocatorFitted
+                + ", waypointsFitted=" + waypointsFitted
+                + ", playerLocatorFitted=" + playerLocatorFitted
+                + ", telepathicFitted=" + telepathicFitted
+                + ", fastReturnFitted=" + fastReturnFitted
+                + ", cloakFitted=" + cloakFitted
+                + ", chameleonFitted=" + chameleonFitted
+                + ", coordinateLocksFitted=" + coordinateLocksFitted
+                + ", stabilisersFitted=" + stabilisersFitted
+                + ", remoteSummonFitted=" + remoteSummonFitted
+                + ']';
     }
 
     @Override
@@ -263,7 +299,17 @@ public class TardisDataModel {
                     && this.travelDestinationZ == other.travelDestinationZ
                     && this.travelDestinationRotation == other.travelDestinationRotation
                     && Objects.equals(this.travelTargetPlayerUuid, other.travelTargetPlayerUuid)
-                    && Objects.equals(this.ownerUuid, other.ownerUuid);
+                    && Objects.equals(this.ownerUuid, other.ownerUuid)
+                    && Objects.equals(this.planetLocatorFitted, other.planetLocatorFitted)
+                    && Objects.equals(this.waypointsFitted, other.waypointsFitted)
+                    && Objects.equals(this.playerLocatorFitted, other.playerLocatorFitted)
+                    && Objects.equals(this.telepathicFitted, other.telepathicFitted)
+                    && Objects.equals(this.fastReturnFitted, other.fastReturnFitted)
+                    && Objects.equals(this.cloakFitted, other.cloakFitted)
+                    && Objects.equals(this.chameleonFitted, other.chameleonFitted)
+                    && Objects.equals(this.coordinateLocksFitted, other.coordinateLocksFitted)
+                    && Objects.equals(this.stabilisersFitted, other.stabilisersFitted)
+                    && Objects.equals(this.remoteSummonFitted, other.remoteSummonFitted);
         }
         return false;
     }

@@ -1,5 +1,6 @@
 package com.adamkali.dwm.item;
 
+import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
 import com.adamkali.dwm.tardis.logic.TardisSummonLogic;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -35,6 +36,10 @@ public class StattenheimRemoteItem extends Item {
                 context.getClickedPos(),
                 context.getClickedFace()
         );
+        if (result == TardisSummonLogic.Result.CIRCUIT_BROKEN) {
+            CircuitFittedLogic.refuseBrokenAtBlock(player, serverLevel, context.getClickedPos());
+            return InteractionResult.CONSUME;
+        }
         player.sendOverlayMessage(Component.translatable(TardisSummonLogic.overlayKey(result)));
         return InteractionResult.SUCCESS;
     }

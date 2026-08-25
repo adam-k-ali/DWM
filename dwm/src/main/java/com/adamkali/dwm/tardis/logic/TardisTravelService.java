@@ -7,6 +7,7 @@ import com.adamkali.dwm.sound.DWMSounds;
 import com.adamkali.dwm.tardis.TardisExteriorFacing;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.DestinationMode;
+import com.adamkali.dwm.tardis.data.model.TardisCircuit;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisExteriorLocation;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
@@ -692,10 +693,14 @@ public final class TardisTravelService {
                         && !model.selectedBiome.isBlank()
                         && LandingSiteLogic.parseBiome(model.selectedBiome).isPresent();
             }
-            case WAYPOINT -> WaypointLogic.find(model, model.selectedWaypointId).isPresent();
-            case PLAYER -> model.selectedPlayerUuid != null;
-            case FAST_RETURN -> FastReturnLogic.hasSelection(model);
-            case TELEPATHIC -> TelepathicCircuitLogic.hasSelection(model);
+            case WAYPOINT -> CircuitFittedLogic.isFitted(model, TardisCircuit.WAYPOINTS)
+                    && WaypointLogic.find(model, model.selectedWaypointId).isPresent();
+            case PLAYER -> CircuitFittedLogic.isFitted(model, TardisCircuit.PLAYER_LOCATOR)
+                    && model.selectedPlayerUuid != null;
+            case FAST_RETURN -> CircuitFittedLogic.isFitted(model, TardisCircuit.FAST_RETURN)
+                    && FastReturnLogic.hasSelection(model);
+            case TELEPATHIC -> CircuitFittedLogic.isFitted(model, TardisCircuit.TELEPATHIC)
+                    && TelepathicCircuitLogic.hasSelection(model);
         };
     }
 

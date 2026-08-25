@@ -2,6 +2,7 @@ package com.adamkali.dwm.tardis.logic;
 
 import com.adamkali.dwm.tardis.TardisExteriorFacing;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
+import com.adamkali.dwm.tardis.data.model.TardisCircuit;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import net.minecraft.core.BlockPos;
@@ -25,7 +26,8 @@ public final class TardisSummonLogic {
         NO_TARDIS,
         IN_PROGRESS,
         INVALID_LANDING,
-        UNAVAILABLE
+        UNAVAILABLE,
+        CIRCUIT_BROKEN
     }
 
     public static String overlayKey(Result result) {
@@ -35,6 +37,7 @@ public final class TardisSummonLogic {
             case IN_PROGRESS -> "dwm.stattenheim.in_progress";
             case INVALID_LANDING -> "dwm.stattenheim.invalid_landing";
             case UNAVAILABLE -> "dwm.stattenheim.unavailable";
+            case CIRCUIT_BROKEN -> CircuitFittedLogic.CIRCUIT_BROKEN_KEY;
         };
     }
 
@@ -44,6 +47,9 @@ public final class TardisSummonLogic {
     public static Result preview(@Nullable TardisDataModel model) {
         if (model == null) {
             return Result.NO_TARDIS;
+        }
+        if (CircuitFittedLogic.isBroken(model, TardisCircuit.REMOTE_SUMMON)) {
+            return Result.CIRCUIT_BROKEN;
         }
         TardisTravelPhase phase = model.getTravelPhase();
         if (phase == TardisTravelPhase.DEMATERIALISING || phase == TardisTravelPhase.MATERIALISING) {

@@ -2,9 +2,11 @@ package com.adamkali.dwm.network;
 
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
+import com.adamkali.dwm.tardis.data.model.TardisCircuit;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisWaypoint;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
+import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
 import com.adamkali.dwm.tardis.logic.PlayerLocatorLogic;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
@@ -78,6 +80,9 @@ public class ServerPayloadTypeRegistry {
                 LOGGER.warn("Rejected chameleon update for unknown tardisId {} from {}", payload.tardisId(), playerName);
                 return false;
             }
+            if (CircuitFittedLogic.isBroken(tardis, TardisCircuit.CHAMELEON)) {
+                return false;
+            }
 
             TardisChameleonVariant variant = TardisChameleonVariant.fromId(payload.variantId());
             TardisLogic.setVariant(payload.tardisId(), variant);
@@ -90,6 +95,9 @@ public class ServerPayloadTypeRegistry {
 
     static boolean safelyHandleSaveWaypoint(SaveWaypointC2SPayload payload, ServerPlayer player) {
         if (!validateConsoleAction(payload.tardisId(), player)) {
+            return false;
+        }
+        if (!requireCircuit(payload.tardisId(), TardisCircuit.WAYPOINTS)) {
             return false;
         }
         Optional<TardisWaypoint> saved = TardisLogic.saveWaypoint(payload.tardisId(), payload.name());
@@ -113,6 +121,9 @@ public class ServerPayloadTypeRegistry {
         if (!validateConsoleAction(payload.tardisId(), player)) {
             return false;
         }
+        if (!requireCircuit(payload.tardisId(), TardisCircuit.WAYPOINTS)) {
+            return false;
+        }
         boolean deleted = TardisLogic.deleteWaypoint(payload.tardisId(), payload.waypointId());
         if (!deleted) {
             player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_delete_failed"));
@@ -126,6 +137,9 @@ public class ServerPayloadTypeRegistry {
         if (!validateConsoleAction(payload.tardisId(), player)) {
             return false;
         }
+        if (!requireCircuit(payload.tardisId(), TardisCircuit.WAYPOINTS)) {
+            return false;
+        }
         boolean renamed = TardisLogic.renameWaypoint(payload.tardisId(), payload.waypointId(), payload.name());
         if (!renamed) {
             player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_rename_failed"));
@@ -137,6 +151,9 @@ public class ServerPayloadTypeRegistry {
 
     static boolean safelyHandleSelectWaypoint(SelectWaypointC2SPayload payload, ServerPlayer player) {
         if (!validateConsoleAction(payload.tardisId(), player)) {
+            return false;
+        }
+        if (!requireCircuit(payload.tardisId(), TardisCircuit.WAYPOINTS)) {
             return false;
         }
         boolean selected = TardisLogic.selectWaypoint(payload.tardisId(), payload.waypointId());
@@ -154,6 +171,9 @@ public class ServerPayloadTypeRegistry {
 
     static boolean safelyHandleSelectPlayer(SelectPlayerC2SPayload payload, ServerPlayer player) {
         if (!validateConsoleAction(payload.tardisId(), player)) {
+            return false;
+        }
+        if (!requireCircuit(payload.tardisId(), TardisCircuit.PLAYER_LOCATOR)) {
             return false;
         }
         if (payload.playerUuid() != null
@@ -176,6 +196,11 @@ public class ServerPayloadTypeRegistry {
             player.sendOverlayMessage(Component.translatable("dwm.console.player_locator_selected"));
         }
         return true;
+    }
+
+    private static boolean requireCircuit(UUID tardisId, TardisCircuit circuit) {
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        return CircuitFittedLogic.isFitted(model, circuit);
     }
 
     private static boolean validateConsoleAction(UUID tardisId, ServerPlayer player) {

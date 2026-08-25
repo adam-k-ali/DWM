@@ -1,5 +1,6 @@
 package com.adamkali.dwm.tardis.logic;
 
+import com.adamkali.dwm.tardis.data.model.TardisCircuit;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;
@@ -60,7 +61,10 @@ public final class CoordinateLockLogic {
         if (resolved == null) {
             return null;
         }
-        if (model == null || !model.hasExteriorLocation || !anyLocked(model)) {
+        if (model == null
+                || !model.hasExteriorLocation
+                || !anyLocked(model)
+                || CircuitFittedLogic.isBroken(model, TardisCircuit.COORDINATE_LOCKS)) {
             return resolved;
         }
         int x = model.lockX ? model.exteriorX : resolved.getX();

@@ -2,6 +2,7 @@ package com.adamkali.dwm.tardis.logic;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
+import com.adamkali.dwm.tardis.data.model.TardisCircuit;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import net.minecraft.core.BlockPos;
@@ -99,6 +100,18 @@ class TardisSummonLogicTest {
     void overlayKey_mapsEachResult() {
         assertEquals("dwm.stattenheim.no_tardis", TardisSummonLogic.overlayKey(TardisSummonLogic.Result.NO_TARDIS));
         assertEquals("dwm.stattenheim.summoned", TardisSummonLogic.overlayKey(TardisSummonLogic.Result.SUMMONED));
+        assertEquals(
+                CircuitFittedLogic.CIRCUIT_BROKEN_KEY,
+                TardisSummonLogic.overlayKey(TardisSummonLogic.Result.CIRCUIT_BROKEN)
+        );
+    }
+
+    @Test
+    void preview_circuitBrokenWhenRemoteSummonBroken() {
+        TardisDataModel model = TardisDataLoader.create();
+        model.setExteriorLocation("minecraft:overworld", 0, 64, 0, 0);
+        CircuitFittedLogic.setFitted(model, TardisCircuit.REMOTE_SUMMON, false);
+        assertEquals(TardisSummonLogic.Result.CIRCUIT_BROKEN, TardisSummonLogic.preview(model));
     }
 
     @Test

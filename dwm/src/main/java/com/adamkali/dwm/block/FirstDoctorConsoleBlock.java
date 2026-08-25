@@ -10,6 +10,7 @@ import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisExteriorLocation;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.logic.CloakLogic;
+import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
 import com.adamkali.dwm.tardis.logic.CoordinateLockLogic;
 import com.adamkali.dwm.tardis.logic.DoorLockLogic;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
@@ -181,6 +182,12 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         UUID tardisId = console.getTardisId();
         if (tardisId == null) {
             player.sendOverlayMessage(Component.translatable(unavailableKey(target)));
+            return InteractionResult.CONSUME;
+        }
+
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        Direction facing = world.getBlockState(pos).getValue(FACING);
+        if (CircuitFittedLogic.refuseBrokenConsole(model, target, player, world, pos, facing)) {
             return InteractionResult.CONSUME;
         }
 
