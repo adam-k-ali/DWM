@@ -10,7 +10,7 @@
       "translate": "advancements.dwm.sonic_iron_door.description"
     },
     "icon": {
-      "id": "dwm:sonic_third_doctor"
+      "id": "minecraft:iron_door"
     },
     "title": {
       "translate": "advancements.dwm.sonic_iron_door"

@@ -21,6 +21,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -78,7 +79,7 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
         Advancement.Builder.advancement()
                 .parent(obtainSonic)
                 .display(
-                        DWMItems.SONIC_THIRD_DOCTOR,
+                        Items.IRON_DOOR,
                         Component.translatable("advancements.dwm.sonic_iron_door"),
                         Component.translatable("advancements.dwm.sonic_iron_door.description"),
                         null,

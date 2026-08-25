@@ -669,6 +669,27 @@ public class ResourceValidationTests {
         );
     }
 
+    /**
+     * Parent obtain-sonic and child Knock Knock must use distinct icons so adjacent
+     * Doctor Who tab tiles are not visually identical.
+     */
+    @Test
+    public void sonicAdvancementIconsAreDistinct() throws Exception {
+        Path obtainSonic = Path.of("src/main/generated/data/minecraft/advancement/dwm/sonic_screwdriver.json");
+        Path knockKnock = Path.of("src/main/generated/data/minecraft/advancement/dwm/sonic_iron_door.json");
+        assertTrue(Files.isRegularFile(obtainSonic), "Missing generated advancement: " + obtainSonic);
+        assertTrue(Files.isRegularFile(knockKnock), "Missing generated advancement: " + knockKnock);
+
+        String obtainIcon = new JSONObject(new JSONTokener(Files.newBufferedReader(obtainSonic)))
+                .getJSONObject("display").getJSONObject("icon").getString("id");
+        String knockIcon = new JSONObject(new JSONTokener(Files.newBufferedReader(knockKnock)))
+                .getJSONObject("display").getJSONObject("icon").getString("id");
+
+        assertEquals("dwm:sonic_third_doctor", obtainIcon);
+        assertEquals("minecraft:iron_door", knockIcon);
+        assertNotEquals(obtainIcon, knockIcon);
+    }
+
     @Test
     public void flutterwingSoundFilesExist() throws Exception {
         String[] names = {"ambient", "ambient_2", "hurt", "death"};
