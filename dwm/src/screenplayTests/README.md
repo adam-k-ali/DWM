@@ -189,9 +189,13 @@ The MVP primitives are:
   updates. Cheats (singleplayer) or operator (dedicated server) are required
   for privileged commands such as `/give`. `startVanillaServer` does not OP
   the player.
-- `openFieldGuide` — opens the DWM Field Guide (`via: direct`, default) or
-  via the pause-menu button (`via: pause`). Pair with `waitUntil` on
-  `FieldGuideScreen` before `captureScreenshot`.
+- `pressKey` — presses a keyboard key once (for example `g` for a bound key or
+  `escape` for the pause menu). Pair with `waitUntil` when the key opens a
+  screen on a later client tick.
+
+Field Guide scenario (`fieldGuide.yaml`) uses `pressKey: g`, chapter/page
+`assertAndClick` navigation, and `pressKey: escape` + pause-menu `"Field Guide"`
+for the secondary access path. No mod-specific Screenplay primitives are required.
 
 ```yaml
 - waitUntil:

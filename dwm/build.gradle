@@ -101,7 +101,6 @@ dependencies {
 
     // Screenplay harness — composite includeBuild substitutes the sibling screenplay project.
     runtimeOnly "com.adamkali.screenplay:screenplay-fabric:${project.screenplay_version}"
-    compileOnly "com.adamkali.screenplay:screenplay-fabric:${project.screenplay_version}"
 }
 
 

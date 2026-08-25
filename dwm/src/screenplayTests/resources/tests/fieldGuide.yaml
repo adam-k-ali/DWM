@@ -8,13 +8,16 @@ steps:
       worldType: superflat
       gameMode: creative
   - closeScreen
-  - openFieldGuide
+  - pressKey: g
   - waitUntil:
       visible:
         type: screen
         name: FieldGuideScreen
   - captureScreenshot:
       name: field-guide-default
+  - assertAndClick:
+      type: button
+      name: "Console Room Builder"
   - assertAndClick:
       type: button
       name: "TARDIS Wall"
@@ -28,8 +31,14 @@ steps:
   - captureScreenshot:
       name: field-guide-chronoplasm-recipe
   - closeScreen
-  - openFieldGuide:
-      via: pause
+  - pressKey: escape
+  - waitUntil:
+      visible:
+        type: screen
+        name: PauseScreen
+  - assertAndClick:
+      type: button
+      name: "Field Guide"
   - waitUntil:
       visible:
         type: screen
