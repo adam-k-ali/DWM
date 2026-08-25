@@ -27,7 +27,7 @@ There is no physical guide item and no server packet — the screen is client-on
 - **Book shell:** vanilla written-book texture (`textures/gui/book.png`) as an open spread.
 - **Left page:** chapter list plus page index for the active chapter.
 - **Right page:** page title, body text, page indicator, and recipe preview.
-- **Navigation:** Previous Page / Next Page within a chapter, or jump via the index.
+- **Navigation:** Vanilla book page-turn arrows at the spread corners; **Done** sits below the book like a written book.
 
 ## Content (v1)
 

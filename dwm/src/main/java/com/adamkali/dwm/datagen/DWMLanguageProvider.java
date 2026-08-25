@@ -54,6 +54,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
 
     private static void addFieldGuide(TranslationBuilder t) {
         t.add("dwm.guide.title", "DWM Field Guide");
+        t.add("dwm.guide.index.header", "Contents");
         t.add("dwm.guide.open_button", "Field Guide");
         t.add("key.dwm.field_guide", "Open Field Guide");
         t.add("key.category.dwm.dwm", "Doctor Who Mod");
