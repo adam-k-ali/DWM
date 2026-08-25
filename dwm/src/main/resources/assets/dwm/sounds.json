@@ -154,5 +154,32 @@
         "type": "event"
       }
     ]
+  },
+  "entity.time_lord.ambient": {
+    "subtitle": "dwm.entity.time_lord.ambient.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:entity.villager.ambient",
+        "type": "event"
+      }
+    ]
+  },
+  "entity.time_lord.hurt": {
+    "subtitle": "dwm.entity.time_lord.hurt.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:entity.villager.hurt",
+        "type": "event"
+      }
+    ]
+  },
+  "entity.time_lord.death": {
+    "subtitle": "dwm.entity.time_lord.death.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:entity.villager.death",
+        "type": "event"
+      }
+    ]
   }
 }

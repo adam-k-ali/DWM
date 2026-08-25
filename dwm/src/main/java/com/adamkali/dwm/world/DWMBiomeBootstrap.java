@@ -50,6 +50,7 @@ public final class DWMBiomeBootstrap {
         BiomeDefaultFeatures.commonSpawns(spawns);
         addBroakirSpawns(spawns);
         addFlutterwingSpawns(spawns);
+        addTimeLordSpawns(spawns);
 
         BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(features, carvers);
         addBasicFeatures(generation);
@@ -68,6 +69,7 @@ public final class DWMBiomeBootstrap {
         addBroakirSpawns(spawns);
         addFlutterwingSpawns(spawns);
         addMewingDogSpawns(spawns);
+        addTimeLordSpawns(spawns);
 
         BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(features, carvers);
         addBasicFeatures(generation);
@@ -151,6 +153,14 @@ public final class DWMBiomeBootstrap {
                 MobCategory.CREATURE,
                 8,
                 new MobSpawnSettings.SpawnerData(DWMEntityTypes.MEWING_DOG, 2, 4)
+        );
+    }
+
+    private static void addTimeLordSpawns(MobSpawnSettings.Builder spawns) {
+        spawns.addSpawn(
+                MobCategory.CREATURE,
+                8,
+                new MobSpawnSettings.SpawnerData(DWMEntityTypes.TIME_LORD, 1, 3)
         );
     }
 

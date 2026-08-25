@@ -6,9 +6,11 @@ import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.model.entity.BroakirModel;
 import com.adamkali.dwm.model.entity.FlutterwingModel;
+import com.adamkali.dwm.model.entity.TimeLordModel;
 import com.adamkali.dwm.render.BroakirRenderer;
 import com.adamkali.dwm.render.FlutterwingRenderer;
 import com.adamkali.dwm.render.MewingDogRenderer;
+import com.adamkali.dwm.render.TimeLordRenderer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
 import net.minecraft.client.model.geom.ModelLayerLocation;
@@ -40,5 +42,7 @@ public final class DWMEntityRenderers {
         ModelLayerRegistry.registerModelLayer(FlutterwingModel.LAYER_LOCATION, FlutterwingModel::createBodyLayer);
         EntityRendererRegistry.register(DWMEntityTypes.FLUTTERWING, FlutterwingRenderer::new);
         EntityRendererRegistry.register(DWMEntityTypes.MEWING_DOG, MewingDogRenderer::new);
+        ModelLayerRegistry.registerModelLayer(TimeLordModel.LAYER_LOCATION, TimeLordModel::createBodyLayer);
+        EntityRendererRegistry.register(DWMEntityTypes.TIME_LORD, TimeLordRenderer::new);
     }
 }

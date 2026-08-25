@@ -119,6 +119,12 @@
         "maxCount": 4,
         "minCount": 2,
         "weight": 10
+      },
+      {
+        "type": "dwm:time_lord",
+        "maxCount": 3,
+        "minCount": 1,
+        "weight": 8
       }
     ],
     "misc": [],
