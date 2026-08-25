@@ -14,6 +14,7 @@ to a full reference page with parameters and YAML examples.
 - [launchGame](commands/launchGame.md) — Wait until the title screen is ready.
 - [lookAt](commands/lookAt.md) — Aim the camera by yaw/pitch or at block coordinates.
 - [openInventory](commands/openInventory.md) — Open the player inventory GUI.
+- [pressKey](commands/pressKey.md) — Press a keyboard key (keybinds, Escape, etc.).
 - [runCommand](commands/runCommand.md) — Send an in-game slash command as the local player.
 - [selectHotbar](commands/selectHotbar.md) — Select hotbar slot `0`–`8` and sync to the server.
 - [startVanillaServer](commands/startVanillaServer.md) — Launch Mojang’s dedicated server as a child process.

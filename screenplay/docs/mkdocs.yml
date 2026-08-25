@@ -67,6 +67,7 @@ nav:
       - createWorld: reference/commands/createWorld.md
       - debugScreen: reference/commands/debugScreen.md
       - keyboardInput: reference/commands/keyboardInput.md
+      - pressKey: reference/commands/pressKey.md
       - launchGame: reference/commands/launchGame.md
       - lookAt: reference/commands/lookAt.md
       - openInventory: reference/commands/openInventory.md

@@ -26,6 +26,7 @@ public final class ScenarioPrimitives {
                 new StartVanillaServerPrimitive(),
                 new CreateWorldPrimitive(),
                 new KeyboardInputPrimitive(),
+                new PressKeyPrimitive(),
                 new RunCommandPrimitive(),
                 new WaitUntilPrimitive(),
                 new WaitTicksPrimitive(),
