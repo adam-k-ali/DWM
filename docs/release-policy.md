@@ -90,8 +90,8 @@ Ship a patch immediately for:
 4. Commit, merge to `main`, then create and push tag `v{minecraft_version}-{mod_version}` (manually, or via the **Create Release Tag** workflow, which tags `promos.latest` from `version.json` on `main` if that tag is missing).
 5. Confirm the **Release** GitHub Actions workflow succeeds:
    - GitHub Release with remapped JAR (+ sources JAR) and notes from `version.json` (`summary` + detailed lists)
-   - Modrinth version upload (Fabric + Minecraft from the tag; Fabric API dependency)
-   - CurseForge file upload (project `355957`; Fabric + Client/Server + Minecraft from the tag; Fabric API required dependency)
+   - Modrinth version upload (Fabric + Forge + NeoForge loaders from the tag; Fabric API for Fabric artifact)
+   - CurseForge file upload (project `355957`; Fabric/Forge/NeoForge + Client/Server + Minecraft from the tag)
    - Discord `#releases` embed (summary + Modrinth and CurseForge links)
 
 ### Required GitHub Actions secrets
@@ -106,7 +106,8 @@ Ship a patch immediately for:
 
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
-| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `pull_request`, push to `main` | `./gradlew build` (compile + unit tests + version sync check) |
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `pull_request`, push to `main` | `./gradlew build` + Forge/NeoForge `compileJava` |
+| [`.github/workflows/scenario-tests.yml`](../.github/workflows/scenario-tests.yml) | `pull_request`, push to `main` | Screenplay matrix: Fabric / Forge / NeoForge under xvfb |
 | [`.github/workflows/create-release-tag.yml`](../.github/workflows/create-release-tag.yml) | `workflow_dispatch` | Create and push `v*` tag from `version.json` `promos.latest` if missing; then dispatch Release |
 | [`.github/workflows/release.yml`](../.github/workflows/release.yml) | push of tags `v*`, or `workflow_dispatch` | Build; publish GitHub Release, Modrinth version, CurseForge file, and Discord announcement from `version.json` |
 | [`.github/workflows/sync-modrinth-project.yml`](../.github/workflows/sync-modrinth-project.yml) | `workflow_dispatch` | PATCH Modrinth project listing from [`metadata/`](../metadata/) (Modrinth only; CurseForge listing stays manual) |

@@ -53,38 +53,58 @@ class ScreenplayPlugin implements Plugin<Project> {
         project.tasks.register('prepareScreenplayRun') {
             group = 'verification'
             description = 'Prepare Screenplay run directory, options.txt, and vanilla server jar path'
-            def optionsFile = project.layout.buildDirectory.file("${extension.outputDir}/run/options.txt")
+            // Game working directory (may differ from outputDir on Forge/NeoForge).
+            def runDirProvider = project.provider {
+                project.file(extension.runDir)
+            }
+            def optionsFile = project.provider {
+                new File(runDirProvider.get(), 'options.txt')
+            }
             def vanillaServerDir = project.layout.buildDirectory.dir("${extension.outputDir}/vanilla-server")
             def jarPathFile = project.layout.buildDirectory.file("${extension.outputDir}/vanilla-server/server-jar.path")
             outputs.file(optionsFile)
             outputs.file(jarPathFile)
             outputs.upToDateWhen { false }
             doLast {
-                project.delete(project.layout.buildDirectory.dir("${extension.outputDir}/run/saves"))
+                def runDir = runDirProvider.get()
+                runDir.mkdirs()
+                project.delete(new File(runDir, 'saves'))
                 project.delete(project.layout.buildDirectory.dir("${extension.outputDir}/vanilla-server/world"))
-                optionsFile.get().asFile.parentFile.mkdirs()
                 def mode = displayMode.get()
                 def options = new StringBuilder("""\
 lang:en_us
 skipMultiplayerWarning:true
 onboardAccessibility:false
+pauseOnLostFocus:false
 """)
                 if (mode == 'xvfb') {
                     options.append("""\
 fullscreen:false
 renderDistance:4
-simulationDistance:4
+simulationDistance:8
 maxFps:30
 enableVsync:false
 guiScale:1
 """)
                 }
-                optionsFile.get().asFile.text = options.toString()
+                optionsFile.get().text = options.toString()
+                // Forge early window (fmlearlywindow) can stall resource reload under xvfb/llvmpipe,
+                // leaving GenericMessageScreen + ForgeLoadingOverlay forever. Disable it for headless runs.
+                if (mode == 'xvfb' && extension.loader in ['forge', 'neoforge']) {
+                    def configDir = new File(runDir, 'config')
+                    configDir.mkdirs()
+                    new File(configDir, 'fml.toml').text = '''\
+earlyWindowControl = false
+earlyWindowProvider = "fmlearlywindow"
+versionCheck = false
+'''
+                }
                 def serverDir = vanillaServerDir.get().asFile
                 serverDir.mkdirs()
-                def serverJar = resolveMinecraftServerJar(project)
+                def serverJar = resolveMinecraftServerJar(project, serverDir)
                 if (serverJar != null) {
                     jarPathFile.get().asFile.text = serverJar.absolutePath
+                    logger.lifecycle("Screenplay vanilla server jar: ${serverJar.absolutePath}")
                 } else {
                     jarPathFile.get().asFile.text = ''
                     logger.warn('Could not resolve Minecraft server jar path for Screenplay vanilla-server harness')
@@ -93,14 +113,83 @@ guiScale:1
         }
     }
 
-    private static File resolveMinecraftServerJar(Project project) {
+    private static File resolveMinecraftServerJar(Project project, File downloadDir) {
         try {
             def loomClass = Class.forName('net.fabricmc.loom.LoomGradleExtension')
             def getMethod = loomClass.getMethod('get', Project)
             def loomExt = getMethod.invoke(null, project)
             def minecraftProvider = loomExt.minecraftProvider
-            return minecraftProvider.minecraftServerJar as File
+            def loomJar = minecraftProvider.minecraftServerJar as File
+            if (loomJar != null && loomJar.isFile()) {
+                return loomJar
+            }
         } catch (Throwable ignored) {
+            // Fall through to non-Loom resolution.
+        }
+        def override = project.findProperty('screenplayServerJar')
+        if (override != null) {
+            def file = project.file(override.toString())
+            if (file.isFile()) {
+                return file
+            }
+        }
+        def userHome = System.getProperty('user.home', '')
+        def version = project.findProperty('minecraft_version')?.toString()
+        if (userHome && version) {
+            def candidates = [
+                    new File("${userHome}/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/server/${version}/server-${version}.jar"),
+                    new File("${userHome}/.gradle/caches/fabric-loom/${version}/minecraft-server.jar"),
+                    new File("${userHome}/.gradle/caches/fabric-loom/${version}/minecraft-extracted_server.jar"),
+                    new File("${userHome}/.gradle/caches/minecraftforge/forgegradle/mavenizer/caches/minecraft_tasks/${version}/server.jar"),
+                    new File("${userHome}/.gradle/caches/minecraft/${version}/server.jar"),
+                    project.file(".gradle/caches/minecraft/versions/${version}/server.jar"),
+                    project.rootProject.file(".gradle/caches/minecraft/versions/${version}/server.jar"),
+                    // Included-build NeoForge/Forge project caches when run from a sibling.
+                    new File(project.projectDir, ".gradle/caches/minecraft/versions/${version}/server.jar"),
+            ]
+            def found = candidates.find { it != null && it.isFile() }
+            if (found != null) {
+                return found
+            }
+        }
+        if (version) {
+            def downloaded = downloadOfficialServerJar(project, version, downloadDir)
+            if (downloaded != null) {
+                return downloaded
+            }
+        }
+        return null
+    }
+
+    private static File downloadOfficialServerJar(Project project, String version, File downloadDir) {
+        try {
+            def slurper = new groovy.json.JsonSlurper()
+            def manifest = slurper.parse(new URI('https://piston-meta.mojang.com/mc/game/version_manifest_v2.json').toURL())
+            def entry = manifest.versions.find { it.id == version }
+            if (entry == null || entry.url == null) {
+                project.logger.warn("Screenplay: Minecraft version '${version}' not found in Mojang version manifest")
+                return null
+            }
+            def versionJson = slurper.parse(new URI(entry.url.toString()).toURL())
+            def server = versionJson.downloads?.server
+            if (server?.url == null) {
+                project.logger.warn("Screenplay: no official server download for Minecraft '${version}'")
+                return null
+            }
+            downloadDir.mkdirs()
+            def dest = new File(downloadDir, 'server.jar')
+            if (dest.isFile() && dest.length() > 0) {
+                return dest
+            }
+            project.logger.lifecycle("Screenplay: downloading official Minecraft ${version} server jar")
+            dest.withOutputStream { out ->
+                new URI(server.url.toString()).toURL().withInputStream { input ->
+                    out << input
+                }
+            }
+            return dest.isFile() && dest.length() > 0 ? dest : null
+        } catch (Throwable exception) {
+            project.logger.warn("Screenplay: could not download official server jar for ${version}: ${exception.message}")
             return null
         }
     }
@@ -111,6 +200,10 @@ guiScale:1
         def reportFile = project.layout.buildDirectory.file("${extension.outputDir}/report.xml").get().asFile.absolutePath
         def vanillaServerDir = project.layout.buildDirectory.dir("${extension.outputDir}/vanilla-server").get().asFile.absolutePath
         def runDir = extension.runDir
+        def testsDirsProperty = extension.allTestsDirs()
+                .findAll { it != null }
+                .collect { project.file(it).absolutePath }
+                .join(File.pathSeparator)
 
         if (loader == 'fabric') {
             def loom = project.extensions.findByName('loom')
@@ -131,6 +224,9 @@ guiScale:1
             run.property 'screenplay.step-timeout-seconds', timeout.get()
             run.property 'screenplay.report-file', reportFile
             run.property 'screenplay.vanilla-server-dir', vanillaServerDir
+            if (!testsDirsProperty.isBlank()) {
+                run.property 'screenplay.tests-dirs', testsDirsProperty
+            }
             run.runDir runDir
 
             // Stable task name for docs/CI regardless of Loom run config name.
@@ -152,37 +248,83 @@ guiScale:1
                 runsContainer = project.extensions.runs
             }
             if (runsContainer == null) {
-                project.logger.warn("Screenplay: no runs container found for loader '${loader}'")
-                return
+                throw new GradleException("Screenplay: no runs container found for loader '${loader}'")
             }
-            def run = runsContainer.findByName('screenplayClient') ?: runsContainer.findByName('screenplay')
-            if (run == null && runsContainer.metaClass.respondsTo(runsContainer, 'create', String)) {
-                run = runsContainer.create('screenplayClient')
-            } else if (run == null && runsContainer.metaClass.respondsTo(runsContainer, 'register', String)) {
-                run = runsContainer.register('screenplayClient').get()
-            }
+            // Forge launcher runs.json only defines client/server/data/… — custom names
+            // like screenplayClient have no mainClass. NeoGradle also rejects unknown run types.
+            // Both loaders reuse the stock 'client' run for Screenplay.
+            def run = runsContainer.findByName('client')
             if (run == null) {
-                project.logger.warn("Screenplay: could not create '${loader}' run named screenplayClient")
-                return
+                throw new GradleException("Screenplay: could not find a client run for '${loader}'")
             }
-            if (run.hasProperty('workingDirectory')) {
-                run.workingDirectory = project.layout.projectDirectory.dir(runDir)
+            // ForgeGradle: workingDir; NeoGradle: workingDirectory
+            try {
+                if (run.hasProperty('workingDir')) {
+                    run.workingDir.set(project.layout.projectDirectory.dir(runDir))
+                }
+            } catch (Throwable ignored) {
             }
-            if (run.metaClass.respondsTo(run, 'systemProperty', String, Object)) {
+            try {
+                if (run.hasProperty('workingDirectory')) {
+                    run.workingDirectory.set(project.layout.projectDirectory.dir(runDir))
+                }
+            } catch (Throwable ignored) {
+                try {
+                    run.workingDirectory = project.file(runDir)
+                } catch (Throwable ignored2) {
+                }
+            }
+            try {
                 run.systemProperty 'screenplay', scenarioId.get()
                 run.systemProperty 'screenplay.step-timeout-seconds', timeout.get()
                 run.systemProperty 'screenplay.report-file', reportFile
                 run.systemProperty 'screenplay.vanilla-server-dir', vanillaServerDir
+                if (!testsDirsProperty.isBlank()) {
+                    run.systemProperty 'screenplay.tests-dirs', testsDirsProperty
+                }
+            } catch (Throwable ex) {
+                project.logger.warn("Screenplay: could not set system properties on ${loader} run: ${ex.message}")
             }
+
+            // NeoGradle treats any task named run* as a run-type request. Avoid that prefix.
+            def screenplayTaskName = loader == 'neoforge' ? 'executeScreenplay' : 'runScreenplay'
+            def delegateTask = project.tasks.names.contains('runClient') ? 'runClient' : null
+
+            if (project.tasks.findByName(screenplayTaskName) == null) {
+                project.tasks.register(screenplayTaskName) {
+                    group = 'verification'
+                    description = 'Run a Screenplay YAML scenario in the real Minecraft client'
+                    if (delegateTask != null) {
+                        dependsOn delegateTask
+                    } else {
+                        dependsOn 'runClient'
+                    }
+                }
+            }
+            project.extensions.extraProperties.set('screenplayRunTask', screenplayTaskName)
+            project.extensions.extraProperties.set('screenplayDelegateTask', delegateTask ?: 'runClient')
         } catch (Throwable ex) {
-            project.logger.warn("Screenplay could not fully configure ${loader} run: ${ex.message}")
+            throw new GradleException("Screenplay could not configure ${loader} run: ${ex.message}", ex)
         }
     }
 
     private static void configureDisplayOnRunTask(Project project, ScreenplayExtension extension) {
         def displayMode = project.providers.gradleProperty('screenplayDisplay').orElse('display')
+        def screenplayRunTask = project.providers.provider {
+            project.extensions.extraProperties.has('screenplayRunTask')
+                    ? project.extensions.extraProperties.get('screenplayRunTask').toString()
+                    : 'runScreenplay'
+        }
+        def screenplayDelegateTask = project.providers.provider {
+            project.extensions.extraProperties.has('screenplayDelegateTask')
+                    ? project.extensions.extraProperties.get('screenplayDelegateTask').toString()
+                    : 'runScreenplayClient'
+        }
         project.tasks.configureEach { task ->
-            if (!(task.name in ['runScreenplay', 'runScreenplayClient'])) {
+            def runTaskName = screenplayRunTask.get()
+            def delegateName = screenplayDelegateTask.get()
+            def screenplayTasks = [runTaskName, 'runScreenplay', 'runScreenplayClient', 'executeScreenplay', delegateName] as Set
+            if (!(task.name in screenplayTasks)) {
                 return
             }
             task.dependsOn('prepareScreenplayRun')
@@ -191,7 +333,8 @@ guiScale:1
             if (!(mode in ['display', 'xvfb'])) {
                 throw new GradleException("Invalid -PscreenplayDisplay='${mode}'. Allowed values: display, xvfb.")
             }
-            // Loom run tasks are JavaExec; the runScreenplay alias may be a plain DefaultTask.
+            // Loom run tasks are JavaExec with useXvfb; Forge/NeoForge runClient is plain JavaExec.
+            // For loaders without useXvfb, CI/agents should invoke Gradle under xvfb-run so $DISPLAY is set.
             if (task instanceof org.gradle.process.JavaExecSpec) {
                 if (task.hasProperty('useXvfb')) {
                     task.useXvfb = (mode == 'xvfb')
@@ -221,6 +364,21 @@ guiScale:1
                         throw new GradleException(
                                 'screenplayDisplay=xvfb requires xvfb-run on PATH. Install with: apt install xvfb')
                     }
+                    // Only the actual client JavaExec needs $DISPLAY on Forge/NeoForge.
+                    // Fabric's runScreenplay wrapper is a plain task (no useXvfb) that runs
+                    // after runScreenplayClient; do not fail it for missing DISPLAY.
+                    boolean isNonLoomClientExec = (task instanceof org.gradle.process.JavaExecSpec) &&
+                            !task.hasProperty('useXvfb')
+                    if (isNonLoomClientExec) {
+                        def display = System.getenv('DISPLAY')
+                        if (display == null || display.isBlank()) {
+                            throw new GradleException(
+                                    'screenplayDisplay=xvfb on Forge/NeoForge requires $DISPLAY. '
+                                            + 'Invoke Gradle under xvfb-run, e.g. '
+                                            + '`xvfb-run -a ./gradlew -p dwm-loaders :forge:runScreenplayTests '
+                                            + '-PscreenplayDisplay=xvfb`.')
+                        }
+                    }
                 }
             }
         }
@@ -233,45 +391,73 @@ guiScale:1
         def resultsRoot = project.layout.buildDirectory.dir("${extension.outputDir}/results")
         def testsDirs = extension.allTestsDirs()
 
-        def execOps = project.objects.newInstance(ScreenplayExecOps).execOps
-
         project.tasks.register('runScreenplayTests') {
             group = 'verification'
             description = 'Discover all type:test YAML scenarios and run each via runScreenplay'
+            // NeoGradle rejects unknown run* task names during registration of sibling tasks;
+            // runScreenplayTests is fine as a plain task (not mapped to a run config).
 
             doLast {
                 def missing = testsDirs.findAll { !it.isDirectory() }
                 if (missing) {
                     throw new GradleException("Screenplay tests directory not found: ${missing}")
                 }
-                def scenarioIds = discoverScenarioTestIds(testsDirs)
+                def scenarioIds = discoverScenarioTestIds(testsDirs, extension.loader)
                 if (scenarioIds.isEmpty()) {
                     throw new GradleException("No scenario tests (type: test) found under ${testsDirs}")
                 }
-                logger.lifecycle("Discovered ${scenarioIds.size()} Screenplay test(s): ${scenarioIds.join(', ')}")
+                logger.lifecycle("Discovered ${scenarioIds.size()} Screenplay test(s) for loader '${extension.loader}': ${scenarioIds.join(', ')}")
 
-                def gradleWrapper = new File(projectDirFile, 'gradlew')
-                def gradleCommand = gradleWrapper.exists() ? gradleWrapper.absolutePath : 'gradle'
+                def gradleWrapper = findGradleWrapper(projectDirFile)
+                def gradleCommand = gradleWrapper != null ? gradleWrapper.absolutePath : 'gradle'
+                def gradleWorkingDir = gradleWrapper != null ? gradleWrapper.parentFile : projectDirFile
                 def failed = []
                 def resultsDir = resultsRoot.get().asFile
                 project.delete(resultsDir)
                 resultsDir.mkdirs()
 
+                // Warm NeoGradle Minecraft artifact caches before scenarios (with retries) so the
+                // first nested executeScreenplay is less likely to flake on first client.jar download.
+                def cacheTaskNames = project.tasks.names
+                        .findAll { String name -> name.startsWith('cacheVersionExecutable') }
+                        .collect { it.toString() }
+                        .sort()
+                if (!cacheTaskNames.isEmpty()) {
+                    logger.lifecycle("Warming Minecraft artifact caches: ${cacheTaskNames.join(', ')}")
+                    def warmDir = new File(resultsDir, '_cache-warm')
+                    warmDir.mkdirs()
+                    def warmArgs = ScreenplayPlugin.buildNestedLoaderGradleArgs(
+                            gradleCommand, gradleWorkingDir, project, cacheTaskNames)
+                    def warmExit = ScreenplayPlugin.runNestedGradleWithTransientRetries(
+                            warmArgs, gradleWorkingDir, warmDir, 'minecraft-cache-warm', logger)
+                    if (warmExit != 0) {
+                        throw new GradleException(
+                                "Failed to warm Minecraft artifact caches "
+                                        + "(${cacheTaskNames.join(', ')}); exit ${warmExit}")
+                    }
+                }
+
                 scenarioIds.each { String scenarioId ->
                     logger.lifecycle("Running Screenplay test '${scenarioId}'")
-                    def args = [gradleCommand, 'runScreenplay', "-Pscreenplay=${scenarioId}"]
-                    args << "-PscreenplayDisplay=${displayMode.get()}"
+                    def runTask = project.extensions.extraProperties.has('screenplayRunTask')
+                            ? project.extensions.extraProperties.get('screenplayRunTask').toString()
+                            : 'runScreenplay'
+                    def args = ScreenplayPlugin.buildNestedLoaderGradleArgs(
+                            gradleCommand, gradleWorkingDir, project, [runTask.toString()])
+                    args << "-Pscreenplay=${scenarioId}".toString()
+                    args << "-PscreenplayDisplay=${displayMode.get()}".toString()
                     if (timeoutProperty.isPresent()) {
-                        args << "-PscreenplayTimeout=${timeoutProperty.get()}"
+                        args << "-PscreenplayTimeout=${timeoutProperty.get()}".toString()
                     }
-                    def result = execOps.exec {
-                        workingDir projectDirFile
-                        commandLine args
-                        ignoreExitValue = true
-                    }
+
+                    // Avoid archiving leftover screenshots from earlier scenarios in this suite.
+                    project.delete(new File(projectDirFile, "build/${extension.outputDir}/run/screenshots"))
 
                     def archiveDir = new File(resultsDir, scenarioId)
                     archiveDir.mkdirs()
+                    def exitValue = ScreenplayPlugin.runNestedGradleWithTransientRetries(
+                            args, gradleWorkingDir, archiveDir, scenarioId, logger)
+
                     ['report.xml', 'metrics.json', 'diagnostics.txt'].each { String fileName ->
                         def source = new File(projectDirFile, "build/${extension.outputDir}/${fileName}")
                         if (source.isFile()) {
@@ -288,10 +474,25 @@ guiScale:1
                             into new File(archiveDir, 'screenshots')
                         }
                     }
-
-                    if (result.exitValue != 0) {
+                    def blankShots = []
+                    def shotsArchive = new File(archiveDir, 'screenshots')
+                    if (shotsArchive.isDirectory()) {
+                        shotsArchive.eachFile { File file ->
+                            if (file.isFile() && file.name.toLowerCase().endsWith('.png')
+                                    && file.length() > 0L && file.length() < 40000L) {
+                                blankShots << "${file.name} (${file.length()} bytes)"
+                            }
+                        }
+                    }
+                    if (!blankShots.isEmpty()) {
+                        logger.error(
+                                "Screenplay screenshots look blank/black for '${scenarioId}': "
+                                        + blankShots.join(', '))
                         failed << scenarioId
-                        logger.error("Screenplay test '${scenarioId}' failed (exit ${result.exitValue})")
+                        logger.error("Screenplay test '${scenarioId}' failed (blank screenshots)")
+                    } else if (exitValue != 0) {
+                        failed << scenarioId
+                        logger.error("Screenplay test '${scenarioId}' failed (exit ${exitValue})")
                     } else {
                         logger.lifecycle("Screenplay test '${scenarioId}' passed")
                     }
@@ -307,11 +508,154 @@ guiScale:1
         }
     }
 
-    private static List discoverScenarioTestIds(List<File> scenarioTestsRoots) {
+    /**
+     * Builds a nested Gradle command for this loader project.
+     * Included-build consumers (dwm-loaders) are invoked via {@code -p} from the repo root wrapper.
+     */
+    static List<String> buildNestedLoaderGradleArgs(
+            String gradleCommand,
+            File gradleWorkingDir,
+            Project project,
+            List taskNames) {
+        List<String> args = new ArrayList<>()
+        args.add(gradleCommand.toString())
+        def loadersDir = new File(gradleWorkingDir, 'dwm-loaders')
+        if (loadersDir.isDirectory() && project.projectDir.absolutePath.startsWith(loadersDir.absolutePath)) {
+            args.add('-p')
+            args.add('dwm-loaders')
+            taskNames.each { taskName ->
+                args.add("${project.name}:${taskName}".toString())
+            }
+        } else if (project.path != ':') {
+            taskNames.each { taskName ->
+                args.add("${project.path}:${taskName}".toString())
+            }
+        } else {
+            taskNames.each { taskName ->
+                args.add(taskName.toString())
+            }
+        }
+        return args
+    }
+
+    /**
+     * Runs a nested Gradle invocation, retrying when NeoGradle Minecraft artifact cache
+     * downloads flake (e.g. cacheVersionExecutableClient*). Real scenario failures are not retried.
+     */
+    static int runNestedGradleWithTransientRetries(
+            List args,
+            File gradleWorkingDir,
+            File archiveDir,
+            String label,
+            org.gradle.api.logging.Logger logger) {
+        final int maxAttempts = 3
+        int exitValue = 1
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            def logFile = new File(archiveDir, "nested-gradle-attempt-${attempt}.log")
+            if (attempt > 1) {
+                logger.lifecycle(
+                        "Retrying '${label}' (attempt ${attempt}/${maxAttempts}) "
+                                + 'after transient Gradle cache/download failure')
+                try {
+                    Thread.sleep(2000L * (attempt - 1))
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt()
+                }
+            }
+            exitValue = runNestedGradleStreaming(args, gradleWorkingDir, logFile)
+            if (exitValue == 0) {
+                return 0
+            }
+            def logText = logFile.isFile() ? logFile.getText('UTF-8') : ''
+            if (attempt < maxAttempts && isTransientNestedGradleFailure(logText)) {
+                logger.warn(
+                        "'${label}' hit a transient Minecraft cache/download failure "
+                                + "(attempt ${attempt}/${maxAttempts}); will retry")
+                continue
+            }
+            break
+        }
+        return exitValue
+    }
+
+    private static int runNestedGradleStreaming(List args, File workingDir, File logFile) {
+        logFile.parentFile.mkdirs()
+        // ProcessBuilder requires real Strings (not GString); collect explicitly.
+        List<String> command = new ArrayList<>(args.size())
+        args.each { arg -> command.add(arg.toString()) }
+        def pb = new ProcessBuilder(command)
+        pb.directory(workingDir)
+        pb.redirectErrorStream(true)
+        def process = pb.start()
+        logFile.withOutputStream { fos ->
+            def buffer = new byte[8192]
+            def input = process.inputStream
+            int read
+            while ((read = input.read(buffer)) >= 0) {
+                if (read == 0) {
+                    continue
+                }
+                fos.write(buffer, 0, read)
+                System.out.write(buffer, 0, read)
+            }
+            System.out.flush()
+        }
+        return process.waitFor()
+    }
+
+    /** Visible for tests — NeoGradle/network flakes that should not fail the Screenplay suite. */
+    static boolean isTransientNestedGradleFailure(String logText) {
+        if (logText == null || logText.isBlank()) {
+            return false
+        }
+        // In-game client crashes / scenario failures must never be retried as cache flakes.
+        if (logText.contains('ReportedException')
+                || logText.contains('occlusionShapesByFace')
+                || (logText.contains("Screenplay test '") && logText.contains('failed'))) {
+            return false
+        }
+        // Prefer task-level signals so in-game scenario failures are not retried.
+        if (logText.contains('cacheVersionExecutableClient') && logText.contains('FAILED')) {
+            return true
+        }
+        if (logText.contains('cacheVersionExecutableServer') && logText.contains('FAILED')) {
+            return true
+        }
+        // NeoGradle cache provider only when the stage itself failed — the class name
+        // appears in healthy task graphs and must not retry runClient crashes.
+        if (logText.contains('Failed to execute stage')
+                && logText.contains('MinecraftArtifactFileCacheProvider')) {
+            return true
+        }
+        def networkHints = [
+                'Connection reset',
+                'Read timed out',
+                'SocketTimeoutException',
+                'UnknownHostException',
+                'Could not GET ',
+                'javax.net.ssl.SSLException',
+                'Premature end of Content-Length',
+        ]
+        return networkHints.any { hint -> logText.contains(hint) }
+    }
+
+    private static File findGradleWrapper(File startDir) {
+        File dir = startDir
+        while (dir != null) {
+            def wrapper = new File(dir, 'gradlew')
+            if (wrapper.isFile()) {
+                return wrapper
+            }
+            dir = dir.parentFile
+        }
+        return null
+    }
+
+    private static List discoverScenarioTestIds(List<File> scenarioTestsRoots, String loader) {
         def ids = [] as TreeSet
         scenarioTestsRoots.each { File scenarioTestsRoot ->
             projectFileTree(scenarioTestsRoot).each { File yamlFile ->
-                if (!isScenarioTestYaml(yamlFile)) {
+                if (!isScenarioTestYaml(yamlFile, loader)) {
                     return
                 }
                 def name = yamlFile.name
@@ -335,7 +679,7 @@ guiScale:1
         return files
     }
 
-    private static boolean isScenarioTestYaml(File yamlFile) {
+    private static boolean isScenarioTestYaml(File yamlFile, String loader) {
         def text = yamlFile.getText('UTF-8').replace('\r\n', '\n')
         if (!text.startsWith('---\n')) {
             return false
@@ -344,14 +688,21 @@ guiScale:1
         if (closing < 0) {
             return false
         }
-        return text.substring(4, closing).readLines().any { line ->
-            line.trim() == 'type: test'
+        def frontmatter = text.substring(4, closing).readLines()
+        if (!frontmatter.any { line -> line.trim() == 'type: test' }) {
+            return false
         }
+        // Optional frontmatter: loaders: [fabric, forge] — omit to run on all loaders.
+        def loadersLine = frontmatter.find { line -> line.trim().startsWith('loaders:') }
+        if (loadersLine == null || loader == null || loader.isBlank()) {
+            return true
+        }
+        def allowed = loadersLine.substring(loadersLine.indexOf(':') + 1)
+                .replaceAll(/[\[\]]/, '')
+                .split(',')
+                .collect { it.trim().toLowerCase() }
+                .findAll { !it.isEmpty() }
+        return allowed.isEmpty() || allowed.contains(loader.trim().toLowerCase())
     }
-}
-
-interface ScreenplayExecOps {
-    @javax.inject.Inject
-    org.gradle.process.ExecOperations getExecOps()
 }
 

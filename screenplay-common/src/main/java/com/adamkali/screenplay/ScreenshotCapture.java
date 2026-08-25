@@ -7,14 +7,22 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import org.slf4j.Logger;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class ScreenshotCapture {
     private static final int NO_DOWNSCALE = 1;
+    /** Solid-black 854×480 PNGs from empty FBOs compress to ~17KB; real frames are much larger. */
+    public static final long SUSPECT_BLANK_MAX_BYTES = 40_000L;
+    private static final int MAX_BLANK_RETRIES = 45;
 
     private final Logger logger;
     private final AtomicReference<Object> inFlight = new AtomicReference<>();
+    private int blankRetries;
+    private int settleTicks;
 
     ScreenshotCapture(Logger logger) {
         this.logger = logger;
@@ -36,9 +44,17 @@ public final class ScreenshotCapture {
         return trimmed + ".png";
     }
 
+    public static boolean isSuspectBlankSize(long byteLength) {
+        return byteLength > 0L && byteLength < SUSPECT_BLANK_MAX_BYTES;
+    }
+
     public boolean tick(Minecraft client, String filename) {
         Object current = inFlight.get();
         if (current == null) {
+            if (settleTicks > 0) {
+                settleTicks--;
+                return false;
+            }
             inFlight.set(Pending.INSTANCE);
             try {
                 Screenshot.grab(
@@ -62,12 +78,78 @@ public final class ScreenshotCapture {
         inFlight.set(null);
         logger.info("{}", completed.message());
         if (completed.failed()) {
+            blankRetries = 0;
+            settleTicks = 0;
             throw new ScenarioException("captureScreenshot failed: " + completed.message());
         }
+
+        Path saved = resolveSavedPath(client, filename, completed.path());
+        if (saved != null && isBlankPng(saved) && blankRetries < MAX_BLANK_RETRIES) {
+            blankRetries++;
+            settleTicks = 2;
+            logger.warn(
+                    "captureScreenshot {} looks blank ({}); retrying {}/{}",
+                    saved.getFileName(),
+                    sizeLabel(saved),
+                    blankRetries,
+                    MAX_BLANK_RETRIES
+            );
+            try {
+                Files.deleteIfExists(saved);
+            } catch (IOException ignored) {
+                // Best-effort; next grab may overwrite.
+            }
+            return false;
+        }
+        if (saved != null && isBlankPng(saved)) {
+            blankRetries = 0;
+            settleTicks = 0;
+            throw new ScenarioException(
+                    "captureScreenshot produced a blank/black frame after "
+                            + MAX_BLANK_RETRIES
+                            + " retries: "
+                            + saved
+                            + " ("
+                            + sizeLabel(saved)
+                            + "). Client chunks may not have rendered; check launchGame finished LoadingOverlay.onFinish."
+            );
+        }
+
+        blankRetries = 0;
+        settleTicks = 0;
         if (completed.path() != null) {
             logger.info("captureScreenshot saved {}", completed.path());
         }
         return true;
+    }
+
+    private static Path resolveSavedPath(Minecraft client, String filename, String reportedPath) {
+        if (reportedPath != null && !reportedPath.isBlank()) {
+            return Path.of(reportedPath);
+        }
+        if (filename == null || filename.isBlank() || client.gameDirectory == null) {
+            return null;
+        }
+        return client.gameDirectory.toPath().resolve("screenshots").resolve(filename);
+    }
+
+    private static boolean isBlankPng(Path path) {
+        try {
+            if (!Files.isRegularFile(path)) {
+                return false;
+            }
+            return isSuspectBlankSize(Files.size(path));
+        } catch (IOException ignored) {
+            return false;
+        }
+    }
+
+    private static String sizeLabel(Path path) {
+        try {
+            return Files.size(path) + " bytes";
+        } catch (IOException exception) {
+            return "unreadable";
+        }
     }
 
     private static Completed interpret(Component message) {

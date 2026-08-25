@@ -17,7 +17,13 @@ public final class ForgeScreenplayClient {
     private static final class ForgePlatform implements ScreenplayPlatform {
         @Override
         public void registerEndClientTick(Consumer<Minecraft> tickHandler) {
-            TickEvent.ClientTickEvent.Post.BUS.addListener(event -> tickHandler.accept(Minecraft.getInstance()));
+            // Render ticks fire every frame under xvfb; ClientTickEvent alone can stall during menu load.
+            TickEvent.RenderTickEvent.Post.BUS.addListener(event -> {
+                Minecraft client = Minecraft.getInstance();
+                if (client != null) {
+                    tickHandler.accept(client);
+                }
+            });
         }
     }
 }

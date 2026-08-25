@@ -1,11 +1,16 @@
 package com.adamkali.screenplay;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.LevelLoadingScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.gui.screens.worldselection.ConfirmExperimentalFeaturesScreen;
 import net.minecraft.client.gui.screens.worldselection.CreateWorldScreen;
 import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -13,6 +18,9 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.levelgen.presets.WorldPreset;
 import org.slf4j.Logger;
 
+import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
+
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -152,12 +160,109 @@ public final class CreateWorldProcess {
             created = true;
             return false;
         }
+        if (dismissConfirmationIfPresent(client)) {
+            return false;
+        }
         if (isWorldReady(client)) {
             logger.info("World is ready");
             completed = true;
             return true;
         }
         return false;
+    }
+
+    private boolean dismissConfirmationIfPresent(Minecraft client) {
+        Screen screen = client.gui.screen();
+        if (screen == null) {
+            return false;
+        }
+        if (screen instanceof ConfirmScreen confirmScreen) {
+            if (acceptConfirmScreen(confirmScreen)) {
+                logger.info("Accepted {}", screen.getClass().getSimpleName());
+                return true;
+            }
+        }
+        if (screen instanceof ConfirmExperimentalFeaturesScreen
+                || screen.getClass().getSimpleName().contains("Confirm")) {
+            if (acceptBooleanConsumer(screen) || clickProceedButton(screen)) {
+                logger.info("Accepted confirmation screen {}", screen.getClass().getName());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean acceptConfirmScreen(ConfirmScreen screen) {
+        try {
+            Field callbackField = ConfirmScreen.class.getDeclaredField("callback");
+            callbackField.setAccessible(true);
+            Object callback = callbackField.get(screen);
+            if (callback instanceof BooleanConsumer consumer) {
+                consumer.accept(true);
+                return true;
+            }
+        } catch (ReflectiveOperationException ignored) {
+            // Fall through.
+        }
+        try {
+            Field yesField = ConfirmScreen.class.getDeclaredField("yesButton");
+            yesField.setAccessible(true);
+            Object yes = yesField.get(screen);
+            if (yes instanceof Button button) {
+                return clickButton(screen, button);
+            }
+        } catch (ReflectiveOperationException ignored) {
+            // Fall through.
+        }
+        return clickProceedButton(screen);
+    }
+
+    private static boolean acceptBooleanConsumer(Screen screen) {
+        Class<?> type = screen.getClass();
+        while (type != null && type != Object.class) {
+            for (Field field : type.getDeclaredFields()) {
+                if (!BooleanConsumer.class.isAssignableFrom(field.getType())) {
+                    continue;
+                }
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(screen);
+                    if (value instanceof BooleanConsumer consumer) {
+                        consumer.accept(true);
+                        return true;
+                    }
+                } catch (ReflectiveOperationException ignored) {
+                    // try next field
+                }
+            }
+            type = type.getSuperclass();
+        }
+        return false;
+    }
+
+    private static boolean clickProceedButton(Screen screen) {
+        for (var child : screen.children()) {
+            if (!(child instanceof Button button) || !button.visible || !button.active) {
+                continue;
+            }
+            String message = button.getMessage().getString().toLowerCase(Locale.ROOT);
+            if (message.contains("cancel") || message.contains("no") || message.contains("back")) {
+                continue;
+            }
+            if (clickButton(screen, button)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean clickButton(Screen screen, Button button) {
+        MouseButtonEvent event = new MouseButtonEvent(
+                button.getX() + button.getWidth() / 2.0,
+                button.getY() + button.getHeight() / 2.0,
+                new MouseButtonInfo(0, 0)
+        );
+        return screen.mouseClicked(event, false);
     }
 
     private static void applySettings(WorldCreationUiState uiState, Map<String, Object> arguments) {
@@ -238,10 +343,16 @@ public final class CreateWorldProcess {
         if (screen == null) {
             return false;
         }
-        if (screen instanceof CreateWorldScreen || screen instanceof LevelLoadingScreen) {
+        if (screen instanceof CreateWorldScreen
+                || screen instanceof LevelLoadingScreen
+                || screen instanceof ConfirmScreen
+                || screen instanceof ConfirmExperimentalFeaturesScreen) {
             return true;
         }
         String simpleName = screen.getClass().getSimpleName();
-        return simpleName.contains("Loading") || simpleName.contains("Receiving") || simpleName.contains("Progress");
+        return simpleName.contains("Loading")
+                || simpleName.contains("Receiving")
+                || simpleName.contains("Progress")
+                || simpleName.contains("Confirm");
     }
 }

@@ -3,6 +3,7 @@ package com.adamkali.screenplay;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -40,5 +41,14 @@ class ScreenshotCaptureTest {
 
         assertTrue(slash.getMessage().contains("without path separators"));
         assertTrue(parent.getMessage().contains("without path separators"));
+    }
+
+    @Test
+    void flagsTinyPngsAsSuspectBlankFrames() {
+        assertTrue(ScreenshotCapture.isSuspectBlankSize(16_945L));
+        assertTrue(ScreenshotCapture.isSuspectBlankSize(1L));
+        assertFalse(ScreenshotCapture.isSuspectBlankSize(0L));
+        assertFalse(ScreenshotCapture.isSuspectBlankSize(160_000L));
+        assertFalse(ScreenshotCapture.isSuspectBlankSize(ScreenshotCapture.SUSPECT_BLANK_MAX_BYTES + 1));
     }
 }

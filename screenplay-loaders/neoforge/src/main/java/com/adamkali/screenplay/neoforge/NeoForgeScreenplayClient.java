@@ -7,7 +7,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RenderFrameEvent;
 
 import java.util.function.Consumer;
 
@@ -21,9 +21,17 @@ public final class NeoForgeScreenplayClient {
     }
 
     @SubscribeEvent
-    static void onClientTick(ClientTickEvent.Post event) {
+    static void onRenderFrame(RenderFrameEvent.Post event) {
+        // Render frames keep Screenplay advancing under headless/xvfb menu load.
+        dispatch();
+    }
+
+    private static void dispatch() {
         if (tickHandler != null) {
-            tickHandler.accept(Minecraft.getInstance());
+            Minecraft client = Minecraft.getInstance();
+            if (client != null) {
+                tickHandler.accept(client);
+            }
         }
     }
 

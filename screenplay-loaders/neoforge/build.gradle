@@ -45,6 +45,9 @@ dependencies {
 def screenplayCommon = rootProject.file('../screenplay-common')
 
 sourceSets.main {
+    // Keep classes + resources in one directory so @Mod and mods.toml share a root
+    // (same as Forge). Helps FML treat the Screenplay harness as a single ModFile.
+    output.resourcesDir = layout.buildDirectory.dir('classes/java/main').get().asFile
     java {
         srcDir new File(screenplayCommon, 'src/main/java')
     }

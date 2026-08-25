@@ -30,22 +30,78 @@ public final class ScenarioCatalog {
     }
 
     public static ScenarioCatalog loadFromResources(ClassLoader classLoader) {
-        Enumeration<URL> roots;
-        try {
-            roots = classLoader.getResources("tests");
-        } catch (IOException exception) {
-            throw new ScenarioException("Could not enumerate scenario resource directories named 'tests'", exception);
-        }
-        if (!roots.hasMoreElements()) {
+        List<URL> rootUrls = discoverResourceRoots(classLoader);
+        if (rootUrls.isEmpty()) {
             throw new ScenarioException("Could not find the scenario resource directory 'tests'");
         }
 
         Map<String, ScenarioDocument> tests = new LinkedHashMap<>();
         Map<String, ScenarioDocument> commands = new LinkedHashMap<>();
-        while (roots.hasMoreElements()) {
-            URL rootUrl = roots.nextElement();
+        java.util.HashSet<String> seenRoots = new java.util.HashSet<>();
+        for (URL rootUrl : rootUrls) {
             Path root = toPath(rootUrl);
+            String rootKey;
+            try {
+                rootKey = root.toAbsolutePath().normalize().toString();
+            } catch (RuntimeException ignored) {
+                rootKey = rootUrl.toString();
+            }
+            if (!seenRoots.add(rootKey)) {
+                continue;
+            }
             loadInto(root, tests, commands);
+        }
+        return new ScenarioCatalog(tests, commands);
+    }
+
+    /**
+     * Loads scenarios from explicit filesystem roots and/or classpath {@code tests/} resources.
+     * Filesystem roots are preferred for NeoForge ModClassLoader isolation (mod scenarios live
+     * in another mod jar) and when Gradle passes {@code screenplay.tests-dirs}.
+     */
+    public static ScenarioCatalog load(List<Path> filesystemRoots, ClassLoader... classLoaders) {
+        Map<String, ScenarioDocument> tests = new LinkedHashMap<>();
+        Map<String, ScenarioDocument> commands = new LinkedHashMap<>();
+        java.util.HashSet<String> seenRoots = new java.util.HashSet<>();
+
+        if (filesystemRoots != null) {
+            for (Path root : filesystemRoots) {
+                if (root == null || !Files.isDirectory(root)) {
+                    continue;
+                }
+                String rootKey = root.toAbsolutePath().normalize().toString();
+                if (!seenRoots.add(rootKey)) {
+                    continue;
+                }
+                loadInto(root, tests, commands);
+            }
+        }
+
+        if (classLoaders != null) {
+            java.util.HashSet<ClassLoader> seenLoaders = new java.util.HashSet<>();
+            for (ClassLoader classLoader : classLoaders) {
+                if (classLoader == null || !seenLoaders.add(classLoader)) {
+                    continue;
+                }
+                for (URL rootUrl : discoverResourceRoots(classLoader)) {
+                    Path root = toPath(rootUrl);
+                    String rootKey;
+                    try {
+                        rootKey = root.toAbsolutePath().normalize().toString();
+                    } catch (RuntimeException ignored) {
+                        rootKey = rootUrl.toString();
+                    }
+                    if (!seenRoots.add(rootKey)) {
+                        continue;
+                    }
+                    loadInto(root, tests, commands);
+                }
+            }
+        }
+
+        if (tests.isEmpty() && commands.isEmpty()) {
+            throw new ScenarioException("Could not find any scenario resources under filesystem roots "
+                    + filesystemRoots + " or classpath 'tests'");
         }
         return new ScenarioCatalog(tests, commands);
     }
@@ -55,6 +111,61 @@ public final class ScenarioCatalog {
         Map<String, ScenarioDocument> commands = new LinkedHashMap<>();
         loadInto(root, tests, commands);
         return new ScenarioCatalog(tests, commands);
+    }
+
+    /**
+     * NeoForge's ModClassLoader often fails to enumerate directory resources via
+     * {@link ClassLoader#getResources(String)} for {@code "tests"}, even when YAML files
+     * inside that directory are readable. Fall back to known marker files and derive the root.
+     */
+    private static List<URL> discoverResourceRoots(ClassLoader classLoader) {
+        List<URL> roots = new ArrayList<>();
+        java.util.HashSet<String> seen = new java.util.HashSet<>();
+        try {
+            Enumeration<URL> directories = classLoader.getResources("tests");
+            while (directories.hasMoreElements()) {
+                URL url = directories.nextElement();
+                if (seen.add(url.toExternalForm())) {
+                    roots.add(url);
+                }
+            }
+            if (!roots.isEmpty()) {
+                return roots;
+            }
+            // Marker files present in screenplay-common and typical mod scenario packs.
+            String[] markers = {
+                    "tests/createWorld.yaml",
+                    "tests/placeBlock.yaml",
+                    "tests/placeAndOpenTardis.yaml",
+                    "tests/joinVanillaServer.yaml"
+            };
+            for (String marker : markers) {
+                Enumeration<URL> files = classLoader.getResources(marker);
+                while (files.hasMoreElements()) {
+                    URL fileUrl = files.nextElement();
+                    URL rootUrl = parentResourceUrl(fileUrl);
+                    if (seen.add(rootUrl.toExternalForm())) {
+                        roots.add(rootUrl);
+                    }
+                }
+            }
+        } catch (IOException exception) {
+            throw new ScenarioException("Could not enumerate scenario resource directories named 'tests'", exception);
+        }
+        return roots;
+    }
+
+    private static URL parentResourceUrl(URL fileUrl) {
+        String external = fileUrl.toExternalForm();
+        int slash = external.lastIndexOf('/');
+        if (slash <= 0) {
+            throw new ScenarioException("Could not derive scenario root from resource URL: " + fileUrl);
+        }
+        try {
+            return java.net.URI.create(external.substring(0, slash)).toURL();
+        } catch (java.net.MalformedURLException exception) {
+            throw new ScenarioException("Could not derive scenario root from resource URL: " + fileUrl, exception);
+        }
     }
 
     private static Path toPath(URL root) {
@@ -96,6 +207,11 @@ public final class ScenarioCatalog {
                                 document.type() == ScenarioDocument.Type.TEST ? tests : commands;
                         ScenarioDocument previous = target.putIfAbsent(document.id(), document);
                         if (previous != null) {
+                            // Overlapping classpath roots (e.g. merged resourcesDir == classesDir)
+                            // can surface the same YAML twice; identical sources are safe to skip.
+                            if (previous.source().equals(document.source())) {
+                                return;
+                            }
                             throw new ScenarioException("Duplicate " + document.type().name().toLowerCase(Locale.ROOT)
                                     + " id '" + document.id() + "' in " + previous.source()
                                     + " and " + document.source());

@@ -23,9 +23,11 @@ final class ScenarioRunner {
     private final List<ScenarioReportWriter.StepResult> results = new ArrayList<>();
 
     private int stepIndex;
-    private long stepStartedNanos;
-    private boolean finished;
+    private volatile long stepStartedNanos;
+    private volatile boolean finished;
     private boolean executing;
+    private String lastScreenDiagnostic;
+    private long lastDiagnosticNanos;
 
     ScenarioRunner(
             ScenarioPlan plan,
@@ -42,12 +44,67 @@ final class ScenarioRunner {
         this.createWorld = new CreateWorldProcess(logger);
     }
 
+    /**
+     * Wall-clock watchdog so scenarios still fail cleanly if client/render ticks stop.
+     */
+    void startWatchdog() {
+        Thread watchdog = new Thread(() -> {
+            while (!finished) {
+                try {
+                    Thread.sleep(1000L);
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+                if (finished) {
+                    continue;
+                }
+                ScenarioPlan.Step timedOutStep;
+                Duration timeout;
+                synchronized (ScenarioRunner.this) {
+                    if (finished || stepStartedNanos == 0L || stepIndex >= plan.steps().size()) {
+                        continue;
+                    }
+                    timedOutStep = plan.steps().get(stepIndex);
+                    timeout = timeoutFor(timedOutStep);
+                    if (System.nanoTime() - stepStartedNanos <= timeout.toNanos()) {
+                        continue;
+                    }
+                }
+                Minecraft client = Minecraft.getInstance();
+                RuntimeException failure = new ScenarioException("Timed out after " + timeout.toSeconds()
+                        + "s waiting for " + timedOutStep.displayName() + " from " + timedOutStep.source()
+                        + " (wall-clock watchdog)");
+                synchronized (ScenarioRunner.this) {
+                    if (finished || stepStartedNanos == 0L || stepIndex >= plan.steps().size()) {
+                        continue;
+                    }
+                    results.add(new ScenarioReportWriter.StepResult(
+                            timedOutStep.displayName(),
+                            System.nanoTime() - stepStartedNanos,
+                            false
+                    ));
+                    finishUnlocked(client, failure);
+                }
+                return;
+            }
+        }, "screenplay-watchdog");
+        watchdog.setDaemon(true);
+        watchdog.start();
+    }
+
     void tick(Minecraft client) {
+        synchronized (this) {
+            tickUnlocked(client);
+        }
+    }
+
+    private void tickUnlocked(Minecraft client) {
         if (finished || executing) {
             return;
         }
         if (stepIndex >= plan.steps().size()) {
-            finish(client, null);
+            finishUnlocked(client, null);
             return;
         }
 
@@ -69,8 +126,10 @@ final class ScenarioRunner {
                 ));
                 stepIndex++;
                 stepStartedNanos = 0L;
+                lastScreenDiagnostic = null;
                 return;
             }
+            maybeLogWaitingDiagnostics(client, step);
             Duration timeout = timeoutFor(step);
             if (System.nanoTime() - stepStartedNanos > timeout.toNanos()) {
                 throw new ScenarioException("Timed out after " + timeout.toSeconds()
@@ -83,8 +142,28 @@ final class ScenarioRunner {
                     System.nanoTime() - stepStartedNanos,
                     false
             ));
-            finish(client, exception);
+            finishUnlocked(client, exception);
         }
+    }
+
+    private void maybeLogWaitingDiagnostics(Minecraft client, ScenarioPlan.Step step) {
+        if (client == null || client.gui == null) {
+            return;
+        }
+        long now = System.nanoTime();
+        if (lastDiagnosticNanos != 0L && now - lastDiagnosticNanos < Duration.ofSeconds(5).toNanos()) {
+            return;
+        }
+        lastDiagnosticNanos = now;
+        Screen screen = client.gui.screen();
+        String screenName = screen == null ? "<none>" : screen.getClass().getName();
+        String overlayName = client.gui.overlay() == null ? "<none>" : client.gui.overlay().getClass().getName();
+        String diagnostic = screenName + "|" + overlayName;
+        if (diagnostic.equals(lastScreenDiagnostic)) {
+            return;
+        }
+        lastScreenDiagnostic = diagnostic;
+        logger.info("Still waiting for {} — screen={}, overlay={}", step.displayName(), screenName, overlayName);
     }
 
     private boolean execute(ScenarioPlan.Step step, Minecraft client) {
@@ -102,6 +181,15 @@ final class ScenarioRunner {
     }
 
     private void finish(Minecraft client, RuntimeException failure) {
+        synchronized (this) {
+            finishUnlocked(client, failure);
+        }
+    }
+
+    private void finishUnlocked(Minecraft client, RuntimeException failure) {
+        if (finished) {
+            return;
+        }
         finished = true;
         vanillaServer.stop();
         String failureMessage = failure == null ? null
@@ -129,7 +217,7 @@ final class ScenarioRunner {
         StringBuilder diagnostics = new StringBuilder();
         diagnostics.append("scenario: ").append(plan.id()).append('\n');
         diagnostics.append("completedSteps: ").append(stepIndex).append('/').append(plan.steps().size()).append('\n');
-        Screen screen = client.gui.screen();
+        Screen screen = client == null || client.gui == null ? null : client.gui.screen();
         diagnostics.append("screen: ")
                 .append(screen == null ? "<none>" : screen.getClass().getName())
                 .append('\n');
