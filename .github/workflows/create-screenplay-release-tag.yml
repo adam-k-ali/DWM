@@ -19,7 +19,7 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Resolve tag from metadata/screenplay/version.json
+      - name: Resolve tag from screenplay/metadata/version.json
         id: resolve
         run: |
           python3 <<'PY'
@@ -28,11 +28,11 @@ jobs:
           import re
           from pathlib import Path
 
-          root = json.loads(Path("metadata/screenplay/version.json").read_text(encoding="utf-8"))
+          root = json.loads(Path("screenplay/metadata/version.json").read_text(encoding="utf-8"))
           latest = (root.get("promos") or {}).get("latest")
           if not latest or not isinstance(latest, str):
               raise SystemExit(
-                  "metadata/screenplay/version.json promos.latest is missing or not a string"
+                  "screenplay/metadata/version.json promos.latest is missing or not a string"
               )
 
           if not re.fullmatch(r"\d+\.\d+\.\d+\+\d+\.\d+(?:\.\d+)?", latest):

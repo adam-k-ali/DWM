@@ -29,7 +29,9 @@ jobs:
 
       - name: Resolve versions
         id: version
+        working-directory: screenplay
         run: |
+          chmod +x ./gradlew
           SCREENPLAY_VERSION=$(./gradlew properties -q | awk '/^screenplay_version:/ { print $2; exit }')
           MINECRAFT_VERSION=$(./gradlew properties -q | awk '/^minecraft_version:/ { print $2; exit }')
           echo "screenplay_version=${SCREENPLAY_VERSION}" >> "$GITHUB_OUTPUT"
@@ -37,10 +39,11 @@ jobs:
           echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Build Screenplay loaders
+        working-directory: screenplay
         run: |
           chmod +x ./gradlew
-          ./gradlew :screenplay-fabric:build
-          ./gradlew -p screenplay-loaders :forge:build :neoforge:build
+          ./gradlew build
+          ./gradlew -p loaders :forge:build :neoforge:build
         env:
           _JAVA_OPTIONS: -Xmx3200m
           GRADLE_OPTS: -Dorg.gradle.daemon=false
@@ -74,19 +77,19 @@ jobs:
                   f"{screenplay_version!r}"
               )
 
-          root = json.loads(Path("metadata/screenplay/version.json").read_text(encoding="utf-8"))
+          root = json.loads(Path("screenplay/metadata/version.json").read_text(encoding="utf-8"))
           entry = root.get(version)
           lines = [f"## {version}", ""]
           detail_lines = []
           summary = ""
 
           if not entry:
-              lines.append("_No changelog entry found in metadata/screenplay/version.json for this release._")
+              lines.append("_No changelog entry found in screenplay/metadata/version.json for this release._")
           else:
               summary = (entry.get("summary") or "").strip()
               if not summary:
                   raise SystemExit(
-                      f"metadata/screenplay/version.json entry for {version} is missing a non-blank summary"
+                      f"screenplay/metadata/version.json entry for {version} is missing a non-blank summary"
                   )
               lines.append(summary)
               lines.append("")
@@ -142,9 +145,9 @@ jobs:
           tag_name: ${{ github.ref_name }}
           body_path: release-notes.md
           files: |
-            screenplay-fabric/build/libs/screenplay-fabric-${{ steps.version.outputs.screenplay_version }}.jar
-            screenplay-loaders/forge/build/libs/screenplay-forge-${{ steps.version.outputs.screenplay_version }}.jar
-            screenplay-loaders/neoforge/build/libs/screenplay-neoforge-${{ steps.version.outputs.screenplay_version }}.jar
+            screenplay/build/libs/screenplay-fabric-${{ steps.version.outputs.screenplay_version }}.jar
+            screenplay/loaders/forge/build/libs/screenplay-forge-${{ steps.version.outputs.screenplay_version }}.jar
+            screenplay/loaders/neoforge/build/libs/screenplay-neoforge-${{ steps.version.outputs.screenplay_version }}.jar
           fail_on_unmatched_files: true
           draft: false
           prerelease: false
@@ -160,9 +163,9 @@ jobs:
             echo "MODRINTH_TOKEN secret is not set" >&2
             exit 1
           fi
-          FABRIC="screenplay-fabric/build/libs/screenplay-fabric-${SCREENPLAY_VERSION}.jar"
-          FORGE="screenplay-loaders/forge/build/libs/screenplay-forge-${SCREENPLAY_VERSION}.jar"
-          NEOFORGE="screenplay-loaders/neoforge/build/libs/screenplay-neoforge-${SCREENPLAY_VERSION}.jar"
+          FABRIC="screenplay/build/libs/screenplay-fabric-${SCREENPLAY_VERSION}.jar"
+          FORGE="screenplay/loaders/forge/build/libs/screenplay-forge-${SCREENPLAY_VERSION}.jar"
+          NEOFORGE="screenplay/loaders/neoforge/build/libs/screenplay-neoforge-${SCREENPLAY_VERSION}.jar"
           for jar in "$FABRIC" "$FORGE" "$NEOFORGE"; do
             if [ ! -f "$jar" ]; then
               echo "Missing build artifact: $jar" >&2

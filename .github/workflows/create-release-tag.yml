@@ -19,7 +19,7 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Resolve tag from version.json
+      - name: Resolve tag from dwm/version.json
         id: resolve
         run: |
           python3 <<'PY'
@@ -28,10 +28,10 @@ jobs:
           import re
           from pathlib import Path
 
-          root = json.loads(Path("version.json").read_text(encoding="utf-8"))
+          root = json.loads(Path("dwm/version.json").read_text(encoding="utf-8"))
           latest = (root.get("promos") or {}).get("latest")
           if not latest or not isinstance(latest, str):
-              raise SystemExit("version.json promos.latest is missing or not a string")
+              raise SystemExit("dwm/version.json promos.latest is missing or not a string")
 
           if not re.fullmatch(r"\d+\.\d+(?:\.\d+)?-\d+\.\d+\.\d+", latest):
               raise SystemExit(

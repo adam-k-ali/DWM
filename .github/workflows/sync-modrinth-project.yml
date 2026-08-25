@@ -31,8 +31,8 @@ jobs:
           from pathlib import Path
 
           token = os.environ["MODRINTH_TOKEN"]
-          meta_path = Path("metadata/modrinth.json")
-          body_path = Path("metadata/modrinth-body.md")
+          meta_path = Path("dwm/metadata/modrinth.json")
+          body_path = Path("dwm/metadata/modrinth-body.md")
 
           if not meta_path.is_file():
               raise SystemExit(f"Missing {meta_path}")
@@ -43,7 +43,7 @@ jobs:
           required = ("description", "categories", "additional_categories", "discord_url")
           missing = [key for key in required if key not in meta]
           if missing:
-              raise SystemExit(f"metadata/modrinth.json missing keys: {', '.join(missing)}")
+              raise SystemExit(f"dwm/metadata/modrinth.json missing keys: {', '.join(missing)}")
 
           description = meta["description"]
           categories = meta["categories"]
@@ -63,7 +63,7 @@ jobs:
 
           body = body_path.read_text(encoding="utf-8").strip()
           if not body:
-              raise SystemExit("metadata/modrinth-body.md must be non-blank")
+              raise SystemExit("dwm/metadata/modrinth-body.md must be non-blank")
 
           payload = {
               "description": description.strip(),
