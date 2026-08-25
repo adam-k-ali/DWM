@@ -24,10 +24,10 @@ There is no physical guide item and no server packet — the screen is client-on
 
 ## Presentation
 
-- **Book shell:** vanilla written-book texture (`textures/gui/book.png`) as an open spread.
-- **Left page:** chapter list plus page index for the active chapter.
-- **Right page:** page title, body text, page indicator, and recipe preview.
-- **Navigation:** Vanilla book page-turn arrows at the spread corners; **Done** sits below the book like a written book.
+- **Catalog shell:** a wide, two-page parchment spread with clear hierarchy and generous margins.
+- **Left page:** persistent chapter catalog plus the active chapter's topic index.
+- **Right page:** chapter context, topic title, concise guidance, and a readable station recipe diagram.
+- **Navigation:** book page-turn arrows move within a chapter; direct topic links support catalog lookup; **Done** closes the guide.
 
 ## Content (v1)
 

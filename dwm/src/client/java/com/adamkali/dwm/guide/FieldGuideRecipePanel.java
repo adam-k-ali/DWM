@@ -5,7 +5,6 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -26,46 +25,13 @@ import java.util.Optional;
 
 @Environment(EnvType.CLIENT)
 public final class FieldGuideRecipePanel {
-    private static final Identifier CRAFTING_TABLE_GUI =
-            Identifier.withDefaultNamespace("textures/gui/container/crafting_table.png");
-    private static final Identifier FURNACE_GUI =
-            Identifier.withDefaultNamespace("textures/gui/container/furnace.png");
-    private static final Identifier STONECUTTER_GUI =
-            Identifier.withDefaultNamespace("textures/gui/container/stonecutter.png");
-
-    /** Scale applied to vanilla station GUI crops so they fit the right book page. */
-    private static final float PREVIEW_SCALE = 0.48F;
-
-    private static final int CRAFTING_U = 0;
-    private static final int CRAFTING_V = 10;
-    private static final int CRAFTING_CROP_WIDTH = 118;
-    private static final int CRAFTING_CROP_HEIGHT = 52;
-
-    private static final int FURNACE_U = 26;
-    private static final int FURNACE_V = 12;
-    private static final int FURNACE_CROP_WIDTH = 102;
-    private static final int FURNACE_CROP_HEIGHT = 50;
-
-    private static final int STONECUTTER_U = 0;
-    private static final int STONECUTTER_V = 10;
-    private static final int STONECUTTER_CROP_WIDTH = 118;
-    private static final int STONECUTTER_CROP_HEIGHT = 48;
-
-    private static final int CRAFT_SLOT_ORIGIN_X = 30;
-    private static final int CRAFT_SLOT_ORIGIN_Y = 17;
-    private static final int CRAFT_RESULT_X = 98;
-    private static final int CRAFT_RESULT_Y = 35;
-    private static final int SLOT_SIZE = 18;
-
-    private static final int FURNACE_INPUT_X = 56;
-    private static final int FURNACE_INPUT_Y = 17;
-    private static final int FURNACE_RESULT_X = 116;
-    private static final int FURNACE_RESULT_Y = 17;
-
-    private static final int STONECUTTER_INPUT_X = 20;
-    private static final int STONECUTTER_INPUT_Y = 14;
-    private static final int STONECUTTER_RESULT_X = 96;
-    private static final int STONECUTTER_RESULT_Y = 14;
+    private static final int PANEL_WIDTH = 138;
+    private static final int PANEL_HEIGHT = 70;
+    private static final int SLOT_SIZE = 20;
+    private static final int SLOT_BORDER_COLOR = 0xFF6F6251;
+    private static final int SLOT_COLOR = 0xFFD8CDB9;
+    private static final int PANEL_BORDER_COLOR = 0xFF9D845A;
+    private static final int PANEL_COLOR = 0xFFE2D2AD;
 
     private FieldGuideRecipePanel() {
     }
@@ -166,25 +132,36 @@ public final class FieldGuideRecipePanel {
             return y;
         }
 
-        int x = centeredX(bookLeft, CRAFTING_CROP_WIDTH);
-        blitStationPreview(graphics, CRAFTING_TABLE_GUI, x, y, CRAFTING_U, CRAFTING_V, CRAFTING_CROP_WIDTH, CRAFTING_CROP_HEIGHT);
+        int x = centeredX(bookLeft);
+        renderPanel(graphics, x, y);
+        int gridX = x + 7;
+        int gridY = y + 5;
+        for (int row = 0; row < 3; row++) {
+            for (int column = 0; column < 3; column++) {
+                renderSlot(graphics, gridX + column * SLOT_SIZE, gridY + row * SLOT_SIZE);
+            }
+        }
 
         FieldGuideRecipeGridBuilder.CraftingPreview crafting = preview.get();
         for (FieldGuideRecipeGridBuilder.GridSlot slot : crafting.slots()) {
-            int slotX = x + scaled(CRAFT_SLOT_ORIGIN_X - CRAFTING_U + slot.column() * SLOT_SIZE);
-            int slotY = y + scaled(CRAFT_SLOT_ORIGIN_Y - CRAFTING_V + slot.row() * SLOT_SIZE);
-            drawItem(graphics, client.font, slot.stack(), slotX, slotY, mouseX, mouseY);
+            int slotX = gridX + slot.column() * SLOT_SIZE;
+            int slotY = gridY + slot.row() * SLOT_SIZE;
+            drawItemInSlot(graphics, client.font, slot.stack(), slotX, slotY, mouseX, mouseY);
         }
+        graphics.text(client.font, Component.literal(">"), x + 76, y + 29, FieldGuideBookLayout.INDEX_HEADER_COLOR, false);
+        int resultX = x + 103;
+        int resultY = y + 25;
+        renderSlot(graphics, resultX, resultY);
         drawItem(
                 graphics,
                 client.font,
                 crafting.result(),
-                x + scaled(CRAFT_RESULT_X - CRAFTING_U),
-                y + scaled(CRAFT_RESULT_Y - CRAFTING_V),
+                resultX + 2,
+                resultY + 2,
                 mouseX,
                 mouseY
         );
-        return y + scaled(CRAFTING_CROP_HEIGHT);
+        return y + PANEL_HEIGHT;
     }
 
     private static int renderFurnacePreview(
@@ -201,13 +178,22 @@ public final class FieldGuideRecipePanel {
             return y;
         }
 
-        int x = centeredX(bookLeft, FURNACE_CROP_WIDTH);
-        blitStationPreview(graphics, FURNACE_GUI, x, y, FURNACE_U, FURNACE_V, FURNACE_CROP_WIDTH, FURNACE_CROP_HEIGHT);
+        int x = centeredX(bookLeft);
+        renderPanel(graphics, x, y);
+        int inputX = x + 20;
+        int outputX = x + 98;
+        int slotY = y + 19;
+        renderSlot(graphics, inputX, slotY);
+        renderSlot(graphics, outputX, slotY);
+        graphics.text(client.font, Component.literal(">"), x + 68, y + 26, FieldGuideBookLayout.INDEX_HEADER_COLOR, false);
+        graphics.fill(x + 46, y + 47, x + 49, y + 55, 0xFFE59A35);
+        graphics.fill(x + 50, y + 43, x + 53, y + 55, 0xFFC9652C);
+        graphics.fill(x + 54, y + 48, x + 57, y + 55, 0xFFE59A35);
         ItemStack input = furnace.ingredient().resolveForFirstStack(context);
         ItemStack result = furnace.result().resolveForFirstStack(context);
-        drawItem(graphics, client.font, input, x + scaled(FURNACE_INPUT_X - FURNACE_U), y + scaled(FURNACE_INPUT_Y - FURNACE_V), mouseX, mouseY);
-        drawItem(graphics, client.font, result, x + scaled(FURNACE_RESULT_X - FURNACE_U), y + scaled(FURNACE_RESULT_Y - FURNACE_V), mouseX, mouseY);
-        return y + scaled(FURNACE_CROP_HEIGHT);
+        drawItemInSlot(graphics, client.font, input, inputX, slotY, mouseX, mouseY);
+        drawItemInSlot(graphics, client.font, result, outputX, slotY, mouseX, mouseY);
+        return y + PANEL_HEIGHT;
     }
 
     private static int renderStonecutterPreview(
@@ -224,46 +210,49 @@ public final class FieldGuideRecipePanel {
             return y;
         }
 
-        int x = centeredX(bookLeft, STONECUTTER_CROP_WIDTH);
-        blitStationPreview(graphics, STONECUTTER_GUI, x, y, STONECUTTER_U, STONECUTTER_V, STONECUTTER_CROP_WIDTH, STONECUTTER_CROP_HEIGHT);
+        int x = centeredX(bookLeft);
+        renderPanel(graphics, x, y);
+        int inputX = x + 20;
+        int outputX = x + 98;
+        int slotY = y + 24;
+        renderSlot(graphics, inputX, slotY);
+        renderSlot(graphics, outputX, slotY);
+        graphics.text(client.font, Component.literal(">"), x + 68, y + 31, FieldGuideBookLayout.INDEX_HEADER_COLOR, false);
+        graphics.fill(x + 47, y + 17, x + 58, y + 19, 0xFF70675B);
+        graphics.fill(x + 50, y + 14, x + 55, y + 22, 0xFF8A8175);
         ItemStack input = stonecutter.input().resolveForFirstStack(context);
         ItemStack result = stonecutter.result().resolveForFirstStack(context);
-        drawItem(graphics, client.font, input, x + scaled(STONECUTTER_INPUT_X - STONECUTTER_U), y + scaled(STONECUTTER_INPUT_Y - STONECUTTER_V), mouseX, mouseY);
-        drawItem(graphics, client.font, result, x + scaled(STONECUTTER_RESULT_X - STONECUTTER_U), y + scaled(STONECUTTER_RESULT_Y - STONECUTTER_V), mouseX, mouseY);
-        return y + scaled(STONECUTTER_CROP_HEIGHT);
+        drawItemInSlot(graphics, client.font, input, inputX, slotY, mouseX, mouseY);
+        drawItemInSlot(graphics, client.font, result, outputX, slotY, mouseX, mouseY);
+        return y + PANEL_HEIGHT;
     }
 
-    private static int centeredX(int bookLeft, int sourceWidth) {
-        int previewWidth = scaled(sourceWidth);
+    private static int centeredX(int bookLeft) {
         int pageCenter = bookLeft + FieldGuideBookLayout.RIGHT_PAGE_X + FieldGuideBookLayout.RIGHT_PAGE_WIDTH / 2;
-        return pageCenter - previewWidth / 2;
+        return pageCenter - PANEL_WIDTH / 2;
     }
 
-    private static void blitStationPreview(
+    private static void renderPanel(GuiGraphicsExtractor graphics, int x, int y) {
+        graphics.fill(x, y, x + PANEL_WIDTH, y + PANEL_HEIGHT, PANEL_BORDER_COLOR);
+        graphics.fill(x + 2, y + 2, x + PANEL_WIDTH - 2, y + PANEL_HEIGHT - 2, PANEL_COLOR);
+    }
+
+    private static void renderSlot(GuiGraphicsExtractor graphics, int x, int y) {
+        graphics.fill(x, y, x + SLOT_SIZE, y + SLOT_SIZE, SLOT_BORDER_COLOR);
+        graphics.fill(x + 2, y + 2, x + SLOT_SIZE - 1, y + SLOT_SIZE - 1, SLOT_COLOR);
+        graphics.fill(x + 2, y + 2, x + SLOT_SIZE - 2, y + 3, 0xFFF1E9DA);
+    }
+
+    private static void drawItemInSlot(
             GuiGraphicsExtractor graphics,
-            Identifier texture,
-            int x,
-            int y,
-            int sourceU,
-            int sourceV,
-            int sourceWidth,
-            int sourceHeight
+            Font font,
+            ItemStack stack,
+            int slotX,
+            int slotY,
+            int mouseX,
+            int mouseY
     ) {
-        int width = scaled(sourceWidth);
-        int height = scaled(sourceHeight);
-        graphics.fill(x - 1, y - 1, x + width + 1, y + height + 1, 0xFF5C4A32);
-        graphics.blit(
-                RenderPipelines.GUI_TEXTURED,
-                texture,
-                x,
-                y,
-                sourceU,
-                sourceV,
-                width,
-                height,
-                256,
-                256
-        );
+        drawItem(graphics, font, stack, slotX + 2, slotY + 2, mouseX, mouseY);
     }
 
     private static void drawItem(
@@ -285,10 +274,6 @@ public final class FieldGuideRecipePanel {
         if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
             graphics.setTooltipForNextFrame(font, stack, mouseX, mouseY);
         }
-    }
-
-    private static int scaled(int value) {
-        return Math.round(value * PREVIEW_SCALE);
     }
 
     private static boolean matchesStation(RecipeDisplay display, Station station) {

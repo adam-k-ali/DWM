@@ -10,11 +10,9 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.PlainTextButton;
-import net.minecraft.client.gui.screens.inventory.BookViewScreen;
 import net.minecraft.client.gui.screens.inventory.PageButton;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -25,8 +23,8 @@ import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public class FieldGuideScreen extends Screen {
-    private static final int BODY_TEXT_MAX_LINES_WITH_RECIPE = 2;
-    private static final int BODY_TEXT_MAX_LINES_WITHOUT_RECIPE = 6;
+    private static final int BODY_TEXT_MAX_LINES_WITH_RECIPE = 4;
+    private static final int BODY_TEXT_MAX_LINES_WITHOUT_RECIPE = 10;
 
     private final List<PlainTextButton> chapterButtons = new ArrayList<>();
     private final List<PlainTextButton> pageButtons = new ArrayList<>();
@@ -57,15 +55,15 @@ public class FieldGuideScreen extends Screen {
         bookLeft = FieldGuideBookLayout.bookLeft(width);
         bookTop = FieldGuideBookLayout.bookTop(height);
 
-        clearIndexWidgets();
-        rebuildIndexWidgets();
-
         if (selectedPage == null) {
             selectedChapter = FieldGuideCatalog.chapters().getFirst();
             selectedPage = selectedChapter.pages().getFirst();
         } else if (selectedChapter == null) {
             selectedChapter = FieldGuideCatalog.chapterForPage(selectedPage);
         }
+
+        clearIndexWidgets();
+        rebuildIndexWidgets();
 
         backPageButton = addRenderableWidget(new PageButton(
                 bookLeft + FieldGuideBookLayout.PAGE_BACK_X,
@@ -105,6 +103,11 @@ public class FieldGuideScreen extends Screen {
     }
 
     private void rebuildIndexWidgets() {
+        chapterButtons.forEach(this::removeWidget);
+        chapterButtons.clear();
+        pageButtons.forEach(this::removeWidget);
+        pageButtons.clear();
+
         int chapterY = bookTop + FieldGuideBookLayout.INDEX_CONTENT_Y;
         for (FieldGuideChapter chapter : FieldGuideCatalog.chapters()) {
             FieldGuideChapter targetChapter = chapter;
@@ -120,11 +123,11 @@ public class FieldGuideScreen extends Screen {
             );
             addRenderableWidget(chapterButton);
             chapterButtons.add(chapterButton);
-            chapterY += FieldGuideBookLayout.CHAPTER_ENTRY_HEIGHT;
+            chapterY += FieldGuideBookLayout.CHAPTER_ENTRY_HEIGHT + 1;
         }
 
         if (selectedChapter != null) {
-            int pageY = chapterY + 2;
+            int pageY = bookTop + FieldGuideBookLayout.PAGE_CONTENT_Y;
             for (FieldGuidePage page : selectedChapter.pages()) {
                 FieldGuidePage targetPage = page;
                 boolean selected = page.equals(selectedPage);
@@ -232,17 +235,40 @@ public class FieldGuideScreen extends Screen {
     @Override
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         super.extractBackground(graphics, mouseX, mouseY, delta);
-        graphics.blit(
-                RenderPipelines.GUI_TEXTURED,
-                BookViewScreen.BOOK_LOCATION,
-                bookLeft,
-                bookTop,
-                0.0F,
-                0.0F,
-                FieldGuideBookLayout.BOOK_WIDTH,
-                FieldGuideBookLayout.BOOK_HEIGHT,
-                256,
-                256
+        renderCatalogBackground(graphics);
+    }
+
+    private void renderCatalogBackground(GuiGraphicsExtractor graphics) {
+        int right = bookLeft + FieldGuideBookLayout.BOOK_WIDTH;
+        int bottom = bookTop + FieldGuideBookLayout.BOOK_HEIGHT;
+
+        graphics.fill(bookLeft + 4, bookTop + 5, right + 5, bottom + 6, 0x70000000);
+        graphics.fill(bookLeft, bookTop, right, bottom, FieldGuideBookLayout.COVER_EDGE_COLOR);
+        graphics.fill(bookLeft + 3, bookTop + 3, right - 3, bottom - 3, FieldGuideBookLayout.COVER_COLOR);
+
+        int leftPageRight = bookLeft + FieldGuideBookLayout.GUTTER_X;
+        int rightPageLeft = bookLeft + FieldGuideBookLayout.GUTTER_X + FieldGuideBookLayout.GUTTER_WIDTH;
+        graphics.fill(bookLeft + 8, bookTop + 7, leftPageRight, bottom - 7, FieldGuideBookLayout.PAGE_COLOR);
+        graphics.fill(rightPageLeft, bookTop + 7, right - 8, bottom - 7, FieldGuideBookLayout.PAGE_COLOR);
+        graphics.fill(bookLeft + 11, bookTop + 10, leftPageRight - 3, bottom - 10, FieldGuideBookLayout.PAGE_INSET_COLOR);
+        graphics.fill(rightPageLeft + 3, bookTop + 10, right - 11, bottom - 10, FieldGuideBookLayout.PAGE_INSET_COLOR);
+
+        graphics.fill(leftPageRight, bookTop + 5, rightPageLeft, bottom - 5, FieldGuideBookLayout.GUTTER_COLOR);
+        graphics.fill(leftPageRight + 3, bookTop + 8, rightPageLeft - 3, bottom - 8, 0x55301F18);
+
+        graphics.fill(
+                bookLeft + 12,
+                bookTop + FieldGuideBookLayout.HEADER_Y,
+                leftPageRight - 6,
+                bookTop + FieldGuideBookLayout.HEADER_Y + FieldGuideBookLayout.HEADER_HEIGHT,
+                FieldGuideBookLayout.HEADER_COLOR
+        );
+        graphics.fill(
+                rightPageLeft + 6,
+                bookTop + FieldGuideBookLayout.HEADER_Y,
+                right - 12,
+                bookTop + FieldGuideBookLayout.HEADER_Y + 3,
+                FieldGuideBookLayout.ACCENT_COLOR
         );
     }
 
@@ -259,20 +285,58 @@ public class FieldGuideScreen extends Screen {
 
         graphics.text(
                 font,
+                Component.translatable("dwm.guide.title"),
+                leftX + 5,
+                bookTop + FieldGuideBookLayout.HEADER_Y + 7,
+                0xFFFFFFFF,
+                false
+        );
+        graphics.text(
+                font,
                 Component.translatable("dwm.guide.index.header"),
                 leftX,
                 bookTop + FieldGuideBookLayout.INDEX_HEADER_Y,
                 FieldGuideBookLayout.INDEX_HEADER_COLOR,
                 false
         );
+        graphics.text(
+                font,
+                Component.literal("PAGES"),
+                leftX,
+                bookTop + FieldGuideBookLayout.PAGE_HEADER_Y,
+                FieldGuideBookLayout.INDEX_HEADER_COLOR,
+                false
+        );
+        graphics.fill(
+                leftX,
+                bookTop + FieldGuideBookLayout.PAGE_HEADER_Y + 10,
+                leftX + FieldGuideBookLayout.LEFT_PAGE_WIDTH - 6,
+                bookTop + FieldGuideBookLayout.PAGE_HEADER_Y + 11,
+                0xFFBCA477
+        );
 
         graphics.text(
                 font,
-                Component.translatable(selectedPage.titleKey()),
+                Component.translatable(selectedChapter.titleKey()).copy().withStyle(Style.EMPTY.withColor(FieldGuideBookLayout.MUTED_TEXT_COLOR)),
+                rightX,
+                bookTop + FieldGuideBookLayout.RIGHT_CHAPTER_Y,
+                FieldGuideBookLayout.MUTED_TEXT_COLOR,
+                false
+        );
+        graphics.text(
+                font,
+                Component.translatable(selectedPage.titleKey()).copy().withStyle(Style.EMPTY.withBold(true)),
                 rightX,
                 bookTop + FieldGuideBookLayout.RIGHT_TITLE_Y,
                 FieldGuideBookLayout.TITLE_COLOR,
                 false
+        );
+        graphics.fill(
+                rightX,
+                bookTop + FieldGuideBookLayout.RIGHT_TITLE_Y + 12,
+                rightX + FieldGuideBookLayout.RIGHT_PAGE_WIDTH,
+                bookTop + FieldGuideBookLayout.RIGHT_TITLE_Y + 13,
+                FieldGuideBookLayout.ACCENT_COLOR
         );
         renderWrappedBody(
                 graphics,
@@ -295,11 +359,22 @@ public class FieldGuideScreen extends Screen {
         graphics.text(
                 font,
                 indicator,
-                rightX,
+                rightX + 28,
                 bookTop + FieldGuideBookLayout.RIGHT_INDICATOR_Y,
-                FieldGuideBookLayout.TEXT_COLOR,
+                FieldGuideBookLayout.MUTED_TEXT_COLOR,
                 false
         );
+
+        if (!FieldGuideRecipePanel.availableStations(selectedPage).isEmpty()) {
+            graphics.text(
+                    font,
+                    selectedStation.label().copy().append(" RECIPE").withStyle(Style.EMPTY.withBold(true)),
+                    rightX,
+                    bookTop + FieldGuideBookLayout.RIGHT_RECIPE_LABEL_Y,
+                    FieldGuideBookLayout.INDEX_HEADER_COLOR,
+                    false
+            );
+        }
 
         FieldGuideRecipePanel.render(
                 graphics,
@@ -313,13 +388,13 @@ public class FieldGuideScreen extends Screen {
         );
 
         if (selectedPage.patternPage()) {
-            graphics.text(
-                    font,
+            renderWrappedBody(
+                    graphics,
                     Component.translatable("dwm.guide.pattern.all_colours"),
                     rightX,
                     bookTop + FieldGuideBookLayout.RIGHT_PATTERN_Y,
-                    0xFF666666,
-                    false
+                    FieldGuideBookLayout.RIGHT_PAGE_WIDTH,
+                    2
             );
         }
     }
