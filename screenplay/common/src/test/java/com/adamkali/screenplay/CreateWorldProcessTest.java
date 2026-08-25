@@ -18,6 +18,7 @@ class CreateWorldProcessTest {
         assertEquals("creative", normalized.get("gameMode"));
         assertEquals("peaceful", normalized.get("difficulty"));
         assertEquals(true, normalized.get("allowCommands"));
+        assertEquals("42", normalized.get("seed"));
         assertFalse(normalized.containsKey("name"));
     }
 
@@ -95,12 +96,32 @@ class CreateWorldProcessTest {
     }
 
     @Test
+    void parseSeedAcceptsStringIntegerAndDefault() {
+        assertEquals("42", CreateWorldProcess.parseSeed(null));
+        assertEquals("99", CreateWorldProcess.parseSeed(99));
+        assertEquals("100", CreateWorldProcess.parseSeed(100L));
+        assertEquals("custom", CreateWorldProcess.parseSeed("custom"));
+
+        ScenarioException blank = assertThrows(
+                ScenarioException.class,
+                () -> CreateWorldProcess.parseSeed("  ")
+        );
+        ScenarioException wrongType = assertThrows(
+                ScenarioException.class,
+                () -> CreateWorldProcess.parseSeed(true)
+        );
+
+        assertTrue(blank.getMessage().contains("createWorld seed must be a non-empty string or integer"));
+        assertTrue(wrongType.getMessage().contains("createWorld seed must be a non-empty string or integer"));
+    }
+
+    @Test
     void normalizeRejectsUnknownKeys() {
         ScenarioException exception = assertThrows(
                 ScenarioException.class,
-                () -> CreateWorldProcess.normalize(Map.of("seed", "1"))
+                () -> CreateWorldProcess.normalize(Map.of("foo", "1"))
         );
 
-        assertTrue(exception.getMessage().contains("createWorld does not accept 'seed'"));
+        assertTrue(exception.getMessage().contains("createWorld does not accept 'foo'"));
     }
 }
