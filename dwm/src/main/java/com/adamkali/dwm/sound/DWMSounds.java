@@ -26,6 +26,9 @@ public class DWMSounds {
     public static final SoundEvent MEWING_DOG_HURT = register("entity.mewing_dog.hurt");
     public static final SoundEvent MEWING_DOG_DEATH = register("entity.mewing_dog.death");
     public static final SoundEvent MEWING_DOG_STEP = register("entity.mewing_dog.step");
+    public static final SoundEvent TIME_LORD_AMBIENT = register("entity.time_lord.ambient");
+    public static final SoundEvent TIME_LORD_HURT = register("entity.time_lord.hurt");
+    public static final SoundEvent TIME_LORD_DEATH = register("entity.time_lord.death");
 
     public static void initialize() {
     }

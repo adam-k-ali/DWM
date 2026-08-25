@@ -11,11 +11,13 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.vehicle.boat.Boat;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.tags.BlockTags;
 
 public final class DWMEntityTypes {
     public static EntityType<Boat> ASH_BOAT;
@@ -26,6 +28,7 @@ public final class DWMEntityTypes {
     public static EntityType<BroakirEntity> BROAKIR;
     public static EntityType<FlutterwingEntity> FLUTTERWING;
     public static EntityType<MewingDogEntity> MEWING_DOG;
+    public static EntityType<TimeLordEntity> TIME_LORD;
 
     private DWMEntityTypes() {
     }
@@ -42,6 +45,7 @@ public final class DWMEntityTypes {
         BROAKIR = registerBroakir();
         FLUTTERWING = registerFlutterwing();
         MEWING_DOG = registerMewingDog();
+        TIME_LORD = registerTimeLord();
     }
 
     private static EntityType<TardisSeatEntity> registerSeat() {
@@ -150,6 +154,32 @@ public final class DWMEntityTypes {
                         )
                         .sized(0.6F, 0.85F)
                         .eyeHeight(0.68F)
+                        .clientTrackingRange(10)
+                        .build(key)
+        );
+    }
+
+    private static EntityType<TimeLordEntity> registerTimeLord() {
+        Identifier id = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "time_lord");
+        ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, id);
+        return Registry.register(
+                BuiltInRegistries.ENTITY_TYPE,
+                key,
+                FabricEntityType.Builder.createMob(
+                                TimeLordEntity::new,
+                                MobCategory.CREATURE,
+                                mob -> mob
+                                        .spawnPlacement(
+                                                SpawnPlacementTypes.ON_GROUND,
+                                                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                                                (type, level, reason, pos, random) ->
+                                                        Mob.checkMobSpawnRules(type, level, reason, pos, random)
+                                                                && level.getBlockState(pos.below()).is(BlockTags.DIRT)
+                                        )
+                                        .defaultAttributes(TimeLordEntity::createAttributes)
+                        )
+                        .sized(0.6F, 1.95F)
+                        .eyeHeight(1.62F)
                         .clientTrackingRange(10)
                         .build(key)
         );

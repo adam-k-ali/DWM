@@ -629,6 +629,47 @@ public class ResourceValidationTests {
     }
 
     @Test
+    public void timeLordEntityTexturesExist() throws Exception {
+        for (int i = 1; i <= 4; i++) {
+            Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/time_lord_" + i + ".png");
+            assertTrue(
+                    Files.isRegularFile(texture) && Files.size(texture) > 0,
+                    "TimeLordRenderer expects assets/dwm/textures/entity/time_lord_" + i + ".png"
+            );
+        }
+    }
+
+    @Test
+    public void timeLordSpawnEggTextureExists() throws Exception {
+        Path texture = Path.of("src/client/resources/assets/dwm/textures/item/time_lord_spawn_egg.png");
+        assertTrue(
+                Files.isRegularFile(texture) && Files.size(texture) > 0,
+                "Spawn egg item model expects assets/dwm/textures/item/time_lord_spawn_egg.png"
+        );
+    }
+
+    /**
+     * Guards against {@code pruneDatagenItemModels} dropping the Time Lord spawn egg item def
+     * (allowlist must include {@code time_lord} substring).
+     */
+    @Test
+    public void generatedTimeLordSpawnEggItemModelExists() throws Exception {
+        Path item = Path.of("src/main/generated/assets/dwm/items/time_lord_spawn_egg.json");
+        assertTrue(
+                Files.isRegularFile(item) && Files.size(item) > 0,
+                "Missing generated Time Lord spawn egg item model: " + item
+        );
+    }
+
+    @Test
+    public void gallifreyForestAndPlainsSpawnTimeLord() throws Exception {
+        assertTrue(biomeHasCreatureSpawn("gallifrey_forest.json", "dwm:time_lord"));
+        assertTrue(biomeHasCreatureSpawn("gallifrey_plains.json", "dwm:time_lord"));
+        assertFalse(biomeHasCreatureSpawn("gallifrey_wastes.json", "dwm:time_lord"));
+        assertFalse(biomeHasCreatureSpawn("gallifrey_badlands.json", "dwm:time_lord"));
+    }
+
+    @Test
     public void mewingDogAmbientSoundFilesExist() throws Exception {
         for (String name : new String[]{"ambient", "ambient_2"}) {
             Path sound = Path.of("src/client/resources/assets/dwm/sounds/entity/mewing_dog/" + name + ".ogg");

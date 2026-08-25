@@ -271,6 +271,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItem(t, DWMItems.FLUTTERWING_SPAWN_EGG, "Flutterwing Spawn Egg");
         t.add(DWMEntityTypes.MEWING_DOG, "Mewing Dog");
         addItem(t, DWMItems.MEWING_DOG_SPAWN_EGG, "Mewing Dog Spawn Egg");
+        t.add(DWMEntityTypes.TIME_LORD, "Time Lord");
+        addItem(t, DWMItems.TIME_LORD_SPAWN_EGG, "Time Lord Spawn Egg");
         t.add("dimension.dwm.gallifrey", "Gallifrey");
         t.add("biome.dwm.gallifrey_plains", "Gallifrey Plains");
         t.add("biome.dwm.gallifrey_forest", "Gallifrey Forest");
@@ -409,6 +411,9 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.entity.mewing_dog.ambient.subtitle", "Mewing Dog mews");
         t.add("dwm.entity.mewing_dog.hurt.subtitle", "Mewing Dog hurts");
         t.add("dwm.entity.mewing_dog.death.subtitle", "Mewing Dog dies");
+        t.add("dwm.entity.time_lord.ambient.subtitle", "Time Lord murmurs");
+        t.add("dwm.entity.time_lord.hurt.subtitle", "Time Lord hurts");
+        t.add("dwm.entity.time_lord.death.subtitle", "Time Lord dies");
         t.add("config.dwm.title", "Doctor Who Mod");
         t.add("stat.dwm.sonic_screwdriver_use", "Uses of Sonic Screwdriver");
         t.add("advancements.dwm.sonic_screwdriver", "Sonic Screwdriver");
