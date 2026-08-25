@@ -108,9 +108,13 @@ guiScale:1
     private static void configureLoaderRun(Project project, ScreenplayExtension extension, String loader) {
         def scenarioId = project.providers.gradleProperty('screenplay').orElse('createWorld')
         def timeout = project.providers.gradleProperty('screenplayTimeout').orElse('30')
+        def baselinesDirProperty = project.providers.gradleProperty('screenplayBaselinesDir')
         def reportFile = project.layout.buildDirectory.file("${extension.outputDir}/report.xml").get().asFile.absolutePath
         def vanillaServerDir = project.layout.buildDirectory.dir("${extension.outputDir}/vanilla-server").get().asFile.absolutePath
         def runDir = extension.runDir
+        def baselinesDir = baselinesDirProperty.isPresent()
+                ? project.file(baselinesDirProperty.get()).absolutePath
+                : null
 
         if (loader == 'fabric') {
             def loom = project.extensions.findByName('loom')
@@ -131,6 +135,9 @@ guiScale:1
             run.property 'screenplay.step-timeout-seconds', timeout.get()
             run.property 'screenplay.report-file', reportFile
             run.property 'screenplay.vanilla-server-dir', vanillaServerDir
+            if (baselinesDir != null) {
+                run.property 'screenplay.baselines-dir', baselinesDir
+            }
             run.runDir runDir
 
             // Stable task name for docs/CI regardless of Loom run config name.
@@ -173,6 +180,9 @@ guiScale:1
                 run.systemProperty 'screenplay.step-timeout-seconds', timeout.get()
                 run.systemProperty 'screenplay.report-file', reportFile
                 run.systemProperty 'screenplay.vanilla-server-dir', vanillaServerDir
+                if (baselinesDir != null) {
+                    run.systemProperty 'screenplay.baselines-dir', baselinesDir
+                }
             }
         } catch (Throwable ex) {
             project.logger.warn("Screenplay could not fully configure ${loader} run: ${ex.message}")
@@ -229,6 +239,7 @@ guiScale:1
     private static void registerRunAllTask(Project project, ScreenplayExtension extension) {
         def displayMode = project.providers.gradleProperty('screenplayDisplay').orElse('display')
         def timeoutProperty = project.providers.gradleProperty('screenplayTimeout')
+        def baselinesDirProperty = project.providers.gradleProperty('screenplayBaselinesDir')
         def projectDirFile = project.layout.projectDirectory.asFile
         def resultsRoot = project.layout.buildDirectory.dir("${extension.outputDir}/results")
         def testsDirs = extension.allTestsDirs()
@@ -263,6 +274,9 @@ guiScale:1
                     args << "-PscreenplayDisplay=${displayMode.get()}"
                     if (timeoutProperty.isPresent()) {
                         args << "-PscreenplayTimeout=${timeoutProperty.get()}"
+                    }
+                    if (baselinesDirProperty.isPresent()) {
+                        args << "-PscreenplayBaselinesDir=${baselinesDirProperty.get()}"
                     }
                     def result = execOps.exec {
                         workingDir projectDirFile
