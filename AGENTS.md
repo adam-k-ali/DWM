@@ -18,7 +18,7 @@
 - `tools/`: Offline Python scripts (TARDIS SFX generation/analysis); not part of Gradle build.
 - `metadata/`: Modrinth listing (`modrinth.json`, `modrinth-body.md`).
 - `screenplay-common` / `screenplay-fabric`: Screenplay real-client scenario library (Fabric path used by this mod).
-- `screenplay-loaders/`: Included build for `screenplay-forge` and `screenplay-neoforge` (isolated from Loom).
+- `screenplay-loaders/`: Separate Gradle build for `screenplay-forge` and `screenplay-neoforge` (not wired into the Fabric root; use `./gradlew -p screenplay-loaders`).
 - `screenplay-gradle-plugin`: Gradle plugin `com.adamkali.screenplay` (`runScreenplay`, `runScreenplayTests`).
 - `screenplay-docs/`: Screenplay GitHub Pages site (MkDocs Material) — published at https://adam-k-ali.github.io/DWM/
 - `metadata/screenplay/`: Screenplay Modrinth listing drafts (`modrinth.json`, `modrinth-body.md`).
