@@ -31,12 +31,15 @@ jobs:
 
       - name: Resolve mod version
         id: version
+        working-directory: dwm
         run: |
+          chmod +x ./gradlew
           MOD_VERSION=$(./gradlew properties -q | awk '/^mod_version:/ { print $2; exit }')
           echo "mod_version=${MOD_VERSION}" >> "$GITHUB_OUTPUT"
           echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Build
+        working-directory: dwm
         run: |
           chmod +x ./gradlew
           ./gradlew build
@@ -69,7 +72,7 @@ jobs:
                   f"Tag mod version {mod_version!r} does not match gradle mod_version {mod_version_prop!r}"
               )
 
-          root = json.loads(Path("version.json").read_text(encoding="utf-8"))
+          root = json.loads(Path("dwm/version.json").read_text(encoding="utf-8"))
           entry = root.get(minecraft_version, {}).get(mod_version)
           lines = [f"## {version}", ""]
           detail_lines = []
@@ -155,8 +158,8 @@ jobs:
           tag_name: ${{ github.ref_name }}
           body_path: release-notes.md
           files: |
-            build/libs/dwm-${{ steps.version.outputs.mod_version }}.jar
-            build/libs/dwm-${{ steps.version.outputs.mod_version }}-sources.jar
+            dwm/build/libs/dwm-${{ steps.version.outputs.mod_version }}.jar
+            dwm/build/libs/dwm-${{ steps.version.outputs.mod_version }}-sources.jar
           fail_on_unmatched_files: true
           draft: false
           prerelease: false
@@ -172,8 +175,8 @@ jobs:
             echo "MODRINTH_TOKEN secret is not set" >&2
             exit 1
           fi
-          JAR="build/libs/dwm-${MOD_VERSION}.jar"
-          SOURCES="build/libs/dwm-${MOD_VERSION}-sources.jar"
+          JAR="dwm/build/libs/dwm-${MOD_VERSION}.jar"
+          SOURCES="dwm/build/libs/dwm-${MOD_VERSION}-sources.jar"
           if [ ! -f "$JAR" ] || [ ! -f "$SOURCES" ]; then
             echo "Missing build artifacts: $JAR and/or $SOURCES" >&2
             exit 1
@@ -202,7 +205,7 @@ jobs:
             echo "CURSEFORGE_TOKEN secret is not set" >&2
             exit 1
           fi
-          JAR="build/libs/dwm-${MOD_VERSION}.jar"
+          JAR="dwm/build/libs/dwm-${MOD_VERSION}.jar"
           if [ ! -f "$JAR" ]; then
             echo "Missing build artifact: $JAR" >&2
             exit 1

@@ -51,20 +51,6 @@ tickets/
 
 .cursor/
 
-# local tool venvs
-
-tools/.venv/
-tools/__pycache__/
-
-# local SFX golden / compare outputs (analysis only — never commit BBC/media samples)
-tools/fixtures/*.wav
-tools/fixtures/*.mp3
-tools/fixtures/*.ogg
-tools/fixtures/compare_out/
-
-# scenario harness local perf metrics (CI uploads artifacts; never commit run output)
-build/screenplay/metrics.json
-
 # accidental dependency jar extracts at repo root
 /LICENSE-fabric-rendering-v1
 /META-INF/
@@ -76,4 +62,18 @@ build/screenplay/metrics.json
 .fabric/
 
 # MkDocs local build output
-screenplay-docs/site/
+screenplay/docs/site/
+
+# scenario harness local perf metrics (CI uploads artifacts; never commit run output)
+dwm/build/screenplay/metrics.json
+screenplay/build/screenplay/metrics.json
+
+# local tool venvs
+dwm/tools/.venv/
+dwm/tools/__pycache__/
+
+# local SFX golden / compare outputs (analysis only — never commit BBC/media samples)
+dwm/tools/fixtures/*.wav
+dwm/tools/fixtures/*.mp3
+dwm/tools/fixtures/*.ogg
+dwm/tools/fixtures/compare_out/

@@ -15,12 +15,13 @@ DWM is a Minecraft mod built for the Fabric loader that brings elements of the "
   - Mixpanel (Analytics)
 
 ## Project Structure
-The project uses a split source set approach:
-- `src/main/java`: Common mod logic, blocks, items, networking, and TARDIS data management.
-- `src/client/java`: Client-only logic, including rendering (models, states), GUI, and client-side networking.
-- `src/test/java`: JUnit tests for TARDIS logic and networking.
-- `src/main/resources`: Assets (lang, data, structures, worldgen) and Fabric metadata.
-- `src/client/resources`: Client-side assets (models, textures, blockstates, sounds).
+This repository is a monorepo. Open `dwm/` as the Gradle project for mod work.
+- `dwm/src/main/java`: Common mod logic, blocks, items, networking, and TARDIS data management.
+- `dwm/src/client/java`: Client-only logic, including rendering (models, states), GUI, and client-side networking.
+- `dwm/src/test/java`: JUnit tests for TARDIS logic and networking.
+- `dwm/src/main/resources`: Assets (lang, data, structures, worldgen) and Fabric metadata.
+- `dwm/src/client/resources`: Client-side assets (models, textures, blockstates, sounds).
+- `screenplay/`: Sibling Screenplay harness (`./screenplay/gradlew`).
 
 ## Key Components
 - `DWMMain`: Main entry point for the mod.
@@ -31,7 +32,7 @@ The project uses a split source set approach:
 ## Development Guidelines
 - **Code Style:** Follow standard Java naming conventions and match the existing codebase's style.
 - **Testing:**
-  - Run tests using `./gradlew test`.
+  - Run tests using `./dwm/gradlew test`.
   - Use JUnit 5 and Mockito for unit testing.
-- **Build:** Build the project using `./gradlew build`.
-- **Data Generation:** The project uses Fabric's Data Generation API. Run `./gradlew runDatagen` if changes to data-driven files are needed.
+- **Build:** Build the project using `./dwm/gradlew build`.
+- **Data Generation:** The project uses Fabric's Data Generation API. Run `./dwm/gradlew runDatagen` if changes to data-driven files are needed.
