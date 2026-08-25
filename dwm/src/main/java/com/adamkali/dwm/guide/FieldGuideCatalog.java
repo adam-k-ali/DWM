@@ -60,4 +60,17 @@ public final class FieldGuideCatalog {
     public static List<FieldGuidePage> allPages() {
         return CHAPTERS.stream().flatMap(chapter -> chapter.pages().stream()).toList();
     }
+
+    public static FieldGuideChapter chapterForPage(FieldGuidePage page) {
+        for (FieldGuideChapter chapter : CHAPTERS) {
+            if (chapter.pages().contains(page)) {
+                return chapter;
+            }
+        }
+        throw new IllegalArgumentException("Unknown page: " + page.id());
+    }
+
+    public static int pageIndexInChapter(FieldGuideChapter chapter, FieldGuidePage page) {
+        return chapter.pages().indexOf(page);
+    }
 }

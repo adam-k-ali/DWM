@@ -62,6 +62,9 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.guide.recipe.stonecutting", "Stonecutting");
         t.add("dwm.guide.recipe.unavailable", "Recipe unavailable in this world.");
         t.add("dwm.guide.pattern.all_colours", "Same recipe for every colour — swap white for your chosen dye.");
+        t.add("dwm.guide.page.previous", "Previous Page");
+        t.add("dwm.guide.page.next", "Next Page");
+        t.add("dwm.guide.page.indicator", "%s · %s/%s");
 
         t.add("dwm.guide.chapter.quick_start", "Quick Start");
         t.add("dwm.guide.page.find_tardis.title", "Find a TARDIS");
