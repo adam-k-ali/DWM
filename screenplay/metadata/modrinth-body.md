@@ -71,7 +71,9 @@ Forge and NeoForge use the same plugin with `loader = 'forge'` or `loader = 'neo
 
 ## Roadmap
 
-Screenplay already covers interactive client scenarios and screenshot capture. Planned expansions include broader scenario coverage and first-class screenshot / visual regression helpers — without changing the YAML-first workflow.
+Screenplay already covers interactive client scenarios, screenshot capture, and
+optional pixel compare against CI baselines from `main`. Planned expansions include
+broader scenario coverage — without changing the YAML-first workflow.
 
 ## Loaders
 

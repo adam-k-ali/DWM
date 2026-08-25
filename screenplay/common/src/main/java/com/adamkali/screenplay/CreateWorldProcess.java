@@ -26,9 +26,10 @@ public final class CreateWorldProcess {
     static final String DEFAULT_GAME_MODE = "creative";
     static final String DEFAULT_DIFFICULTY = "peaceful";
     static final boolean DEFAULT_ALLOW_COMMANDS = true;
+    static final String DEFAULT_SEED = "42";
 
     private static final Set<String> KEYS = Set.of(
-            "worldType", "gameMode", "difficulty", "allowCommands", "name");
+            "worldType", "gameMode", "difficulty", "allowCommands", "name", "seed");
     private static final Set<String> GAME_MODES = Set.of("survival", "hardcore", "creative");
     private static final Set<String> DIFFICULTIES = Set.of("peaceful", "easy", "normal", "hard");
 
@@ -53,6 +54,7 @@ public final class CreateWorldProcess {
         normalized.put("gameMode", parseGameMode(arguments.get("gameMode")));
         normalized.put("difficulty", parseDifficulty(arguments.get("difficulty")));
         normalized.put("allowCommands", parseAllowCommands(arguments.get("allowCommands")));
+        normalized.put("seed", parseSeed(arguments.get("seed")));
         if (arguments.containsKey("name")) {
             normalized.put("name", parseName(arguments.get("name")));
         }
@@ -126,6 +128,25 @@ public final class CreateWorldProcess {
         return string;
     }
 
+    public static String parseSeed(Object value) {
+        if (value == null) {
+            return DEFAULT_SEED;
+        }
+        if (value instanceof Integer integer) {
+            return Integer.toString(integer);
+        }
+        if (value instanceof Long longValue) {
+            return Long.toString(longValue);
+        }
+        if (value instanceof String string) {
+            if (string.isBlank()) {
+                throw new ScenarioException("createWorld seed must be a non-empty string or integer");
+            }
+            return string;
+        }
+        throw new ScenarioException("createWorld seed must be a non-empty string or integer");
+    }
+
     public boolean tick(Minecraft client, Map<String, Object> arguments) {
         if (completed) {
             throw new ScenarioException("createWorld can only run once per scenario");
@@ -142,11 +163,12 @@ public final class CreateWorldProcess {
                 return false;
             }
             applySettings(createWorldScreen.getUiState(), arguments);
-            logger.info("Creating world type={} gameMode={} difficulty={} allowCommands={} name={}",
+            logger.info("Creating world type={} gameMode={} difficulty={} allowCommands={} seed={} name={}",
                     arguments.get("worldType"),
                     arguments.get("gameMode"),
                     arguments.get("difficulty"),
                     arguments.get("allowCommands"),
+                    arguments.get("seed"),
                     arguments.getOrDefault("name", "<vanilla>"));
             createWorldScreen.onCreate();
             created = true;
@@ -165,6 +187,7 @@ public final class CreateWorldProcess {
         uiState.setGameMode(toGameMode((String) arguments.get("gameMode")));
         uiState.setDifficulty(toDifficulty((String) arguments.get("difficulty")));
         uiState.setAllowCommands((Boolean) arguments.get("allowCommands"));
+        uiState.setSeed((String) arguments.get("seed"));
         Object name = arguments.get("name");
         if (name instanceof String worldName) {
             uiState.setName(worldName);

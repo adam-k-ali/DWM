@@ -5,10 +5,10 @@ to a full reference page with parameters and YAML examples.
 
 - [assertAndClick](commands/assertAndClick.md) — Assert a selector is visible, then click it (composite).
 - [assertVisible](commands/assertVisible.md) — Wait until a matching widget or screen is visible.
-- [captureScreenshot](commands/captureScreenshot.md) — Capture the current framebuffer to a PNG.
+- [captureScreenshot](commands/captureScreenshot.md) — Capture the current framebuffer to a PNG (optional compare vs CI baselines).
 - [click](commands/click.md) — Wait for an active matching widget and left-click its center.
 - [closeScreen](commands/closeScreen.md) — Close the current GUI / container screen.
-- [createWorld](commands/createWorld.md) — Create a local world with the given settings and wait until loaded.
+- [createWorld](commands/createWorld.md) — Create a local world with the given settings (deterministic seed default) and wait until loaded.
 - [debugScreen](commands/debugScreen.md) — Log the current screen class and every visible widget.
 - [keyboardInput](commands/keyboardInput.md) — Type text into the focused edit box.
 - [launchGame](commands/launchGame.md) — Wait until the title screen is ready.

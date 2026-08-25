@@ -15,6 +15,9 @@ jobs:
     name: DWM Screenplay scenarios
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    permissions:
+      contents: read
+      actions: read
 
     steps:
       - name: Checkout
@@ -44,13 +47,31 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Prepare screenshot baselines from main
+        id: baselines
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          DIR="$(bash .github/scripts/prepare-screenplay-baselines.sh screenplay-tests-dwm screenplay-baselines-dwm || true)"
+          if [[ -n "${DIR}" ]]; then
+            echo "dir=${DIR}" >> "${GITHUB_OUTPUT}"
+          fi
+
       - name: Run DWM Screenplay tests
         working-directory: dwm
         run: |
           chmod +x ./gradlew
-          ./gradlew runScreenplayTests \
-            -PscreenplayDisplay=xvfb \
+          ARGS=(
+            ./gradlew runScreenplayTests
+            -PscreenplayDisplay=xvfb
             -PscreenplayTimeout=120
+          )
+          if [[ -n "${{ steps.baselines.outputs.dir }}" ]]; then
+            ARGS+=(-PscreenplayBaselinesDir=${{ steps.baselines.outputs.dir }})
+          fi
+          "${ARGS[@]}"
         env:
           _JAVA_OPTIONS: -Xmx3200m
           GRADLE_OPTS: -Dorg.gradle.daemon=false
@@ -73,6 +94,9 @@ jobs:
     name: Screenplay library demos
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    permissions:
+      contents: read
+      actions: read
 
     steps:
       - name: Checkout
@@ -102,13 +126,31 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Prepare screenshot baselines from main
+        id: baselines
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          DIR="$(bash .github/scripts/prepare-screenplay-baselines.sh screenplay-tests-library screenplay-baselines-library || true)"
+          if [[ -n "${DIR}" ]]; then
+            echo "dir=${DIR}" >> "${GITHUB_OUTPUT}"
+          fi
+
       - name: Run Screenplay library demo tests
         working-directory: screenplay
         run: |
           chmod +x ./gradlew
-          ./gradlew runScreenplayTests \
-            -PscreenplayDisplay=xvfb \
+          ARGS=(
+            ./gradlew runScreenplayTests
+            -PscreenplayDisplay=xvfb
             -PscreenplayTimeout=120
+          )
+          if [[ -n "${{ steps.baselines.outputs.dir }}" ]]; then
+            ARGS+=(-PscreenplayBaselinesDir=${{ steps.baselines.outputs.dir }})
+          fi
+          "${ARGS[@]}"
         env:
           _JAVA_OPTIONS: -Xmx3200m
           GRADLE_OPTS: -Dorg.gradle.daemon=false

@@ -33,7 +33,9 @@ Marketing listing drafts: [`metadata/`](metadata/).
 
 From the monorepo root, prefer `./screenplay/gradlew …` so DWM and Screenplay never share a task namespace.
 
-Gradle properties: `-Pscreenplay=<id>`, `-PscreenplayTimeout=<seconds>`, `-PscreenplayDisplay=display|xvfb`.
+Gradle properties: `-Pscreenplay=<id>`, `-PscreenplayTimeout=<seconds>`,
+`-PscreenplayDisplay=display|xvfb`, optional `-PscreenplayBaselinesDir=<dir>` for
+`captureScreenshot` compare against main CI baselines.
 
 Default YAML root for this build: `common/src/main/resources/tests/`. Outputs land under `build/screenplay/`.
 

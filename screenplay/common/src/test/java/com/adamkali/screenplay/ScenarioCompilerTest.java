@@ -26,6 +26,7 @@ class ScenarioCompilerTest {
         assertEquals("creative", plan.steps().get(1).arguments().get("gameMode"));
         assertEquals("peaceful", plan.steps().get(1).arguments().get("difficulty"));
         assertEquals(true, plan.steps().get(1).arguments().get("allowCommands"));
+        assertEquals("42", plan.steps().get(1).arguments().get("seed"));
         assertEquals("openInventory", plan.steps().get(2).name());
         assertEquals("captureScreenshot", plan.steps().get(3).name());
     }
@@ -272,6 +273,72 @@ class ScenarioCompilerTest {
         assertEquals(1, plan.steps().size());
         assertEquals("captureScreenshot", plan.steps().get(0).name());
         assertEquals("after-world-tab.png", plan.steps().get(0).arguments().get("name"));
+    }
+
+    @Test
+    void compilesCaptureScreenshotWithCompare(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - captureScreenshot:
+                      name: world-ready
+                      compare: true
+                      maxDiffPixels: 12
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(1, plan.steps().size());
+        assertEquals("captureScreenshot", plan.steps().get(0).name());
+        assertEquals("world-ready.png", plan.steps().get(0).arguments().get("name"));
+        assertEquals(true, plan.steps().get(0).arguments().get("compare"));
+        assertEquals(12L, plan.steps().get(0).arguments().get("maxDiffPixels"));
+    }
+
+    @Test
+    void rejectsCaptureScreenshotCompareWithoutName(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - captureScreenshot:
+                      compare: true
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("captureScreenshot compare requires a non-empty string 'name'"));
+    }
+
+    @Test
+    void rejectsCaptureScreenshotInvalidCompare(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - captureScreenshot:
+                      name: shot
+                      compare: "yes"
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compile("test")
+        );
+
+        assertTrue(exception.getMessage().contains("captureScreenshot compare must be a boolean"));
     }
 
     @Test
@@ -571,6 +638,7 @@ class ScenarioCompilerTest {
         assertEquals("creative", plan.steps().get(1).arguments().get("gameMode"));
         assertEquals("peaceful", plan.steps().get(1).arguments().get("difficulty"));
         assertEquals(true, plan.steps().get(1).arguments().get("allowCommands"));
+        assertEquals("42", plan.steps().get(1).arguments().get("seed"));
         assertFalse(plan.steps().get(1).arguments().containsKey("name"));
     }
 
@@ -587,6 +655,7 @@ class ScenarioCompilerTest {
                       gameMode: creative
                       difficulty: peaceful
                       allowCommands: true
+                      seed: 99
                       name: Scenario World
                 """);
 
@@ -598,6 +667,7 @@ class ScenarioCompilerTest {
         assertEquals("creative", plan.steps().get(0).arguments().get("gameMode"));
         assertEquals("peaceful", plan.steps().get(0).arguments().get("difficulty"));
         assertEquals(true, plan.steps().get(0).arguments().get("allowCommands"));
+        assertEquals("99", plan.steps().get(0).arguments().get("seed"));
         assertEquals("Scenario World", plan.steps().get(0).arguments().get("name"));
         assertEquals("createWorld \"Scenario World\"", plan.steps().get(0).displayName());
     }
