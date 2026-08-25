@@ -48,7 +48,65 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
                 }
             }, family);
         }
+        addFieldGuide(translationBuilder);
         addMisc(translationBuilder);
+    }
+
+    private static void addFieldGuide(TranslationBuilder t) {
+        t.add("dwm.guide.title", "DWM Field Guide");
+        t.add("dwm.guide.open_button", "Field Guide");
+        t.add("key.dwm.field_guide", "Open Field Guide");
+        t.add("key.category.dwm.dwm", "Doctor Who Mod");
+        t.add("dwm.guide.recipe.crafting", "Crafting");
+        t.add("dwm.guide.recipe.smelting", "Smelting");
+        t.add("dwm.guide.recipe.stonecutting", "Stonecutting");
+        t.add("dwm.guide.recipe.unavailable", "Recipe unavailable in this world.");
+        t.add("dwm.guide.pattern.all_colours", "Same recipe for every colour — swap white for your chosen dye.");
+
+        t.add("dwm.guide.chapter.quick_start", "Quick Start");
+        t.add("dwm.guide.page.find_tardis.title", "Find a TARDIS");
+        t.add("dwm.guide.page.find_tardis.body",
+                "TARDIS exteriors appear in the world as police boxes. Explore until you spot one, then walk up to the doors.");
+        t.add("dwm.guide.page.claim_tardis.title", "Claim Your TARDIS");
+        t.add("dwm.guide.page.claim_tardis.body",
+                "Open the doors and step inside. The interior belongs to you once you enter — no extra item required.");
+        t.add("dwm.guide.page.first_hop.title", "First Hop");
+        t.add("dwm.guide.page.first_hop.body",
+                "Use the console to pick a destination and take a short same-world flight. Watch the scanner and wait for landing before leaving.");
+        t.add("dwm.guide.page.bind_key.title", "Bind a Key");
+        t.add("dwm.guide.page.bind_key.body",
+                "Craft a TARDIS key and use it on your ship to bind it. Bound keys recall that TARDIS from the Stattenheim remote.");
+
+        t.add("dwm.guide.chapter.sonic", "Sonic Toolkit");
+        t.add("dwm.guide.page.craft_sonic.title", "Craft a Sonic");
+        t.add("dwm.guide.page.craft_sonic.body",
+                "The Third Doctor sonic is the base recipe. Craft one from diamonds and redstone, then explore doctor variants.");
+        t.add("dwm.guide.page.doctor_variants.title", "Doctor Variants");
+        t.add("dwm.guide.page.doctor_variants.body",
+                "Combine the Third Doctor sonic with themed materials to unlock other Doctors' casings. Each variant keeps the same interactions.");
+        t.add("dwm.guide.page.use_sonic.title", "Using the Sonic");
+        t.add("dwm.guide.page.use_sonic.body",
+                "Right-click blocks and entities to interact. Many doors and panels respond to the sonic; sneak-use opens settings when available.");
+
+        t.add("dwm.guide.chapter.console_room", "Console Room Builder");
+        t.add("dwm.guide.page.chronoplasm.title", "Chronoplasm Powder");
+        t.add("dwm.guide.page.chronoplasm.body",
+                "Chronoplasm powder is the base interior material. Craft white powder first, then dye copies for coloured panels.");
+        t.add("dwm.guide.page.tardis_wall.title", "TARDIS Wall");
+        t.add("dwm.guide.page.tardis_wall.body",
+                "Smelt chronoplasm powder into TARDIS wall blocks. These form the bulk of console-room surfaces.");
+        t.add("dwm.guide.page.roundel_a.title", "Roundel A");
+        t.add("dwm.guide.page.roundel_a.body",
+                "Roundel A blocks add classic circular wall detail. Combine wall blocks with chronoplasm in a crafting grid.");
+        t.add("dwm.guide.page.roundel_b.title", "Roundel B");
+        t.add("dwm.guide.page.roundel_b.body",
+                "Roundel B uses a second pattern for variety. Mix A and B roundels to break up large wall runs.");
+        t.add("dwm.guide.page.big_roundel.title", "Big Roundel");
+        t.add("dwm.guide.page.big_roundel.body",
+                "Big roundels make focal points above consoles or doorways. They cost more wall but read clearly at a distance.");
+        t.add("dwm.guide.page.interior_props.title", "Interior Props");
+        t.add("dwm.guide.page.interior_props.body",
+                "Chairs, scanners, vents, and columns craft from white TARDIS wall. Small chairs are sittable with an empty-hand use.");
     }
 
     private static void addItems(TranslationBuilder t) {

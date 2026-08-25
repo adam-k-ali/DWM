@@ -1,0 +1,38 @@
+---
+name: Field Guide
+type: test
+---
+steps:
+  - launchGame
+  - createWorld:
+      worldType: superflat
+      gameMode: creative
+  - closeScreen
+  - openFieldGuide
+  - waitUntil:
+      visible:
+        type: screen
+        name: FieldGuideScreen
+  - captureScreenshot:
+      name: field-guide-default
+  - assertAndClick:
+      type: button
+      name: "TARDIS Wall"
+  - waitTicks: 5
+  - captureScreenshot:
+      name: field-guide-console-room
+  - assertAndClick:
+      type: button
+      name: "Chronoplasm Powder"
+  - waitTicks: 5
+  - captureScreenshot:
+      name: field-guide-chronoplasm-recipe
+  - closeScreen
+  - openFieldGuide:
+      via: pause
+  - waitUntil:
+      visible:
+        type: screen
+        name: FieldGuideScreen
+  - captureScreenshot:
+      name: field-guide-via-pause
