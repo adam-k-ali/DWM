@@ -22,7 +22,11 @@ public final class ScreenplayBootstrap {
     }
 
     public static void start(ScreenplayPlatform platform) {
-        String scenarioId = System.getProperty(SCENARIO_PROPERTY, "createWorld");
+        String scenarioId = System.getProperty(SCENARIO_PROPERTY);
+        if (scenarioId == null || scenarioId.isBlank()) {
+            // Loaded as a runtime dependency (e.g. DWM runClient) without a scenario selected.
+            return;
+        }
         ScenarioReportWriter reportWriter = new ScenarioReportWriter(Path.of(
                 System.getProperty(REPORT_PROPERTY, "build/screenplay/report.xml")
         ));
