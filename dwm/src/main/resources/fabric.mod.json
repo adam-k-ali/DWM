@@ -41,6 +41,7 @@
       "com.adamkali.dwm.gametest.ConsoleControlInteractionGameTests",
       "com.adamkali.dwm.gametest.BroakirGameTests",
       "com.adamkali.dwm.gametest.FlutterwingGameTests",
+      "com.adamkali.dwm.gametest.MewingDogGameTests",
       "com.adamkali.dwm.network.ChameleonGameTests"
     ]
   },

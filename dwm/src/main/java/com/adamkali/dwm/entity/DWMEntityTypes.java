@@ -25,6 +25,7 @@ public final class DWMEntityTypes {
     public static EntityType<ConsoleControlInteractionEntity> CONSOLE_CONTROL;
     public static EntityType<BroakirEntity> BROAKIR;
     public static EntityType<FlutterwingEntity> FLUTTERWING;
+    public static EntityType<MewingDogEntity> MEWING_DOG;
 
     private DWMEntityTypes() {
     }
@@ -40,6 +41,7 @@ public final class DWMEntityTypes {
         CONSOLE_CONTROL = registerConsoleControl();
         BROAKIR = registerBroakir();
         FLUTTERWING = registerFlutterwing();
+        MEWING_DOG = registerMewingDog();
     }
 
     private static EntityType<TardisSeatEntity> registerSeat() {
@@ -123,6 +125,31 @@ public final class DWMEntityTypes {
                         )
                         .sized(0.9F * FlutterwingEntity.SCALE, 1.5F * FlutterwingEntity.SCALE)
                         .eyeHeight(1.2F * FlutterwingEntity.SCALE)
+                        .clientTrackingRange(10)
+                        .build(key)
+        );
+    }
+
+    private static EntityType<MewingDogEntity> registerMewingDog() {
+        Identifier id = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "mewing_dog");
+        ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, id);
+        return Registry.register(
+                BuiltInRegistries.ENTITY_TYPE,
+                key,
+                FabricEntityType.Builder.createMob(
+                                MewingDogEntity::new,
+                                MobCategory.CREATURE,
+                                mob -> mob
+                                        .spawnPlacement(
+                                                SpawnPlacementTypes.ON_GROUND,
+                                                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                                                (type, level, reason, pos, random) ->
+                                                        Animal.checkAnimalSpawnRules(type, level, reason, pos, random)
+                                        )
+                                        .defaultAttributes(MewingDogEntity::createAttributes)
+                        )
+                        .sized(0.6F, 0.85F)
+                        .eyeHeight(0.68F)
                         .clientTrackingRange(10)
                         .build(key)
         );

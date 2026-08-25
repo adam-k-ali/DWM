@@ -8,6 +8,7 @@ import com.adamkali.dwm.model.entity.BroakirModel;
 import com.adamkali.dwm.model.entity.FlutterwingModel;
 import com.adamkali.dwm.render.BroakirRenderer;
 import com.adamkali.dwm.render.FlutterwingRenderer;
+import com.adamkali.dwm.render.MewingDogRenderer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
 import net.minecraft.client.model.geom.ModelLayerLocation;
@@ -38,5 +39,6 @@ public final class DWMEntityRenderers {
         EntityRendererRegistry.register(DWMEntityTypes.BROAKIR, BroakirRenderer::new);
         ModelLayerRegistry.registerModelLayer(FlutterwingModel.LAYER_LOCATION, FlutterwingModel::createBodyLayer);
         EntityRendererRegistry.register(DWMEntityTypes.FLUTTERWING, FlutterwingRenderer::new);
+        EntityRendererRegistry.register(DWMEntityTypes.MEWING_DOG, MewingDogRenderer::new);
     }
 }

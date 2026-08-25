@@ -102,6 +102,7 @@ public class DWMItems {
     public static Item CARDINAL_BOAT;
     public static Item BROAKIR_SPAWN_EGG;
     public static Item FLUTTERWING_SPAWN_EGG;
+    public static Item MEWING_DOG_SPAWN_EGG;
 
     public static void initialize() {
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
@@ -127,6 +128,11 @@ public class DWMItems {
                 SpawnEggItem::new,
                 new Item.Properties().spawnEgg(DWMEntityTypes.FLUTTERWING),
                 "flutterwing_spawn_egg"
+        );
+        MEWING_DOG_SPAWN_EGG = register(
+                SpawnEggItem::new,
+                new Item.Properties().spawnEgg(DWMEntityTypes.MEWING_DOG),
+                "mewing_dog_spawn_egg"
         );
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.INGREDIENTS).register(content -> {
@@ -167,6 +173,7 @@ public class DWMItems {
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.SPAWN_EGGS).register(content -> {
             content.accept(BROAKIR_SPAWN_EGG);
             content.accept(FLUTTERWING_SPAWN_EGG);
+            content.accept(MEWING_DOG_SPAWN_EGG);
         });
     }
 

@@ -589,6 +589,76 @@ public class ResourceValidationTests {
         }
     }
 
+    @Test
+    public void mewingDogEntityTextureExists() throws Exception {
+        Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/mewing_dog.png");
+        assertTrue(
+                Files.isRegularFile(texture) && Files.size(texture) > 0,
+                "MewingDogRenderer expects assets/dwm/textures/entity/mewing_dog.png"
+        );
+    }
+
+    @Test
+    public void mewingDogSpawnEggTextureExists() throws Exception {
+        Path texture = Path.of("src/client/resources/assets/dwm/textures/item/mewing_dog_spawn_egg.png");
+        assertTrue(
+                Files.isRegularFile(texture) && Files.size(texture) > 0,
+                "Spawn egg item model expects assets/dwm/textures/item/mewing_dog_spawn_egg.png"
+        );
+    }
+
+    /**
+     * Guards against {@code pruneDatagenItemModels} dropping the Mewing Dog spawn egg item def
+     * (allowlist must include {@code mewing_dog} substring).
+     */
+    @Test
+    public void generatedMewingDogSpawnEggItemModelExists() throws Exception {
+        Path item = Path.of("src/main/generated/assets/dwm/items/mewing_dog_spawn_egg.json");
+        assertTrue(
+                Files.isRegularFile(item) && Files.size(item) > 0,
+                "Missing generated Mewing Dog spawn egg item model: " + item
+        );
+    }
+
+    @Test
+    public void gallifreyForestOnlySpawnsMewingDog() throws Exception {
+        assertTrue(biomeHasCreatureSpawn("gallifrey_forest.json", "dwm:mewing_dog"));
+        assertFalse(biomeHasCreatureSpawn("gallifrey_plains.json", "dwm:mewing_dog"));
+        assertFalse(biomeHasCreatureSpawn("gallifrey_wastes.json", "dwm:mewing_dog"));
+        assertFalse(biomeHasCreatureSpawn("gallifrey_badlands.json", "dwm:mewing_dog"));
+    }
+
+    @Test
+    public void mewingDogAmbientSoundFilesExist() throws Exception {
+        for (String name : new String[]{"ambient", "ambient_2"}) {
+            Path sound = Path.of("src/client/resources/assets/dwm/sounds/entity/mewing_dog/" + name + ".ogg");
+            assertTrue(
+                    Files.isRegularFile(sound) && Files.size(sound) > 0,
+                    "Mewing Dog ambient expects " + sound
+            );
+        }
+        byte[] a = Files.readAllBytes(Path.of("src/client/resources/assets/dwm/sounds/entity/mewing_dog/ambient.ogg"));
+        byte[] b = Files.readAllBytes(Path.of("src/client/resources/assets/dwm/sounds/entity/mewing_dog/ambient_2.ogg"));
+        assertFalse(Arrays.equals(a, b), "ambient and ambient_2 clips should differ");
+    }
+
+    @Test
+    public void mewingDogAmbientIsCustomNotWolfAlias() throws Exception {
+        Path path = Path.of("src/main/resources/assets/dwm/sounds.json");
+        JSONObject sounds = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
+        assertTrue(sounds.has("entity.mewing_dog.ambient"), "Missing entity.mewing_dog.ambient");
+        var entries = sounds.getJSONObject("entity.mewing_dog.ambient").getJSONArray("sounds");
+        assertTrue(entries.length() > 0, "ambient should list at least one clip");
+        for (int i = 0; i < entries.length(); i++) {
+            String name = entries.getJSONObject(i).getString("name");
+            assertTrue(
+                    name.startsWith("dwm:entity/mewing_dog/"),
+                    "ambient should use a custom dwm clip, got " + name
+            );
+            assertFalse(name.contains("minecraft:entity.wolf"), "ambient must not alias wolf sounds");
+        }
+    }
+
     private static boolean biomeHasCreatureSpawn(String biomeFile, String entityId) throws Exception {
         Path path = Path.of("src/main/generated/data/dwm/worldgen/biome").resolve(biomeFile);
         assertTrue(Files.isRegularFile(path), "Missing generated biome: " + path);

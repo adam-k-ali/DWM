@@ -22,6 +22,10 @@ public class DWMSounds {
     public static final SoundEvent FLUTTERWING_AMBIENT = register("entity.flutterwing.ambient");
     public static final SoundEvent FLUTTERWING_HURT = register("entity.flutterwing.hurt");
     public static final SoundEvent FLUTTERWING_DEATH = register("entity.flutterwing.death");
+    public static final SoundEvent MEWING_DOG_AMBIENT = register("entity.mewing_dog.ambient");
+    public static final SoundEvent MEWING_DOG_HURT = register("entity.mewing_dog.hurt");
+    public static final SoundEvent MEWING_DOG_DEATH = register("entity.mewing_dog.death");
+    public static final SoundEvent MEWING_DOG_STEP = register("entity.mewing_dog.step");
 
     public static void initialize() {
     }

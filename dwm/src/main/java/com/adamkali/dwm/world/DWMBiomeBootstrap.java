@@ -67,6 +67,7 @@ public final class DWMBiomeBootstrap {
         BiomeDefaultFeatures.commonSpawns(spawns);
         addBroakirSpawns(spawns);
         addFlutterwingSpawns(spawns);
+        addMewingDogSpawns(spawns);
 
         BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(features, carvers);
         addBasicFeatures(generation);
@@ -142,6 +143,14 @@ public final class DWMBiomeBootstrap {
                 MobCategory.CREATURE,
                 10,
                 new MobSpawnSettings.SpawnerData(DWMEntityTypes.FLUTTERWING, 2, 4)
+        );
+    }
+
+    private static void addMewingDogSpawns(MobSpawnSettings.Builder spawns) {
+        spawns.addSpawn(
+                MobCategory.CREATURE,
+                8,
+                new MobSpawnSettings.SpawnerData(DWMEntityTypes.MEWING_DOG, 2, 4)
         );
     }
 

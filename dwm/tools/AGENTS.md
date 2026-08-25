@@ -12,6 +12,7 @@ Scripts synthesize and validate `.ogg` travel loops from spectral targets. Gener
 - Generate travel SFX: `tools/.venv/bin/python tools/generate_tardis_travel_sfx.py`
 - Compare against golden: `tools/.venv/bin/python tools/compare_tardis_sfx.py`
 - Flutterwing SFX: `tools/.venv/bin/python tools/generate_flutterwing_sfx.py`
+- Mewing Dog SFX: `tools/.venv/bin/python tools/generate_mewing_dog_sfx.py`
 
 See `tools/fixtures/README.md` for validate/compare report options.
 
