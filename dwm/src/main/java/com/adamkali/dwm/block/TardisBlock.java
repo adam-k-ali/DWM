@@ -10,6 +10,7 @@ import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.interior.TardisEntryGate;
 import com.adamkali.dwm.tardis.interior.TardisInteriorService;
 import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
+import com.adamkali.dwm.tardis.logic.ConsolePilotLogic;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -102,7 +103,9 @@ public class TardisBlock extends BaseEntityBlock {
             }
         } else if (!world.isClientSide() && DWMConfig.getBoolean(DWMConfig.ENABLE_CHAMELEON_GUI)) {
             TardisDataModel model = TardisDataLoader.get(tardisBlockEntity.getTardisId());
-            if (CircuitFittedLogic.isBroken(model, TardisCircuit.CHAMELEON)
+            if (!ConsolePilotLogic.canPilot(model, player.getUUID())) {
+                player.sendOverlayMessage(Component.translatable(ConsolePilotLogic.NOT_OWNER_KEY));
+            } else if (CircuitFittedLogic.isBroken(model, TardisCircuit.CHAMELEON)
                     && world instanceof ServerLevel serverLevel) {
                 CircuitFittedLogic.refuseBrokenAtBlock(player, serverLevel, pos);
             } else {

@@ -11,6 +11,7 @@ import com.adamkali.dwm.tardis.data.model.TardisExteriorLocation;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.logic.CloakLogic;
 import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
+import com.adamkali.dwm.tardis.logic.ConsolePilotLogic;
 import com.adamkali.dwm.tardis.logic.CoordinateLockLogic;
 import com.adamkali.dwm.tardis.logic.DoorLockLogic;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
@@ -174,8 +175,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             return InteractionResult.SUCCESS;
         }
         if (!(world.getBlockEntity(pos) instanceof FirstDoctorConsoleBlockEntity console)
-                || !(world instanceof ServerLevel serverWorld)
-                || !(player instanceof ServerPlayer serverPlayer)) {
+                || !(world instanceof ServerLevel serverWorld)) {
             return InteractionResult.CONSUME;
         }
 
@@ -186,6 +186,17 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         }
 
         TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (!ConsolePilotLogic.isPublicReader(target)) {
+            boolean allowed = target == FirstDoctorConsoleControls.LookTarget.DOOR_LOCK
+                    ? ConsolePilotLogic.canToggleDoorLock(
+                            model, player.getUUID(), ConsolePilotLogic.heldBoundTardisId(player))
+                    : ConsolePilotLogic.canPilot(model, player.getUUID());
+            if (!allowed) {
+                player.sendOverlayMessage(Component.translatable(ConsolePilotLogic.NOT_OWNER_KEY));
+                return InteractionResult.CONSUME;
+            }
+        }
+
         Direction facing = world.getBlockState(pos).getValue(FACING);
         if (CircuitFittedLogic.refuseBrokenConsole(model, target, player, world, pos, facing)) {
             return InteractionResult.CONSUME;
@@ -194,8 +205,18 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         return switch (target) {
             case BIOME_SELECTOR -> handleBiomeSelector(world, pos, player, serverWorld, tardisId);
             case PLANET_LOCATOR -> handlePlanetLocator(world, pos, player, serverWorld, tardisId);
-            case WAYPOINT_SELECTOR -> handleWaypointSelector(world, pos, serverPlayer, tardisId);
-            case PLAYER_LOCATOR -> handlePlayerLocator(world, pos, serverPlayer, serverWorld, tardisId);
+            case WAYPOINT_SELECTOR -> {
+                if (!(player instanceof ServerPlayer serverPlayer)) {
+                    yield InteractionResult.CONSUME;
+                }
+                yield handleWaypointSelector(world, pos, serverPlayer, tardisId);
+            }
+            case PLAYER_LOCATOR -> {
+                if (!(player instanceof ServerPlayer serverPlayer)) {
+                    yield InteractionResult.CONSUME;
+                }
+                yield handlePlayerLocator(world, pos, serverPlayer, serverWorld, tardisId);
+            }
             case MATERIALISATION_LEVER -> handleMaterialisationLever(world, pos, player, serverWorld, tardisId);
             case CHAMELEON_CIRCUIT -> handleChameleonCircuit(world, pos, player, serverWorld, tardisId);
             case FAST_RETURN -> handleFastReturn(world, pos, player, tardisId);

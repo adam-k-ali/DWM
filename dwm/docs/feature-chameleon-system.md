@@ -13,10 +13,10 @@ Allow players to personalize TARDIS exterior identity through selectable visual 
 
 ## Implemented Now
 - Multiple chameleon variants mapped to different TARDIS exterior styles.
-- Client GUI for selecting variants (sneak-use on exterior; config-gated).
-- Networking payloads to update variant state server-side.
+- **Basic console chameleon circuit** (Panel6): look-hit cycles `TardisChameleonVariant` with wrap-around; overlay names the new variant; a translucent shell hologram above the control mirrors the synced current variant. **Owner-only** (same gate as other piloting controls).
+- Client GUI for selecting variants (sneak-use on exterior; config-gated). **Owner-only**; non-owners get the not-owner overlay and the GUI does not open.
+- Networking payloads to update variant state server-side (owner-checked).
 - Config gate for enabling/disabling chameleon GUI.
-- **Basic console chameleon circuit** (Panel6): look-hit cycles `TardisChameleonVariant` with wrap-around; overlay names the new variant; a translucent shell hologram above the control mirrors the synced current variant.
 
 ## How It Works In-Game
 1. Enable the experimental chameleon setting in config for the exterior GUI path.
@@ -26,7 +26,7 @@ Allow players to personalize TARDIS exterior identity through selectable visual 
 
 ## Known Constraints
 - This feature is experimental; the exterior chameleon GUI remains disabled by default.
-- Console basic cycle is always available on a linked First Doctor console (no advanced on/off toggle in this release).
+- Console basic cycle is owner-only on a linked First Doctor console (no advanced on/off toggle in this release); exterior GUI is also owner-only when enabled.
 - Advanced chameleon circuit textures/toggle and environmental disguises are deferred (see DWM-032).
 - Stability and UX polish are still evolving.
 - Multiplayer behavior depends on correct payload registration and synced state.

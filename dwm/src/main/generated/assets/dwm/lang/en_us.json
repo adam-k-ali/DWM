@@ -155,6 +155,7 @@
   "dwm.console.lock_z_on": "Z axis locked",
   "dwm.console.materialisation_lever": "Materialisation lever",
   "dwm.console.materialisation_lever_pulled": "Materialisation lever engaged",
+  "dwm.console.not_owner": "You do not own this TARDIS",
   "dwm.console.oxygen": "Oxygen: %s%%",
   "dwm.console.planet_locator": "Planet locator",
   "dwm.console.player_locator": "Player locator",
