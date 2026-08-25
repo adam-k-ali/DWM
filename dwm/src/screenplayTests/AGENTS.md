@@ -12,7 +12,7 @@ Also: [`screenplay/README.md`](../../../screenplay/README.md), [`screenplay/meta
 ## Commands
 - Run a scenario: `./dwm/gradlew runScreenplay -Pscreenplay=<yaml-filename-stem>`
 - Run all discovered `type: test` scenarios: `./dwm/gradlew runScreenplayTests`
-- Properties: `-PscreenplayDisplay=display|xvfb`, `-PscreenplayTimeout=<seconds>`
+- Properties: `-PscreenplayDisplay=display|xvfb`, `-PscreenplayTimeout=<seconds>`, optional `-PscreenplayBaselinesDir=<dir>` for screenshot compare
 - Outputs: `dwm/build/screenplay/report.xml`, `metrics.json`, `diagnostics.txt`, screenshots under `dwm/build/screenplay/run/screenshots/`
 - Per-scenario archives from `runScreenplayTests`: `dwm/build/screenplay/results/<id>/`
 
@@ -22,7 +22,8 @@ Also: [`screenplay/README.md`](../../../screenplay/README.md), [`screenplay/meta
 ## Authoring rules
 - Stable ID is the **filename stem**. Duplicate IDs across mod + Screenplay demo roots are rejected by `runScreenplayTests`.
 - Prefer adding shared primitives upstream in `screenplay/common`; mod-only steps can use `ServiceLoader` registration.
-- Keep scenarios deterministic (fixed seeds / options where the harness supports them).
+- Keep scenarios deterministic (`createWorld` defaults include seed `"42"`).
+- Optional `captureScreenshot.compare: true` diffs against CI baselines from green `main` (via `-PscreenplayBaselinesDir`); do not commit PNG goldens.
 
 ## CI
-- **CI** — `.github/workflows/scenario-tests.yml` runs `./dwm/gradlew runScreenplayTests` (and Screenplay library demos) with xvfb.
+- **CI** — `.github/workflows/scenario-tests.yml` runs `./dwm/gradlew runScreenplayTests` (and Screenplay library demos) with xvfb; PRs download main screenshot artifacts for compare.

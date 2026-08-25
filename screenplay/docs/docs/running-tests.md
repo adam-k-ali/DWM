@@ -63,11 +63,24 @@ higher.
 | `build/screenplay/report.xml` | JUnit XML |
 | `build/screenplay/metrics.json` | Wall-clock step timings |
 | `build/screenplay/diagnostics.txt` | Current screen and visible widgets |
-| `build/screenplay/run/screenshots/` | PNGs from `captureScreenshot` |
+| `build/screenplay/run/screenshots/` | PNGs from `captureScreenshot` (and `{stem}-diff.png` on compare failures) |
 | `build/screenplay/results/<id>/` | Per-scenario copies from `runScreenplayTests` |
 | `build/screenplay/vanilla-server/` | Official dedicated-server dir from `startVanillaServer` |
 
 The Gradle process exits non-zero when loading, validation, or execution fails.
+
+## Screenshot baselines
+
+Optional visual regression uses `-PscreenplayBaselinesDir=<dir>` (system property
+`screenplay.baselines-dir`). Point it at a flat directory of baseline PNGs keyed
+by `captureScreenshot` `name`. CI pull requests populate this from the latest
+green `main` Screenplay artifact; do not commit baseline PNGs to git.
+
+```bash
+./screenplay/gradlew runScreenplayTests \
+  -PscreenplayDisplay=xvfb \
+  -PscreenplayBaselinesDir=/path/to/baselines
+```
 
 ## System properties
 
@@ -77,9 +90,12 @@ The plugin sets (among others):
 - `screenplay.step-timeout-seconds`
 - `screenplay.report-file`
 - `screenplay.vanilla-server-dir`
+- `screenplay.baselines-dir` — when `-PscreenplayBaselinesDir` is set
 
 ## CI tips
 
 - Prefer `-PscreenplayDisplay=xvfb` on headless Linux runners.
 - Upload `report.xml`, `metrics.json`, diagnostics, and screenshots as workflow
-  artifacts for agent and human review.
+  artifacts for agent and human review (and as the next `main` screenshot baseline).
+- On PRs, prepare baselines with `.github/scripts/prepare-screenplay-baselines.sh`
+  before `runScreenplayTests`.

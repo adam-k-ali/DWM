@@ -121,8 +121,11 @@ The MVP primitives are:
   succeeds on the tick it runs.
 - `captureScreenshot` — captures the current framebuffer (world and GUI) to
   `build/screenplay/run/screenshots/`. With no arguments it uses a vanilla
-  timestamped filename. An optional `name` sets the PNG stem. The step waits
-  until the file has been written before succeeding.
+  timestamped filename. An optional `name` sets the PNG stem. Optional
+  `compare: true` (requires `name`) diffs against a baseline PNG when
+  `-PscreenplayBaselinesDir` / `screenplay.baselines-dir` is set (CI supplies
+  green `main` artifacts). Optional `maxDiffPixels` defaults to `0`. The step
+  waits until the file has been written before succeeding.
 - `startVanillaServer` — launches Mojang’s official dedicated-server jar as a
   child process (no Fabric/DWM on the server). It writes offline-mode superflat
   settings, waits until `127.0.0.1` accepts TCP connections, and stops the
@@ -131,10 +134,10 @@ The MVP primitives are:
   floor when set higher.
 - `createWorld` — opens vanilla Create World, applies the given settings, and
   waits until the local player is in the loaded world. Omitted keys use
-  test-friendly defaults: superflat, creative, peaceful, commands on. An
-  optional `name` overrides vanilla’s “New World”. This step does **not** click
-  through the Create World tabs. It uses a 120 second timeout floor;
-  `-PscreenplayTimeout` still raises that floor when set higher.
+  test-friendly defaults: superflat, creative, peaceful, commands on, seed
+  `"42"`. An optional `name` overrides vanilla’s “New World”. This step does
+  **not** click through the Create World tabs. It uses a 120 second timeout
+  floor; `-PscreenplayTimeout` still raises that floor when set higher.
 - `keyboardInput` — waits until a focused, editable text field can consume
   input, then types the given string once via real `charTyped` events. It does
   not click or select the field; click the matching `editbox` first.
@@ -238,6 +241,7 @@ The MVP primitives are:
     gameMode: creative
     difficulty: peaceful
     allowCommands: true
+    seed: "42"
     name: Scenario World
 ```
 
@@ -257,6 +261,10 @@ The MVP primitives are:
 - captureScreenshot
 - captureScreenshot:
     name: after-world-tab
+- captureScreenshot:
+    name: world-ready.png
+    compare: true
+    maxDiffPixels: 0
 ```
 
 Selectors require an exact `name` and one of these types:

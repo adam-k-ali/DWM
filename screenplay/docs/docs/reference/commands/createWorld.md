@@ -11,6 +11,7 @@ player is in the loaded world.
 | `gameMode` | string | no | `creative` | `survival`, `hardcore`, or `creative` |
 | `difficulty` | string | no | `peaceful` | `peaceful`, `easy`, `normal`, or `hard` |
 | `allowCommands` | boolean | no | `true` | Whether cheats are enabled |
+| `seed` | string or integer | no | `"42"` | World seed (always applied; omitted uses the hardcoded default for determinism) |
 | `name` | string | no | vanilla default | Overrides “New World” when set (non-empty) |
 
 ## Usage examples
@@ -25,6 +26,7 @@ player is in the loaded world.
     gameMode: creative
     difficulty: peaceful
     allowCommands: true
+    seed: "42"
     name: Scenario World
 ```
 
@@ -36,6 +38,7 @@ player is in the loaded world.
 - Does **not** click through Create World tabs manually — it drives the process
   APIs used by the harness.
 - Completes when the player and level are ready and loading GUIs are gone.
+- A fixed default seed keeps world gen (and screenshot baselines) reproducible.
 
 ## Related commands
 
