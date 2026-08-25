@@ -194,6 +194,9 @@ public class CircuitFittedGameTests {
 
         context.runAtTickTime(1, () -> {
             Player player = context.makeMockPlayer(GameType.SURVIVAL);
+            if (!TardisOwnershipLogic.tryClaimOnEnter(tardisId, player.getUUID())) {
+                throw new AssertionError("Expected claim to succeed for player-placed ship");
+            }
             List<ConsoleControlInteractionEntity> planet = context.getLevel().getEntitiesOfClass(
                     ConsoleControlInteractionEntity.class,
                     new AABB(consoleAbs).inflate(2.5),

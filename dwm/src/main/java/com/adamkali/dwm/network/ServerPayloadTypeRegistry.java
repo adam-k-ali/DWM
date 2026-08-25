@@ -7,6 +7,7 @@ import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisWaypoint;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
+import com.adamkali.dwm.tardis.logic.ConsolePilotLogic;
 import com.adamkali.dwm.tardis.logic.PlayerLocatorLogic;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
@@ -22,6 +23,8 @@ import org.slf4j.Logger;
 
 import java.util.Optional;
 import java.util.UUID;
+
+import org.jetbrains.annotations.Nullable;
 
 public class ServerPayloadTypeRegistry {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -48,10 +51,7 @@ public class ServerPayloadTypeRegistry {
         PayloadTypeRegistry.serverboundPlay().register(RequestPortalStreamC2SPayload.ID, RequestPortalStreamC2SPayload.CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(UpdateTardisChameleonC2SPayload.ID, (payload, context) -> {
-            context.server().execute(() -> safelyHandleChameleonUpdate(
-                    payload,
-                    context.player().getName().getString()
-            ));
+            context.server().execute(() -> safelyHandleChameleonUpdate(payload, context.player()));
         });
         ServerPlayNetworking.registerGlobalReceiver(SaveWaypointC2SPayload.ID, (payload, context) -> {
             context.server().execute(() -> safelyHandleSaveWaypoint(payload, context.player()));
@@ -73,11 +73,30 @@ public class ServerPayloadTypeRegistry {
         });
     }
 
-    static boolean safelyHandleChameleonUpdate(UpdateTardisChameleonC2SPayload payload, String playerName) {
+    static boolean safelyHandleChameleonUpdate(UpdateTardisChameleonC2SPayload payload, ServerPlayer player) {
+        return safelyHandleChameleonUpdate(payload, player == null ? null : player.getUUID(), player);
+    }
+
+    /**
+     * Applies a chameleon variant update when the player owns the TARDIS.
+     * Unit tests may pass {@code player} as null (no overlay).
+     */
+    static boolean safelyHandleChameleonUpdate(
+            UpdateTardisChameleonC2SPayload payload,
+            @Nullable UUID playerUuid,
+            @Nullable ServerPlayer player
+    ) {
         try {
             TardisDataModel tardis = TardisDataLoader.get(payload.tardisId());
             if (tardis == null) {
-                LOGGER.warn("Rejected chameleon update for unknown tardisId {} from {}", payload.tardisId(), playerName);
+                String name = player != null ? player.getName().getString() : String.valueOf(playerUuid);
+                LOGGER.warn("Rejected chameleon update for unknown tardisId {} from {}", payload.tardisId(), name);
+                return false;
+            }
+            if (!ConsolePilotLogic.canPilot(tardis, playerUuid)) {
+                if (player != null) {
+                    player.sendOverlayMessage(Component.translatable(ConsolePilotLogic.NOT_OWNER_KEY));
+                }
                 return false;
             }
             if (CircuitFittedLogic.isBroken(tardis, TardisCircuit.CHAMELEON)) {
@@ -88,13 +107,14 @@ public class ServerPayloadTypeRegistry {
             TardisLogic.setVariant(payload.tardisId(), variant);
             return true;
         } catch (IllegalArgumentException e) {
-            LOGGER.warn("Rejected chameleon update with invalid variant {} from {}", payload.variantId(), playerName);
+            String name = player != null ? player.getName().getString() : String.valueOf(playerUuid);
+            LOGGER.warn("Rejected chameleon update with invalid variant {} from {}", payload.variantId(), name);
             return false;
         }
     }
 
     static boolean safelyHandleSaveWaypoint(SaveWaypointC2SPayload payload, ServerPlayer player) {
-        if (!validateConsoleAction(payload.tardisId(), player)) {
+        if (!validateConsoleAction(payload.tardisId(), player.getUUID(), player)) {
             return false;
         }
         if (!requireCircuit(payload.tardisId(), TardisCircuit.WAYPOINTS)) {
@@ -118,7 +138,7 @@ public class ServerPayloadTypeRegistry {
     }
 
     static boolean safelyHandleDeleteWaypoint(DeleteWaypointC2SPayload payload, ServerPlayer player) {
-        if (!validateConsoleAction(payload.tardisId(), player)) {
+        if (!validateConsoleAction(payload.tardisId(), player.getUUID(), player)) {
             return false;
         }
         if (!requireCircuit(payload.tardisId(), TardisCircuit.WAYPOINTS)) {
@@ -134,7 +154,7 @@ public class ServerPayloadTypeRegistry {
     }
 
     static boolean safelyHandleRenameWaypoint(RenameWaypointC2SPayload payload, ServerPlayer player) {
-        if (!validateConsoleAction(payload.tardisId(), player)) {
+        if (!validateConsoleAction(payload.tardisId(), player.getUUID(), player)) {
             return false;
         }
         if (!requireCircuit(payload.tardisId(), TardisCircuit.WAYPOINTS)) {
@@ -150,7 +170,16 @@ public class ServerPayloadTypeRegistry {
     }
 
     static boolean safelyHandleSelectWaypoint(SelectWaypointC2SPayload payload, ServerPlayer player) {
-        if (!validateConsoleAction(payload.tardisId(), player)) {
+        return safelyHandleSelectWaypoint(payload, player.getUUID(), player);
+    }
+
+    /** Unit-test entry: {@code player} may be null (no overlays). */
+    static boolean safelyHandleSelectWaypoint(
+            SelectWaypointC2SPayload payload,
+            UUID playerUuid,
+            @Nullable ServerPlayer player
+    ) {
+        if (!validateConsoleAction(payload.tardisId(), playerUuid, player)) {
             return false;
         }
         if (!requireCircuit(payload.tardisId(), TardisCircuit.WAYPOINTS)) {
@@ -158,19 +187,23 @@ public class ServerPayloadTypeRegistry {
         }
         boolean selected = TardisLogic.selectWaypoint(payload.tardisId(), payload.waypointId());
         if (!selected) {
-            player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_select_failed"));
+            if (player != null) {
+                player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_select_failed"));
+            }
             return false;
         }
-        if (payload.waypointId() == null) {
-            player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_cleared"));
-        } else {
-            player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_selected"));
+        if (player != null) {
+            if (payload.waypointId() == null) {
+                player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_cleared"));
+            } else {
+                player.sendOverlayMessage(Component.translatable("dwm.console.waypoint_selected"));
+            }
         }
         return true;
     }
 
     static boolean safelyHandleSelectPlayer(SelectPlayerC2SPayload payload, ServerPlayer player) {
-        if (!validateConsoleAction(payload.tardisId(), player)) {
+        if (!validateConsoleAction(payload.tardisId(), player.getUUID(), player)) {
             return false;
         }
         if (!requireCircuit(payload.tardisId(), TardisCircuit.PLAYER_LOCATOR)) {
@@ -203,17 +236,30 @@ public class ServerPayloadTypeRegistry {
         return CircuitFittedLogic.isFitted(model, circuit);
     }
 
-    private static boolean validateConsoleAction(UUID tardisId, ServerPlayer player) {
-        if (tardisId == null || player == null) {
+    private static boolean validateConsoleAction(
+            UUID tardisId,
+            @Nullable UUID playerUuid,
+            @Nullable ServerPlayer player
+    ) {
+        if (tardisId == null || playerUuid == null) {
             return false;
         }
         TardisDataModel model = TardisDataLoader.get(tardisId);
         if (model == null) {
-            LOGGER.warn("Rejected console payload for unknown tardisId {} from {}", tardisId, player.getName().getString());
+            String name = player != null ? player.getName().getString() : String.valueOf(playerUuid);
+            LOGGER.warn("Rejected console payload for unknown tardisId {} from {}", tardisId, name);
+            return false;
+        }
+        if (!ConsolePilotLogic.canPilot(model, playerUuid)) {
+            if (player != null) {
+                player.sendOverlayMessage(Component.translatable(ConsolePilotLogic.NOT_OWNER_KEY));
+            }
             return false;
         }
         if (TardisTravelService.isTraveling(tardisId)) {
-            player.sendOverlayMessage(Component.translatable("dwm.console.travel_in_flight"));
+            if (player != null) {
+                player.sendOverlayMessage(Component.translatable("dwm.console.travel_in_flight"));
+            }
             return false;
         }
         return true;
