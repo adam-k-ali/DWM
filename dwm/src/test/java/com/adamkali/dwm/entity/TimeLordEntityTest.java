@@ -41,7 +41,7 @@ class TimeLordEntityTest {
         assertTrue(DefaultAttributes.hasSupplier(DWMEntityTypes.TIME_LORD));
         var supplier = DefaultAttributes.getSupplier(DWMEntityTypes.TIME_LORD);
         assertEquals(20.0, supplier.getValue(Attributes.MAX_HEALTH), 0.001);
-        assertEquals(0.5, supplier.getValue(Attributes.MOVEMENT_SPEED), 0.001);
+        assertEquals(0.3, supplier.getValue(Attributes.MOVEMENT_SPEED), 0.001);
     }
 
     @Test
