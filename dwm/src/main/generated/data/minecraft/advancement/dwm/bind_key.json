@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:dwm/claim_tardis",
+  "criteria": {
+    "bind_key": {
+      "trigger": "dwm:bind_key"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.bind_key.description"
+    },
+    "icon": {
+      "id": "dwm:tardis_key"
+    },
+    "title": {
+      "translate": "advancements.dwm.bind_key"
+    }
+  },
+  "requirements": [
+    [
+      "bind_key"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

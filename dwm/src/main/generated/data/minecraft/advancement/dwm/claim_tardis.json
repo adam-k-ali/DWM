@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:dwm/find_tardis",
+  "criteria": {
+    "claim_tardis": {
+      "trigger": "dwm:claim_tardis"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.claim_tardis.description"
+    },
+    "icon": {
+      "id": "dwm:first_doctor_console"
+    },
+    "title": {
+      "translate": "advancements.dwm.claim_tardis"
+    }
+  },
+  "requirements": [
+    [
+      "claim_tardis"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

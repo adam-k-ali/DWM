@@ -4,6 +4,7 @@ import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.interior.TardisInteriorService;
+import com.adamkali.dwm.tardis.logic.FirstHourLogic;
 import com.adamkali.dwm.tardis.logic.TardisOwnershipLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.mojang.brigadier.Command;
@@ -118,6 +119,10 @@ public final class TardisCommands {
                         () -> Component.translatable("dwm.command.tardis.claim.success", tardisId.toString()),
                         true
                 );
+                ServerPlayer player = source.getPlayer();
+                if (player != null) {
+                    FirstHourLogic.notifyClaimed(player);
+                }
                 yield Command.SINGLE_SUCCESS;
             }
             case ALREADY_OWNER -> {

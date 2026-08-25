@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:dwm/sonic_screwdriver",
+  "criteria": {
+    "sonic_iron_door": {
+      "trigger": "dwm:sonic_iron_door"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.sonic_iron_door.description"
+    },
+    "icon": {
+      "id": "dwm:sonic_third_doctor"
+    },
+    "title": {
+      "translate": "advancements.dwm.sonic_iron_door"
+    }
+  },
+  "requirements": [
+    [
+      "sonic_iron_door"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

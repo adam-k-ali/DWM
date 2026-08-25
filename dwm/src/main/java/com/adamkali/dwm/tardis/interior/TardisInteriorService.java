@@ -1,5 +1,6 @@
 package com.adamkali.dwm.tardis.interior;
 
+import com.adamkali.dwm.advancement.DWMCriteria;
 import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
@@ -8,6 +9,7 @@ import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.logic.FirstHourLogic;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisOwnershipLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
@@ -124,7 +126,10 @@ public final class TardisInteriorService {
             return false;
         }
         TardisTeleport.teleport(player, interiorWorld, entrance, 0.0f);
-        TardisOwnershipLogic.tryClaimOnEnter(exteriorEntity.getTardisIdOrNull(), player.getUUID());
+        DWMCriteria.FIND_TARDIS.trigger(player);
+        if (TardisOwnershipLogic.tryClaimOnEnter(exteriorEntity.getTardisIdOrNull(), player.getUUID())) {
+            FirstHourLogic.notifyClaimed(player);
+        }
         return true;
     }
 

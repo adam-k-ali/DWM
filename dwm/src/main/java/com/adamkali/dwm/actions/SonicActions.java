@@ -2,8 +2,10 @@ package com.adamkali.dwm.actions;
 
 import com.adamkali.dwm.analytics.AnalyticsManager;
 import com.adamkali.dwm.analytics.DWMStatistics;
+import com.adamkali.dwm.advancement.DWMCriteria;
 import com.adamkali.dwm.sound.DWMSounds;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -44,6 +46,9 @@ public class SonicActions {
             level.setBlock(blockPos, newState, 10);
             level.playSound(player, blockPos, open ? block.type().doorOpen() : block.type().doorClose(), SoundSource.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.1F + 0.9F);
             level.gameEvent(player, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, blockPos);
+            if (player instanceof ServerPlayer serverPlayer) {
+                DWMCriteria.SONIC_IRON_DOOR.trigger(serverPlayer);
+            }
         });
         this.blockActions.put(Blocks.IRON_TRAPDOOR, (level, blockPos, blockState, player) -> {
             BlockState newState = blockState.cycle(TrapDoorBlock.OPEN);

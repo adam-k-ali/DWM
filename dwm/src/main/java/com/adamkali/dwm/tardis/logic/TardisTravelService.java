@@ -3,6 +3,7 @@ package com.adamkali.dwm.tardis.logic;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
+import com.adamkali.dwm.advancement.DWMCriteria;
 import com.adamkali.dwm.sound.DWMSounds;
 import com.adamkali.dwm.tardis.TardisExteriorFacing;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
@@ -404,13 +405,17 @@ public final class TardisTravelService {
             BlockPos landing,
             int facingRotation
     ) {
+        String originDimension = model.exteriorDimension;
+        String destinationDimension = destinationWorld.dimension().identifier().toString();
+        boolean summonPending = isSummonPending(tardisId);
+
         FastReturnLogic.pushDeparted(model);
         placeShell(destinationWorld, landing, snapshot, facingRotation);
         if (destinationWorld.getBlockEntity(landing) instanceof TardisBlockEntity be) {
             be.setSyncedTravelPhase(TardisTravelPhase.MATERIALISING, destinationWorld.getGameTime());
         }
         model.setExteriorLocation(
-                destinationWorld.dimension().identifier().toString(),
+                destinationDimension,
                 landing.getX(),
                 landing.getY(),
                 landing.getZ(),
@@ -429,6 +434,14 @@ public final class TardisTravelService {
         lastMaterialiseFailureReason = null;
         ACTIVE.add(tardisId);
         TardisTravelAudio.startMat(server, tardisId, destinationWorld, landing);
+
+        if (FirstHourLogic.isSameWorldHop(originDimension, destinationDimension, summonPending)
+                && model.ownerUuid != null) {
+            ServerPlayer owner = server.getPlayerList().getPlayer(model.ownerUuid);
+            if (owner != null) {
+                DWMCriteria.FIRST_HOP.trigger(owner);
+            }
+        }
         return InteractionResult.SUCCESS;
     }
 
@@ -833,21 +846,21 @@ public final class TardisTravelService {
     }
 
     /** Test helper: mark a TARDIS to auto-materialise after demat. */
-    static void markSummonPendingForTests(UUID tardisId) {
+    public static void markSummonPendingForTests(UUID tardisId) {
         SUMMON_PENDING.add(tardisId);
     }
 
     /** Test helper / summon auto-mat: consume the pending flag. */
-    static boolean consumeSummonPending(UUID tardisId) {
+    public static boolean consumeSummonPending(UUID tardisId) {
         return tardisId != null && SUMMON_PENDING.remove(tardisId);
     }
 
-    static boolean isSummonPending(UUID tardisId) {
+    public static boolean isSummonPending(UUID tardisId) {
         return tardisId != null && SUMMON_PENDING.contains(tardisId);
     }
 
     /** Test helper: seed a flight shell snapshot without a world. */
-    static void putFlightShellForTests(UUID tardisId, UUID shellTardisId) {
+    public static void putFlightShellForTests(UUID tardisId, UUID shellTardisId) {
         FLIGHT_SHELLS.put(tardisId, new ShellSnapshot(shellTardisId, null, false, 0));
     }
 

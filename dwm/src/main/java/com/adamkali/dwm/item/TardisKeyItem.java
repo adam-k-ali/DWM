@@ -1,5 +1,6 @@
 package com.adamkali.dwm.item;
 
+import com.adamkali.dwm.advancement.DWMCriteria;
 import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
@@ -11,6 +12,7 @@ import com.adamkali.dwm.tardis.logic.TardisKeyLogic;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -61,6 +63,9 @@ public class TardisKeyItem extends Item {
             case BOUND -> {
                 context.getItemInHand().set(DWMDataComponents.BOUND_TARDIS_ID, tardisId);
                 player.sendOverlayMessage(Component.translatable("dwm.key.bound"));
+                if (player instanceof ServerPlayer serverPlayer) {
+                    DWMCriteria.BIND_KEY.trigger(serverPlayer);
+                }
             }
             case TOGGLE_READY -> DoorLockLogic.toggleForPlayer(
                     model,

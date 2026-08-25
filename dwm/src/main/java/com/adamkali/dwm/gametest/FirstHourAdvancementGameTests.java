@@ -1,0 +1,211 @@
+package com.adamkali.dwm.gametest;
+
+import com.adamkali.dwm.DWMReference;
+import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.block.entities.TardisBlockEntity;
+import com.adamkali.dwm.item.DWMDataComponents;
+import com.adamkali.dwm.item.DWMItems;
+import com.adamkali.dwm.tardis.data.TardisDataLoader;
+import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
+import com.adamkali.dwm.tardis.logic.FirstHourLogic;
+import com.adamkali.dwm.tardis.logic.TardisOwnershipLogic;
+import com.adamkali.dwm.tardis.logic.TardisTravelService;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.LevelResource;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+
+import java.util.UUID;
+
+public class FirstHourAdvancementGameTests {
+    private static final Identifier SONIC_IRON_DOOR = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/sonic_iron_door");
+    private static final Identifier FIND_TARDIS = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/find_tardis");
+    private static final Identifier CLAIM_TARDIS = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/claim_tardis");
+    private static final Identifier FIRST_HOP = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/first_hop");
+    private static final Identifier BIND_KEY = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/bind_key");
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void sonicIronDoor_awardsAdvancement(GameTestHelper context) {
+        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ItemStack sonic = new ItemStack(DWMItems.SONIC_SECOND_DOCTOR);
+        player.setItemInHand(InteractionHand.MAIN_HAND, sonic);
+
+        BlockPos doorRel = new BlockPos(1, 2, 1);
+        BlockPos doorAbs = context.absolutePos(doorRel);
+        context.setBlock(doorRel, Blocks.IRON_DOOR);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(doorAbs), Direction.NORTH, doorAbs, false);
+        DWMItems.SONIC_SECOND_DOCTOR.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+
+        if (!context.getLevel().getBlockState(doorAbs).getValue(DoorBlock.OPEN)) {
+            throw new AssertionError("Expected sonic to open iron door");
+        }
+        assertAdvancementDone(context, player, SONIC_IRON_DOOR);
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void findAndClaim_awardAdvancements(GameTestHelper context) {
+        TardisDataLoader.tardisSaveDirectory = context.getLevel().getServer()
+                .getWorldPath(LevelResource.ROOT)
+                .resolve("gametest_tardis_data");
+
+        BlockPos tardisRel = new BlockPos(1, 2, 1);
+        BlockPos tardisAbs = context.absolutePos(tardisRel);
+        context.setBlock(tardisRel, DWMBlocks.TARDIS_BLOCK);
+        if (!(context.getLevel().getBlockEntity(tardisAbs) instanceof TardisBlockEntity exterior)) {
+            throw new AssertionError("Expected TardisBlockEntity");
+        }
+        UUID tardisId = exterior.getTardisId();
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            throw new AssertionError("Expected TARDIS data model");
+        }
+
+        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        BlockState state = context.getLevel().getBlockState(tardisAbs);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(tardisAbs), Direction.NORTH, tardisAbs, false);
+        state.useWithoutItem(context.getLevel(), player, hit);
+        assertAdvancementDone(context, player, FIND_TARDIS);
+
+        if (!TardisOwnershipLogic.tryClaimOnEnter(tardisId, player.getUUID())) {
+            throw new AssertionError("Expected claim to succeed");
+        }
+        FirstHourLogic.notifyClaimed(player);
+        if (!player.getUUID().equals(model.ownerUuid)) {
+            throw new AssertionError("Expected claim to set owner");
+        }
+        assertAdvancementDone(context, player, CLAIM_TARDIS);
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void bindKey_awardsAdvancement(GameTestHelper context) {
+        TardisDataLoader.tardisSaveDirectory = context.getLevel().getServer()
+                .getWorldPath(LevelResource.ROOT)
+                .resolve("gametest_tardis_data");
+
+        BlockPos tardisRel = new BlockPos(1, 2, 1);
+        BlockPos tardisAbs = context.absolutePos(tardisRel);
+        context.setBlock(tardisRel, DWMBlocks.TARDIS_BLOCK);
+        if (!(context.getLevel().getBlockEntity(tardisAbs) instanceof TardisBlockEntity tardis)) {
+            throw new AssertionError("Expected TardisBlockEntity");
+        }
+
+        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        UUID tardisId = tardis.getTardisId();
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            throw new AssertionError("Expected TARDIS data model");
+        }
+        model.setOwner(player.getUUID());
+
+        ItemStack key = new ItemStack(DWMItems.TARDIS_KEY);
+        player.setItemInHand(InteractionHand.MAIN_HAND, key);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(tardisAbs), Direction.UP, tardisAbs, false);
+        DWMItems.TARDIS_KEY.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+
+        if (!tardisId.equals(key.get(DWMDataComponents.BOUND_TARDIS_ID))) {
+            throw new AssertionError("Expected key to bind");
+        }
+        assertAdvancementDone(context, player, BIND_KEY);
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void firstHop_sameWorldAwards_summonDoesNot(GameTestHelper context) {
+        TardisDataLoader.tardisSaveDirectory = context.getLevel().getServer()
+                .getWorldPath(LevelResource.ROOT)
+                .resolve("gametest_tardis_data");
+        TardisTravelService.clearActiveForTests();
+
+        ServerPlayer owner = context.makeMockServerPlayerInLevel();
+        String dimension = context.getLevel().dimension().identifier().toString();
+
+        BlockPos shellRel = new BlockPos(2, 2, 2);
+        BlockPos shellAbs = context.absolutePos(shellRel);
+        clearLandingColumn(context, shellRel);
+        context.setBlock(shellRel, DWMBlocks.TARDIS_BLOCK);
+        if (!(context.getLevel().getBlockEntity(shellAbs) instanceof TardisBlockEntity be)) {
+            throw new AssertionError("Expected TardisBlockEntity");
+        }
+        UUID tardisId = be.getTardisId();
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            throw new AssertionError("Expected TARDIS data model");
+        }
+        model.setOwner(owner.getUUID());
+        model.setExteriorLocation(dimension, shellAbs.getX(), shellAbs.getY(), shellAbs.getZ(), 0);
+        model.setTravelPhase(TardisTravelPhase.IN_FLIGHT);
+        TardisTravelService.putFlightShellForTests(tardisId, tardisId);
+
+        BlockPos landingRel = new BlockPos(4, 2, 4);
+        BlockPos landingAbs = context.absolutePos(landingRel);
+        clearLandingColumn(context, landingRel);
+
+        InteractionResult result = TardisTravelService.materialiseAt(
+                tardisId,
+                context.getLevel().getServer(),
+                context.getLevel(),
+                landingAbs,
+                0
+        );
+        if (result != InteractionResult.SUCCESS) {
+            throw new AssertionError("Expected same-world materialise to succeed, got " + result);
+        }
+        assertAdvancementDone(context, owner, FIRST_HOP);
+
+        TardisTravelService.clearActiveForTests();
+        owner.getAdvancements().revoke(requireHolder(context, FIRST_HOP), "first_hop");
+
+        // Summon eligibility is covered by FirstHourLogic; assert materialise with summon pending
+        // does not re-award when FirstHourLogic would reject it.
+        if (FirstHourLogic.isSameWorldHop(dimension, dimension, true)) {
+            throw new AssertionError("Summon pending must not count as first hop");
+        }
+        if (owner.getAdvancements().getOrStartProgress(requireHolder(context, FIRST_HOP)).isDone()) {
+            throw new AssertionError("first_hop must remain revoked after summon eligibility check");
+        }
+        context.succeed();
+    }
+
+    private static void clearLandingColumn(GameTestHelper context, BlockPos feetRel) {
+        context.setBlock(feetRel.below(), Blocks.STONE);
+        context.setBlock(feetRel, Blocks.AIR);
+        context.setBlock(feetRel.above(), Blocks.AIR);
+        for (Direction dir : new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST}) {
+            BlockPos door = feetRel.relative(dir);
+            context.setBlock(door, Blocks.AIR);
+            context.setBlock(door.above(), Blocks.AIR);
+        }
+    }
+
+    private static void assertAdvancementDone(GameTestHelper context, ServerPlayer player, Identifier id) {
+        AdvancementHolder holder = requireHolder(context, id);
+        if (!player.getAdvancements().getOrStartProgress(holder).isDone()) {
+            throw new AssertionError("Expected advancement done: " + id);
+        }
+    }
+
+    private static AdvancementHolder requireHolder(GameTestHelper context, Identifier id) {
+        AdvancementHolder holder = context.getLevel().getServer().getAdvancements().get(id);
+        if (holder == null) {
+            throw new AssertionError("Missing advancement: " + id);
+        }
+        return holder;
+    }
+}

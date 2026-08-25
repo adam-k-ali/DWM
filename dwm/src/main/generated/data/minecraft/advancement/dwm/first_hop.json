@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:dwm/claim_tardis",
+  "criteria": {
+    "first_hop": {
+      "trigger": "dwm:first_hop"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.first_hop.description"
+    },
+    "icon": {
+      "id": "dwm:tardis_block"
+    },
+    "title": {
+      "translate": "advancements.dwm.first_hop"
+    }
+  },
+  "requirements": [
+    [
+      "first_hop"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

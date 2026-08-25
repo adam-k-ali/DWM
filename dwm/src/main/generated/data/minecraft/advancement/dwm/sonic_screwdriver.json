@@ -1,4 +1,5 @@
 {
+  "parent": "minecraft:dwm/root",
   "criteria": {
     "sonic_screwdriver": {
       "conditions": {
@@ -12,7 +13,6 @@
     }
   },
   "display": {
-    "background": "minecraft:textures/gui/advancements/backgrounds/adventure.png",
     "description": {
       "translate": "advancements.dwm.sonic_screwdriver.description"
     },

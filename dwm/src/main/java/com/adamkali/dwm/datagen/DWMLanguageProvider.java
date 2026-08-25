@@ -62,6 +62,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.key.wrong_tardis", "This key is bound to another TARDIS");
         t.add("dwm.key.tooltip.unbound", "Unbound");
         t.add("dwm.key.tooltip.bound", "Bound to a TARDIS");
+        t.add("dwm.tardis.claimed", "This TARDIS is yours");
         addItem(t, DWMItems.STATTENHEIM_REMOTE, "Stattenheim Remote");
         t.add("dwm.stattenheim.summoned", "TARDIS incoming");
         t.add("dwm.stattenheim.no_tardis", "You do not own a TARDIS");
@@ -418,8 +419,20 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.entity.time_lord.death.subtitle", "Time Lord dies");
         t.add("config.dwm.title", "Doctor Who Mod");
         t.add("stat.dwm.sonic_screwdriver_use", "Uses of Sonic Screwdriver");
+        t.add("advancements.dwm.root", "Doctor Who");
+        t.add("advancements.dwm.root.description", "The heart and story of space and time");
         t.add("advancements.dwm.sonic_screwdriver", "Sonic Screwdriver");
         t.add("advancements.dwm.sonic_screwdriver.description", "Obtain a Sonic Screwdriver");
+        t.add("advancements.dwm.sonic_iron_door", "Knock Knock");
+        t.add("advancements.dwm.sonic_iron_door.description", "Use a sonic screwdriver on an iron door");
+        t.add("advancements.dwm.find_tardis", "Police Box");
+        t.add("advancements.dwm.find_tardis.description", "Find a TARDIS");
+        t.add("advancements.dwm.claim_tardis", "This TARDIS is Yours");
+        t.add("advancements.dwm.claim_tardis.description", "Step inside and claim it");
+        t.add("advancements.dwm.first_hop", "A Short Hop");
+        t.add("advancements.dwm.first_hop.description", "Take a same-world flight");
+        t.add("advancements.dwm.bind_key", "Spare Key");
+        t.add("advancements.dwm.bind_key.description", "Bind a TARDIS key to your ship");
         t.add("dwm.tt_capsule", "TT Capsule");
         t.add("dwm.first_doctor_box", "First Doctor Box");
         t.add("dwm.second_doctor_box", "Second Doctor Box");
