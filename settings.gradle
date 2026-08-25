@@ -22,8 +22,11 @@ plugins {
 }
 
 includeBuild('screenplay-gradle-plugin')
-// Isolate Forge/NeoGradle from Fabric Loom runs (NeoGradle treats custom Loom run names as run types).
-includeBuild('screenplay-loaders')
+// Forge/NeoForge stay in screenplay-loaders as a separate Gradle invocation
+// (`./gradlew -p screenplay-loaders …`). Do not includeBuild them here: ForgeGradle's
+// mavenizer fails under the Java language server Tooling API, which leaves the root
+// project without a Java nature and breaks Cursor/VS Code run configs
+// (`ConfigError: The project 'dwm' is not a valid java project`).
 
 include 'screenplay-common'
 include 'screenplay-fabric'
