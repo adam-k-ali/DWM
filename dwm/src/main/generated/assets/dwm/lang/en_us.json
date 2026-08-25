@@ -131,6 +131,7 @@
   "dwm.console.chameleon_circuit": "Chameleon circuit",
   "dwm.console.chameleon_selected": "Chameleon: %s",
   "dwm.console.chameleon_unavailable": "Chameleon circuit unavailable",
+  "dwm.console.circuit_broken": "This circuit is broken",
   "dwm.console.cloak_off": "Cloak disengaged",
   "dwm.console.cloak_on": "Cloak engaged",
   "dwm.console.cloak_unavailable": "Cloak unavailable",

@@ -25,10 +25,11 @@ Give the TARDIS owner a pocket remote that calls their ship to them, with a visi
 3. Sneak and right-click the ground where you want it.
 4. The doors slam shut, then the TARDIS dematerialises from its current exterior and rematerialises at the click, fading in.
 
-Failure overlays: no owned TARDIS, already travelling, cannot land here.
+Failure overlays: no owned TARDIS, already travelling, cannot land here, circuit broken (found Type 40 with a broken remote-summon circuit — smoke puff at the click).
 
 ## Known Constraints
 - The remote is bound by player ownership, not item NBT — anyone holding it summons *their* TARDIS.
+- Found worldgen TARDISes start with a broken remote-summon circuit until repaired.
 - Collision stays solid during the fade. BOTI is skipped while the shell is translucent.
 - Non-sneak use does nothing.
 

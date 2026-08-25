@@ -68,6 +68,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.stattenheim.in_progress", "TARDIS is already travelling");
         t.add("dwm.stattenheim.invalid_landing", "Cannot land here");
         t.add("dwm.stattenheim.unavailable", "Cannot summon the TARDIS");
+        t.add("dwm.console.circuit_broken", "This circuit is broken");
     }
 
     private static void addBuildingBlocks(TranslationBuilder t) {

@@ -4,6 +4,7 @@ import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.sound.DWMSounds;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
+import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.interior.TardisInteriorPreloadService;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
@@ -31,9 +32,12 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<TardisBlockEntity> {
+    public static final String WORLDGEN_FOUND_KEY = "worldgenFound";
+
     private UUID tardisId;
     private @Nullable BlockPos interiorEntrance;
     private boolean interiorGenerated;
+    private boolean worldgenFound;
     private boolean syncedCloaked;
     private String syncedTravelPhase = TardisTravelPhase.IDLE.name();
     private long syncedPhaseGameTime;
@@ -84,11 +88,12 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
     @Override
     protected void saveAdditional(ValueOutput output) {
         if (this.tardisId == null) {
-            this.tardisId = TardisDataLoader.create().uuid;
+            this.tardisId = createLinkedModel().uuid;
         }
 
         output.store("tardisId", UUIDUtil.CODEC, this.tardisId);
         output.putBoolean("interiorGenerated", this.interiorGenerated);
+        output.putBoolean(WORLDGEN_FOUND_KEY, this.worldgenFound);
         output.putBoolean("syncedCloaked", this.syncedCloaked);
         output.putString("syncedTravelPhase", this.syncedTravelPhase);
         output.putLong("syncedPhaseGameTime", this.syncedPhaseGameTime);
@@ -107,6 +112,7 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
 
         this.tardisId = input.read("tardisId", UUIDUtil.CODEC).orElse(null);
         this.interiorGenerated = input.getBooleanOr("interiorGenerated", false);
+        this.worldgenFound = input.getBooleanOr(WORLDGEN_FOUND_KEY, false);
         this.syncedCloaked = input.getBooleanOr("syncedCloaked", false);
         this.syncedTravelPhase = input.getStringOr("syncedTravelPhase", TardisTravelPhase.IDLE.name());
         this.syncedPhaseGameTime = input.getLongOr("syncedPhaseGameTime", 0L);
@@ -123,10 +129,26 @@ public class TardisBlockEntity extends BlockEntity implements BlockEntityTicker<
 
     public UUID getTardisId() {
         if (tardisId == null) {
-            tardisId = TardisDataLoader.create().uuid;
+            tardisId = createLinkedModel().uuid;
             setChanged();
         }
         return tardisId;
+    }
+
+    private TardisDataModel createLinkedModel() {
+        return worldgenFound
+                ? TardisDataLoader.createFoundUnfinished()
+                : TardisDataLoader.create();
+    }
+
+    public boolean isWorldgenFound() {
+        return worldgenFound;
+    }
+
+    /** Marks this exterior as a worldgen Type 40 (tests / structure processor). */
+    public void setWorldgenFound(boolean worldgenFound) {
+        this.worldgenFound = worldgenFound;
+        setChanged();
     }
 
     public @Nullable UUID getTardisIdOrNull() {

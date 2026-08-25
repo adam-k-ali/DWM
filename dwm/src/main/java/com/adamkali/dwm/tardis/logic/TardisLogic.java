@@ -7,6 +7,7 @@ import com.adamkali.dwm.sound.DWMSounds;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.DestinationMode;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
+import com.adamkali.dwm.tardis.data.model.TardisCircuit;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
@@ -341,11 +342,15 @@ public class TardisLogic {
 
     /**
      * Destination dimension used for biome listing and travel: {@code selectedDimension} when set,
-     * otherwise {@code exteriorDimension}.
+     * otherwise {@code exteriorDimension}. When the planet locator circuit is broken, always uses
+     * the exterior dimension (same-world hops only).
      */
     public static @Nullable String effectiveDestinationDimension(@Nullable TardisDataModel tardis) {
         if (tardis == null) {
             return null;
+        }
+        if (!CircuitFittedLogic.isFitted(tardis, TardisCircuit.PLANET_LOCATOR)) {
+            return tardis.exteriorDimension;
         }
         if (tardis.selectedDimension != null && !tardis.selectedDimension.isBlank()) {
             return tardis.selectedDimension;
