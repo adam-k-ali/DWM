@@ -1,6 +1,9 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "dwm:item/first_doctor_console"
+    "type": "minecraft:special",
+    "base": "dwm:item/first_doctor_console",
+    "model": {
+      "type": "dwm:first_doctor_console"
+    }
   }
 }

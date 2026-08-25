@@ -6,7 +6,7 @@
   },
   "display": {
     "announce_to_chat": false,
-    "background": "dwm:textures/block/gallifrey_stone.png",
+    "background": "dwm:block/gallifrey_stone",
     "description": {
       "translate": "advancements.dwm.root.description"
     },

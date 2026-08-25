@@ -1,6 +1,39 @@
 {
-  "parent": "minecraft:item/generated",
+  "parent": "minecraft:builtin/entity",
+  "gui_light": "side",
   "textures": {
-    "layer0": "dwm:item/tardis_block"
+    "particle": "dwm:entity/first_doctor_box"
+  },
+  "display": {
+    "gui": {
+      "rotation": [30, 225, 0],
+      "translation": [0, -4.25, 0],
+      "scale": [0.248, 0.248, 0.248]
+    },
+    "ground": {
+      "rotation": [0, 0, 0],
+      "translation": [0, 3, 0],
+      "scale": [0.12, 0.12, 0.12]
+    },
+    "fixed": {
+      "rotation": [0, 0, 0],
+      "translation": [0, -4.25, 0],
+      "scale": [0.2, 0.2, 0.2]
+    },
+    "thirdperson_righthand": {
+      "rotation": [75, 45, 0],
+      "translation": [0, 2.5, 0],
+      "scale": [0.152, 0.152, 0.152]
+    },
+    "firstperson_righthand": {
+      "rotation": [0, 45, 0],
+      "translation": [0, 0, 0],
+      "scale": [0.16, 0.16, 0.16]
+    },
+    "firstperson_lefthand": {
+      "rotation": [0, 225, 0],
+      "translation": [0, 0, 0],
+      "scale": [0.16, 0.16, 0.16]
+    }
   }
 }

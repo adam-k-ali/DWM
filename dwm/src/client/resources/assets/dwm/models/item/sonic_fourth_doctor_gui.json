@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "dwm:item/sonic_fourth_doctor_gui"
+  }
+}

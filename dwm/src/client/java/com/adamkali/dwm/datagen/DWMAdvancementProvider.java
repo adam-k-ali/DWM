@@ -31,7 +31,7 @@ import java.util.function.Consumer;
  */
 public class DWMAdvancementProvider extends FabricAdvancementProvider {
     private static final Identifier GALLIFREY_STONE_BACKGROUND =
-            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "textures/block/gallifrey_stone.png");
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "block/gallifrey_stone");
 
     public DWMAdvancementProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registryLookup) {
         super(output, registryLookup);
