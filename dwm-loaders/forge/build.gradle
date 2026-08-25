@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '[7.0.17,8)'
+    id 'com.adamkali.screenplay'
 }
 
 version = project.mod_version
@@ -25,10 +26,27 @@ minecraft {
         configureEach {
             workingDir = layout.projectDirectory.dir('run')
             systemProperty 'eventbus.api.strictRuntimeChecks', 'true'
+            // Combine classes + resources into one mod layer (avoids FML scanning
+            // build/resources/main alone and failing to find @Mod classes).
+            mods {
+                dwm {
+                    source sourceSets.main
+                }
+            }
         }
+        // Only names present in Forge's launcher runs.json get a mainClass.
+        // Screenplay reuses 'client' (see ScreenplayPlugin forge path).
         register('client')
         register('server')
     }
+}
+
+screenplay {
+    loader = 'forge'
+    testsDir = rootProject.file('../src/screenplayTests/resources/tests')
+    extraTestsDirs = [rootProject.file('../screenplay-common/src/main/resources/tests')]
+    runDir = 'build/screenplay/run'
+    outputDir = 'screenplay'
 }
 
 repositories {
@@ -43,12 +61,18 @@ dependencies {
     implementation 'org.json:json:20240303'
     implementation 'com.github.erosb:everit-json-schema:1.14.4'
     implementation 'com.mixpanel:mixpanel-java:1.5.1'
+    // Screenplay Forge client harness (composite includeBuild + substitution).
+    runtimeOnly "${project.screenplay_maven_group}:screenplay-forge:${project.screenplay_version}"
 }
 
 def dwmCommon = rootProject.file('../dwm-common')
 def rootGenerated = rootProject.file('../src/main/generated')
+def screenplayTests = rootProject.file('../src/screenplayTests/resources')
 
 sourceSets.main {
+    // FML discovers each classpath entry with mods.toml as its own ModFile.
+    // Keep classes + resources in one directory so @Mod and mods.toml share a root.
+    output.resourcesDir = layout.buildDirectory.dir('classes/java/main').get().asFile
     java {
         srcDir new File(dwmCommon, 'src/main/java')
         srcDir new File(dwmCommon, 'src/client/java')
@@ -57,6 +81,8 @@ sourceSets.main {
         srcDir new File(dwmCommon, 'src/main/resources')
         srcDir new File(dwmCommon, 'src/client/resources')
         srcDir rootGenerated
+        // Mod-owned scenarios only — screenplay-forge jar already ships harness demos.
+        srcDir screenplayTests
     }
 }
 
@@ -73,6 +99,21 @@ processResources {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release = 25
+}
+
+// ForgeGradle 7.0.35 + Gradle 9.5: SlimeLauncherMetadata conventions map
+// outputDirectory onto runsJson of the same task; Gradle rejects querying that
+// mapped output during the task action. Rebind via locationOnly.
+tasks.configureEach { task ->
+    if (!task.name.startsWith('slimeLauncherMetadata')) {
+        return
+    }
+    def outputDirectory = task.hasProperty('outputDirectory') ? task.outputDirectory : null
+    def runsJson = task.hasProperty('runsJson') ? task.runsJson : null
+    if (outputDirectory == null || runsJson == null) {
+        return
+    }
+    runsJson.set(outputDirectory.locationOnly.map { dir -> dir.file('launcher/runs.json') })
 }
 
 publishing {

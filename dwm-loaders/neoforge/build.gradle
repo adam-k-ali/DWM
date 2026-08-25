@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'net.neoforged.gradle.userdev' version '7.1.38'
+    id 'com.adamkali.screenplay'
 }
 
 version = project.mod_version
@@ -44,12 +45,18 @@ dependencies {
     implementation 'org.json:json:20240303'
     implementation 'com.github.erosb:everit-json-schema:1.14.4'
     implementation 'com.mixpanel:mixpanel-java:1.5.1'
+    // Screenplay NeoForge client harness (composite includeBuild + substitution).
+    runtimeOnly "${project.screenplay_maven_group}:screenplay-neoforge:${project.screenplay_version}"
 }
 
 def dwmCommon = rootProject.file('../dwm-common')
 def rootGenerated = rootProject.file('../src/main/generated')
+def screenplayTests = rootProject.file('../src/screenplayTests/resources')
 
 sourceSets.main {
+    // NeoForge/FML discovers each classpath entry with mods.toml as its own ModFile.
+    // Keep classes + resources in one directory so @Mod and mods.toml share a root.
+    output.resourcesDir = layout.buildDirectory.dir('classes/java/main').get().asFile
     java {
         srcDir new File(dwmCommon, 'src/main/java')
         srcDir new File(dwmCommon, 'src/client/java')
@@ -58,7 +65,17 @@ sourceSets.main {
         srcDir new File(dwmCommon, 'src/main/resources')
         srcDir new File(dwmCommon, 'src/client/resources')
         srcDir rootGenerated
+        // Mod-owned scenarios only — screenplay-neoforge jar already ships harness demos.
+        srcDir screenplayTests
     }
+}
+
+screenplay {
+    loader = 'neoforge'
+    testsDir = rootProject.file('../src/screenplayTests/resources/tests')
+    extraTestsDirs = [rootProject.file('../screenplay-common/src/main/resources/tests')]
+    runDir = 'build/screenplay/run'
+    outputDir = 'screenplay'
 }
 
 processResources {

@@ -8,9 +8,14 @@ pluginManagement {
 			name = 'NeoForged'
 			url = 'https://maven.neoforged.net/releases'
 		}
+		maven {
+			name = 'Fabric'
+			url = 'https://maven.fabricmc.net/'
+		}
 		mavenCentral()
 		gradlePluginPortal()
 	}
+	includeBuild('../screenplay-gradle-plugin')
 }
 
 plugins {
@@ -18,6 +23,15 @@ plugins {
 }
 
 rootProject.name = 'dwm-loaders'
+
+// Project dirs are named forge/neoforge; published artifactIds are screenplay-*.
+// Explicit substitution is required — automatic matching uses project name, not archivesName.
+includeBuild('../screenplay-loaders') {
+	dependencySubstitution {
+		substitute module('com.adamkali.screenplay:screenplay-forge') using project(':forge')
+		substitute module('com.adamkali.screenplay:screenplay-neoforge') using project(':neoforge')
+	}
+}
 
 include 'forge'
 include 'neoforge'

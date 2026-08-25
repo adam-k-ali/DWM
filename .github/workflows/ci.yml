@@ -32,6 +32,7 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew build
+          ./gradlew -p dwm-loaders :forge:compileJava :neoforge:compileJava
         env:
           _JAVA_OPTIONS: -Xmx3200m
           GRADLE_OPTS: -Dorg.gradle.daemon=false
