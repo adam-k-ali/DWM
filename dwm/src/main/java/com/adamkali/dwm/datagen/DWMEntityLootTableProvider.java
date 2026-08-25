@@ -35,5 +35,18 @@ public class DWMEntityLootTableProvider extends FabricEntityLootSubProvider {
                 )
         );
         add(DWMEntityTypes.FLUTTERWING, LootTable.lootTable());
+        add(
+                DWMEntityTypes.MEWING_DOG,
+                LootTable.lootTable().withPool(
+                        LootPool.lootPool()
+                                .setRolls(ConstantValue.exactly(1.0F))
+                                .add(LootItem.lootTableItem(Items.LEATHER)
+                                        .apply(SetItemCountFunction.setCount(UniformGenerator.between(0.0F, 2.0F)))
+                                        .apply(EnchantedCountIncreaseFunction.lootingMultiplier(
+                                                this.registries,
+                                                UniformGenerator.between(0.0F, 1.0F)
+                                        )))
+                )
+        );
     }
 }

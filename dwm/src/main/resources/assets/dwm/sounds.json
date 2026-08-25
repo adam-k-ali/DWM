@@ -115,5 +115,44 @@
         "volume": 0.85
       }
     ]
+  },
+  "entity.mewing_dog.ambient": {
+    "subtitle": "dwm.entity.mewing_dog.ambient.subtitle",
+    "sounds": [
+      {
+        "name": "dwm:entity/mewing_dog/ambient",
+        "volume": 0.55
+      },
+      {
+        "name": "dwm:entity/mewing_dog/ambient_2",
+        "volume": 0.55
+      }
+    ]
+  },
+  "entity.mewing_dog.hurt": {
+    "subtitle": "dwm.entity.mewing_dog.hurt.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:entity.wolf.hurt",
+        "type": "event"
+      }
+    ]
+  },
+  "entity.mewing_dog.death": {
+    "subtitle": "dwm.entity.mewing_dog.death.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:entity.wolf.death",
+        "type": "event"
+      }
+    ]
+  },
+  "entity.mewing_dog.step": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.wolf.step",
+        "type": "event"
+      }
+    ]
   }
 }

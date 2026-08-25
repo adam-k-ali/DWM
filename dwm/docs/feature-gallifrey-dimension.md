@@ -20,6 +20,7 @@ Give TARDIS travel a unique destination world built from Gallifrey builder block
 - Gallifrey-textured coal, iron, gold, and diamond ores in Gallifrey stone (all biomes; drop vanilla items; Overworld-like vein distribution).
 - Archive colormap and cloud textures imported under `assets/dwm/textures/` for future tinting/sky work; grass block uses pre-colored deep-red textures.
 - TARDIS `BiomeSelectorLogic` maps `dwm:gallifrey` to `#dwm:is_gallifrey`.
+- Gallifrey fauna: Broakir and Flutterwing on plains/forest; **Mewing Dog** (striped, mewing, wolf-like tame/sit/follow/breed) in **forest only**.
 
 ## How It Works In-Game
 1. At the console, cycle the planet locator until **Gallifrey** is selected.
@@ -29,9 +30,9 @@ Give TARDIS travel a unique destination world built from Gallifrey builder block
 
 ## Known Constraints
 - Cloud texture is imported but not wired through custom dimension effects; sky/fog use biome colors and overworld dimension effects.
-- Villages and Gallifrey mobs are follow-on tickets (DWM-041–043).
+- Villages remain a follow-on ticket; more Gallifrey fauna may still land later.
 
 ## Future Opportunities (Planned)
 - Wire colormaps for tinted grass/foliage if decorative plants need biome tinting.
 - Custom dimension effects for Gallifrey clouds/sky.
-- Villages and fauna.
+- Villages and additional fauna.
