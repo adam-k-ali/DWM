@@ -14,6 +14,8 @@ import com.adamkali.dwm.render.portal.PortalPerfDebugHud;
 import com.adamkali.dwm.render.portal.PortalPerfDebugLog;
 import com.adamkali.dwm.render.portal.PortalSupport;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
+import com.adamkali.dwm.guide.FieldGuideKeybinds;
+import com.adamkali.dwm.guide.FieldGuideScreenHooks;
 import com.adamkali.dwm.sound.TardisHumController;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -52,6 +54,8 @@ public class DWMClient implements ClientModInitializer {
         // resource reload, which is after client init. Register before that snapshot.
         PortalDoorRenderer.ensurePipelineRegistered();
         PortalSupport.initialize();
+        FieldGuideKeybinds.initialize();
+        FieldGuideScreenHooks.initialize();
         ClientTickEvents.END_CLIENT_TICK.register(client -> PortalSceneStore.clientTick());
     }
 }

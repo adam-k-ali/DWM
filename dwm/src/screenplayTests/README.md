@@ -13,7 +13,15 @@ Run a test by its YAML filename without the extension:
 
 ```bash
 ./dwm/gradlew runScreenplay -Pscreenplay=createWorld
+./dwm/gradlew runScreenplay -Pscreenplay=fieldGuide -PscreenplayDisplay=xvfb
 ```
+
+Mod-owned scenarios include `placeAndOpenTardis` (TARDIS door/interior flow) and
+`fieldGuide` (Field Guide UI snapshots). PNGs from `captureScreenshot` land under
+`build/screenplay/run/screenshots/` and are copied into
+`build/screenplay/results/<id>/screenshots/` by `runScreenplayTests`. **Do not**
+commit baseline PNGs — review screenshot diffs across CI runs or local runs when
+the Field Guide UI changes.
 
 Discover every `type: test` YAML under `resources/tests/` and run each one
 (fresh client per scenario):
@@ -181,6 +189,13 @@ The MVP primitives are:
   updates. Cheats (singleplayer) or operator (dedicated server) are required
   for privileged commands such as `/give`. `startVanillaServer` does not OP
   the player.
+- `pressKey` — presses a keyboard key once (for example `g` for a bound key or
+  `escape` for the pause menu). Pair with `waitUntil` when the key opens a
+  screen on a later client tick.
+
+Field Guide scenario (`fieldGuide.yaml`) uses `pressKey: g`, chapter/page
+`assertAndClick` navigation, and `pressKey: escape` + pause-menu `"Field Guide"`
+for the secondary access path. No mod-specific Screenplay primitives are required.
 
 ```yaml
 - waitUntil:

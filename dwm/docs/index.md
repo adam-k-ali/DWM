@@ -5,6 +5,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 ## Feature Map
 
 ### Stable Features
+- [DWM Field Guide](./feature-field-guide.md)
 - [Sonic Screwdrivers](./feature-sonic-screwdrivers.md)
 - [TARDIS Exterior Block](./feature-tardis-block.md)
 - [Stattenheim Remote](./feature-stattenheim-remote.md)
