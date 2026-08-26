@@ -5,5 +5,18 @@
     "library",
     "utility"
   ],
-  "additional_categories": []
+  "additional_categories": [],
+  "disclosures": {
+    "set": [
+      {
+        "type": "ai_content",
+        "uses": [
+          "code",
+          "text"
+        ],
+        "note": "Substantial library code and listing/changelog text are written with AI coding assistants under human product direction and review. The library does not call generative AI at runtime."
+      }
+    ],
+    "remove": []
+  }
 }

@@ -11,5 +11,18 @@
     "worldgen",
     "decoration"
   ],
-  "discord_url": "https://discord.gg/pGdRYBh"
+  "discord_url": "https://discord.gg/pGdRYBh",
+  "disclosures": {
+    "set": [
+      {
+        "type": "ai_content",
+        "uses": [
+          "code",
+          "text"
+        ],
+        "note": "Substantial code and listing/changelog text are written with AI coding assistants under human product direction and review. Gallery/icon images and in-game assets are not AI-generated; the mod does not call generative AI at runtime."
+      }
+    ],
+    "remove": []
+  }
 }
