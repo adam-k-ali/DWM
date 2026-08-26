@@ -15,18 +15,30 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public final class ScenarioCatalog {
+    private static final Set<String> SUITE_BODY_KEYS = Set.of(
+            "before-all", "before-each", "after-each", "after-all", "tests"
+    );
+
     private final Map<String, ScenarioDocument> tests;
     private final Map<String, ScenarioDocument> commands;
+    private final Map<String, ScenarioDocument> suites;
 
-    private ScenarioCatalog(Map<String, ScenarioDocument> tests, Map<String, ScenarioDocument> commands) {
+    private ScenarioCatalog(
+            Map<String, ScenarioDocument> tests,
+            Map<String, ScenarioDocument> commands,
+            Map<String, ScenarioDocument> suites
+    ) {
         this.tests = Map.copyOf(tests);
         this.commands = Map.copyOf(commands);
+        this.suites = Map.copyOf(suites);
     }
 
     public static ScenarioCatalog loadFromResources(ClassLoader classLoader) {
@@ -42,19 +54,21 @@ public final class ScenarioCatalog {
 
         Map<String, ScenarioDocument> tests = new LinkedHashMap<>();
         Map<String, ScenarioDocument> commands = new LinkedHashMap<>();
+        Map<String, ScenarioDocument> suites = new LinkedHashMap<>();
         while (roots.hasMoreElements()) {
             URL rootUrl = roots.nextElement();
             Path root = toPath(rootUrl);
-            loadInto(root, tests, commands);
+            loadInto(root, tests, commands, suites);
         }
-        return new ScenarioCatalog(tests, commands);
+        return new ScenarioCatalog(tests, commands, suites);
     }
 
     public static ScenarioCatalog load(Path root) {
         Map<String, ScenarioDocument> tests = new LinkedHashMap<>();
         Map<String, ScenarioDocument> commands = new LinkedHashMap<>();
-        loadInto(root, tests, commands);
-        return new ScenarioCatalog(tests, commands);
+        Map<String, ScenarioDocument> suites = new LinkedHashMap<>();
+        loadInto(root, tests, commands, suites);
+        return new ScenarioCatalog(tests, commands, suites);
     }
 
     private static Path toPath(URL root) {
@@ -80,7 +94,8 @@ public final class ScenarioCatalog {
     private static void loadInto(
             Path root,
             Map<String, ScenarioDocument> tests,
-            Map<String, ScenarioDocument> commands
+            Map<String, ScenarioDocument> commands,
+            Map<String, ScenarioDocument> suites
     ) {
         if (!Files.isDirectory(root)) {
             throw new ScenarioException("Scenario root is not a directory: " + root);
@@ -92,8 +107,11 @@ public final class ScenarioCatalog {
                     .sorted()
                     .map(path -> parse(root, path))
                     .forEach(document -> {
-                        Map<String, ScenarioDocument> target =
-                                document.type() == ScenarioDocument.Type.TEST ? tests : commands;
+                        Map<String, ScenarioDocument> target = switch (document.type()) {
+                            case TEST -> tests;
+                            case COMMAND -> commands;
+                            case SUITE -> suites;
+                        };
                         ScenarioDocument previous = target.putIfAbsent(document.id(), document);
                         if (previous != null) {
                             throw new ScenarioException("Duplicate " + document.type().name().toLowerCase(Locale.ROOT)
@@ -114,6 +132,27 @@ public final class ScenarioCatalog {
         return test;
     }
 
+    public ScenarioDocument requireSuite(String id) {
+        ScenarioDocument suite = suites.get(normalizeId(id));
+        if (suite == null) {
+            throw new ScenarioException("Unknown suite '" + id + "'. Available suites: " + suites.keySet());
+        }
+        return suite;
+    }
+
+    public ScenarioDocument.Type resolveExecutableType(String id) {
+        String normalized = normalizeId(id);
+        if (suites.containsKey(normalized)) {
+            return ScenarioDocument.Type.SUITE;
+        }
+        if (tests.containsKey(normalized)) {
+            return ScenarioDocument.Type.TEST;
+        }
+        throw new ScenarioException("Unknown scenario '" + id
+                + "'. Available tests: " + tests.keySet()
+                + "; available suites: " + suites.keySet());
+    }
+
     public ScenarioDocument command(String id) {
         return commands.get(id);
     }
@@ -124,6 +163,10 @@ public final class ScenarioCatalog {
 
     public Map<String, ScenarioDocument> commands() {
         return commands;
+    }
+
+    public Map<String, ScenarioDocument> suites() {
+        return suites;
     }
 
     private static ScenarioDocument parse(Path root, Path path) {
@@ -151,12 +194,103 @@ public final class ScenarioCatalog {
         ScenarioDocument.Type type = switch (rawType) {
             case "test" -> ScenarioDocument.Type.TEST;
             case "command" -> ScenarioDocument.Type.COMMAND;
+            case "suite" -> ScenarioDocument.Type.SUITE;
             default -> throw new ScenarioException(source + ": unsupported frontmatter type '" + rawType + "'");
         };
 
+        if (type == ScenarioDocument.Type.SUITE) {
+            return parseSuite(id, name, body, source);
+        }
+        return parseTestOrCommand(id, name, type, body, source);
+    }
+
+    private static ScenarioDocument parseSuite(String id, String name, Map<String, Object> body, String source) {
+        if (body.containsKey("parameters")) {
+            throw new ScenarioException(source + ": suite documents may not declare parameters");
+        }
+        if (body.containsKey("steps")) {
+            throw new ScenarioException(source
+                    + ": suite documents may not declare steps; use before-all/before-each/after-each/after-all");
+        }
+        for (String key : body.keySet()) {
+            if (!SUITE_BODY_KEYS.contains(key)) {
+                throw new ScenarioException(source + ": unsupported suite body key '" + key + "'");
+            }
+        }
+
+        List<ScenarioDocument.Invocation> beforeAll = parseOptionalHook(body.get("before-all"), source, "before-all");
+        List<ScenarioDocument.Invocation> beforeEach = parseOptionalHook(body.get("before-each"), source, "before-each");
+        List<ScenarioDocument.Invocation> afterEach = parseOptionalHook(body.get("after-each"), source, "after-each");
+        List<ScenarioDocument.Invocation> afterAll = parseOptionalHook(body.get("after-all"), source, "after-all");
+        List<String> testIds = parseTestIds(body.get("tests"), source);
+        return new ScenarioDocument(
+                id,
+                name,
+                ScenarioDocument.Type.SUITE,
+                List.of(),
+                List.of(),
+                beforeAll,
+                beforeEach,
+                afterEach,
+                afterAll,
+                testIds,
+                source
+        );
+    }
+
+    private static ScenarioDocument parseTestOrCommand(
+            String id,
+            String name,
+            ScenarioDocument.Type type,
+            Map<String, Object> body,
+            String source
+    ) {
+        for (String key : body.keySet()) {
+            if (SUITE_BODY_KEYS.contains(key)) {
+                throw new ScenarioException(source + ": only suite documents may declare '" + key + "'");
+            }
+        }
+
         List<ScenarioDocument.Parameter> parameters = parseParameters(body.get("parameters"), source, type);
-        List<ScenarioDocument.Invocation> steps = parseSteps(body.get("steps"), source);
-        return new ScenarioDocument(id, name, type, parameters, steps, source);
+        List<ScenarioDocument.Invocation> steps = parseStepList(body.get("steps"), source, "steps");
+        return new ScenarioDocument(
+                id,
+                name,
+                type,
+                parameters,
+                steps,
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                source
+        );
+    }
+
+    private static List<ScenarioDocument.Invocation> parseOptionalHook(Object value, String source, String key) {
+        if (value == null) {
+            return List.of();
+        }
+        return parseStepList(value, source, key);
+    }
+
+    private static List<String> parseTestIds(Object value, String source) {
+        if (!(value instanceof List<?> values) || values.isEmpty()) {
+            throw new ScenarioException(source + ": 'tests' must be a non-empty list");
+        }
+        Set<String> seen = new LinkedHashSet<>();
+        List<String> testIds = new ArrayList<>();
+        for (Object entry : values) {
+            if (!(entry instanceof String testId) || testId.isBlank()) {
+                throw new ScenarioException(source + ": each suite test id must be a non-empty string");
+            }
+            if (!seen.add(testId)) {
+                throw new ScenarioException(source + ": duplicate suite test id '" + testId + "'");
+            }
+            testIds.add(testId);
+        }
+        return List.copyOf(testIds);
     }
 
     private static List<ScenarioDocument.Parameter> parseParameters(
@@ -191,19 +325,19 @@ public final class ScenarioCatalog {
         return List.copyOf(parameters);
     }
 
-    private static List<ScenarioDocument.Invocation> parseSteps(Object value, String source) {
+    private static List<ScenarioDocument.Invocation> parseStepList(Object value, String source, String field) {
         if (!(value instanceof List<?> values) || values.isEmpty()) {
-            throw new ScenarioException(source + ": 'steps' must be a non-empty list");
+            throw new ScenarioException(source + ": '" + field + "' must be a non-empty list");
         }
         List<ScenarioDocument.Invocation> steps = new ArrayList<>();
         for (Object entry : values) {
-            if (entry instanceof String name) {
-                steps.add(new ScenarioDocument.Invocation(name, Map.of()));
+            if (entry instanceof String stepName) {
+                steps.add(new ScenarioDocument.Invocation(stepName, Map.of()));
                 continue;
             }
-            Map<String, Object> invocation = requireMap(entry, source + " step");
+            Map<String, Object> invocation = requireMap(entry, source + " " + field + " step");
             if (invocation.size() != 1) {
-                throw new ScenarioException(source + ": each step must contain exactly one command");
+                throw new ScenarioException(source + ": each " + field + " step must contain exactly one command");
             }
             Map.Entry<String, Object> command = invocation.entrySet().iterator().next();
             steps.add(new ScenarioDocument.Invocation(

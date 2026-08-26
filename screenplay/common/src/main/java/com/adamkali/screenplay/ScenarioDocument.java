@@ -9,11 +9,27 @@ public record ScenarioDocument(
         Type type,
         List<Parameter> parameters,
         List<Invocation> steps,
+        List<Invocation> beforeAll,
+        List<Invocation> beforeEach,
+        List<Invocation> afterEach,
+        List<Invocation> afterAll,
+        List<String> testIds,
         String source
 ) {
+    public ScenarioDocument {
+        parameters = List.copyOf(parameters);
+        steps = List.copyOf(steps);
+        beforeAll = List.copyOf(beforeAll);
+        beforeEach = List.copyOf(beforeEach);
+        afterEach = List.copyOf(afterEach);
+        afterAll = List.copyOf(afterAll);
+        testIds = List.copyOf(testIds);
+    }
+
     public enum Type {
         TEST,
-        COMMAND
+        COMMAND,
+        SUITE
     }
 
     public record Parameter(String name, String type) {

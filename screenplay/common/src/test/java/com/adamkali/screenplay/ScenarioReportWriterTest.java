@@ -67,6 +67,59 @@ class ScenarioReportWriterTest {
     }
 
     @Test
+    void writeSuite_emitsMultiCaseXmlAndSuiteMetrics() throws Exception {
+        Path reportFile = tempDir.resolve("report.xml");
+        ScenarioReportWriter writer = new ScenarioReportWriter(reportFile);
+        SuitePlan suite = new SuitePlan(
+                "worldSuite",
+                "World Suite",
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(new ScenarioPlan("memberA", "Member A", List.of()))
+        );
+        List<ScenarioReportWriter.CaseResult> cases = List.of(
+                new ScenarioReportWriter.CaseResult(
+                        "before-all",
+                        "before-all",
+                        List.of(new ScenarioReportWriter.StepResult("launchGame", 10_000_000L, true)),
+                        null
+                ),
+                new ScenarioReportWriter.CaseResult(
+                        "memberA",
+                        "Member A",
+                        List.of(new ScenarioReportWriter.StepResult("waitTicks \"1\"", 5_000_000L, false)),
+                        "before-each: boom"
+                ),
+                new ScenarioReportWriter.CaseResult(
+                        "after-all",
+                        "after-all",
+                        List.of(),
+                        null
+                )
+        );
+
+        writer.writeSuite(suite, cases, "suite: worldSuite\n");
+
+        String xml = Files.readString(reportFile);
+        assertTrue(xml.contains("tests=\"3\""));
+        assertTrue(xml.contains("failures=\"1\""));
+        assertTrue(xml.contains("name=\"before-all\""));
+        assertTrue(xml.contains("name=\"memberA\""));
+        assertTrue(xml.contains("before-each: boom"));
+
+        JSONObject metrics = new JSONObject(Files.readString(writer.metricsFile()));
+        assertTrue(metrics.getBoolean("suite"));
+        assertEquals("worldSuite", metrics.getString("scenarioId"));
+        assertFalse(metrics.getBoolean("passed"));
+        assertEquals(3, metrics.getJSONArray("cases").length());
+        assertEquals("memberA", metrics.getJSONArray("cases").getJSONObject(1).getString("id"));
+        assertFalse(metrics.getJSONArray("cases").getJSONObject(1).getBoolean("passed"));
+        assertEquals(2, metrics.getJSONArray("steps").length());
+    }
+
+    @Test
     void write_emitsMetricsBesideReport() throws Exception {
         Path reportFile = tempDir.resolve("report.xml");
         ScenarioReportWriter writer = new ScenarioReportWriter(reportFile);

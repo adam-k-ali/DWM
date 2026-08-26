@@ -7,6 +7,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,6 +28,45 @@ public final class ScenarioCompiler {
         List<ScenarioPlan.Step> expanded = new ArrayList<>();
         expand(test.steps(), test.source(), Map.of(), new ArrayDeque<>(), expanded);
         return new ScenarioPlan(test.id(), test.name(), expanded);
+    }
+
+    public SuitePlan compileSuite(String suiteId) {
+        ScenarioDocument suite = catalog.requireSuite(suiteId);
+        List<ScenarioPlan.Step> beforeAll = expandHook(suite.beforeAll(), suite.source());
+        List<ScenarioPlan.Step> beforeEach = expandHook(suite.beforeEach(), suite.source());
+        List<ScenarioPlan.Step> afterEach = expandHook(suite.afterEach(), suite.source());
+        List<ScenarioPlan.Step> afterAll = expandHook(suite.afterAll(), suite.source());
+
+        Set<String> seen = new LinkedHashSet<>();
+        List<ScenarioPlan> members = new ArrayList<>();
+        for (String testId : suite.testIds()) {
+            if (!seen.add(testId)) {
+                throw new ScenarioException(suite.source() + ": duplicate suite test id '" + testId + "'");
+            }
+            if (catalog.suites().containsKey(testId)) {
+                throw new ScenarioException(suite.source()
+                        + ": suite member '" + testId + "' must be a test, not a suite");
+            }
+            if (catalog.command(testId) != null && !catalog.tests().containsKey(testId)) {
+                throw new ScenarioException(suite.source()
+                        + ": suite member '" + testId + "' must be a test, not a command");
+            }
+            if (!catalog.tests().containsKey(testId)) {
+                throw new ScenarioException(suite.source() + ": unknown suite test '" + testId
+                        + "'. Available tests: " + catalog.tests().keySet());
+            }
+            members.add(compile(testId));
+        }
+        return new SuitePlan(suite.id(), suite.name(), beforeAll, beforeEach, afterEach, afterAll, members);
+    }
+
+    private List<ScenarioPlan.Step> expandHook(List<ScenarioDocument.Invocation> invocations, String source) {
+        if (invocations.isEmpty()) {
+            return List.of();
+        }
+        List<ScenarioPlan.Step> expanded = new ArrayList<>();
+        expand(invocations, source, Map.of(), new ArrayDeque<>(), expanded);
+        return List.copyOf(expanded);
     }
 
     private void expand(

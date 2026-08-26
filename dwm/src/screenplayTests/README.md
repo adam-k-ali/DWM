@@ -23,16 +23,18 @@ Mod-owned scenarios include `placeAndOpenTardis` (TARDIS door/interior flow) and
 commit baseline PNGs — review screenshot diffs across CI runs or local runs when
 the Field Guide UI changes.
 
-Discover every `type: test` YAML under `resources/tests/` and run each one
-(fresh client per scenario):
+Discover every `type: suite` and standalone `type: test` YAML under
+`resources/tests/`. Suites share one client session; standalone tests still get
+a fresh client each:
 
 ```bash
 ./dwm/gradlew runScreenplayTests
 ./dwm/gradlew runScreenplayTests -PscreenplayDisplay=xvfb -PscreenplayTimeout=120
 ```
 
-`runScreenplayTests` skips `type: command` documents, continues after individual
-failures, and fails the aggregate with the list of failed scenario IDs.
+`runScreenplayTests` skips `type: command` documents and skips `type: test` IDs
+that are listed as members of a discovered suite. It continues after individual
+failures, and fails the aggregate with the list of failed IDs.
 
 The client uses an isolated directory under `build/screenplay/run`. Before
 each run, the harness removes its saved worlds, clears
@@ -111,10 +113,13 @@ Supported frontmatter types are:
 
 - `test` — an executable scenario selected with `-Pscreenplay`.
 - `command` — a reusable composite command.
+- `suite` — one-client group of tests with `before-all` / `before-each` /
+  `after-each` / `after-all` hooks and a `tests:` member list.
 
 The filename stem is the stable ID. For example,
-`subflows/assertAndClick.yaml` defines `assertAndClick`. Duplicate test or
-command IDs are rejected even when the files are in different directories.
+`subflows/assertAndClick.yaml` defines `assertAndClick`. Duplicate test,
+command, or suite IDs are rejected even when the files are in different
+directories.
 
 ## Steps and selectors
 

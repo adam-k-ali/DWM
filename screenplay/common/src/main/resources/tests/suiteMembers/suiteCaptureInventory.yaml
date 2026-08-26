@@ -1,0 +1,8 @@
+---
+name: Suite Capture Inventory
+type: test
+---
+steps:
+  - openInventory
+  - captureScreenshot:
+      name: suite-inventory

@@ -50,11 +50,11 @@ class ScenarioCompilerTest {
     }
 
     @Test
-    void rejectsUnsupportedFrontmatterType(@TempDir Path root) throws Exception {
+    void rejectsUnknownFrontmatterType(@TempDir Path root) throws Exception {
         write(root.resolve("invalid.yaml"), """
                 ---
                 name: Invalid
-                type: suite
+                type: fixture
                 ---
                 steps:
                   - launchGame
@@ -62,7 +62,201 @@ class ScenarioCompilerTest {
 
         ScenarioException exception = assertThrows(ScenarioException.class, () -> ScenarioCatalog.load(root));
 
-        assertTrue(exception.getMessage().contains("unsupported frontmatter type 'suite'"));
+        assertTrue(exception.getMessage().contains("unsupported frontmatter type 'fixture'"));
+    }
+
+    @Test
+    void compilesSuiteHooksAndMembers(@TempDir Path root) throws Exception {
+        write(root.resolve("memberA.yaml"), """
+                ---
+                name: Member A
+                type: test
+                ---
+                steps:
+                  - waitTicks: 1
+                """);
+        write(root.resolve("memberB.yaml"), """
+                ---
+                name: Member B
+                type: test
+                ---
+                steps:
+                  - waitTicks: 2
+                """);
+        write(root.resolve("shared.yaml"), """
+                ---
+                name: Shared
+                type: command
+                ---
+                steps:
+                  - launchGame
+                """);
+        write(root.resolve("worldSuite.yaml"), """
+                ---
+                name: World Suite
+                type: suite
+                ---
+                before-all:
+                  - shared
+                  - createWorld:
+                      worldType: superflat
+                      gameMode: creative
+                before-each:
+                  - runCommand: "/time set day"
+                after-each:
+                  - closeScreen
+                after-all:
+                  - captureScreenshot:
+                      name: suite-end
+                tests:
+                  - memberA
+                  - memberB
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        SuitePlan suite = new ScenarioCompiler(catalog).compileSuite("worldSuite");
+
+        assertEquals(1, catalog.suites().size());
+        assertEquals("World Suite", suite.name());
+        assertEquals(2, suite.beforeAll().size());
+        assertEquals("launchGame", suite.beforeAll().get(0).name());
+        assertEquals("createWorld", suite.beforeAll().get(1).name());
+        assertEquals(1, suite.beforeEach().size());
+        assertEquals("runCommand", suite.beforeEach().get(0).name());
+        assertEquals(1, suite.afterEach().size());
+        assertEquals("closeScreen", suite.afterEach().get(0).name());
+        assertEquals(1, suite.afterAll().size());
+        assertEquals("suite-end.png", suite.afterAll().get(0).arguments().get("name"));
+        assertEquals(2, suite.tests().size());
+        assertEquals("memberA", suite.tests().get(0).id());
+        assertEquals(1, suite.tests().get(0).steps().size());
+        assertEquals(2, suite.tests().get(1).steps().get(0).arguments().get("ticks"));
+    }
+
+    @Test
+    void compilesBundledCreativeWorldSuite() throws Exception {
+        Path scenarioRoot = Path.of(getClass().getResource("/tests").toURI());
+
+        SuitePlan suite = new ScenarioCompiler(ScenarioCatalog.load(scenarioRoot)).compileSuite("creativeWorldSuite");
+
+        assertEquals("Creative World Suite", suite.name());
+        assertFalse(suite.beforeAll().isEmpty());
+        assertEquals("launchGame", suite.beforeAll().getFirst().name());
+        assertEquals(2, suite.tests().size());
+        assertEquals("suitePlaceDirt", suite.tests().get(0).id());
+        assertEquals("suiteCaptureInventory", suite.tests().get(1).id());
+        assertEquals("closeScreen", suite.afterEach().getFirst().name());
+        assertEquals("suite-end.png", suite.afterAll().getFirst().arguments().get("name"));
+    }
+
+    @Test
+    void rejectsSuiteWithStepsBody(@TempDir Path root) throws Exception {
+        write(root.resolve("invalid.yaml"), """
+                ---
+                name: Invalid
+                type: suite
+                ---
+                steps:
+                  - launchGame
+                tests:
+                  - member
+                """);
+
+        ScenarioException exception = assertThrows(ScenarioException.class, () -> ScenarioCatalog.load(root));
+
+        assertTrue(exception.getMessage().contains("may not declare steps"));
+    }
+
+    @Test
+    void rejectsSuiteSetupAlias(@TempDir Path root) throws Exception {
+        write(root.resolve("invalid.yaml"), """
+                ---
+                name: Invalid
+                type: suite
+                ---
+                setup:
+                  - launchGame
+                tests:
+                  - member
+                """);
+
+        ScenarioException exception = assertThrows(ScenarioException.class, () -> ScenarioCatalog.load(root));
+
+        assertTrue(exception.getMessage().contains("unsupported suite body key 'setup'"));
+    }
+
+    @Test
+    void rejectsUnknownSuiteMember(@TempDir Path root) throws Exception {
+        write(root.resolve("member.yaml"), """
+                ---
+                name: Member
+                type: test
+                ---
+                steps:
+                  - launchGame
+                """);
+        write(root.resolve("worldSuite.yaml"), """
+                ---
+                name: World Suite
+                type: suite
+                ---
+                tests:
+                  - missingMember
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compileSuite("worldSuite")
+        );
+
+        assertTrue(exception.getMessage().contains("unknown suite test 'missingMember'"));
+    }
+
+    @Test
+    void rejectsSuiteMemberThatIsCommand(@TempDir Path root) throws Exception {
+        write(root.resolve("shared.yaml"), """
+                ---
+                name: Shared
+                type: command
+                ---
+                steps:
+                  - launchGame
+                """);
+        write(root.resolve("worldSuite.yaml"), """
+                ---
+                name: World Suite
+                type: suite
+                ---
+                tests:
+                  - shared
+                """);
+
+        ScenarioCatalog catalog = ScenarioCatalog.load(root);
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> new ScenarioCompiler(catalog).compileSuite("worldSuite")
+        );
+
+        assertTrue(exception.getMessage().contains("must be a test, not a command"));
+    }
+
+    @Test
+    void rejectsHookKeysOnTestDocuments(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                before-all:
+                  - launchGame
+                steps:
+                  - waitTicks: 1
+                """);
+
+        ScenarioException exception = assertThrows(ScenarioException.class, () -> ScenarioCatalog.load(root));
+
+        assertTrue(exception.getMessage().contains("only suite documents may declare 'before-all'"));
     }
 
     @Test

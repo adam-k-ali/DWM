@@ -248,18 +248,23 @@ guiScale:1
 
         project.tasks.register('runScreenplayTests') {
             group = 'verification'
-            description = 'Discover all type:test YAML scenarios and run each via runScreenplay'
+            description = 'Discover Screenplay suites and standalone type:test scenarios, then run each via runScreenplay'
 
             doLast {
                 def missing = testsDirs.findAll { !it.isDirectory() }
                 if (missing) {
                     throw new GradleException("Screenplay tests directory not found: ${missing}")
                 }
-                def scenarioIds = discoverScenarioTestIds(testsDirs)
+                def discovery = discoverScreenplayRunIds(testsDirs)
+                def scenarioIds = discovery.runIds as List
                 if (scenarioIds.isEmpty()) {
-                    throw new GradleException("No scenario tests (type: test) found under ${testsDirs}")
+                    throw new GradleException(
+                            "No scenario suites or standalone tests found under ${testsDirs}")
                 }
-                logger.lifecycle("Discovered ${scenarioIds.size()} Screenplay test(s): ${scenarioIds.join(', ')}")
+                logger.lifecycle(
+                        "Discovered ${scenarioIds.size()} Screenplay run(s): ${scenarioIds.join(', ')}"
+                                + " (${discovery.suiteIds.size()} suite(s), "
+                                + "${discovery.standaloneTestIds.size()} standalone test(s))")
 
                 def gradleWrapper = new File(projectDirFile, 'gradlew')
                 def gradleCommand = gradleWrapper.exists() ? gradleWrapper.absolutePath : 'gradle'
@@ -269,7 +274,7 @@ guiScale:1
                 resultsDir.mkdirs()
 
                 scenarioIds.each { String scenarioId ->
-                    logger.lifecycle("Running Screenplay test '${scenarioId}'")
+                    logger.lifecycle("Running Screenplay '${scenarioId}'")
                     def args = [gradleCommand, 'runScreenplay', "-Pscreenplay=${scenarioId}"]
                     args << "-PscreenplayDisplay=${displayMode.get()}"
                     if (timeoutProperty.isPresent()) {
@@ -305,38 +310,60 @@ guiScale:1
 
                     if (result.exitValue != 0) {
                         failed << scenarioId
-                        logger.error("Screenplay test '${scenarioId}' failed (exit ${result.exitValue})")
+                        logger.error("Screenplay '${scenarioId}' failed (exit ${result.exitValue})")
                     } else {
-                        logger.lifecycle("Screenplay test '${scenarioId}' passed")
+                        logger.lifecycle("Screenplay '${scenarioId}' passed")
                     }
                 }
 
                 if (!failed.isEmpty()) {
                     throw new GradleException(
-                            "Failed Screenplay test(s): ${failed.join(', ')} "
+                            "Failed Screenplay run(s): ${failed.join(', ')} "
                                     + "(${failed.size()} of ${scenarioIds.size()})")
                 }
-                logger.lifecycle("All ${scenarioIds.size()} Screenplay test(s) passed")
+                logger.lifecycle("All ${scenarioIds.size()} Screenplay run(s) passed")
             }
         }
     }
 
-    private static List discoverScenarioTestIds(List<File> scenarioTestsRoots) {
-        def ids = [] as TreeSet
+    private static Map discoverScreenplayRunIds(List<File> scenarioTestsRoots) {
+        def suiteIds = [] as TreeSet
+        def testIds = [] as TreeSet
+        def suiteMemberIds = [] as HashSet
         scenarioTestsRoots.each { File scenarioTestsRoot ->
             projectFileTree(scenarioTestsRoot).each { File yamlFile ->
-                if (!isScenarioTestYaml(yamlFile)) {
+                def frontmatterType = readFrontmatterType(yamlFile)
+                if (frontmatterType == null) {
                     return
                 }
-                def name = yamlFile.name
-                def extension = name.lastIndexOf('.')
-                def id = extension < 0 ? name : name.substring(0, extension)
-                if (!ids.add(id)) {
-                    throw new GradleException("Duplicate scenario test id '${id}' under ${scenarioTestsRoots}")
+                def id = filenameStem(yamlFile)
+                if (frontmatterType == 'suite') {
+                    if (!suiteIds.add(id)) {
+                        throw new GradleException("Duplicate scenario suite id '${id}' under ${scenarioTestsRoots}")
+                    }
+                    suiteMemberIds.addAll(readSuiteTestIds(yamlFile))
+                } else if (frontmatterType == 'test') {
+                    if (!testIds.add(id)) {
+                        throw new GradleException("Duplicate scenario test id '${id}' under ${scenarioTestsRoots}")
+                    }
                 }
             }
         }
-        return ids as List
+        def standaloneTestIds = testIds.findAll { !suiteMemberIds.contains(it) } as TreeSet
+        def runIds = [] as TreeSet
+        runIds.addAll(suiteIds)
+        runIds.addAll(standaloneTestIds)
+        return [
+                suiteIds         : suiteIds,
+                standaloneTestIds: standaloneTestIds,
+                runIds           : runIds
+        ]
+    }
+
+    private static String filenameStem(File yamlFile) {
+        def name = yamlFile.name
+        def extension = name.lastIndexOf('.')
+        return extension < 0 ? name : name.substring(0, extension)
     }
 
     private static Collection<File> projectFileTree(File root) {
@@ -349,18 +376,58 @@ guiScale:1
         return files
     }
 
-    private static boolean isScenarioTestYaml(File yamlFile) {
+    private static String readFrontmatterType(File yamlFile) {
         def text = yamlFile.getText('UTF-8').replace('\r\n', '\n')
         if (!text.startsWith('---\n')) {
-            return false
+            return null
         }
         def closing = text.indexOf('\n---\n', 4)
         if (closing < 0) {
-            return false
+            return null
         }
-        return text.substring(4, closing).readLines().any { line ->
-            line.trim() == 'type: test'
+        def typeLine = text.substring(4, closing).readLines().find { line ->
+            line.trim().startsWith('type:')
         }
+        if (typeLine == null) {
+            return null
+        }
+        return typeLine.substring(typeLine.indexOf(':') + 1).trim()
+    }
+
+    private static List readSuiteTestIds(File yamlFile) {
+        def text = yamlFile.getText('UTF-8').replace('\r\n', '\n')
+        def closing = text.indexOf('\n---\n', 4)
+        if (closing < 0) {
+            return []
+        }
+        def body = text.substring(closing + 5)
+        def ids = []
+        def inTests = false
+        body.readLines().each { String rawLine ->
+            def line = rawLine.replaceAll(/\s+$/, '')
+            if (!inTests) {
+                if (line.trim() == 'tests:') {
+                    inTests = true
+                }
+                return
+            }
+            if (line ==~ /^[A-Za-z0-9_-]+:.*/) {
+                inTests = false
+                return
+            }
+            def matcher = (line =~ /^\s*-\s+(.+?)\s*$/)
+            if (matcher.matches()) {
+                def value = matcher.group(1).trim()
+                if ((value.startsWith('"') && value.endsWith('"'))
+                        || (value.startsWith("'") && value.endsWith("'"))) {
+                    value = value.substring(1, value.length() - 1)
+                }
+                if (!value.isBlank()) {
+                    ids << value
+                }
+            }
+        }
+        return ids
     }
 }
 

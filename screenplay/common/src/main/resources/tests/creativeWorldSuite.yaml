@@ -1,0 +1,20 @@
+---
+name: Creative World Suite
+type: suite
+---
+before-all:
+  - launchGame
+  - createWorld:
+      worldType: superflat
+      gameMode: creative
+  - closeScreen
+before-each:
+  - runCommand: "/time set day"
+after-each:
+  - closeScreen
+after-all:
+  - captureScreenshot:
+      name: suite-end
+tests:
+  - suitePlaceDirt
+  - suiteCaptureInventory
