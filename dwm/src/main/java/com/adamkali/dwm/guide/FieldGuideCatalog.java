@@ -43,9 +43,13 @@ public final class FieldGuideCatalog {
             new FieldGuideChapter("console_room", "dwm.guide.chapter.console_room", List.of(
                     FieldGuidePage.crafting("chronoplasm", "dwm.guide.page.chronoplasm.title", "dwm.guide.page.chronoplasm.body", WHITE_CHRONOPLASM, true),
                     FieldGuidePage.smelting("tardis_wall", "dwm.guide.page.tardis_wall.title", "dwm.guide.page.tardis_wall.body", WHITE_TARDIS_WALL, true),
-                    FieldGuidePage.crafting("roundel_a", "dwm.guide.page.roundel_a.title", "dwm.guide.page.roundel_a.body", WHITE_ROUNDEL_A, true),
-                    FieldGuidePage.crafting("roundel_b", "dwm.guide.page.roundel_b.title", "dwm.guide.page.roundel_b.body", WHITE_ROUNDEL_B, true),
-                    FieldGuidePage.crafting("big_roundel", "dwm.guide.page.big_roundel.title", "dwm.guide.page.big_roundel.body", WHITE_BIG_ROUNDEL_A, true),
+                    FieldGuidePage.crafting(
+                            "roundel",
+                            "dwm.guide.page.roundel.title",
+                            "dwm.guide.page.roundel.body",
+                            List.of(WHITE_ROUNDEL_A, WHITE_ROUNDEL_B, WHITE_BIG_ROUNDEL_A),
+                            true
+                    ),
                     FieldGuidePage.crafting("interior_props", "dwm.guide.page.interior_props.title", "dwm.guide.page.interior_props.body", TARDIS_CHAIR_SMALL, false)
             ))
     );

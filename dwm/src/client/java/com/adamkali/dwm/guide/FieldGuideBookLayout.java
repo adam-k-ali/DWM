@@ -28,11 +28,14 @@ public final class FieldGuideBookLayout {
     public static final int PAGE_ENTRY_HEIGHT = 11;
     public static final int PAGE_ENTRY_INDENT = 8;
 
-    public static final int RIGHT_CHAPTER_Y = 17;
-    public static final int RIGHT_TITLE_Y = 34;
-    public static final int RIGHT_BODY_Y = 53;
-    public static final int RIGHT_RECIPE_LABEL_Y = 91;
-    public static final int RIGHT_RECIPE_Y = 105;
+    public static final int RIGHT_CHAPTER_Y = 20;
+    public static final int RIGHT_TITLE_Y = 37;
+    public static final int RIGHT_BODY_Y = 56;
+    public static final int RIGHT_RECIPE_LABEL_Y = 94;
+    public static final int RIGHT_RECIPE_Y = 108;
+    public static final int VARIANT_SLOT_SIZE = 18;
+    public static final int VARIANT_ICON_PAD = 1;
+    public static final int VARIANT_ICON_GAP = 3;
     public static final int RIGHT_PATTERN_Y = 177;
     public static final int RIGHT_INDICATOR_Y = 203;
 

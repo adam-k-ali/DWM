@@ -13,6 +13,7 @@ import net.minecraft.client.gui.components.PlainTextButton;
 import net.minecraft.client.gui.screens.inventory.PageButton;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -35,6 +36,7 @@ public class FieldGuideScreen extends Screen {
     private @Nullable FieldGuideChapter selectedChapter;
     private @Nullable FieldGuidePage selectedPage;
     private FieldGuideRecipePanel.Station selectedStation = FieldGuideRecipePanel.Station.CRAFTING;
+    private int selectedCraftingVariantIndex;
     private int bookLeft;
     private int bookTop;
 
@@ -168,6 +170,7 @@ public class FieldGuideScreen extends Screen {
     private void selectPage(FieldGuidePage page) {
         selectedPage = page;
         selectedChapter = FieldGuideCatalog.chapterForPage(page);
+        selectedCraftingVariantIndex = 0;
         List<FieldGuideRecipePanel.Station> stations = FieldGuideRecipePanel.availableStations(page);
         if (!stations.isEmpty() && !stations.contains(selectedStation)) {
             selectedStation = stations.getFirst();
@@ -376,6 +379,19 @@ public class FieldGuideScreen extends Screen {
             );
         }
 
+        if (selectedStation == FieldGuideRecipePanel.Station.CRAFTING) {
+            FieldGuideRecipePanel.renderCraftingVariants(
+                    graphics,
+                    minecraft,
+                    bookLeft,
+                    bookTop,
+                    selectedPage,
+                    selectedCraftingVariantIndex,
+                    mouseX,
+                    mouseY
+            );
+        }
+
         FieldGuideRecipePanel.render(
                 graphics,
                 minecraft,
@@ -383,6 +399,7 @@ public class FieldGuideScreen extends Screen {
                 bookTop,
                 selectedPage,
                 selectedStation,
+                selectedCraftingVariantIndex,
                 mouseX,
                 mouseY
         );
@@ -409,6 +426,24 @@ public class FieldGuideScreen extends Screen {
                 break;
             }
         }
+    }
+
+    @Override
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (selectedPage != null && selectedStation == FieldGuideRecipePanel.Station.CRAFTING) {
+            int variantIndex = FieldGuideRecipePanel.craftingVariantIndexAt(
+                    selectedPage,
+                    bookLeft,
+                    bookTop,
+                    event.x(),
+                    event.y()
+            );
+            if (variantIndex >= 0) {
+                selectedCraftingVariantIndex = variantIndex;
+                return true;
+            }
+        }
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
