@@ -12,6 +12,7 @@
     "sources": "https://github.com/adam-k-ali/DWM"
   },
   "license": "All Rights Reserved",
+  "icon": "assets/screenplay/icon.png",
   "environment": "client",
   "entrypoints": {
     "client": [

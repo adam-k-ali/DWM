@@ -93,4 +93,40 @@ jobs:
               raise SystemExit(f"Expected HTTP 204 from Modrinth PATCH, got {status}")
 
           print("Updated Modrinth project listing for RdazTKdM (screenplay)")
+
+          icon_path = Path("screenplay/metadata/icon.png")
+          if not icon_path.is_file():
+              raise SystemExit(f"Missing {icon_path}")
+
+          icon_bytes = icon_path.read_bytes()
+          max_icon_bytes = 256 * 1024
+          if len(icon_bytes) > max_icon_bytes:
+              raise SystemExit(
+                  f"{icon_path} is {len(icon_bytes)} bytes; Modrinth limit is {max_icon_bytes} bytes"
+              )
+
+          icon_request = urllib.request.Request(
+              "https://api.modrinth.com/v2/project/RdazTKdM/icon?ext=png",
+              data=icon_bytes,
+              method="PATCH",
+              headers={
+                  "Authorization": token,
+                  "Content-Type": "image/png",
+                  "User-Agent": "adam-k-ali/DWM (https://github.com/adam-k-ali/DWM)",
+              },
+          )
+
+          try:
+              with urllib.request.urlopen(icon_request) as response:
+                  icon_status = response.status
+                  response.read()
+          except urllib.error.HTTPError as exc:
+              detail = exc.read().decode("utf-8", errors="replace")
+              print(detail, file=sys.stderr)
+              raise SystemExit(f"Modrinth icon PATCH failed with HTTP {exc.code}") from exc
+
+          if icon_status != 204:
+              raise SystemExit(f"Expected HTTP 204 from Modrinth icon PATCH, got {icon_status}")
+
+          print(f"Updated Modrinth project icon for RdazTKdM ({len(icon_bytes)} bytes)")
           PY

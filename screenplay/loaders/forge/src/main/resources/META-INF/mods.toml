@@ -8,6 +8,7 @@ modId="screenplay"
 version="${mod_version}"
 displayName="Screenplay"
 authors="adam-k-ali"
+logoFile="icon.png"
 description='''Real-client Minecraft scenario tests with CI screenshots.'''
 
 [[dependencies.screenplay]]
