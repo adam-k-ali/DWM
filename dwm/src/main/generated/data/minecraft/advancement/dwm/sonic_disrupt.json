@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:dwm/sonic_install_disrupt",
+  "criteria": {
+    "sonic_disrupt": {
+      "trigger": "dwm:sonic_disrupt"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.sonic_disrupt.description"
+    },
+    "icon": {
+      "id": "minecraft:slime_ball"
+    },
+    "title": {
+      "translate": "advancements.dwm.sonic_disrupt"
+    }
+  },
+  "requirements": [
+    [
+      "sonic_disrupt"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

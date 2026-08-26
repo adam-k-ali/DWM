@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:dwm/sonic_screwdriver",
+  "criteria": {
+    "sonic_install_shatter": {
+      "trigger": "dwm:sonic_install_shatter"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.sonic_install_shatter.description"
+    },
+    "icon": {
+      "id": "dwm:sonic_setting_shatter"
+    },
+    "title": {
+      "translate": "advancements.dwm.sonic_install_shatter"
+    }
+  },
+  "requirements": [
+    [
+      "sonic_install_shatter"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

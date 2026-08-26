@@ -1,11 +1,15 @@
 # useItem
 
-Use the main-hand item on the currently targeted block (same path as right-click
-place / interact).
+Use the main-hand item on the currently targeted block, or explicitly use it in
+air.
 
 ## Parameters
 
-None.
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `target` | string | no | `block` (default) or `air` |
+
+A scalar `air` or `block` shorthand sets `target`.
 
 ## Usage examples
 
@@ -13,10 +17,15 @@ None.
 - useItem
 ```
 
+```yaml
+- useItem: air
+```
+
 ## Notes
 
-- Requires a local player, game mode, **no open screen**, and a block crosshair
-  hit (`hitResult` is a block).
+- Requires a local player, game mode, and **no open screen**.
+- The default `block` target requires a block crosshair hit. `air` invokes the
+  main-hand item's normal in-air use path.
 - Succeeds as soon as the use is sent — it does **not** wait for the world to
   update. Pair with [`waitUntil`](waitUntil.md) `block`.
 - Aim first with [`lookAt`](lookAt.md); select the item with

@@ -73,6 +73,7 @@ nav:
       - openInventory: reference/commands/openInventory.md
       - runCommand: reference/commands/runCommand.md
       - selectHotbar: reference/commands/selectHotbar.md
+      - setSneaking: reference/commands/setSneaking.md
       - startVanillaServer: reference/commands/startVanillaServer.md
       - useItem: reference/commands/useItem.md
       - waitTicks: reference/commands/waitTicks.md

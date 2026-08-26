@@ -32,6 +32,7 @@ public final class ScenarioPrimitives {
                 new WaitTicksPrimitive(),
                 new OpenInventoryPrimitive(),
                 new CloseScreenPrimitive(),
+                new SetSneakingPrimitive(),
                 new SelectHotbarPrimitive(),
                 new LookAtPrimitive(),
                 new UseItemPrimitive(),

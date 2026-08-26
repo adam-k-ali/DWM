@@ -19,6 +19,14 @@ public final class DWMDataComponents {
                     .build()
     );
 
+    public static final @NonNull DataComponentType<SonicState> SONIC_STATE = register(
+            "sonic_state",
+            DataComponentType.<SonicState>builder()
+                    .persistent(SonicState.CODEC)
+                    .networkSynchronized(SonicState.STREAM_CODEC)
+                    .build()
+    );
+
     private DWMDataComponents() {
     }
 

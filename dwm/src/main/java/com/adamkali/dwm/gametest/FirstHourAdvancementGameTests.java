@@ -5,6 +5,10 @@ import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.item.DWMDataComponents;
 import com.adamkali.dwm.item.DWMItems;
+import com.adamkali.dwm.item.SonicFieldMode;
+import com.adamkali.dwm.item.SonicStateLogic;
+import com.adamkali.dwm.network.SelectSonicFieldModeC2SPayload;
+import com.adamkali.dwm.network.ServerPayloadTypeRegistry;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
@@ -34,6 +38,13 @@ import java.util.UUID;
 
 public class FirstHourAdvancementGameTests {
     private static final Identifier SONIC_IRON_DOOR = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/sonic_iron_door");
+    private static final Identifier SONIC_INSTALL_SHATTER = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/sonic_install_shatter");
+    private static final Identifier SONIC_INSTALL_PRIME = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/sonic_install_prime");
+    private static final Identifier SONIC_INSTALL_DISRUPT = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/sonic_install_disrupt");
+    private static final Identifier SONIC_INSTALL_SHEAR = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/sonic_install_shear");
+    private static final Identifier SONIC_CYCLE_SETTING = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/sonic_cycle_setting");
+    private static final Identifier SONIC_SHATTER = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/sonic_shatter");
+    private static final Identifier SONIC_ALL_SETTINGS = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/sonic_all_settings");
     private static final Identifier FIND_TARDIS = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/find_tardis");
     private static final Identifier CLAIM_TARDIS = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/claim_tardis");
     private static final Identifier FIRST_HOP = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/first_hop");
@@ -56,6 +67,82 @@ public class FirstHourAdvancementGameTests {
         }
         assertAdvancementDone(context, player, SONIC_IRON_DOOR);
         context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void sonicInstalls_awardPerSettingAndAllSettings(GameTestHelper context) {
+        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ItemStack sonic = SonicStateLogic.openOnlyStack(new ItemStack(DWMItems.SONIC_THIRD_DOCTOR));
+        player.setItemInHand(InteractionHand.OFF_HAND, sonic);
+
+        installSetting(player, new ItemStack(DWMItems.SONIC_SETTING_SHATTER));
+        assertAdvancementDone(context, player, SONIC_INSTALL_SHATTER);
+
+        installSetting(player, new ItemStack(DWMItems.SONIC_SETTING_PRIME));
+        assertAdvancementDone(context, player, SONIC_INSTALL_PRIME);
+
+        installSetting(player, new ItemStack(DWMItems.SONIC_SETTING_DISRUPT));
+        assertAdvancementDone(context, player, SONIC_INSTALL_DISRUPT);
+
+        installSetting(player, new ItemStack(DWMItems.SONIC_SETTING_SHEAR));
+        assertAdvancementDone(context, player, SONIC_INSTALL_SHEAR);
+        assertAdvancementDone(context, player, SONIC_ALL_SETTINGS);
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void sonicCycleSetting_awardsOnModeChange(GameTestHelper context) {
+        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ItemStack sonic = SonicStateLogic.openOnlyStack(new ItemStack(DWMItems.SONIC_THIRD_DOCTOR));
+        SonicStateLogic.install(sonic, SonicFieldMode.SHATTER);
+        player.setItemInHand(InteractionHand.MAIN_HAND, sonic);
+
+        boolean changed = ServerPayloadTypeRegistry.safelyHandleSelectSonicFieldMode(
+                new SelectSonicFieldModeC2SPayload(SonicFieldMode.SHATTER),
+                player
+        );
+        if (!changed) {
+            throw new AssertionError("Expected mode change");
+        }
+        assertAdvancementDone(context, player, SONIC_CYCLE_SETTING);
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void sonicShatter_awardsOnSuccess_notOnWrongSetting(GameTestHelper context) {
+        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ItemStack sonic = SonicStateLogic.openOnlyStack(new ItemStack(DWMItems.SONIC_THIRD_DOCTOR));
+        SonicStateLogic.install(sonic, SonicFieldMode.SHATTER);
+        // Open still selected
+        player.setItemInHand(InteractionHand.MAIN_HAND, sonic);
+
+        BlockPos glassRel = new BlockPos(1, 2, 1);
+        BlockPos glassAbs = context.absolutePos(glassRel);
+        context.setBlock(glassRel, Blocks.GLASS);
+        DWMItems.SONIC_THIRD_DOCTOR.useOn(new UseOnContext(
+                player,
+                InteractionHand.MAIN_HAND,
+                new BlockHitResult(Vec3.atCenterOf(glassAbs), Direction.UP, glassAbs, false)
+        ));
+        context.assertBlockPresent(Blocks.GLASS, glassRel);
+        if (player.getAdvancements().getOrStartProgress(requireHolder(context, SONIC_SHATTER)).isDone()) {
+            throw new AssertionError("Wrong setting must not award sonic_shatter");
+        }
+
+        SonicStateLogic.select(sonic, SonicFieldMode.SHATTER);
+        DWMItems.SONIC_THIRD_DOCTOR.useOn(new UseOnContext(
+                player,
+                InteractionHand.MAIN_HAND,
+                new BlockHitResult(Vec3.atCenterOf(glassAbs), Direction.UP, glassAbs, false)
+        ));
+        context.assertBlockPresent(Blocks.AIR, glassRel);
+        assertAdvancementDone(context, player, SONIC_SHATTER);
+        context.succeed();
+    }
+
+    private static void installSetting(ServerPlayer player, ItemStack setting) {
+        player.setItemInHand(InteractionHand.MAIN_HAND, setting);
+        setting.getItem().use(player.level(), player, InteractionHand.MAIN_HAND);
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty")

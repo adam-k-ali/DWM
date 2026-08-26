@@ -1,5 +1,9 @@
 package com.adamkali.dwm.network;
 
+import com.adamkali.dwm.advancement.DWMCriteria;
+import com.adamkali.dwm.item.DWMItemTags;
+import com.adamkali.dwm.item.SonicFieldMode;
+import com.adamkali.dwm.item.SonicStateLogic;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisCircuit;
@@ -19,6 +23,8 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 
 import java.util.Optional;
@@ -49,6 +55,7 @@ public class ServerPayloadTypeRegistry {
         PayloadTypeRegistry.serverboundPlay().register(SelectWaypointC2SPayload.ID, SelectWaypointC2SPayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(SelectPlayerC2SPayload.ID, SelectPlayerC2SPayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(RequestPortalStreamC2SPayload.ID, RequestPortalStreamC2SPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(SelectSonicFieldModeC2SPayload.ID, SelectSonicFieldModeC2SPayload.CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(UpdateTardisChameleonC2SPayload.ID, (payload, context) -> {
             context.server().execute(() -> safelyHandleChameleonUpdate(payload, context.player()));
@@ -71,6 +78,59 @@ public class ServerPayloadTypeRegistry {
         ServerPlayNetworking.registerGlobalReceiver(RequestPortalStreamC2SPayload.ID, (payload, context) -> {
             context.server().execute(() -> safelyHandlePortalStreamRequest(payload, context.player()));
         });
+        ServerPlayNetworking.registerGlobalReceiver(SelectSonicFieldModeC2SPayload.ID, (payload, context) -> {
+            context.server().execute(() -> safelyHandleSelectSonicFieldMode(payload, context.player()));
+        });
+    }
+
+    /**
+     * Applies an absolute field-mode selection on the sonic in either hand.
+     * Returns true when the selection changed. Unit tests may pass a null player (no overlay/criterion).
+     */
+    public static boolean safelyHandleSelectSonicFieldMode(
+            SelectSonicFieldModeC2SPayload payload,
+            @Nullable ServerPlayer player
+    ) {
+        if (player == null || payload == null || payload.mode() == null) {
+            return false;
+        }
+        ItemStack sonic = findHeldSonic(player);
+        if (sonic.isEmpty()) {
+            return false;
+        }
+        SonicFieldMode mode = payload.mode();
+        if (!SonicStateLogic.isUnlocked(sonic, mode)) {
+            player.sendOverlayMessage(Component.translatable(
+                    SonicStateLogic.SETTING_NOT_INSTALLED_DETAIL_KEY,
+                    Component.translatable(mode.translationKey())
+            ));
+            return false;
+        }
+        int unlockedBefore = SonicStateLogic.effective(sonic).unlockedCount();
+        boolean changed = SonicStateLogic.select(sonic, mode);
+        if (!changed) {
+            return false;
+        }
+        if (unlockedBefore >= 2) {
+            DWMCriteria.SONIC_CYCLE_SETTING.trigger(player);
+        }
+        player.sendOverlayMessage(Component.translatable(
+                SonicStateLogic.SETTING_KEY,
+                Component.translatable(mode.translationKey())
+        ));
+        return true;
+    }
+
+    private static ItemStack findHeldSonic(ServerPlayer player) {
+        ItemStack main = player.getItemInHand(InteractionHand.MAIN_HAND);
+        if (main.is(DWMItemTags.SONIC_SCREWDRIVERS)) {
+            return main;
+        }
+        ItemStack off = player.getItemInHand(InteractionHand.OFF_HAND);
+        if (off.is(DWMItemTags.SONIC_SCREWDRIVERS)) {
+            return off;
+        }
+        return ItemStack.EMPTY;
     }
 
     static boolean safelyHandleChameleonUpdate(UpdateTardisChameleonC2SPayload payload, ServerPlayer player) {

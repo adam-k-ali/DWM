@@ -172,6 +172,8 @@ The MVP primitives are:
   GUI (`setScreen(null)` / `closeContainer()`). If no screen is open, the step
   succeeds without changing anything. World actions such as `useItem` wait
   until the screen is gone.
+- `setSneaking` — sets the client's held sneak-key state from a required
+  boolean `enabled` argument. The state persists until another step releases it.
 - `selectHotbar` — waits until a local player and play connection exist, then
   selects hotbar slot `0`–`8` and syncs that slot to the server. A scalar
   integer is accepted.
@@ -186,10 +188,10 @@ The MVP primitives are:
   each tick), or `dimension` (a namespaced world id such as `dwm:tardis`).
   Exactly one mode is required. The forward key is released when the step
   succeeds.
-- `useItem` — waits until a local player, game mode, no open screen, and a
-  block crosshair hit exist, then uses the main-hand item on that block (the
-  same path as right-click place/interact). It succeeds as soon as the use is
-  sent; it does not wait for the world to update. Pair with `waitUntil.block`.
+- `useItem` — waits until a local player, game mode, and no open screen exist,
+  then uses the main-hand item on the targeted block by default. `useItem: air`
+  invokes the item's in-air use path. It succeeds as soon as the use is sent;
+  it does not wait for the world to update.
 - `runCommand` — waits until a local player and play connection exist, then
   sends an in-game slash command as that player (the same path as typing `/give`
   in chat, without opening the chat GUI). The step succeeds as soon as the

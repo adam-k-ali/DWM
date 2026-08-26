@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:dwm/sonic_install_shatter",
+  "criteria": {
+    "sonic_shatter": {
+      "trigger": "dwm:sonic_shatter"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.sonic_shatter.description"
+    },
+    "icon": {
+      "id": "minecraft:glass_pane"
+    },
+    "title": {
+      "translate": "advancements.dwm.sonic_shatter"
+    }
+  },
+  "requirements": [
+    [
+      "sonic_shatter"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

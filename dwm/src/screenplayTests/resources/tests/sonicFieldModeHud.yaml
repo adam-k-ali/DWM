@@ -1,0 +1,39 @@
+---
+name: Sonic Field Mode HUD
+type: test
+---
+steps:
+  - launchGame
+  - createWorld:
+      worldType: superflat
+      gameMode: creative
+      difficulty: peaceful
+      allowCommands: true
+      name: Sonic HUD
+  - closeScreen
+  - runCommand: "/time set noon"
+  - runCommand: "/weather clear"
+  - runCommand: "/give @s dwm:sonic_third_doctor"
+  - waitUntil:
+      holding: dwm:sonic_third_doctor
+  - selectHotbar: 0
+  - lookAt:
+      yaw: 0
+      pitch: -25
+  - waitTicks: 220
+  - captureScreenshot:
+      name: sonic-field-mode-indicator
+      compare: true
+      maxDiffPixels: 1000
+  - setSneaking:
+      enabled: true
+  - waitTicks: 2
+  - useItem: air
+  - waitTicks: 5
+  - captureScreenshot:
+      name: sonic-field-mode-carousel
+      compare: true
+      maxDiffPixels: 1000
+  - setSneaking:
+      enabled: false
+  - waitTicks: 2

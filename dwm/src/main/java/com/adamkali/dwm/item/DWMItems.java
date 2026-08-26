@@ -24,16 +24,32 @@ public class DWMItems {
 
     public static final Item SONIC_SECOND_DOCTOR = register(
             SonicScrewdriverItem::new,
+            new Item.Properties().stacksTo(1),
             "sonic_second_doctor");
     public static final Item SONIC_THIRD_DOCTOR = register(
             SonicScrewdriverItem::new,
+            new Item.Properties().stacksTo(1),
             "sonic_third_doctor");
     public static final Item SONIC_FOURTH_DOCTOR = register(
             SonicScrewdriverItem::new,
+            new Item.Properties().stacksTo(1),
             "sonic_fourth_doctor");
     public static final Item SONIC_FIFTH_DOCTOR = register(
             SonicScrewdriverItem::new,
+            new Item.Properties().stacksTo(1),
             "sonic_fifth_doctor");
+    public static final Item SONIC_SETTING_SHATTER = register(
+            props -> new SonicSettingItem(SonicFieldMode.SHATTER, props),
+            "sonic_setting_shatter");
+    public static final Item SONIC_SETTING_PRIME = register(
+            props -> new SonicSettingItem(SonicFieldMode.PRIME, props),
+            "sonic_setting_prime");
+    public static final Item SONIC_SETTING_DISRUPT = register(
+            props -> new SonicSettingItem(SonicFieldMode.DISRUPT, props),
+            "sonic_setting_disrupt");
+    public static final Item SONIC_SETTING_SHEAR = register(
+            props -> new SonicSettingItem(SonicFieldMode.SHEAR, props),
+            "sonic_setting_shear");
     public static final Item TARDIS_KEY = register(
             TardisKeyItem::new,
             new Item.Properties().stacksTo(1),
@@ -150,6 +166,10 @@ public class DWMItems {
             content.accept(SONIC_THIRD_DOCTOR);
             content.accept(SONIC_FOURTH_DOCTOR);
             content.accept(SONIC_FIFTH_DOCTOR);
+            content.accept(SONIC_SETTING_SHATTER);
+            content.accept(SONIC_SETTING_PRIME);
+            content.accept(SONIC_SETTING_DISRUPT);
+            content.accept(SONIC_SETTING_SHEAR);
             content.accept(TARDIS_KEY);
             content.accept(STATTENHEIM_REMOTE);
             content.accept(AZBANTIUM_SHOVEL);

@@ -310,6 +310,7 @@ tasks.register("pruneDatagenItemModels") {
                     || f.name.contains("saccharine_cane")
                     || f.name.contains("azbantium")
                     || f.name.contains("stattenheim")
+                    || f.name.contains("sonic_setting")
                     || f.name.contains("broakir")
                     || f.name.contains("flutterwing")
                     || f.name.contains("mewing_dog")

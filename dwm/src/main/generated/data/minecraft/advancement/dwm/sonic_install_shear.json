@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:dwm/sonic_screwdriver",
+  "criteria": {
+    "sonic_install_shear": {
+      "trigger": "dwm:sonic_install_shear"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.sonic_install_shear.description"
+    },
+    "icon": {
+      "id": "dwm:sonic_setting_shear"
+    },
+    "title": {
+      "translate": "advancements.dwm.sonic_install_shear"
+    }
+  },
+  "requirements": [
+    [
+      "sonic_install_shear"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
