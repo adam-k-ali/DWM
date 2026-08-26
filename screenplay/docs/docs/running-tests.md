@@ -1,25 +1,29 @@
 # Running tests
 
-## Single scenario
+## Single scenario or suite
 
-Run a test by its YAML filename without the extension:
+Run a test or suite by its YAML filename without the extension:
 
 ```bash
 ./screenplay/gradlew runScreenplay -Pscreenplay=createWorld
+./screenplay/gradlew runScreenplay -Pscreenplay=creativeWorldSuite
 ```
 
 ## All scenarios
 
-Discover every `type: test` YAML under configured tests roots and run each one
-(fresh client per scenario):
+Discover every `type: suite` and standalone `type: test` YAML under configured
+tests roots. Suites run in one client session; standalone tests still get a
+fresh client each:
 
 ```bash
 ./screenplay/gradlew runScreenplayTests
 ./screenplay/gradlew runScreenplayTests -PscreenplayDisplay=xvfb -PscreenplayTimeout=120
 ```
 
-`runScreenplayTests` skips `type: command` documents, continues after individual
-failures, and fails the aggregate with the list of failed scenario IDs.
+`runScreenplayTests` skips `type: command` documents and skips `type: test`
+IDs that are listed as members of a discovered suite (those run only via the
+suite). It continues after individual failures and fails the aggregate with
+the list of failed IDs.
 
 ## Isolated run directory
 

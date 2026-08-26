@@ -29,8 +29,11 @@ screenplay {
 
 | Task | Purpose |
 | --- | --- |
-| `runScreenplay` | Run one scenario (`-Pscreenplay=<id>` required) |
-| `runScreenplayTests` | Discover and run every `type: test` YAML |
+| `runScreenplay` | Run one scenario or suite (`-Pscreenplay=<id>` required) |
+| `runScreenplayTests` | Discover and run every suite plus standalone `type: test` YAML |
+
+Suite member tests listed under a discovered suite's `tests:` key are not also
+run standalone.
 
 ## Gradle properties
 

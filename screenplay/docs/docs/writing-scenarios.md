@@ -19,10 +19,64 @@ steps:
 | --- | --- |
 | `test` | Executable scenario selected with `-Pscreenplay=<id>` |
 | `command` | Reusable composite command invoked by filename stem |
+| `suite` | One-client group of tests with shared hooks |
 
 The **filename stem** is the stable ID. For example,
-`subflows/assertAndClick.yaml` defines `assertAndClick`. Duplicate test or
-command IDs are rejected even when files live in different directories.
+`subflows/assertAndClick.yaml` defines `assertAndClick`. Duplicate test,
+command, or suite IDs are rejected even when files live in different
+directories.
+
+## Suites
+
+A `type: suite` document runs member tests in **one** Minecraft client session
+with xUnit-style hooks:
+
+```yaml
+---
+name: Creative World Suite
+type: suite
+---
+before-all:
+  - launchGame
+  - createWorld:
+      worldType: superflat
+      gameMode: creative
+  - closeScreen
+before-each:
+  - runCommand: "/time set day"
+after-each:
+  - closeScreen
+after-all:
+  - captureScreenshot:
+      name: suite-end
+tests:
+  - suitePlaceDirt
+  - suiteCaptureInventory
+```
+
+| Key | Required | Role |
+| --- | --- | --- |
+| `tests` | yes | Non-empty list of `type: test` filename stems |
+| `before-all` | no | Once before the first member |
+| `before-each` | no | Before every member body |
+| `after-each` | no | After every member body (still runs if that member failed) |
+| `after-all` | no | Once after the last member (still runs after failures) |
+
+Execution order:
+
+```
+before-all
+  for each member:
+    before-each
+    test body
+    after-each
+after-all
+```
+
+Suites may not declare `steps` or `parameters`. Member tests are normal
+`type: test` documents (often body-only when the suite owns world setup).
+On failure, remaining members are skipped, `after-all` still runs, and the
+process exits non-zero.
 
 ## Steps
 
