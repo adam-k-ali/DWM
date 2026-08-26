@@ -80,7 +80,17 @@ Ship a patch immediately for:
 
 - **[`version.json`](../version.json)** is the only release-notes and promo channel (GitHub Release body, Modrinth/CurseForge changelogs, Discord summary).
 - Do not maintain a separate changelog file; dual ledgers drift.
-- **[`metadata/`](../metadata/)** is the source of truth for the Modrinth **project listing** (`description`, long-form `body`, categories, Discord URL). Edit those files, then run the **Sync Modrinth Project** workflow; listing updates are manual and are not part of the tag Release workflow. CurseForge has no official listing PATCH API — update the CurseForge project page description and categories by hand when they change.
+- **[`metadata/`](../metadata/)** is the source of truth for the Modrinth **project listing** (`description`, long-form `body`, categories, Discord URL, and content `disclosures`). Edit those files, then run the **Sync Modrinth Project** workflow; listing updates are manual and are not part of the tag Release workflow. CurseForge has no official listing PATCH API — update the CurseForge project page description and categories by hand when they change.
+
+### Modrinth generative AI rules
+
+Modrinth [Content Rules §6](https://modrinth.com/legal/rules#generative-ai) (announced 2026-08-13; grace period ends **2026-09-27**) requires:
+
+- Honest **content disclosures** when a substantial portion of code, page text, or assets is AI-generated/assisted, or when publishing relies on generative AI.
+- No AI-generated **gallery / icon / description images**.
+- No public projects that are **primarily or entirely** generative-AI output. AI-assisted work under primary human direction remains allowed with disclosure.
+
+DWM and Screenplay use AI coding assistants heavily for implementation and listing/changelog text under human product direction. Keep Modrinth `ai_content` disclosures (`code` + `text`) in [`dwm/metadata/modrinth.json`](../metadata/modrinth.json) / [`screenplay/metadata/modrinth.json`](../../screenplay/metadata/modrinth.json) accurate, and never upload AI-generated project-page images. Runtime gameplay does not call generative AI (`functionality` stays off unless that changes). Re-run **Sync Modrinth Project** / **Sync Modrinth Screenplay** after disclosure edits.
 
 ## Distribution checklist
 
@@ -109,7 +119,7 @@ Ship a patch immediately for:
 | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | `pull_request`, push to `main` | `./dwm/gradlew build` and `./screenplay/gradlew build` (compile + unit tests + version sync check) |
 | [`.github/workflows/create-release-tag.yml`](../../.github/workflows/create-release-tag.yml) | `workflow_dispatch` | Create and push `v*` tag from `version.json` `promos.latest` if missing; then dispatch Release |
 | [`.github/workflows/release.yml`](../../.github/workflows/release.yml) | push of tags `v*`, or `workflow_dispatch` | Build; publish GitHub Release, Modrinth version, CurseForge file, and Discord announcement from `version.json` |
-| [`.github/workflows/sync-modrinth-project.yml`](../../.github/workflows/sync-modrinth-project.yml) | `workflow_dispatch` | PATCH Modrinth project listing from [`metadata/`](../metadata/) (Modrinth only; CurseForge listing stays manual) |
+| [`.github/workflows/sync-modrinth-project.yml`](../../.github/workflows/sync-modrinth-project.yml) | `workflow_dispatch` | PATCH Modrinth project listing + disclosures from [`metadata/`](../metadata/) (Modrinth only; CurseForge listing stays manual) |
 
 CircleCI is retired; do not add draft GitHub releases on every `main` merge.
 
@@ -148,4 +158,4 @@ Uses the same `MODRINTH_TOKEN` secret as DWM (`VERSION_CREATE` for releases, `PR
 | --- | --- | --- |
 | [`.github/workflows/create-screenplay-release-tag.yml`](../../.github/workflows/create-screenplay-release-tag.yml) | `workflow_dispatch` | Create and push `screenplay-v*` from `screenplay/metadata/version.json` `promos.latest` if missing; then dispatch Release Screenplay |
 | [`.github/workflows/release-screenplay.yml`](../../.github/workflows/release-screenplay.yml) | push of tags `screenplay-v*`, or `workflow_dispatch` | Build loader jars; publish GitHub Release and Modrinth version |
-| [`.github/workflows/sync-modrinth-screenplay.yml`](../../.github/workflows/sync-modrinth-screenplay.yml) | `workflow_dispatch` | PATCH Modrinth Screenplay listing from [`screenplay/metadata/`](../../screenplay/metadata/) |
+| [`.github/workflows/sync-modrinth-screenplay.yml`](../../.github/workflows/sync-modrinth-screenplay.yml) | `workflow_dispatch` | PATCH Modrinth Screenplay listing + disclosures from [`screenplay/metadata/`](../../screenplay/metadata/) |

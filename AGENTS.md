@@ -18,7 +18,7 @@
 - `dwm/src/client/resources`: Hand-maintained client assets (models, blockstates, textures, sounds).
 - `dwm/docs/`: Product-facing feature docs and release policy — read before changing player-visible behaviour.
 - `dwm/tools/`: Offline Python scripts (TARDIS SFX generation/analysis); not part of Gradle build.
-- `dwm/metadata/`: Modrinth listing for DWM (`modrinth.json`, `modrinth-body.md`).
+- `dwm/metadata/`: Modrinth listing for DWM (`modrinth.json`, `modrinth-body.md`), including content disclosures.
 - `dwm/version.json`: DWM release changelog and Modrinth/CurseForge promos — synced via `./dwm/gradlew syncVersionJson`.
 - `screenplay/`: Fabric Screenplay mod root (`screenplay-fabric` artifact); `common/`, `gradle-plugin/`, `loaders/`, `docs/`, `metadata/`.
 - `screenplay/common`: Shared YAML compiler, runner, primitives (unit-tested here).
@@ -118,7 +118,7 @@ DWM consumes Screenplay via composite `includeBuild('../screenplay')` (Maven coo
 - Screenplay releases use tags `screenplay-v{screenplay_version}`.
 - Do not bump `mod_version` or `version.json` promos except when cutting a release; use `./dwm/gradlew syncVersionJson` at cut time.
 - The release workflow publishes the GitHub Release, Modrinth version, CurseForge file, and Discord `#releases` announcement from `dwm/version.json` (`summary` + changelog lists). Requires `MODRINTH_TOKEN`, `CURSEFORGE_TOKEN`, and `DISCORD_WEBHOOK_URL` secrets.
-- Modrinth project listing fields live in `dwm/metadata/` and `screenplay/metadata/`; sync with the manual Sync Modrinth workflows.
+- Modrinth project listing fields live in `dwm/metadata/` and `screenplay/metadata/` (including `disclosures`); sync with the manual Sync Modrinth workflows.
 
 ## Change Scope & Safety
 - Keep unrelated files untouched.
