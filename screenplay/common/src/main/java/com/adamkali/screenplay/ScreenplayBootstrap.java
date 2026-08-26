@@ -32,11 +32,27 @@ public final class ScreenplayBootstrap {
         ));
         try {
             ScenarioCatalog catalog = ScenarioCatalog.loadFromResources(ScreenplayBootstrap.class.getClassLoader());
-            ScenarioPlan plan = new ScenarioCompiler(catalog).compile(scenarioId);
             Duration timeout = Duration.ofSeconds(readPositiveLong(TIMEOUT_PROPERTY, 30L));
-            ScenarioRunner runner = new ScenarioRunner(plan, reportWriter, timeout, LOGGER);
-            platform.registerEndClientTick(runner::tick);
-            LOGGER.info("Loaded scenario '{}' with {} primitive steps", plan.id(), plan.steps().size());
+            ScenarioDocument.Type type = catalog.resolveExecutableType(scenarioId);
+            if (type == ScenarioDocument.Type.SUITE) {
+                SuitePlan suite = new ScenarioCompiler(catalog).compileSuite(scenarioId);
+                ScenarioRunner runner = new ScenarioRunner(suite, reportWriter, timeout, LOGGER);
+                platform.registerEndClientTick(runner::tick);
+                LOGGER.info(
+                        "Loaded suite '{}' with {} tests (before-all={}, before-each={}, after-each={}, after-all={})",
+                        suite.id(),
+                        suite.tests().size(),
+                        suite.beforeAll().size(),
+                        suite.beforeEach().size(),
+                        suite.afterEach().size(),
+                        suite.afterAll().size()
+                );
+            } else {
+                ScenarioPlan plan = new ScenarioCompiler(catalog).compile(scenarioId);
+                ScenarioRunner runner = new ScenarioRunner(plan, reportWriter, timeout, LOGGER);
+                platform.registerEndClientTick(runner::tick);
+                LOGGER.info("Loaded scenario '{}' with {} primitive steps", plan.id(), plan.steps().size());
+            }
         } catch (RuntimeException exception) {
             LOGGER.error("Could not start scenario '{}'", scenarioId, exception);
             try {
