@@ -11,8 +11,8 @@ import java.util.List;
 public final class FieldGuideCatalog {
     private static final Identifier SONIC_THIRD_DOCTOR =
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sonic_third_doctor");
-    private static final Identifier SONIC_SECOND_DOCTOR =
-            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sonic_second_doctor");
+    private static final Identifier SONIC_SECOND_DOCTOR_CASING =
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sonic_second_doctor_casing");
     private static final Identifier TARDIS_KEY =
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "tardis_key");
     private static final Identifier WHITE_CHRONOPLASM =
@@ -37,7 +37,7 @@ public final class FieldGuideCatalog {
             )),
             new FieldGuideChapter("sonic", "dwm.guide.chapter.sonic", List.of(
                     FieldGuidePage.crafting("craft_sonic", "dwm.guide.page.craft_sonic.title", "dwm.guide.page.craft_sonic.body", SONIC_THIRD_DOCTOR, false),
-                    FieldGuidePage.crafting("doctor_variants", "dwm.guide.page.doctor_variants.title", "dwm.guide.page.doctor_variants.body", SONIC_SECOND_DOCTOR, false),
+                    FieldGuidePage.crafting("doctor_variants", "dwm.guide.page.doctor_variants.title", "dwm.guide.page.doctor_variants.body", SONIC_SECOND_DOCTOR_CASING, false),
                     FieldGuidePage.text("use_sonic", "dwm.guide.page.use_sonic.title", "dwm.guide.page.use_sonic.body")
             )),
             new FieldGuideChapter("console_room", "dwm.guide.chapter.console_room", List.of(

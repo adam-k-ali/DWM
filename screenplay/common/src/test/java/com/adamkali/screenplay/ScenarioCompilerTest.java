@@ -1382,7 +1382,31 @@ class ScenarioCompilerTest {
         assertEquals("closeScreen", plan.steps().get(0).name());
         assertTrue(plan.steps().get(0).arguments().isEmpty());
         assertEquals("useItem", plan.steps().get(1).name());
-        assertTrue(plan.steps().get(1).arguments().isEmpty());
+        assertEquals("block", plan.steps().get(1).arguments().get("target"));
+    }
+
+    @Test
+    void compilesSneakAndAirUse(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - setSneaking:
+                      enabled: true
+                  - useItem: air
+                  - setSneaking:
+                      enabled: false
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(3, plan.steps().size());
+        assertEquals("setSneaking", plan.steps().get(0).name());
+        assertEquals(true, plan.steps().get(0).arguments().get("enabled"));
+        assertEquals("air", plan.steps().get(1).arguments().get("target"));
+        assertEquals(false, plan.steps().get(2).arguments().get("enabled"));
     }
 
     @Test

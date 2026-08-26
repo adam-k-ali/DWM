@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:dwm/sonic_install_prime",
+  "criteria": {
+    "sonic_prime": {
+      "trigger": "dwm:sonic_prime"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.sonic_prime.description"
+    },
+    "icon": {
+      "id": "minecraft:tnt"
+    },
+    "title": {
+      "translate": "advancements.dwm.sonic_prime"
+    }
+  },
+  "requirements": [
+    [
+      "sonic_prime"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

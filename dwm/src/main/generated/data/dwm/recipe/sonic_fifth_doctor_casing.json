@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_transmute",
+  "category": "equipment",
+  "group": "sonic_casing",
+  "input": "#dwm:sonic_screwdrivers",
+  "material": "minecraft:red_stained_glass_pane",
+  "result": {
+    "id": "dwm:sonic_fifth_doctor"
+  }
+}

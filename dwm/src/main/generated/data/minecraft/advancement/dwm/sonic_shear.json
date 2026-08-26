@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:dwm/sonic_install_shear",
+  "criteria": {
+    "sonic_shear": {
+      "trigger": "dwm:sonic_shear"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.sonic_shear.description"
+    },
+    "icon": {
+      "id": "minecraft:white_wool"
+    },
+    "title": {
+      "translate": "advancements.dwm.sonic_shear"
+    }
+  },
+  "requirements": [
+    [
+      "sonic_shear"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

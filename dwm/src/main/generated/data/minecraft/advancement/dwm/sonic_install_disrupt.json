@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:dwm/sonic_screwdriver",
+  "criteria": {
+    "sonic_install_disrupt": {
+      "trigger": "dwm:sonic_install_disrupt"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.sonic_install_disrupt.description"
+    },
+    "icon": {
+      "id": "dwm:sonic_setting_disrupt"
+    },
+    "title": {
+      "translate": "advancements.dwm.sonic_install_disrupt"
+    }
+  },
+  "requirements": [
+    [
+      "sonic_install_disrupt"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

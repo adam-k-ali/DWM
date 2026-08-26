@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "minecraft:iron_ingot",
+    "minecraft:redstone_torch",
+    "minecraft:glass_pane"
+  ],
+  "result": {
+    "components": {
+      "dwm:sonic_state": {
+        "selected": "open",
+        "unlocked": [
+          "open"
+        ]
+      }
+    },
+    "id": "dwm:sonic_third_doctor"
+  }
+}

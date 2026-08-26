@@ -4,7 +4,8 @@
   "package": "com.adamkali.dwm.mixin.client",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "RenderPipelinesMixin"
+    "RenderPipelinesMixin",
+    "SonicFieldModeScrollMixin"
   ],
   "injectors": {
     "defaultRequire": 1

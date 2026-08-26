@@ -17,8 +17,9 @@ to a full reference page with parameters and YAML examples.
 - [pressKey](commands/pressKey.md) — Press a keyboard key (keybinds, Escape, etc.).
 - [runCommand](commands/runCommand.md) — Send an in-game slash command as the local player.
 - [selectHotbar](commands/selectHotbar.md) — Select hotbar slot `0`–`8` and sync to the server.
+- [setSneaking](commands/setSneaking.md) — Hold or release the client's sneak key.
 - [startVanillaServer](commands/startVanillaServer.md) — Launch Mojang’s dedicated server as a child process.
-- [useItem](commands/useItem.md) — Use the main-hand item on the targeted block.
+- [useItem](commands/useItem.md) — Use the main-hand item on a block or in air.
 - [waitTicks](commands/waitTicks.md) — Wait until the client world advances by N ticks.
 - [waitUntil](commands/waitUntil.md) — Poll until a visibility, holding, or block condition is true.
 - [walkUntil](commands/walkUntil.md) — Hold forward until a block position or dimension is reached.

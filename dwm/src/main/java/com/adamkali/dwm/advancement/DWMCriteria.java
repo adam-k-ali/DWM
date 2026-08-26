@@ -12,6 +12,15 @@ import net.minecraft.resources.Identifier;
  */
 public final class DWMCriteria {
     public static final PlayerTrigger SONIC_IRON_DOOR = register("sonic_iron_door");
+    public static final PlayerTrigger SONIC_INSTALL_SHATTER = register("sonic_install_shatter");
+    public static final PlayerTrigger SONIC_INSTALL_PRIME = register("sonic_install_prime");
+    public static final PlayerTrigger SONIC_INSTALL_DISRUPT = register("sonic_install_disrupt");
+    public static final PlayerTrigger SONIC_INSTALL_SHEAR = register("sonic_install_shear");
+    public static final PlayerTrigger SONIC_CYCLE_SETTING = register("sonic_cycle_setting");
+    public static final PlayerTrigger SONIC_SHATTER = register("sonic_shatter");
+    public static final PlayerTrigger SONIC_PRIME = register("sonic_prime");
+    public static final PlayerTrigger SONIC_DISRUPT = register("sonic_disrupt");
+    public static final PlayerTrigger SONIC_SHEAR = register("sonic_shear");
     public static final PlayerTrigger FIND_TARDIS = register("find_tardis");
     public static final PlayerTrigger CLAIM_TARDIS = register("claim_tardis");
     public static final PlayerTrigger FIRST_HOP = register("first_hop");

@@ -91,6 +91,61 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                 .addCriterion("sonic_iron_door", emptyPlayerCriterion(DWMCriteria.SONIC_IRON_DOOR))
                 .save(consumer, DWMReference.MOD_ID + "/sonic_iron_door");
 
+        Advancement.Builder.advancement()
+                .parent(obtainSonic)
+                .display(
+                        DWMItems.SONIC_THIRD_DOCTOR,
+                        Component.translatable("advancements.dwm.sonic_cycle_setting"),
+                        Component.translatable("advancements.dwm.sonic_cycle_setting.description"),
+                        null,
+                        AdvancementType.TASK,
+                        true,
+                        true,
+                        false
+                )
+                .addCriterion("sonic_cycle_setting", emptyPlayerCriterion(DWMCriteria.SONIC_CYCLE_SETTING))
+                .save(consumer, DWMReference.MOD_ID + "/sonic_cycle_setting");
+
+        AdvancementHolder installShatter = installSettingAdvancement(
+                consumer, obtainSonic, DWMItems.SONIC_SETTING_SHATTER,
+                "sonic_install_shatter", DWMCriteria.SONIC_INSTALL_SHATTER
+        );
+        AdvancementHolder installPrime = installSettingAdvancement(
+                consumer, obtainSonic, DWMItems.SONIC_SETTING_PRIME,
+                "sonic_install_prime", DWMCriteria.SONIC_INSTALL_PRIME
+        );
+        AdvancementHolder installDisrupt = installSettingAdvancement(
+                consumer, obtainSonic, DWMItems.SONIC_SETTING_DISRUPT,
+                "sonic_install_disrupt", DWMCriteria.SONIC_INSTALL_DISRUPT
+        );
+        AdvancementHolder installShear = installSettingAdvancement(
+                consumer, obtainSonic, DWMItems.SONIC_SETTING_SHEAR,
+                "sonic_install_shear", DWMCriteria.SONIC_INSTALL_SHEAR
+        );
+
+        useSettingAdvancement(consumer, installShatter, Items.GLASS_PANE, "sonic_shatter", DWMCriteria.SONIC_SHATTER);
+        useSettingAdvancement(consumer, installPrime, Items.TNT, "sonic_prime", DWMCriteria.SONIC_PRIME);
+        useSettingAdvancement(consumer, installDisrupt, Items.SLIME_BALL, "sonic_disrupt", DWMCriteria.SONIC_DISRUPT);
+        useSettingAdvancement(consumer, installShear, Items.WOOL.white(), "sonic_shear", DWMCriteria.SONIC_SHEAR);
+
+        Advancement.Builder.advancement()
+                .parent(obtainSonic)
+                .display(
+                        DWMItems.SONIC_FIFTH_DOCTOR,
+                        Component.translatable("advancements.dwm.sonic_all_settings"),
+                        Component.translatable("advancements.dwm.sonic_all_settings.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false
+                )
+                .addCriterion("sonic_install_shatter", emptyPlayerCriterion(DWMCriteria.SONIC_INSTALL_SHATTER))
+                .addCriterion("sonic_install_prime", emptyPlayerCriterion(DWMCriteria.SONIC_INSTALL_PRIME))
+                .addCriterion("sonic_install_disrupt", emptyPlayerCriterion(DWMCriteria.SONIC_INSTALL_DISRUPT))
+                .addCriterion("sonic_install_shear", emptyPlayerCriterion(DWMCriteria.SONIC_INSTALL_SHEAR))
+                .save(consumer, DWMReference.MOD_ID + "/sonic_all_settings");
+
         AdvancementHolder findTardis = Advancement.Builder.advancement()
                 .parent(root)
                 .display(
@@ -150,6 +205,52 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                 )
                 .addCriterion("bind_key", emptyPlayerCriterion(DWMCriteria.BIND_KEY))
                 .save(consumer, DWMReference.MOD_ID + "/bind_key");
+    }
+
+    private static AdvancementHolder installSettingAdvancement(
+            Consumer<AdvancementHolder> consumer,
+            AdvancementHolder parent,
+            Item icon,
+            String id,
+            PlayerTrigger trigger
+    ) {
+        return Advancement.Builder.advancement()
+                .parent(parent)
+                .display(
+                        icon,
+                        Component.translatable("advancements.dwm." + id),
+                        Component.translatable("advancements.dwm." + id + ".description"),
+                        null,
+                        AdvancementType.TASK,
+                        true,
+                        true,
+                        false
+                )
+                .addCriterion(id, emptyPlayerCriterion(trigger))
+                .save(consumer, DWMReference.MOD_ID + "/" + id);
+    }
+
+    private static void useSettingAdvancement(
+            Consumer<AdvancementHolder> consumer,
+            AdvancementHolder parent,
+            Item icon,
+            String id,
+            PlayerTrigger trigger
+    ) {
+        Advancement.Builder.advancement()
+                .parent(parent)
+                .display(
+                        icon,
+                        Component.translatable("advancements.dwm." + id),
+                        Component.translatable("advancements.dwm." + id + ".description"),
+                        null,
+                        AdvancementType.TASK,
+                        true,
+                        true,
+                        false
+                )
+                .addCriterion(id, emptyPlayerCriterion(trigger))
+                .save(consumer, DWMReference.MOD_ID + "/" + id);
     }
 
     private static Criterion<PlayerTrigger.TriggerInstance> emptyPlayerCriterion(PlayerTrigger trigger) {

@@ -1,10 +1,13 @@
 package com.adamkali.dwm;
 
+import com.adamkali.dwm.item.SonicScrewdriverItem;
 import com.adamkali.dwm.network.ClientPayloadTypeRegistry;
 import com.adamkali.dwm.client.DWMEntityRenderers;
 import com.adamkali.dwm.render.ConsoleControlHud;
 import com.adamkali.dwm.render.ConsoleHitboxDebugRenderer;
 import com.adamkali.dwm.render.FirstDoctorConsoleSpecialRenderer;
+import com.adamkali.dwm.render.SonicFieldModeHud;
+import com.adamkali.dwm.render.SonicFieldModeHudController;
 import com.adamkali.dwm.render.TardisBlockSpecialRenderer;
 import com.adamkali.dwm.render.TardisCompactScannerSpecialRenderer;
 import com.adamkali.dwm.render.TardisFullScannerSpecialRenderer;
@@ -45,6 +48,9 @@ public class DWMClient implements ClientModInitializer {
         ClientAnalyticsManager.initialize();
         DWMBlockEntityRendererFactories.initialize();
         ClientPayloadTypeRegistry.initialize();
+        SonicFieldModeHudController.initialize();
+        SonicFieldModeHud.initialize();
+        SonicScrewdriverItem.openFieldModeSelector = SonicFieldModeHudController::open;
         TardisHumController.initialize();
         ConsoleControlHud.initialize();
         ConsoleHitboxDebugRenderer.initialize();

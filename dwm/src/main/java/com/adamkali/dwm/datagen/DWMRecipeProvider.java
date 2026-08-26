@@ -1,14 +1,22 @@
 package com.adamkali.dwm.datagen;
 
+import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
+import com.adamkali.dwm.item.DWMDataComponents;
+import com.adamkali.dwm.item.DWMItemTags;
 import com.adamkali.dwm.item.DWMItems;
+import com.adamkali.dwm.item.SonicState;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.TransmuteRecipeBuilder;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CookingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -117,6 +125,60 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 generateInteriorDecorRecipes();
                 generateTardisKeyRecipe();
                 generateStattenheimRemoteRecipe();
+                generateSonicRecipes();
+            }
+
+            private void generateSonicRecipes() {
+                ItemStackTemplate openOnlySonic = new ItemStackTemplate(
+                        DWMItems.SONIC_THIRD_DOCTOR,
+                        DataComponentPatch.builder()
+                                .set(DWMDataComponents.SONIC_STATE, SonicState.craftedOpenOnly())
+                                .build()
+                );
+                shapeless(RecipeCategory.TOOLS, openOnlySonic)
+                        .requires(Items.IRON_INGOT)
+                        .requires(Items.REDSTONE_TORCH)
+                        .requires(Items.GLASS_PANE)
+                        .unlockedBy(getHasName(Items.IRON_INGOT), has(Items.IRON_INGOT))
+                        .save(output);
+
+                shapeless(RecipeCategory.MISC, DWMItems.SONIC_SETTING_SHATTER)
+                        .requires(Items.REDSTONE)
+                        .requires(Items.GLASS_PANE)
+                        .unlockedBy(getHasName(Items.REDSTONE), has(Items.REDSTONE))
+                        .save(output);
+                shapeless(RecipeCategory.MISC, DWMItems.SONIC_SETTING_PRIME)
+                        .requires(Items.REDSTONE)
+                        .requires(Items.GUNPOWDER)
+                        .unlockedBy(getHasName(Items.REDSTONE), has(Items.REDSTONE))
+                        .save(output);
+                shapeless(RecipeCategory.MISC, DWMItems.SONIC_SETTING_DISRUPT)
+                        .requires(Items.REDSTONE)
+                        .requires(Items.SLIME_BALL)
+                        .unlockedBy(getHasName(Items.REDSTONE), has(Items.REDSTONE))
+                        .save(output);
+                shapeless(RecipeCategory.MISC, DWMItems.SONIC_SETTING_SHEAR)
+                        .requires(Items.REDSTONE)
+                        .requires(Items.IRON_NUGGET)
+                        .unlockedBy(getHasName(Items.REDSTONE), has(Items.REDSTONE))
+                        .save(output);
+
+                sonicCasing(DWMItems.SONIC_SECOND_DOCTOR, Items.STAINED_GLASS_PANE.lightBlue(), "sonic_second_doctor_casing");
+                sonicCasing(DWMItems.SONIC_THIRD_DOCTOR, Items.GLASS_PANE, "sonic_third_doctor_casing");
+                sonicCasing(DWMItems.SONIC_FOURTH_DOCTOR, Items.STAINED_GLASS_PANE.gray(), "sonic_fourth_doctor_casing");
+                sonicCasing(DWMItems.SONIC_FIFTH_DOCTOR, Items.STAINED_GLASS_PANE.red(), "sonic_fifth_doctor_casing");
+            }
+
+            private void sonicCasing(Item result, Item pane, String recipeName) {
+                TransmuteRecipeBuilder.transmute(
+                                RecipeCategory.TOOLS,
+                                tag(DWMItemTags.SONIC_SCREWDRIVERS),
+                                Ingredient.of(pane),
+                                result
+                        )
+                        .group("sonic_casing")
+                        .unlockedBy(getHasName(pane), has(pane))
+                        .save(output, DWMReference.MOD_ID + ":" + recipeName);
             }
 
             private void generateTardisKeyRecipe() {

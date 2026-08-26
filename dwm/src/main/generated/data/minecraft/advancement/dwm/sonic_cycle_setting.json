@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:dwm/sonic_screwdriver",
+  "criteria": {
+    "sonic_cycle_setting": {
+      "trigger": "dwm:sonic_cycle_setting"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.sonic_cycle_setting.description"
+    },
+    "icon": {
+      "id": "dwm:sonic_third_doctor"
+    },
+    "title": {
+      "translate": "advancements.dwm.sonic_cycle_setting"
+    }
+  },
+  "requirements": [
+    [
+      "sonic_cycle_setting"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

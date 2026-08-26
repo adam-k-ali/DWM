@@ -1,0 +1,44 @@
+{
+  "parent": "minecraft:dwm/sonic_screwdriver",
+  "criteria": {
+    "sonic_install_disrupt": {
+      "trigger": "dwm:sonic_install_disrupt"
+    },
+    "sonic_install_prime": {
+      "trigger": "dwm:sonic_install_prime"
+    },
+    "sonic_install_shatter": {
+      "trigger": "dwm:sonic_install_shatter"
+    },
+    "sonic_install_shear": {
+      "trigger": "dwm:sonic_install_shear"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.sonic_all_settings.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "id": "dwm:sonic_fifth_doctor"
+    },
+    "title": {
+      "translate": "advancements.dwm.sonic_all_settings"
+    }
+  },
+  "requirements": [
+    [
+      "sonic_install_shatter"
+    ],
+    [
+      "sonic_install_prime"
+    ],
+    [
+      "sonic_install_disrupt"
+    ],
+    [
+      "sonic_install_shear"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
