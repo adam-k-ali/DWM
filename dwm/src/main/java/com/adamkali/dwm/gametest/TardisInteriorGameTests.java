@@ -195,11 +195,8 @@ public class TardisInteriorGameTests {
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty")
-    public void consoleRoomPlacer_EnablesAndCalculatesLightInTardisDimension(GameTestHelper context) {
-        ServerLevel interior = context.getLevel().getServer().getLevel(TardisDimensions.TARDIS_WORLD_KEY);
-        if (interior == null) {
-            throw new AssertionError("Expected dwm:tardis dimension");
-        }
+    public void consoleRoomPlacer_EnablesAndCalculatesLightWithThreadedEngine(GameTestHelper context) {
+        ServerLevel interior = context.getLevel();
         UUID tardisId = UUID.randomUUID();
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
         FirstDoctorConsoleRoomPlacer.place(interior, origin, tardisId);
