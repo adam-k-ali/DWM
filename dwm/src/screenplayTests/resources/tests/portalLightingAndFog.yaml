@@ -10,6 +10,7 @@ steps:
       difficulty: peaceful
       seed: "42"
   - closeScreen
+  - runCommand: "/gamerule sendCommandFeedback false"
   - runCommand: "/gamerule doDaylightCycle false"
   - runCommand: "/gamerule doWeatherCycle false"
   - runCommand: "/gamerule doMobSpawning false"
@@ -41,7 +42,7 @@ steps:
       y: "~"
       z: "~"
   - useItem
-  - waitTicks: 80
+  - waitTicks: 200
   - runCommand: "/tp @s ~-3 ~1 ~"
   - lookAt:
       x: "~3"
@@ -51,9 +52,11 @@ steps:
   - captureScreenshot:
       name: portal-lighting-fog-boti
       compare: true
+  # Switch the exterior to day so SOTO exercises streamed sky light as well as the sea-lantern source.
+  - runCommand: "/time set day"
   - walkUntil:
       dimension: dwm:tardis
-  - waitTicks: 80
+  - waitTicks: 160
   - runCommand: "/tp @s ~ ~ ~4"
   - lookAt:
       yaw: 180
