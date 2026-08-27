@@ -50,11 +50,14 @@ public final class PortalStreamSyncService {
     private static final int META_FLUSH_INTERVAL_TICKS = 3;
     private static final int ENTITY_UPDATE_INTERVAL_TICKS = 2;
     private static final int VIEWER_LEAVE_GRACE_TICKS = 40;
+    static final int MAX_BOTI_LIGHT_DEFER_TICKS = 40;
+    private static final int LIGHT_GATE_PASSED = -1;
 
     private static final Map<StreamKey, Set<UUID>> SUBSCRIBERS = new ConcurrentHashMap<>();
     private static final Map<ViewerKey, Set<Long>> SENT_CHUNKS = new ConcurrentHashMap<>();
     private static final Map<ViewerKey, Set<UUID>> TRACKED_ENTITIES = new ConcurrentHashMap<>();
     private static final Map<StreamKey, Set<Long>> DIRTY_CHUNKS = new ConcurrentHashMap<>();
+    private static final Map<StreamKey, Integer> BOTI_LIGHT_DEFER_STARTED = new ConcurrentHashMap<>();
     private static final Map<StreamKey, Integer> LEAVE_GRACE = new ConcurrentHashMap<>();
     private static final Set<UUID> META_DIRTY = ConcurrentHashMap.newKeySet();
     private static final Map<UUID, Integer> META_REVISIONS = new ConcurrentHashMap<>();
@@ -88,6 +91,7 @@ public final class PortalStreamSyncService {
         SENT_CHUNKS.clear();
         TRACKED_ENTITIES.clear();
         DIRTY_CHUNKS.clear();
+        BOTI_LIGHT_DEFER_STARTED.clear();
         LEAVE_GRACE.clear();
         META_DIRTY.clear();
         META_REVISIONS.clear();
@@ -117,6 +121,7 @@ public final class PortalStreamSyncService {
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
         int[] bounds = BotiInteriorSampler.footprintChunkBounds(origin);
         StreamKey streamKey = new StreamKey(PortalStreamKind.BOTI, tardisId);
+        BOTI_LIGHT_DEFER_STARTED.remove(streamKey);
         Set<Long> dirty = DIRTY_CHUNKS.computeIfAbsent(streamKey, id -> ConcurrentHashMap.newKeySet());
         for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
             for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
@@ -299,8 +304,11 @@ public final class PortalStreamSyncService {
                 continue;
             }
             keepAlive(ctx);
-            if (kind == PortalStreamKind.BOTI
-                    && !BotiInteriorSampler.isFootprintLightReady(ctx.world(), ctx.footprintOrigin())) {
+            if (kind == PortalStreamKind.BOTI && shouldDeferBotiStream(
+                    streamKey,
+                    BotiInteriorSampler.isFootprintLightReady(ctx.world(), ctx.footprintOrigin()),
+                    tickCounter
+            )) {
                 continue;
             }
             for (ServerPlayer viewer : viewers) {
@@ -321,6 +329,42 @@ public final class PortalStreamSyncService {
                 key.kind() == kind && !registered.contains(key.tardisId()) && !active.contains(key.tardisId()));
     }
 
+    static boolean shouldDeferBotiStreamForTest(UUID tardisId, boolean lightReady, int currentTick) {
+        return shouldDeferBotiStream(new StreamKey(PortalStreamKind.BOTI, tardisId), lightReady, currentTick);
+    }
+
+    private static boolean shouldDeferBotiStream(StreamKey streamKey, boolean lightReady, int currentTick) {
+        Integer started = BOTI_LIGHT_DEFER_STARTED.get(streamKey);
+        if (started != null && started == LIGHT_GATE_PASSED) {
+            return false;
+        }
+        if (lightReady || (started != null && currentTick - started >= MAX_BOTI_LIGHT_DEFER_TICKS)) {
+            BOTI_LIGHT_DEFER_STARTED.put(streamKey, LIGHT_GATE_PASSED);
+            String reason = lightReady ? "ready" : "timeout";
+            // #region agent log
+            try {
+                java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
+                        "{\"hypothesisId\":\"H,J\",\"location\":\"PortalStreamSyncService.shouldDeferBotiStream:pass\",\"message\":\"BOTI light gate passed\",\"data\":{\"reason\":\"" + reason + "\",\"waitedTicks\":" + (started == null ? 0 : currentTick - started) + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
+                        java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+            } catch (java.io.IOException ignored) {
+            }
+            // #endregion
+            return false;
+        }
+        if (started == null) {
+            BOTI_LIGHT_DEFER_STARTED.put(streamKey, currentTick);
+            // #region agent log
+            try {
+                java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
+                        "{\"hypothesisId\":\"H,J\",\"location\":\"PortalStreamSyncService.shouldDeferBotiStream:wait\",\"message\":\"BOTI light gate started\",\"data\":{\"maxWaitTicks\":" + MAX_BOTI_LIGHT_DEFER_TICKS + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
+                        java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+            } catch (java.io.IOException ignored) {
+            }
+            // #endregion
+        }
+        return true;
+    }
+
     private static void handleNoViewers(MinecraftServer server, StreamKey streamKey) {
         int grace = LEAVE_GRACE.merge(streamKey, 1, Integer::sum);
         if (grace < VIEWER_LEAVE_GRACE_TICKS) {
@@ -329,6 +373,7 @@ public final class PortalStreamSyncService {
         unloadAllViewers(server, streamKey);
         SUBSCRIBERS.remove(streamKey);
         DIRTY_CHUNKS.remove(streamKey);
+        BOTI_LIGHT_DEFER_STARTED.remove(streamKey);
         LEAVE_GRACE.remove(streamKey);
     }
 

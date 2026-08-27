@@ -68,6 +68,7 @@ public final class FirstDoctorConsoleRoomPlacer {
         placeInteriorLight(world, origin);
         stampInteriorEntities(world, origin, tardisId);
         applyDoorOpenFromModel(world, origin, tardisId);
+        BotiInteriorSampler.enableFootprintLighting(world, origin);
         FirstDoctorConsoleSync.syncFromModel(world.getServer(), tardisId);
 
         return origin.offset(LOCAL_ENTRANCE);

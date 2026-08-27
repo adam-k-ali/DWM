@@ -228,6 +228,38 @@ public final class BotiInteriorSampler {
     }
 
     /**
+     * Enables vanilla light storage and queues source propagation for a newly stamped room.
+     * Empty flat-world chunks can reach FULL without lighting ever being enabled, so ordinary
+     * block-change checks alone have nowhere to retain their result.
+     */
+    public static void enableFootprintLighting(ServerLevel world, BlockPos plotOrigin) {
+        if (world == null || plotOrigin == null) {
+            return;
+        }
+        int[] bounds = footprintChunkBounds(plotOrigin);
+        var lightEngine = world.getLightEngine();
+        int scheduledColumns = 0;
+        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
+            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
+                ChunkPos chunkPos = new ChunkPos(cx, cz);
+                lightEngine.setLightEnabled(chunkPos, true);
+                lightEngine.propagateLightSources(chunkPos);
+                scheduledColumns++;
+            }
+        }
+        BlockPos sourcePos = plotOrigin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.above(3));
+        lightEngine.checkBlock(sourcePos);
+        // #region agent log
+        try {
+            java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
+                    "{\"hypothesisId\":\"G,H\",\"location\":\"BotiInteriorSampler.enableFootprintLighting\",\"message\":\"queued footprint lighting\",\"data\":{\"columns\":" + scheduledColumns + ",\"sourceEmission\":" + world.getBlockState(sourcePos).getLightEmission() + ",\"lightOnInSourceColumn\":" + lightEngine.lightOnInColumn(ChunkPos.asLong(sourcePos)) + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
+                    java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+        } catch (java.io.IOException ignored) {
+        }
+        // #endregion
+    }
+
+    /**
      * Synchronously force-loads footprint chunks (blocking). Prefer {@link #addFootprintTickets}
      * + {@link #areFootprintChunksLoaded} for approach-time preload.
      */
