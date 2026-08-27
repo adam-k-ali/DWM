@@ -25,13 +25,13 @@ import java.util.Optional;
 
 @Environment(EnvType.CLIENT)
 public final class FieldGuideRecipePanel {
-    private static final int PANEL_WIDTH = 138;
-    private static final int PANEL_HEIGHT = 70;
+    public static final int PANEL_WIDTH = 138;
+    public static final int PANEL_HEIGHT = 70;
     private static final int SLOT_SIZE = 20;
     private static final int SLOT_BORDER_COLOR = 0xFF6F6251;
     private static final int SLOT_COLOR = 0xFFD8CDB9;
     private static final int PANEL_BORDER_COLOR = 0xFF9D845A;
-    private static final int PANEL_COLOR = 0xFFE2D2AD;
+    static final int PANEL_COLOR = 0xFFE2D2AD;
 
     private FieldGuideRecipePanel() {
     }
@@ -69,8 +69,8 @@ public final class FieldGuideRecipePanel {
     public static void render(
             GuiGraphicsExtractor graphics,
             Minecraft client,
-            int bookLeft,
-            int bookTop,
+            int x,
+            int y,
             FieldGuidePage page,
             Station station,
             int craftingVariantIndex,
@@ -84,7 +84,7 @@ public final class FieldGuideRecipePanel {
 
         Optional<RecipeHolder<?>> holder = recipeHolder(client, recipeId);
         if (holder.isEmpty()) {
-            renderUnavailable(client, graphics, bookLeft, bookTop);
+            renderUnavailable(client, graphics, x, y);
             return;
         }
 
@@ -94,33 +94,67 @@ public final class FieldGuideRecipePanel {
                 .filter(candidate -> matchesStation(candidate, station))
                 .findFirst();
         if (display.isEmpty()) {
-            renderUnavailable(client, graphics, bookLeft, bookTop);
+            renderUnavailable(client, graphics, x, y);
             return;
         }
 
-        int baseY = bookTop + FieldGuideBookLayout.RIGHT_RECIPE_Y;
         switch (station) {
-            case CRAFTING -> renderCraftingPreview(graphics, client, bookLeft, baseY, display.get(), context, mouseX, mouseY);
-            case SMELTING -> renderFurnacePreview(graphics, client, bookLeft, baseY, display.get(), context, mouseX, mouseY);
-            case STONECUTTING -> renderStonecutterPreview(graphics, client, bookLeft, baseY, display.get(), context, mouseX, mouseY);
+            case CRAFTING -> renderCraftingPreview(graphics, client, x, y, display.get(), context, mouseX, mouseY);
+            case SMELTING -> renderFurnacePreview(graphics, client, x, y, display.get(), context, mouseX, mouseY);
+            case STONECUTTING -> renderStonecutterPreview(graphics, client, x, y, display.get(), context, mouseX, mouseY);
         }
     }
 
-    private static void renderUnavailable(Minecraft client, GuiGraphicsExtractor graphics, int bookLeft, int bookTop) {
+    public static void renderVariant(
+            GuiGraphicsExtractor graphics,
+            Minecraft client,
+            int x,
+            int y,
+            Identifier recipeId,
+            boolean selected,
+            int mouseX,
+            int mouseY
+    ) {
+        graphics.fill(
+                x,
+                y,
+                x + FieldGuideBookLayout.VARIANT_SLOT_SIZE,
+                y + FieldGuideBookLayout.VARIANT_SLOT_SIZE,
+                selected ? FieldGuideBookLayout.ACCENT_COLOR : SLOT_BORDER_COLOR
+        );
+        graphics.fill(
+                x + 1,
+                y + 1,
+                x + FieldGuideBookLayout.VARIANT_SLOT_SIZE - 1,
+                y + FieldGuideBookLayout.VARIANT_SLOT_SIZE - 1,
+                PANEL_COLOR
+        );
+        drawItem(
+                graphics,
+                client.font,
+                craftingResultStack(client, recipeId),
+                x + FieldGuideBookLayout.VARIANT_ICON_PAD,
+                y + FieldGuideBookLayout.VARIANT_ICON_PAD,
+                mouseX,
+                mouseY
+        );
+    }
+
+    private static void renderUnavailable(Minecraft client, GuiGraphicsExtractor graphics, int x, int y) {
         graphics.text(
                 client.font,
                 Component.translatable("dwm.guide.recipe.unavailable"),
-                bookLeft + FieldGuideBookLayout.RIGHT_PAGE_X,
-                bookTop + FieldGuideBookLayout.RIGHT_RECIPE_Y,
+                x,
+                y,
                 0xFF888888,
                 false
         );
     }
 
-    private static int renderCraftingPreview(
+    private static void renderCraftingPreview(
             GuiGraphicsExtractor graphics,
             Minecraft client,
-            int bookLeft,
+            int x,
             int y,
             RecipeDisplay display,
             ContextMap context,
@@ -130,10 +164,9 @@ public final class FieldGuideRecipePanel {
         Optional<FieldGuideRecipeGridBuilder.CraftingPreview> preview =
                 FieldGuideRecipeGridBuilder.craftingPreview(display, context);
         if (preview.isEmpty()) {
-            return y;
+            return;
         }
 
-        int x = centeredX(bookLeft);
         renderPanel(graphics, x, y);
         int gridX = x + 7;
         int gridY = y + 5;
@@ -162,13 +195,12 @@ public final class FieldGuideRecipePanel {
                 mouseX,
                 mouseY
         );
-        return y + PANEL_HEIGHT;
     }
 
-    private static int renderFurnacePreview(
+    private static void renderFurnacePreview(
             GuiGraphicsExtractor graphics,
             Minecraft client,
-            int bookLeft,
+            int x,
             int y,
             RecipeDisplay display,
             ContextMap context,
@@ -176,10 +208,9 @@ public final class FieldGuideRecipePanel {
             int mouseY
     ) {
         if (!(display instanceof FurnaceRecipeDisplay furnace)) {
-            return y;
+            return;
         }
 
-        int x = centeredX(bookLeft);
         renderPanel(graphics, x, y);
         int inputX = x + 20;
         int outputX = x + 98;
@@ -194,13 +225,12 @@ public final class FieldGuideRecipePanel {
         ItemStack result = furnace.result().resolveForFirstStack(context);
         drawItemInSlot(graphics, client.font, input, inputX, slotY, mouseX, mouseY);
         drawItemInSlot(graphics, client.font, result, outputX, slotY, mouseX, mouseY);
-        return y + PANEL_HEIGHT;
     }
 
-    private static int renderStonecutterPreview(
+    private static void renderStonecutterPreview(
             GuiGraphicsExtractor graphics,
             Minecraft client,
-            int bookLeft,
+            int x,
             int y,
             RecipeDisplay display,
             ContextMap context,
@@ -208,10 +238,9 @@ public final class FieldGuideRecipePanel {
             int mouseY
     ) {
         if (!(display instanceof StonecutterRecipeDisplay stonecutter)) {
-            return y;
+            return;
         }
 
-        int x = centeredX(bookLeft);
         renderPanel(graphics, x, y);
         int inputX = x + 20;
         int outputX = x + 98;
@@ -225,12 +254,6 @@ public final class FieldGuideRecipePanel {
         ItemStack result = stonecutter.result().resolveForFirstStack(context);
         drawItemInSlot(graphics, client.font, input, inputX, slotY, mouseX, mouseY);
         drawItemInSlot(graphics, client.font, result, outputX, slotY, mouseX, mouseY);
-        return y + PANEL_HEIGHT;
-    }
-
-    private static int centeredX(int bookLeft) {
-        int pageCenter = bookLeft + FieldGuideBookLayout.RIGHT_PAGE_X + FieldGuideBookLayout.RIGHT_PAGE_WIDTH / 2;
-        return pageCenter - PANEL_WIDTH / 2;
     }
 
     private static void renderPanel(GuiGraphicsExtractor graphics, int x, int y) {
@@ -304,69 +327,6 @@ public final class FieldGuideRecipePanel {
         return recipes.byKey(ResourceKey.create(Registries.RECIPE, recipeId));
     }
 
-    public static void renderCraftingVariants(
-            GuiGraphicsExtractor graphics,
-            Minecraft client,
-            int bookLeft,
-            int bookTop,
-            FieldGuidePage page,
-            int selectedIndex,
-            int mouseX,
-            int mouseY
-    ) {
-        List<Identifier> recipes = page.craftingRecipes();
-        if (recipes.size() <= 1) {
-            return;
-        }
-
-        for (int index = 0; index < recipes.size(); index++) {
-            int slotX = variantSlotX(bookLeft, recipes.size(), index);
-            int slotY = variantRowY(bookTop);
-            boolean selected = index == selectedIndex;
-            graphics.fill(
-                    slotX,
-                    slotY,
-                    slotX + FieldGuideBookLayout.VARIANT_SLOT_SIZE,
-                    slotY + FieldGuideBookLayout.VARIANT_SLOT_SIZE,
-                    selected ? FieldGuideBookLayout.ACCENT_COLOR : SLOT_BORDER_COLOR
-            );
-            graphics.fill(
-                    slotX + 1,
-                    slotY + 1,
-                    slotX + FieldGuideBookLayout.VARIANT_SLOT_SIZE - 1,
-                    slotY + FieldGuideBookLayout.VARIANT_SLOT_SIZE - 1,
-                    PANEL_COLOR
-            );
-            drawItem(
-                    graphics,
-                    client.font,
-                    craftingResultStack(client, recipes.get(index)),
-                    slotX + FieldGuideBookLayout.VARIANT_ICON_PAD,
-                    slotY + FieldGuideBookLayout.VARIANT_ICON_PAD,
-                    mouseX,
-                    mouseY
-            );
-        }
-    }
-
-    public static int craftingVariantIndexAt(FieldGuidePage page, int bookLeft, int bookTop, double mouseX, double mouseY) {
-        List<Identifier> recipes = page.craftingRecipes();
-        if (recipes.size() <= 1) {
-            return -1;
-        }
-        int slotY = variantRowY(bookTop);
-        if (mouseY < slotY || mouseY >= slotY + FieldGuideBookLayout.VARIANT_SLOT_SIZE) {
-            return -1;
-        }
-        for (int index = 0; index < recipes.size(); index++) {
-            int slotX = variantSlotX(bookLeft, recipes.size(), index);
-            if (mouseX >= slotX && mouseX < slotX + FieldGuideBookLayout.VARIANT_SLOT_SIZE) {
-                return index;
-            }
-        }
-        return -1;
-    }
-
     private static ItemStack craftingResultStack(Minecraft client, Identifier recipeId) {
         Optional<RecipeHolder<?>> holder = recipeHolder(client, recipeId);
         if (holder.isEmpty()) {
@@ -379,18 +339,6 @@ public final class FieldGuideRecipePanel {
                 .flatMap(display -> FieldGuideRecipeGridBuilder.craftingPreview(display, context))
                 .map(FieldGuideRecipeGridBuilder.CraftingPreview::result)
                 .orElse(ItemStack.EMPTY);
-    }
-
-    private static int variantRowY(int bookTop) {
-        return bookTop + FieldGuideBookLayout.RIGHT_RECIPE_LABEL_Y - 2;
-    }
-
-    private static int variantSlotX(int bookLeft, int variantCount, int index) {
-        int rightEdge = bookLeft + FieldGuideBookLayout.RIGHT_PAGE_X + FieldGuideBookLayout.RIGHT_PAGE_WIDTH;
-        int totalWidth = variantCount * FieldGuideBookLayout.VARIANT_SLOT_SIZE
-                + (variantCount - 1) * FieldGuideBookLayout.VARIANT_ICON_GAP;
-        int startX = rightEdge - totalWidth;
-        return startX + index * (FieldGuideBookLayout.VARIANT_SLOT_SIZE + FieldGuideBookLayout.VARIANT_ICON_GAP);
     }
 
     private static @Nullable Identifier recipeIdFor(FieldGuidePage page, Station station, int craftingVariantIndex) {
