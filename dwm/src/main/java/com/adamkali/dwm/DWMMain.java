@@ -16,9 +16,14 @@ import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
 import com.adamkali.dwm.tardis.worldgen.DWMStructureProcessors;
+import com.adamkali.dwm.world.DWMPlacedFeatures;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
+import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.minecraft.tags.BiomeTags;
+import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.storage.LevelResource;
 import org.slf4j.Logger;
 
@@ -43,6 +48,11 @@ public class DWMMain implements ModInitializer {
         PortalStreamSyncService.initialize();
         TardisTravelService.initialize();
         TardisCommands.initialize();
+        BiomeModifications.addFeature(
+                BiomeSelectors.tag(BiomeTags.IS_OVERWORLD),
+                GenerationStep.Decoration.UNDERGROUND_ORES,
+                DWMPlacedFeatures.ZEITON_ORE_OVERWORLD
+        );
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             TardisDataLoader.tardisSaveDirectory = server.getWorldPath(LevelResource.ROOT).resolve("tardis_data");
         });

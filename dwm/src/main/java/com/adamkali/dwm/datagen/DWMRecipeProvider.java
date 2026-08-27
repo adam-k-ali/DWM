@@ -121,6 +121,7 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
 
                 generateOrangeSandRecipes();
                 generateAzbantiumRecipes();
+                generateZeitonRecipes();
                 generateGallifreyVanillaOreRecipes();
                 generateInteriorDecorRecipes();
                 generateTardisKeyRecipe();
@@ -382,6 +383,44 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         .pattern("# #")
                         .pattern("# #")
                         .unlockedBy(getHasName(DWMItems.AZBANTIUM), has(DWMItems.AZBANTIUM))
+                        .save(output);
+            }
+
+            private void generateZeitonRecipes() {
+                oreSmelting(
+                        List.of(DWMBlocks.ZEITON_ORE),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        DWMItems.ZEITON_CRYSTALS,
+                        1.0F,
+                        200,
+                        "zeiton"
+                );
+                oreBlasting(
+                        List.of(DWMBlocks.ZEITON_ORE),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        DWMItems.ZEITON_CRYSTALS,
+                        1.0F,
+                        100,
+                        "zeiton"
+                );
+
+                shapeless(RecipeCategory.MISC, DWMItems.ZEITON_POWDER, 4)
+                        .requires(DWMItems.ZEITON_CRYSTALS)
+                        .unlockedBy(getHasName(DWMItems.ZEITON_CRYSTALS), has(DWMItems.ZEITON_CRYSTALS))
+                        .save(output);
+                shapeless(RecipeCategory.MISC, DWMItems.ZEITON_CRYSTALS)
+                        .requires(DWMItems.ZEITON_POWDER)
+                        .requires(DWMItems.ZEITON_POWDER)
+                        .requires(DWMItems.ZEITON_POWDER)
+                        .requires(DWMItems.ZEITON_POWDER)
+                        .unlockedBy(getHasName(DWMItems.ZEITON_POWDER), has(DWMItems.ZEITON_POWDER))
+                        .save(output);
+                shapeless(RecipeCategory.MISC, DWMItems.FERRITE_POWDER)
+                        .requires(Items.IRON_INGOT)
+                        .requires(Items.REDSTONE)
+                        .unlockedBy(getHasName(Items.IRON_INGOT), has(Items.IRON_INGOT))
                         .save(output);
             }
 

@@ -515,6 +515,29 @@ public class ResourceValidationTests {
     }
 
     /**
+     * Guards against {@code pruneDatagenItemModels} dropping zeiton/ferrite item defs
+     * (allowlist must include {@code zeiton} and {@code ferrite} substrings).
+     */
+    @Test
+    public void generatedZeitonItemModelsExist() throws Exception {
+        Path itemsDir = Path.of("src/main/generated/assets/dwm/items");
+        assertTrue(Files.isDirectory(itemsDir), "Expected generated items dir at " + itemsDir);
+        String[] ids = {
+                "zeiton_ore",
+                "zeiton_crystals",
+                "zeiton_powder",
+                "ferrite_powder",
+        };
+        for (String id : ids) {
+            Path item = itemsDir.resolve(id + ".json");
+            assertTrue(
+                    Files.isRegularFile(item) && Files.size(item) > 0,
+                    "Missing generated zeiton item model: " + item
+            );
+        }
+    }
+
+    /**
      * Guards against {@code pruneDatagenItemModels} dropping the Stattenheim remote item def
      * (allowlist must include {@code stattenheim} substring).
      */

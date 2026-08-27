@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "dwm:zeiton_crystals_from_smelting_zeiton_ore"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_zeiton_ore": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dwm:zeiton_ore"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_zeiton_ore"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "dwm:zeiton_crystals_from_smelting_zeiton_ore"
+    ]
+  }
+}

@@ -127,6 +127,7 @@ public final class DWMBiomeBootstrap {
         generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.GALLIFREY_DIAMOND_ORE_LARGE);
         generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.GALLIFREY_DIAMOND_ORE_BURIED);
         generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.AZBANTIUM_ORE);
+        generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.ZEITON_ORE);
         BiomeDefaultFeatures.addDefaultSoftDisks(generation);
         BiomeDefaultFeatures.addDefaultSprings(generation);
         BiomeDefaultFeatures.addSurfaceFreezing(generation);

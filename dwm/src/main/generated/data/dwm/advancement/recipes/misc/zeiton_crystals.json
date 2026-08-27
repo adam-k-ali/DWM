@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "dwm:zeiton_crystals"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_zeiton_powder": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dwm:zeiton_powder"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_zeiton_powder"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "dwm:zeiton_crystals"
+    ]
+  }
+}

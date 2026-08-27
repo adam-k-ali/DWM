@@ -57,6 +57,9 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
         builder(DWMBlockTags.AZBANTIUM_ORES)
                 .add(key(DWMBlocks.AZBANTIUM_ORE));
 
+        builder(DWMBlockTags.ZEITON_ORES)
+                .add(key(DWMBlocks.ZEITON_ORE));
+
         var smallFlowers = builder(BlockTags.SMALL_FLOWERS);
         for (Block flower : DWMBlocks.GALLIFREY_CROSS_PLANTS) {
             smallFlowers.add(key(flower));
@@ -99,6 +102,7 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(key(DWMBlocks.CITADEL_TILE))
                 .add(key(DWMBlocks.AZBANTIUM_ORE))
                 .add(key(DWMBlocks.AZBANTIUM_BLOCK))
+                .add(key(DWMBlocks.ZEITON_ORE))
                 .add(key(DWMBlocks.GALLIFREY_COAL_ORE))
                 .add(key(DWMBlocks.GALLIFREY_IRON_ORE))
                 .add(key(DWMBlocks.GALLIFREY_GOLD_ORE))
@@ -109,7 +113,8 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
 
         builder(BlockTags.NEEDS_IRON_TOOL)
                 .add(key(DWMBlocks.GALLIFREY_GOLD_ORE))
-                .add(key(DWMBlocks.GALLIFREY_DIAMOND_ORE));
+                .add(key(DWMBlocks.GALLIFREY_DIAMOND_ORE))
+                .add(key(DWMBlocks.ZEITON_ORE));
 
         builder(BlockTags.NEEDS_DIAMOND_TOOL)
                 .add(key(DWMBlocks.AZBANTIUM_ORE))

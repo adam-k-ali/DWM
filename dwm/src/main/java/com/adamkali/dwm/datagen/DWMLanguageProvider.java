@@ -24,6 +24,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addCitadelFamily(translationBuilder);
         addGallifreyPlants(translationBuilder);
         addAzbantiumSet(translationBuilder);
+        addZeitonSet(translationBuilder);
         addGallifreyVanillaOres(translationBuilder);
         for (var family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.addTranslations(new WoodFamilyDatagen.LangSink() {
@@ -342,6 +343,13 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItem(t, DWMItems.AZBANTIUM_BOOTS, "Azbantium Boots");
     }
 
+    private static void addZeitonSet(TranslationBuilder t) {
+        addBlockAndItem(t, DWMBlocks.ZEITON_ORE, "Zeiton Ore");
+        addItem(t, DWMItems.ZEITON_CRYSTALS, "Zeiton Crystals");
+        addItem(t, DWMItems.ZEITON_POWDER, "Zeiton Powder");
+        addItem(t, DWMItems.FERRITE_POWDER, "Ferrite Powder");
+    }
+
     private static void addGallifreyVanillaOres(TranslationBuilder t) {
         addBlockAndItem(t, DWMBlocks.GALLIFREY_COAL_ORE, "Gallifrey Coal Ore");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_IRON_ORE, "Gallifrey Iron Ore");
@@ -365,6 +373,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("biome.dwm.gallifrey_forest", "Gallifrey Forest");
         t.add("tag.item.dwm.gallifrey_plants", "Gallifrey Plants");
         t.add("tag.item.dwm.azbantium_ores", "Azbantium Ores");
+        t.add("tag.item.dwm.zeiton_ores", "Zeiton Ores");
         t.add("tag.item.dwm.repairs_azbantium_equipment", "Azbantium Equipment Repair Materials");
         t.add("biome.dwm.gallifrey_wastes", "Gallifrey Wastes");
         t.add("biome.dwm.gallifrey_badlands", "Gallifrey Badlands");
