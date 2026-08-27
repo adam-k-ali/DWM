@@ -340,27 +340,10 @@ public final class PortalStreamSyncService {
         }
         if (lightReady || (started != null && currentTick - started >= MAX_BOTI_LIGHT_DEFER_TICKS)) {
             BOTI_LIGHT_DEFER_STARTED.put(streamKey, LIGHT_GATE_PASSED);
-            String reason = lightReady ? "ready" : "timeout";
-            // #region agent log
-            try {
-                java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
-                        "{\"hypothesisId\":\"H,J\",\"location\":\"PortalStreamSyncService.shouldDeferBotiStream:pass\",\"message\":\"BOTI light gate passed\",\"data\":{\"reason\":\"" + reason + "\",\"waitedTicks\":" + (started == null ? 0 : currentTick - started) + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
-                        java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
-            } catch (java.io.IOException ignored) {
-            }
-            // #endregion
             return false;
         }
         if (started == null) {
             BOTI_LIGHT_DEFER_STARTED.put(streamKey, currentTick);
-            // #region agent log
-            try {
-                java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
-                        "{\"hypothesisId\":\"H,J\",\"location\":\"PortalStreamSyncService.shouldDeferBotiStream:wait\",\"message\":\"BOTI light gate started\",\"data\":{\"maxWaitTicks\":" + MAX_BOTI_LIGHT_DEFER_TICKS + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
-                        java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
-            } catch (java.io.IOException ignored) {
-            }
-            // #endregion
         }
         return true;
     }

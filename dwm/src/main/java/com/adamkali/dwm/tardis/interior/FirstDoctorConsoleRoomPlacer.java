@@ -90,29 +90,11 @@ public final class FirstDoctorConsoleRoomPlacer {
     }
 
     static void placeInteriorLight(ServerLevel world, BlockPos origin) {
-        BlockPos lightPos = origin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.above(3));
-        BlockState requested = Blocks.LIGHT.defaultBlockState();
-        BlockState before = world.getBlockState(lightPos);
-        var lightEngine = world.getLightEngine();
-        var chunk = world.getChunkAt(lightPos);
-        // #region agent log
-        try {
-            java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
-                    "{\"hypothesisId\":\"G,H,I,J\",\"location\":\"FirstDoctorConsoleRoomPlacer.placeInteriorLight:before\",\"message\":\"light source before stamp\",\"data\":{\"block\":\"" + net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(before.getBlock()) + "\",\"isLight\":" + before.is(Blocks.LIGHT) + ",\"emission\":" + before.getLightEmission() + ",\"brightness\":" + world.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, lightPos) + ",\"rawBrightness\":" + lightEngine.getLayerListener(net.minecraft.world.level.LightLayer.BLOCK).getLightValue(lightPos) + ",\"hasLightWork\":" + lightEngine.hasLightWork() + ",\"lightOnInColumn\":" + lightEngine.lightOnInColumn(chunk.getPos().pack()) + ",\"chunkLightCorrect\":" + chunk.isLightCorrect() + ",\"chunkStatus\":\"" + chunk.getPersistedStatus() + "\",\"engine\":\"" + lightEngine.getClass().getName() + "\",\"hasSkyLight\":" + world.dimensionType().hasSkyLight() + ",\"ambientLight\":" + world.dimensionType().ambientLight() + ",\"requestedEmission\":" + requested.getLightEmission() + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
-                    java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
-        } catch (java.io.IOException ignored) {
-        }
-        // #endregion
-        boolean changed = world.setBlock(lightPos, requested, Block.UPDATE_CLIENTS);
-        BlockState after = world.getBlockState(lightPos);
-        // #region agent log
-        try {
-            java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
-                    "{\"hypothesisId\":\"G,H,I\",\"location\":\"FirstDoctorConsoleRoomPlacer.placeInteriorLight:after\",\"message\":\"light source after stamp\",\"data\":{\"setBlockChanged\":" + changed + ",\"block\":\"" + net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(after.getBlock()) + "\",\"isLight\":" + after.is(Blocks.LIGHT) + ",\"emission\":" + after.getLightEmission() + ",\"brightness\":" + world.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, lightPos) + ",\"rawBrightness\":" + lightEngine.getLayerListener(net.minecraft.world.level.LightLayer.BLOCK).getLightValue(lightPos) + ",\"hasLightWork\":" + lightEngine.hasLightWork() + ",\"lightOnInColumn\":" + lightEngine.lightOnInColumn(chunk.getPos().pack()) + ",\"chunkLightCorrect\":" + chunk.isLightCorrect() + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
-                    java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
-        } catch (java.io.IOException ignored) {
-        }
-        // #endregion
+        world.setBlock(
+                origin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.above(3)),
+                Blocks.LIGHT.defaultBlockState(),
+                Block.UPDATE_CLIENTS
+        );
     }
 
     /**

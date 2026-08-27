@@ -232,25 +232,15 @@ public final class BotiInteriorSampler {
         }
         int[] bounds = footprintChunkBounds(plotOrigin);
         var lightEngine = world.getLightEngine();
-        int scheduledColumns = 0;
         for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
             for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
                 ChunkPos chunkPos = new ChunkPos(cx, cz);
                 lightEngine.setLightEnabled(chunkPos, true);
                 lightEngine.propagateLightSources(chunkPos);
-                scheduledColumns++;
             }
         }
         BlockPos sourcePos = plotOrigin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.above(3));
         lightEngine.checkBlock(sourcePos);
-        // #region agent log
-        try {
-            java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
-                    "{\"hypothesisId\":\"G,H\",\"location\":\"BotiInteriorSampler.enableFootprintLighting\",\"message\":\"queued footprint lighting\",\"data\":{\"columns\":" + scheduledColumns + ",\"sourceEmission\":" + world.getBlockState(sourcePos).getLightEmission() + ",\"lightOnInSourceColumn\":" + lightEngine.lightOnInColumn(ChunkPos.pack(sourcePos.getX() >> 4, sourcePos.getZ() >> 4)) + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
-                    java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
-        } catch (java.io.IOException ignored) {
-        }
-        // #endregion
     }
 
     /**
@@ -477,36 +467,6 @@ public final class BotiInteriorSampler {
                 new BlockPos(minX, minY, minZ),
                 new BlockPos(maxX, maxY, maxZ)
         );
-        // #region agent log
-        try {
-            int maxBlock = 0, maxSky = 0;
-            for (byte value : lightData.packedCopy()) {
-                int packed = Byte.toUnsignedInt(value);
-                maxBlock = Math.max(maxBlock, packed & 0xF);
-                maxSky = Math.max(maxSky, packed >>> 4);
-            }
-            BlockPos expectedLight = plotOrigin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.above(3));
-            java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
-                    "{\"hypothesisId\":\"A\",\"location\":\"BotiInteriorSampler.sampleStreamChunk\",\"message\":\"server sampled BOTI light\",\"data\":{\"chunkX\":" + chunkX + ",\"chunkZ\":" + chunkZ + ",\"blocks\":" + blocks.size() + ",\"minX\":" + lightData.min().getX() + ",\"minY\":" + lightData.min().getY() + ",\"minZ\":" + lightData.min().getZ() + ",\"sizeX\":" + lightData.sizeX() + ",\"sizeY\":" + lightData.sizeY() + ",\"sizeZ\":" + lightData.sizeZ() + ",\"maxBlock\":" + maxBlock + ",\"maxSky\":" + maxSky + ",\"expectedLightWorldBlock\":" + interiorWorld.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, expectedLight) + ",\"expectedLightSampleBlock\":" + lightData.brightness(net.minecraft.world.level.LightLayer.BLOCK, expectedLight, -1) + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
-                    java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
-        } catch (java.io.IOException ignored) {
-        }
-        // #endregion
-        BlockPos expectedLight = plotOrigin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.above(3));
-        if ((expectedLight.getX() >> 4) == chunkX && (expectedLight.getZ() >> 4) == chunkZ) {
-            var lightEngine = interiorWorld.getLightEngine();
-            var sourceChunk = interiorWorld.getChunkAt(expectedLight);
-            BlockState sourceState = interiorWorld.getBlockState(expectedLight);
-            net.minecraft.core.SectionPos sourceSection = net.minecraft.core.SectionPos.of(expectedLight);
-            // #region agent log
-            try {
-                java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
-                        "{\"hypothesisId\":\"G,H,I,J\",\"location\":\"BotiInteriorSampler.sampleStreamChunk:source\",\"message\":\"light source state when BOTI samples\",\"data\":{\"block\":\"" + net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(sourceState.getBlock()) + "\",\"isLight\":" + sourceState.is(Blocks.LIGHT) + ",\"emission\":" + sourceState.getLightEmission() + ",\"brightness\":" + interiorWorld.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, expectedLight) + ",\"rawBrightness\":" + lightEngine.getLayerListener(net.minecraft.world.level.LightLayer.BLOCK).getLightValue(expectedLight) + ",\"neighborBrightness\":" + interiorWorld.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, expectedLight.below()) + ",\"hasLightWork\":" + lightEngine.hasLightWork() + ",\"lightOnInColumn\":" + lightEngine.lightOnInColumn(sourceChunk.getPos().pack()) + ",\"chunkLightCorrect\":" + sourceChunk.isLightCorrect() + ",\"chunkStatus\":\"" + sourceChunk.getPersistedStatus() + "\",\"sectionType\":\"" + lightEngine.getDebugSectionType(net.minecraft.world.level.LightLayer.BLOCK, sourceSection) + "\",\"sectionDataPresent\":" + (lightEngine.getLayerListener(net.minecraft.world.level.LightLayer.BLOCK).getDataLayerData(sourceSection) != null) + ",\"engine\":\"" + lightEngine.getClass().getName() + "\",\"hasSkyLight\":" + interiorWorld.dimensionType().hasSkyLight() + ",\"ambientLight\":" + interiorWorld.dimensionType().ambientLight() + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
-                        java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
-            } catch (java.io.IOException ignored) {
-            }
-            // #endregion
-        }
         return new PortalStreamSample(
                 chunkX, chunkZ, Map.copyOf(blocks), Map.copyOf(blockEntities), lightData
         );
