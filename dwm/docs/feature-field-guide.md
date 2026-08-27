@@ -26,7 +26,7 @@ There is no physical guide item and no server packet — the screen is client-on
 
 - **Catalog shell:** a wide, two-page parchment spread with clear hierarchy and generous margins.
 - **Left page:** persistent chapter catalog plus the active chapter's topic index.
-- **Right page:** chapter context, topic title, concise guidance, and a readable station recipe diagram.
+- **Right page:** chapter context, topic title, concise guidance, and a readable station recipe diagram. Pages with multiple crafting variants show selectable result icons.
 - **Navigation:** book page-turn arrows move within a chapter; direct topic links support catalog lookup; **Done** closes the guide.
 
 ## Content (v1)
@@ -35,14 +35,14 @@ There is no physical guide item and no server packet — the screen is client-on
 | --- | --- |
 | **Quick Start** | Find TARDIS, claim, first hop, bind key |
 | **Sonic Toolkit** | Craft sonic, doctor variants, basic use |
-| **Console Room Builder** | Chronoplasm, wall, roundels, interior props (white canonical recipes; pattern note for colours) |
+| **Console Room Builder** | Chronoplasm, wall, roundels (A/B/Big on one page), interior props (white canonical recipes; pattern note for colours) |
 
 Future phases may add Gallifrey building, Azbantium, dimension reference, and chameleon notes.
 
 ## Known Constraints
 
 - Recipe panels resolve against the integrated server's recipe manager; multiplayer or missing datapacks show a graceful fallback message.
-- The guide lists curated pages, not every colour variant — pattern pages link white recipes and note dye swaps.
+- The guide lists curated pages, not every colour variant — pattern pages link white recipes and note dye swaps. Roundel A, B, and Big share one page with a crafting-variant selector.
 
 ## Testing
 

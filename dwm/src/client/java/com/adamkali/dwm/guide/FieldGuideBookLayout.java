@@ -4,7 +4,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 /**
- * Layout constants for the Field Guide's two-page catalog.
+ * Book chrome metrics, page insets, colours, and stack gaps for the Field Guide.
  */
 @Environment(EnvType.CLIENT)
 public final class FieldGuideBookLayout {
@@ -21,20 +21,27 @@ public final class FieldGuideBookLayout {
     public static final int HEADER_Y = 14;
     public static final int HEADER_HEIGHT = 22;
     public static final int INDEX_HEADER_Y = 44;
-    public static final int INDEX_CONTENT_Y = 59;
+    public static final int RIGHT_PAGE_TOP = 20;
+    public static final int RIGHT_INDICATOR_Y = 203;
+
+    public static final int STACK_GAP = 4;
+    public static final int CHAPTER_BUTTON_GAP = 1;
+    public static final int SECTION_GAP = 8;
+    public static final int HAIRLINE_HEIGHT = 1;
+    public static final int LINE_HEIGHT = 9;
+    public static final int PATTERN_MAX_LINES = 2;
+
     public static final int CHAPTER_ENTRY_HEIGHT = 14;
-    public static final int PAGE_HEADER_Y = 108;
-    public static final int PAGE_CONTENT_Y = 122;
     public static final int PAGE_ENTRY_HEIGHT = 11;
     public static final int PAGE_ENTRY_INDENT = 8;
 
-    public static final int RIGHT_CHAPTER_Y = 17;
-    public static final int RIGHT_TITLE_Y = 34;
-    public static final int RIGHT_BODY_Y = 53;
-    public static final int RIGHT_RECIPE_LABEL_Y = 91;
-    public static final int RIGHT_RECIPE_Y = 105;
-    public static final int RIGHT_PATTERN_Y = 177;
-    public static final int RIGHT_INDICATOR_Y = 203;
+    public static final int STATION_TAB_WIDTH = 42;
+    public static final int STATION_TAB_HEIGHT = 9;
+    public static final int STATION_TAB_GAP = 2;
+
+    public static final int VARIANT_SLOT_SIZE = 18;
+    public static final int VARIANT_ICON_PAD = 1;
+    public static final int VARIANT_ICON_GAP = 3;
 
     public static final int PAGE_BACK_X = RIGHT_PAGE_X + 3;
     public static final int PAGE_FORWARD_X = RIGHT_PAGE_X + RIGHT_PAGE_WIDTH - 26;
@@ -58,6 +65,7 @@ public final class FieldGuideBookLayout {
     public static final int CHAPTER_UNSELECTED_COLOR = 0xFF6F6556;
     public static final int PAGE_SELECTED_COLOR = 0xFF213B61;
     public static final int PAGE_UNSELECTED_COLOR = 0xFF51493E;
+    public static final int LEFT_HAIRLINE_COLOR = 0xFFBCA477;
 
     private FieldGuideBookLayout() {
     }
@@ -72,5 +80,9 @@ public final class FieldGuideBookLayout {
 
     public static int doneButtonTop(int bookTop) {
         return bookTop + DONE_BUTTON_Y_OFFSET;
+    }
+
+    public static int rightPageContentHeight() {
+        return PAGE_BUTTON_Y - RIGHT_PAGE_TOP;
     }
 }

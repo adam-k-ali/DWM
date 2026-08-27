@@ -1552,6 +1552,19 @@ class ScenarioCompilerTest {
         assertEquals("tardis-interior.png", plan.steps().get(19).arguments().get("name"));
     }
 
+    @Test
+    void compilesSonicFieldModeHudScenarioWithoutScreenshotCompare() {
+        Path scenarioRoot = resolveScreenplayTests();
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(scenarioRoot)).compile("sonicFieldModeHud");
+
+        assertEquals(18, plan.steps().size());
+        assertEquals("sonic-field-mode-indicator.png", plan.steps().get(10).arguments().get("name"));
+        assertFalse(plan.steps().get(10).arguments().containsKey("compare"));
+        assertEquals("sonic-field-mode-carousel.png", plan.steps().get(15).arguments().get("name"));
+        assertFalse(plan.steps().get(15).arguments().containsKey("compare"));
+    }
+
     private static Path resolveScreenplayTests() {
         Path cwd = Path.of("").toAbsolutePath();
         Path[] candidates = {

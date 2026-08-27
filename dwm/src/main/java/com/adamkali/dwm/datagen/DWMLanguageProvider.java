@@ -99,15 +99,9 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.guide.page.tardis_wall.title", "TARDIS Wall");
         t.add("dwm.guide.page.tardis_wall.body",
                 "Smelt chronoplasm powder into TARDIS wall blocks. These form the bulk of console-room surfaces.");
-        t.add("dwm.guide.page.roundel_a.title", "Roundel A");
-        t.add("dwm.guide.page.roundel_a.body",
-                "Roundel A blocks add classic circular wall detail. Combine wall blocks with chronoplasm in a crafting grid.");
-        t.add("dwm.guide.page.roundel_b.title", "Roundel B");
-        t.add("dwm.guide.page.roundel_b.body",
-                "Roundel B uses a second pattern for variety. Mix A and B roundels to break up large wall runs.");
-        t.add("dwm.guide.page.big_roundel.title", "Big Roundel");
-        t.add("dwm.guide.page.big_roundel.body",
-                "Big roundels make focal points above consoles or doorways. They cost more wall but read clearly at a distance.");
+        t.add("dwm.guide.page.roundel.title", "Roundels");
+        t.add("dwm.guide.page.roundel.body",
+                "Craft pattern A or B from TARDIS wall and chronoplasm. Convert a standard roundel into a big one for doorways and consoles.");
         t.add("dwm.guide.page.interior_props.title", "Interior Props");
         t.add("dwm.guide.page.interior_props.body",
                 "Chairs, scanners, vents, and columns craft from white TARDIS wall. Small chairs are sittable with an empty-hand use.");

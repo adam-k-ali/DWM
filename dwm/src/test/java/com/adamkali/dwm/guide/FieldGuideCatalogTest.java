@@ -1,6 +1,7 @@
 package com.adamkali.dwm.guide;
 
 import com.adamkali.dwm.DWMReference;
+import net.minecraft.resources.Identifier;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -9,8 +10,9 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -42,13 +44,15 @@ class FieldGuideCatalogTest {
     @Test
     void referencedRecipeFilesExist() throws IOException {
         for (FieldGuidePage page : FieldGuideCatalog.allPages()) {
-            assertRecipeExists(page.craftingRecipe());
+            for (Identifier recipeId : page.craftingRecipes()) {
+                assertRecipeExists(recipeId);
+            }
             assertRecipeExists(page.smeltingRecipe());
             assertRecipeExists(page.stonecuttingRecipe());
         }
     }
 
-    private static void assertRecipeExists(net.minecraft.resources.Identifier recipeId) throws IOException {
+    private static void assertRecipeExists(Identifier recipeId) throws IOException {
         if (recipeId == null) {
             return;
         }
@@ -78,5 +82,38 @@ class FieldGuideCatalogTest {
                 .sum();
         assertTrue(pageCount >= 10);
         assertTrue(FieldGuideCatalog.allPages().size() == pageCount);
+    }
+
+    @Test
+    void roundelPageListsAllShapeVariants() {
+        FieldGuidePage roundel = FieldGuideCatalog.allPages().stream()
+                .filter(page -> page.id().equals("roundel"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(
+                List.of(
+                        Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "white_roundel_a"),
+                        Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "white_roundel_b"),
+                        Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "white_big_roundel_a")
+                ),
+                roundel.craftingRecipes()
+        );
+        assertTrue(roundel.patternPage());
+    }
+
+    @Test
+    void consoleRoomHasSingleRoundelPage() {
+        Set<String> ids = FieldGuideCatalog.chapters().stream()
+                .filter(chapter -> chapter.id().equals("console_room"))
+                .findFirst()
+                .orElseThrow()
+                .pages()
+                .stream()
+                .map(FieldGuidePage::id)
+                .collect(Collectors.toSet());
+        assertTrue(ids.contains("roundel"));
+        assertFalse(ids.contains("roundel_a"));
+        assertFalse(ids.contains("roundel_b"));
+        assertFalse(ids.contains("big_roundel"));
     }
 }
