@@ -1,0 +1,10 @@
+{
+  "page": { "id": "dwm:claim_tardis" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.claim_tardis.title",
+      "bodyKey": "dwm.guide.page.claim_tardis.body"
+    }
+  ]
+}

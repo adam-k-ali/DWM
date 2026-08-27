@@ -1,0 +1,8 @@
+{
+  "guide": { "id": "dwm:field_guide" },
+  "chapters": [
+    { "id": "dwm:quick_start" },
+    { "id": "dwm:sonic" },
+    { "id": "dwm:console_room" }
+  ]
+}

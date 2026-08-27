@@ -1,0 +1,14 @@
+{
+  "page": { "id": "dwm:doctor_variants" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.doctor_variants.title",
+      "bodyKey": "dwm.guide.page.doctor_variants.body"
+    },
+    {
+      "type": "crafting",
+      "recipes": ["dwm:sonic_second_doctor_casing"]
+    }
+  ]
+}

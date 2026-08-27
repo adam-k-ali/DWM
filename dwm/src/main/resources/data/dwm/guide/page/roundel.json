@@ -1,0 +1,19 @@
+{
+  "page": { "id": "dwm:roundel" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.roundel.title",
+      "bodyKey": "dwm.guide.page.roundel.body"
+    },
+    {
+      "type": "crafting",
+      "recipes": [
+        "dwm:white_roundel_a",
+        "dwm:white_roundel_b",
+        "dwm:white_big_roundel_a"
+      ],
+      "pattern": true
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "page": { "id": "dwm:tardis_wall" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.tardis_wall.title",
+      "bodyKey": "dwm.guide.page.tardis_wall.body"
+    },
+    {
+      "type": "smelting",
+      "recipe": "dwm:white_tardis_wall",
+      "pattern": true
+    }
+  ]
+}

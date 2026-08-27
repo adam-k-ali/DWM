@@ -1,0 +1,14 @@
+{
+  "page": { "id": "dwm:interior_props" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.interior_props.title",
+      "bodyKey": "dwm.guide.page.interior_props.body"
+    },
+    {
+      "type": "crafting",
+      "recipes": ["dwm:tardis_chair_small"]
+    }
+  ]
+}

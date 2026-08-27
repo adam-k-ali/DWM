@@ -1,0 +1,14 @@
+{
+  "page": { "id": "dwm:craft_sonic" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.craft_sonic.title",
+      "bodyKey": "dwm.guide.page.craft_sonic.body"
+    },
+    {
+      "type": "crafting",
+      "recipes": ["dwm:sonic_third_doctor"]
+    }
+  ]
+}
