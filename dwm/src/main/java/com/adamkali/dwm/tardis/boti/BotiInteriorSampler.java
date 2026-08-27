@@ -5,6 +5,7 @@ import com.adamkali.dwm.entity.ConsoleControlInteractionEntity;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
+import com.adamkali.dwm.tardis.portal.PortalLightData;
 import com.adamkali.dwm.tardis.portal.PortalStreamSample;
 import com.mojang.authlib.GameProfile;
 import java.util.ArrayList;
@@ -389,7 +390,7 @@ public final class BotiInteriorSampler {
             int chunkZ
     ) {
         if (interiorWorld == null || tardisId == null) {
-            return new PortalStreamSample(chunkX, chunkZ, Map.of(), Map.of());
+            return new PortalStreamSample(chunkX, chunkZ, Map.of(), Map.of(), PortalLightData.EMPTY);
         }
         BlockPos plotOrigin = TardisPlotAllocator.plotOrigin(tardisId);
         interiorWorld.getChunk(chunkX, chunkZ);
@@ -421,7 +422,18 @@ public final class BotiInteriorSampler {
                 }
             }
         }
-        return new PortalStreamSample(chunkX, chunkZ, Map.copyOf(blocks), Map.copyOf(blockEntities));
+        int minX = Math.max(baseX, plotOrigin.getX());
+        int maxX = Math.min(baseX + 15, plotOrigin.getX() + SIZE_X - 1);
+        int minZ = Math.max(baseZ, plotOrigin.getZ());
+        int maxZ = Math.min(baseZ + 15, plotOrigin.getZ() + SIZE_Z - 1);
+        PortalLightData lightData = PortalLightData.sample(
+                interiorWorld,
+                new BlockPos(minX, minY, minZ),
+                new BlockPos(maxX, maxY, maxZ)
+        );
+        return new PortalStreamSample(
+                chunkX, chunkZ, Map.copyOf(blocks), Map.copyOf(blockEntities), lightData
+        );
     }
 
     public static List<Entity> collectStreamEntities(ServerLevel interiorWorld, UUID tardisId) {

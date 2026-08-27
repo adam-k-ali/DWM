@@ -125,7 +125,6 @@ public final class SotoExteriorMeshCache {
         }
         List<BlockEntity> bes = ghost.buildRenderedBlockEntities();
         int submitted = 0;
-        int lightCoords = light >= 0 ? light : FULLBRIGHT;
         Vec3 cameraPos = cameraState.pos;
         for (BlockEntity blockEntity : bes) {
             @SuppressWarnings("unchecked")
@@ -138,8 +137,8 @@ public final class SotoExteriorMeshCache {
             if (state == null) {
                 continue;
             }
-            state.lightCoords = lightCoords;
             BlockPos pos = blockEntity.getBlockPos();
+            state.lightCoords = light >= 0 ? light : ghost.packedLight(pos);
             matrices.pushPose();
             matrices.translate(
                     pos.getX() - cameraPos.x,
@@ -215,7 +214,10 @@ public final class SotoExteriorMeshCache {
                     itemState.bobOffset = ghost.bobOffset();
                     PortalPerfStats.noteItemAgeInTicks(itemState.ageInTicks);
                 }
-                entityState.lightCoords = FULLBRIGHT;
+                SotoGhostExterior exterior = SotoGhostExterior.get(kind, tardisId);
+                entityState.lightCoords = exterior == null
+                        ? FULLBRIGHT
+                        : exterior.packedLight(BlockPos.containing(pose.x(), pose.y(), pose.z()));
                 entityDispatcher.submit(
                         entityState,
                         cameraState,

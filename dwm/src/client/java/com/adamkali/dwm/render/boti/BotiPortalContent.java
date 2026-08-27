@@ -22,7 +22,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.Direction;
-import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -31,7 +30,6 @@ import net.minecraft.world.phys.Vec3;
  * warms the stream before the door opens.
  */
 public final class BotiPortalContent implements PortalContent {
-    private static final int FULLBRIGHT = LightCoordsUtil.pack(15, 15);
     private static final int DEFAULT_CLEAR_RGB = 0x203040;
 
     private final UUID tardisId;
@@ -121,7 +119,7 @@ public final class BotiPortalContent implements PortalContent {
                             sceneMatrices,
                             submitStorage,
                             cameraState,
-                            FULLBRIGHT,
+                            -1,
                             tickDelta,
                             PortalStreamKind.BOTI,
                             id,

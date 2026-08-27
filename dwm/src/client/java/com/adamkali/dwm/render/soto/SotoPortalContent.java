@@ -24,14 +24,11 @@ import java.util.UUID;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
-import net.minecraft.util.LightCoordsUtil;
 
 /**
  * SOTO portal content: hitch-fixed exterior look-out with ghost terrain + entities.
  */
 public final class SotoPortalContent implements PortalContent {
-    private static final int FULLBRIGHT = LightCoordsUtil.FULL_BRIGHT;
-
     private final UUID tardisId;
 
     public SotoPortalContent(UUID tardisId) {
@@ -139,7 +136,7 @@ public final class SotoPortalContent implements PortalContent {
                                 sceneMatrices,
                                 submitStorage,
                                 cameraState,
-                                FULLBRIGHT,
+                                -1,
                                 tickDelta,
                                 PortalStreamKind.SOTO,
                                 id,

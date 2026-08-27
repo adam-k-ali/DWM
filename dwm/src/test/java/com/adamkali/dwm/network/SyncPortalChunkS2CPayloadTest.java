@@ -2,6 +2,7 @@ package com.adamkali.dwm.network;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.tardis.boti.BotiRelativePosCodec;
+import com.adamkali.dwm.tardis.portal.PortalLightData;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.adamkali.dwm.tardis.portal.PortalStreamSample;
 import org.junit.jupiter.api.BeforeAll;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,7 +33,8 @@ class SyncPortalChunkS2CPayloadTest {
                 worldPos.getX() >> 4,
                 worldPos.getZ() >> 4,
                 Map.of(worldPos, Blocks.STONE.defaultBlockState()),
-                Map.of()
+                Map.of(),
+                new PortalLightData(worldPos, 1, 1, 1, new byte[]{PortalLightData.pack(3, 11)})
         );
 
         for (PortalStreamKind kind : PortalStreamKind.values()) {
@@ -46,6 +49,9 @@ class SyncPortalChunkS2CPayloadTest {
             assertEquals(4, payload.blocks().getFirst().relZ());
             assertEquals(BotiRelativePosCodec.stateId(Blocks.STONE.defaultBlockState()), payload.blocks().getFirst().stateId());
             assertEquals(Blocks.STONE, payload.toBlockMap().get(new BlockPos(3, 2, 4)).getBlock());
+            assertEquals(new BlockPos(3, 2, 4), payload.lightData().min());
+            assertEquals(3, payload.lightData().brightness(LightLayer.BLOCK, new BlockPos(3, 2, 4), -1));
+            assertEquals(11, payload.lightData().brightness(LightLayer.SKY, new BlockPos(3, 2, 4), -1));
             assertEquals(SyncPortalChunkS2CPayload.ID, payload.type());
         }
     }

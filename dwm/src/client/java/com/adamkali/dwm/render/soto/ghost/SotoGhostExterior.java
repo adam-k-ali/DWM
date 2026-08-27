@@ -10,6 +10,7 @@ import com.adamkali.dwm.render.portal.PortalFrameCache;
 import com.adamkali.dwm.render.portal.PortalPerfStats;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
+import com.adamkali.dwm.tardis.portal.PortalLightData;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.util.ProblemReporter;
@@ -74,6 +75,7 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
     private BlockPos footprintOrigin = BlockPos.ZERO;
     private final Map<Long, Map<BlockPos, BlockState>> chunkBlocks = new ConcurrentHashMap<>();
     private final Map<Long, Map<BlockPos, CompoundTag>> chunkBlockEntities = new ConcurrentHashMap<>();
+    private final Map<Long, PortalLightData> chunkLights = new ConcurrentHashMap<>();
     private final Map<BlockPos, BlockState> blocksByRel = new ConcurrentHashMap<>();
     private final Map<BlockPos, CompoundTag> blockEntitiesByRel = new ConcurrentHashMap<>();
     private final Map<UUID, GhostEntity> entities = new ConcurrentHashMap<>();
@@ -253,9 +255,13 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         long key = ChunkPos.pack(payload.chunkX(), payload.chunkZ());
         Map<BlockPos, BlockState> newBlocks = new HashMap<>(payload.toBlockMap());
         Map<BlockPos, CompoundTag> newBes = new HashMap<>(payload.toBlockEntityMap());
+        PortalLightData newLight = payload.lightData();
         Map<BlockPos, BlockState> previousBlocks = ghost.chunkBlocks.get(key);
         Map<BlockPos, CompoundTag> previousBes = ghost.chunkBlockEntities.get(key);
-        boolean contentUnchanged = chunkContentUnchanged(previousBlocks, newBlocks, previousBes, newBes);
+        PortalLightData previousLight = ghost.chunkLights.get(key);
+        boolean contentUnchanged = chunkContentUnchanged(
+                previousBlocks, newBlocks, previousBes, newBes, previousLight, newLight
+        );
         boolean hasDrawable = SotoGhostMeshCache.hasDrawableChunk(
                 kind, payload.tardisId(), payload.chunkX(), payload.chunkZ()
         );
@@ -263,11 +269,13 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
             // Keep maps current (cheap) but skip tessellation / pass-batch rebuild.
             ghost.chunkBlocks.put(key, newBlocks);
             ghost.chunkBlockEntities.put(key, newBes);
+            ghost.chunkLights.put(key, newLight);
             PortalPerfStats.noteBakeSkip();
             return;
         }
         previousBlocks = ghost.chunkBlocks.put(key, newBlocks);
         previousBes = ghost.chunkBlockEntities.put(key, newBes);
+        ghost.chunkLights.put(key, newLight);
         if (previousBlocks != null) {
             for (BlockPos pos : previousBlocks.keySet()) {
                 ghost.blocksByRel.remove(pos);
@@ -280,7 +288,7 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         }
         ghost.blocksByRel.putAll(newBlocks);
         ghost.blockEntitiesByRel.putAll(newBes);
-        SotoGhostMeshCache.onChunkApplied(kind, payload.tardisId(), payload.chunkX(), payload.chunkZ(), ghost);
+        ghost.rebuildChunkAndLightNeighbors(payload.chunkX(), payload.chunkZ());
     }
 
     /**
@@ -291,10 +299,25 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
             Map<BlockPos, BlockState> previousBlocks,
             Map<BlockPos, BlockState> newBlocks,
             Map<BlockPos, CompoundTag> previousBes,
-            Map<BlockPos, CompoundTag> newBes
+            Map<BlockPos, CompoundTag> newBes,
+            PortalLightData previousLight,
+            PortalLightData newLight
     ) {
         return Objects.equals(emptyToNull(previousBlocks), emptyToNull(newBlocks))
-                && Objects.equals(emptyToNull(previousBes), emptyToNull(newBes));
+                && Objects.equals(emptyToNull(previousBes), emptyToNull(newBes))
+                && Objects.equals(previousLight, newLight);
+    }
+
+    private void rebuildChunkAndLightNeighbors(int chunkX, int chunkZ) {
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                int affectedX = chunkX + dx;
+                int affectedZ = chunkZ + dz;
+                if (chunkBlocks.containsKey(ChunkPos.pack(affectedX, affectedZ))) {
+                    SotoGhostMeshCache.onChunkApplied(kind, tardisId, affectedX, affectedZ, this);
+                }
+            }
+        }
     }
 
     private static <K, V> Map<K, V> emptyToNull(Map<K, V> map) {
@@ -309,6 +332,7 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         long key = ChunkPos.pack(chunkX, chunkZ);
         Map<BlockPos, BlockState> removedBlocks = ghost.chunkBlocks.remove(key);
         Map<BlockPos, CompoundTag> removedBes = ghost.chunkBlockEntities.remove(key);
+        ghost.chunkLights.remove(key);
         if (removedBlocks != null) {
             for (BlockPos pos : removedBlocks.keySet()) {
                 ghost.blocksByRel.remove(pos);
@@ -320,6 +344,7 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
             }
         }
         SotoGhostMeshCache.onChunkUnloaded(kind, tardisId, chunkX, chunkZ);
+        ghost.rebuildChunkAndLightNeighbors(chunkX, chunkZ);
     }
 
     public static void applyEntitySpawn(PortalStreamKind kind, SyncPortalEntitySpawnS2CPayload payload) {
@@ -520,6 +545,16 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         return Map.copyOf(blocksByRel);
     }
 
+    public boolean hasLightData() {
+        return !chunkLights.isEmpty();
+    }
+
+    public int packedLight(BlockPos pos) {
+        int block = getBrightness(LightLayer.BLOCK, pos);
+        int sky = getBrightness(LightLayer.SKY, pos);
+        return net.minecraft.util.LightCoordsUtil.pack(block, sky);
+    }
+
     /**
      * Synthetic block entities for ghost BE rendering (same approach as snapshot mesh cache).
      */
@@ -673,7 +708,13 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
 
     @Override
     public int getBrightness(LightLayer type, BlockPos pos) {
-        return 15;
+        if (pos == null || chunkLights.isEmpty()) {
+            return 15;
+        }
+        int worldX = footprintOrigin.getX() + pos.getX();
+        int worldZ = footprintOrigin.getZ() + pos.getZ();
+        PortalLightData light = chunkLights.get(ChunkPos.pack(worldX >> 4, worldZ >> 4));
+        return light == null ? 15 : light.brightness(type, pos, 15);
     }
 
     public record RenderableGhostEntity(Entity entity, LerpedPose pose, float animAgeInTicks, float bobOffset) {

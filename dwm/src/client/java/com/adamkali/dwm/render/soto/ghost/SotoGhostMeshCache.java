@@ -23,7 +23,6 @@ import net.minecraft.client.renderer.rendertype.PreparedRenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
@@ -46,7 +45,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * Keyed by (PortalStreamKind, UUID) so BOTI and SOTO share the same mesh infrastructure.
  */
 public final class SotoGhostMeshCache {
-    private static final int FULLBRIGHT = LightCoordsUtil.FULL_BRIGHT;
     private static final int QUAD_VERTEX_STRIDE = 4;
     private static final int QUAD_INDEX_STRIDE = 6;
 
@@ -296,7 +294,6 @@ public final class SotoGhostMeshCache {
             EnumMap<ChunkSectionLayer, ByteBufferBuilder> allocators = new EnumMap<>(ChunkSectionLayer.class);
             EnumMap<ChunkSectionLayer, BufferBuilder> builders = new EnumMap<>(ChunkSectionLayer.class);
             QuadInstance quadInstance = new QuadInstance();
-            quadInstance.setLightCoords(FULLBRIGHT);
             quadInstance.setOverlayCoords(0);
 
             for (Map.Entry<BlockPos, BlockState> entry : blocks.entrySet()) {

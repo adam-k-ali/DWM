@@ -3,6 +3,7 @@ package com.adamkali.dwm.tardis.soto;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
+import com.adamkali.dwm.tardis.portal.PortalLightData;
 import com.adamkali.dwm.tardis.portal.PortalStreamSample;
 import java.util.HashMap;
 import java.util.List;
@@ -200,7 +201,9 @@ public final class SotoExteriorSampler {
             int chunkZ
     ) {
         StreamChunkSample sample = sampleStreamChunk(exteriorWorld, exteriorPos, chunkX, chunkZ);
-        return new PortalStreamSample(sample.chunkX(), sample.chunkZ(), sample.blocks(), sample.blockEntities());
+        return new PortalStreamSample(
+                sample.chunkX(), sample.chunkZ(), sample.blocks(), sample.blockEntities(), sample.lightData()
+        );
     }
 
     /**
@@ -219,6 +222,8 @@ public final class SotoExteriorSampler {
         exteriorWorld.getChunk(chunkX, chunkZ);
         Map<BlockPos, BlockState> blocks = new HashMap<>();
         Map<BlockPos, CompoundTag> blockEntities = new HashMap<>();
+        int lowestVisibleY = Integer.MAX_VALUE;
+        int highestVisibleY = Integer.MIN_VALUE;
         HolderLookup.Provider registries = exteriorWorld.registryAccess();
         int minY = Math.max(exteriorWorld.getMinY(), exteriorPos.getY() - STREAM_Y_RADIUS);
         int maxY = Math.min(exteriorWorld.getMinY() + exteriorWorld.getHeight() - 1, exteriorPos.getY() + STREAM_Y_RADIUS);
@@ -235,6 +240,8 @@ public final class SotoExteriorSampler {
                     }
                     BlockPos immutable = mutable.immutable();
                     blocks.put(immutable, state);
+                    lowestVisibleY = Math.min(lowestVisibleY, y);
+                    highestVisibleY = Math.max(highestVisibleY, y);
                     BlockEntity blockEntity = exteriorWorld.getBlockEntity(mutable);
                     if (blockEntity != null) {
                         blockEntities.put(immutable, BotiInteriorSampler.captureSyncNbt(blockEntity, registries));
@@ -242,7 +249,17 @@ public final class SotoExteriorSampler {
                 }
             }
         }
-        return new StreamChunkSample(chunkX, chunkZ, blocks, blockEntities);
+        PortalLightData lightData = PortalLightData.EMPTY;
+        if (!blocks.isEmpty()) {
+            int lightMinY = Math.max(minY, lowestVisibleY - 1);
+            int lightMaxY = Math.min(maxY, highestVisibleY + 1);
+            lightData = PortalLightData.sample(
+                    exteriorWorld,
+                    new BlockPos(baseX, lightMinY, baseZ),
+                    new BlockPos(baseX + 15, lightMaxY, baseZ + 15)
+            );
+        }
+        return new StreamChunkSample(chunkX, chunkZ, blocks, blockEntities, lightData);
     }
 
     public static List<Entity> collectStreamEntities(ServerLevel exteriorWorld, BlockPos exteriorPos) {
@@ -258,15 +275,26 @@ public final class SotoExteriorSampler {
             int chunkX,
             int chunkZ,
             Map<BlockPos, BlockState> blocks,
-            Map<BlockPos, CompoundTag> blockEntities
+            Map<BlockPos, CompoundTag> blockEntities,
+            PortalLightData lightData
     ) {
+        public StreamChunkSample(
+                int chunkX,
+                int chunkZ,
+                Map<BlockPos, BlockState> blocks,
+                Map<BlockPos, CompoundTag> blockEntities
+        ) {
+            this(chunkX, chunkZ, blocks, blockEntities, PortalLightData.EMPTY);
+        }
+
         public StreamChunkSample {
             blocks = blocks == null ? Map.of() : Map.copyOf(blocks);
             blockEntities = blockEntities == null ? Map.of() : Map.copyOf(blockEntities);
+            lightData = lightData == null ? PortalLightData.EMPTY : lightData;
         }
 
         public static StreamChunkSample empty(int chunkX, int chunkZ) {
-            return new StreamChunkSample(chunkX, chunkZ, Map.of(), Map.of());
+            return new StreamChunkSample(chunkX, chunkZ, Map.of(), Map.of(), PortalLightData.EMPTY);
         }
     }
 
