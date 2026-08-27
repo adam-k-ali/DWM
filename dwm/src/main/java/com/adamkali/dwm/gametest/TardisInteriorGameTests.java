@@ -23,7 +23,6 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
@@ -206,10 +205,6 @@ public class TardisInteriorGameTests {
             int brightness = interior.getBrightness(LightLayer.BLOCK, sourcePos);
             if (brightness != 15) {
                 throw new AssertionError("Expected propagated block light 15 at " + sourcePos + " but got " + brightness);
-            }
-            if (!interior.getLightEngine().lightOnInColumn(
-                    ChunkPos.pack(sourcePos.getX() >> 4, sourcePos.getZ() >> 4))) {
-                throw new AssertionError("Expected light storage enabled for source column");
             }
             var sample = BotiInteriorSampler.sampleStreamChunk(
                     interior, tardisId, sourcePos.getX() >> 4, sourcePos.getZ() >> 4);

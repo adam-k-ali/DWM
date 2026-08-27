@@ -32,6 +32,7 @@ import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -207,24 +208,17 @@ public final class BotiInteriorSampler {
         return true;
     }
 
-    /**
-     * True once vanilla lighting has enabled every footprint column. Newly generated empty flat
-     * chunks can be FULL before their asynchronous light-engine initialization has completed.
-     */
+    /** True once the stamped room's known light source has propagated into vanilla light data. */
     public static boolean isFootprintLightReady(ServerLevel world, BlockPos plotOrigin) {
         if (world == null || plotOrigin == null) {
             return false;
         }
-        int[] bounds = footprintChunkBounds(plotOrigin);
-        var lightEngine = world.getLightEngine();
-        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
-            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
-                if (!lightEngine.lightOnInColumn(ChunkPos.pack(cx, cz))) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        BlockPos sourcePos = plotOrigin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.above(3));
+        BlockState source = world.getBlockState(sourcePos);
+        int emission = source.getLightEmission();
+        return source.is(Blocks.LIGHT)
+                && emission > 0
+                && world.getBrightness(LightLayer.BLOCK, sourcePos) >= emission;
     }
 
     /**

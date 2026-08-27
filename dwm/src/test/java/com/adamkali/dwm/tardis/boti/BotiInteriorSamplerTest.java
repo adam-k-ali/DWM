@@ -18,10 +18,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
-import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.phys.AABB;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -106,17 +105,20 @@ class BotiInteriorSamplerTest {
     }
 
     @Test
-    void isFootprintLightReady_waitsForEveryChunkColumn() {
+    void isFootprintLightReady_waitsForStampedSourceBrightness() {
         ServerLevel world = Mockito.mock(ServerLevel.class);
-        LevelLightEngine lightEngine = Mockito.mock(LevelLightEngine.class);
-        BlockPos origin = new BlockPos(15, 64, 15); // four footprint columns
-        Mockito.when(world.getLightEngine()).thenReturn(lightEngine);
-        Mockito.when(lightEngine.lightOnInColumn(Mockito.anyLong())).thenReturn(true);
+        BlockPos origin = new BlockPos(15, 64, 15);
+        BlockPos sourcePos = origin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.above(3));
+        Mockito.when(world.getBlockState(sourcePos)).thenReturn(Blocks.AIR.defaultBlockState());
 
-        assertTrue(BotiInteriorSampler.isFootprintLightReady(world, origin));
-
-        Mockito.when(lightEngine.lightOnInColumn(ChunkPos.pack(1, 1))).thenReturn(false);
         assertFalse(BotiInteriorSampler.isFootprintLightReady(world, origin));
+
+        Mockito.when(world.getBlockState(sourcePos)).thenReturn(Blocks.LIGHT.defaultBlockState());
+        Mockito.when(world.getBrightness(LightLayer.BLOCK, sourcePos)).thenReturn(0);
+        assertFalse(BotiInteriorSampler.isFootprintLightReady(world, origin));
+
+        Mockito.when(world.getBrightness(LightLayer.BLOCK, sourcePos)).thenReturn(15);
+        assertTrue(BotiInteriorSampler.isFootprintLightReady(world, origin));
         assertFalse(BotiInteriorSampler.isFootprintLightReady(null, origin));
         assertFalse(BotiInteriorSampler.isFootprintLightReady(world, null));
     }
