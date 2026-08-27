@@ -67,7 +67,7 @@ public final class FieldGuideCatalog {
     ) {
         FieldGuideBookData book = books.get(bookId);
         if (book == null) {
-            LOGGER.error("Missing field guide book {}", bookId);
+            LOGGER.error("Missing field guide book {} ({} books loaded)", bookId, books.size());
             return List.of();
         }
         if (!bookId.equals(book.guide().id())) {
@@ -125,6 +125,9 @@ public final class FieldGuideCatalog {
                 map.put(entry.getKey().identifier(), entry.getValue());
             }
             return map;
-        }).orElseGet(Map::of);
+        }).orElseGet(() -> {
+            LOGGER.error("Field guide registry {} is not present in RegistryAccess", key.identifier());
+            return Map.of();
+        });
     }
 }

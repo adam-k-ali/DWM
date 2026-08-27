@@ -8,16 +8,21 @@ import net.minecraft.resources.ResourceKey;
 
 /**
  * Synced datapack registries for Field Guide books, chapters, and pages.
+ *
+ * <p>Keys use the vanilla {@code minecraft} namespace so Fabric does not prepend a registry
+ * namespace folder. Entries therefore load from {@code data/<entry ns>/guide/...} — for example
+ * {@code data/dwm/guide/book/field_guide.json}. A {@code dwm:} registry id would load from
+ * {@code data/<entry ns>/dwm/guide/...} instead.
  */
 public final class FieldGuideRegistries {
     public static final ResourceKey<Registry<FieldGuideBookData>> BOOK = ResourceKey.createRegistryKey(
-            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "guide/book")
+            Identifier.withDefaultNamespace("guide/book")
     );
     public static final ResourceKey<Registry<FieldGuideChapterData>> CHAPTER = ResourceKey.createRegistryKey(
-            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "guide/chapter")
+            Identifier.withDefaultNamespace("guide/chapter")
     );
     public static final ResourceKey<Registry<FieldGuidePageData>> PAGE = ResourceKey.createRegistryKey(
-            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "guide/page")
+            Identifier.withDefaultNamespace("guide/page")
     );
 
     public static final Identifier FIELD_GUIDE_ID =

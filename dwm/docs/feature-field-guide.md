@@ -41,13 +41,13 @@ Future phases may add Gallifrey building, Azbantium, dimension reference, and ch
 
 ## Datapack layout
 
-The catalog is three synced dynamic registries. File path is the entry id (`data/dwm/guide/page/find_tardis.json` → `dwm:find_tardis`). Nested `id` fields must match the file id.
+The catalog is three synced dynamic registries. Registry keys use the vanilla `minecraft` namespace so Fabric does not insert an extra registry-namespace folder. File path is the entry id (`data/dwm/guide/page/find_tardis.json` → `dwm:find_tardis`). Nested `id` fields must match the file id.
 
 | Registry | Folder | Built-in entry |
 | --- | --- | --- |
-| `dwm:guide/book` | `data/<ns>/guide/book/` | `dwm:field_guide` |
-| `dwm:guide/chapter` | `data/<ns>/guide/chapter/` | `dwm:quick_start`, `dwm:sonic`, `dwm:console_room` |
-| `dwm:guide/page` | `data/<ns>/guide/page/` | one JSON per page |
+| `minecraft:guide/book` | `data/<ns>/guide/book/` | `dwm:field_guide` |
+| `minecraft:guide/chapter` | `data/<ns>/guide/chapter/` | `dwm:quick_start`, `dwm:sonic`, `dwm:console_room` |
+| `minecraft:guide/page` | `data/<ns>/guide/page/` | one JSON per page |
 
 **Book**
 

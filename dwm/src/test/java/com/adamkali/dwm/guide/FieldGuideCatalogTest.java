@@ -124,6 +124,23 @@ class FieldGuideCatalogTest {
     }
 
     @Test
+    void registryKeysUseVanillaNamespaceForDatapackFolder() {
+        assertEquals(Identifier.DEFAULT_NAMESPACE, FieldGuideRegistries.BOOK.identifier().getNamespace());
+        assertEquals(Identifier.DEFAULT_NAMESPACE, FieldGuideRegistries.CHAPTER.identifier().getNamespace());
+        assertEquals(Identifier.DEFAULT_NAMESPACE, FieldGuideRegistries.PAGE.identifier().getNamespace());
+        assertEquals("guide/book", FieldGuideRegistries.BOOK.identifier().getPath());
+        assertEquals("guide/chapter", FieldGuideRegistries.CHAPTER.identifier().getPath());
+        assertEquals("guide/page", FieldGuideRegistries.PAGE.identifier().getPath());
+        Path book = GUIDE_ROOT.resolve("book/field_guide.json");
+        Path doubledNs = PROJECT_ROOT.resolve(
+                "src/main/resources/data/" + DWMReference.MOD_ID + "/" + DWMReference.MOD_ID
+                        + "/guide/book/field_guide.json"
+        );
+        assertTrue(Files.exists(book), book.toString());
+        assertFalse(Files.exists(doubledNs));
+    }
+
+    @Test
     void productionJsonRoundTrips() throws IOException {
         roundTripDir(GUIDE_ROOT.resolve("book"), FieldGuideBookData.CODEC);
         roundTripDir(GUIDE_ROOT.resolve("chapter"), FieldGuideChapterData.CODEC);
