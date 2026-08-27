@@ -10,10 +10,17 @@ role; the frontmatter `type` does.
 ---
 name: Create World
 type: test
+record: true
 ---
 steps:
   - launchGame
 ```
+
+| Field | Required | Role |
+| --- | --- | --- |
+| `name` | yes | Display name in reports |
+| `type` | yes | `test`, `command`, or `suite` |
+| `record` | no | When `true`, record the client display to an MP4 for this run (default `false`). Overridden by `-PscreenplayRecord`. |
 
 | `type` | Role |
 | --- | --- |
@@ -25,6 +32,10 @@ The **filename stem** is the stable ID. For example,
 `subflows/assertAndClick.yaml` defines `assertAndClick`. Duplicate test,
 command, or suite IDs are rejected even when files live in different
 directories.
+
+For `type: suite`, `record: true` records the **entire suite session** as one
+video. Member-test `record` flags are ignored when those tests run under the
+suite.
 
 ## Suites
 

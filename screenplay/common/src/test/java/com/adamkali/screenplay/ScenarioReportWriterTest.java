@@ -19,7 +19,7 @@ class ScenarioReportWriterTest {
 
     @Test
     void metricsJson_includesSchemaScenarioTotalsAndSteps() {
-        ScenarioPlan plan = new ScenarioPlan("placeBlock", "Place Block", List.of());
+        ScenarioPlan plan = new ScenarioPlan("placeBlock", "Place Block", List.of(), false);
         List<ScenarioReportWriter.StepResult> results = List.of(
                 new ScenarioReportWriter.StepResult("useItem", 12_300_000L, true),
                 new ScenarioReportWriter.StepResult("waitUntil block \"minecraft:dirt\"", 48_000_000L, true)
@@ -43,7 +43,7 @@ class ScenarioReportWriterTest {
 
     @Test
     void metricsJson_marksFailedWhenFailurePresent() {
-        ScenarioPlan plan = new ScenarioPlan("createWorld", "Create World", List.of());
+        ScenarioPlan plan = new ScenarioPlan("createWorld", "Create World", List.of(), false);
         String json = ScenarioReportWriter.metricsJson(
                 plan,
                 List.of(new ScenarioReportWriter.StepResult("launchGame", 1_000_000L, false)),
@@ -58,7 +58,7 @@ class ScenarioReportWriterTest {
 
     @Test
     void metricsJson_bootstrapFailureHasEmptySteps() {
-        ScenarioPlan plan = new ScenarioPlan("broken", "broken", List.of());
+        ScenarioPlan plan = new ScenarioPlan("broken", "broken", List.of(), false);
         JSONObject json = new JSONObject(ScenarioReportWriter.metricsJson(plan, List.of(), "boom"));
 
         assertFalse(json.getBoolean("passed"));
@@ -77,7 +77,8 @@ class ScenarioReportWriterTest {
                 List.of(),
                 List.of(),
                 List.of(),
-                List.of(new ScenarioPlan("memberA", "Member A", List.of()))
+                List.of(new ScenarioPlan("memberA", "Member A", List.of(), false)),
+                false
         );
         List<ScenarioReportWriter.CaseResult> cases = List.of(
                 new ScenarioReportWriter.CaseResult(
@@ -123,7 +124,7 @@ class ScenarioReportWriterTest {
     void write_emitsMetricsBesideReport() throws Exception {
         Path reportFile = tempDir.resolve("report.xml");
         ScenarioReportWriter writer = new ScenarioReportWriter(reportFile);
-        ScenarioPlan plan = new ScenarioPlan("placeBlock", "Place Block", List.of());
+        ScenarioPlan plan = new ScenarioPlan("placeBlock", "Place Block", List.of(), false);
         List<ScenarioReportWriter.StepResult> results = List.of(
                 new ScenarioReportWriter.StepResult("useItem", 5_000_000L, true)
         );

@@ -69,8 +69,10 @@ Results are written to:
   (listed in `.gitignore`; CI uploads the file as a workflow artifact)
 - `build/screenplay/diagnostics.txt` — current screen and visible widgets
 - `build/screenplay/run/screenshots/` — PNGs from `captureScreenshot`
+- `build/screenplay/run/recordings/` — MP4s when `-PscreenplayRecord=true` or YAML
+  `record: true` (requires `ffmpeg`)
 - `build/screenplay/results/<id>/` — per-scenario copies of report, metrics,
-  diagnostics, and screenshots written by `runScreenplayTests`
+  diagnostics, screenshots, and recordings written by `runScreenplayTests`
 - `build/screenplay/vanilla-server/` — official dedicated-server run dir from
   `startVanillaServer` (`server-jar.path`, `eula.txt`, `server.properties`,
   `world/`, `logs/harness.log`)

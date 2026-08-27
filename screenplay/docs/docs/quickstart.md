@@ -57,8 +57,9 @@ On a machine with a real display, omit `-PscreenplayDisplay` or use `display`.
 | `-Pscreenplay=<id>` | YAML filename stem to run |
 | `-PscreenplayDisplay=display\|xvfb` | Framebuffer strategy (default `display`) |
 | `-PscreenplayTimeout=<seconds>` | Per-step timeout (default 30) |
+| `-PscreenplayRecord=true\|false` | Screen-record the client (requires `ffmpeg`) |
 
-Results land under `build/screenplay/` (JUnit XML, metrics, diagnostics, screenshots). Details: [Running tests](running-tests.md).
+Results land under `build/screenplay/` (JUnit XML, metrics, diagnostics, screenshots, optional recordings). Details: [Running tests](running-tests.md).
 
 ## 4. Next steps
 
