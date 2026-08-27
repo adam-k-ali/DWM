@@ -196,7 +196,7 @@ public class FieldGuideScreen extends Screen {
         ));
         content.add(new MultiLineTextWidget(
                 Component.translatable(page.bodyKey()).copy().withStyle(
-                        Style.EMPTY.withColor(FieldGuideBookLayout.TEXT_COLOR)
+                        Style.EMPTY.withColor(FieldGuideBookLayout.TEXT_COLOR).withoutShadow()
                 ),
                 font
         ).setMaxWidth(FieldGuideBookLayout.RIGHT_PAGE_WIDTH).setMaxRows(bodyMaxRows(page)));
@@ -212,7 +212,7 @@ public class FieldGuideScreen extends Screen {
         if (page.patternPage()) {
             content.add(new MultiLineTextWidget(
                     Component.translatable("dwm.guide.pattern.all_colours").copy().withStyle(
-                            Style.EMPTY.withColor(FieldGuideBookLayout.TEXT_COLOR)
+                            Style.EMPTY.withColor(FieldGuideBookLayout.TEXT_COLOR).withoutShadow()
                     ),
                     font
             ).setMaxWidth(FieldGuideBookLayout.RIGHT_PAGE_WIDTH).setMaxRows(FieldGuideBookLayout.PATTERN_MAX_LINES));
