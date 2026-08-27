@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render.soto;
 
+import com.adamkali.dwm.render.portal.PortalFogRenderer;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors.EffectsKind;
@@ -110,23 +111,26 @@ public final class SotoSkyFogRenderer {
         };
     }
 
-    /**
-     * Remembers the previous shader fog slice. Minecraft 26.2 fog is a UBO slice; we cannot
-     * construct a custom portal fog buffer without FogRenderer internals, so terrain draws keep
-     * the active fog. Restore still swaps the captured slice back.
-     */
     public static GpuBufferSlice applyPortalTerrainFog(SotoAtmosphere atmosphere) {
-        // atmosphere retained for API stability / future FogData upload.
-        return RenderSystem.getShaderFog();
+        return applyPortalTerrainFog(atmosphere, PORTAL_FOG_START, PORTAL_FOG_END);
+    }
+
+    public static GpuBufferSlice applyPortalTerrainFog(SotoAtmosphere atmosphere, float start, float end) {
+        SotoAtmosphere resolved = atmosphere == null ? SotoAtmosphere.DEFAULT : atmosphere;
+        EffectsKind kind = SotoAtmosphereColors.effectsKind(resolved.dimensionEffectsId());
+        FogColor fog = buildFogColor(resolved, kind, start, end);
+        return PortalFogRenderer.apply(fog.start(), fog.end(), fog.red(), fog.green(), fog.blue());
     }
 
     public static void restoreFog(GpuBufferSlice previous) {
-        if (previous != null) {
-            RenderSystem.setShaderFog(previous);
-        }
+        PortalFogRenderer.restore(previous);
     }
 
     static FogColor buildFogColor(SotoAtmosphere atmosphere, EffectsKind kind) {
+        return buildFogColor(atmosphere, kind, PORTAL_FOG_START, PORTAL_FOG_END);
+    }
+
+    static FogColor buildFogColor(SotoAtmosphere atmosphere, EffectsKind kind, float start, float end) {
         float skyAngle = SotoAtmosphereColors.skyAngle(atmosphere.timeOfDay());
         Vec3 color = SotoAtmosphereColors.fogColor(
                 atmosphere.biomeFogColor(),
@@ -136,8 +140,8 @@ public final class SotoSkyFogRenderer {
                 atmosphere.thunderGradient()
         );
         return new FogColor(
-                PORTAL_FOG_START,
-                PORTAL_FOG_END,
+                start,
+                end,
                 (float) color.x,
                 (float) color.y,
                 (float) color.z

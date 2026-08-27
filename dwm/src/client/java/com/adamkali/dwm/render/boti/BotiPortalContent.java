@@ -12,6 +12,7 @@ import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
 import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix4fStack;
@@ -31,6 +32,8 @@ import net.minecraft.world.phys.Vec3;
  */
 public final class BotiPortalContent implements PortalContent {
     private static final int DEFAULT_CLEAR_RGB = 0x203040;
+    static final float BOTI_FOG_START = 7.0F;
+    static final float BOTI_FOG_END = 17.0F;
 
     private final UUID tardisId;
 
@@ -69,12 +72,27 @@ public final class BotiPortalContent implements PortalContent {
 
     @Override
     public void renderInto(PortalContentContext context) {
+        PortalAtmosphere portal = PortalSceneStore.getAtmosphere(PortalStreamKind.BOTI, tardisId);
+        SotoAtmosphere atmosphere = portal != null ? SotoAtmosphere.fromPortal(portal) : SotoAtmosphere.DEFAULT;
+        context.bindTarget();
+        long fogStart = PortalPerfStats.begin();
+        GpuBufferSlice previousFog = SotoSkyFogRenderer.applyPortalTerrainFog(
+                atmosphere, BOTI_FOG_START, BOTI_FOG_END
+        );
+        PortalPerfStats.end(PortalPerfStats.Stage.SKY_FOG, fogStart);
+        try {
+            renderLitContent(context);
+        } finally {
+            SotoSkyFogRenderer.restoreFog(previousFog);
+        }
+    }
+
+    private void renderLitContent(PortalContentContext context) {
         UUID id = tardisId;
         float tickDelta = context.tickDelta();
         PortalCameraTransform.Result hitch = context.hitch();
         PoseStack sceneMatrices = context.sceneMatrices();
 
-        context.bindTarget();
         long opaqueStart = PortalPerfStats.begin();
         SotoGhostMeshCache.drawLayer(
                 PortalStreamKind.BOTI,
