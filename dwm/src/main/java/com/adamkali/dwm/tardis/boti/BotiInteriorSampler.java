@@ -446,6 +446,21 @@ public final class BotiInteriorSampler {
         } catch (java.io.IOException ignored) {
         }
         // #endregion
+        BlockPos expectedLight = plotOrigin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.above(3));
+        if ((expectedLight.getX() >> 4) == chunkX && (expectedLight.getZ() >> 4) == chunkZ) {
+            var lightEngine = interiorWorld.getLightEngine();
+            var sourceChunk = interiorWorld.getChunkAt(expectedLight);
+            BlockState sourceState = interiorWorld.getBlockState(expectedLight);
+            net.minecraft.core.SectionPos sourceSection = net.minecraft.core.SectionPos.of(expectedLight);
+            // #region agent log
+            try {
+                java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
+                        "{\"hypothesisId\":\"G,H,I,J\",\"location\":\"BotiInteriorSampler.sampleStreamChunk:source\",\"message\":\"light source state when BOTI samples\",\"data\":{\"block\":\"" + net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(sourceState.getBlock()) + "\",\"isLight\":" + sourceState.is(Blocks.LIGHT) + ",\"emission\":" + sourceState.getLightEmission() + ",\"brightness\":" + interiorWorld.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, expectedLight) + ",\"rawBrightness\":" + lightEngine.getLayerListener(net.minecraft.world.level.LightLayer.BLOCK).getLightValue(expectedLight) + ",\"neighborBrightness\":" + interiorWorld.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, expectedLight.below()) + ",\"hasLightWork\":" + lightEngine.hasLightWork() + ",\"lightOnInColumn\":" + lightEngine.lightOnInColumn(sourceChunk.getPos().pack()) + ",\"chunkLightCorrect\":" + sourceChunk.isLightCorrect() + ",\"chunkStatus\":\"" + sourceChunk.getPersistedStatus() + "\",\"sectionType\":\"" + lightEngine.getDebugSectionType(net.minecraft.world.level.LightLayer.BLOCK, sourceSection) + "\",\"sectionDataPresent\":" + (lightEngine.getLayerListener(net.minecraft.world.level.LightLayer.BLOCK).getDataLayerData(sourceSection) != null) + ",\"engine\":\"" + lightEngine.getClass().getName() + "\",\"hasSkyLight\":" + interiorWorld.dimensionType().hasSkyLight() + ",\"ambientLight\":" + interiorWorld.dimensionType().ambientLight() + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
+                        java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+            } catch (java.io.IOException ignored) {
+            }
+            // #endregion
+        }
         return new PortalStreamSample(
                 chunkX, chunkZ, Map.copyOf(blocks), Map.copyOf(blockEntities), lightData
         );
