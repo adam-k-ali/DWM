@@ -208,6 +208,26 @@ public final class BotiInteriorSampler {
     }
 
     /**
+     * True once vanilla lighting has enabled every footprint column. Newly generated empty flat
+     * chunks can be FULL before their asynchronous light-engine initialization has completed.
+     */
+    public static boolean isFootprintLightReady(ServerLevel world, BlockPos plotOrigin) {
+        if (world == null || plotOrigin == null) {
+            return false;
+        }
+        int[] bounds = footprintChunkBounds(plotOrigin);
+        var lightEngine = world.getLightEngine();
+        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
+            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
+                if (!lightEngine.lightOnInColumn(ChunkPos.pack(cx, cz))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
      * Synchronously force-loads footprint chunks (blocking). Prefer {@link #addFootprintTickets}
      * + {@link #areFootprintChunksLoaded} for approach-time preload.
      */

@@ -15,10 +15,13 @@ import java.util.Map;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.phys.AABB;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -100,6 +103,22 @@ class BotiInteriorSamplerTest {
         assertEquals(1, bounds[1]);
         assertEquals(0, bounds[2]);
         assertEquals(1, bounds[3]);
+    }
+
+    @Test
+    void isFootprintLightReady_waitsForEveryChunkColumn() {
+        ServerLevel world = Mockito.mock(ServerLevel.class);
+        LevelLightEngine lightEngine = Mockito.mock(LevelLightEngine.class);
+        BlockPos origin = new BlockPos(15, 64, 15); // four footprint columns
+        Mockito.when(world.getLightEngine()).thenReturn(lightEngine);
+        Mockito.when(lightEngine.lightOnInColumn(Mockito.anyLong())).thenReturn(true);
+
+        assertTrue(BotiInteriorSampler.isFootprintLightReady(world, origin));
+
+        Mockito.when(lightEngine.lightOnInColumn(ChunkPos.pack(1, 1))).thenReturn(false);
+        assertFalse(BotiInteriorSampler.isFootprintLightReady(world, origin));
+        assertFalse(BotiInteriorSampler.isFootprintLightReady(null, origin));
+        assertFalse(BotiInteriorSampler.isFootprintLightReady(world, null));
     }
 
     @Test

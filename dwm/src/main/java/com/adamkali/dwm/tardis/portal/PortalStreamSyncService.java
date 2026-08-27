@@ -299,6 +299,10 @@ public final class PortalStreamSyncService {
                 continue;
             }
             keepAlive(ctx);
+            if (kind == PortalStreamKind.BOTI
+                    && !BotiInteriorSampler.isFootprintLightReady(ctx.world(), ctx.footprintOrigin())) {
+                continue;
+            }
             for (ServerPlayer viewer : viewers) {
                 ensureChunks(viewer, ctx);
                 flushDirtyChunks(viewer, ctx);
