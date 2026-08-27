@@ -16,6 +16,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
@@ -64,6 +65,7 @@ public final class FirstDoctorConsoleRoomPlacer {
         }
 
         completeInteriorDoorBank(world, origin);
+        placeInteriorLight(world, origin);
         stampInteriorEntities(world, origin, tardisId);
         applyDoorOpenFromModel(world, origin, tardisId);
         FirstDoctorConsoleSync.syncFromModel(world.getServer(), tardisId);
@@ -84,6 +86,14 @@ public final class FirstDoctorConsoleRoomPlacer {
                 .setIgnoreEntities(true);
         structure.get().placeInWorld(world, origin, origin, data, RandomSource.create(), Block.UPDATE_CLIENTS);
         return true;
+    }
+
+    static void placeInteriorLight(ServerLevel world, BlockPos origin) {
+        world.setBlock(
+                origin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.above(3)),
+                Blocks.LIGHT.defaultBlockState(),
+                Block.UPDATE_CLIENTS
+        );
     }
 
     /**

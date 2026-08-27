@@ -11,9 +11,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class TardisInteriorUnitTest {
 
@@ -112,6 +119,20 @@ class TardisInteriorUnitTest {
         Map<BlockPos, BlockState> boti = FirstDoctorConsoleRoomLayout.botiVisiblePlacements();
         assertEquals(DWMBlocks.FIRST_DOCTOR_CONSOLE, boti.get(consolePos).getBlock(),
                 "console must be included in BOTI so its BER can draw");
+    }
+
+    @Test
+    void consoleRoomPlacer_StampsFullStrengthInvisibleLightAboveConsole() {
+        ServerLevel world = mock(ServerLevel.class);
+        BlockPos origin = new BlockPos(100, 64, 200);
+
+        FirstDoctorConsoleRoomPlacer.placeInteriorLight(world, origin);
+
+        verify(world).setBlock(
+                eq(origin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.above(3))),
+                argThat(state -> state.is(Blocks.LIGHT) && state.getLightEmission() == 15),
+                eq(Block.UPDATE_CLIENTS)
+        );
     }
 
     @Test
