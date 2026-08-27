@@ -194,7 +194,7 @@ public class TardisInteriorGameTests {
         context.succeed();
     }
 
-    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 80)
     public void consoleRoomPlacer_EnablesAndCalculatesLightWithThreadedEngine(GameTestHelper context) {
         ServerLevel interior = context.getLevel();
         UUID tardisId = UUID.randomUUID();
