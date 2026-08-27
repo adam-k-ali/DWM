@@ -17,10 +17,13 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class TardisInteriorUnitTest {
 
@@ -123,8 +126,12 @@ class TardisInteriorUnitTest {
 
     @Test
     void consoleRoomPlacer_StampsFullStrengthInvisibleLightAboveConsole() {
-        ServerLevel world = mock(ServerLevel.class);
+        ServerLevel world = mock(ServerLevel.class, RETURNS_DEEP_STUBS);
         BlockPos origin = new BlockPos(100, 64, 200);
+        when(world.getBlockState(any(BlockPos.class))).thenReturn(
+                Blocks.AIR.defaultBlockState(),
+                Blocks.LIGHT.defaultBlockState()
+        );
 
         FirstDoctorConsoleRoomPlacer.placeInteriorLight(world, origin);
 
