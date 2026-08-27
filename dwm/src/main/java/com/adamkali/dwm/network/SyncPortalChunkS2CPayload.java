@@ -178,6 +178,14 @@ public record SyncPortalChunkS2CPayload(
                 -footprintOrigin.getY(),
                 -footprintOrigin.getZ()
         ));
+        // #region agent log
+        try {
+            java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
+                    "{\"hypothesisId\":\"B\",\"location\":\"SyncPortalChunkS2CPayload.fromSample\",\"message\":\"translated portal light for wire\",\"data\":{\"kind\":\"" + kind + "\",\"chunkX\":" + sample.chunkX() + ",\"chunkZ\":" + sample.chunkZ() + ",\"originX\":" + footprintOrigin.getX() + ",\"originY\":" + footprintOrigin.getY() + ",\"originZ\":" + footprintOrigin.getZ() + ",\"worldMinX\":" + sample.lightData().min().getX() + ",\"worldMinY\":" + sample.lightData().min().getY() + ",\"worldMinZ\":" + sample.lightData().min().getZ() + ",\"relativeMinX\":" + relativeLight.min().getX() + ",\"relativeMinY\":" + relativeLight.min().getY() + ",\"relativeMinZ\":" + relativeLight.min().getZ() + ",\"bytes\":" + relativeLight.packedCopy().length + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
+                    java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+        } catch (java.io.IOException ignored) {
+        }
+        // #endregion
         return new SyncPortalChunkS2CPayload(
                 kind,
                 tardisId,

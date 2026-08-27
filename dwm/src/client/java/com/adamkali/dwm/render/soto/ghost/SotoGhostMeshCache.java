@@ -296,6 +296,23 @@ public final class SotoGhostMeshCache {
             QuadInstance quadInstance = new QuadInstance();
             quadInstance.setOverlayCoords(0);
 
+            // #region agent log
+            try {
+                int minBlock = 15, maxBlock = 0, minSky = 15, maxSky = 0;
+                for (BlockPos pos : blocks.keySet()) {
+                    int block = ghost.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, pos);
+                    int sky = ghost.getBrightness(net.minecraft.world.level.LightLayer.SKY, pos);
+                    minBlock = Math.min(minBlock, block);
+                    maxBlock = Math.max(maxBlock, block);
+                    minSky = Math.min(minSky, sky);
+                    maxSky = Math.max(maxSky, sky);
+                }
+                java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
+                        "{\"hypothesisId\":\"D\",\"location\":\"SotoGhostMeshCache.bakeChunk\",\"message\":\"brightness visible to terrain baker\",\"data\":{\"blocks\":" + blocks.size() + ",\"minBlock\":" + minBlock + ",\"maxBlock\":" + maxBlock + ",\"minSky\":" + minSky + ",\"maxSky\":" + maxSky + ",\"hasLightData\":" + ghost.hasLightData() + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
+                        java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+            } catch (java.io.IOException ignored) {
+            }
+            // #endregion
             for (Map.Entry<BlockPos, BlockState> entry : blocks.entrySet()) {
                 BlockPos pos = entry.getKey();
                 BlockState state = entry.getValue();
@@ -347,6 +364,14 @@ public final class SotoGhostMeshCache {
             }
             return new ChunkMesh(uploaded);
         } catch (Throwable ignored) {
+            // #region agent log
+            try {
+                java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
+                        "{\"hypothesisId\":\"F\",\"location\":\"SotoGhostMeshCache.bakeChunk\",\"message\":\"terrain bake threw\",\"data\":{\"errorType\":\"" + ignored.getClass().getName() + "\"},\"timestamp\":" + System.currentTimeMillis() + "}\n",
+                        java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+            } catch (java.io.IOException logIgnored) {
+            }
+            // #endregion
             return ChunkMesh.MARKER;
         }
     }

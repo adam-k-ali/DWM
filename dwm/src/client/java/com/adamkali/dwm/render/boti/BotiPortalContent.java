@@ -34,6 +34,7 @@ public final class BotiPortalContent implements PortalContent {
     private static final int DEFAULT_CLEAR_RGB = 0x203040;
     static final float BOTI_FOG_START = 7.0F;
     static final float BOTI_FOG_END = 17.0F;
+    private static boolean agentLoggedFog;
 
     private final UUID tardisId;
 
@@ -74,6 +75,17 @@ public final class BotiPortalContent implements PortalContent {
     public void renderInto(PortalContentContext context) {
         PortalAtmosphere portal = PortalSceneStore.getAtmosphere(PortalStreamKind.BOTI, tardisId);
         SotoAtmosphere atmosphere = portal != null ? SotoAtmosphere.fromPortal(portal) : SotoAtmosphere.DEFAULT;
+        // #region agent log
+        if (!agentLoggedFog) {
+            agentLoggedFog = true;
+            try {
+                java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
+                        "{\"hypothesisId\":\"E\",\"location\":\"BotiPortalContent.renderInto\",\"message\":\"BOTI fog inputs\",\"data\":{\"portalAtmospherePresent\":" + (portal != null) + ",\"timeOfDay\":" + atmosphere.timeOfDay() + ",\"biomeFogColor\":" + atmosphere.biomeFogColor() + ",\"backdropRgb\":" + SotoSkyFogRenderer.portalBackdropRgb(atmosphere) + ",\"fogStart\":" + BOTI_FOG_START + ",\"fogEnd\":" + BOTI_FOG_END + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
+                        java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+            } catch (java.io.IOException ignored) {
+            }
+        }
+        // #endregion
         context.bindTarget();
         long fogStart = PortalPerfStats.begin();
         GpuBufferSlice previousFog = SotoSkyFogRenderer.applyPortalTerrainFog(

@@ -256,6 +256,24 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         Map<BlockPos, BlockState> newBlocks = new HashMap<>(payload.toBlockMap());
         Map<BlockPos, CompoundTag> newBes = new HashMap<>(payload.toBlockEntityMap());
         PortalLightData newLight = payload.lightData();
+        // #region agent log
+        try {
+            int firstPacked = newLight.isEmpty() ? -1 : newLight.packed(newLight.min());
+            int matchedBlocks = 0, maxMatchedBlock = 0, maxMatchedSky = 0;
+            for (BlockPos pos : newBlocks.keySet()) {
+                int packed = newLight.packed(pos);
+                if (packed >= 0) {
+                    matchedBlocks++;
+                    maxMatchedBlock = Math.max(maxMatchedBlock, packed & 0xF);
+                    maxMatchedSky = Math.max(maxMatchedSky, packed >>> 4);
+                }
+            }
+            java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
+                    "{\"hypothesisId\":\"C\",\"location\":\"SotoGhostExterior.applyChunk\",\"message\":\"client received portal light\",\"data\":{\"kind\":\"" + kind + "\",\"chunkX\":" + payload.chunkX() + ",\"chunkZ\":" + payload.chunkZ() + ",\"blocks\":" + newBlocks.size() + ",\"originX\":" + payload.footprintOriginX() + ",\"originY\":" + payload.footprintOriginY() + ",\"originZ\":" + payload.footprintOriginZ() + ",\"lightMinX\":" + newLight.min().getX() + ",\"lightMinY\":" + newLight.min().getY() + ",\"lightMinZ\":" + newLight.min().getZ() + ",\"lightBytes\":" + newLight.packedCopy().length + ",\"firstPacked\":" + firstPacked + ",\"matchedBlocks\":" + matchedBlocks + ",\"maxMatchedBlock\":" + maxMatchedBlock + ",\"maxMatchedSky\":" + maxMatchedSky + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
+                    java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+        } catch (java.io.IOException ignored) {
+        }
+        // #endregion
         Map<BlockPos, BlockState> previousBlocks = ghost.chunkBlocks.get(key);
         Map<BlockPos, CompoundTag> previousBes = ghost.chunkBlockEntities.get(key);
         PortalLightData previousLight = ghost.chunkLights.get(key);

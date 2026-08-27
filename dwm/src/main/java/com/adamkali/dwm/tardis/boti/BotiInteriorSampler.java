@@ -431,6 +431,21 @@ public final class BotiInteriorSampler {
                 new BlockPos(minX, minY, minZ),
                 new BlockPos(maxX, maxY, maxZ)
         );
+        // #region agent log
+        try {
+            int maxBlock = 0, maxSky = 0;
+            for (byte value : lightData.packedCopy()) {
+                int packed = Byte.toUnsignedInt(value);
+                maxBlock = Math.max(maxBlock, packed & 0xF);
+                maxSky = Math.max(maxSky, packed >>> 4);
+            }
+            BlockPos expectedLight = plotOrigin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.above(3));
+            java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
+                    "{\"hypothesisId\":\"A\",\"location\":\"BotiInteriorSampler.sampleStreamChunk\",\"message\":\"server sampled BOTI light\",\"data\":{\"chunkX\":" + chunkX + ",\"chunkZ\":" + chunkZ + ",\"blocks\":" + blocks.size() + ",\"minX\":" + lightData.min().getX() + ",\"minY\":" + lightData.min().getY() + ",\"minZ\":" + lightData.min().getZ() + ",\"sizeX\":" + lightData.sizeX() + ",\"sizeY\":" + lightData.sizeY() + ",\"sizeZ\":" + lightData.sizeZ() + ",\"maxBlock\":" + maxBlock + ",\"maxSky\":" + maxSky + ",\"expectedLightWorldBlock\":" + interiorWorld.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, expectedLight) + ",\"expectedLightSampleBlock\":" + lightData.brightness(net.minecraft.world.level.LightLayer.BLOCK, expectedLight, -1) + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
+                    java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+        } catch (java.io.IOException ignored) {
+        }
+        // #endregion
         return new PortalStreamSample(
                 chunkX, chunkZ, Map.copyOf(blocks), Map.copyOf(blockEntities), lightData
         );
