@@ -44,6 +44,14 @@ class ScreenRecorderTest {
     }
 
     @Test
+    void evenPositive_roundsDownOddSizes() {
+        assertEquals(1280, ScreenRecorder.evenPositive(1280, 800));
+        assertEquals(720, ScreenRecorder.evenPositive(721, 800));
+        assertEquals(800, ScreenRecorder.evenPositive(0, 800));
+        assertEquals(2, ScreenRecorder.evenPositive(1, 1));
+    }
+
+    @Test
     void sanitizeFileName_rejectsPathSeparators() {
         assertEquals("createWorld", ScreenRecorder.sanitizeFileName("createWorld"));
         assertThrows(ScenarioException.class, () -> ScreenRecorder.sanitizeFileName("../escape"));
@@ -51,14 +59,14 @@ class ScreenRecorderTest {
     }
 
     @Test
-    void buildFfmpegCommand_includesX11grabAndOutput(@TempDir Path tempDir) {
+    void buildFfmpegCommand_includesX11grabWindowRegion(@TempDir Path tempDir) {
         Path output = tempDir.resolve("createWorld.mp4");
-        List<String> command = ScreenRecorder.buildFfmpegCommand(":99", output);
+        List<String> command = ScreenRecorder.buildFfmpegCommand(":99", 213, 272, 854, 480, output);
 
         assertEquals("ffmpeg", command.get(0));
         assertTrue(command.contains("x11grab"));
-        assertTrue(command.contains(":99"));
-        assertFalse(command.contains("-video_size"));
+        assertTrue(command.contains("854x480"));
+        assertTrue(command.contains(":99+213,272"));
         assertEquals(output.toAbsolutePath().toString(), command.getLast());
     }
 

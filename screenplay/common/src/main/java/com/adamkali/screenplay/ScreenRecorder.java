@@ -152,9 +152,12 @@ public final class ScreenRecorder {
         outputPath = recordingsDir.resolve(sanitizeFileName(scenarioId) + ".mp4");
         logFile = recordingsDir.resolve(sanitizeFileName(scenarioId) + ".ffmpeg.log");
 
-        // Capture the full X display. Using the Minecraft window size at +0,0 misframes
-        // when the GLFW window is not at the display origin (common under xvfb).
-        List<String> command = buildFfmpegCommand(display, outputPath);
+        var window = client.getWindow();
+        int width = evenPositive(window.getWidth(), 1280);
+        int height = evenPositive(window.getHeight(), 720);
+        int x = Math.max(0, window.getX());
+        int y = Math.max(0, window.getY());
+        List<String> command = buildFfmpegCommand(display, x, y, width, height, outputPath);
 
         ProcessBuilder builder = new ProcessBuilder(command);
         builder.redirectErrorStream(true);
@@ -173,15 +176,26 @@ public final class ScreenRecorder {
         shutdownHook = new Thread(this::stop, "screenplay-screen-recorder-shutdown");
         Runtime.getRuntime().addShutdownHook(shutdownHook);
         logger.info(
-                "Started screen recording pid {} -> {} ({}fps on DISPLAY={})",
+                "Started screen recording pid {} -> {} ({}x{}+{}+{} @ {}fps on DISPLAY={})",
                 process.pid(),
                 outputPath.toAbsolutePath(),
+                width,
+                height,
+                x,
+                y,
                 DEFAULT_FPS,
                 display
         );
     }
 
-    static List<String> buildFfmpegCommand(String display, Path outputPath) {
+    static List<String> buildFfmpegCommand(
+            String display,
+            int x,
+            int y,
+            int width,
+            int height,
+            Path outputPath
+    ) {
         List<String> command = new ArrayList<>();
         command.add("ffmpeg");
         command.add("-y");
@@ -189,8 +203,10 @@ public final class ScreenRecorder {
         command.add("x11grab");
         command.add("-framerate");
         command.add(Integer.toString(DEFAULT_FPS));
+        command.add("-video_size");
+        command.add(width + "x" + height);
         command.add("-i");
-        command.add(display);
+        command.add(display + "+" + x + "," + y);
         command.add("-c:v");
         command.add("libx264");
         command.add("-pix_fmt");
@@ -210,6 +226,14 @@ public final class ScreenRecorder {
             throw new ScenarioException("Screen recording id must not contain path separators: '" + id + "'");
         }
         return trimmed;
+    }
+
+    static int evenPositive(int value, int fallback) {
+        int resolved = value > 0 ? value : fallback;
+        if ((resolved & 1) != 0) {
+            resolved -= 1;
+        }
+        return Math.max(resolved, 2);
     }
 
     private static boolean ffmpegAvailable() {
