@@ -252,7 +252,7 @@ public final class BotiInteriorSampler {
         // #region agent log
         try {
             java.nio.file.Files.writeString(java.nio.file.Path.of("/opt/cursor/logs/debug.log"),
-                    "{\"hypothesisId\":\"G,H\",\"location\":\"BotiInteriorSampler.enableFootprintLighting\",\"message\":\"queued footprint lighting\",\"data\":{\"columns\":" + scheduledColumns + ",\"sourceEmission\":" + world.getBlockState(sourcePos).getLightEmission() + ",\"lightOnInSourceColumn\":" + lightEngine.lightOnInColumn(ChunkPos.asLong(sourcePos)) + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
+                    "{\"hypothesisId\":\"G,H\",\"location\":\"BotiInteriorSampler.enableFootprintLighting\",\"message\":\"queued footprint lighting\",\"data\":{\"columns\":" + scheduledColumns + ",\"sourceEmission\":" + world.getBlockState(sourcePos).getLightEmission() + ",\"lightOnInSourceColumn\":" + lightEngine.lightOnInColumn(ChunkPos.pack(sourcePos.getX() >> 4, sourcePos.getZ() >> 4)) + "},\"timestamp\":" + System.currentTimeMillis() + "}\n",
                     java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
         } catch (java.io.IOException ignored) {
         }
