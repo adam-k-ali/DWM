@@ -1559,12 +1559,12 @@ class ScenarioCompilerTest {
         ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(scenarioRoot))
                 .compile("portalLightingAndFog");
 
-        assertEquals(34, plan.steps().size());
-        assertEquals("portal-lighting-fog-boti.png", plan.steps().get(26).arguments().get("name"));
-        assertEquals(true, plan.steps().get(26).arguments().get("compare"));
-        assertEquals("walkUntil dimension \"dwm:tardis\"", plan.steps().get(28).displayName());
-        assertEquals("portal-lighting-fog-soto.png", plan.steps().get(33).arguments().get("name"));
-        assertEquals(true, plan.steps().get(33).arguments().get("compare"));
+        assertEquals(32, plan.steps().size());
+        assertEquals("portal-lighting-fog-boti.png", plan.steps().get(25).arguments().get("name"));
+        assertEquals(true, plan.steps().get(25).arguments().get("compare"));
+        assertEquals("walkUntil dimension \"dwm:tardis\"", plan.steps().get(27).displayName());
+        assertEquals("portal-lighting-fog-soto.png", plan.steps().get(31).arguments().get("name"));
+        assertEquals(true, plan.steps().get(31).arguments().get("compare"));
     }
 
     @Test

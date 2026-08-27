@@ -42,13 +42,12 @@ steps:
       y: "~"
       z: "~"
   - useItem
-  - waitTicks: 200
   - runCommand: "/tp @s ~-3 ~1 ~"
   - lookAt:
       x: "~3"
       y: "~"
       z: "~"
-  - waitTicks: 20
+  - waitTicks: 200
   - captureScreenshot:
       name: portal-lighting-fog-boti
       compare: true
@@ -56,12 +55,11 @@ steps:
   - runCommand: "/time set day"
   - walkUntil:
       dimension: dwm:tardis
-  - waitTicks: 160
   - runCommand: "/tp @s ~ ~ ~4"
   - lookAt:
       yaw: 180
       pitch: 0
-  - waitTicks: 20
+  - waitTicks: 160
   - captureScreenshot:
       name: portal-lighting-fog-soto
       compare: true
