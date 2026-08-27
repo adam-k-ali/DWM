@@ -59,7 +59,7 @@ steps:
   - lookAt:
       yaw: 180
       pitch: 0
-  - waitTicks: 160
+  - waitTicks: 240
   - captureScreenshot:
       name: portal-lighting-fog-soto
       compare: true
