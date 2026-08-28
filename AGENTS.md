@@ -12,7 +12,7 @@
 - `dwm/src/main/java`: Common logic safe on both logical client and logical server (`com.adamkali.dwm.*`).
 - `dwm/src/client/java`: Client-only logic (rendering, HUD, client integration).
 - `dwm/src/test/java`: JUnit 5 unit tests and scenario compiler/primitive tests for DWM.
-- `dwm/src/screenplayTests/`: Mod-owned Screenplay YAML scenarios (resources only; not shipped in the mod jar).
+- `dwm/src/screenplayTests/`: Mod-owned Screenplay YAML scenarios (loaded from disk; not shipped in the mod jar).
 - `dwm/src/main/resources`: Common resources (`fabric.mod.json`, data, tags, recipes, lang, worldgen).
 - `dwm/src/main/generated/`: Datagen output — commit intentional changes; delete `.cache/` before commit.
 - `dwm/src/client/resources`: Hand-maintained client assets (models, blockstates, textures, sounds).

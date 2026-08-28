@@ -1,8 +1,9 @@
 # Writing scenarios
 
 YAML definitions live recursively under your configured tests directory (default
-`src/screenplayTests/resources/tests/`). Directory layout does not determine
-role; the frontmatter `type` does.
+`src/screenplayTests/resources/tests/`). That folder is read from disk; it is not
+a Gradle source set and is not packaged into the production mod jar. Directory
+layout does not determine role; the frontmatter `type` does.
 
 ## Frontmatter
 

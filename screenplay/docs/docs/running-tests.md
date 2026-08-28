@@ -2,7 +2,19 @@
 
 ## Single scenario or suite
 
-Run a test or suite by its YAML filename without the extension:
+Run a test or suite by its YAML filename without the extension. From a consumer
+mod (after applying the plugin):
+
+```bash
+./gradlew runScreenplay
+./gradlew runScreenplay -Pscreenplay=createWorld
+```
+
+`-Pscreenplay` is required when more than one executable YAML exists. With a
+single test, `runScreenplay` runs it. With none, it writes `myFirstTest.yaml`
+and runs that.
+
+From this repository's Screenplay build:
 
 ```bash
 ./screenplay/gradlew runScreenplay -Pscreenplay=createWorld
