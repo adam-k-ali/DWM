@@ -4,6 +4,7 @@ import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public final class ScenarioCatalog {
@@ -30,15 +32,18 @@ public final class ScenarioCatalog {
     private final Map<String, ScenarioDocument> tests;
     private final Map<String, ScenarioDocument> commands;
     private final Map<String, ScenarioDocument> suites;
+    private final List<Path> filesystemRoots;
 
     private ScenarioCatalog(
             Map<String, ScenarioDocument> tests,
             Map<String, ScenarioDocument> commands,
-            Map<String, ScenarioDocument> suites
+            Map<String, ScenarioDocument> suites,
+            List<Path> filesystemRoots
     ) {
         this.tests = Map.copyOf(tests);
         this.commands = Map.copyOf(commands);
         this.suites = Map.copyOf(suites);
+        this.filesystemRoots = List.copyOf(filesystemRoots);
     }
 
     public static ScenarioCatalog loadFromResources(ClassLoader classLoader) {
@@ -58,17 +63,65 @@ public final class ScenarioCatalog {
         while (roots.hasMoreElements()) {
             URL rootUrl = roots.nextElement();
             Path root = toPath(rootUrl);
-            loadInto(root, tests, commands, suites);
+            loadInto(root, tests, commands, suites, DocumentImport.ALL, DuplicateHandling.THROW);
         }
-        return new ScenarioCatalog(tests, commands, suites);
+        return new ScenarioCatalog(tests, commands, suites, List.of());
     }
 
     public static ScenarioCatalog load(Path root) {
         Map<String, ScenarioDocument> tests = new LinkedHashMap<>();
         Map<String, ScenarioDocument> commands = new LinkedHashMap<>();
         Map<String, ScenarioDocument> suites = new LinkedHashMap<>();
-        loadInto(root, tests, commands, suites);
-        return new ScenarioCatalog(tests, commands, suites);
+        loadInto(root, tests, commands, suites, DocumentImport.ALL, DuplicateHandling.THROW);
+        return new ScenarioCatalog(tests, commands, suites, List.of(root.toAbsolutePath().normalize()));
+    }
+
+    /**
+     * Load tests, suites, and commands from {@code filesystemRoots}, then add bundled
+     * {@code type: command} documents from classpath {@code tests/} whose ids are not
+     * already present. Classpath tests and suites are ignored so consumer runs do not
+     * pick up Screenplay's demo scenarios.
+     */
+    public static ScenarioCatalog load(List<Path> filesystemRoots, ClassLoader classLoader) {
+        if (filesystemRoots == null || filesystemRoots.isEmpty()) {
+            throw new ScenarioException("At least one Screenplay tests directory is required");
+        }
+        Map<String, ScenarioDocument> tests = new LinkedHashMap<>();
+        Map<String, ScenarioDocument> commands = new LinkedHashMap<>();
+        Map<String, ScenarioDocument> suites = new LinkedHashMap<>();
+        List<Path> roots = new ArrayList<>();
+        for (Path root : filesystemRoots) {
+            if (root == null) {
+                continue;
+            }
+            Path absolute = root.toAbsolutePath().normalize();
+            roots.add(absolute);
+            if (!Files.isDirectory(absolute)) {
+                throw new ScenarioException(
+                        "Screenplay tests directory not found: " + absolute
+                                + ". Put YAML scenarios in that folder, or run ./gradlew runScreenplay "
+                                + "to generate a starter.");
+            }
+            loadInto(absolute, tests, commands, suites, DocumentImport.ALL, DuplicateHandling.THROW);
+        }
+        if (roots.isEmpty()) {
+            throw new ScenarioException("At least one Screenplay tests directory is required");
+        }
+        loadClasspathCommands(classLoader, tests, commands, suites);
+        return new ScenarioCatalog(tests, commands, suites, roots);
+    }
+
+    public static List<Path> parseTestsDirs(String propertyValue) {
+        if (propertyValue == null || propertyValue.isBlank()) {
+            return List.of();
+        }
+        List<Path> paths = new ArrayList<>();
+        for (String part : propertyValue.split(Pattern.quote(File.pathSeparator), -1)) {
+            if (part != null && !part.isBlank()) {
+                paths.add(Path.of(part.trim()));
+            }
+        }
+        return List.copyOf(paths);
     }
 
     private static Path toPath(URL root) {
@@ -91,11 +144,31 @@ public final class ScenarioCatalog {
         }
     }
 
+    private static void loadClasspathCommands(
+            ClassLoader classLoader,
+            Map<String, ScenarioDocument> tests,
+            Map<String, ScenarioDocument> commands,
+            Map<String, ScenarioDocument> suites
+    ) {
+        Enumeration<URL> roots;
+        try {
+            roots = classLoader.getResources("tests");
+        } catch (IOException exception) {
+            throw new ScenarioException("Could not enumerate scenario resource directories named 'tests'", exception);
+        }
+        while (roots.hasMoreElements()) {
+            Path root = toPath(roots.nextElement());
+            loadInto(root, tests, commands, suites, DocumentImport.COMMANDS_ONLY, DuplicateHandling.SKIP);
+        }
+    }
+
     private static void loadInto(
             Path root,
             Map<String, ScenarioDocument> tests,
             Map<String, ScenarioDocument> commands,
-            Map<String, ScenarioDocument> suites
+            Map<String, ScenarioDocument> suites,
+            DocumentImport documentImport,
+            DuplicateHandling duplicateHandling
     ) {
         if (!Files.isDirectory(root)) {
             throw new ScenarioException("Scenario root is not a directory: " + root);
@@ -107,13 +180,17 @@ public final class ScenarioCatalog {
                     .sorted()
                     .map(path -> parse(root, path))
                     .forEach(document -> {
+                        if (documentImport == DocumentImport.COMMANDS_ONLY
+                                && document.type() != ScenarioDocument.Type.COMMAND) {
+                            return;
+                        }
                         Map<String, ScenarioDocument> target = switch (document.type()) {
                             case TEST -> tests;
                             case COMMAND -> commands;
                             case SUITE -> suites;
                         };
                         ScenarioDocument previous = target.putIfAbsent(document.id(), document);
-                        if (previous != null) {
+                        if (previous != null && duplicateHandling == DuplicateHandling.THROW) {
                             throw new ScenarioException("Duplicate " + document.type().name().toLowerCase(Locale.ROOT)
                                     + " id '" + document.id() + "' in " + previous.source()
                                     + " and " + document.source());
@@ -127,7 +204,8 @@ public final class ScenarioCatalog {
     public ScenarioDocument requireTest(String id) {
         ScenarioDocument test = tests.get(normalizeId(id));
         if (test == null) {
-            throw new ScenarioException("Unknown test '" + id + "'. Available tests: " + tests.keySet());
+            throw new ScenarioException("Unknown test '" + id + "'. Available tests: " + tests.keySet()
+                    + lookedInSuffix());
         }
         return test;
     }
@@ -135,7 +213,8 @@ public final class ScenarioCatalog {
     public ScenarioDocument requireSuite(String id) {
         ScenarioDocument suite = suites.get(normalizeId(id));
         if (suite == null) {
-            throw new ScenarioException("Unknown suite '" + id + "'. Available suites: " + suites.keySet());
+            throw new ScenarioException("Unknown suite '" + id + "'. Available suites: " + suites.keySet()
+                    + lookedInSuffix());
         }
         return suite;
     }
@@ -150,7 +229,12 @@ public final class ScenarioCatalog {
         }
         throw new ScenarioException("Unknown scenario '" + id
                 + "'. Available tests: " + tests.keySet()
-                + "; available suites: " + suites.keySet());
+                + "; available suites: " + suites.keySet()
+                + lookedInSuffix());
+    }
+
+    public List<Path> filesystemRoots() {
+        return filesystemRoots;
     }
 
     public ScenarioDocument command(String id) {
@@ -443,5 +527,22 @@ public final class ScenarioCatalog {
         }
         int extension = normalized.lastIndexOf('.');
         return extension < 0 ? normalized : normalized.substring(0, extension);
+    }
+
+    private String lookedInSuffix() {
+        if (filesystemRoots.isEmpty()) {
+            return "";
+        }
+        return ". Looked in: " + filesystemRoots;
+    }
+
+    private enum DocumentImport {
+        ALL,
+        COMMANDS_ONLY
+    }
+
+    private enum DuplicateHandling {
+        THROW,
+        SKIP
     }
 }

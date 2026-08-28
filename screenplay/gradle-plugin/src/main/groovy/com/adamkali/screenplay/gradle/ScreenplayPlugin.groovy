@@ -3,21 +3,139 @@ package com.adamkali.screenplay.gradle
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.GradleException
+import org.gradle.api.plugins.JavaPluginExtension
 
 class ScreenplayPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         def extension = project.extensions.create('screenplay', ScreenplayExtension, project)
+        registerHarnessDependencies(project)
 
         project.afterEvaluate {
             def loader = resolveLoader(project, extension)
             extension.loader = loader
 
+            validateToolchain(project)
+            validateMinecraftVersion(project)
             registerPrepareTask(project, extension)
             configureLoaderRun(project, extension, loader)
             configureDisplayOnRunTask(project, extension)
             registerRunAllTask(project, extension)
         }
+    }
+
+    private static boolean shouldAddHarnessDependency(Project project) {
+        def value = project.findProperty('screenplay.addHarnessDependency')
+        if (value == null) {
+            return true
+        }
+        def text = value.toString().trim()
+        return !(text.equalsIgnoreCase('false') || text == '0' || text.equalsIgnoreCase('no'))
+    }
+
+    private static void registerHarnessDependencies(Project project) {
+        if (!shouldAddHarnessDependency(project)) {
+            return
+        }
+        def version = ScreenplayPluginVersions.screenplayVersion()
+        def fabricAdded = new boolean[1]
+        def addFabric = {
+            if (fabricAdded[0]) {
+                return
+            }
+            fabricAdded[0] = true
+            addHarnessDependency(
+                    project,
+                    "com.adamkali.screenplay:screenplay-fabric:${version}",
+                    'modRuntimeOnly'
+            )
+        }
+        project.pluginManager.withPlugin('net.fabricmc.fabric-loom', addFabric)
+        project.pluginManager.withPlugin('fabric-loom', addFabric)
+
+        project.pluginManager.withPlugin('net.minecraftforge.gradle') {
+            addHarnessDependency(
+                    project,
+                    "com.adamkali.screenplay:screenplay-forge:${version}",
+                    'runtimeOnly'
+            )
+        }
+        def neoAdded = new boolean[1]
+        def addNeo = {
+            if (neoAdded[0]) {
+                return
+            }
+            neoAdded[0] = true
+            addHarnessDependency(
+                    project,
+                    "com.adamkali.screenplay:screenplay-neoforge:${version}",
+                    'runtimeOnly'
+            )
+        }
+        project.pluginManager.withPlugin('net.neoforged.gradle.userdev', addNeo)
+        project.pluginManager.withPlugin('net.neoforged.gradle.common', addNeo)
+    }
+
+    private static void addHarnessDependency(Project project, String notation, String preferredConfig) {
+        def configName = project.configurations.findByName(preferredConfig) != null ? preferredConfig : 'runtimeOnly'
+        project.dependencies.add(configName, notation)
+    }
+
+    private static void validateToolchain(Project project) {
+        def javaExt = project.extensions.findByType(JavaPluginExtension)
+        if (javaExt == null) {
+            return
+        }
+        def languageVersion = javaExt.toolchain.languageVersion
+        if (!languageVersion.isPresent()) {
+            return
+        }
+        int version = languageVersion.get().asInt()
+        int required = ScreenplayPluginVersions.requiredJavaVersion()
+        if (version < required) {
+            throw new GradleException(
+                    "Screenplay requires Java ${required} (this project uses Java ${version}). "
+                            + "Install Temurin ${required} and set "
+                            + "java { toolchain { languageVersion = JavaLanguageVersion.of(${required}) } }.")
+        }
+    }
+
+    private static void validateMinecraftVersion(Project project) {
+        def expected = ScreenplayPluginVersions.minecraftVersion()
+        def actual = readMinecraftVersion(project)
+        if (actual == null || actual.isBlank()) {
+            return
+        }
+        if (actual != expected) {
+            throw new GradleException(
+                    "Screenplay ${ScreenplayPluginVersions.screenplayVersion()} is built for Minecraft ${expected}, "
+                            + "but this project uses Minecraft ${actual}. "
+                            + "Use a Screenplay release that matches your Minecraft version.")
+        }
+    }
+
+    private static String readMinecraftVersion(Project project) {
+        try {
+            def loomClass = Class.forName('net.fabricmc.loom.LoomGradleExtension')
+            def loomExt = loomClass.getMethod('get', Project).invoke(null, project)
+            def provider = loomExt.minecraftProvider
+            def method = provider.class.methods.find { it.name == 'minecraftVersion' && it.parameterCount == 0 }
+            if (method != null) {
+                def value = method.invoke(provider)
+                if (value != null && !value.toString().isBlank()) {
+                    return value.toString()
+                }
+            }
+            if (provider.hasProperty('minecraftVersion')) {
+                def value = provider.minecraftVersion
+                if (value != null && !value.toString().isBlank()) {
+                    return value.toString()
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        def property = project.findProperty('minecraft_version')
+        return property == null ? null : property.toString()
     }
 
     private static String resolveLoader(Project project, ScreenplayExtension extension) {
@@ -41,11 +159,15 @@ class ScreenplayPlugin implements Plugin<Project> {
         }
         if (count == 0) {
             throw new GradleException(
-                    "Screenplay requires Fabric Loom, ForgeGradle, or NeoGradle. " +
-                            "Apply one of those plugins, or set screenplay.loader explicitly.")
+                    "Screenplay requires Fabric Loom, ForgeGradle, or NeoGradle. "
+                            + "Apply one of those plugins, or set screenplay.loader explicitly.")
         }
         throw new GradleException(
                 "Multiple mod-loader plugins detected. Set screenplay.loader to fabric, forge, or neoforge.")
+    }
+
+    private static String testsDirsPropertyValue(ScreenplayExtension extension) {
+        return extension.allTestsDirs().collect { it.absolutePath }.join(File.pathSeparator)
     }
 
     private static void registerPrepareTask(Project project, ScreenplayExtension extension) {
@@ -89,6 +211,10 @@ guiScale:1
                     jarPathFile.get().asFile.text = ''
                     logger.warn('Could not resolve Minecraft server jar path for Screenplay vanilla-server harness')
                 }
+                if (ScreenplayScenarioDiscovery.needsStarter(extension.testsDir)) {
+                    def starter = ScreenplayScenarioDiscovery.writeStarter(extension.testsDir)
+                    logger.lifecycle("Wrote starter Screenplay scenario: ${starter}")
+                }
             }
         }
     }
@@ -106,17 +232,21 @@ guiScale:1
     }
 
     private static void configureLoaderRun(Project project, ScreenplayExtension extension, String loader) {
-        def scenarioId = project.providers.gradleProperty('screenplay').orElse('createWorld')
+        def scenarioIdProperty = project.providers.gradleProperty('screenplay')
         def timeout = project.providers.gradleProperty('screenplayTimeout').orElse('30')
         def baselinesDirProperty = project.providers.gradleProperty('screenplayBaselinesDir')
         def recordProperty = project.providers.gradleProperty('screenplayRecord')
         def reportFile = project.layout.buildDirectory.file("${extension.outputDir}/report.xml").get().asFile.absolutePath
         def vanillaServerDir = project.layout.buildDirectory.dir("${extension.outputDir}/vanilla-server").get().asFile.absolutePath
         def runDir = extension.runDir
+        def testsDirsValue = testsDirsPropertyValue(extension)
         def baselinesDir = baselinesDirProperty.isPresent()
                 ? project.file(baselinesDirProperty.get()).absolutePath
                 : null
         def recordValue = recordProperty.isPresent() ? normalizeRecordProperty(recordProperty.get()) : null
+        def configuredScenarioId = scenarioIdProperty.isPresent() && !scenarioIdProperty.get().isBlank()
+                ? scenarioIdProperty.get().trim()
+                : null
 
         if (loader == 'fabric') {
             def loom = project.extensions.findByName('loom')
@@ -133,10 +263,13 @@ guiScale:1
                 run.client()
                 run.name = 'Screenplay'
             }
-            run.property 'screenplay', scenarioId.get()
+            if (configuredScenarioId != null) {
+                run.property 'screenplay', configuredScenarioId
+            }
             run.property 'screenplay.step-timeout-seconds', timeout.get()
             run.property 'screenplay.report-file', reportFile
             run.property 'screenplay.vanilla-server-dir', vanillaServerDir
+            run.property 'screenplay.tests-dirs', testsDirsValue
             if (baselinesDir != null) {
                 run.property 'screenplay.baselines-dir', baselinesDir
             }
@@ -181,10 +314,13 @@ guiScale:1
                 run.workingDirectory = project.layout.projectDirectory.dir(runDir)
             }
             if (run.metaClass.respondsTo(run, 'systemProperty', String, Object)) {
-                run.systemProperty 'screenplay', scenarioId.get()
+                if (configuredScenarioId != null) {
+                    run.systemProperty 'screenplay', configuredScenarioId
+                }
                 run.systemProperty 'screenplay.step-timeout-seconds', timeout.get()
                 run.systemProperty 'screenplay.report-file', reportFile
                 run.systemProperty 'screenplay.vanilla-server-dir', vanillaServerDir
+                run.systemProperty 'screenplay.tests-dirs', testsDirsValue
                 if (baselinesDir != null) {
                     run.systemProperty 'screenplay.baselines-dir', baselinesDir
                 }
@@ -209,6 +345,7 @@ guiScale:1
     private static void configureDisplayOnRunTask(Project project, ScreenplayExtension extension) {
         def displayMode = project.providers.gradleProperty('screenplayDisplay').orElse('display')
         def recordProperty = project.providers.gradleProperty('screenplayRecord')
+        def scenarioIdProperty = project.providers.gradleProperty('screenplay')
         project.tasks.configureEach { task ->
             if (!(task.name in ['runScreenplay', 'runScreenplayClient'])) {
                 return
@@ -258,6 +395,18 @@ guiScale:1
                                 'screenplayRecord=true requires ffmpeg on PATH. Install with: apt install ffmpeg')
                     }
                 }
+                if (task instanceof org.gradle.process.JavaExecSpec) {
+                    def requested = scenarioIdProperty.isPresent() ? scenarioIdProperty.get() : null
+                    try {
+                        def scenarioId = ScreenplayScenarioDiscovery.resolveScenarioId(
+                                requested,
+                                extension.allTestsDirs()
+                        )
+                        task.systemProperty('screenplay', scenarioId)
+                    } catch (IllegalStateException exception) {
+                        throw new GradleException(exception.message, exception)
+                    }
+                }
             }
         }
     }
@@ -269,7 +418,6 @@ guiScale:1
         def recordProperty = project.providers.gradleProperty('screenplayRecord')
         def projectDirFile = project.layout.projectDirectory.asFile
         def resultsRoot = project.layout.buildDirectory.dir("${extension.outputDir}/results")
-        def testsDirs = extension.allTestsDirs()
 
         def execOps = project.objects.newInstance(ScreenplayExecOps).execOps
 
@@ -278,20 +426,26 @@ guiScale:1
             description = 'Discover Screenplay suites and standalone type:test scenarios, then run each via runScreenplay'
 
             doLast {
-                def missing = testsDirs.findAll { !it.isDirectory() }
-                if (missing) {
-                    throw new GradleException("Screenplay tests directory not found: ${missing}")
+                if (ScreenplayScenarioDiscovery.needsStarter(extension.testsDir)) {
+                    def starter = ScreenplayScenarioDiscovery.writeStarter(extension.testsDir)
+                    logger.lifecycle("Wrote starter Screenplay scenario: ${starter}")
                 }
-                def discovery = discoverScreenplayRunIds(testsDirs)
-                def scenarioIds = discovery.runIds as List
+                def testsDirs = extension.allTestsDirs()
+                def extraMissing = (extension.extraTestsDirs ?: []).findAll { it != null && !it.isDirectory() }
+                if (extraMissing) {
+                    throw new GradleException("Screenplay extraTestsDirs not found: ${extraMissing}")
+                }
+                def discovery = ScreenplayScenarioDiscovery.discoverRunIds(testsDirs)
+                def scenarioIds = discovery.runIds() as List
                 if (scenarioIds.isEmpty()) {
                     throw new GradleException(
-                            "No scenario suites or standalone tests found under ${testsDirs}")
+                            "No scenario suites or standalone tests found under ${testsDirs}. "
+                                    + "Add a YAML file with type: test.")
                 }
                 logger.lifecycle(
                         "Discovered ${scenarioIds.size()} Screenplay run(s): ${scenarioIds.join(', ')}"
-                                + " (${discovery.suiteIds.size()} suite(s), "
-                                + "${discovery.standaloneTestIds.size()} standalone test(s))")
+                                + " (${discovery.suiteIds().size()} suite(s), "
+                                + "${discovery.standaloneTestIds().size()} standalone test(s))")
 
                 def gradleWrapper = new File(projectDirFile, 'gradlew')
                 def gradleCommand = gradleWrapper.exists() ? gradleWrapper.absolutePath : 'gradle'
@@ -362,114 +516,9 @@ guiScale:1
             }
         }
     }
-
-    private static Map discoverScreenplayRunIds(List<File> scenarioTestsRoots) {
-        def suiteIds = [] as TreeSet
-        def testIds = [] as TreeSet
-        def suiteMemberIds = [] as HashSet
-        scenarioTestsRoots.each { File scenarioTestsRoot ->
-            projectFileTree(scenarioTestsRoot).each { File yamlFile ->
-                def frontmatterType = readFrontmatterType(yamlFile)
-                if (frontmatterType == null) {
-                    return
-                }
-                def id = filenameStem(yamlFile)
-                if (frontmatterType == 'suite') {
-                    if (!suiteIds.add(id)) {
-                        throw new GradleException("Duplicate scenario suite id '${id}' under ${scenarioTestsRoots}")
-                    }
-                    suiteMemberIds.addAll(readSuiteTestIds(yamlFile))
-                } else if (frontmatterType == 'test') {
-                    if (!testIds.add(id)) {
-                        throw new GradleException("Duplicate scenario test id '${id}' under ${scenarioTestsRoots}")
-                    }
-                }
-            }
-        }
-        def standaloneTestIds = testIds.findAll { !suiteMemberIds.contains(it) } as TreeSet
-        def runIds = [] as TreeSet
-        runIds.addAll(suiteIds)
-        runIds.addAll(standaloneTestIds)
-        return [
-                suiteIds         : suiteIds,
-                standaloneTestIds: standaloneTestIds,
-                runIds           : runIds
-        ]
-    }
-
-    private static String filenameStem(File yamlFile) {
-        def name = yamlFile.name
-        def extension = name.lastIndexOf('.')
-        return extension < 0 ? name : name.substring(0, extension)
-    }
-
-    private static Collection<File> projectFileTree(File root) {
-        def files = []
-        root.eachFileRecurse { File f ->
-            if (f.isFile() && (f.name.endsWith('.yaml') || f.name.endsWith('.yml'))) {
-                files << f
-            }
-        }
-        return files
-    }
-
-    private static String readFrontmatterType(File yamlFile) {
-        def text = yamlFile.getText('UTF-8').replace('\r\n', '\n')
-        if (!text.startsWith('---\n')) {
-            return null
-        }
-        def closing = text.indexOf('\n---\n', 4)
-        if (closing < 0) {
-            return null
-        }
-        def typeLine = text.substring(4, closing).readLines().find { line ->
-            line.trim().startsWith('type:')
-        }
-        if (typeLine == null) {
-            return null
-        }
-        return typeLine.substring(typeLine.indexOf(':') + 1).trim()
-    }
-
-    private static List readSuiteTestIds(File yamlFile) {
-        def text = yamlFile.getText('UTF-8').replace('\r\n', '\n')
-        def closing = text.indexOf('\n---\n', 4)
-        if (closing < 0) {
-            return []
-        }
-        def body = text.substring(closing + 5)
-        def ids = []
-        def inTests = false
-        body.readLines().each { String rawLine ->
-            def line = rawLine.replaceAll(/\s+$/, '')
-            if (!inTests) {
-                if (line.trim() == 'tests:') {
-                    inTests = true
-                }
-                return
-            }
-            if (line ==~ /^[A-Za-z0-9_-]+:.*/) {
-                inTests = false
-                return
-            }
-            def matcher = (line =~ /^\s*-\s+(.+?)\s*$/)
-            if (matcher.matches()) {
-                def value = matcher.group(1).trim()
-                if ((value.startsWith('"') && value.endsWith('"'))
-                        || (value.startsWith("'") && value.endsWith("'"))) {
-                    value = value.substring(1, value.length() - 1)
-                }
-                if (!value.isBlank()) {
-                    ids << value
-                }
-            }
-        }
-        return ids
-    }
 }
 
 interface ScreenplayExecOps {
     @javax.inject.Inject
     org.gradle.process.ExecOperations getExecOps()
 }
-

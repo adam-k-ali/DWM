@@ -28,24 +28,16 @@ Agents can run `./screenplay/gradlew runScreenplay` / `runScreenplayTests`, read
 
 ## Quick start (Fabric)
 
-1. Apply the plugin and depend on the Fabric artifact:
+1. Apply the plugin next to Loom (no extra dependency line):
 
 ```groovy
 plugins {
+    id 'net.fabricmc.fabric-loom' version '<loom-version>'
     id 'com.adamkali.screenplay' version '<version>'
-}
-
-dependencies {
-    runtimeOnly "com.adamkali.screenplay:screenplay-fabric:<version>"
-}
-
-screenplay {
-    loader = 'fabric'
-    testsDir = file('src/screenplayTests/resources/tests')
 }
 ```
 
-2. Add a scenario under `tests/`:
+2. Add a scenario under `src/screenplayTests/resources/tests/` (or run once and let the plugin write `myFirstTest.yaml`):
 
 ```yaml
 ---
@@ -61,13 +53,13 @@ steps:
       name: world-ready.png
 ```
 
-3. Run it:
+3. Run it (windowed by default; add `-Pscreenplay=<id>` when you have more than one test):
 
 ```bash
-./screenplay/gradlew runScreenplay -Pscreenplay=createWorld -PscreenplayDisplay=xvfb
+./gradlew runScreenplay
 ```
 
-Forge and NeoForge use the same plugin with `loader = 'forge'` or `loader = 'neoforge'` and the matching `screenplay-forge` / `screenplay-neoforge` artifact.
+Forge and NeoForge use the same plugin; it selects `screenplay-forge` / `screenplay-neoforge` from the loader plugin.
 
 ## Roadmap
 
