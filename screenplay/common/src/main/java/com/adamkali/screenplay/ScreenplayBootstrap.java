@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.List;
 
 /**
  * Shared client bootstrap used by Fabric / Forge / NeoForge entrypoints.
@@ -15,6 +16,7 @@ public final class ScreenplayBootstrap {
     public static final String SCENARIO_PROPERTY = "screenplay";
     public static final String REPORT_PROPERTY = "screenplay.report-file";
     public static final String TIMEOUT_PROPERTY = "screenplay.step-timeout-seconds";
+    public static final String TESTS_DIRS_PROPERTY = "screenplay.tests-dirs";
 
     private static final Logger LOGGER = LoggerFactory.getLogger("Screenplay");
 
@@ -31,7 +33,7 @@ public final class ScreenplayBootstrap {
                 System.getProperty(REPORT_PROPERTY, "build/screenplay/report.xml")
         ));
         try {
-            ScenarioCatalog catalog = ScenarioCatalog.loadFromResources(ScreenplayBootstrap.class.getClassLoader());
+            ScenarioCatalog catalog = loadCatalog(ScreenplayBootstrap.class.getClassLoader());
             Duration timeout = Duration.ofSeconds(readPositiveLong(TIMEOUT_PROPERTY, 30L));
             Boolean recordOverride = ScreenRecorder.readCliOverride();
             ScenarioDocument.Type type = catalog.resolveExecutableType(scenarioId);
@@ -71,6 +73,18 @@ public final class ScreenplayBootstrap {
             }
             System.exit(1);
         }
+    }
+
+    static ScenarioCatalog loadCatalog(ClassLoader classLoader) {
+        String testsDirs = System.getProperty(TESTS_DIRS_PROPERTY);
+        if (testsDirs == null || testsDirs.isBlank()) {
+            return ScenarioCatalog.loadFromResources(classLoader);
+        }
+        List<Path> roots = ScenarioCatalog.parseTestsDirs(testsDirs);
+        if (roots.isEmpty()) {
+            return ScenarioCatalog.loadFromResources(classLoader);
+        }
+        return ScenarioCatalog.load(roots, classLoader);
     }
 
     private static long readPositiveLong(String property, long defaultValue) {
