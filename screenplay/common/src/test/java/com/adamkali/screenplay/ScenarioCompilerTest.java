@@ -1559,14 +1559,18 @@ class ScenarioCompilerTest {
         ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(scenarioRoot))
                 .compile("portalLightingAndFog");
 
-        assertEquals(34, plan.steps().size());
-        assertEquals("portal-lighting-fog-boti.png", plan.steps().get(26).arguments().get("name"));
-        assertEquals(true, plan.steps().get(26).arguments().get("compare"));
-        assertEquals(5000L, plan.steps().get(26).arguments().get("maxDiffPixels"));
-        assertEquals("walkUntil dimension \"dwm:tardis\"", plan.steps().get(29).displayName());
-        assertEquals("portal-lighting-fog-soto.png", plan.steps().get(33).arguments().get("name"));
-        assertEquals(true, plan.steps().get(33).arguments().get("compare"));
-        assertEquals(5000L, plan.steps().get(33).arguments().get("maxDiffPixels"));
+        assertEquals(37, plan.steps().size());
+        assertEquals("runCommand", plan.steps().get(26).name());
+        assertEquals("pressKey", plan.steps().get(27).name());
+        assertEquals("f1", plan.steps().get(27).arguments().get("key"));
+        assertEquals(2, plan.steps().get(28).arguments().get("ticks"));
+        assertEquals("portal-lighting-fog-boti-nohud.png", plan.steps().get(29).arguments().get("name"));
+        assertEquals(true, plan.steps().get(29).arguments().get("compare"));
+        assertEquals(5000L, plan.steps().get(29).arguments().get("maxDiffPixels"));
+        assertEquals("walkUntil dimension \"dwm:tardis\"", plan.steps().get(32).displayName());
+        assertEquals("portal-lighting-fog-soto-nohud.png", plan.steps().get(36).arguments().get("name"));
+        assertEquals(true, plan.steps().get(36).arguments().get("compare"));
+        assertEquals(5000L, plan.steps().get(36).arguments().get("maxDiffPixels"));
     }
 
     @Test

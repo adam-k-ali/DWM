@@ -51,11 +51,17 @@ steps:
       y: "~"
       z: "~"
   - waitTicks: 200
+  # Hide HUD + first-person hand/skin so CI compares portal lighting/fog, not
+  # player chrome (default skins differ across runs). New stem → NO BASELINE on
+  # this PR; green main establishes the no-HUD goldens afterward.
+  - runCommand: "/kill @e[type=!minecraft:player]"
+  - pressKey: f1
+  - waitTicks: 2
   - captureScreenshot:
-      name: portal-lighting-fog-boti
+      name: portal-lighting-fog-boti-nohud
       compare: true
       # Soft channel noise is covered by Screenplay's color epsilon; allow a small
-      # residual for llvmpipe edge AA on the portal silhouette / HUD chrome.
+      # residual for llvmpipe edge AA on the portal silhouette.
       maxDiffPixels: 5000
   # Switch the exterior to day so SOTO exercises streamed sky light as well as the sea-lantern source.
   - runCommand: "/time set day"
@@ -73,6 +79,6 @@ steps:
       pitch: 0
   - waitTicks: 240
   - captureScreenshot:
-      name: portal-lighting-fog-soto
+      name: portal-lighting-fog-soto-nohud
       compare: true
       maxDiffPixels: 5000

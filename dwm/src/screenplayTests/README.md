@@ -202,8 +202,9 @@ The MVP primitives are:
   updates. Cheats (singleplayer) or operator (dedicated server) are required
   for privileged commands such as `/give`. `startVanillaServer` does not OP
   the player.
-- `pressKey` — presses a keyboard key once (for example `g` for a bound key or
-  `escape` for the pause menu). Pair with `waitUntil` when the key opens a
+- `pressKey` — presses a keyboard key once (for example `g` for a bound key,
+  `escape` for the pause menu, or `f1` to hide the HUD and first-person hand
+  before a screenshot compare). Pair with `waitUntil` when the key opens a
   screen on a later client tick.
 
 Field Guide scenario (`fieldGuide.yaml`) uses `pressKey: g`, chapter/page
