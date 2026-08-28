@@ -12,10 +12,10 @@ steps:
   - waitTicks: 5
   - useItem
   - waitTicks: 20
+  - selectHotbar: 0
   - runCommand: "/item replace entity @s weapon.mainhand with dwm:sonic_third_doctor"
   - waitUntil:
       holding: dwm:sonic_third_doctor
-  - selectHotbar: 0
   - setSneaking:
       enabled: true
   - waitTicks: 2
