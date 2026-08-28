@@ -8,7 +8,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.levelgen.Heightmap;
 
 /**
  * Stabilisers toggle and unstabilised landing scatter helpers.
@@ -73,10 +72,9 @@ public final class StabiliserLogic {
             lastX = x;
             lastZ = z;
             world.getChunk(x >> 4, z >> 4);
-            int topY = world.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
-            BlockPos candidate = new BlockPos(x, topY, z);
-            if (LandingSiteLogic.isValidLanding(world, candidate, doorFacing)) {
-                return Optional.of(candidate);
+            Optional<BlockPos> candidate = LandingSiteLogic.findSurfaceInColumn(world, x, z, doorFacing);
+            if (candidate.isPresent()) {
+                return candidate;
             }
         }
         return LandingSiteLogic.findNearbyValidLanding(world, lastX, lastZ, doorFacing);
