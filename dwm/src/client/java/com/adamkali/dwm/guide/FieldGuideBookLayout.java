@@ -85,4 +85,23 @@ public final class FieldGuideBookLayout {
     public static int rightPageContentHeight() {
         return PAGE_BUTTON_Y - RIGHT_PAGE_TOP;
     }
+
+    /**
+     * Body lines that fit on the right page after chrome, optional recipe, and pattern footnote.
+     */
+    public static int bodyMaxRows(boolean recipe, boolean variants, boolean pattern) {
+        int children = 4;
+        int intrinsic = LINE_HEIGHT * 2 + HAIRLINE_HEIGHT;
+        if (recipe) {
+            children += 2;
+            intrinsic += variants ? VARIANT_SLOT_SIZE : LINE_HEIGHT;
+            intrinsic += FieldGuideRecipePanel.PANEL_HEIGHT;
+        }
+        if (pattern) {
+            children += 1;
+            intrinsic += PATTERN_MAX_LINES * LINE_HEIGHT;
+        }
+        int reserved = intrinsic + (children - 1) * STACK_GAP;
+        return Math.max(1, (rightPageContentHeight() - reserved) / LINE_HEIGHT);
+    }
 }
