@@ -1,0 +1,19 @@
+---
+name: Sonic TARDIS Wrong Setting
+type: test
+---
+steps:
+  - launchGame
+  - claimPlacedTardis
+  - runCommand: "/item replace entity @s weapon.mainhand with dwm:sonic_third_doctor"
+  - waitUntil:
+      holding: dwm:sonic_third_doctor
+  - selectHotbar: 0
+  - lookAt:
+      x: "~1"
+      y: "~1"
+      z: "~"
+  - waitTicks: 5
+  - useItem
+  - waitUntil:
+      overlay: "Wrong setting — Needs Seal or Scan"

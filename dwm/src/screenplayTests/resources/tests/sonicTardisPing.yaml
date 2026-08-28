@@ -1,0 +1,66 @@
+---
+name: Sonic TARDIS Ping
+type: test
+---
+steps:
+  - launchGame
+  - claimPlacedTardis
+  - runCommand: "/item replace entity @s weapon.mainhand with dwm:sonic_third_doctor"
+  - waitUntil:
+      holding: dwm:sonic_third_doctor
+  - selectHotbar: 0
+  - setSneaking:
+      enabled: true
+  - waitTicks: 2
+  - useItem: air
+  - waitTicks: 2
+  - pressKey: right
+  - pressKey: right
+  - pressKey: right
+  - pressKey: right
+  - pressKey: right
+  - pressKey: right
+  - pressKey: right
+  - setSneaking:
+      enabled: false
+  - waitUntil:
+      overlay: "Setting: Ping"
+  - useItem: air
+  - waitUntil:
+      overlay: "cloak not engaged"
+  - lookAt:
+      x: "~1"
+      y: "~1"
+      z: "~"
+  - waitTicks: 5
+  - walkUntil:
+      dimension: dwm:tardis
+  - waitTicks: 40
+  - runCommand: "/tp @s ~ ~ ~3"
+  - lookAt:
+      x: "~"
+      y: "~1"
+      z: "~2"
+  - waitTicks: 10
+  - interactWithEntity:
+      type: dwm:console_control
+      mode: nearest
+      maxDistance: 6
+      near:
+        x: "~"
+        y: "~0"
+        z: "~2"
+      index: 0
+  - waitUntil:
+      overlay: "Cloak engaged"
+  - lookAt:
+      x: "~"
+      y: "~1"
+      z: "~-4"
+  - waitTicks: 5
+  - walkUntil:
+      dimension: minecraft:overworld
+  - waitTicks: 20
+  - useItem: air
+  - waitUntil:
+      overlay: "TARDIS located"

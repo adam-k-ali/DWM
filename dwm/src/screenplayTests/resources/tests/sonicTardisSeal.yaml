@@ -1,0 +1,44 @@
+---
+name: Sonic TARDIS Seal
+type: test
+---
+steps:
+  - launchGame
+  - claimPlacedTardis
+  - lookAt:
+      x: "~1"
+      y: "~1"
+      z: "~"
+  - waitTicks: 5
+  - useItem
+  - waitTicks: 20
+  - runCommand: "/item replace entity @s weapon.mainhand with dwm:sonic_third_doctor"
+  - waitUntil:
+      holding: dwm:sonic_third_doctor
+  - selectHotbar: 0
+  - setSneaking:
+      enabled: true
+  - waitTicks: 2
+  - useItem: air
+  - waitTicks: 2
+  - pressKey: right
+  - pressKey: right
+  - pressKey: right
+  - pressKey: right
+  - pressKey: right
+  - setSneaking:
+      enabled: false
+  - waitUntil:
+      overlay: "Setting: Seal"
+  - lookAt:
+      x: "~1"
+      y: "~1"
+      z: "~"
+  - waitTicks: 5
+  - useItem
+  - waitUntil:
+      overlay: "Doors locked"
+  - waitTicks: 5
+  - useItem
+  - waitUntil:
+      overlay: "Doors unlocked"

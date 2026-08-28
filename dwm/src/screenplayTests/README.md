@@ -18,9 +18,11 @@ Run a test by its YAML filename without the extension:
 ```
 
 Mod-owned scenarios include `placeAndOpenTardis` (TARDIS door/interior flow),
-`fieldGuide` (Field Guide UI snapshots), and DWM-060 circuit coverage:
-`fieldGuideCircuits`, `installConsoleCircuit`, and `remoteSummonCircuit`
-(console controls use the upstream `interactWithEntity` step). PNGs from `captureScreenshot` land under
+`fieldGuide` (Field Guide UI snapshots), DWM-060 circuit coverage
+(`fieldGuideCircuits`, `installConsoleCircuit`, `remoteSummonCircuit`), and
+DWM-061 sonic TARDIS verbs (`sonicTardisSeal`, `sonicTardisScan`,
+`sonicTardisPing`, `sonicTardisWrongSetting`, `fieldGuideSonic`). HUD carousel
+navigation uses sneak-use plus `pressKey: left`/`right`. PNGs from `captureScreenshot` land under
 `build/screenplay/run/screenshots/` and are copied into
 `build/screenplay/results/<id>/screenshots/` by `runScreenplayTests`. **Do not**
 commit baseline PNGs — review screenshot diffs across CI runs or local runs when
@@ -207,8 +209,9 @@ The MVP primitives are:
   the player.
 - `pressKey` — presses a keyboard key once (for example `g` for a bound key,
   `escape` for the pause menu, or `f1` to hide the HUD and first-person hand
-  before a screenshot compare). Pair with `waitUntil` when the key opens a
-  screen on a later client tick.
+  before a screenshot compare). `left` / `right` are held for one client tick
+  so GLFW-polling HUDs (sonic field-mode carousel) see the arrow. Pair with
+  `waitUntil` when the key opens a screen on a later client tick.
 
 Field Guide scenario (`fieldGuide.yaml`) uses `pressKey: g`, chapter/page
 `assertAndClick` navigation, and `pressKey: escape` + pause-menu `"Field Guide"`
