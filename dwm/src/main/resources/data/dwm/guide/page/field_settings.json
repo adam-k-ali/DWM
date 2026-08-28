@@ -1,0 +1,19 @@
+{
+  "page": { "id": "dwm:field_settings" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.field_settings.title",
+      "bodyKey": "dwm.guide.page.field_settings.body"
+    },
+    {
+      "type": "crafting",
+      "recipes": [
+        "dwm:sonic_setting_shatter",
+        "dwm:sonic_setting_prime",
+        "dwm:sonic_setting_disrupt",
+        "dwm:sonic_setting_shear"
+      ]
+    }
+  ]
+}

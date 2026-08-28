@@ -6,15 +6,17 @@ import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Field modes for the sonic screwdriver (DWM-058). Cycle order is declaration order.
- * TARDIS modes (seal / scan / ping) are not on this enum — those are DWM-061.
+ * Field modes for the sonic screwdriver. Cycle order is declaration order.
  */
 public enum SonicFieldMode implements StringRepresentable {
     OPEN("open", "Open"),
     SHATTER("shatter", "Shatter"),
     PRIME("prime", "Prime"),
     DISRUPT("disrupt", "Disrupt"),
-    SHEAR("shear", "Shear");
+    SHEAR("shear", "Shear"),
+    SEAL("seal", "Seal"),
+    SCAN("scan", "Scan"),
+    PING("ping", "Ping");
 
     public static final StringRepresentable.EnumCodec<SonicFieldMode> CODEC =
             StringRepresentable.fromEnum(SonicFieldMode::values);
@@ -38,6 +40,10 @@ public enum SonicFieldMode implements StringRepresentable {
 
     public String translationKey() {
         return "dwm.sonic.mode." + id;
+    }
+
+    public boolean isTardisMode() {
+        return this == SEAL || this == SCAN || this == PING;
     }
 
     public static SonicFieldMode[] cycleOrder() {
@@ -79,7 +85,7 @@ public enum SonicFieldMode implements StringRepresentable {
         return diff;
     }
 
-    /** Vanilla item icon representing this mode's primary target (HUD carousel). */
+    /** Item icon representing this mode's primary target (HUD carousel). */
     public ItemStack targetIconStack() {
         return switch (this) {
             case OPEN -> new ItemStack(Items.IRON_DOOR);
@@ -87,6 +93,9 @@ public enum SonicFieldMode implements StringRepresentable {
             case PRIME -> new ItemStack(Items.TNT);
             case DISRUPT -> new ItemStack(Items.SLIME_BALL);
             case SHEAR -> new ItemStack(Items.SHEARS);
+            case SEAL -> new ItemStack(DWMItems.TARDIS_KEY);
+            case SCAN -> new ItemStack(Items.COMPASS);
+            case PING -> new ItemStack(Items.ENDER_EYE);
         };
     }
 
@@ -97,6 +106,7 @@ public enum SonicFieldMode implements StringRepresentable {
             case PRIME -> "dwm.sonic.recipe_hint.prime";
             case DISRUPT -> "dwm.sonic.recipe_hint.disrupt";
             case SHEAR -> "dwm.sonic.recipe_hint.shear";
+            case SEAL, SCAN, PING -> "dwm.sonic.recipe_hint.tardis_pair";
         };
     }
 }

@@ -106,6 +106,21 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                 .addCriterion("sonic_cycle_setting", emptyPlayerCriterion(DWMCriteria.SONIC_CYCLE_SETTING))
                 .save(consumer, DWMReference.MOD_ID + "/sonic_cycle_setting");
 
+        Advancement.Builder.advancement()
+                .parent(obtainSonic)
+                .display(
+                        Items.ENDER_EYE,
+                        Component.translatable("advancements.dwm.sonic_ping"),
+                        Component.translatable("advancements.dwm.sonic_ping.description"),
+                        null,
+                        AdvancementType.TASK,
+                        true,
+                        true,
+                        false
+                )
+                .addCriterion("sonic_ping", emptyPlayerCriterion(DWMCriteria.SONIC_PING))
+                .save(consumer, DWMReference.MOD_ID + "/sonic_ping");
+
         AdvancementHolder installShatter = installSettingAdvancement(
                 consumer, obtainSonic, DWMItems.SONIC_SETTING_SHATTER,
                 "sonic_install_shatter", DWMCriteria.SONIC_INSTALL_SHATTER

@@ -5,6 +5,7 @@ import com.adamkali.dwm.analytics.AnalyticsManager;
 import com.adamkali.dwm.analytics.DWMStatistics;
 import com.adamkali.dwm.item.SonicFieldMode;
 import com.adamkali.dwm.item.SonicStateLogic;
+import com.adamkali.dwm.item.SonicTardisLogic;
 import com.adamkali.dwm.sound.DWMSounds;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -140,6 +141,22 @@ public class SonicActions {
         Level level = context.getLevel();
         level.playLocalSound(context.getClickedPos(), DWMSounds.SONIC_SCREWDRIVER, SoundSource.BLOCKS, 1.0F, 1.0F, false);
         Block blockClicked = level.getBlockState(context.getClickedPos()).getBlock();
+        if (SonicTardisLogic.isTardisTarget(blockClicked)) {
+            AnalyticsManager.trackEvent(
+                    AnalyticsManager.EVENT_SONIC_SCREWDRIVER_USE,
+                    "item_name", context.getItemInHand().getHoverName().getString(),
+                    "action_exists", true,
+                    "block", blockClicked.getName().toString()
+            );
+            if (!level.isClientSide()) {
+                SonicTardisLogic.useOn(context);
+                Player player = context.getPlayer();
+                if (player != null) {
+                    player.awardStat(DWMStatistics.SONIC_SCREWDRIVER_USE);
+                }
+            }
+            return;
+        }
         GatedBlockAction gated = this.blockActions.get(blockClicked);
         boolean actionExists = gated != null;
         AnalyticsManager.trackEvent(

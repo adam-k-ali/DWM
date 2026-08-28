@@ -29,6 +29,9 @@ class SonicStateLogicTest {
         assertFalse(state.isUnlocked(SonicFieldMode.PRIME));
         assertFalse(state.isUnlocked(SonicFieldMode.DISRUPT));
         assertFalse(state.isUnlocked(SonicFieldMode.SHEAR));
+        assertFalse(state.isUnlocked(SonicFieldMode.SEAL));
+        assertFalse(state.isUnlocked(SonicFieldMode.SCAN));
+        assertFalse(state.isUnlocked(SonicFieldMode.PING));
         assertEquals(SonicFieldMode.OPEN, state.selected());
         assertFalse(state.tardisPaired());
     }
@@ -99,7 +102,7 @@ class SonicStateLogicTest {
     void copySemantics_missingMeansFullyUnlocked() {
         // Missing component is modelled as fullyUnlocked for gameplay reads
         SonicState missingEquivalent = SonicState.fullyUnlocked();
-        assertEquals(5, missingEquivalent.unlockedCount());
+        assertEquals(8, missingEquivalent.unlockedCount());
         assertEquals(SonicFieldMode.OPEN, missingEquivalent.selected());
     }
 
@@ -121,5 +124,33 @@ class SonicStateLogicTest {
         var encoded = SonicState.CODEC.encodeStart(JsonOps.INSTANCE, original).getOrThrow();
         SonicState decoded = SonicState.CODEC.parse(JsonOps.INSTANCE, encoded).getOrThrow();
         assertEquals(original, decoded);
+    }
+
+    @Test
+    void pair_unlocksTardisModesTogether() {
+        SonicState crafted = SonicState.craftedOpenOnly();
+        assertTrue(SonicStateLogic.needsHandshake(crafted));
+        SonicState paired = SonicStateLogic.pair(crafted);
+        assertTrue(paired.tardisPaired());
+        assertTrue(paired.isUnlocked(SonicFieldMode.SEAL));
+        assertTrue(paired.isUnlocked(SonicFieldMode.SCAN));
+        assertTrue(paired.isUnlocked(SonicFieldMode.PING));
+        assertEquals(SonicFieldMode.OPEN, paired.selected());
+        assertFalse(SonicStateLogic.needsHandshake(paired));
+    }
+
+    @Test
+    void fullyUnlocked_skipsHandshakeBecauseTardisModesArePresent() {
+        SonicState full = SonicState.fullyUnlocked();
+        assertFalse(full.tardisPaired());
+        assertFalse(SonicStateLogic.needsHandshake(full));
+        assertEquals(8, full.unlockedCount());
+    }
+
+    @Test
+    void pair_onFullyUnlocked_onlySetsTardisPaired() {
+        SonicState paired = SonicStateLogic.pair(SonicState.fullyUnlocked());
+        assertTrue(paired.tardisPaired());
+        assertEquals(8, paired.unlockedCount());
     }
 }

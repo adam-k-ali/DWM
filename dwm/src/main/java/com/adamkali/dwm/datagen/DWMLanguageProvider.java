@@ -85,13 +85,19 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.guide.chapter.sonic", "Sonic Toolkit");
         t.add("dwm.guide.page.craft_sonic.title", "Craft a Sonic");
         t.add("dwm.guide.page.craft_sonic.body",
-                "The Third Doctor sonic is the base recipe. Craft one from diamonds and redstone, then explore doctor variants.");
+                "The Third Doctor sonic is the base recipe. Craft one from iron, a redstone torch, and a glass pane, then explore doctor variants.");
         t.add("dwm.guide.page.doctor_variants.title", "Doctor Variants");
         t.add("dwm.guide.page.doctor_variants.body",
                 "Combine the Third Doctor sonic with themed materials to unlock other Doctors' casings. Each variant keeps the same interactions.");
         t.add("dwm.guide.page.use_sonic.title", "Using the Sonic");
         t.add("dwm.guide.page.use_sonic.body",
-                "Right-click blocks and entities to interact. Many doors and panels respond to the sonic; sneak-use opens settings when available.");
+                "Sneak-use the sonic in the air to open the field-mode carousel. Scroll or press the arrow keys to move the highlight, then release sneak to select. While you hold a sonic, a compact indicator in the corner shows the active setting.");
+        t.add("dwm.guide.page.field_settings.title", "Field Settings");
+        t.add("dwm.guide.page.field_settings.body",
+                "Shatter, Prime, Disrupt, and Shear are craftable setting items. Hold a setting in one hand and a sonic in the other, then use the setting to install it. Open is unlocked when you craft the sonic.");
+        t.add("dwm.guide.page.tardis_settings.title", "TARDIS Settings");
+        t.add("dwm.guide.page.tardis_settings.body",
+                "Use your sonic on your TARDIS exterior, interior doors, or console to pair it. Pairing unlocks Seal, Scan, and Ping — there are no extra setting crafts. Seal locks or unlocks your own closed doors from the field (companions still need a bound key). Scan is a pocket readout of the linked exterior and ship status. Ping locates your cloaked shell within 32 blocks; the Stattenheim remote relocates it.");
 
         t.add("dwm.guide.chapter.circuits", "Console Circuits");
         t.add("dwm.guide.page.install_circuits.title", "Fitting a Circuit");
@@ -136,6 +142,9 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.sonic.mode.prime", "Prime");
         t.add("dwm.sonic.mode.disrupt", "Disrupt");
         t.add("dwm.sonic.mode.shear", "Shear");
+        t.add("dwm.sonic.mode.seal", "Seal");
+        t.add("dwm.sonic.mode.scan", "Scan");
+        t.add("dwm.sonic.mode.ping", "Ping");
         t.add("dwm.sonic.setting", "Setting: %s");
         t.add("dwm.sonic.wrong_setting", "Wrong setting");
         t.add("dwm.sonic.needs_setting", "Needs %s");
@@ -152,6 +161,15 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.sonic.recipe_hint.prime", "Craft redstone + gunpowder, use on the sonic");
         t.add("dwm.sonic.recipe_hint.disrupt", "Craft redstone + slimeball, use on the sonic");
         t.add("dwm.sonic.recipe_hint.shear", "Craft redstone + iron nugget, use on the sonic");
+        t.add("dwm.sonic.recipe_hint.tardis_pair", "Use on your TARDIS to pair");
+        t.add("dwm.sonic.tardis_not_recognised", "This TARDIS does not recognise you");
+        t.add("dwm.sonic.tardis_paired", "Screwdriver paired with this TARDIS");
+        t.add("dwm.sonic.wrong_setting_seal_or_scan", "Wrong setting — Needs Seal or Scan");
+        t.add("dwm.sonic.scan", "Scan: %s");
+        t.add("dwm.sonic.ping.located", "TARDIS located");
+        t.add("dwm.sonic.ping.cloak_not_fitted", "cloak not fitted");
+        t.add("dwm.sonic.ping.cloak_not_engaged", "cloak not engaged");
+        t.add("dwm.sonic.ping.no_signal", "no signal");
         t.add("dwm.gui.sonic_field_mode.hint", "Scroll or \u2190 \u2192 to change \u00b7 Release sneak to select");
         t.add("dwm.gui.sonic_field_mode.locked", "%s (locked)");
         t.add("dwm.gui.sonic_field_mode.locked_hint", "%s — %s");
@@ -587,6 +605,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("advancements.dwm.sonic_shear.description", "Shear a sheep with the Shear setting selected");
         t.add("advancements.dwm.sonic_all_settings", "All Settings");
         t.add("advancements.dwm.sonic_all_settings.description", "Install Shatter, Prime, Disrupt, and Shear");
+        t.add("advancements.dwm.sonic_ping", "TARDIS Located");
+        t.add("advancements.dwm.sonic_ping.description", "Ping your cloaked TARDIS from the field");
         t.add("advancements.dwm.find_tardis", "Police Box");
         t.add("advancements.dwm.find_tardis.description", "Find a TARDIS");
         t.add("advancements.dwm.claim_tardis", "This TARDIS is Yours");

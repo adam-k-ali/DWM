@@ -15,6 +15,7 @@ public class TardisBlockEntityRenderState extends BlockEntityRenderState {
     public float partialTicks;
     public boolean shouldRenderBoti;
     public boolean cloaked;
+    public boolean pingReveal;
     public float shellAlpha = 1.0f;
     public UUID tardisId;
 }

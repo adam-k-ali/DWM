@@ -21,6 +21,7 @@ public final class DWMCriteria {
     public static final PlayerTrigger SONIC_PRIME = register("sonic_prime");
     public static final PlayerTrigger SONIC_DISRUPT = register("sonic_disrupt");
     public static final PlayerTrigger SONIC_SHEAR = register("sonic_shear");
+    public static final PlayerTrigger SONIC_PING = register("sonic_ping");
     public static final PlayerTrigger FIND_TARDIS = register("find_tardis");
     public static final PlayerTrigger CLAIM_TARDIS = register("claim_tardis");
     public static final PlayerTrigger FIRST_HOP = register("first_hop");

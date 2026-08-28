@@ -26,6 +26,14 @@ public final class SonicStateLogic {
     public static final String SETTING_INSTALLED_KEY = "dwm.sonic.setting_installed";
     public static final String SETTING_ALREADY_INSTALLED_KEY = "dwm.sonic.setting_already_installed";
     public static final String SETTING_LOCKED_HINT_KEY = "dwm.sonic.setting_locked_hint";
+    public static final String TARDIS_NOT_RECOGNISED_KEY = "dwm.sonic.tardis_not_recognised";
+    public static final String TARDIS_PAIRED_KEY = "dwm.sonic.tardis_paired";
+    public static final String WRONG_SETTING_SEAL_OR_SCAN_KEY = "dwm.sonic.wrong_setting_seal_or_scan";
+    public static final String SCAN_OVERLAY_KEY = "dwm.sonic.scan";
+    public static final String PING_LOCATED_KEY = "dwm.sonic.ping.located";
+    public static final String PING_CLOAK_NOT_FITTED_KEY = "dwm.sonic.ping.cloak_not_fitted";
+    public static final String PING_CLOAK_NOT_ENGAGED_KEY = "dwm.sonic.ping.cloak_not_engaged";
+    public static final String PING_NO_SIGNAL_KEY = "dwm.sonic.ping.no_signal";
 
     private SonicStateLogic() {
     }
@@ -69,7 +77,8 @@ public final class SonicStateLogic {
      * First mutation on a missing-component stack materialises fully-unlocked state first.
      */
     public static boolean install(ItemStack stack, SonicFieldMode mode) {
-        if (stack == null || stack.isEmpty() || mode == null || mode == SonicFieldMode.OPEN) {
+        if (stack == null || stack.isEmpty() || mode == null
+                || mode == SonicFieldMode.OPEN || mode.isTardisMode()) {
             return false;
         }
         SonicState current = materialiseForMutation(stack);
@@ -78,6 +87,62 @@ public final class SonicStateLogic {
         }
         stack.set(DWMDataComponents.SONIC_STATE, current.withUnlocked(mode));
         return true;
+    }
+
+    /**
+     * True when Seal / Scan / Ping are still locked — crafted Open-only sonics need the TARDIS handshake.
+     * Creative {@code /give} stacks already have every mode via {@link SonicState#fullyUnlocked()}.
+     */
+    public static boolean needsHandshake(SonicState state) {
+        if (state == null) {
+            return false;
+        }
+        return !state.isUnlocked(SonicFieldMode.SEAL)
+                || !state.isUnlocked(SonicFieldMode.SCAN)
+                || !state.isUnlocked(SonicFieldMode.PING);
+    }
+
+    public static boolean needsHandshake(ItemStack stack) {
+        return needsHandshake(effective(stack));
+    }
+
+    /**
+     * Unlocks Seal / Scan / Ping together and marks the sonic as paired with a TARDIS.
+     *
+     * @return {@code true} when state changed
+     */
+    public static boolean pairWithTardis(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return false;
+        }
+        SonicState current = materialiseForMutation(stack);
+        SonicState paired = pair(current);
+        if (paired.equals(current)) {
+            return false;
+        }
+        stack.set(DWMDataComponents.SONIC_STATE, paired);
+        return true;
+    }
+
+    /** Test helper: handshake then return the same stack. */
+    public static ItemStack pairWithTardisStack(ItemStack stack) {
+        pairWithTardis(stack);
+        return stack;
+    }
+
+    /** Pure handshake mutation used by unit tests. */
+    public static SonicState pair(SonicState current) {
+        if (current == null) {
+            return SonicState.craftedOpenOnly().withTardisPaired(true)
+                    .withUnlocked(SonicFieldMode.SEAL)
+                    .withUnlocked(SonicFieldMode.SCAN)
+                    .withUnlocked(SonicFieldMode.PING);
+        }
+        return current
+                .withUnlocked(SonicFieldMode.SEAL)
+                .withUnlocked(SonicFieldMode.SCAN)
+                .withUnlocked(SonicFieldMode.PING)
+                .withTardisPaired(true);
     }
 
     /**

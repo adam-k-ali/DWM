@@ -4,6 +4,7 @@ import com.adamkali.dwm.ClientTardis;
 import com.adamkali.dwm.gui.PlayerLocatorScreen;
 import com.adamkali.dwm.gui.TardisChameleonGui;
 import com.adamkali.dwm.gui.WaypointScreen;
+import com.adamkali.dwm.render.SonicPingClientFx;
 import com.adamkali.dwm.render.portal.PortalPerfStats;
 import com.adamkali.dwm.render.portal.PortalRenderTarget;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
@@ -29,11 +30,13 @@ public class ClientPayloadTypeRegistry {
         ClientPlayNetworking.registerGlobalReceiver(SyncPortalEntityRemoveS2CPayload.ID, ClientPayloadTypeRegistry::removePortalEntity);
         ClientPlayNetworking.registerGlobalReceiver(SyncPortalPerfS2CPayload.ID, ClientPayloadTypeRegistry::syncPortalPerf);
         ClientPlayNetworking.registerGlobalReceiver(TravelAudioS2CPayload.ID, ClientPayloadTypeRegistry::travelAudio);
+        ClientPlayNetworking.registerGlobalReceiver(SonicPingRevealS2CPayload.ID, ClientPayloadTypeRegistry::sonicPingReveal);
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             PortalSceneStore.invalidateAll();
             PortalRenderTarget.closeGlobal();
             TardisTravelSoundController.stopAll();
             TardisDataLoader.clearCache();
+            SonicPingClientFx.clear();
         });
     }
 
@@ -121,5 +124,17 @@ public class ClientPayloadTypeRegistry {
 
     private static void travelAudio(TravelAudioS2CPayload payload, ClientPlayNetworking.Context context) {
         TardisTravelSoundController.handle(payload);
+    }
+
+    private static void sonicPingReveal(SonicPingRevealS2CPayload payload, ClientPlayNetworking.Context context) {
+        context.client().execute(() -> {
+            var client = context.client();
+            if (client.level == null) {
+                return;
+            }
+            SonicPingClientFx.begin(
+                    payload.tardisId(), payload.pos(), client.level.getGameTime());
+            SonicPingClientFx.playCue(client.level, payload.pos());
+        });
     }
 }
