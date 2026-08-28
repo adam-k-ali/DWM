@@ -326,6 +326,58 @@ tasks.named("runDatagen").configure {
     finalizedBy("pruneDatagenItemModels")
 }
 
+/**
+ * Explodes Loom named Minecraft sources (common + client) into minecraft-sources/
+ * so agents can Grep/Read a stable path instead of ~/.gradle caches.
+ * Not part of build/check — first genSources is slow; unpack after that is cheap.
+ */
+tasks.register("unpackMinecraftSources") {
+    group = "fabric"
+    description = "Unpack Fabric Loom named Minecraft sources into minecraft-sources/"
+    dependsOn "genSources"
+    def dest = file("minecraft-sources")
+    def versionFile = file("minecraft-sources/.version")
+    def mcVersion = provider { project.minecraft_version as String }
+    inputs.property "minecraft_version", mcVersion
+    outputs.dir dest
+    doLast {
+        def jars = tasks.withType(net.fabricmc.loom.task.GenerateSourcesTask).collect { t ->
+            t.sourcesOutputJar.get().asFile
+        }.findAll { it.exists() }.unique()
+        if (jars.isEmpty()) {
+            throw new GradleException(
+                    "No Minecraft sources jars found after genSources. " +
+                            "Expected GenerateSourcesTask.sourcesOutputJar files."
+            )
+        }
+        if (dest.directory) {
+            dest.eachFile { f ->
+                if (f.name == "README.md") {
+                    return
+                }
+                if (f.directory) {
+                    f.deleteDir()
+                } else {
+                    f.delete()
+                }
+            }
+        }
+        dest.mkdirs()
+        jars.each { jar ->
+            copy {
+                from zipTree(jar)
+                into dest
+                include "**/*.java"
+            }
+        }
+        versionFile.text = mcVersion.get() + "\n"
+        logger.lifecycle(
+                "Unpacked ${jars.size()} Minecraft sources jar(s) into ${dest} " +
+                        "(minecraft_version=${mcVersion.get()})"
+        )
+    }
+}
+
 test {
     useJUnitPlatform()
 }

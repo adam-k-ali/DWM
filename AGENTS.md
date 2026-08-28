@@ -27,6 +27,7 @@
 - `screenplay/docs/`: Screenplay GitHub Pages site (MkDocs Material) — https://adam-k-ali.github.io/DWM/
 - `screenplay/metadata/`: Screenplay Modrinth listing drafts + `version.json`.
 - `.cursor/skills/`: Agent skills for GameTests, asset import, Blockbench models, MCP verify, etc.
+- `dwm/minecraft-sources/`: Generated Fabric Loom named Minecraft sources (gitignored `.java`; run `./dwm/gradlew unpackMinecraftSources`). See **Reading Minecraft sources**.
 
 ## Gradle wrappers (do not use root `./gradlew` for builds)
 
@@ -36,6 +37,7 @@
 | Screenplay client (no DWM) | `./screenplay/gradlew runClient` |
 | DWM YAML scenario | `./dwm/gradlew runScreenplay -Pscreenplay=<id>` |
 | Screenplay library demos | `./screenplay/gradlew runScreenplay -Pscreenplay=createWorld` |
+| Minecraft named sources (Grep) | `./dwm/gradlew unpackMinecraftSources` |
 
 DWM consumes Screenplay via composite `includeBuild('../screenplay')` (Maven coords + dependency substitution), not as a Gradle subproject.
 
@@ -60,6 +62,14 @@ DWM consumes Screenplay via composite `includeBuild('../screenplay')` (Maven coo
 - Favor Fabric API events/hooks/utilities before introducing Mixins.
 - Use Mixins only when needed; keep them minimal and as targeted as possible.
 - Maintain compatibility-minded behavior (avoid fragile assumptions about execution order or side effects).
+
+## Reading Minecraft sources
+DWM and Screenplay Fabric use **Mojang official mappings** for the Minecraft version in [`dwm/gradle.properties`](dwm/gradle.properties) / [`gradle/libs.versions.toml`](gradle/libs.versions.toml). There is no `yarn_mappings` line — do not guess Yarn 1.20/1.21 names.
+
+- Path: [`dwm/minecraft-sources/net/minecraft/...`](dwm/minecraft-sources/) (Grep/Read with that path; the repo index will not contain it).
+- If the tree is missing or [`dwm/minecraft-sources/.version`](dwm/minecraft-sources/.version) does not match `minecraft_version`, run `./dwm/gradlew unpackMinecraftSources`. First run may take several minutes (`genSources`); later unpacks are cheap.
+- **Do not** glob `~/.gradle/caches` for `*.java` — that hits NeoForge `ng_execute` transforms (wrong loader). **Do not** extract jars to the repo root.
+- Before reimplementing chunk streaming, lighting, tickets, or similar: open the vanilla class under `dwm/minecraft-sources` and wrap it. Matching vanilla policy is not the same as copying `PlayerChunkSender` (that class sends whole chunks to a `ServerPlayer`).
 
 ## Networking & Side Safety
 - Treat server as authoritative for gameplay/world state changes.
@@ -110,6 +120,7 @@ DWM consumes Screenplay via composite `includeBuild('../screenplay')` (Maven coo
   - `./dwm/gradlew runGametest` — headless GameTests → `dwm/build/gametest/report.xml`
   - `./dwm/gradlew runScreenplay -Pscreenplay=<yaml-stem>` — DWM client YAML scenarios → `dwm/build/screenplay/report.xml`
   - `./dwm/gradlew syncVersionJson` / `checkVersionSync` — keep `dwm/version.json` aligned with `dwm/gradle.properties`
+  - `./dwm/gradlew unpackMinecraftSources` — explode Fabric named Minecraft sources into `dwm/minecraft-sources/` (local/agent; not CI)
 - If a command fails, surface the failure clearly and fix root causes before handoff where possible.
 
 ## Releases / CI
@@ -180,3 +191,4 @@ These notes are for agents running in the Cursor Cloud VM. The standard build/te
 - `./dwm/gradlew build` also compiles the `client` source set and runs the full JUnit suite.
 - `./dwm/gradlew runDatagen` writes generated resources under `dwm/src/main/generated/` and also leaves an untracked `.cache/` directory — delete that `.cache` dir before committing to avoid stray churn.
 - IDE: open `dwm/` as the Gradle project for mod work (composite pulls Screenplay). Open `screenplay/` when working on the harness alone.
+- `./dwm/gradlew unpackMinecraftSources` is local/agent (not CI); first `genSources` on a cold cache is slow.

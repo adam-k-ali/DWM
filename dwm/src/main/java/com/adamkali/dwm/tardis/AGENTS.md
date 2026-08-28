@@ -24,6 +24,7 @@ Entry orchestration for doors/travel generally flows: block/BE interaction → `
 - Unit tests: `./dwm/gradlew test --tests "com.adamkali.dwm.tardis.*"`
 - GameTests (door/interior/landing/console): `./dwm/gradlew runGametest`
 - YAML client flows (UI/world creation): `./dwm/gradlew runScreenplay -Pscreenplay=placeAndOpenTardis` (see `src/screenplayTests/AGENTS.md`)
+- Vanilla APIs (portal/BOTI/SOTO): Grep `dwm/minecraft-sources` first; unpack with `./dwm/gradlew unpackMinecraftSources` (see repo-root **Reading Minecraft sources**).
 
 ## Conventions
 - **Server authoritative** — mutate `TardisDataModel` on the server; sync to clients via existing payloads/render state, not client-side persistence.
@@ -38,3 +39,4 @@ Entry orchestration for doors/travel generally flows: block/BE interaction → `
 - Chameleon/SOTO paths are config-gated and off by default — do not assume enabled in tests without setting config.
 - Interior rebuild/plot allocation is order-sensitive — check `TardisInteriorGameTests` before changing placement rules.
 - Travel audio assets may be regenerated via `tools/` scripts — commit resulting OGGs under client resources, not fixture WAVs.
+- Do not glob `~/.gradle/caches` for vanilla sources; portal/chunk/light work must read `dwm/minecraft-sources` (not NeoForge `ng_execute` trees).
