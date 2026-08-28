@@ -171,6 +171,11 @@ public final class SotoExteriorSampler extends PortalSampler {
     }
 
     @Override
+    protected boolean useSurfaceSkin() {
+        return true;
+    }
+
+    @Override
     protected void ensureLoaded(ServerLevel world, BlockPos anchor) {
         addStreamTickets(world, anchor);
     }
@@ -189,14 +194,16 @@ public final class SotoExteriorSampler extends PortalSampler {
         if (blocks.isEmpty()) {
             return PortalLightData.EMPTY;
         }
+        YRange lightY = lightYRange(yRange, lowestVisibleY, highestVisibleY);
+        if (lightY.min() > lightY.max()) {
+            return PortalLightData.EMPTY;
+        }
         int baseX = chunkX << 4;
         int baseZ = chunkZ << 4;
-        int lightMinY = Math.max(yRange.min(), lowestVisibleY - 1);
-        int lightMaxY = Math.min(yRange.max(), highestVisibleY + 1);
         return PortalLightData.sample(
                 world.getLightEngine(),
-                new BlockPos(baseX, lightMinY, baseZ),
-                new BlockPos(baseX + 15, lightMaxY, baseZ + 15)
+                new BlockPos(baseX, lightY.min(), baseZ),
+                new BlockPos(baseX + 15, lightY.max(), baseZ + 15)
         );
     }
 }

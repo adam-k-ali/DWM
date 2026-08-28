@@ -298,6 +298,13 @@ public final class BotiInteriorSampler extends PortalSampler {
             int lowestVisibleY,
             int highestVisibleY
     ) {
+        if (blocks.isEmpty()) {
+            return PortalLightData.EMPTY;
+        }
+        YRange lightY = lightYRange(yRange, lowestVisibleY, highestVisibleY);
+        if (lightY.min() > lightY.max()) {
+            return PortalLightData.EMPTY;
+        }
         int baseX = chunkX << 4;
         int baseZ = chunkZ << 4;
         int minX = Math.max(baseX, anchor.getX());
@@ -306,8 +313,8 @@ public final class BotiInteriorSampler extends PortalSampler {
         int maxZ = Math.min(baseZ + 15, anchor.getZ() + TardisPlotAllocator.PLOT_SPACING - 1);
         return PortalLightData.sample(
                 world.getLightEngine(),
-                new BlockPos(minX, yRange.min(), minZ),
-                new BlockPos(maxX, yRange.max(), maxZ)
+                new BlockPos(minX, lightY.min(), minZ),
+                new BlockPos(maxX, lightY.max(), maxZ)
         );
     }
 }

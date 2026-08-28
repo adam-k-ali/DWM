@@ -68,41 +68,55 @@ public final class PortalLightData {
         int sizeY = max.getY() - min.getY() + 1;
         int sizeZ = max.getZ() - min.getZ() + 1;
         byte[] values = new byte[Math.multiplyExact(Math.multiplyExact(sizeX, sizeY), sizeZ)];
-        DataLayer cachedBlock = null;
-        DataLayer cachedSky = null;
-        long cachedSection = Long.MIN_VALUE;
-        int index = 0;
-        for (int y = 0; y < sizeY; y++) {
-            int wy = min.getY() + y;
-            for (int z = 0; z < sizeZ; z++) {
-                int wz = min.getZ() + z;
-                for (int x = 0; x < sizeX; x++) {
-                    int wx = min.getX() + x;
-                    long sectionKey = SectionPos.asLong(
-                            SectionPos.blockToSectionCoord(wx),
-                            SectionPos.blockToSectionCoord(wy),
-                            SectionPos.blockToSectionCoord(wz)
-                    );
-                    if (sectionKey != cachedSection) {
-                        SectionPos sectionPos = SectionPos.of(
-                                SectionPos.blockToSectionCoord(wx),
-                                SectionPos.blockToSectionCoord(wy),
-                                SectionPos.blockToSectionCoord(wz)
-                        );
-                        cachedBlock = blockLight.getDataLayerData(sectionPos);
-                        cachedSky = skyLight.getDataLayerData(sectionPos);
-                        cachedSection = sectionKey;
+        int minX = min.getX();
+        int minY = min.getY();
+        int minZ = min.getZ();
+        int maxX = max.getX();
+        int maxY = max.getY();
+        int maxZ = max.getZ();
+        int minSectionX = SectionPos.blockToSectionCoord(minX);
+        int maxSectionX = SectionPos.blockToSectionCoord(maxX);
+        int minSectionY = SectionPos.blockToSectionCoord(minY);
+        int maxSectionY = SectionPos.blockToSectionCoord(maxY);
+        int minSectionZ = SectionPos.blockToSectionCoord(minZ);
+        int maxSectionZ = SectionPos.blockToSectionCoord(maxZ);
+        for (int sectionY = minSectionY; sectionY <= maxSectionY; sectionY++) {
+            int y0 = Math.max(minY, SectionPos.sectionToBlockCoord(sectionY));
+            int y1 = Math.min(maxY, SectionPos.sectionToBlockCoord(sectionY) + 15);
+            for (int sectionZ = minSectionZ; sectionZ <= maxSectionZ; sectionZ++) {
+                int z0 = Math.max(minZ, SectionPos.sectionToBlockCoord(sectionZ));
+                int z1 = Math.min(maxZ, SectionPos.sectionToBlockCoord(sectionZ) + 15);
+                for (int sectionX = minSectionX; sectionX <= maxSectionX; sectionX++) {
+                    int x0 = Math.max(minX, SectionPos.sectionToBlockCoord(sectionX));
+                    int x1 = Math.min(maxX, SectionPos.sectionToBlockCoord(sectionX) + 15);
+                    SectionPos sectionPos = SectionPos.of(sectionX, sectionY, sectionZ);
+                    DataLayer cachedBlock = blockLight.getDataLayerData(sectionPos);
+                    DataLayer cachedSky = skyLight.getDataLayerData(sectionPos);
+                    if (isZeroLayer(cachedBlock) && isZeroLayer(cachedSky)) {
+                        continue;
                     }
-                    int lx = wx & 15;
-                    int ly = wy & 15;
-                    int lz = wz & 15;
-                    int block = cachedBlock == null ? 0 : cachedBlock.get(lx, ly, lz);
-                    int sky = cachedSky == null ? 0 : cachedSky.get(lx, ly, lz);
-                    values[index++] = pack(block, sky);
+                    for (int y = y0; y <= y1; y++) {
+                        int ly = y & 15;
+                        int iy = y - minY;
+                        for (int z = z0; z <= z1; z++) {
+                            int lz = z & 15;
+                            int row = (iy * sizeZ + (z - minZ)) * sizeX;
+                            for (int x = x0; x <= x1; x++) {
+                                int lx = x & 15;
+                                int block = cachedBlock == null ? 0 : cachedBlock.get(lx, ly, lz);
+                                int sky = cachedSky == null ? 0 : cachedSky.get(lx, ly, lz);
+                                values[row + (x - minX)] = pack(block, sky);
+                            }
+                        }
+                    }
                 }
             }
         }
         return new PortalLightData(min, sizeX, sizeY, sizeZ, values);
+    }
+
+    private static boolean isZeroLayer(DataLayer layer) {
+        return layer == null || layer.isEmpty();
     }
 
     /**

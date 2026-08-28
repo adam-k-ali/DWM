@@ -67,6 +67,37 @@ class PortalLightDataTest {
     }
 
     @Test
+    void sample_fromDataLayersCopiesAcrossSectionBoundary() {
+        DataLayer blockLow = new DataLayer();
+        DataLayer skyLow = new DataLayer();
+        DataLayer blockHigh = new DataLayer();
+        DataLayer skyHigh = new DataLayer();
+        blockLow.set(15, 15, 15, 3);
+        skyLow.set(15, 15, 15, 4);
+        blockHigh.set(0, 0, 0, 9);
+        skyHigh.set(0, 0, 0, 10);
+        LayerLightEventListener blockLight = Mockito.mock(LayerLightEventListener.class);
+        LayerLightEventListener skyLight = Mockito.mock(LayerLightEventListener.class);
+        Mockito.when(blockLight.getDataLayerData(any())).thenAnswer(invocation -> {
+            net.minecraft.core.SectionPos section = invocation.getArgument(0);
+            return section.y() < 1 ? blockLow : blockHigh;
+        });
+        Mockito.when(skyLight.getDataLayerData(any())).thenAnswer(invocation -> {
+            net.minecraft.core.SectionPos section = invocation.getArgument(0);
+            return section.y() < 1 ? skyLow : skyHigh;
+        });
+
+        PortalLightData data = PortalLightData.sample(
+                blockLight, skyLight, new BlockPos(15, 15, 15), new BlockPos(16, 16, 16));
+
+        assertEquals(3, data.brightness(LightLayer.BLOCK, new BlockPos(15, 15, 15), -1));
+        assertEquals(4, data.brightness(LightLayer.SKY, new BlockPos(15, 15, 15), -1));
+        assertEquals(9, data.brightness(LightLayer.BLOCK, new BlockPos(16, 16, 16), -1));
+        assertEquals(10, data.brightness(LightLayer.SKY, new BlockPos(16, 16, 16), -1));
+        assertEquals(0, data.brightness(LightLayer.BLOCK, new BlockPos(16, 15, 15), -1));
+    }
+
+    @Test
     void translated_preservesValuesInNewCoordinateSpace() {
         PortalLightData data = new PortalLightData(
                 new BlockPos(10, 20, 30), 1, 1, 1, new byte[]{PortalLightData.pack(4, 12)}

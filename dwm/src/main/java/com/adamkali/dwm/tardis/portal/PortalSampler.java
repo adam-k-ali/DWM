@@ -1,5 +1,6 @@
 package com.adamkali.dwm.tardis.portal;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,8 @@ import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -48,6 +51,9 @@ public abstract class PortalSampler {
             STREAM_TICKET_TIMEOUT,
             TicketType.FLAG_SIMULATION | TicketType.FLAG_KEEP_DIMENSION_ACTIVE
     );
+    private static final int COLUMN_STRIDE_Y = 256;
+    private static final ThreadLocal<BlockState[]> COLUMN_GRID =
+            ThreadLocal.withInitial(() -> new BlockState[384 * COLUMN_STRIDE_Y]);
 
     protected PortalSampler() {
     }
@@ -266,6 +272,15 @@ public abstract class PortalSampler {
         return true;
     }
 
+    /**
+     * When true, only sample each column from its world-surface height down to the lowest
+     * neighboring surface (plus a 1-block pad). Soto uses this so buried cave layers are not
+     * walked; BOTI keeps the full plot Y range.
+     */
+    protected boolean useSurfaceSkin() {
+        return false;
+    }
+
     protected YRange sampleYRange(ServerLevel world, BlockPos anchor) {
         int yRadius = streamYRadiusBlocks(streamRadiusChunks(world));
         int minY = Math.max(world.getMinY(), anchor.getY() - yRadius);
@@ -275,6 +290,159 @@ public abstract class PortalSampler {
 
     protected static YRange yRange(int min, int max) {
         return new YRange(min, max);
+    }
+
+    /** Inclusive Y span covering visible blocks plus a 1-block pad, clipped to {@code yRange}. */
+    protected static YRange lightYRange(YRange yRange, int lowestVisibleY, int highestVisibleY) {
+        if (yRange == null || lowestVisibleY > highestVisibleY) {
+            return yRange(1, 0);
+        }
+        return yRange(
+                Math.max(yRange.min(), lowestVisibleY - 1),
+                Math.min(yRange.max(), highestVisibleY + 1)
+        );
+    }
+
+    /**
+     * True when {@code state} is a full solid cube whose six neighbors are also full solid cubes,
+     * so the client mesh would emit no faces.
+     */
+    static boolean isHiddenInterior(
+            BlockState state,
+            BlockState east,
+            BlockState west,
+            BlockState up,
+            BlockState down,
+            BlockState south,
+            BlockState north
+    ) {
+        if (state == null || !state.isSolidRender()) {
+            return false;
+        }
+        return isSolidOccluder(east)
+                && isSolidOccluder(west)
+                && isSolidOccluder(up)
+                && isSolidOccluder(down)
+                && isSolidOccluder(south)
+                && isSolidOccluder(north);
+    }
+
+    private static boolean isSolidOccluder(BlockState neighbor) {
+        return neighbor != null && neighbor.isSolidRender();
+    }
+
+    /** True when every palette entry is a full solid cube (buried stone, packed dirt, …). */
+    static boolean isSolidFilledSection(LevelChunkSection section) {
+        return section != null
+                && !section.hasOnlyAir()
+                && !section.maybeHas(state -> state != null && !state.isSolidRender());
+    }
+
+    /**
+     * Per-column inclusive Y bounds from a 16×16 WORLD_SURFACE heightmap.
+     * Interior columns keep a 1-block pad below the lowest 4-neighbor surface; chunk-edge
+     * columns extend 16 blocks down so cliffs on a chunk border still get a face.
+     */
+    static void computeSurfaceSkinBounds(int[] heightY, int rangeMin, int rangeMax, int[] colMin, int[] colMax) {
+        for (int lz = 0; lz < 16; lz++) {
+            for (int lx = 0; lx < 16; lx++) {
+                int index = (lz << 4) | lx;
+                int own = heightY[index];
+                int floor = own;
+                if (lx > 0) {
+                    floor = Math.min(floor, heightY[index - 1]);
+                }
+                if (lx < 15) {
+                    floor = Math.min(floor, heightY[index + 1]);
+                }
+                if (lz > 0) {
+                    floor = Math.min(floor, heightY[index - 16]);
+                }
+                if (lz < 15) {
+                    floor = Math.min(floor, heightY[index + 16]);
+                }
+                int minY = floor - 1;
+                if (lx == 0 || lx == 15 || lz == 0 || lz == 15) {
+                    minY = Math.min(minY, own - 16);
+                }
+                colMax[index] = Math.min(rangeMax, own);
+                colMin[index] = Math.max(rangeMin, minY);
+            }
+        }
+    }
+
+    private static boolean isSolidAtWorldY(
+            boolean[] solidSection,
+            int minSectionY,
+            int maxSectionY,
+            int minY,
+            int maxY,
+            int y
+    ) {
+        if (y < minY || y > maxY) {
+            return false;
+        }
+        int sectionY = SectionPos.blockToSectionCoord(y);
+        return sectionY >= minSectionY
+                && sectionY <= maxSectionY
+                && solidSection[sectionY - minSectionY];
+    }
+
+    private static BlockState occludeOrSolidSection(
+            BlockState neighbor,
+            boolean[] solidSection,
+            int minSectionY,
+            int maxSectionY,
+            int neighborY,
+            int minY,
+            int ySize
+    ) {
+        if (neighbor != null) {
+            return neighbor;
+        }
+        if (isSolidAtWorldY(solidSection, minSectionY, maxSectionY, minY, minY + ySize - 1, neighborY)) {
+            return Blocks.STONE.defaultBlockState();
+        }
+        return null;
+    }
+
+    private int emitSolidSectionLayer(
+            LevelChunkSection section,
+            boolean[] includeColumn,
+            Map<BlockPos, BlockState> blocks,
+            int baseX,
+            int baseZ,
+            int sectionMinY,
+            int ly,
+            int neighborY,
+            BlockState[] grid,
+            int minY,
+            int ySize
+    ) {
+        int emitted = 0;
+        int y = sectionMinY + ly;
+        int neighborGy = neighborY - minY;
+        for (int lz = 0; lz < 16; lz++) {
+            for (int lx = 0; lx < 16; lx++) {
+                if (!includeColumn[(lz << 4) | lx]) {
+                    continue;
+                }
+                BlockState neighbor = null;
+                if (neighborGy >= 0 && neighborGy < ySize) {
+                    neighbor = grid[neighborGy * COLUMN_STRIDE_Y + (lz << 4) + lx];
+                }
+                if (isSolidOccluder(neighbor)) {
+                    continue;
+                }
+                BlockState state = section.getBlockState(lx, ly, lz);
+                if (!isVisible(state)) {
+                    continue;
+                }
+                blocks.put(new BlockPos(baseX + lx, y, baseZ + lz), state);
+                emitted++;
+            }
+        }
+        return emitted;
     }
 
     protected PortalLightData sampleLight(
@@ -340,7 +508,6 @@ public abstract class PortalSampler {
         if (chunk == null) {
             return null;
         }
-        Map<BlockPos, BlockState> blocks = new HashMap<>();
         Map<BlockPos, CompoundTag> blockEntities = new HashMap<>();
         int lowestVisibleY = Integer.MAX_VALUE;
         int highestVisibleY = Integer.MIN_VALUE;
@@ -354,35 +521,153 @@ public abstract class PortalSampler {
         int baseZ = chunkZ << 4;
         int minSectionY = Math.max(chunk.getMinSectionY(), SectionPos.blockToSectionCoord(yRange.min()));
         int maxSectionY = Math.min(chunk.getMaxSectionY(), SectionPos.blockToSectionCoord(yRange.max()));
+        int ySize = yRange.max() - yRange.min() + 1;
+        int gridLen = ySize * COLUMN_STRIDE_Y;
+        BlockState[] grid = COLUMN_GRID.get();
+        if (grid.length < gridLen) {
+            grid = new BlockState[gridLen];
+            COLUMN_GRID.set(grid);
+        }
+        boolean[] includeColumn = new boolean[256];
+        for (int lz = 0; lz < 16; lz++) {
+            for (int lx = 0; lx < 16; lx++) {
+                mutable.set(baseX + lx, yRange.min(), baseZ + lz);
+                includeColumn[(lz << 4) | lx] = includePos(mutable, anchor);
+            }
+        }
+        int[] colMin = new int[256];
+        int[] colMax = new int[256];
+        if (useSurfaceSkin()) {
+            int[] heights = new int[256];
+            for (int lz = 0; lz < 16; lz++) {
+                for (int lx = 0; lx < 16; lx++) {
+                    heights[(lz << 4) | lx] = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, lx, lz);
+                }
+            }
+            computeSurfaceSkinBounds(heights, yRange.min(), yRange.max(), colMin, colMax);
+        } else {
+            Arrays.fill(colMin, yRange.min());
+            Arrays.fill(colMax, yRange.max());
+        }
+        int minSkin = colMin[0];
+        int maxSkin = colMax[0];
+        for (int i = 1; i < 256; i++) {
+            minSkin = Math.min(minSkin, colMin[i]);
+            maxSkin = Math.max(maxSkin, colMax[i]);
+        }
+        int gridVisible = 0;
+        int minGy = ySize;
+        int maxGy = -1;
+        int sectionCount = maxSectionY - minSectionY + 1;
+        boolean[] solidSection = new boolean[sectionCount];
         for (int sectionY = minSectionY; sectionY <= maxSectionY; sectionY++) {
             LevelChunkSection section = chunk.getSection(chunk.getSectionIndexFromSectionY(sectionY));
+            int sectionMinY = SectionPos.sectionToBlockCoord(sectionY);
+            if (sectionMinY + 15 < minSkin || sectionMinY > maxSkin) {
+                continue;
+            }
             if (section.hasOnlyAir()) {
                 continue;
             }
-            int sectionMinY = SectionPos.sectionToBlockCoord(sectionY);
+            if (!section.maybeHas(this::isVisible)) {
+                continue;
+            }
+            if (isSolidFilledSection(section)) {
+                solidSection[sectionY - minSectionY] = true;
+                continue;
+            }
             int localMinY = Math.max(0, yRange.min() - sectionMinY);
             int localMaxY = Math.min(15, yRange.max() - sectionMinY);
-            for (int lx = 0; lx < 16; lx++) {
+            for (int ly = localMinY; ly <= localMaxY; ly++) {
+                int y = sectionMinY + ly;
+                if (y < minSkin || y > maxSkin) {
+                    continue;
+                }
+                int gy = y - yRange.min();
+                int yBase = gy * COLUMN_STRIDE_Y;
                 for (int lz = 0; lz < 16; lz++) {
-                    mutable.set(baseX + lx, yRange.min(), baseZ + lz);
-                    if (!includePos(mutable, anchor)) {
-                        continue;
-                    }
-                    for (int ly = localMinY; ly <= localMaxY; ly++) {
-                        int y = sectionMinY + ly;
-                        mutable.set(baseX + lx, y, baseZ + lz);
+                    int zBase = yBase + (lz << 4);
+                    for (int lx = 0; lx < 16; lx++) {
+                        int col = (lz << 4) | lx;
+                        if (!includeColumn[col] || y < colMin[col] || y > colMax[col]) {
+                            continue;
+                        }
                         BlockState state = section.getBlockState(lx, ly, lz);
                         if (!isVisible(state)) {
                             continue;
                         }
-                        BlockPos immutable = mutable.immutable();
-                        blocks.put(immutable, state);
-                        lowestVisibleY = Math.min(lowestVisibleY, y);
-                        highestVisibleY = Math.max(highestVisibleY, y);
+                        grid[zBase + lx] = state;
+                        gridVisible++;
+                        minGy = Math.min(minGy, gy);
+                        maxGy = Math.max(maxGy, gy);
                     }
                 }
             }
         }
+        Map<BlockPos, BlockState> blocks = new HashMap<>(Math.max(16, gridVisible / 4 + 32));
+        int minY = yRange.min();
+        for (int gy = minGy; gy <= maxGy; gy++) {
+            int yBase = gy * COLUMN_STRIDE_Y;
+            int y = minY + gy;
+            for (int lz = 0; lz < 16; lz++) {
+                for (int lx = 0; lx < 16; lx++) {
+                    int index = yBase + (lz << 4) + lx;
+                    BlockState state = grid[index];
+                    if (state == null) {
+                        continue;
+                    }
+                    BlockState down = gy > 0 ? grid[index - COLUMN_STRIDE_Y] : null;
+                    BlockState up = gy + 1 < ySize ? grid[index + COLUMN_STRIDE_Y] : null;
+                    BlockState north = lz > 0 ? grid[index - 16] : null;
+                    BlockState south = lz < 15 ? grid[index + 16] : null;
+                    BlockState west = lx > 0 ? grid[index - 1] : null;
+                    BlockState east = lx < 15 ? grid[index + 1] : null;
+                    int col = (lz << 4) | lx;
+                    if (down == null && y - 1 < colMin[col]) {
+                        down = Blocks.STONE.defaultBlockState();
+                    } else {
+                        down = occludeOrSolidSection(
+                                down, solidSection, minSectionY, maxSectionY, y - 1, minY, ySize);
+                    }
+                    up = occludeOrSolidSection(
+                            up, solidSection, minSectionY, maxSectionY, y + 1, minY, ySize);
+                    if (isHiddenInterior(state, east, west, up, down, south, north)) {
+                        continue;
+                    }
+                    blocks.put(new BlockPos(baseX + lx, y, baseZ + lz), state);
+                    lowestVisibleY = Math.min(lowestVisibleY, y);
+                    highestVisibleY = Math.max(highestVisibleY, y);
+                }
+            }
+        }
+        for (int sectionY = minSectionY; sectionY <= maxSectionY; sectionY++) {
+            if (!solidSection[sectionY - minSectionY]) {
+                continue;
+            }
+            LevelChunkSection section = chunk.getSection(chunk.getSectionIndexFromSectionY(sectionY));
+            int sectionMinY = SectionPos.sectionToBlockCoord(sectionY);
+            int localMinY = Math.max(0, yRange.min() - sectionMinY);
+            int localMaxY = Math.min(15, yRange.max() - sectionMinY);
+            int topY = sectionMinY + localMaxY;
+            int bottomY = sectionMinY + localMinY;
+            if (!isSolidAtWorldY(solidSection, minSectionY, maxSectionY, minY, yRange.max(), topY + 1)) {
+                int emitted = emitSolidSectionLayer(
+                        section, includeColumn, blocks, baseX, baseZ, sectionMinY, localMaxY, topY + 1, grid, minY, ySize);
+                if (emitted > 0) {
+                    lowestVisibleY = Math.min(lowestVisibleY, topY);
+                    highestVisibleY = Math.max(highestVisibleY, topY);
+                }
+            }
+            if (!isSolidAtWorldY(solidSection, minSectionY, maxSectionY, minY, yRange.max(), bottomY - 1)) {
+                int emitted = emitSolidSectionLayer(
+                        section, includeColumn, blocks, baseX, baseZ, sectionMinY, localMinY, bottomY - 1, grid, minY, ySize);
+                if (emitted > 0) {
+                    lowestVisibleY = Math.min(lowestVisibleY, bottomY);
+                    highestVisibleY = Math.max(highestVisibleY, bottomY);
+                }
+            }
+        }
+        Arrays.fill(grid, 0, gridLen, null);
         for (BlockEntity blockEntity : chunk.getBlockEntities().values()) {
             BlockPos pos = blockEntity.getBlockPos();
             if (pos.getY() < yRange.min() || pos.getY() > yRange.max()) {

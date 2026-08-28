@@ -9,9 +9,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.phys.AABB;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -137,5 +139,71 @@ class PortalSamplerTest {
         assertEquals(96.0f, PortalSampler.fogStartBlocks(10), 1e-4f);
         assertEquals(160.0f, PortalSampler.fogEndBlocks(10), 1e-4f);
         assertTrue(PortalSampler.fogEndBlocks(0) > PortalSampler.fogStartBlocks(0));
+    }
+
+    @Test
+    void lightYRange_padsVisibleSpanAndRejectsEmpty() {
+        PortalSampler.YRange range = new PortalSampler.YRange(0, 128);
+        PortalSampler.YRange padded = PortalSampler.lightYRange(range, 64, 70);
+        assertEquals(63, padded.min());
+        assertEquals(71, padded.max());
+        PortalSampler.YRange empty = PortalSampler.lightYRange(range, Integer.MAX_VALUE, Integer.MIN_VALUE);
+        assertTrue(empty.min() > empty.max());
+    }
+
+    @Test
+    void isHiddenInterior_dropsBuriedSolidKeepsShellAndNonFullBlocks() {
+        BlockState stone = Blocks.STONE.defaultBlockState();
+        BlockState air = Blocks.AIR.defaultBlockState();
+        BlockState chest = Blocks.CHEST.defaultBlockState();
+        BlockState stair = Blocks.OAK_STAIRS.defaultBlockState();
+        assertTrue(PortalSampler.isHiddenInterior(stone, stone, stone, stone, stone, stone, stone));
+        assertFalse(PortalSampler.isHiddenInterior(stone, stone, stone, air, stone, stone, stone));
+        assertFalse(PortalSampler.isHiddenInterior(chest, stone, stone, stone, stone, stone, stone));
+        assertFalse(PortalSampler.isHiddenInterior(stair, stone, stone, stone, stone, stone, stone));
+        assertFalse(PortalSampler.isHiddenInterior(null, stone, stone, stone, stone, stone, stone));
+    }
+
+    @Test
+    void isSolidFilledSection_usesPaletteMaybeHas() {
+        LevelChunkSection solid = Mockito.mock(LevelChunkSection.class);
+        Mockito.when(solid.hasOnlyAir()).thenReturn(false);
+        Mockito.when(solid.maybeHas(Mockito.any())).thenReturn(false);
+        assertTrue(PortalSampler.isSolidFilledSection(solid));
+
+        LevelChunkSection mixed = Mockito.mock(LevelChunkSection.class);
+        Mockito.when(mixed.hasOnlyAir()).thenReturn(false);
+        Mockito.when(mixed.maybeHas(Mockito.any())).thenReturn(true);
+        assertFalse(PortalSampler.isSolidFilledSection(mixed));
+
+        LevelChunkSection air = Mockito.mock(LevelChunkSection.class);
+        Mockito.when(air.hasOnlyAir()).thenReturn(true);
+        assertFalse(PortalSampler.isSolidFilledSection(air));
+    }
+
+    @Test
+    void computeSurfaceSkinBounds_keepsNeighborPadAndEdgeDepth() {
+        int[] heights = new int[256];
+        java.util.Arrays.fill(heights, 70);
+        heights[(3 << 4) | 3] = 90;
+        int[] colMin = new int[256];
+        int[] colMax = new int[256];
+        PortalSampler.computeSurfaceSkinBounds(heights, 0, 128, colMin, colMax);
+
+        int interior = (8 << 4) | 8;
+        assertEquals(70, colMax[interior]);
+        assertEquals(69, colMin[interior]);
+
+        int nextToHill = (3 << 4) | 4;
+        assertEquals(70, colMax[nextToHill]);
+        assertEquals(69, colMin[nextToHill]);
+
+        int hill = (3 << 4) | 3;
+        assertEquals(90, colMax[hill]);
+        assertEquals(69, colMin[hill]);
+
+        int edge = (0 << 4) | 8;
+        assertEquals(70, colMax[edge]);
+        assertEquals(54, colMin[edge]);
     }
 }
