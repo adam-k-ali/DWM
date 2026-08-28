@@ -12,6 +12,7 @@ import com.adamkali.dwm.guide.FieldGuideChapter;
 import com.adamkali.dwm.guide.FieldGuidePage;
 import com.adamkali.dwm.guide.FieldGuideRecipePanel;
 import com.adamkali.dwm.guide.FieldGuideRecipeWidget;
+import com.adamkali.dwm.guide.FieldGuideVariantGroups;
 import com.adamkali.dwm.guide.FieldGuideVariantWidget;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -21,7 +22,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.MultiLineTextWidget;
 import net.minecraft.client.gui.components.PlainTextButton;
 import net.minecraft.client.gui.components.StringWidget;
-import net.minecraft.client.gui.layouts.FrameLayout;
 import net.minecraft.client.gui.screens.inventory.PageButton;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
@@ -44,7 +44,8 @@ public class FieldGuideScreen extends Screen {
     private @Nullable FieldGuideChapter selectedChapter;
     private @Nullable FieldGuidePage selectedPage;
     private FieldGuideRecipePanel.Station selectedStation = FieldGuideRecipePanel.Station.CRAFTING;
-    private int selectedCraftingVariantIndex;
+    private int selectedGroupIndex;
+    private boolean selectedZeiton;
     private int visualPageIndex;
     private int bookLeft;
     private int bookTop;
@@ -120,6 +121,10 @@ public class FieldGuideScreen extends Screen {
 
         List<FieldGuideBodyPaginator.Slice> slices = visualSlices(selectedPage);
         visualPageIndex = Math.min(Math.max(visualPageIndex, 0), slices.size() - 1);
+        List<FieldGuideVariantGroups.Group> groups = craftingGroups(selectedPage);
+        if (!groups.isEmpty()) {
+            selectedGroupIndex = Math.min(Math.max(selectedGroupIndex, 0), groups.size() - 1);
+        }
 
         contentWidgets.addAll(Layouts.mount(
                 buildLeftPage(),
@@ -222,7 +227,7 @@ public class FieldGuideScreen extends Screen {
             if (!stations.isEmpty()) {
                 content.add(buildRecipeHeader(page, stations));
                 content.add(
-                        new FieldGuideRecipeWidget(minecraft, page, selectedStation, selectedCraftingVariantIndex),
+                        new FieldGuideRecipeWidget(minecraft, page, selectedStation, currentCraftingVariantIndex(page)),
                         settings -> settings.alignHorizontallyCenter()
                 );
             }
@@ -238,14 +243,8 @@ public class FieldGuideScreen extends Screen {
         return content;
     }
 
-    private FrameLayout buildRecipeHeader(FieldGuidePage page, List<FieldGuideRecipePanel.Station> stations) {
-        boolean showVariants = selectedStation == FieldGuideRecipePanel.Station.CRAFTING
-                && page.craftingRecipes().size() > 1;
-        int headerHeight = showVariants
-                ? FieldGuideBookLayout.VARIANT_SLOT_SIZE
-                : FieldGuideBookLayout.LINE_HEIGHT;
-        FrameLayout header = new FrameLayout(FieldGuideBookLayout.RIGHT_PAGE_WIDTH, headerHeight);
-
+    private Stack buildRecipeHeader(FieldGuidePage page, List<FieldGuideRecipePanel.Station> stations) {
+        Stack header = Stack.vertical(FieldGuideBookLayout.STACK_GAP);
         if (stations.size() > 1) {
             Stack tabs = Columns.of(FieldGuideBookLayout.STATION_TAB_GAP);
             for (FieldGuideRecipePanel.Station station : stations) {
@@ -266,37 +265,99 @@ public class FieldGuideScreen extends Screen {
                         font
                 ));
             }
-            header.addChild(tabs, settings -> settings.alignHorizontallyLeft().alignVerticallyMiddle());
+            header.add(tabs);
         } else {
-            header.addChild(
-                    new StringWidget(
-                            selectedStation.label().copy().append(" RECIPE").withStyle(
-                                    Style.EMPTY.withBold(true).withColor(FieldGuideBookLayout.INDEX_HEADER_COLOR)
-                            ),
-                            font
+            header.add(new StringWidget(
+                    selectedStation.label().copy().append(" RECIPE").withStyle(
+                            Style.EMPTY.withBold(true).withColor(FieldGuideBookLayout.INDEX_HEADER_COLOR)
                     ),
-                    settings -> settings.alignHorizontallyLeft().alignVerticallyMiddle()
-            );
+                    font
+            ));
         }
 
-        if (showVariants) {
-            Stack variants = Columns.of(FieldGuideBookLayout.VARIANT_ICON_GAP);
-            List<Identifier> recipes = page.craftingRecipes();
-            for (int index = 0; index < recipes.size(); index++) {
-                int variantIndex = index;
-                variants.add(new FieldGuideVariantWidget(
-                        minecraft,
-                        recipes.get(index),
-                        index == selectedCraftingVariantIndex,
-                        () -> {
-                            selectedCraftingVariantIndex = variantIndex;
-                            rebuildContent();
-                        }
-                ));
+        if (selectedStation == FieldGuideRecipePanel.Station.CRAFTING) {
+            List<FieldGuideVariantGroups.Group> groups = craftingGroups(page);
+            if (groups.size() > 1) {
+                header.add(wrappedVariantIcons(groups));
             }
-            header.addChild(variants, settings -> settings.alignHorizontallyRight().alignVerticallyMiddle());
+            if (FieldGuideVariantGroups.hasPathToggle(groups)) {
+                header.add(pathToggleRow());
+            }
         }
         return header;
+    }
+
+    private Stack wrappedVariantIcons(List<FieldGuideVariantGroups.Group> groups) {
+        int columns = FieldGuideBookLayout.variantColumns();
+        Stack rows = Stack.vertical(FieldGuideBookLayout.VARIANT_ICON_GAP);
+        Stack row = Columns.of(FieldGuideBookLayout.VARIANT_ICON_GAP);
+        int inRow = 0;
+        for (int index = 0; index < groups.size(); index++) {
+            if (inRow == columns) {
+                rows.add(row);
+                row = Columns.of(FieldGuideBookLayout.VARIANT_ICON_GAP);
+                inRow = 0;
+            }
+            int groupIndex = index;
+            FieldGuideVariantGroups.Group group = groups.get(index);
+            row.add(new FieldGuideVariantWidget(
+                    minecraft,
+                    FieldGuideVariantGroups.recipeFor(group, selectedZeiton),
+                    index == selectedGroupIndex,
+                    () -> {
+                        selectedGroupIndex = groupIndex;
+                        rebuildContent();
+                    }
+            ));
+            inRow++;
+        }
+        if (inRow > 0) {
+            rows.add(row);
+        }
+        return rows;
+    }
+
+    private Stack pathToggleRow() {
+        Stack paths = Columns.of(FieldGuideBookLayout.STATION_TAB_GAP);
+        paths.add(pathButton("dwm.guide.recipe.path.vanilla", false));
+        paths.add(pathButton("dwm.guide.recipe.path.zeiton", true));
+        return paths;
+    }
+
+    private PlainTextButton pathButton(String labelKey, boolean zeiton) {
+        boolean selected = selectedZeiton == zeiton;
+        return new PlainTextButton(
+                0,
+                0,
+                FieldGuideBookLayout.STATION_TAB_WIDTH,
+                FieldGuideBookLayout.STATION_TAB_HEIGHT,
+                Component.translatable(labelKey).copy().withStyle(selected
+                        ? Style.EMPTY.withBold(true).withColor(FieldGuideBookLayout.PAGE_SELECTED_COLOR)
+                        : Style.EMPTY.withColor(FieldGuideBookLayout.PAGE_UNSELECTED_COLOR)),
+                button -> {
+                    selectedZeiton = zeiton;
+                    rebuildContent();
+                },
+                font
+        );
+    }
+
+    private List<FieldGuideVariantGroups.Group> craftingGroups(FieldGuidePage page) {
+        return FieldGuideVariantGroups.group(
+                page.craftingRecipes(),
+                recipe -> minecraft == null ? recipe : FieldGuideRecipePanel.resultId(minecraft, recipe)
+        );
+    }
+
+    private int currentCraftingVariantIndex(FieldGuidePage page) {
+        List<FieldGuideVariantGroups.Group> groups = craftingGroups(page);
+        if (groups.isEmpty()) {
+            return 0;
+        }
+        int groupIndex = Math.clamp(selectedGroupIndex, 0, groups.size() - 1);
+        Identifier recipe = FieldGuideVariantGroups.recipeFor(groups.get(groupIndex), selectedZeiton);
+        int index = page.craftingRecipes().indexOf(recipe);
+        return Math.max(0, index);
     }
 
     private List<FormattedCharSequence> wrappedBody(FieldGuidePage page) {
@@ -310,15 +371,23 @@ public class FieldGuideScreen extends Screen {
 
     private int firstPageRows(FieldGuidePage page) {
         boolean recipe = !FieldGuideRecipePanel.availableStations(page).isEmpty();
-        boolean variants = recipe
-                && page.craftingRecipes().size() > 1
+        boolean crafting = recipe
                 && (page != selectedPage || selectedStation == FieldGuideRecipePanel.Station.CRAFTING);
+        int variantIcons = 0;
+        boolean pathToggle = false;
+        if (crafting) {
+            List<FieldGuideVariantGroups.Group> groups = craftingGroups(page);
+            if (groups.size() > 1) {
+                variantIcons = groups.size();
+            }
+            pathToggle = FieldGuideVariantGroups.hasPathToggle(groups);
+        }
         boolean pattern = recipe && page.patternPage();
-        return FieldGuideBookLayout.bodyMaxRows(recipe, variants, pattern);
+        return FieldGuideBookLayout.bodyMaxRows(recipe, variantIcons, pathToggle, pattern);
     }
 
     private static int continuationRows() {
-        return FieldGuideBookLayout.bodyMaxRows(false, false, false);
+        return FieldGuideBookLayout.bodyMaxRows(false, 0, false, false);
     }
 
     private List<FieldGuideBodyPaginator.Slice> visualSlices(FieldGuidePage page) {
@@ -386,7 +455,8 @@ public class FieldGuideScreen extends Screen {
     private void selectPage(FieldGuidePage page, int visualIndex) {
         selectedPage = page;
         selectedChapter = FieldGuideCatalog.chapterForPage(chapters(), page);
-        selectedCraftingVariantIndex = 0;
+        selectedGroupIndex = 0;
+        selectedZeiton = false;
         visualPageIndex = Math.max(0, visualIndex);
         List<FieldGuideRecipePanel.Station> stations = FieldGuideRecipePanel.availableStations(page);
         if (!stations.isEmpty() && !stations.contains(selectedStation)) {

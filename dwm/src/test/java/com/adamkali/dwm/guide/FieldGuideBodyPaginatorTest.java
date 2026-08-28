@@ -35,10 +35,10 @@ class FieldGuideBodyPaginatorTest {
     }
 
     @Test
-    void bodyMaxRows_recipeWithVariantsAndPatternIsTighterThanTextOnly() {
-        int cramped = FieldGuideBookLayout.bodyMaxRows(true, true, true);
-        int textOnly = FieldGuideBookLayout.bodyMaxRows(false, false, false);
-        assertEquals(2, cramped);
+    void bodyMaxRows_recipeWithIconsPathToggleAndPatternIsTighterThanTextOnly() {
+        int cramped = FieldGuideBookLayout.bodyMaxRows(true, 5, true, true);
+        int textOnly = FieldGuideBookLayout.bodyMaxRows(false, 0, false, false);
+        assertEquals(1, cramped);
         assertEquals(15, textOnly);
         assertTrue(textOnly > cramped);
     }

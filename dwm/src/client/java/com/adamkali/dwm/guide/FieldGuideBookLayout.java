@@ -88,13 +88,16 @@ public final class FieldGuideBookLayout {
 
     /**
      * Body lines that fit on the right page after chrome, optional recipe, and pattern footnote.
+     *
+     * @param variantIcons number of grouped result icons; a strip is shown only when this is greater than 1
+     * @param pathToggle   whether a Vanilla/Zeiton path row is shown under the icons
      */
-    public static int bodyMaxRows(boolean recipe, boolean variants, boolean pattern) {
+    public static int bodyMaxRows(boolean recipe, int variantIcons, boolean pathToggle, boolean pattern) {
         int children = 4;
         int intrinsic = LINE_HEIGHT * 2 + HAIRLINE_HEIGHT;
         if (recipe) {
             children += 2;
-            intrinsic += variants ? VARIANT_SLOT_SIZE : LINE_HEIGHT;
+            intrinsic += recipeHeaderHeight(variantIcons, pathToggle);
             intrinsic += FieldGuideRecipePanel.PANEL_HEIGHT;
         }
         if (pattern) {
@@ -103,5 +106,38 @@ public final class FieldGuideBookLayout {
         }
         int reserved = intrinsic + (children - 1) * STACK_GAP;
         return Math.max(1, (rightPageContentHeight() - reserved) / LINE_HEIGHT);
+    }
+
+    public static int variantColumns() {
+        return Math.max(1, (RIGHT_PAGE_WIDTH + VARIANT_ICON_GAP) / (VARIANT_SLOT_SIZE + VARIANT_ICON_GAP));
+    }
+
+    public static int variantRowCount(int iconCount) {
+        if (iconCount <= 0) {
+            return 0;
+        }
+        return (iconCount + variantColumns() - 1) / variantColumns();
+    }
+
+    public static int variantStripHeight(int iconCount) {
+        int rows = variantRowCount(iconCount);
+        if (rows == 0) {
+            return 0;
+        }
+        return rows * VARIANT_SLOT_SIZE + (rows - 1) * VARIANT_ICON_GAP;
+    }
+
+    public static int recipeHeaderHeight(int variantIcons, boolean pathToggle) {
+        int height = LINE_HEIGHT;
+        int extraRows = 0;
+        if (variantIcons > 1) {
+            height += variantStripHeight(variantIcons);
+            extraRows++;
+        }
+        if (pathToggle) {
+            height += STATION_TAB_HEIGHT;
+            extraRows++;
+        }
+        return height + extraRows * STACK_GAP;
     }
 }

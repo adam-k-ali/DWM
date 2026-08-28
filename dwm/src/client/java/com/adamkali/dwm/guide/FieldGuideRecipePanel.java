@@ -5,6 +5,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -325,6 +326,15 @@ public final class FieldGuideRecipePanel {
         }
         RecipeManager recipes = client.getSingleplayerServer().getRecipeManager();
         return recipes.byKey(ResourceKey.create(Registries.RECIPE, recipeId));
+    }
+
+    public static Identifier resultId(Minecraft client, Identifier recipeId) {
+        ItemStack stack = craftingResultStack(client, recipeId);
+        if (stack.isEmpty()) {
+            return recipeId;
+        }
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        return itemId != null ? itemId : recipeId;
     }
 
     private static ItemStack craftingResultStack(Minecraft client, Identifier recipeId) {
