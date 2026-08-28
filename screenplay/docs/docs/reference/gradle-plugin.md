@@ -42,6 +42,8 @@ run standalone.
 | `-Pscreenplay=<id>` | Scenario filename stem |
 | `-PscreenplayTimeout=<seconds>` | Per-step timeout (default 30) |
 | `-PscreenplayDisplay=display\|xvfb` | Framebuffer strategy (default `display`) |
+| `-PscreenplayRecord=true\|false` | Override screen recording (requires `ffmpeg`) |
+| `-PscreenplayBaselinesDir=<dir>` | Baseline PNGs for `captureScreenshot` compare |
 
 ## Dependencies
 

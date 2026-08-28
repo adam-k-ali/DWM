@@ -33,25 +33,34 @@ public final class ScreenplayBootstrap {
         try {
             ScenarioCatalog catalog = ScenarioCatalog.loadFromResources(ScreenplayBootstrap.class.getClassLoader());
             Duration timeout = Duration.ofSeconds(readPositiveLong(TIMEOUT_PROPERTY, 30L));
+            Boolean recordOverride = ScreenRecorder.readCliOverride();
             ScenarioDocument.Type type = catalog.resolveExecutableType(scenarioId);
             if (type == ScenarioDocument.Type.SUITE) {
                 SuitePlan suite = new ScenarioCompiler(catalog).compileSuite(scenarioId);
-                ScenarioRunner runner = new ScenarioRunner(suite, reportWriter, timeout, LOGGER);
+                boolean record = ScreenRecorder.resolveRecord(recordOverride, suite.record());
+                ScenarioRunner runner = new ScenarioRunner(suite, reportWriter, timeout, LOGGER, record);
                 platform.registerEndClientTick(runner::tick);
                 LOGGER.info(
-                        "Loaded suite '{}' with {} tests (before-all={}, before-each={}, after-each={}, after-all={})",
+                        "Loaded suite '{}' with {} tests (before-all={}, before-each={}, after-each={}, after-all={}, record={})",
                         suite.id(),
                         suite.tests().size(),
                         suite.beforeAll().size(),
                         suite.beforeEach().size(),
                         suite.afterEach().size(),
-                        suite.afterAll().size()
+                        suite.afterAll().size(),
+                        record
                 );
             } else {
                 ScenarioPlan plan = new ScenarioCompiler(catalog).compile(scenarioId);
-                ScenarioRunner runner = new ScenarioRunner(plan, reportWriter, timeout, LOGGER);
+                boolean record = ScreenRecorder.resolveRecord(recordOverride, plan.record());
+                ScenarioRunner runner = new ScenarioRunner(plan, reportWriter, timeout, LOGGER, record);
                 platform.registerEndClientTick(runner::tick);
-                LOGGER.info("Loaded scenario '{}' with {} primitive steps", plan.id(), plan.steps().size());
+                LOGGER.info(
+                        "Loaded scenario '{}' with {} primitive steps (record={})",
+                        plan.id(),
+                        plan.steps().size(),
+                        record
+                );
             }
         } catch (RuntimeException exception) {
             LOGGER.error("Could not start scenario '{}'", scenarioId, exception);

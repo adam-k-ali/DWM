@@ -16,6 +16,7 @@ class ScreenplayBootstrapTest {
         System.clearProperty(ScreenplayBootstrap.SCENARIO_PROPERTY);
         System.clearProperty(ScreenplayBootstrap.REPORT_PROPERTY);
         System.clearProperty(ScreenplayBootstrap.TIMEOUT_PROPERTY);
+        System.clearProperty(ScreenRecorder.RECORD_PROPERTY);
     }
 
     @Test

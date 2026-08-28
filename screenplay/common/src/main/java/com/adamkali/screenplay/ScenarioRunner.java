@@ -30,6 +30,7 @@ final class ScenarioRunner {
     private final ScreenshotCapture screenshotCapture;
     private final VanillaServerProcess vanillaServer;
     private final CreateWorldProcess createWorld;
+    private final ScreenRecorder screenRecorder;
     private final Logger logger;
 
     private final List<ScenarioReportWriter.CaseResult> cases = new ArrayList<>();
@@ -51,7 +52,8 @@ final class ScenarioRunner {
             ScenarioPlan plan,
             ScenarioReportWriter reportWriter,
             Duration stepTimeout,
-            Logger logger
+            Logger logger,
+            boolean record
     ) {
         this.singlePlan = plan;
         this.suite = null;
@@ -62,6 +64,7 @@ final class ScenarioRunner {
         this.screenshotCapture = new ScreenshotCapture(logger);
         this.vanillaServer = new VanillaServerProcess(logger);
         this.createWorld = new CreateWorldProcess(logger);
+        this.screenRecorder = new ScreenRecorder(logger, record);
         this.phase = Phase.TEST;
         beginCase(plan.id());
     }
@@ -70,7 +73,8 @@ final class ScenarioRunner {
             SuitePlan suite,
             ScenarioReportWriter reportWriter,
             Duration stepTimeout,
-            Logger logger
+            Logger logger,
+            boolean record
     ) {
         this.singlePlan = null;
         this.suite = suite;
@@ -81,6 +85,7 @@ final class ScenarioRunner {
         this.screenshotCapture = new ScreenshotCapture(logger);
         this.vanillaServer = new VanillaServerProcess(logger);
         this.createWorld = new CreateWorldProcess(logger);
+        this.screenRecorder = new ScreenRecorder(logger, record);
         this.memberIndex = 0;
         if (!suite.beforeAll().isEmpty()) {
             this.phase = Phase.BEFORE_ALL;
@@ -98,6 +103,8 @@ final class ScenarioRunner {
         if (finished || executing || phase == Phase.DONE) {
             return;
         }
+
+        screenRecorder.ensureStarted(client, executableId());
 
         List<ScenarioPlan.Step> steps = currentPhaseSteps();
         if (stepIndex >= steps.size()) {
@@ -311,6 +318,7 @@ final class ScenarioRunner {
         finished = true;
         phase = Phase.DONE;
         vanillaServer.stop();
+        screenRecorder.stop();
         String failureMessage = firstFailure == null ? null
                 : firstFailure.getMessage() == null
                 ? firstFailure.getClass().getName()
@@ -344,6 +352,10 @@ final class ScenarioRunner {
             logger.error("Scenario '{}' failed: {}", singlePlan.id(), failureMessage, firstFailure);
         }
         System.exit(exitCode);
+    }
+
+    private String executableId() {
+        return isSuite ? suite.id() : singlePlan.id();
     }
 
     private String failurePrefix() {

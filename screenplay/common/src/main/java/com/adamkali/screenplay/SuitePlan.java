@@ -9,7 +9,8 @@ public record SuitePlan(
         List<ScenarioPlan.Step> beforeEach,
         List<ScenarioPlan.Step> afterEach,
         List<ScenarioPlan.Step> afterAll,
-        List<ScenarioPlan> tests
+        List<ScenarioPlan> tests,
+        boolean record
 ) {
     public SuitePlan {
         beforeAll = List.copyOf(beforeAll);

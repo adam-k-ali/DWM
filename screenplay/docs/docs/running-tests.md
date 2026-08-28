@@ -60,6 +60,25 @@ slow soft-GL CI:
 second** timeout floor; `-PscreenplayTimeout` still raises that floor when set
 higher.
 
+## Screen recording
+
+Opt in to capture the client display as an MP4 via ffmpeg x11grab (Linux/X11,
+including `xvfb`):
+
+```bash
+./screenplay/gradlew runScreenplay -Pscreenplay=createWorld \
+  -PscreenplayDisplay=xvfb \
+  -PscreenplayRecord=true
+```
+
+| Source | Behavior |
+| --- | --- |
+| `-PscreenplayRecord=true\|false` | Explicit CLI override (sets `screenplay.record`) |
+| YAML frontmatter `record: true` | Per-scenario/suite default when the Gradle property is unset |
+
+Requires `ffmpeg` on `PATH` (`apt install ffmpeg`). One recording is written per
+client session as `build/screenplay/run/recordings/<id>.mp4`.
+
 ## Outputs
 
 | Path | Contents |
@@ -68,6 +87,7 @@ higher.
 | `build/screenplay/metrics.json` | Wall-clock step timings |
 | `build/screenplay/diagnostics.txt` | Current screen and visible widgets |
 | `build/screenplay/run/screenshots/` | PNGs from `captureScreenshot` (and `{stem}-diff.png` on compare failures) |
+| `build/screenplay/run/recordings/` | MP4s when recording is enabled |
 | `build/screenplay/results/<id>/` | Per-scenario copies from `runScreenplayTests` |
 | `build/screenplay/vanilla-server/` | Official dedicated-server dir from `startVanillaServer` |
 
@@ -95,11 +115,13 @@ The plugin sets (among others):
 - `screenplay.report-file`
 - `screenplay.vanilla-server-dir`
 - `screenplay.baselines-dir` — when `-PscreenplayBaselinesDir` is set
+- `screenplay.record` — when `-PscreenplayRecord` is set
 
 ## CI tips
 
 - Prefer `-PscreenplayDisplay=xvfb` on headless Linux runners.
-- Upload `report.xml`, `metrics.json`, diagnostics, and screenshots as workflow
+- Upload `report.xml`, `metrics.json`, diagnostics, screenshots, and recordings as workflow
   artifacts for agent and human review (and as the next `main` screenshot baseline).
 - On PRs, prepare baselines with `.github/scripts/prepare-screenplay-baselines.sh`
   before `runScreenplayTests`.
+- Screen recording needs `ffmpeg` in addition to `xvfb`.

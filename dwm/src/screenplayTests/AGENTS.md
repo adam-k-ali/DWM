@@ -12,8 +12,8 @@ Also: [`screenplay/README.md`](../../../screenplay/README.md), [`screenplay/meta
 ## Commands
 - Run a scenario or suite: `./dwm/gradlew runScreenplay -Pscreenplay=<yaml-filename-stem>`
 - Run all discovered suites + standalone `type: test` scenarios: `./dwm/gradlew runScreenplayTests`
-- Properties: `-PscreenplayDisplay=display|xvfb`, `-PscreenplayTimeout=<seconds>`, optional `-PscreenplayBaselinesDir=<dir>` for screenshot compare
-- Outputs: `dwm/build/screenplay/report.xml`, `metrics.json`, `diagnostics.txt`, screenshots under `dwm/build/screenplay/run/screenshots/`
+- Properties: `-PscreenplayDisplay=display|xvfb`, `-PscreenplayTimeout=<seconds>`, optional `-PscreenplayBaselinesDir=<dir>` for screenshot compare, optional `-PscreenplayRecord=true|false` (or YAML `record: true`) for ffmpeg screen recording
+- Outputs: `dwm/build/screenplay/report.xml`, `metrics.json`, `diagnostics.txt`, screenshots under `dwm/build/screenplay/run/screenshots/`, recordings under `dwm/build/screenplay/run/recordings/`
 - Per-run archives from `runScreenplayTests`: `dwm/build/screenplay/results/<id>/`
 
 ## Harness unit tests
@@ -23,7 +23,7 @@ Also: [`screenplay/README.md`](../../../screenplay/README.md), [`screenplay/meta
 - Stable ID is the **filename stem**. Duplicate IDs across mod + Screenplay demo roots are rejected by `runScreenplayTests`.
 - Prefer adding shared primitives upstream in `screenplay/common`; mod-only steps can use `ServiceLoader` registration.
 - Keep scenarios deterministic (`createWorld` defaults include seed `"42"`).
-- Optional `captureScreenshot.compare: true` diffs against CI baselines from green `main` (via `-PscreenplayBaselinesDir`); do not commit PNG goldens.
+- Optional `captureScreenshot.compare: true` diffs against CI baselines from green `main` (via `-PscreenplayBaselinesDir`); pixels within a fixed per-channel color epsilon (`16`) count as equal — do not commit PNG goldens. In-world shots may still need a modest `maxDiffPixels` for edge AA. Prefer `pressKey: f1` before compares so HUD / first-person hand chrome cannot dominate the budget.
 - Suites (`type: suite`) share one client session via `before-all` / `before-each` / `after-each` / `after-all` hooks. Suite members that are listed under `tests:` are not also run standalone by `runScreenplayTests`.
 
 ## CI
