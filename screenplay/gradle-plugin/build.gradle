@@ -15,17 +15,39 @@ repositories {
     maven { url = 'https://maven.neoforged.net/releases' }
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+def screenplayProps = new Properties()
+file('../gradle.properties').withInputStream { stream -> screenplayProps.load(stream) }
+
+processResources {
+    def screenplayVersion = screenplayProps.getProperty('screenplay_version')
+    def minecraftVersion = screenplayProps.getProperty('minecraft_version')
+    inputs.property 'screenplay_version', screenplayVersion
+    inputs.property 'minecraft_version', minecraftVersion
+    filesMatching('**/screenplay-plugin.properties') {
+        expand(
+                screenplay_version: screenplayVersion,
+                minecraft_version: minecraftVersion
+        )
+    }
+}
+
 dependencies {
     implementation gradleApi()
     implementation localGroovy()
     // Compile against Loom API when available; plugin detects at runtime.
     compileOnly 'net.fabricmc:fabric-loom:1.17-SNAPSHOT'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
+tasks.named('test', Test) {
+    useJUnitPlatform()
 }
 
 gradlePlugin {
