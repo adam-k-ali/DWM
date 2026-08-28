@@ -4,6 +4,8 @@ import com.adamkali.dwm.gui.layout.Columns;
 import com.adamkali.dwm.gui.layout.FillWidget;
 import com.adamkali.dwm.gui.layout.Layouts;
 import com.adamkali.dwm.gui.layout.Stack;
+import com.adamkali.dwm.guide.FieldGuideBodyPaginator;
+import com.adamkali.dwm.guide.FieldGuideBodyWidget;
 import com.adamkali.dwm.guide.FieldGuideBookLayout;
 import com.adamkali.dwm.guide.FieldGuideCatalog;
 import com.adamkali.dwm.guide.FieldGuideChapter;
@@ -27,6 +29,7 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.FormattedCharSequence;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -42,6 +45,7 @@ public class FieldGuideScreen extends Screen {
     private @Nullable FieldGuidePage selectedPage;
     private FieldGuideRecipePanel.Station selectedStation = FieldGuideRecipePanel.Station.CRAFTING;
     private int selectedCraftingVariantIndex;
+    private int visualPageIndex;
     private int bookLeft;
     private int bookTop;
 
@@ -85,6 +89,7 @@ public class FieldGuideScreen extends Screen {
                 button -> turnPage(-1),
                 true
         ));
+        backPageButton.setMessage(Component.translatable("dwm.guide.page.previous"));
         forwardPageButton = addRenderableWidget(new PageButton(
                 bookLeft + FieldGuideBookLayout.PAGE_FORWARD_X,
                 bookTop + FieldGuideBookLayout.PAGE_BUTTON_Y,
@@ -92,6 +97,7 @@ public class FieldGuideScreen extends Screen {
                 button -> turnPage(1),
                 true
         ));
+        forwardPageButton.setMessage(Component.translatable("dwm.guide.page.next"));
 
         addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
                 .bounds(
@@ -102,7 +108,6 @@ public class FieldGuideScreen extends Screen {
                 )
                 .build());
 
-        updateNavigationState();
         rebuildContent();
     }
 
@@ -113,6 +118,9 @@ public class FieldGuideScreen extends Screen {
             return;
         }
 
+        List<FieldGuideBodyPaginator.Slice> slices = visualSlices(selectedPage);
+        visualPageIndex = Math.min(Math.max(visualPageIndex, 0), slices.size() - 1);
+
         contentWidgets.addAll(Layouts.mount(
                 buildLeftPage(),
                 bookLeft + FieldGuideBookLayout.LEFT_PAGE_X,
@@ -120,7 +128,7 @@ public class FieldGuideScreen extends Screen {
                 this::addRenderableWidget
         ));
         contentWidgets.addAll(Layouts.mount(
-                buildRightPage(),
+                buildRightPage(slices.get(visualPageIndex)),
                 bookLeft + FieldGuideBookLayout.RIGHT_PAGE_X,
                 bookTop + FieldGuideBookLayout.RIGHT_PAGE_TOP,
                 this::addRenderableWidget
@@ -133,6 +141,7 @@ public class FieldGuideScreen extends Screen {
         );
         addRenderableWidget(indicator);
         contentWidgets.add(indicator);
+        updateNavigationState();
     }
 
     private Stack buildLeftPage() {
@@ -184,8 +193,12 @@ public class FieldGuideScreen extends Screen {
         return left;
     }
 
-    private Stack buildRightPage() {
+    private Stack buildRightPage(FieldGuideBodyPaginator.Slice slice) {
         FieldGuidePage page = selectedPage;
+        List<FormattedCharSequence> lines = wrappedBody(page);
+        int end = slice.start() + slice.count();
+        List<FormattedCharSequence> visible = lines.subList(slice.start(), end);
+
         Stack content = Stack.vertical(FieldGuideBookLayout.STACK_GAP);
         content.add(coloured(
                 Component.translatable(selectedChapter.titleKey()),
@@ -202,28 +215,25 @@ public class FieldGuideScreen extends Screen {
                 FieldGuideBookLayout.HAIRLINE_HEIGHT,
                 FieldGuideBookLayout.ACCENT_COLOR
         ));
-        content.add(new MultiLineTextWidget(
-                Component.translatable(page.bodyKey()).copy().withStyle(
-                        Style.EMPTY.withColor(FieldGuideBookLayout.TEXT_COLOR).withoutShadow()
-                ),
-                font
-        ).setMaxWidth(FieldGuideBookLayout.RIGHT_PAGE_WIDTH).setMaxRows(bodyMaxRows(page)));
+        content.add(new FieldGuideBodyWidget(font, visible));
 
-        List<FieldGuideRecipePanel.Station> stations = FieldGuideRecipePanel.availableStations(page);
-        if (!stations.isEmpty()) {
-            content.add(buildRecipeHeader(page, stations));
-            content.add(
-                    new FieldGuideRecipeWidget(minecraft, page, selectedStation, selectedCraftingVariantIndex),
-                    settings -> settings.alignHorizontallyCenter()
-            );
-        }
-        if (page.patternPage()) {
-            content.add(new MultiLineTextWidget(
-                    Component.translatable("dwm.guide.pattern.all_colours").copy().withStyle(
-                            Style.EMPTY.withColor(FieldGuideBookLayout.TEXT_COLOR).withoutShadow()
-                    ),
-                    font
-            ).setMaxWidth(FieldGuideBookLayout.RIGHT_PAGE_WIDTH).setMaxRows(FieldGuideBookLayout.PATTERN_MAX_LINES));
+        if (slice.recipe()) {
+            List<FieldGuideRecipePanel.Station> stations = FieldGuideRecipePanel.availableStations(page);
+            if (!stations.isEmpty()) {
+                content.add(buildRecipeHeader(page, stations));
+                content.add(
+                        new FieldGuideRecipeWidget(minecraft, page, selectedStation, selectedCraftingVariantIndex),
+                        settings -> settings.alignHorizontallyCenter()
+                );
+            }
+            if (page.patternPage()) {
+                content.add(new MultiLineTextWidget(
+                        Component.translatable("dwm.guide.pattern.all_colours").copy().withStyle(
+                                Style.EMPTY.withColor(FieldGuideBookLayout.TEXT_COLOR).withoutShadow()
+                        ),
+                        font
+                ).setMaxWidth(FieldGuideBookLayout.RIGHT_PAGE_WIDTH).setMaxRows(FieldGuideBookLayout.PATTERN_MAX_LINES));
+            }
         }
         return content;
     }
@@ -289,26 +299,38 @@ public class FieldGuideScreen extends Screen {
         return header;
     }
 
-    private int bodyMaxRows(FieldGuidePage page) {
-        int children = 4;
-        int intrinsic = FieldGuideBookLayout.LINE_HEIGHT * 2 + FieldGuideBookLayout.HAIRLINE_HEIGHT;
-        List<FieldGuideRecipePanel.Station> stations = FieldGuideRecipePanel.availableStations(page);
-        if (!stations.isEmpty()) {
-            children += 2;
-            boolean variants = selectedStation == FieldGuideRecipePanel.Station.CRAFTING
-                    && page.craftingRecipes().size() > 1;
-            intrinsic += variants
-                    ? FieldGuideBookLayout.VARIANT_SLOT_SIZE
-                    : FieldGuideBookLayout.LINE_HEIGHT;
-            intrinsic += FieldGuideRecipePanel.PANEL_HEIGHT;
-        }
-        if (page.patternPage()) {
-            children += 1;
-            intrinsic += FieldGuideBookLayout.PATTERN_MAX_LINES * FieldGuideBookLayout.LINE_HEIGHT;
-        }
-        int reserved = intrinsic + (children - 1) * FieldGuideBookLayout.STACK_GAP;
-        int budget = FieldGuideBookLayout.rightPageContentHeight();
-        return Math.max(1, (budget - reserved) / FieldGuideBookLayout.LINE_HEIGHT);
+    private List<FormattedCharSequence> wrappedBody(FieldGuidePage page) {
+        return font.split(
+                Component.translatable(page.bodyKey()).copy().withStyle(
+                        Style.EMPTY.withColor(FieldGuideBookLayout.TEXT_COLOR).withoutShadow()
+                ),
+                FieldGuideBookLayout.RIGHT_PAGE_WIDTH
+        );
+    }
+
+    private int firstPageRows(FieldGuidePage page) {
+        boolean recipe = !FieldGuideRecipePanel.availableStations(page).isEmpty();
+        boolean variants = recipe
+                && page.craftingRecipes().size() > 1
+                && (page != selectedPage || selectedStation == FieldGuideRecipePanel.Station.CRAFTING);
+        boolean pattern = recipe && page.patternPage();
+        return FieldGuideBookLayout.bodyMaxRows(recipe, variants, pattern);
+    }
+
+    private static int continuationRows() {
+        return FieldGuideBookLayout.bodyMaxRows(false, false, false);
+    }
+
+    private List<FieldGuideBodyPaginator.Slice> visualSlices(FieldGuidePage page) {
+        return FieldGuideBodyPaginator.paginate(
+                wrappedBody(page).size(),
+                firstPageRows(page),
+                continuationRows()
+        );
+    }
+
+    private int visualPageCount(FieldGuidePage page) {
+        return visualSlices(page).size();
     }
 
     private StringWidget coloured(Component text, int color) {
@@ -316,12 +338,20 @@ public class FieldGuideScreen extends Screen {
     }
 
     private Component pageIndicator() {
-        int pageIndex = FieldGuideCatalog.pageIndexInChapter(selectedChapter, selectedPage) + 1;
+        int visualOffset = 0;
+        int total = 0;
+        for (FieldGuidePage page : selectedChapter.pages()) {
+            int count = visualPageCount(page);
+            if (page.equals(selectedPage)) {
+                visualOffset = total + visualPageIndex;
+            }
+            total += count;
+        }
         return Component.translatable(
                 "dwm.guide.page.indicator",
                 Component.translatable(selectedChapter.titleKey()),
-                pageIndex,
-                selectedChapter.pages().size()
+                visualOffset + 1,
+                total
         );
     }
 
@@ -350,26 +380,39 @@ public class FieldGuideScreen extends Screen {
     }
 
     private void selectPage(FieldGuidePage page) {
+        selectPage(page, 0);
+    }
+
+    private void selectPage(FieldGuidePage page, int visualIndex) {
         selectedPage = page;
         selectedChapter = FieldGuideCatalog.chapterForPage(chapters(), page);
         selectedCraftingVariantIndex = 0;
+        visualPageIndex = Math.max(0, visualIndex);
         List<FieldGuideRecipePanel.Station> stations = FieldGuideRecipePanel.availableStations(page);
         if (!stations.isEmpty() && !stations.contains(selectedStation)) {
             selectedStation = stations.getFirst();
         }
         rebuildContent();
-        updateNavigationState();
     }
 
     private void turnPage(int delta) {
         if (selectedChapter == null || selectedPage == null) {
             return;
         }
+        List<FieldGuideBodyPaginator.Slice> slices = visualSlices(selectedPage);
+        int nextVisual = visualPageIndex + delta;
+        if (nextVisual >= 0 && nextVisual < slices.size()) {
+            visualPageIndex = nextVisual;
+            rebuildContent();
+            return;
+        }
         int index = FieldGuideCatalog.pageIndexInChapter(selectedChapter, selectedPage) + delta;
         if (index < 0 || index >= selectedChapter.pages().size()) {
             return;
         }
-        selectPage(selectedChapter.pages().get(index));
+        FieldGuidePage neighbour = selectedChapter.pages().get(index);
+        int neighbourVisual = delta > 0 ? 0 : visualPageCount(neighbour) - 1;
+        selectPage(neighbour, neighbourVisual);
     }
 
     private void updateNavigationState() {
@@ -377,8 +420,9 @@ public class FieldGuideScreen extends Screen {
             return;
         }
         int index = FieldGuideCatalog.pageIndexInChapter(selectedChapter, selectedPage);
-        backPageButton.active = index > 0;
-        forwardPageButton.active = index < selectedChapter.pages().size() - 1;
+        int sliceCount = visualSlices(selectedPage).size();
+        backPageButton.active = visualPageIndex > 0 || index > 0;
+        forwardPageButton.active = visualPageIndex < sliceCount - 1 || index < selectedChapter.pages().size() - 1;
     }
 
     @Override
