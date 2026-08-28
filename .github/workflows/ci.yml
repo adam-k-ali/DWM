@@ -76,6 +76,15 @@ jobs:
           _JAVA_OPTIONS: -Xmx3200m
           GRADLE_OPTS: -Dorg.gradle.daemon=false
 
+      - name: Test Gradle plugin publication metadata
+        working-directory: screenplay
+        run: |
+          ./gradlew -p gradle-plugin test
+          ./gradlew -p gradle-plugin pluginDescriptors generatePomFileForPluginMavenPublication
+        env:
+          _JAVA_OPTIONS: -Xmx3200m
+          GRADLE_OPTS: -Dorg.gradle.daemon=false
+
       - name: Build Screenplay Forge / NeoForge
         working-directory: screenplay
         run: |
@@ -92,4 +101,6 @@ jobs:
           path: |
             screenplay/common/build/test-results/test/
             screenplay/common/build/reports/tests/test/
+            screenplay/gradle-plugin/build/test-results/test/
+            screenplay/gradle-plugin/build/reports/tests/test/
           if-no-files-found: ignore

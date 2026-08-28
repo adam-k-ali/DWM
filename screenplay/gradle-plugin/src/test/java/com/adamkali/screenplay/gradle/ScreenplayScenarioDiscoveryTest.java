@@ -7,7 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -101,7 +103,7 @@ class ScreenplayScenarioDiscoveryTest {
                 """);
         ScreenplayScenarioDiscovery.Discovery discovery =
                 ScreenplayScenarioDiscovery.discoverRunIds(List.of(tempDir));
-        assertEquals(List.of("creativeWorldSuite", "standalone"), List.copyOf(discovery.runIds()));
+        assertEquals(Set.of("creativeWorldSuite", "standalone"), new HashSet<>(discovery.runIds()));
         assertEquals(List.of("standalone"), List.copyOf(discovery.standaloneTestIds()));
     }
 

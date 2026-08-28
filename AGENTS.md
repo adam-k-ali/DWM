@@ -114,6 +114,8 @@ DWM and Screenplay Fabric use **Mojang official mappings** for the Minecraft ver
 - Main automated commands:
   - `./dwm/gradlew test` — DWM JUnit suite
   - `./dwm/gradlew build` — compile DWM + JUnit (CI gate; also builds Screenplay via includeBuild)
+  - `./screenplay/gradlew :common:test` — Screenplay compiler/primitives
+  - `./screenplay/gradlew -p gradle-plugin test` — Gradle plugin unit tests
   - `./screenplay/gradlew build` — Screenplay Fabric artifact
   - `./screenplay/gradlew -p loaders :forge:build :neoforge:build` — Forge/NeoForge artifacts
   - `./dwm/gradlew runDatagen` — regenerate `dwm/src/main/generated/` (only when datagen providers or promoted assets change); finalized by `pruneDatagenItemModels`
@@ -126,7 +128,9 @@ DWM and Screenplay Fabric use **Mojang official mappings** for the Minecraft ver
 ## Releases / CI
 - CI runs on GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)); CircleCI is retired.
 - DWM releases are intentional git tags `v{minecraft}-{mod}` — see [dwm/docs/release-policy.md](dwm/docs/release-policy.md).
-- Screenplay releases use tags `screenplay-v{screenplay_version}`.
+- Screenplay releases use tags `screenplay-v{screenplay_version}`. The release workflow publishes loader jars to GitHub Releases and Modrinth, then `publishPlugins` to the Gradle Plugin Portal (`com.adamkali.screenplay`, same version). Requires `MODRINTH_TOKEN`, `GRADLE_PUBLISH_KEY`, and `GRADLE_PUBLISH_SECRET`.
+- Outsiders apply the Portal plugin (no `includeBuild`). The plugin resolves `screenplay-fabric` / `-forge` / `-neoforge` from the matching GitHub Release. DWM still consumes Screenplay via composite `includeBuild`.
+- Consumer CI: [`adam-k-ali/screenplay-action`](https://github.com/adam-k-ali/screenplay-action) (`@v1`).
 - Do not bump `mod_version` or `version.json` promos except when cutting a release; use `./dwm/gradlew syncVersionJson` at cut time.
 - The release workflow publishes the GitHub Release, Modrinth version, CurseForge file, and Discord `#releases` announcement from `dwm/version.json` (`summary` + changelog lists). Requires `MODRINTH_TOKEN`, `CURSEFORGE_TOKEN`, and `DISCORD_WEBHOOK_URL` secrets.
 - Modrinth project listing fields live in `dwm/metadata/` and `screenplay/metadata/`; sync with the manual Sync Modrinth workflows.

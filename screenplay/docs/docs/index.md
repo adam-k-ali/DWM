@@ -17,7 +17,7 @@ Screenplay fills that gap with a Playwright-style client harness — scriptable,
 - JUnit XML reports, step timing metrics, diagnostics dumps
 - Screenshot capture for CI and agent review
 - `xvfb` display mode for headless Linux CI
-- Gradle plugin (`com.adamkali.screenplay`) for prepare / run / run-all
+- Gradle plugin (`com.adamkali.screenplay`) on the [Plugin Portal](https://plugins.gradle.org/plugin/com.adamkali.screenplay)
 - **Fabric**, **Forge**, and **NeoForge** loader artifacts
 
 ## Get started

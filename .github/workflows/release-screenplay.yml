@@ -152,6 +152,24 @@ jobs:
           draft: false
           prerelease: false
 
+      - name: Publish Gradle plugin to Plugin Portal
+        working-directory: screenplay
+        env:
+          GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
+          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+          _JAVA_OPTIONS: -Xmx3200m
+          GRADLE_OPTS: -Dorg.gradle.daemon=false
+        run: |
+          set -euo pipefail
+          if [ -z "${GRADLE_PUBLISH_KEY:-}" ] || [ -z "${GRADLE_PUBLISH_SECRET:-}" ]; then
+            echo "GRADLE_PUBLISH_KEY / GRADLE_PUBLISH_SECRET secrets are not set" >&2
+            exit 1
+          fi
+          chmod +x ./gradlew
+          ./gradlew -p gradle-plugin publishPlugins \
+            -Pgradle.publish.key="${GRADLE_PUBLISH_KEY}" \
+            -Pgradle.publish.secret="${GRADLE_PUBLISH_SECRET}"
+
       - name: Publish to Modrinth
         id: modrinth
         env:

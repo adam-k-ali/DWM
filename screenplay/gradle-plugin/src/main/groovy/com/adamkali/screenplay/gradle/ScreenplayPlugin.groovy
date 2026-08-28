@@ -38,6 +38,7 @@ class ScreenplayPlugin implements Plugin<Project> {
             return
         }
         def version = ScreenplayPluginVersions.screenplayVersion()
+        ScreenplayHarnessRepository.register(project, version)
         def fabricAdded = new boolean[1]
         def addFabric = {
             if (fabricAdded[0]) {
