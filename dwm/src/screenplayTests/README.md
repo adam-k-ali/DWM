@@ -142,7 +142,7 @@ The MVP primitives are:
   `compare: true` (requires `name`) diffs against a baseline PNG when
   `-PscreenplayBaselinesDir` / `screenplay.baselines-dir` is set (CI supplies
   green `main` artifacts). Optional `maxDiffPixels` defaults to `0` and counts
-  only pixels beyond Screenplay’s fixed per-channel color epsilon (`16`). The step
+  only pixels beyond Screenplay’s fixed per-channel color epsilon (`24`). The step
   waits until the file has been written before succeeding.
 - `startVanillaServer` — launches Mojang’s official dedicated-server jar as a
   child process (no Fabric/DWM on the server). It writes offline-mode superflat

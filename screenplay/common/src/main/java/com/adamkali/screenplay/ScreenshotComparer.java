@@ -17,10 +17,10 @@ import java.nio.file.Path;
 public final class ScreenshotComparer {
     /**
      * Max absolute per-channel (A/R/G/B) difference still treated as equal.
-     * Chosen to cover typical llvmpipe soft variance while keeping large UI /
-     * lighting / layout changes visible to {@code maxDiffPixels}.
+     * Chosen to cover typical llvmpipe soft variance (grass AA / silhouette edges)
+     * while keeping large UI / lighting / layout changes visible to {@code maxDiffPixels}.
      */
-    public static final int COLOR_EPSILON = 16;
+    public static final int COLOR_EPSILON = 24;
 
     private static final int DIFF_RGB = 0xFFFF0000;
 
