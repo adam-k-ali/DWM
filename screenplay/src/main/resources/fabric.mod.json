@@ -19,6 +19,9 @@
       "com.adamkali.screenplay.fabric.FabricScreenplayClient"
     ]
   },
+  "mixins": [
+    "screenplay.client.mixins.json"
+  ],
   "accessWidener": "screenplay.accesswidener",
   "depends": {
     "fabricloader": ">=0.19.3",

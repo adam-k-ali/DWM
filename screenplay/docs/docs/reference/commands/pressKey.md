@@ -24,6 +24,7 @@ A scalar string shorthand sets `key`:
 | `escape`, `esc` | Screen `keyPressed` when a GUI is open; otherwise pause-menu keybind |
 | `space` | Space bar |
 | `f1` | Hides the HUD and first-person hand (idempotent; for stable screenshot compares) |
+| `left`, `right` | Arrow keys held for at least one client tick, then released. GLFW-polling HUDs (for example the sonic field-mode carousel) see the hold via Screenplay's `InputConstants.isKeyDown` mixin |
 
 Unsupported names fail validation before the client boots the scenario.
 
@@ -55,6 +56,22 @@ Unsupported names fail validation before the client boots the scenario.
     name: portal-view
     compare: true
     maxDiffPixels: 5000
+```
+
+```yaml
+# Sonic field-mode HUD: sneak-use in air, arrow to Seal, release sneak
+- setSneaking:
+    enabled: true
+- useItem: air
+- pressKey: right
+- pressKey: right
+- pressKey: right
+- pressKey: right
+- pressKey: right
+- setSneaking:
+    enabled: false
+- waitUntil:
+    overlay: "Setting: Seal"
 ```
 
 ## Notes

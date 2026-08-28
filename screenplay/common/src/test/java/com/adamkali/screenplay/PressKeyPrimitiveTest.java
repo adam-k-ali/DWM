@@ -16,6 +16,8 @@ class PressKeyPrimitiveTest {
         assertEquals("key.keyboard.escape", PressKeyPrimitive.resolveKey("esc").getName());
         assertEquals("key.keyboard.f1", PressKeyPrimitive.resolveKey("f1").getName());
         assertEquals("key.keyboard.space", PressKeyPrimitive.resolveKey("space").getName());
+        assertEquals("key.keyboard.left", PressKeyPrimitive.resolveKey("left").getName());
+        assertEquals("key.keyboard.right", PressKeyPrimitive.resolveKey("right").getName());
     }
 
     @Test
@@ -28,5 +30,7 @@ class PressKeyPrimitiveTest {
         PressKeyPrimitive primitive = new PressKeyPrimitive();
         assertEquals("g", primitive.validate(Map.of("key", "g"), "test").get("key"));
         assertEquals("f1", primitive.validate(Map.of("key", "F1"), "test").get("key"));
+        assertEquals("left", primitive.validate(Map.of("key", "Left"), "test").get("key"));
+        assertEquals("right", primitive.validate(Map.of("key", "RIGHT"), "test").get("key"));
     }
 }
