@@ -110,6 +110,16 @@ class TardisInteriorUnitTest {
     }
 
     @Test
+    void roomChunkBounds_coversFullRoomIncludingChunkBoundary() {
+        BlockPos origin = new BlockPos(15, 64, 15);
+        int[] bounds = FirstDoctorConsoleRoomPlacer.roomChunkBounds(origin);
+        assertEquals(0, bounds[0]);
+        assertEquals(1, bounds[1]);
+        assertEquals(0, bounds[2]);
+        assertEquals(1, bounds[3]);
+    }
+
+    @Test
     void consoleRoomLayout_PlacesFirstDoctorConsoleWithoutStackedRoundel() {
         Map<BlockPos, BlockState> placements = FirstDoctorConsoleRoomLayout.placements();
         BlockPos consolePos = FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE;

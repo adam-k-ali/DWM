@@ -9,18 +9,18 @@ import java.util.List;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.TicketType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Exterior sampling helpers for SOTO: atmosphere, ghost stream geometry, and chunk samples.
- * Relative footprint coords: min corner = {@code exteriorPos + (-5, -1, -5)}; TARDIS at (5, 1, 5).
+ * Exterior sampling helpers for SOTO: atmosphere, hitch geometry, and chunk samples.
+ * Relative hitch coords: min corner = {@code exteriorPos + (-5, -1, -5)}; TARDIS at (5, 1, 5).
  *
- * <p>Ghost streaming uses a Chebyshev box sized from Minecraft view distance, ticketed at the
- * exterior chunk.
+ * <p>Ghost streaming uses a Chebyshev box sized from Minecraft view distance. LOADING tickets
+ * cover that radius; SIMULATION tickets use server simulation distance.
  */
 public final class SotoExteriorSampler extends PortalSampler {
     public static final int SIZE_X = 11;
@@ -33,12 +33,9 @@ public final class SotoExteriorSampler extends PortalSampler {
     /** Offset from exterior block pos to hitch footprint min corner. */
     public static final BlockPos FOOTPRINT_MIN_OFFSET = new BlockPos(-5, -1, -5);
 
-    private static final TicketType SOTO_TICKET = new TicketType(80, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION);
-
     static final SotoExteriorSampler INSTANCE = new SotoExteriorSampler();
 
     private SotoExteriorSampler() {
-        super(SIZE_X, SIZE_Y, SIZE_Z, SOTO_TICKET);
     }
 
     public static BlockPos footprintOrigin(BlockPos exteriorPos) {
@@ -120,20 +117,20 @@ public final class SotoExteriorSampler extends PortalSampler {
     }
 
     /**
-     * Cheap probe: queries already-loaded entities in the stream box without force-loading chunks.
+     * Cheap probe: queries already-loaded entities in the simulation box without force-loading chunks.
      */
     public static boolean hasEntities(ServerLevel exteriorWorld, BlockPos exteriorPos) {
         return INSTANCE.hasLoadedEntities(exteriorWorld, exteriorPos);
     }
 
     /**
-     * Resets mob despawn counters in the stream box. Tickets only — no per-tick {@code getChunk}.
+     * Resets mob despawn counters in the simulation box. Tickets only — no per-tick {@code getChunk}.
      */
     public static void keepMobAiActive(ServerLevel exteriorWorld, BlockPos exteriorPos) {
         INSTANCE.resetMobAi(exteriorWorld, exteriorPos);
     }
 
-    public static PortalStreamSample samplePortalStreamChunk(
+    public static @Nullable PortalStreamSample samplePortalStreamChunk(
             ServerLevel exteriorWorld,
             BlockPos exteriorPos,
             int chunkX,
@@ -145,8 +142,10 @@ public final class SotoExteriorSampler extends PortalSampler {
     /**
      * Collects non-air visible block states (+ BE NBT) for one chunk column within stream Y range.
      * Positions in the returned maps are world-absolute.
+     *
+     * @return the sample, or {@code null} when the column is not yet {@code FULL}
      */
-    public static PortalStreamSample sampleStreamChunk(
+    public static @Nullable PortalStreamSample sampleStreamChunk(
             ServerLevel exteriorWorld,
             BlockPos exteriorPos,
             int chunkX,
@@ -160,25 +159,20 @@ public final class SotoExteriorSampler extends PortalSampler {
     }
 
     public static boolean isInsideFootprint(BlockPos worldPos, BlockPos footprintOrigin) {
-        return INSTANCE.inFootprint(worldPos, footprintOrigin);
+        if (worldPos == null || footprintOrigin == null) {
+            return false;
+        }
+        int localX = worldPos.getX() - footprintOrigin.getX();
+        int localY = worldPos.getY() - footprintOrigin.getY();
+        int localZ = worldPos.getZ() - footprintOrigin.getZ();
+        return localX >= 0 && localX < SIZE_X
+                && localY >= 0 && localY < SIZE_Y
+                && localZ >= 0 && localZ < SIZE_Z;
     }
 
     @Override
     protected void ensureLoaded(ServerLevel world, BlockPos anchor) {
         addStreamTickets(world, anchor);
-    }
-
-    @Override
-    protected AABB entityBox(ServerLevel world, BlockPos anchor) {
-        return streamBox(anchor, PortalSampler.streamRadiusChunks(world));
-    }
-
-    @Override
-    protected YRange sampleYRange(ServerLevel world, BlockPos anchor) {
-        int yRadius = PortalSampler.streamYRadiusBlocks(PortalSampler.streamRadiusChunks(world));
-        int minY = Math.max(world.getMinY(), anchor.getY() - yRadius);
-        int maxY = Math.min(world.getMinY() + world.getHeight() - 1, anchor.getY() + yRadius);
-        return yRange(minY, maxY);
     }
 
     @Override
@@ -200,7 +194,7 @@ public final class SotoExteriorSampler extends PortalSampler {
         int lightMinY = Math.max(yRange.min(), lowestVisibleY - 1);
         int lightMaxY = Math.min(yRange.max(), highestVisibleY + 1);
         return PortalLightData.sample(
-                world,
+                world.getLightEngine(),
                 new BlockPos(baseX, lightMinY, baseZ),
                 new BlockPos(baseX + 15, lightMaxY, baseZ + 15)
         );

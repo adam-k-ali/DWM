@@ -13,8 +13,11 @@ import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.TicketType;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Mirror;
@@ -39,7 +42,75 @@ public final class FirstDoctorConsoleRoomPlacer {
     /** Local entrance standing position relative to structure origin (feet). */
     public static final BlockPos LOCAL_ENTRANCE = FirstDoctorConsoleRoomLayout.LOCAL_ENTRANCE;
 
+    /** Distinct from portal stream tickets so preload radius-0 columns do not merge with view-distance tickets. */
+    private static final TicketType ROOM_LOAD_TICKET = new TicketType(40L, TicketType.FLAG_LOADING);
+
     private FirstDoctorConsoleRoomPlacer() {
+    }
+
+    /**
+     * Inclusive chunk-grid bounds covering the console-room AABB.
+     * {@code [minChunkX, maxChunkX, minChunkZ, maxChunkZ]}.
+     */
+    public static int[] roomChunkBounds(BlockPos origin) {
+        return new int[]{
+                SectionPos.blockToSectionCoord(origin.getX()),
+                SectionPos.blockToSectionCoord(origin.getX() + SIZE_X - 1),
+                SectionPos.blockToSectionCoord(origin.getZ()),
+                SectionPos.blockToSectionCoord(origin.getZ() + SIZE_Z - 1)
+        };
+    }
+
+    /**
+     * Ticket-only keep-alive for the console-room footprint. Does not call {@code getChunk}.
+     */
+    public static void addRoomTickets(ServerLevel world, BlockPos origin) {
+        if (world == null || origin == null) {
+            return;
+        }
+        int[] bounds = roomChunkBounds(origin);
+        var chunkManager = world.getChunkSource();
+        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
+            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
+                chunkManager.addTicketWithRadius(ROOM_LOAD_TICKET, new ChunkPos(cx, cz), 0);
+            }
+        }
+    }
+
+    /**
+     * True when every room column is already present in the chunk cache (no force-load).
+     */
+    public static boolean areRoomChunksLoaded(ServerLevel world, BlockPos origin) {
+        if (world == null || origin == null) {
+            return false;
+        }
+        int[] bounds = roomChunkBounds(origin);
+        var chunkManager = world.getChunkSource();
+        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
+            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
+                if (!chunkManager.hasChunk(cx, cz)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Synchronously force-loads room chunks (blocking). Prefer {@link #addRoomTickets}
+     * + {@link #areRoomChunksLoaded} for approach-time preload.
+     */
+    public static void forceLoadRoomChunks(ServerLevel world, BlockPos origin) {
+        if (world == null || origin == null) {
+            return;
+        }
+        addRoomTickets(world, origin);
+        int[] bounds = roomChunkBounds(origin);
+        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
+            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
+                world.getChunk(cx, cz);
+            }
+        }
     }
 
     /**
@@ -47,7 +118,7 @@ public final class FirstDoctorConsoleRoomPlacer {
      * Prefer {@link #placeAssumingChunksLoaded} when chunks were ticketed asynchronously first.
      */
     public static BlockPos place(ServerLevel world, BlockPos origin, UUID tardisId) {
-        BotiInteriorSampler.forceLoadFootprintChunks(world, origin);
+        forceLoadRoomChunks(world, origin);
         return placeAssumingChunksLoaded(world, origin, tardisId);
     }
 

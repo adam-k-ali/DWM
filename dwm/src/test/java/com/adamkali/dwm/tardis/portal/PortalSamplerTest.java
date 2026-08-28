@@ -6,7 +6,6 @@ import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.level.TicketType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -25,10 +24,7 @@ class PortalSamplerTest {
     @BeforeAll
     static void bootstrap() {
         MinecraftTestBootstrap.ensure();
-        SAMPLER = new PortalSampler(
-                3, 4, 5,
-                new TicketType(80, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION)
-        ) {
+        SAMPLER = new PortalSampler() {
             @Override
             public boolean isVisible(BlockState state) {
                 return state != null && !state.isAir() && !state.is(Blocks.LIGHT);
@@ -52,15 +48,12 @@ class PortalSamplerTest {
     }
 
     @Test
-    void isInsideFootprint_respectsConstructorSizes() {
-        BlockPos origin = new BlockPos(10, 20, 30);
-
-        assertTrue(SAMPLER.inFootprint(origin, origin));
-        assertTrue(SAMPLER.inFootprint(origin.offset(2, 3, 4), origin));
-        assertFalse(SAMPLER.inFootprint(origin.offset(3, 0, 0), origin));
-        assertFalse(SAMPLER.inFootprint(origin.offset(0, 4, 0), origin));
-        assertFalse(SAMPLER.inFootprint(origin.offset(0, 0, 5), origin));
-        assertFalse(SAMPLER.inFootprint(origin.offset(0, -1, 0), origin));
+    void simulationRadiusChunks_isAtMostStreamRadius() {
+        assertEquals(
+                PortalSampler.DEFAULT_STREAM_RADIUS_CHUNKS,
+                PortalSampler.simulationRadiusChunks(null)
+        );
+        assertTrue(PortalSampler.simulationRadiusChunks(null) <= PortalSampler.streamRadiusChunks((ServerLevel) null));
     }
 
     @Test

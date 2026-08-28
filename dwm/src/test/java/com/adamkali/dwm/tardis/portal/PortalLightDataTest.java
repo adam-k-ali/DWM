@@ -3,6 +3,8 @@ package com.adamkali.dwm.tardis.portal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.chunk.DataLayer;
+import net.minecraft.world.level.lighting.LayerLightEventListener;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -30,6 +32,38 @@ class PortalLightDataTest {
         assertEquals(4, data.brightness(LightLayer.BLOCK, new BlockPos(4, 6, 8), -1));
         assertEquals(6, data.brightness(LightLayer.SKY, new BlockPos(4, 6, 8), -1));
         assertEquals(-1, data.brightness(LightLayer.SKY, new BlockPos(5, 6, 8), -1));
+    }
+
+    @Test
+    void sample_fromDataLayersPacksNibbleValues() {
+        DataLayer blockLayer = new DataLayer();
+        DataLayer skyLayer = new DataLayer();
+        blockLayer.set(1, 2, 3, 7);
+        skyLayer.set(1, 2, 3, 12);
+        LayerLightEventListener blockLight = Mockito.mock(LayerLightEventListener.class);
+        LayerLightEventListener skyLight = Mockito.mock(LayerLightEventListener.class);
+        Mockito.when(blockLight.getDataLayerData(any())).thenReturn(blockLayer);
+        Mockito.when(skyLight.getDataLayerData(any())).thenReturn(skyLayer);
+
+        PortalLightData data = PortalLightData.sample(
+                blockLight, skyLight, new BlockPos(1, 2, 3), new BlockPos(1, 2, 3));
+
+        assertEquals(7, data.brightness(LightLayer.BLOCK, new BlockPos(1, 2, 3), -1));
+        assertEquals(12, data.brightness(LightLayer.SKY, new BlockPos(1, 2, 3), -1));
+    }
+
+    @Test
+    void sample_nullLayersReadAsZero() {
+        LayerLightEventListener blockLight = Mockito.mock(LayerLightEventListener.class);
+        LayerLightEventListener skyLight = Mockito.mock(LayerLightEventListener.class);
+        Mockito.when(blockLight.getDataLayerData(any())).thenReturn(null);
+        Mockito.when(skyLight.getDataLayerData(any())).thenReturn(null);
+
+        PortalLightData data = PortalLightData.sample(
+                blockLight, skyLight, BlockPos.ZERO, BlockPos.ZERO);
+
+        assertEquals(0, data.brightness(LightLayer.BLOCK, BlockPos.ZERO, -1));
+        assertEquals(0, data.brightness(LightLayer.SKY, BlockPos.ZERO, -1));
     }
 
     @Test

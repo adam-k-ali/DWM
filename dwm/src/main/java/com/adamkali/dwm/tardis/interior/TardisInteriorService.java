@@ -5,7 +5,6 @@ import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.tardis.TardisExteriorFacing;
-import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
@@ -198,7 +197,7 @@ public final class TardisInteriorService {
         int sizeX = FirstDoctorConsoleRoomPlacer.SIZE_X;
         int sizeY = FirstDoctorConsoleRoomPlacer.SIZE_Y;
         int sizeZ = FirstDoctorConsoleRoomPlacer.SIZE_Z;
-        BotiInteriorSampler.forceLoadFootprintChunks(world, origin);
+        FirstDoctorConsoleRoomPlacer.forceLoadRoomChunks(world, origin);
 
         AABB roomBox = new AABB(
                 origin.getX(),

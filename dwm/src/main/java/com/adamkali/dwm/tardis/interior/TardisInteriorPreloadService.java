@@ -2,7 +2,6 @@ package com.adamkali.dwm.tardis.interior;
 
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.config.DWMConfig;
-import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import java.util.ArrayList;
 import java.util.List;
@@ -127,8 +126,8 @@ public final class TardisInteriorPreloadService {
             }
             BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
             if (job.phase() == Phase.LOADING) {
-                BotiInteriorSampler.addFootprintTickets(interiorWorld, origin);
-                if (!BotiInteriorSampler.areFootprintChunksLoaded(interiorWorld, origin)) {
+                FirstDoctorConsoleRoomPlacer.addRoomTickets(interiorWorld, origin);
+                if (!FirstDoctorConsoleRoomPlacer.areRoomChunksLoaded(interiorWorld, origin)) {
                     continue;
                 }
                 job = job.withPhase(Phase.READY_TO_PLACE);

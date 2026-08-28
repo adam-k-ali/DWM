@@ -20,13 +20,20 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.phys.AABB;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Shared sampling helpers for BOTI (look-in) and SOTO (look-out) portal streams.
  * Subclasses supply visibility, load strategy, and light-volume bounds.
+ *
+ * <p>Streaming matches vanilla {@code PlayerChunkSender}: tickets request async load, sampling
+ * reads only {@code FULL} chunks via {@code getChunkNow}, and never force-generates on the
+ * server thread.
  */
 public abstract class PortalSampler {
     /** Fallback when server/player view distance is unavailable (matches former Phase-1 cap). */
@@ -34,16 +41,15 @@ public abstract class PortalSampler {
     /** Fog starts at this fraction of the streamed block radius. */
     public static final float FOG_START_FRACTION = 0.6f;
 
-    protected final int sizeX;
-    protected final int sizeY;
-    protected final int sizeZ;
-    protected final TicketType ticket;
+    static final long STREAM_TICKET_TIMEOUT = 80L;
+    static final TicketType STREAM_LOADING_TICKET =
+            new TicketType(STREAM_TICKET_TIMEOUT, TicketType.FLAG_LOADING);
+    static final TicketType STREAM_SIMULATION_TICKET = new TicketType(
+            STREAM_TICKET_TIMEOUT,
+            TicketType.FLAG_SIMULATION | TicketType.FLAG_KEEP_DIMENSION_ACTIVE
+    );
 
-    protected PortalSampler(int sizeX, int sizeY, int sizeZ, TicketType ticket) {
-        this.sizeX = sizeX;
-        this.sizeY = sizeY;
-        this.sizeZ = sizeZ;
-        this.ticket = ticket;
+    protected PortalSampler() {
     }
 
     /**
@@ -75,6 +81,26 @@ public abstract class PortalSampler {
             return serverView;
         }
         return Math.min(serverView, requested);
+    }
+
+    /**
+     * Simulation radius in chunks: {@code min(stream radius, server simulation distance)}.
+     * Matches vanilla loading-at-view / ticking-at-simulation split.
+     */
+    public static int simulationRadiusChunks(ServerLevel world) {
+        int stream = streamRadiusChunks(world);
+        if (world == null) {
+            return stream;
+        }
+        MinecraftServer server = world.getServer();
+        if (server == null) {
+            return stream;
+        }
+        int simulation = server.getPlayerList().getSimulationDistance();
+        if (simulation <= 0) {
+            return stream;
+        }
+        return Math.min(stream, simulation);
     }
 
     /** Vertical half-extent in blocks matching a Chebyshev chunk radius. */
@@ -173,27 +199,6 @@ public abstract class PortalSampler {
         return visible;
     }
 
-    public boolean inFootprint(BlockPos worldPos, BlockPos origin) {
-        int localX = worldPos.getX() - origin.getX();
-        int localY = worldPos.getY() - origin.getY();
-        int localZ = worldPos.getZ() - origin.getZ();
-        return localX >= 0 && localX < sizeX
-                && localY >= 0 && localY < sizeY
-                && localZ >= 0 && localZ < sizeZ;
-    }
-
-    /** Axis-aligned footprint box in world space for entity queries. */
-    public AABB footprintAabb(BlockPos origin) {
-        return new AABB(
-                origin.getX(),
-                origin.getY(),
-                origin.getZ(),
-                origin.getX() + sizeX,
-                origin.getY() + sizeY,
-                origin.getZ() + sizeZ
-        );
-    }
-
     /**
      * Samples sky/fog atmosphere at {@code samplePos}. Returns {@link PortalAtmosphere#DEFAULT}
      * when the world or position is missing.
@@ -234,36 +239,27 @@ public abstract class PortalSampler {
         return nbt;
     }
 
-    /** Ticket-only keep-alive for a small footprint ({@code [minCX, maxCX, minCZ, maxCZ]}). */
-    protected void addTickets(ServerLevel world, int[] bounds) {
-        if (world == null || bounds == null) {
-            return;
-        }
-        var chunkManager = world.getChunkSource();
-        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
-            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
-                chunkManager.addTicketWithRadius(ticket, new ChunkPos(cx, cz), 0);
-            }
-        }
-    }
-
-    /** One ticket at {@code anchor}'s chunk covering the Chebyshev stream radius. */
+    /**
+     * LOADING ticket at {@code radiusChunks} plus a SIMULATION ticket at simulation distance.
+     * Does not call {@code getChunk}.
+     */
     protected void addStreamTickets(ServerLevel world, BlockPos anchor, int radiusChunks) {
         if (world == null || anchor == null) {
             return;
         }
-        world.getChunkSource().addTicketWithRadius(
-                ticket,
-                streamTicketChunk(anchor),
-                Math.max(0, radiusChunks)
-        );
+        ChunkPos ticketChunk = streamTicketChunk(anchor);
+        int loadRadius = Math.max(0, radiusChunks);
+        world.getChunkSource().addTicketWithRadius(STREAM_LOADING_TICKET, ticketChunk, loadRadius);
+        int simRadius = Math.min(loadRadius, simulationRadiusChunks(world));
+        world.getChunkSource().addTicketWithRadius(STREAM_SIMULATION_TICKET, ticketChunk, simRadius);
     }
 
     protected void ensureLoaded(ServerLevel world, BlockPos anchor) {
     }
 
     protected AABB entityBox(ServerLevel world, BlockPos anchor) {
-        return footprintAabb(anchor);
+        int radius = simulationRadiusChunks(world);
+        return streamBox(anchor, radius, streamYRadiusBlocks(radius));
     }
 
     protected boolean includePos(BlockPos worldPos, BlockPos anchor) {
@@ -271,7 +267,10 @@ public abstract class PortalSampler {
     }
 
     protected YRange sampleYRange(ServerLevel world, BlockPos anchor) {
-        return yRange(anchor.getY(), anchor.getY() + sizeY - 1);
+        int yRadius = streamYRadiusBlocks(streamRadiusChunks(world));
+        int minY = Math.max(world.getMinY(), anchor.getY() - yRadius);
+        int maxY = Math.min(world.getMinY() + world.getHeight() - 1, anchor.getY() + yRadius);
+        return yRange(minY, maxY);
     }
 
     protected static YRange yRange(int min, int max) {
@@ -325,8 +324,10 @@ public abstract class PortalSampler {
     /**
      * Collects visible block states (+ BE NBT) for one chunk column.
      * Positions in the returned maps are world-absolute.
+     *
+     * @return the sample, or {@code null} when the column is not yet {@code FULL} (retry later)
      */
-    protected PortalStreamSample sampleChunkColumn(
+    protected @Nullable PortalStreamSample sampleChunkColumn(
             ServerLevel world,
             BlockPos anchor,
             int chunkX,
@@ -335,37 +336,72 @@ public abstract class PortalSampler {
         if (world == null || anchor == null) {
             return new PortalStreamSample(chunkX, chunkZ, Map.of(), Map.of(), PortalLightData.EMPTY);
         }
-        world.getChunk(chunkX, chunkZ);
+        LevelChunk chunk = world.getChunkSource().getChunkNow(chunkX, chunkZ);
+        if (chunk == null) {
+            return null;
+        }
         Map<BlockPos, BlockState> blocks = new HashMap<>();
         Map<BlockPos, CompoundTag> blockEntities = new HashMap<>();
         int lowestVisibleY = Integer.MAX_VALUE;
         int highestVisibleY = Integer.MIN_VALUE;
         HolderLookup.Provider registries = world.registryAccess();
         YRange yRange = sampleYRange(world, anchor);
+        if (yRange.min() > yRange.max()) {
+            return new PortalStreamSample(chunkX, chunkZ, Map.of(), Map.of(), PortalLightData.EMPTY);
+        }
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
         int baseX = chunkX << 4;
         int baseZ = chunkZ << 4;
-        for (int lx = 0; lx < 16; lx++) {
-            for (int lz = 0; lz < 16; lz++) {
-                for (int y = yRange.min(); y <= yRange.max(); y++) {
-                    mutable.set(baseX + lx, y, baseZ + lz);
+        int minSectionY = Math.max(chunk.getMinSectionY(), SectionPos.blockToSectionCoord(yRange.min()));
+        int maxSectionY = Math.min(chunk.getMaxSectionY(), SectionPos.blockToSectionCoord(yRange.max()));
+        for (int sectionY = minSectionY; sectionY <= maxSectionY; sectionY++) {
+            LevelChunkSection section = chunk.getSection(chunk.getSectionIndexFromSectionY(sectionY));
+            if (section.hasOnlyAir()) {
+                continue;
+            }
+            int sectionMinY = SectionPos.sectionToBlockCoord(sectionY);
+            int localMinY = Math.max(0, yRange.min() - sectionMinY);
+            int localMaxY = Math.min(15, yRange.max() - sectionMinY);
+            for (int lx = 0; lx < 16; lx++) {
+                for (int lz = 0; lz < 16; lz++) {
+                    mutable.set(baseX + lx, yRange.min(), baseZ + lz);
                     if (!includePos(mutable, anchor)) {
                         continue;
                     }
-                    BlockState state = world.getBlockState(mutable);
-                    if (!isVisible(state)) {
-                        continue;
-                    }
-                    BlockPos immutable = mutable.immutable();
-                    blocks.put(immutable, state);
-                    lowestVisibleY = Math.min(lowestVisibleY, y);
-                    highestVisibleY = Math.max(highestVisibleY, y);
-                    BlockEntity blockEntity = world.getBlockEntity(mutable);
-                    if (blockEntity != null) {
-                        blockEntities.put(immutable, captureSyncNbt(blockEntity, registries));
+                    for (int ly = localMinY; ly <= localMaxY; ly++) {
+                        int y = sectionMinY + ly;
+                        mutable.set(baseX + lx, y, baseZ + lz);
+                        BlockState state = section.getBlockState(lx, ly, lz);
+                        if (!isVisible(state)) {
+                            continue;
+                        }
+                        BlockPos immutable = mutable.immutable();
+                        blocks.put(immutable, state);
+                        lowestVisibleY = Math.min(lowestVisibleY, y);
+                        highestVisibleY = Math.max(highestVisibleY, y);
                     }
                 }
             }
+        }
+        for (BlockEntity blockEntity : chunk.getBlockEntities().values()) {
+            BlockPos pos = blockEntity.getBlockPos();
+            if (pos.getY() < yRange.min() || pos.getY() > yRange.max()) {
+                continue;
+            }
+            if (!includePos(pos, anchor)) {
+                continue;
+            }
+            BlockState state = blocks.get(pos);
+            if (state == null) {
+                state = blockEntity.getBlockState();
+                if (!isVisible(state)) {
+                    continue;
+                }
+                blocks.put(pos.immutable(), state);
+                lowestVisibleY = Math.min(lowestVisibleY, pos.getY());
+                highestVisibleY = Math.max(highestVisibleY, pos.getY());
+            }
+            blockEntities.put(pos.immutable(), captureSyncNbt(blockEntity, registries));
         }
         PortalLightData lightData = sampleLight(
                 world, anchor, chunkX, chunkZ, yRange, blocks, lowestVisibleY, highestVisibleY);

@@ -3,14 +3,13 @@ package com.adamkali.dwm.tardis.boti;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.entity.ConsoleControlInteractionEntity;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
+import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomPlacer;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
 import com.adamkali.dwm.tardis.portal.PortalLightData;
 import com.adamkali.dwm.tardis.portal.PortalSampler;
 import com.adamkali.dwm.tardis.portal.PortalStreamSample;
 import com.mojang.authlib.GameProfile;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -22,7 +21,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.TicketType;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -35,26 +33,15 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.phys.AABB;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Samples the First Doctor console-room footprint for BOTI sync.
- * Relative coords match {@link FirstDoctorConsoleRoomLayout} / exterior alignment.
+ * Samples the TARDIS interior plot for BOTI portal streaming.
  */
 public final class BotiInteriorSampler extends PortalSampler {
-    public static final int SIZE_X = FirstDoctorConsoleRoomLayout.SIZE_X;
-    public static final int SIZE_Y = FirstDoctorConsoleRoomLayout.SIZE_Y;
-    public static final int SIZE_Z = FirstDoctorConsoleRoomLayout.SIZE_Z;
-
-    /**
-     * Keeps footprint chunks entity-accessible briefly after the player leaves the TARDIS
-     * dimension so BOTI can still sample live entities for the exterior preview.
-     */
-    private static final TicketType BOTI_TICKET = new TicketType(80, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION);
-
     static final BotiInteriorSampler INSTANCE = new BotiInteriorSampler();
 
     private BotiInteriorSampler() {
-        super(SIZE_X, SIZE_Y, SIZE_Z, BOTI_TICKET);
     }
 
     /**
@@ -82,78 +69,10 @@ public final class BotiInteriorSampler extends PortalSampler {
     }
 
     /**
-     * Samples the live plot for {@code tardisId} into relative structure coordinates.
-     */
-    public static Map<BlockPos, BlockState> sample(ServerLevel interiorWorld, UUID tardisId) {
-        BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
-        Map<BlockPos, BlockState> visible = new HashMap<>();
-        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
-        for (int x = 0; x < SIZE_X; x++) {
-            for (int y = 0; y < SIZE_Y; y++) {
-                for (int z = 0; z < SIZE_Z; z++) {
-                    mutable.set(origin.getX() + x, origin.getY() + y, origin.getZ() + z);
-                    BlockState state = interiorWorld.getBlockState(mutable);
-                    if (isBotiVisible(state)) {
-                        visible.put(new BlockPos(x, y, z), state);
-                    }
-                }
-            }
-        }
-        return visible;
-    }
-
-    /**
-     * Samples chunk-sync NBT for block entities in the footprint
-     * ({@link #isBotiVisible} — interior doors excluded).
-     * Each compound includes the BE type {@code id} for client reconstruction.
-     */
-    public static Map<BlockPos, CompoundTag> sampleBlockEntities(ServerLevel interiorWorld, UUID tardisId) {
-        BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
-        HolderLookup.Provider registries = interiorWorld.registryAccess();
-        Map<BlockPos, CompoundTag> entities = new HashMap<>();
-        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
-        for (int x = 0; x < SIZE_X; x++) {
-            for (int y = 0; y < SIZE_Y; y++) {
-                for (int z = 0; z < SIZE_Z; z++) {
-                    mutable.set(origin.getX() + x, origin.getY() + y, origin.getZ() + z);
-                    BlockState state = interiorWorld.getBlockState(mutable);
-                    if (!isBotiVisible(state)) {
-                        continue;
-                    }
-                    BlockEntity blockEntity = interiorWorld.getBlockEntity(mutable);
-                    if (blockEntity == null) {
-                        continue;
-                    }
-                    entities.put(new BlockPos(x, y, z), captureSyncNbt(blockEntity, registries));
-                }
-            }
-        }
-        return entities;
-    }
-
-    /**
      * Chunk-sync NBT plus type {@code id} for client {@link BlockEntity#loadStatic} reconstruction.
      */
     public static CompoundTag captureSyncNbt(BlockEntity blockEntity, HolderLookup.Provider registries) {
         return PortalSampler.captureSyncNbt(blockEntity, registries);
-    }
-
-    /** Axis-aligned footprint box in world space for entity queries. */
-    public static AABB footprintBox(BlockPos plotOrigin) {
-        return INSTANCE.footprintAabb(plotOrigin);
-    }
-
-    /**
-     * Inclusive chunk-grid bounds covering the console-room footprint (preload / lighting).
-     * {@code [minChunkX, maxChunkX, minChunkZ, maxChunkZ]}.
-     */
-    public static int[] footprintChunkBounds(BlockPos plotOrigin) {
-        return new int[]{
-                SectionPos.blockToSectionCoord(plotOrigin.getX()),
-                SectionPos.blockToSectionCoord(plotOrigin.getX() + SIZE_X - 1),
-                SectionPos.blockToSectionCoord(plotOrigin.getZ()),
-                SectionPos.blockToSectionCoord(plotOrigin.getZ() + SIZE_Z - 1)
-        };
     }
 
     /**
@@ -216,36 +135,6 @@ public final class BotiInteriorSampler extends PortalSampler {
         INSTANCE.addStreamTickets(world, plotOrigin, clipStreamRadiusChunks(PortalSampler.streamRadiusChunks(world)));
     }
 
-    /**
-     * Ticket-only keep-alive for the console-room footprint. Does not call {@code getChunk}
-     * (avoids synchronous force-loads — used by deferred interior preload).
-     */
-    public static void addFootprintTickets(ServerLevel world, BlockPos plotOrigin) {
-        if (world == null || plotOrigin == null) {
-            return;
-        }
-        INSTANCE.addTickets(world, footprintChunkBounds(plotOrigin));
-    }
-
-    /**
-     * True when every footprint column is already present in the chunk cache (no force-load).
-     */
-    public static boolean areFootprintChunksLoaded(ServerLevel world, BlockPos plotOrigin) {
-        if (world == null || plotOrigin == null) {
-            return false;
-        }
-        int[] bounds = footprintChunkBounds(plotOrigin);
-        var chunkManager = world.getChunkSource();
-        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
-            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
-                if (!chunkManager.hasChunk(cx, cz)) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
     /** True once the stamped room's known light source has propagated into vanilla light data. */
     public static boolean isFootprintLightReady(ServerLevel world, BlockPos plotOrigin) {
         if (world == null || plotOrigin == null) {
@@ -268,7 +157,7 @@ public final class BotiInteriorSampler extends PortalSampler {
         if (world == null || plotOrigin == null) {
             return;
         }
-        int[] bounds = footprintChunkBounds(plotOrigin);
+        int[] bounds = FirstDoctorConsoleRoomPlacer.roomChunkBounds(plotOrigin);
         var lightEngine = world.getLightEngine();
         for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
             for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
@@ -279,38 +168,6 @@ public final class BotiInteriorSampler extends PortalSampler {
         }
         BlockPos sourcePos = plotOrigin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.above(3));
         lightEngine.checkBlock(sourcePos);
-    }
-
-    /**
-     * Synchronously force-loads footprint chunks (blocking). Prefer {@link #addFootprintTickets}
-     * + {@link #areFootprintChunksLoaded} for approach-time preload.
-     */
-    public static void forceLoadFootprintChunks(ServerLevel world, BlockPos plotOrigin) {
-        if (world == null || plotOrigin == null) {
-            return;
-        }
-        addFootprintTickets(world, plotOrigin);
-        int[] bounds = footprintChunkBounds(plotOrigin);
-        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
-            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
-                world.getChunk(cx, cz);
-            }
-        }
-    }
-
-    /**
-     * Ensures footprint chunks are loaded (and briefly ticketed) so entity queries work even when
-     * no player is in {@code dwm:tardis}.
-     */
-    public static void ensureFootprintChunksLoaded(ServerLevel world, BlockPos plotOrigin) {
-        forceLoadFootprintChunks(world, plotOrigin);
-    }
-
-    /** True if any non-removed entity intersects the plot footprint. */
-    public static boolean hasEntities(ServerLevel interiorWorld, UUID tardisId) {
-        BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
-        ensureFootprintChunksLoaded(interiorWorld, origin);
-        return INSTANCE.hasLoadedEntities(interiorWorld, origin);
     }
 
     /**
@@ -326,52 +183,12 @@ public final class BotiInteriorSampler extends PortalSampler {
     }
 
     /**
-     * Samples entities intersecting the footprint into relative structure coordinates.
-     * Uses {@link Entity#saveAsPassenger}; players are special-cased ({@code EntityTypes.PLAYER} is not saveable).
-     */
-    public static List<BotiEntitySample> sampleEntities(ServerLevel interiorWorld, UUID tardisId) {
-        BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
-        ensureFootprintChunksLoaded(interiorWorld, origin);
-        List<Entity> found = interiorWorld.getEntities((Entity) null, footprintBox(origin), entity -> !entity.isRemoved());
-        if (found.isEmpty()) {
-            return List.of();
-        }
-        List<BotiEntitySample> samples = new ArrayList<>(found.size());
-        for (Entity entity : found) {
-            BotiEntitySample sample = captureEntity(entity, origin);
-            if (sample != null) {
-                samples.add(sample);
-            }
-        }
-        return List.copyOf(samples);
-    }
-
-    /**
-     * Captures one entity for BOTI sync. Returns null when the entity cannot be serialized.
-     */
-    public static BotiEntitySample captureEntity(Entity entity, BlockPos plotOrigin) {
-        if (entity == null || entity.isRemoved() || plotOrigin == null) {
-            return null;
-        }
-        if (entity instanceof ConsoleControlInteractionEntity) {
-            return null;
-        }
-        CompoundTag nbt = captureEntityNbt(entity);
-        if (nbt == null) {
-            return null;
-        }
-        float relX = (float) (entity.getX() - plotOrigin.getX());
-        float relY = (float) (entity.getY() - plotOrigin.getY());
-        float relZ = (float) (entity.getZ() - plotOrigin.getZ());
-        writeRelativePos(nbt, relX, relY, relZ);
-        writeRelativeAttachment(nbt, plotOrigin);
-        return new BotiEntitySample(relX, relY, relZ, entity.getYRot(), entity.getXRot(), nbt);
-    }
-
-    /**
      * Entity NBT with type {@code id}. Players get profile tags for client {@code OtherClientPlayerEntity}.
      */
     public static CompoundTag captureEntityNbt(Entity entity) {
+        if (entity == null || entity.isRemoved() || entity instanceof ConsoleControlInteractionEntity) {
+            return null;
+        }
         if (entity instanceof Player player) {
             TagValueOutput output = TagValueOutput.createWithContext(
                     ProblemReporter.DISCARDING, entity.registryAccess());
@@ -411,20 +228,18 @@ public final class BotiInteriorSampler extends PortalSampler {
         nbt.putInt("TileZ", nbt.getIntOr("TileZ", 0) - plotOrigin.getZ());
     }
 
-    public static boolean isInsideFootprint(BlockPos worldPos, BlockPos plotOrigin) {
-        return INSTANCE.inFootprint(worldPos, plotOrigin);
-    }
-
     /** Samples interior sky/fog atmosphere at the plot origin. */
     public static PortalAtmosphere sampleAtmosphere(ServerLevel interiorWorld, BlockPos plotOrigin) {
         return PortalSampler.sampleAtmosphere(interiorWorld, plotOrigin);
     }
 
     /**
-     * Collects visible block states (+ BE NBT) for one chunk column clipped to the footprint.
+     * Collects visible block states (+ BE NBT) for one chunk column clipped to the plot.
      * Positions in the returned maps are world-absolute.
+     *
+     * @return the sample, or {@code null} when the column is not yet {@code FULL}
      */
-    public static PortalStreamSample sampleStreamChunk(
+    public static @Nullable PortalStreamSample sampleStreamChunk(
             ServerLevel interiorWorld,
             UUID tardisId,
             int chunkX,
@@ -450,7 +265,7 @@ public final class BotiInteriorSampler extends PortalSampler {
 
     @Override
     protected AABB entityBox(ServerLevel world, BlockPos anchor) {
-        int radius = PortalSampler.streamRadiusChunks(world);
+        int radius = PortalSampler.simulationRadiusChunks(world);
         int yRadius = PortalSampler.streamYRadiusBlocks(radius);
         AABB stream = PortalSampler.streamBox(anchor, radius, yRadius);
         AABB plot = new AABB(
@@ -473,14 +288,6 @@ public final class BotiInteriorSampler extends PortalSampler {
     }
 
     @Override
-    protected YRange sampleYRange(ServerLevel world, BlockPos anchor) {
-        int yRadius = PortalSampler.streamYRadiusBlocks(PortalSampler.streamRadiusChunks(world));
-        int minY = Math.max(world.getMinY(), anchor.getY() - yRadius);
-        int maxY = Math.min(world.getMinY() + world.getHeight() - 1, anchor.getY() + yRadius);
-        return yRange(minY, maxY);
-    }
-
-    @Override
     protected PortalLightData sampleLight(
             ServerLevel world,
             BlockPos anchor,
@@ -498,7 +305,7 @@ public final class BotiInteriorSampler extends PortalSampler {
         int minZ = Math.max(baseZ, anchor.getZ());
         int maxZ = Math.min(baseZ + 15, anchor.getZ() + TardisPlotAllocator.PLOT_SPACING - 1);
         return PortalLightData.sample(
-                world,
+                world.getLightEngine(),
                 new BlockPos(minX, yRange.min(), minZ),
                 new BlockPos(maxX, yRange.max(), maxZ)
         );

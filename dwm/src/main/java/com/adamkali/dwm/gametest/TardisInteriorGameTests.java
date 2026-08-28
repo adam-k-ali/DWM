@@ -208,6 +208,9 @@ public class TardisInteriorGameTests {
             }
             var sample = BotiInteriorSampler.sampleStreamChunk(
                     interior, tardisId, sourcePos.getX() >> 4, sourcePos.getZ() >> 4);
+            if (sample == null) {
+                throw new AssertionError("Expected BOTI stream sample after interior place (chunk should be FULL)");
+            }
             if (sample.lightData().brightness(LightLayer.BLOCK, sourcePos, -1) != 15) {
                 throw new AssertionError("Expected BOTI sample to retain propagated block light");
             }

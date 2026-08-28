@@ -36,8 +36,10 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,8 @@ public final class PortalStreamSyncService {
     private static final int VIEWER_LEAVE_GRACE_TICKS = 40;
     static final int MAX_BOTI_LIGHT_DEFER_TICKS = 40;
     static final int CHUNK_SEND_BUDGET_PER_VIEWER_TICK = 8;
+    static final int GLOBAL_SAMPLE_BUDGET_PER_TICK = 16;
+    static final long SAMPLE_TIME_BUDGET_NS = 2_000_000L;
     private static final int LIGHT_GATE_PASSED = -1;
 
     private static final Map<StreamKey, Set<UUID>> SUBSCRIBERS = new ConcurrentHashMap<>();
@@ -201,7 +205,7 @@ public final class PortalStreamSyncService {
         sendMeta(player, ctx);
         SENT_CHUNKS.computeIfAbsent(viewerKey, k -> ConcurrentHashMap.newKeySet());
         TRACKED_ENTITIES.computeIfAbsent(viewerKey, k -> ConcurrentHashMap.newKeySet());
-        ensureChunks(player, ctx);
+        sendViewerChunks(player, ctx, new HashMap<>(), SampleBudget.start(), new HashMap<>());
         syncEntities(player, ctx);
         return true;
     }
@@ -220,14 +224,15 @@ public final class PortalStreamSyncService {
         }
         TardisInteriorPreloadService.tick(server);
         markShellAnimatingDirty();
+        SampleBudget budget = SampleBudget.start();
         long metaStart = PortalStreamPerfStats.begin();
         flushMeta(server);
         PortalStreamPerfStats.endFlushMeta(metaStart);
         long sotoStart = PortalStreamPerfStats.begin();
-        flushStreams(server, PortalStreamKind.SOTO);
+        flushStreams(server, PortalStreamKind.SOTO, budget);
         PortalStreamPerfStats.endFlushSoto(sotoStart);
         long botiStart = PortalStreamPerfStats.begin();
-        flushStreams(server, PortalStreamKind.BOTI);
+        flushStreams(server, PortalStreamKind.BOTI, budget);
         PortalStreamPerfStats.endFlushBoti(botiStart);
         if (diag) {
             PortalStreamPerfStats.endTick();
@@ -299,12 +304,11 @@ public final class PortalStreamSyncService {
         }
     }
 
-    private static void flushStreams(MinecraftServer server, PortalStreamKind kind) {
+    private static void flushStreams(MinecraftServer server, PortalStreamKind kind, SampleBudget budget) {
         Set<UUID> registered = kind == PortalStreamKind.SOTO
                 ? SotoExteriorIndex.registeredIds()
                 : BotiPlotIndex.registeredIds();
         Set<UUID> active = new HashSet<>();
-        Set<StreamKey> dirtyFlushed = new HashSet<>();
         for (UUID tardisId : registered) {
             StreamKey streamKey = new StreamKey(kind, tardisId);
             Set<ServerPlayer> viewers = collectViewers(server, kind, tardisId);
@@ -328,22 +332,67 @@ public final class PortalStreamSyncService {
             )) {
                 continue;
             }
+            Map<Long, PortalStreamSample> sampleCache = new HashMap<>();
+            Map<Long, Integer> dirtyNeed = new HashMap<>();
+            Map<Long, Integer> dirtyGot = new HashMap<>();
+            Set<Long> dirty = DIRTY_CHUNKS.getOrDefault(streamKey, Set.of());
             for (ServerPlayer viewer : viewers) {
-                ensureChunks(viewer, ctx);
-                flushDirtyChunks(viewer, ctx);
+                ViewerKey viewerKey = new ViewerKey(kind, tardisId, viewer.getUUID());
+                Set<Long> sent = SENT_CHUNKS.get(viewerKey);
+                if (sent == null || dirty.isEmpty()) {
+                    continue;
+                }
+                for (long packed : dirty) {
+                    if (sent.contains(packed)) {
+                        dirtyNeed.merge(packed, 1, Integer::sum);
+                    }
+                }
             }
-            dirtyFlushed.add(streamKey);
+            for (ServerPlayer viewer : viewers) {
+                sendViewerChunks(viewer, ctx, sampleCache, budget, dirtyGot);
+            }
+            retainUnsentDirty(streamKey, dirtyNeed, dirtyGot);
             if (tickCounter % ENTITY_UPDATE_INTERVAL_TICKS == 0) {
                 for (ServerPlayer viewer : viewers) {
                     syncEntities(viewer, ctx);
                 }
             }
         }
-        for (StreamKey key : dirtyFlushed) {
-            DIRTY_CHUNKS.remove(key);
-        }
         SUBSCRIBERS.keySet().removeIf(key ->
                 key.kind() == kind && !registered.contains(key.tardisId()) && !active.contains(key.tardisId()));
+    }
+
+    static Set<Long> leftoverDirty(Map<Long, Integer> dirtyNeed, Map<Long, Integer> dirtyGot) {
+        Set<Long> leftover = new HashSet<>();
+        for (Map.Entry<Long, Integer> entry : dirtyNeed.entrySet()) {
+            int need = entry.getValue();
+            if (need <= 0) {
+                continue;
+            }
+            int got = dirtyGot.getOrDefault(entry.getKey(), 0);
+            if (got < need) {
+                leftover.add(entry.getKey());
+            }
+        }
+        return leftover;
+    }
+
+    private static void retainUnsentDirty(
+            StreamKey streamKey,
+            Map<Long, Integer> dirtyNeed,
+            Map<Long, Integer> dirtyGot
+    ) {
+        Set<Long> current = DIRTY_CHUNKS.get(streamKey);
+        if (current == null || current.isEmpty()) {
+            return;
+        }
+        Set<Long> leftover = leftoverDirty(dirtyNeed, dirtyGot);
+        leftover.retainAll(current);
+        if (leftover.isEmpty()) {
+            DIRTY_CHUNKS.remove(streamKey);
+        } else {
+            current.retainAll(leftover);
+        }
     }
 
     static boolean shouldDeferBotiStreamForTest(UUID tardisId, boolean lightReady, int currentTick) {
@@ -449,7 +498,13 @@ public final class PortalStreamSyncService {
         PortalStreamPerfStats.noteMetaPacket();
     }
 
-    private static void ensureChunks(ServerPlayer player, SceneContext ctx) {
+    private static void sendViewerChunks(
+            ServerPlayer player,
+            SceneContext ctx,
+            Map<Long, PortalStreamSample> sampleCache,
+            SampleBudget budget,
+            Map<Long, Integer> dirtyGot
+    ) {
         ViewerKey key = new ViewerKey(ctx.kind(), ctx.tardisId(), player.getUUID());
         Set<Long> sent = SENT_CHUNKS.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet());
         int[] bounds = ctx.chunkBounds(player);
@@ -467,28 +522,46 @@ public final class PortalStreamSyncService {
                 ));
             }
         }
-        int sentThisTick = 0;
         int anchorCx = ctx.anchorPos().getX() >> 4;
         int anchorCz = ctx.anchorPos().getZ() >> 4;
-        List<Long> toSend = new ArrayList<>();
-        for (long packed : desired) {
-            if (!sent.contains(packed)) {
-                toSend.add(packed);
+        Set<Long> dirty = DIRTY_CHUNKS.getOrDefault(new StreamKey(ctx.kind(), ctx.tardisId()), Set.of());
+        List<Long> dirtyQueue = new ArrayList<>();
+        List<Long> newQueue = new ArrayList<>();
+        for (long packed : dirty) {
+            if (sent.contains(packed)) {
+                dirtyQueue.add(packed);
             }
         }
-        toSend.sort(Comparator.comparingInt(packed -> {
-            int dx = Math.abs(ChunkPos.getX(packed) - anchorCx);
-            int dz = Math.abs(ChunkPos.getZ(packed) - anchorCz);
-            return Math.max(dx, dz);
-        }));
-        for (long packed : toSend) {
+        for (long packed : desired) {
+            if (!sent.contains(packed)) {
+                newQueue.add(packed);
+            }
+        }
+        Comparator<Long> nearer = Comparator.comparingInt(packed -> chebyshevDistance(packed, anchorCx, anchorCz));
+        dirtyQueue.sort(nearer);
+        newQueue.sort(nearer);
+        List<Long> queue = new ArrayList<>(dirtyQueue.size() + newQueue.size());
+        queue.addAll(dirtyQueue);
+        queue.addAll(newQueue);
+        int sentThisTick = 0;
+        for (long packed : queue) {
             if (sentThisTick >= CHUNK_SEND_BUDGET_PER_VIEWER_TICK) {
                 break;
             }
-            int cx = ChunkPos.getX(packed);
-            int cz = ChunkPos.getZ(packed);
-            PortalStreamSample sample = ctx.sampleChunk(cx, cz);
-            PortalStreamPerfStats.noteChunkSample();
+            boolean alreadySent = sent.contains(packed);
+            PortalStreamSample sample = sampleCache.get(packed);
+            if (sample == null) {
+                if (!budget.canSample()) {
+                    break;
+                }
+                sample = ctx.sampleChunk(ChunkPos.getX(packed), ChunkPos.getZ(packed));
+                if (sample == null) {
+                    continue;
+                }
+                budget.noteSample();
+                PortalStreamPerfStats.noteChunkSample();
+                sampleCache.put(packed, sample);
+            }
             ServerPlayNetworking.send(
                     player,
                     SyncPortalChunkS2CPayload.fromSample(ctx.kind(), ctx.tardisId(), ctx.footprintOrigin(), sample)
@@ -496,33 +569,16 @@ public final class PortalStreamSyncService {
             PortalStreamPerfStats.noteChunkPacket();
             sent.add(packed);
             sentThisTick++;
+            if (alreadySent && dirty.contains(packed)) {
+                dirtyGot.merge(packed, 1, Integer::sum);
+            }
         }
     }
 
-    private static void flushDirtyChunks(ServerPlayer player, SceneContext ctx) {
-        Set<Long> dirty = DIRTY_CHUNKS.get(new StreamKey(ctx.kind(), ctx.tardisId()));
-        if (dirty == null || dirty.isEmpty()) {
-            return;
-        }
-        ViewerKey key = new ViewerKey(ctx.kind(), ctx.tardisId(), player.getUUID());
-        Set<Long> sent = SENT_CHUNKS.get(key);
-        if (sent == null) {
-            return;
-        }
-        for (long packed : Set.copyOf(dirty)) {
-            if (!sent.contains(packed)) {
-                continue;
-            }
-            int cx = ChunkPos.getX(packed);
-            int cz = ChunkPos.getZ(packed);
-            PortalStreamSample sample = ctx.sampleChunk(cx, cz);
-            PortalStreamPerfStats.noteChunkSample();
-            ServerPlayNetworking.send(
-                    player,
-                    SyncPortalChunkS2CPayload.fromSample(ctx.kind(), ctx.tardisId(), ctx.footprintOrigin(), sample)
-            );
-            PortalStreamPerfStats.noteChunkPacket();
-        }
+    static int chebyshevDistance(long packed, int anchorCx, int anchorCz) {
+        int dx = Math.abs(ChunkPos.getX(packed) - anchorCx);
+        int dz = Math.abs(ChunkPos.getZ(packed) - anchorCz);
+        return Math.max(dx, dz);
     }
 
     private static void syncEntities(ServerPlayer player, SceneContext ctx) {
@@ -636,7 +692,7 @@ public final class PortalStreamSyncService {
             return BotiInteriorSampler.streamChunkBounds(footprintOrigin, radius);
         }
 
-        PortalStreamSample sampleChunk(int chunkX, int chunkZ) {
+        @Nullable PortalStreamSample sampleChunk(int chunkX, int chunkZ) {
             if (kind == PortalStreamKind.SOTO) {
                 return SotoExteriorSampler.samplePortalStreamChunk(world, anchorPos, chunkX, chunkZ);
             }
@@ -648,6 +704,28 @@ public final class PortalStreamSyncService {
                 return SotoExteriorSampler.collectStreamEntities(world, anchorPos);
             }
             return BotiInteriorSampler.collectStreamEntities(world, tardisId);
+        }
+    }
+
+    static final class SampleBudget {
+        int remainingSamples;
+        final long deadlineNs;
+
+        private SampleBudget(int remainingSamples, long deadlineNs) {
+            this.remainingSamples = remainingSamples;
+            this.deadlineNs = deadlineNs;
+        }
+
+        static SampleBudget start() {
+            return new SampleBudget(GLOBAL_SAMPLE_BUDGET_PER_TICK, System.nanoTime() + SAMPLE_TIME_BUDGET_NS);
+        }
+
+        boolean canSample() {
+            return remainingSamples > 0 && System.nanoTime() < deadlineNs;
+        }
+
+        void noteSample() {
+            remainingSamples--;
         }
     }
 }
