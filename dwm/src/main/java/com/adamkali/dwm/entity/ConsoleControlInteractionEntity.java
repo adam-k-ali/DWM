@@ -99,7 +99,7 @@ public class ConsoleControlInteractionEntity extends Interaction {
         if (target == LookTarget.NONE) {
             return InteractionResult.CONSUME;
         }
-        return FirstDoctorConsoleBlock.activateControl(target, level(), consolePos, player);
+        return FirstDoctorConsoleBlock.activateControl(target, level(), consolePos, player, hand);
     }
 
     @Override

@@ -499,14 +499,33 @@ public final class TardisTravelService {
         ACTIVE.add(tardisId);
         TardisTravelAudio.startMat(server, tardisId, destinationWorld, landing);
 
-        if (FirstHourLogic.isSameWorldHop(originDimension, destinationDimension, summonPending)
-                && model.ownerUuid != null) {
-            ServerPlayer owner = server.getPlayerList().getPlayer(model.ownerUuid);
-            if (owner != null) {
-                DWMCriteria.FIRST_HOP.trigger(owner);
-            }
-        }
+        triggerTravelAdvancements(server, model, originDimension, destinationDimension, summonPending);
         return InteractionResult.SUCCESS;
+    }
+
+    private static void triggerTravelAdvancements(
+            MinecraftServer server,
+            TardisDataModel model,
+            String originDimension,
+            String destinationDimension,
+            boolean summonPending
+    ) {
+        if (model.ownerUuid == null) {
+            return;
+        }
+        ServerPlayer owner = server.getPlayerList().getPlayer(model.ownerUuid);
+        if (owner == null) {
+            return;
+        }
+        if (FirstHourLogic.isSameWorldHop(originDimension, destinationDimension, summonPending)) {
+            DWMCriteria.FIRST_HOP.trigger(owner);
+        }
+        if (FirstHourLogic.isOtherWorldHop(originDimension, destinationDimension, summonPending)) {
+            DWMCriteria.FIRST_OTHER_WORLD.trigger(owner);
+        }
+        if (FirstHourLogic.isGallifreyLanding(destinationDimension, summonPending)) {
+            DWMCriteria.FIRST_GALLIFREY.trigger(owner);
+        }
     }
 
     public static boolean isTraveling(@Nullable UUID tardisId) {

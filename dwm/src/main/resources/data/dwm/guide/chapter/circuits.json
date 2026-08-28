@@ -1,0 +1,10 @@
+{
+  "chapter": { "id": "dwm:circuits" },
+  "titleKey": "dwm.guide.chapter.circuits",
+  "pages": [
+    { "id": "dwm:install_circuits" },
+    { "id": "dwm:landing_kit" },
+    { "id": "dwm:planet_locator_circuit" },
+    { "id": "dwm:late_circuits" }
+  ]
+}

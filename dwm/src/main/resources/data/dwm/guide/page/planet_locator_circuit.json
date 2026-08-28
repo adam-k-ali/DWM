@@ -1,0 +1,14 @@
+{
+  "page": { "id": "dwm:planet_locator_circuit" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.planet_locator_circuit.title",
+      "bodyKey": "dwm.guide.page.planet_locator_circuit.body"
+    },
+    {
+      "type": "crafting",
+      "recipes": ["dwm:circuit_planet_locator"]
+    }
+  ]
+}

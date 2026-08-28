@@ -1,6 +1,7 @@
 package com.adamkali.dwm.gametest;
 
 import com.adamkali.dwm.DWMReference;
+import com.adamkali.dwm.advancement.DWMCriteria;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.FirstDoctorConsoleBlock;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls.LookTarget;
@@ -13,18 +14,22 @@ import com.adamkali.dwm.item.SonicStateLogic;
 import com.adamkali.dwm.network.SelectSonicFieldModeC2SPayload;
 import com.adamkali.dwm.network.ServerPayloadTypeRegistry;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
+import com.adamkali.dwm.tardis.data.model.TardisCircuit;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.logic.ArtronLogic;
+import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
 import com.adamkali.dwm.tardis.logic.FirstHourLogic;
 import com.adamkali.dwm.tardis.logic.TardisOwnershipLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
+import com.adamkali.dwm.world.GallifreyDimensions;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -54,6 +59,9 @@ public class FirstHourAdvancementGameTests {
     private static final Identifier FIRST_HOP = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/first_hop");
     private static final Identifier BIND_KEY = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/bind_key");
     private static final Identifier FIRST_REFUEL = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/first_refuel");
+    private static final Identifier FIRST_CIRCUIT = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/first_circuit");
+    private static final Identifier FIRST_OTHER_WORLD = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/first_other_world");
+    private static final Identifier FIRST_GALLIFREY = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/first_gallifrey");
 
     @GameTest(structure = "fabric-gametest-api-v1:empty")
     public void sonicIronDoor_awardsAdvancement(GameTestHelper context) {
@@ -316,6 +324,177 @@ public class FirstHourAdvancementGameTests {
         if (owner.getAdvancements().getOrStartProgress(requireHolder(context, FIRST_HOP)).isDone()) {
             throw new AssertionError("first_hop must remain revoked after summon eligibility check");
         }
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void firstCircuit_awardsOnInstall_notOnGive(GameTestHelper context) {
+        TardisDataLoader.tardisSaveDirectory = context.getLevel().getServer()
+                .getWorldPath(LevelResource.ROOT)
+                .resolve("gametest_tardis_data");
+
+        BlockPos tardisRel = new BlockPos(1, 2, 1);
+        context.setBlock(tardisRel, DWMBlocks.TARDIS_BLOCK);
+        BlockPos tardisAbs = context.absolutePos(tardisRel);
+        if (!(context.getLevel().getBlockEntity(tardisAbs) instanceof TardisBlockEntity tardis)) {
+            throw new AssertionError("Expected TardisBlockEntity");
+        }
+        tardis.setWorldgenFound(true);
+        UUID tardisId = tardis.getTardisId();
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            throw new AssertionError("Expected TARDIS data model");
+        }
+
+        BlockPos consoleRel = new BlockPos(4, 2, 4);
+        BlockPos consoleAbs = context.absolutePos(consoleRel);
+        context.setBlock(
+                consoleRel,
+                DWMBlocks.FIRST_DOCTOR_CONSOLE.defaultBlockState()
+                        .setValue(FirstDoctorConsoleBlock.FACING, Direction.NORTH)
+        );
+        if (!(context.getLevel().getBlockEntity(consoleAbs) instanceof FirstDoctorConsoleBlockEntity console)) {
+            throw new AssertionError("Expected FirstDoctorConsoleBlockEntity");
+        }
+        console.setTardisId(tardisId);
+
+        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        if (!TardisOwnershipLogic.tryClaimOnEnter(tardisId, player.getUUID())) {
+            throw new AssertionError("Expected claim to succeed");
+        }
+        ItemStack stack = new ItemStack(DWMItems.CIRCUIT_STABILISERS, 1);
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        if (player.getAdvancements().getOrStartProgress(requireHolder(context, FIRST_CIRCUIT)).isDone()) {
+            throw new AssertionError("Giving a circuit item must not award first_circuit");
+        }
+
+        FirstDoctorConsoleBlock.activateControl(
+                LookTarget.STABILISERS,
+                context.getLevel(),
+                consoleAbs,
+                player,
+                InteractionHand.MAIN_HAND
+        );
+        if (!CircuitFittedLogic.isFitted(model, TardisCircuit.STABILISERS)) {
+            throw new AssertionError("Expected install to fit stabilisers");
+        }
+        assertAdvancementDone(context, player, FIRST_CIRCUIT);
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void firstOtherWorld_awardsOnDimensionChange_notSummon(GameTestHelper context) {
+        TardisDataLoader.tardisSaveDirectory = context.getLevel().getServer()
+                .getWorldPath(LevelResource.ROOT)
+                .resolve("gametest_tardis_data");
+        TardisTravelService.clearActiveForTests();
+
+        ServerPlayer owner = context.makeMockServerPlayerInLevel();
+        String destDimension = context.getLevel().dimension().identifier().toString();
+
+        BlockPos shellRel = new BlockPos(2, 2, 2);
+        BlockPos shellAbs = context.absolutePos(shellRel);
+        clearLandingColumn(context, shellRel);
+        context.setBlock(shellRel, DWMBlocks.TARDIS_BLOCK);
+        if (!(context.getLevel().getBlockEntity(shellAbs) instanceof TardisBlockEntity be)) {
+            throw new AssertionError("Expected TardisBlockEntity");
+        }
+        UUID tardisId = be.getTardisId();
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            throw new AssertionError("Expected TARDIS data model");
+        }
+        model.setOwner(owner.getUUID());
+        model.setExteriorLocation("minecraft:the_nether", shellAbs.getX(), shellAbs.getY(), shellAbs.getZ(), 0);
+        model.setTravelPhase(TardisTravelPhase.IN_FLIGHT);
+        TardisTravelService.putFlightShellForTests(tardisId, tardisId);
+
+        BlockPos landingRel = new BlockPos(4, 2, 4);
+        BlockPos landingAbs = context.absolutePos(landingRel);
+        clearLandingColumn(context, landingRel);
+
+        InteractionResult result = TardisTravelService.materialiseAt(
+                tardisId,
+                context.getLevel().getServer(),
+                context.getLevel(),
+                landingAbs,
+                0
+        );
+        if (result != InteractionResult.SUCCESS) {
+            throw new AssertionError("Expected cross-dimension materialise to succeed, got " + result);
+        }
+        assertAdvancementDone(context, owner, FIRST_OTHER_WORLD);
+        if (owner.getAdvancements().getOrStartProgress(requireHolder(context, FIRST_HOP)).isDone()) {
+            throw new AssertionError("Cross-dimension landing must not award first_hop");
+        }
+        if (FirstHourLogic.isOtherWorldHop("minecraft:the_nether", destDimension, true)) {
+            throw new AssertionError("Summon pending must not count as first other world");
+        }
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void firstGallifrey_awardsOnGallifreyLanding(GameTestHelper context) {
+        TardisDataLoader.tardisSaveDirectory = context.getLevel().getServer()
+                .getWorldPath(LevelResource.ROOT)
+                .resolve("gametest_tardis_data");
+        TardisTravelService.clearActiveForTests();
+
+        ServerPlayer owner = context.makeMockServerPlayerInLevel();
+        ServerLevel gallifrey = context.getLevel().getServer().getLevel(GallifreyDimensions.GALLIFREY_WORLD_KEY);
+        if (gallifrey == null) {
+            DWMCriteria.FIRST_GALLIFREY.trigger(owner);
+            assertAdvancementDone(context, owner, FIRST_GALLIFREY);
+            if (!FirstHourLogic.isGallifreyLanding(GallifreyDimensions.DIMENSION_ID.toString(), false)) {
+                throw new AssertionError("Eligibility helper must accept dwm:gallifrey");
+            }
+            context.succeed();
+            return;
+        }
+
+        BlockPos shellRel = new BlockPos(2, 2, 2);
+        BlockPos shellAbs = context.absolutePos(shellRel);
+        clearLandingColumn(context, shellRel);
+        context.setBlock(shellRel, DWMBlocks.TARDIS_BLOCK);
+        if (!(context.getLevel().getBlockEntity(shellAbs) instanceof TardisBlockEntity be)) {
+            throw new AssertionError("Expected TardisBlockEntity");
+        }
+        UUID tardisId = be.getTardisId();
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            throw new AssertionError("Expected TARDIS data model");
+        }
+        model.setOwner(owner.getUUID());
+        model.setExteriorLocation(
+                context.getLevel().dimension().identifier().toString(),
+                shellAbs.getX(),
+                shellAbs.getY(),
+                shellAbs.getZ(),
+                0
+        );
+        model.setTravelPhase(TardisTravelPhase.IN_FLIGHT);
+        TardisTravelService.putFlightShellForTests(tardisId, tardisId);
+
+        BlockPos landing = new BlockPos(0, gallifrey.getMinY() + 80, 0);
+        gallifrey.setBlock(landing.below(), Blocks.STONE.defaultBlockState(), 3);
+        gallifrey.setBlock(landing, Blocks.AIR.defaultBlockState(), 3);
+        gallifrey.setBlock(landing.above(), Blocks.AIR.defaultBlockState(), 3);
+        for (Direction dir : new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST}) {
+            gallifrey.setBlock(landing.relative(dir), Blocks.AIR.defaultBlockState(), 3);
+            gallifrey.setBlock(landing.relative(dir).above(), Blocks.AIR.defaultBlockState(), 3);
+        }
+
+        InteractionResult result = TardisTravelService.materialiseAt(
+                tardisId,
+                context.getLevel().getServer(),
+                gallifrey,
+                landing,
+                0
+        );
+        if (result != InteractionResult.SUCCESS) {
+            throw new AssertionError("Expected Gallifrey materialise to succeed, got " + result);
+        }
+        assertAdvancementDone(context, owner, FIRST_GALLIFREY);
         context.succeed();
     }
 

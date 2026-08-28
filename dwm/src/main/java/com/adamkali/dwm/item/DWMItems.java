@@ -6,6 +6,7 @@ import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.block.wood.WoodFamilyRegistrar;
 import com.adamkali.dwm.entity.DWMEntityTypes;
+import com.adamkali.dwm.tardis.data.model.TardisCircuit;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -66,6 +67,17 @@ public class DWMItems {
     public static final Item ZEITON_CRYSTALS = register(Item::new, "zeiton_crystals");
     public static final Item ZEITON_POWDER = register(Item::new, "zeiton_powder");
     public static final Item FERRITE_POWDER = register(Item::new, "ferrite_powder");
+
+    public static final Item CIRCUIT_STABILISERS = registerCircuit(TardisCircuit.STABILISERS, "circuit_stabilisers");
+    public static final Item CIRCUIT_WAYPOINTS = registerCircuit(TardisCircuit.WAYPOINTS, "circuit_waypoints");
+    public static final Item CIRCUIT_FAST_RETURN = registerCircuit(TardisCircuit.FAST_RETURN, "circuit_fast_return");
+    public static final Item CIRCUIT_COORDINATE_LOCKS = registerCircuit(TardisCircuit.COORDINATE_LOCKS, "circuit_coordinate_locks");
+    public static final Item CIRCUIT_PLANET_LOCATOR = registerCircuit(TardisCircuit.PLANET_LOCATOR, "circuit_planet_locator");
+    public static final Item CIRCUIT_TELEPATHIC = registerCircuit(TardisCircuit.TELEPATHIC, "circuit_telepathic");
+    public static final Item CIRCUIT_CLOAK = registerCircuit(TardisCircuit.CLOAK, "circuit_cloak");
+    public static final Item CIRCUIT_CHAMELEON = registerCircuit(TardisCircuit.CHAMELEON, "circuit_chameleon");
+    public static final Item CIRCUIT_REMOTE_SUMMON = registerCircuit(TardisCircuit.REMOTE_SUMMON, "circuit_remote_summon");
+    public static final Item CIRCUIT_PLAYER_LOCATOR = registerCircuit(TardisCircuit.PLAYER_LOCATOR, "circuit_player_locator");
 
     public static final Item AZBANTIUM_SWORD = register(
             Item::new,
@@ -179,6 +191,16 @@ public class DWMItems {
             content.accept(SONIC_SETTING_SHEAR);
             content.accept(TARDIS_KEY);
             content.accept(STATTENHEIM_REMOTE);
+            content.accept(CIRCUIT_STABILISERS);
+            content.accept(CIRCUIT_WAYPOINTS);
+            content.accept(CIRCUIT_FAST_RETURN);
+            content.accept(CIRCUIT_COORDINATE_LOCKS);
+            content.accept(CIRCUIT_PLANET_LOCATOR);
+            content.accept(CIRCUIT_TELEPATHIC);
+            content.accept(CIRCUIT_CLOAK);
+            content.accept(CIRCUIT_CHAMELEON);
+            content.accept(CIRCUIT_REMOTE_SUMMON);
+            content.accept(CIRCUIT_PLAYER_LOCATOR);
             content.accept(AZBANTIUM_SHOVEL);
             content.accept(AZBANTIUM_PICKAXE);
             content.accept(AZBANTIUM_AXE);
@@ -209,6 +231,14 @@ public class DWMItems {
             content.accept(MEWING_DOG_SPAWN_EGG);
             content.accept(TIME_LORD_SPAWN_EGG);
         });
+    }
+
+    private static Item registerCircuit(TardisCircuit circuit, String id) {
+        return register(
+                props -> new ConsoleCircuitItem(circuit, props),
+                new Item.Properties().stacksTo(16),
+                id
+        );
     }
 
     public static Item register(Function<Item.Properties, Item> item, String id) {

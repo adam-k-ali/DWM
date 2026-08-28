@@ -1,0 +1,26 @@
+{
+  "parent": "minecraft:dwm/first_other_world",
+  "criteria": {
+    "first_gallifrey": {
+      "trigger": "dwm:first_gallifrey"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.first_gallifrey.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "id": "dwm:gallifrey_grass_block"
+    },
+    "title": {
+      "translate": "advancements.dwm.first_gallifrey"
+    }
+  },
+  "requirements": [
+    [
+      "first_gallifrey"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

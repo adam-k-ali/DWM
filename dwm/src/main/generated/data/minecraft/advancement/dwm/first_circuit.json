@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:dwm/claim_tardis",
+  "criteria": {
+    "first_circuit": {
+      "trigger": "dwm:first_circuit"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.first_circuit.description"
+    },
+    "icon": {
+      "id": "dwm:circuit_stabilisers"
+    },
+    "title": {
+      "translate": "advancements.dwm.first_circuit"
+    }
+  },
+  "requirements": [
+    [
+      "first_circuit"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "dwm:ferrite_powder",
+    "minecraft:clock"
+  ],
+  "result": {
+    "id": "dwm:circuit_fast_return"
+  }
+}
