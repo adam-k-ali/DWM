@@ -30,7 +30,7 @@ steps:
       overlay: "cloak not engaged"
   - lookAt:
       x: "~1"
-      y: "~1"
+      y: "~"
       z: "~"
   - waitTicks: 5
   - walkUntil:

@@ -7,7 +7,7 @@ steps:
   - claimPlacedTardis
   - lookAt:
       x: "~1"
-      y: "~1"
+      y: "~"
       z: "~"
   - waitTicks: 5
   - useItem
@@ -32,7 +32,7 @@ steps:
       overlay: "Setting: Seal"
   - lookAt:
       x: "~1"
-      y: "~1"
+      y: "~"
       z: "~"
   - waitTicks: 5
   - useItem
