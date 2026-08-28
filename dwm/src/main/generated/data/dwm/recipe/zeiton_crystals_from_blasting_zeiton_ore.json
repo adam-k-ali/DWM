@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:blasting",
+  "experience": 1.0,
+  "group": "zeiton",
+  "ingredient": "dwm:zeiton_ore",
+  "result": {
+    "id": "dwm:zeiton_crystals"
+  }
+}

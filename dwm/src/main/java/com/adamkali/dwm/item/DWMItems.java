@@ -63,6 +63,10 @@ public class DWMItems {
 
     public static final Item AZBANTIUM = register(Item::new, "azbantium");
 
+    public static final Item ZEITON_CRYSTALS = register(Item::new, "zeiton_crystals");
+    public static final Item ZEITON_POWDER = register(Item::new, "zeiton_powder");
+    public static final Item FERRITE_POWDER = register(Item::new, "ferrite_powder");
+
     public static final Item AZBANTIUM_SWORD = register(
             Item::new,
             new Item.Properties().sword(DWMToolMaterials.AZBANTIUM, 3.0F, -2.4F),
@@ -159,6 +163,9 @@ public class DWMItems {
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.INGREDIENTS).register(content -> {
             content.accept(AZBANTIUM);
+            content.accept(ZEITON_CRYSTALS);
+            content.accept(ZEITON_POWDER);
+            content.accept(FERRITE_POWDER);
         });
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.TOOLS_AND_UTILITIES).register(content -> {

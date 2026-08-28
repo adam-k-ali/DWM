@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.random.WeightedList;
 import net.minecraft.util.valueproviders.BiasedToBottomInt;
 import net.minecraft.util.valueproviders.ConstantInt;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
@@ -67,6 +68,16 @@ public final class DWMConfiguredFeatureBootstrap {
                 )
         );
 
+        registerOre(registerable, DWMConfiguredFeatures.ZEITON_ORE, DWMBlocks.ZEITON_ORE, 6, 0.5F);
+        registerOre(
+                registerable,
+                DWMConfiguredFeatures.ZEITON_ORE_OVERWORLD,
+                DWMBlocks.ZEITON_ORE,
+                DWMBlockTags.STONE_ORE_REPLACEABLES,
+                3,
+                0.5F
+        );
+
         registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_COAL_ORE, DWMBlocks.GALLIFREY_COAL_ORE, 17, 0.0F);
         registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_COAL_ORE_BURIED, DWMBlocks.GALLIFREY_COAL_ORE, 17, 0.5F);
         registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_IRON_ORE, DWMBlocks.GALLIFREY_IRON_ORE, 9, 0.0F);
@@ -86,12 +97,23 @@ public final class DWMConfiguredFeatureBootstrap {
             int size,
             float discardChanceOnAirExposure
     ) {
+        registerOre(registerable, key, oreBlock, DWMBlockTags.GALLIFREY_ORE_REPLACEABLES, size, discardChanceOnAirExposure);
+    }
+
+    private static void registerOre(
+            BootstrapContext<ConfiguredFeature<?, ?>> registerable,
+            ResourceKey<ConfiguredFeature<?, ?>> key,
+            Block oreBlock,
+            TagKey<Block> replaceable,
+            int size,
+            float discardChanceOnAirExposure
+    ) {
         registerable.register(
                 key,
                 new ConfiguredFeature<>(
                         Feature.ORE,
                         new OreConfiguration(
-                                new TagMatchTest(DWMBlockTags.GALLIFREY_ORE_REPLACEABLES),
+                                new TagMatchTest(replaceable),
                                 oreBlock.defaultBlockState(),
                                 size,
                                 discardChanceOnAirExposure

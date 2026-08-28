@@ -139,6 +139,7 @@
   "block.dwm.tardis_compact_scanner": "Compact TARDIS Scanner",
   "block.dwm.tardis_full_scanner": "Full TARDIS Scanner",
   "block.dwm.tardis_globe": "TARDIS Globe",
+  "block.dwm.zeiton_ore": "Zeiton Ore",
   "config.dwm.title": "Doctor Who Mod",
   "dimension.dwm.gallifrey": "Gallifrey",
   "dwm.command.tardis.claim.already_owner": "You already own this TARDIS (%s)",
@@ -466,6 +467,7 @@
   "item.dwm.dark_ash_trapdoor": "Dark Ash Trapdoor",
   "item.dwm.dark_ash_wood": "Dark Ash Wood",
   "item.dwm.decorational_column": "Decorational Column",
+  "item.dwm.ferrite_powder": "Ferrite Powder",
   "item.dwm.first_doctor_console": "First Doctor Console",
   "item.dwm.flower_of_remembrance": "Flower of Remembrance",
   "item.dwm.flutterwing_spawn_egg": "Flutterwing Spawn Egg",
@@ -601,10 +603,14 @@
   "item.dwm.yellow_roundel_a": "Yellow Roundel A",
   "item.dwm.yellow_roundel_b": "Yellow Roundel B",
   "item.dwm.yellow_tardis_wall": "Yellow TARDIS Wall",
+  "item.dwm.zeiton_crystals": "Zeiton Crystals",
+  "item.dwm.zeiton_ore": "Zeiton Ore",
+  "item.dwm.zeiton_powder": "Zeiton Powder",
   "key.category.dwm.dwm": "Doctor Who Mod",
   "key.dwm.field_guide": "Open Field Guide",
   "stat.dwm.sonic_screwdriver_use": "Uses of Sonic Screwdriver",
   "tag.item.dwm.azbantium_ores": "Azbantium Ores",
   "tag.item.dwm.gallifrey_plants": "Gallifrey Plants",
-  "tag.item.dwm.repairs_azbantium_equipment": "Azbantium Equipment Repair Materials"
+  "tag.item.dwm.repairs_azbantium_equipment": "Azbantium Equipment Repair Materials",
+  "tag.item.dwm.zeiton_ores": "Zeiton Ores"
 }

@@ -17,6 +17,7 @@ Give TARDIS travel a unique destination world built from Gallifrey builder block
 - Placed tree features for Ash (sparse plains + denser forest), Dark Ash, and Cardinal in forest.
 - Plant decoration: Flower of Remembrance / Moonlight Bloom mix on plains (denser) and forest (sparser); Saccharine Cane columns on wastes and badlands (no water requirement).
 - Azbantium ore veins in Gallifrey stone (all biomes; diamond pickaxe required — see [Azbantium](./feature-azbantium.md)).
+- Zeiton ore veins in Gallifrey stone (all biomes; iron pickaxe required; also rare Overworld traces — see [Zeiton](./feature-zeiton.md)).
 - Gallifrey-textured coal, iron, gold, and diamond ores in Gallifrey stone (all biomes; drop vanilla items; Overworld-like vein distribution).
 - Archive colormap and cloud textures imported under `assets/dwm/textures/` for future tinting/sky work; grass block uses pre-colored deep-red textures.
 - TARDIS `BiomeSelectorLogic` maps `dwm:gallifrey` to `#dwm:is_gallifrey`.

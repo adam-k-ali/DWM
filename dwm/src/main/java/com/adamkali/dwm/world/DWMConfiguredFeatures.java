@@ -13,6 +13,8 @@ public final class DWMConfiguredFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> GALLIFREY_FLOWERS = key("gallifrey_flowers");
     public static final ResourceKey<ConfiguredFeature<?, ?>> SACCHARINE_CANE = key("saccharine_cane");
     public static final ResourceKey<ConfiguredFeature<?, ?>> AZBANTIUM_ORE = key("azbantium_ore");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> ZEITON_ORE = key("zeiton_ore");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> ZEITON_ORE_OVERWORLD = key("zeiton_ore_overworld");
 
     public static final ResourceKey<ConfiguredFeature<?, ?>> GALLIFREY_COAL_ORE = key("gallifrey_coal_ore");
     public static final ResourceKey<ConfiguredFeature<?, ?>> GALLIFREY_COAL_ORE_BURIED = key("gallifrey_coal_ore_buried");

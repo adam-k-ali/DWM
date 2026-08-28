@@ -16,6 +16,8 @@ public final class DWMPlacedFeatures {
     public static final ResourceKey<PlacedFeature> SACCHARINE_CANE_WASTES = key("saccharine_cane_wastes");
     public static final ResourceKey<PlacedFeature> SACCHARINE_CANE_BADLANDS = key("saccharine_cane_badlands");
     public static final ResourceKey<PlacedFeature> AZBANTIUM_ORE = key("azbantium_ore");
+    public static final ResourceKey<PlacedFeature> ZEITON_ORE = key("zeiton_ore");
+    public static final ResourceKey<PlacedFeature> ZEITON_ORE_OVERWORLD = key("zeiton_ore_overworld");
 
     public static final ResourceKey<PlacedFeature> GALLIFREY_COAL_ORE_UPPER = key("gallifrey_coal_ore_upper");
     public static final ResourceKey<PlacedFeature> GALLIFREY_COAL_ORE_LOWER = key("gallifrey_coal_ore_lower");

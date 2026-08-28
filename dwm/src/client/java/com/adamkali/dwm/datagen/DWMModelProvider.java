@@ -53,6 +53,7 @@ public class DWMModelProvider extends FabricModelProvider {
 
         registerCubeAll(blockStateModelGenerator, DWMBlocks.AZBANTIUM_ORE);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.AZBANTIUM_BLOCK);
+        registerCubeAll(blockStateModelGenerator, DWMBlocks.ZEITON_ORE);
 
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_COAL_ORE);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_IRON_ORE);
@@ -67,6 +68,9 @@ public class DWMModelProvider extends FabricModelProvider {
         }
 
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.ZEITON_CRYSTALS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.ZEITON_POWDER, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.FERRITE_POWDER, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_SWORD, ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_SHOVEL, ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_PICKAXE, ModelTemplates.FLAT_HANDHELD_ITEM);

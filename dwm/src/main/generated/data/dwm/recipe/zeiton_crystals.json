@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "dwm:zeiton_powder",
+    "dwm:zeiton_powder",
+    "dwm:zeiton_powder",
+    "dwm:zeiton_powder"
+  ],
+  "result": {
+    "id": "dwm:zeiton_crystals"
+  }
+}

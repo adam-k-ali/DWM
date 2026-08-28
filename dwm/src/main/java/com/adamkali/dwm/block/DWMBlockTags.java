@@ -38,6 +38,20 @@ public final class DWMBlockTags {
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "azbantium_ores")
     );
 
+    public static final TagKey<Block> ZEITON_ORES = TagKey.create(
+            Registries.BLOCK,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "zeiton_ores")
+    );
+
+    /**
+     * Vanilla still ships {@code data/minecraft/tags/block/stone_ore_replaceables.json}, but
+     * {@link net.minecraft.tags.BlockTags} no longer exposes a constant in 26.2.
+     */
+    public static final TagKey<Block> STONE_ORE_REPLACEABLES = TagKey.create(
+            Registries.BLOCK,
+            Identifier.withDefaultNamespace("stone_ore_replaceables")
+    );
+
     /**
      * Vanilla still ships {@code data/minecraft/tags/block/coal_ores.json}, but
      * {@link net.minecraft.tags.BlockTags} no longer exposes a constant in 26.2.

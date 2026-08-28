@@ -81,6 +81,25 @@ public final class DWMPlacedFeatureBootstrap {
 
         PlacementUtils.register(
                 registerable,
+                DWMPlacedFeatures.ZEITON_ORE,
+                configured.getOrThrow(DWMConfiguredFeatures.ZEITON_ORE),
+                CountPlacement.of(8),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.triangle(VerticalAnchor.absolute(-64), VerticalAnchor.absolute(32)),
+                BiomeFilter.biome()
+        );
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.ZEITON_ORE_OVERWORLD,
+                configured.getOrThrow(DWMConfiguredFeatures.ZEITON_ORE_OVERWORLD),
+                CountPlacement.of(UniformInt.of(1, 2)),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.triangle(VerticalAnchor.absolute(0), VerticalAnchor.absolute(48)),
+                BiomeFilter.biome()
+        );
+
+        PlacementUtils.register(
+                registerable,
                 DWMPlacedFeatures.GALLIFREY_COAL_ORE_UPPER,
                 configured.getOrThrow(DWMConfiguredFeatures.GALLIFREY_COAL_ORE),
                 CountPlacement.of(30),
