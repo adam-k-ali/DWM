@@ -105,6 +105,37 @@ class BotiInteriorSamplerTest {
     }
 
     @Test
+    void streamChunkBounds_clipsViewDistanceToPlot() {
+        BlockPos origin = new BlockPos(0, 64, 0);
+        int[] plot = BotiInteriorSampler.plotChunkBounds(origin);
+        int[] clipped = BotiInteriorSampler.streamChunkBounds(origin, 12);
+        assertEquals(plot[0], clipped[0]);
+        assertEquals(plot[1], clipped[1]);
+        assertEquals(plot[2], clipped[2]);
+        assertEquals(plot[3], clipped[3]);
+        assertTrue(clipped[1] - clipped[0] < 12);
+    }
+
+    @Test
+    void clipStreamRadiusChunks_capsToPlot() {
+        assertEquals(0, BotiInteriorSampler.clipStreamRadiusChunks(0));
+        assertEquals(2, BotiInteriorSampler.clipStreamRadiusChunks(2));
+        assertTrue(BotiInteriorSampler.clipStreamRadiusChunks(12) <= 3);
+        assertEquals(
+                BotiInteriorSampler.clipStreamRadiusChunks(3),
+                BotiInteriorSampler.clipStreamRadiusChunks(32)
+        );
+    }
+
+    @Test
+    void isInsidePlotStream_rejectsNeighborPlot() {
+        BlockPos origin = new BlockPos(0, 64, 0);
+        assertTrue(BotiInteriorSampler.isInsidePlotStream(origin, origin, 2));
+        assertFalse(BotiInteriorSampler.isInsidePlotStream(
+                origin.offset(TardisPlotAllocator.PLOT_SPACING, 0, 0), origin, 12));
+    }
+
+    @Test
     void isFootprintLightReady_waitsForStampedSourceBrightness() {
         ServerLevel world = Mockito.mock(ServerLevel.class);
         BlockPos origin = new BlockPos(15, 64, 15);

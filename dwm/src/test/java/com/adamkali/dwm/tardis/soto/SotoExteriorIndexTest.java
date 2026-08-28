@@ -1,6 +1,7 @@
 package com.adamkali.dwm.tardis.soto;
 
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.portal.PortalSampler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +32,11 @@ class SotoExteriorIndexTest {
         assertEquals(exterior, SotoExteriorIndex.getExteriorPos(id));
         assertEquals(id, SotoExteriorIndex.resolve(overworld, exterior));
         assertEquals(id, SotoExteriorIndex.resolve(overworld, exterior.offset(2, 0, -1)));
-        assertNull(SotoExteriorIndex.resolve(overworld, exterior.offset(20, 0, 0)));
+        assertEquals(id, SotoExteriorIndex.resolve(overworld, exterior.offset(20, 0, 0)));
+        int yRadius = PortalSampler.streamYRadiusBlocks(PortalSampler.DEFAULT_STREAM_RADIUS_CHUNKS);
+        assertNull(SotoExteriorIndex.resolve(
+                overworld, exterior.offset(0, yRadius + 1, 0)));
+        assertNull(SotoExteriorIndex.resolve(overworld, exterior.offset(48, 0, 0)));
     }
 
     @Test

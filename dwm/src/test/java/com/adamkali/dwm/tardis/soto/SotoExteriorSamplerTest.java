@@ -3,6 +3,7 @@ package com.adamkali.dwm.tardis.soto;
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.tardis.boti.BotiRelativePosCodec;
+import com.adamkali.dwm.tardis.portal.PortalSampler;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -82,32 +83,37 @@ class SotoExteriorSamplerTest {
     @Test
     void streamChunkBounds_usesConfiguredRadius() {
         BlockPos exterior = new BlockPos(100, 64, -20);
-        int[] bounds = SotoExteriorSampler.streamChunkBounds(exterior);
+        int radius = 3;
+        int[] bounds = SotoExteriorSampler.streamChunkBounds(exterior, radius);
         int cx = 100 >> 4;
         int cz = -20 >> 4;
-        assertEquals(cx - SotoExteriorSampler.STREAM_RADIUS_CHUNKS, bounds[0]);
-        assertEquals(cx + SotoExteriorSampler.STREAM_RADIUS_CHUNKS, bounds[1]);
-        assertEquals(cz - SotoExteriorSampler.STREAM_RADIUS_CHUNKS, bounds[2]);
-        assertEquals(cz + SotoExteriorSampler.STREAM_RADIUS_CHUNKS, bounds[3]);
+        assertEquals(cx - radius, bounds[0]);
+        assertEquals(cx + radius, bounds[1]);
+        assertEquals(cz - radius, bounds[2]);
+        assertEquals(cz + radius, bounds[3]);
     }
 
     @Test
     void isInsideStreamRadius_respectsChebyshevAndY() {
         BlockPos exterior = new BlockPos(16, 70, 16);
-        assertTrue(SotoExteriorSampler.isInsideStreamRadius(exterior, exterior));
-        assertTrue(SotoExteriorSampler.isInsideStreamRadius(exterior.offset(32, 0, 0), exterior));
-        assertFalse(SotoExteriorSampler.isInsideStreamRadius(exterior.offset(48, 0, 0), exterior));
+        int radius = 2;
+        assertTrue(SotoExteriorSampler.isInsideStreamRadius(exterior, exterior, radius));
+        assertTrue(SotoExteriorSampler.isInsideStreamRadius(exterior.offset(32, 0, 0), exterior, radius));
+        assertFalse(SotoExteriorSampler.isInsideStreamRadius(exterior.offset(48, 0, 0), exterior, radius));
+        int yRadius = PortalSampler.streamYRadiusBlocks(radius);
         assertFalse(SotoExteriorSampler.isInsideStreamRadius(
-                exterior.offset(0, SotoExteriorSampler.STREAM_Y_RADIUS + 1, 0), exterior));
+                exterior.offset(0, yRadius + 1, 0), exterior, radius));
     }
 
     @Test
     void streamBox_coversRadius() {
         BlockPos exterior = new BlockPos(0, 64, 0);
-        var box = SotoExteriorSampler.streamBox(exterior);
-        int half = SotoExteriorSampler.STREAM_RADIUS_CHUNKS * 16;
+        int radius = 2;
+        var box = SotoExteriorSampler.streamBox(exterior, radius);
+        int half = radius * 16;
+        int yRadius = PortalSampler.streamYRadiusBlocks(radius);
         assertEquals(-half, box.minX, 1e-6);
         assertEquals(half + 1, box.maxX, 1e-6);
-        assertEquals(64 - SotoExteriorSampler.STREAM_Y_RADIUS, box.minY, 1e-6);
+        assertEquals(64 - yRadius, box.minY, 1e-6);
     }
 }

@@ -9,7 +9,9 @@ import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.render.soto.SotoExteriorMeshCache;
 import com.adamkali.dwm.render.soto.SotoSkyFogRenderer;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
+import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
+import com.adamkali.dwm.tardis.portal.PortalSampler;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
@@ -32,8 +34,6 @@ import net.minecraft.world.phys.Vec3;
  */
 public final class BotiPortalContent implements PortalContent {
     private static final int DEFAULT_CLEAR_RGB = 0x203040;
-    static final float BOTI_FOG_START = 7.0F;
-    static final float BOTI_FOG_END = 17.0F;
 
     private final UUID tardisId;
 
@@ -76,8 +76,9 @@ public final class BotiPortalContent implements PortalContent {
         SotoAtmosphere atmosphere = portal != null ? SotoAtmosphere.fromPortal(portal) : SotoAtmosphere.DEFAULT;
         context.bindTarget();
         long fogStart = PortalPerfStats.begin();
+        int radius = BotiInteriorSampler.clipStreamRadiusChunks(SotoSkyFogRenderer.clientStreamRadiusChunks());
         GpuBufferSlice previousFog = SotoSkyFogRenderer.applyPortalTerrainFog(
-                atmosphere, BOTI_FOG_START, BOTI_FOG_END
+                atmosphere, PortalSampler.fogStartBlocks(radius), PortalSampler.fogEndBlocks(radius)
         );
         PortalPerfStats.end(PortalPerfStats.Stage.SKY_FOG, fogStart);
         try {

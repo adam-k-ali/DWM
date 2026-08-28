@@ -36,6 +36,8 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +53,7 @@ public final class PortalStreamSyncService {
     private static final int ENTITY_UPDATE_INTERVAL_TICKS = 2;
     private static final int VIEWER_LEAVE_GRACE_TICKS = 40;
     static final int MAX_BOTI_LIGHT_DEFER_TICKS = 40;
+    static final int CHUNK_SEND_BUDGET_PER_VIEWER_TICK = 8;
     private static final int LIGHT_GATE_PASSED = -1;
 
     private static final Map<StreamKey, Set<UUID>> SUBSCRIBERS = new ConcurrentHashMap<>();
@@ -69,15 +72,15 @@ public final class PortalStreamSyncService {
 
     public static void initialize() {
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockEntity) -> {
-            if (!world.isClientSide()) {
-                markDirtyAt(world.dimension(), pos);
+            if (world instanceof ServerLevel serverLevel) {
+                markDirtyAt(serverLevel, pos);
             }
         });
 
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-            if (!world.isClientSide()) {
-                markDirtyAt(world.dimension(), hitResult.getBlockPos());
-                markDirtyAt(world.dimension(), hitResult.getBlockPos().relative(hitResult.getDirection()));
+            if (world instanceof ServerLevel serverLevel) {
+                markDirtyAt(serverLevel, hitResult.getBlockPos());
+                markDirtyAt(serverLevel, hitResult.getBlockPos().relative(hitResult.getDirection()));
             }
             return InteractionResult.PASS;
         });
@@ -110,7 +113,7 @@ public final class PortalStreamSyncService {
     }
 
     /**
-     * Marks every BOTI footprint chunk column dirty so already-streamed empty samples are re-sent
+     * Marks every BOTI plot chunk column dirty so already-streamed empty samples are re-sent
      * after interior place / rebuild.
      */
     public static void markBotiFootprintDirty(UUID tardisId) {
@@ -119,7 +122,7 @@ public final class PortalStreamSyncService {
         }
         META_DIRTY.add(tardisId);
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
-        int[] bounds = BotiInteriorSampler.footprintChunkBounds(origin);
+        int[] bounds = BotiInteriorSampler.plotChunkBounds(origin);
         StreamKey streamKey = new StreamKey(PortalStreamKind.BOTI, tardisId);
         BOTI_LIGHT_DEFER_STARTED.remove(streamKey);
         Set<Long> dirty = DIRTY_CHUNKS.computeIfAbsent(streamKey, id -> ConcurrentHashMap.newKeySet());
@@ -145,17 +148,28 @@ public final class PortalStreamSyncService {
         setMetaChanged(tardisId);
     }
 
+    public static void markDirtyAt(ServerLevel world, BlockPos worldPos) {
+        if (world == null || worldPos == null) {
+            return;
+        }
+        markDirtyAt(world.dimension(), worldPos, PortalSampler.streamRadiusChunks(world));
+    }
+
     public static void markDirtyAt(ResourceKey<Level> worldKey, BlockPos worldPos) {
+        markDirtyAt(worldKey, worldPos, PortalSampler.DEFAULT_STREAM_RADIUS_CHUNKS);
+    }
+
+    static void markDirtyAt(ResourceKey<Level> worldKey, BlockPos worldPos, int radiusChunks) {
         if (worldKey == null || worldPos == null) {
             return;
         }
-        UUID sotoId = SotoExteriorIndex.resolve(worldKey, worldPos);
+        UUID sotoId = SotoExteriorIndex.resolve(worldKey, worldPos, radiusChunks);
         if (sotoId != null) {
             META_DIRTY.add(sotoId);
             markChunkDirty(PortalStreamKind.SOTO, sotoId, worldPos);
         }
         if (worldKey.equals(TardisDimensions.TARDIS_WORLD_KEY)) {
-            UUID botiId = BotiPlotIndex.resolve(worldPos);
+            UUID botiId = BotiPlotIndex.resolve(worldPos, radiusChunks);
             if (botiId != null) {
                 META_DIRTY.add(botiId);
                 markChunkDirty(PortalStreamKind.BOTI, botiId, worldPos);
@@ -185,7 +199,10 @@ public final class PortalStreamSyncService {
             return true;
         }
         sendMeta(player, ctx);
-        sendFullChunks(player, ctx);
+        SENT_CHUNKS.computeIfAbsent(viewerKey, k -> ConcurrentHashMap.newKeySet());
+        TRACKED_ENTITIES.computeIfAbsent(viewerKey, k -> ConcurrentHashMap.newKeySet());
+        ensureChunks(player, ctx);
+        syncEntities(player, ctx);
         return true;
     }
 
@@ -432,31 +449,10 @@ public final class PortalStreamSyncService {
         PortalStreamPerfStats.noteMetaPacket();
     }
 
-    private static void sendFullChunks(ServerPlayer player, SceneContext ctx) {
-        int[] bounds = ctx.chunkBounds();
-        ViewerKey key = new ViewerKey(ctx.kind(), ctx.tardisId(), player.getUUID());
-        Set<Long> sent = SENT_CHUNKS.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet());
-        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
-            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
-                PortalStreamSample sample = ctx.sampleChunk(cx, cz);
-                PortalStreamPerfStats.noteChunkSample();
-                ServerPlayNetworking.send(
-                        player,
-                        SyncPortalChunkS2CPayload.fromSample(ctx.kind(), ctx.tardisId(), ctx.footprintOrigin(), sample)
-                );
-                PortalStreamPerfStats.noteChunkPacket();
-                sent.add(ChunkPos.pack(cx, cz));
-            }
-        }
-        PortalStreamPerfStats.noteFullResync();
-        TRACKED_ENTITIES.put(key, ConcurrentHashMap.newKeySet());
-        syncEntities(player, ctx);
-    }
-
     private static void ensureChunks(ServerPlayer player, SceneContext ctx) {
         ViewerKey key = new ViewerKey(ctx.kind(), ctx.tardisId(), player.getUUID());
         Set<Long> sent = SENT_CHUNKS.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet());
-        int[] bounds = ctx.chunkBounds();
+        int[] bounds = ctx.chunkBounds(player);
         Set<Long> desired = new HashSet<>();
         for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
             for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
@@ -471,9 +467,23 @@ public final class PortalStreamSyncService {
                 ));
             }
         }
+        int sentThisTick = 0;
+        int anchorCx = ctx.anchorPos().getX() >> 4;
+        int anchorCz = ctx.anchorPos().getZ() >> 4;
+        List<Long> toSend = new ArrayList<>();
         for (long packed : desired) {
-            if (sent.contains(packed)) {
-                continue;
+            if (!sent.contains(packed)) {
+                toSend.add(packed);
+            }
+        }
+        toSend.sort(Comparator.comparingInt(packed -> {
+            int dx = Math.abs(ChunkPos.getX(packed) - anchorCx);
+            int dz = Math.abs(ChunkPos.getZ(packed) - anchorCz);
+            return Math.max(dx, dz);
+        }));
+        for (long packed : toSend) {
+            if (sentThisTick >= CHUNK_SEND_BUDGET_PER_VIEWER_TICK) {
+                break;
             }
             int cx = ChunkPos.getX(packed);
             int cz = ChunkPos.getZ(packed);
@@ -485,6 +495,7 @@ public final class PortalStreamSyncService {
             );
             PortalStreamPerfStats.noteChunkPacket();
             sent.add(packed);
+            sentThisTick++;
         }
     }
 
@@ -559,8 +570,7 @@ public final class PortalStreamSyncService {
             SotoExteriorSampler.addStreamTickets(ctx.world(), ctx.anchorPos());
             SotoExteriorSampler.keepMobAiActive(ctx.world(), ctx.anchorPos());
         } else {
-            // Ticket-only while streaming; force-load only when sampling entities needs it.
-            BotiInteriorSampler.addFootprintTickets(ctx.world(), ctx.footprintOrigin());
+            BotiInteriorSampler.addStreamTickets(ctx.world(), ctx.footprintOrigin());
             BotiInteriorSampler.keepMobAiActive(ctx.world(), ctx.tardisId());
         }
     }
@@ -618,11 +628,12 @@ public final class PortalStreamSyncService {
             PortalShellState shell,
             PortalAtmosphere atmosphere
     ) {
-        int[] chunkBounds() {
+        int[] chunkBounds(ServerPlayer viewer) {
+            int radius = PortalSampler.streamRadiusChunks(viewer);
             if (kind == PortalStreamKind.SOTO) {
-                return SotoExteriorSampler.streamChunkBounds(anchorPos);
+                return SotoExteriorSampler.streamChunkBounds(anchorPos, radius);
             }
-            return BotiInteriorSampler.footprintChunkBounds(footprintOrigin);
+            return BotiInteriorSampler.streamChunkBounds(footprintOrigin, radius);
         }
 
         PortalStreamSample sampleChunk(int chunkX, int chunkZ) {

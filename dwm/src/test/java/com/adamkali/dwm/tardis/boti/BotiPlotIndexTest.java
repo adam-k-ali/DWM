@@ -2,6 +2,7 @@ package com.adamkali.dwm.tardis.boti;
 
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
+import com.adamkali.dwm.tardis.portal.PortalSampler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,16 +27,18 @@ class BotiPlotIndexTest {
         assertTrue(BotiPlotIndex.isRegistered(id));
         assertEquals(origin, BotiPlotIndex.getOrigin(id));
         assertEquals(id, BotiPlotIndex.resolve(origin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE)));
+        assertEquals(id, BotiPlotIndex.resolve(origin.offset(8, 2, 8)));
     }
 
     @Test
-    void resolve_OutsideFootprintReturnsNull() {
+    void resolve_OutsideStreamReturnsNull() {
         UUID id = UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
         BotiPlotIndex.register(id);
         BlockPos origin = TardisPlotAllocator.plotOrigin(id);
 
-        assertNull(BotiPlotIndex.resolve(origin.offset(TardisPlotAllocator.PLOT_SPACING / 2, 0, 0)));
-        assertNull(BotiPlotIndex.resolve(origin.offset(0, BotiInteriorSampler.SIZE_Y + 2, 0)));
+        assertNull(BotiPlotIndex.resolve(origin.offset(TardisPlotAllocator.PLOT_SPACING, 0, 0)));
+        int yRadius = PortalSampler.streamYRadiusBlocks(PortalSampler.DEFAULT_STREAM_RADIUS_CHUNKS);
+        assertNull(BotiPlotIndex.resolve(origin.offset(0, yRadius + 1, 0)));
     }
 
     @Test

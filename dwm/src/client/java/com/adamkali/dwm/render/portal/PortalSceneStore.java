@@ -51,7 +51,7 @@ public final class PortalSceneStore {
         PortalAtmosphere atmosphere = payload.atmosphere() == null ? PortalAtmosphere.DEFAULT : payload.atmosphere();
         META.put(key, new MetaEntry(payload.revision(), shell, atmosphere));
         // Do not clear LAST_REQUEST_MS here — that re-armed requestIfNeeded every meta
-        // packet and caused subscribe→sendFullChunks storms.
+        // packet and caused subscribe storms.
         PortalFrameCache.markDirty(payload.kind(), payload.tardisId());
     }
 

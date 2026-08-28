@@ -69,15 +69,15 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 ## BOTI Notes
 - Visual illusion: does not stream the live `dwm:tardis` dimension to the exterior client.
 - When the player is near the exterior shell, the server deferred-preloads the console room (ticket chunks, then place on a later tick) and the client warms the BOTI portal stream so real ghost meshes are ready when the door opens.
-- Preview shows a synced portal stream (meta + chunk columns + live entities) of the 11×7×17 console-room footprint via `SotoGhostMeshCache`. Until meshes arrive the doorway stays blank (no blueprint fallback).
+- Preview shows a synced portal stream (meta + chunk columns + live entities) of the interior plot within Minecraft view/render distance (clipped to the allocated TARDIS plot so neighboring interiors stay hidden) via `SotoGhostMeshCache`. Until meshes arrive the doorway stays blank (no blueprint fallback).
 - Shared portal stream format (with SOTO): shell metadata + atmosphere + sparse chunks, compact block/sky-light volumes, and entity spawn/update/remove, keyed by `PortalStreamKind.BOTI`. The client reconstructs synthetic BEs/entities and best-effort renders via `BlockEntityRenderDispatcher` / `EntityRenderDispatcher` (vanilla + mods). Terrain, block entities, and entities use the sampled scene lighting. Entity poses are client-interpolated between sync samples. Players use a dedicated `OtherClientPlayerEntity` path because `EntityType.PLAYER` is not saveable. Interior doors remain excluded from BOTI (no dedicated interior-door BER in the exterior preview yet).
 - Uses the shared deferred portal FBO pipeline (`render.portal`) with a hitch-fixed look-in camera at the interior door plane; composite UV crop uses each chameleon's `PortalAperture`. No stencil framebuffer required.
-- Applies atmosphere-colored distance fog across the streamed room depth. Newly placed/rebuilt console rooms stamp and propagate their intended full-strength invisible console light before BOTI chunk sync.
+- Applies atmosphere-colored distance fog across the streamed view-distance depth. Newly placed/rebuilt console rooms stamp and propagate their intended full-strength invisible console light before BOTI chunk sync.
 - May not work with Fabulous graphics / order-independent transparency; disable via `enableDoorPortals` if needed.
 
 ## SOTO Notes
 - Uses the same deferred portal FBO pipeline and the same portal stream packet family as BOTI (shared `enableDoorPortals`, default on).
-- Visual illusion: portal-composites a streamed exterior scene (shell + atmosphere + Chebyshev-2 ghost chunks + entities) through the classic interior door aperture (not a live world stream); hitch-fixed look-out at the shell door plane.
+- Visual illusion: portal-composites a streamed exterior scene (shell + atmosphere + view-distance ghost chunks + entities) through the classic interior door aperture (not a live world stream); hitch-fixed look-out at the shell door plane.
 - Stream keyed by `PortalStreamKind.SOTO`; meta revision and chunk/entity lifecycle match BOTI's wire format. Sampled sky/block light illuminates terrain and features, while atmosphere-colored distance fog blends the outer stream into its backdrop.
 
 ## Known Constraints

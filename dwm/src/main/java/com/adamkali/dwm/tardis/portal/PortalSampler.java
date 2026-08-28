@@ -5,10 +5,13 @@ import java.util.List;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.TicketType;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.attribute.EnvironmentAttributes;
@@ -26,6 +29,11 @@ import net.minecraft.world.phys.AABB;
  * Subclasses supply visibility, load strategy, and light-volume bounds.
  */
 public abstract class PortalSampler {
+    /** Fallback when server/player view distance is unavailable (matches former Phase-1 cap). */
+    public static final int DEFAULT_STREAM_RADIUS_CHUNKS = 2;
+    /** Fog starts at this fraction of the streamed block radius. */
+    public static final float FOG_START_FRACTION = 0.6f;
+
     protected final int sizeX;
     protected final int sizeY;
     protected final int sizeZ;
@@ -36,6 +44,120 @@ public abstract class PortalSampler {
         this.sizeY = sizeY;
         this.sizeZ = sizeZ;
         this.ticket = ticket;
+    }
+
+    /**
+     * Server view distance in chunks, or {@link #DEFAULT_STREAM_RADIUS_CHUNKS} when unavailable.
+     */
+    public static int streamRadiusChunks(ServerLevel world) {
+        if (world == null) {
+            return DEFAULT_STREAM_RADIUS_CHUNKS;
+        }
+        MinecraftServer server = world.getServer();
+        if (server == null) {
+            return DEFAULT_STREAM_RADIUS_CHUNKS;
+        }
+        int view = server.getPlayerList().getViewDistance();
+        return view > 0 ? view : DEFAULT_STREAM_RADIUS_CHUNKS;
+    }
+
+    /**
+     * Per-viewer stream radius: {@code min(server view distance, player requested view distance)}.
+     */
+    public static int streamRadiusChunks(ServerPlayer player) {
+        if (player == null) {
+            return DEFAULT_STREAM_RADIUS_CHUNKS;
+        }
+        ServerLevel world = player.level() instanceof ServerLevel serverLevel ? serverLevel : null;
+        int serverView = streamRadiusChunks(world);
+        int requested = player.requestedViewDistance();
+        if (requested <= 0) {
+            return serverView;
+        }
+        return Math.min(serverView, requested);
+    }
+
+    /** Vertical half-extent in blocks matching a Chebyshev chunk radius. */
+    public static int streamYRadiusBlocks(int radiusChunks) {
+        return Math.max(0, radiusChunks) * 16;
+    }
+
+    /**
+     * Inclusive chunk-grid bounds covering a Chebyshev radius around {@code anchor}:
+     * {@code [minChunkX, maxChunkX, minChunkZ, maxChunkZ]}.
+     */
+    public static int[] streamChunkBounds(BlockPos anchor, int radiusChunks) {
+        if (anchor == null) {
+            return new int[]{0, 0, 0, 0};
+        }
+        int cx = SectionPos.blockToSectionCoord(anchor.getX());
+        int cz = SectionPos.blockToSectionCoord(anchor.getZ());
+        int radius = Math.max(0, radiusChunks);
+        return new int[]{cx - radius, cx + radius, cz - radius, cz + radius};
+    }
+
+    /** Inclusive intersection of two chunk-grid rectangles. */
+    public static int[] clipChunkBounds(int[] bounds, int minCX, int maxCX, int minCZ, int maxCZ) {
+        if (bounds == null || bounds.length < 4) {
+            return new int[]{minCX, maxCX, minCZ, maxCZ};
+        }
+        return new int[]{
+                Math.max(bounds[0], minCX),
+                Math.min(bounds[1], maxCX),
+                Math.max(bounds[2], minCZ),
+                Math.min(bounds[3], maxCZ)
+        };
+    }
+
+    /** Axis-aligned box covering the Chebyshev chunk radius plus a vertical half-extent. */
+    public static AABB streamBox(BlockPos anchor, int radiusChunks, int yRadius) {
+        int half = Math.max(0, radiusChunks) * 16;
+        int y = Math.max(0, yRadius);
+        return new AABB(
+                anchor.getX() - half,
+                anchor.getY() - y,
+                anchor.getZ() - half,
+                anchor.getX() + half + 1,
+                anchor.getY() + y + 1,
+                anchor.getZ() + half + 1
+        );
+    }
+
+    public static boolean isInsideStreamRadius(
+            BlockPos worldPos,
+            BlockPos anchor,
+            int radiusChunks,
+            int yRadius
+    ) {
+        if (worldPos == null || anchor == null) {
+            return false;
+        }
+        int cx = SectionPos.blockToSectionCoord(worldPos.getX());
+        int cz = SectionPos.blockToSectionCoord(worldPos.getZ());
+        int anchorCx = SectionPos.blockToSectionCoord(anchor.getX());
+        int anchorCz = SectionPos.blockToSectionCoord(anchor.getZ());
+        int radius = Math.max(0, radiusChunks);
+        if (Math.abs(cx - anchorCx) > radius || Math.abs(cz - anchorCz) > radius) {
+            return false;
+        }
+        return Math.abs(worldPos.getY() - anchor.getY()) <= Math.max(0, yRadius);
+    }
+
+    /** Fog start distance in blocks for a streamed Chebyshev radius. */
+    public static float fogStartBlocks(int radiusChunks) {
+        return streamYRadiusBlocks(radiusChunks) * FOG_START_FRACTION;
+    }
+
+    /** Fog end distance in blocks (the streamed Chebyshev radius). Always greater than start. */
+    public static float fogEndBlocks(int radiusChunks) {
+        float start = fogStartBlocks(radiusChunks);
+        float end = streamYRadiusBlocks(radiusChunks);
+        return end > start ? end : start + 1.0f;
+    }
+
+    /** Ticket pos + radius for a stream centered on {@code anchor} (one ticket, not per-column). */
+    public static ChunkPos streamTicketChunk(BlockPos anchor) {
+        return new ChunkPos(anchor.getX() >> 4, anchor.getZ() >> 4);
     }
 
     /** Whether a block should appear in this sampler's portal preview. */
@@ -112,7 +234,7 @@ public abstract class PortalSampler {
         return nbt;
     }
 
-    /** Ticket-only keep-alive for {@code bounds} ({@code [minCX, maxCX, minCZ, maxCZ]}). */
+    /** Ticket-only keep-alive for a small footprint ({@code [minCX, maxCX, minCZ, maxCZ]}). */
     protected void addTickets(ServerLevel world, int[] bounds) {
         if (world == null || bounds == null) {
             return;
@@ -120,15 +242,27 @@ public abstract class PortalSampler {
         var chunkManager = world.getChunkSource();
         for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
             for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
-                chunkManager.addTicketWithRadius(ticket, new ChunkPos(cx, cz), 2);
+                chunkManager.addTicketWithRadius(ticket, new ChunkPos(cx, cz), 0);
             }
         }
+    }
+
+    /** One ticket at {@code anchor}'s chunk covering the Chebyshev stream radius. */
+    protected void addStreamTickets(ServerLevel world, BlockPos anchor, int radiusChunks) {
+        if (world == null || anchor == null) {
+            return;
+        }
+        world.getChunkSource().addTicketWithRadius(
+                ticket,
+                streamTicketChunk(anchor),
+                Math.max(0, radiusChunks)
+        );
     }
 
     protected void ensureLoaded(ServerLevel world, BlockPos anchor) {
     }
 
-    protected AABB entityBox(BlockPos anchor) {
+    protected AABB entityBox(ServerLevel world, BlockPos anchor) {
         return footprintAabb(anchor);
     }
 
@@ -161,7 +295,7 @@ public abstract class PortalSampler {
         if (world == null || anchor == null) {
             return false;
         }
-        return !world.getEntities((Entity) null, entityBox(anchor), entity -> !entity.isRemoved()).isEmpty();
+        return !world.getEntities((Entity) null, entityBox(world, anchor), entity -> !entity.isRemoved()).isEmpty();
     }
 
     protected void resetMobAi(ServerLevel world, BlockPos anchor) {
@@ -173,7 +307,7 @@ public abstract class PortalSampler {
             return;
         }
         ensureLoaded(world, anchor);
-        for (Entity entity : world.getEntities((Entity) null, entityBox(anchor), e -> !e.isRemoved())) {
+        for (Entity entity : world.getEntities((Entity) null, entityBox(world, anchor), e -> !e.isRemoved())) {
             if (entity instanceof Mob mob && mob.getNoActionTime() != 0) {
                 mob.setNoActionTime(0);
             }
@@ -185,7 +319,7 @@ public abstract class PortalSampler {
             return List.of();
         }
         ensureLoaded(world, anchor);
-        return List.copyOf(world.getEntities((Entity) null, entityBox(anchor), entity -> !entity.isRemoved()));
+        return List.copyOf(world.getEntities((Entity) null, entityBox(world, anchor), entity -> !entity.isRemoved()));
     }
 
     /**

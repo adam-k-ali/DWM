@@ -144,7 +144,7 @@ public final class BotiInteriorSampler extends PortalSampler {
     }
 
     /**
-     * Inclusive chunk-grid bounds covering the footprint:
+     * Inclusive chunk-grid bounds covering the console-room footprint (preload / lighting).
      * {@code [minChunkX, maxChunkX, minChunkZ, maxChunkZ]}.
      */
     public static int[] footprintChunkBounds(BlockPos plotOrigin) {
@@ -154,6 +154,66 @@ public final class BotiInteriorSampler extends PortalSampler {
                 SectionPos.blockToSectionCoord(plotOrigin.getZ()),
                 SectionPos.blockToSectionCoord(plotOrigin.getZ() + SIZE_Z - 1)
         };
+    }
+
+    /**
+     * Inclusive chunk-grid bounds of the allocated plot
+     * {@code [origin, origin + PLOT_SPACING)}.
+     */
+    public static int[] plotChunkBounds(BlockPos plotOrigin) {
+        int minCX = SectionPos.blockToSectionCoord(plotOrigin.getX());
+        int maxCX = SectionPos.blockToSectionCoord(plotOrigin.getX() + TardisPlotAllocator.PLOT_SPACING - 1);
+        int minCZ = SectionPos.blockToSectionCoord(plotOrigin.getZ());
+        int maxCZ = SectionPos.blockToSectionCoord(plotOrigin.getZ() + TardisPlotAllocator.PLOT_SPACING - 1);
+        return new int[]{minCX, maxCX, minCZ, maxCZ};
+    }
+
+    /**
+     * View-distance Chebyshev box around {@code plotOrigin}, clipped to the owning plot.
+     */
+    public static int[] streamChunkBounds(BlockPos plotOrigin, int radiusChunks) {
+        int[] plot = plotChunkBounds(plotOrigin);
+        return PortalSampler.clipChunkBounds(
+                PortalSampler.streamChunkBounds(plotOrigin, radiusChunks),
+                plot[0],
+                plot[1],
+                plot[2],
+                plot[3]
+        );
+    }
+
+    public static int[] streamChunkBounds(ServerLevel world, BlockPos plotOrigin) {
+        return streamChunkBounds(plotOrigin, PortalSampler.streamRadiusChunks(world));
+    }
+
+    /** Caps a view-distance radius so fog/stream stay inside {@link TardisPlotAllocator#PLOT_SPACING}. */
+    public static int clipStreamRadiusChunks(int radiusChunks) {
+        int plotRadius = Math.max(0, (TardisPlotAllocator.PLOT_SPACING - 1) / 16);
+        return Math.min(Math.max(0, radiusChunks), plotRadius);
+    }
+
+    public static boolean isInsidePlotStream(BlockPos worldPos, BlockPos plotOrigin, int radiusChunks) {
+        if (worldPos == null || plotOrigin == null) {
+            return false;
+        }
+        int localX = worldPos.getX() - plotOrigin.getX();
+        int localZ = worldPos.getZ() - plotOrigin.getZ();
+        if (localX < 0 || localX >= TardisPlotAllocator.PLOT_SPACING
+                || localZ < 0 || localZ >= TardisPlotAllocator.PLOT_SPACING) {
+            return false;
+        }
+        return PortalSampler.isInsideStreamRadius(
+                worldPos, plotOrigin, radiusChunks, PortalSampler.streamYRadiusBlocks(radiusChunks));
+    }
+
+    /**
+     * Ticket-only keep-alive for the portal stream radius. Does not call {@code getChunk}.
+     */
+    public static void addStreamTickets(ServerLevel world, BlockPos plotOrigin) {
+        if (world == null || plotOrigin == null) {
+            return;
+        }
+        INSTANCE.addStreamTickets(world, plotOrigin, clipStreamRadiusChunks(PortalSampler.streamRadiusChunks(world)));
     }
 
     /**
@@ -385,12 +445,39 @@ public final class BotiInteriorSampler extends PortalSampler {
 
     @Override
     protected void ensureLoaded(ServerLevel world, BlockPos anchor) {
-        ensureFootprintChunksLoaded(world, anchor);
+        addStreamTickets(world, anchor);
+    }
+
+    @Override
+    protected AABB entityBox(ServerLevel world, BlockPos anchor) {
+        int radius = PortalSampler.streamRadiusChunks(world);
+        int yRadius = PortalSampler.streamYRadiusBlocks(radius);
+        AABB stream = PortalSampler.streamBox(anchor, radius, yRadius);
+        AABB plot = new AABB(
+                anchor.getX(),
+                stream.minY,
+                anchor.getZ(),
+                anchor.getX() + TardisPlotAllocator.PLOT_SPACING,
+                stream.maxY,
+                anchor.getZ() + TardisPlotAllocator.PLOT_SPACING
+        );
+        return stream.intersect(plot);
     }
 
     @Override
     protected boolean includePos(BlockPos worldPos, BlockPos anchor) {
-        return inFootprint(worldPos, anchor);
+        int localX = worldPos.getX() - anchor.getX();
+        int localZ = worldPos.getZ() - anchor.getZ();
+        return localX >= 0 && localX < TardisPlotAllocator.PLOT_SPACING
+                && localZ >= 0 && localZ < TardisPlotAllocator.PLOT_SPACING;
+    }
+
+    @Override
+    protected YRange sampleYRange(ServerLevel world, BlockPos anchor) {
+        int yRadius = PortalSampler.streamYRadiusBlocks(PortalSampler.streamRadiusChunks(world));
+        int minY = Math.max(world.getMinY(), anchor.getY() - yRadius);
+        int maxY = Math.min(world.getMinY() + world.getHeight() - 1, anchor.getY() + yRadius);
+        return yRange(minY, maxY);
     }
 
     @Override
@@ -407,9 +494,9 @@ public final class BotiInteriorSampler extends PortalSampler {
         int baseX = chunkX << 4;
         int baseZ = chunkZ << 4;
         int minX = Math.max(baseX, anchor.getX());
-        int maxX = Math.min(baseX + 15, anchor.getX() + sizeX - 1);
+        int maxX = Math.min(baseX + 15, anchor.getX() + TardisPlotAllocator.PLOT_SPACING - 1);
         int minZ = Math.max(baseZ, anchor.getZ());
-        int maxZ = Math.min(baseZ + 15, anchor.getZ() + sizeZ - 1);
+        int maxZ = Math.min(baseZ + 15, anchor.getZ() + TardisPlotAllocator.PLOT_SPACING - 1);
         return PortalLightData.sample(
                 world,
                 new BlockPos(minX, yRange.min(), minZ),

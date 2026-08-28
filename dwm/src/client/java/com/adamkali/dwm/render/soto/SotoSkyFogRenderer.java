@@ -1,6 +1,7 @@
 package com.adamkali.dwm.render.soto;
 
 import com.adamkali.dwm.render.portal.PortalFogRenderer;
+import com.adamkali.dwm.tardis.portal.PortalSampler;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors.EffectsKind;
@@ -8,6 +9,7 @@ import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.phys.Vec3;
@@ -23,18 +25,28 @@ import org.lwjgl.opengl.GL11;
  * RenderPass helper lands. Terrain fog apply/restore preserves the previous GpuBufferSlice.
  */
 public final class SotoSkyFogRenderer {
-    /** Vanilla sky dome radius; scale so it sits behind the 11×7×11 footprint. */
+    /** Vanilla sky dome radius; scale so it sits behind the streamed exterior. */
     private static final float VANILLA_SKY_RADIUS = 512.0F;
     private static final float SKY_SCALE = 10.0F / VANILLA_SKY_RADIUS;
-
-    static final float PORTAL_FOG_START = 20.0F;
-    static final float PORTAL_FOG_END = 30.0F;
 
     private SotoSkyFogRenderer() {
     }
 
     /**
-     * Draws the Phase 3 sky with fog reaching the edge of the fixed two-chunk ghost stream.
+     * Client render distance used for portal fog / stream sizing, falling back to
+     * {@link PortalSampler#DEFAULT_STREAM_RADIUS_CHUNKS}.
+     */
+    public static int clientStreamRadiusChunks() {
+        Minecraft client = Minecraft.getInstance();
+        if (client == null || client.options == null) {
+            return PortalSampler.DEFAULT_STREAM_RADIUS_CHUNKS;
+        }
+        int renderDistance = client.options.getEffectiveRenderDistance();
+        return renderDistance > 0 ? renderDistance : PortalSampler.DEFAULT_STREAM_RADIUS_CHUNKS;
+    }
+
+    /**
+     * Draws the portal sky with fog reaching the edge of the view-distance ghost stream.
      * <p>
      * The shared entity submit collector must not be used for sky fills — it can rebind the main
      * framebuffer. Backdrop RGB is applied by the portal clear; optional mesh fill is a no-op
@@ -112,7 +124,9 @@ public final class SotoSkyFogRenderer {
     }
 
     public static GpuBufferSlice applyPortalTerrainFog(SotoAtmosphere atmosphere) {
-        return applyPortalTerrainFog(atmosphere, PORTAL_FOG_START, PORTAL_FOG_END);
+        int radius = clientStreamRadiusChunks();
+        return applyPortalTerrainFog(
+                atmosphere, PortalSampler.fogStartBlocks(radius), PortalSampler.fogEndBlocks(radius));
     }
 
     public static GpuBufferSlice applyPortalTerrainFog(SotoAtmosphere atmosphere, float start, float end) {
@@ -127,7 +141,9 @@ public final class SotoSkyFogRenderer {
     }
 
     static FogColor buildFogColor(SotoAtmosphere atmosphere, EffectsKind kind) {
-        return buildFogColor(atmosphere, kind, PORTAL_FOG_START, PORTAL_FOG_END);
+        int radius = clientStreamRadiusChunks();
+        return buildFogColor(
+                atmosphere, kind, PortalSampler.fogStartBlocks(radius), PortalSampler.fogEndBlocks(radius));
     }
 
     static FogColor buildFogColor(SotoAtmosphere atmosphere, EffectsKind kind, float start, float end) {

@@ -25,6 +25,13 @@ class PortalStreamSyncServiceTest {
     }
 
     @Test
+    void chunkSendBudget_isSmallerThanDefaultViewBox() {
+        int radius2Columns = 5 * 5;
+        assertTrue(PortalStreamSyncService.CHUNK_SEND_BUDGET_PER_VIEWER_TICK < radius2Columns);
+        assertTrue(PortalStreamSyncService.CHUNK_SEND_BUDGET_PER_VIEWER_TICK > 0);
+    }
+
+    @Test
     void botiLightGate_timesOutAndStaysOpen() {
         assertTrue(PortalStreamSyncService.shouldDeferBotiStreamForTest(TARDIS_ID, false, 10));
         assertTrue(PortalStreamSyncService.shouldDeferBotiStreamForTest(

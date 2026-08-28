@@ -8,7 +8,6 @@ import com.adamkali.dwm.tardis.portal.PortalStreamSample;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.TicketType;
 import net.minecraft.world.entity.Entity;
@@ -20,24 +19,18 @@ import net.minecraft.world.phys.AABB;
  * Exterior sampling helpers for SOTO: atmosphere, ghost stream geometry, and chunk samples.
  * Relative footprint coords: min corner = {@code exteriorPos + (-5, -1, -5)}; TARDIS at (5, 1, 5).
  *
- * <p>Phase 1 ghost streaming uses a separate {@link #STREAM_RADIUS_CHUNKS} ticketed box
- * for live entity keep-alive.
+ * <p>Ghost streaming uses a Chebyshev box sized from Minecraft view distance, ticketed at the
+ * exterior chunk.
  */
 public final class SotoExteriorSampler extends PortalSampler {
     public static final int SIZE_X = 11;
     public static final int SIZE_Y = 7;
     public static final int SIZE_Z = 11;
 
-    /** Half-side of ghost stream radius in chunks (Chebyshev). Cap for Phase 1. */
-    public static final int STREAM_RADIUS_CHUNKS = 2;
-
-    /** Vertical half-extent (blocks) around the exterior for stream sampling / entity AABB. */
-    public static final int STREAM_Y_RADIUS = 48;
-
-    /** Relative position of the exterior TARDIS block within the footprint. */
+    /** Relative position of the exterior TARDIS block within the hitch footprint. */
     public static final BlockPos RELATIVE_TARDIS_POS = new BlockPos(5, 1, 5);
 
-    /** Offset from exterior block pos to footprint min corner. */
+    /** Offset from exterior block pos to hitch footprint min corner. */
     public static final BlockPos FOOTPRINT_MIN_OFFSET = new BlockPos(-5, -1, -5);
 
     private static final TicketType SOTO_TICKET = new TicketType(80, TicketType.FLAG_LOADING | TicketType.FLAG_SIMULATION);
@@ -81,48 +74,38 @@ public final class SotoExteriorSampler extends PortalSampler {
     }
 
     /**
-     * Chunk bounds for ghost streaming: Chebyshev radius {@link #STREAM_RADIUS_CHUNKS}
-     * around the exterior block's chunk. Returns {@code [minCX, maxCX, minCZ, maxCZ]}.
+     * Chunk bounds for ghost streaming: Chebyshev radius around the exterior block's chunk.
+     * Returns {@code [minCX, maxCX, minCZ, maxCZ]}.
      */
+    public static int[] streamChunkBounds(BlockPos exteriorPos, int radiusChunks) {
+        return PortalSampler.streamChunkBounds(exteriorPos, radiusChunks);
+    }
+
     public static int[] streamChunkBounds(BlockPos exteriorPos) {
-        int cx = SectionPos.blockToSectionCoord(exteriorPos.getX());
-        int cz = SectionPos.blockToSectionCoord(exteriorPos.getZ());
-        return new int[]{
-                cx - STREAM_RADIUS_CHUNKS,
-                cx + STREAM_RADIUS_CHUNKS,
-                cz - STREAM_RADIUS_CHUNKS,
-                cz + STREAM_RADIUS_CHUNKS
-        };
+        return streamChunkBounds(exteriorPos, PortalSampler.DEFAULT_STREAM_RADIUS_CHUNKS);
+    }
+
+    public static int[] streamChunkBounds(ServerLevel world, BlockPos exteriorPos) {
+        return streamChunkBounds(exteriorPos, PortalSampler.streamRadiusChunks(world));
     }
 
     /** Axis-aligned box covering the ghost stream radius (horizontal chunks + vertical radius). */
+    public static AABB streamBox(BlockPos exteriorPos, int radiusChunks) {
+        return PortalSampler.streamBox(
+                exteriorPos, radiusChunks, PortalSampler.streamYRadiusBlocks(radiusChunks));
+    }
+
     public static AABB streamBox(BlockPos exteriorPos) {
-        int half = STREAM_RADIUS_CHUNKS * 16;
-        return new AABB(
-                exteriorPos.getX() - half,
-                exteriorPos.getY() - STREAM_Y_RADIUS,
-                exteriorPos.getZ() - half,
-                exteriorPos.getX() + half + 1,
-                exteriorPos.getY() + STREAM_Y_RADIUS + 1,
-                exteriorPos.getZ() + half + 1
-        );
+        return streamBox(exteriorPos, PortalSampler.DEFAULT_STREAM_RADIUS_CHUNKS);
+    }
+
+    public static boolean isInsideStreamRadius(BlockPos worldPos, BlockPos exteriorPos, int radiusChunks) {
+        return PortalSampler.isInsideStreamRadius(
+                worldPos, exteriorPos, radiusChunks, PortalSampler.streamYRadiusBlocks(radiusChunks));
     }
 
     public static boolean isInsideStreamRadius(BlockPos worldPos, BlockPos exteriorPos) {
-        if (worldPos == null || exteriorPos == null) {
-            return false;
-        }
-        int cx = SectionPos.blockToSectionCoord(worldPos.getX());
-        int cz = SectionPos.blockToSectionCoord(worldPos.getZ());
-        int ecx = SectionPos.blockToSectionCoord(exteriorPos.getX());
-        int ecz = SectionPos.blockToSectionCoord(exteriorPos.getZ());
-        int dx = Math.abs(cx - ecx);
-        int dz = Math.abs(cz - ecz);
-        if (dx > STREAM_RADIUS_CHUNKS || dz > STREAM_RADIUS_CHUNKS) {
-            return false;
-        }
-        int dy = Math.abs(worldPos.getY() - exteriorPos.getY());
-        return dy <= STREAM_Y_RADIUS;
+        return isInsideStreamRadius(worldPos, exteriorPos, PortalSampler.DEFAULT_STREAM_RADIUS_CHUNKS);
     }
 
     /**
@@ -133,7 +116,7 @@ public final class SotoExteriorSampler extends PortalSampler {
         if (world == null || exteriorPos == null) {
             return;
         }
-        INSTANCE.addTickets(world, streamChunkBounds(exteriorPos));
+        INSTANCE.addStreamTickets(world, exteriorPos, PortalSampler.streamRadiusChunks(world));
     }
 
     /**
@@ -186,14 +169,15 @@ public final class SotoExteriorSampler extends PortalSampler {
     }
 
     @Override
-    protected AABB entityBox(BlockPos anchor) {
-        return streamBox(anchor);
+    protected AABB entityBox(ServerLevel world, BlockPos anchor) {
+        return streamBox(anchor, PortalSampler.streamRadiusChunks(world));
     }
 
     @Override
     protected YRange sampleYRange(ServerLevel world, BlockPos anchor) {
-        int minY = Math.max(world.getMinY(), anchor.getY() - STREAM_Y_RADIUS);
-        int maxY = Math.min(world.getMinY() + world.getHeight() - 1, anchor.getY() + STREAM_Y_RADIUS);
+        int yRadius = PortalSampler.streamYRadiusBlocks(PortalSampler.streamRadiusChunks(world));
+        int minY = Math.max(world.getMinY(), anchor.getY() - yRadius);
+        int maxY = Math.min(world.getMinY() + world.getHeight() - 1, anchor.getY() + yRadius);
         return yRange(minY, maxY);
     }
 

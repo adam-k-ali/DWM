@@ -1,6 +1,7 @@
 package com.adamkali.dwm.tardis.boti;
 
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
+import com.adamkali.dwm.tardis.portal.PortalSampler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -49,9 +50,13 @@ public final class BotiPlotIndex {
 
     /**
      * Resolves the owning TARDIS for a world position in {@code dwm:tardis}, or null if outside a
-     * registered footprint.
+     * registered plot stream.
      */
     public static @Nullable UUID resolve(BlockPos worldPos) {
+        return resolve(worldPos, PortalSampler.DEFAULT_STREAM_RADIUS_CHUNKS);
+    }
+
+    public static @Nullable UUID resolve(BlockPos worldPos, int radiusChunks) {
         int gridX = Math.floorDiv(worldPos.getX(), TardisPlotAllocator.PLOT_SPACING);
         int gridZ = Math.floorDiv(worldPos.getZ(), TardisPlotAllocator.PLOT_SPACING);
         BlockPos origin = new BlockPos(
@@ -63,7 +68,7 @@ public final class BotiPlotIndex {
         if (owner == null) {
             return null;
         }
-        if (!BotiInteriorSampler.isInsideFootprint(worldPos, origin)) {
+        if (!BotiInteriorSampler.isInsidePlotStream(worldPos, origin, radiusChunks)) {
             return null;
         }
         return owner;
