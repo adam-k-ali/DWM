@@ -31,7 +31,7 @@ steps:
   - captureScreenshot:
       name: field-guide-chronoplasm-recipe
   - closeScreen
-  - selectHotbar: 0
+  - selectHotbar: 8
   - waitUntil:
       holding: dwm:field_guide
   - useItem: air

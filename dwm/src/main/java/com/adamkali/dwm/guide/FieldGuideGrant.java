@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -32,7 +33,12 @@ public final class FieldGuideGrant {
             return false;
         }
         ItemStack stack = new ItemStack(DWMItems.FIELD_GUIDE);
-        if (!player.getInventory().add(stack)) {
+        Inventory inventory = player.getInventory();
+        int slot = FieldGuideGrantLogic.slotForGrant(
+                inventory.getItem(FieldGuideGrantLogic.PREFERRED_HOTBAR_SLOT).isEmpty());
+        if (slot >= 0) {
+            inventory.setItem(slot, stack);
+        } else if (!inventory.add(stack)) {
             player.drop(stack, false);
         }
         player.setAttached(RECEIVED, true);

@@ -18,7 +18,7 @@ Give players an always-available in-mod playbook for DWM crafting chains and cor
 | Method | Default |
 | --- | --- |
 | Keybind | **G** (`Controls → Doctor Who Mod → Open Field Guide`) |
-| Item | **Field Guide** book given once on first join (use in air). Losing it is expected — G and Mod Menu remain. |
+| Item | **Field Guide** book given once on first join into the last hotbar slot (use in air). Losing it is expected — G and Mod Menu remain. |
 | Mod Menu | **Mods → The Doctor Who Mod → Open Field Guide** (requires a loaded world) |
 
 The screen is client-only; catalog content is loaded from datapacks and synced with the world.
