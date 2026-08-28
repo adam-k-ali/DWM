@@ -1,0 +1,10 @@
+{
+  "page": { "id": "dwm:first_hop" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.first_hop.title",
+      "bodyKey": "dwm.guide.page.first_hop.body"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "page": { "id": "dwm:find_tardis" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.find_tardis.title",
+      "bodyKey": "dwm.guide.page.find_tardis.body"
+    }
+  ]
+}

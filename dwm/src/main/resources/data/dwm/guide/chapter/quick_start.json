@@ -1,0 +1,10 @@
+{
+  "chapter": { "id": "dwm:quick_start" },
+  "titleKey": "dwm.guide.chapter.quick_start",
+  "pages": [
+    { "id": "dwm:find_tardis" },
+    { "id": "dwm:claim_tardis" },
+    { "id": "dwm:first_hop" },
+    { "id": "dwm:bind_key" }
+  ]
+}

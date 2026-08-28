@@ -1,0 +1,14 @@
+{
+  "page": { "id": "dwm:bind_key" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.bind_key.title",
+      "bodyKey": "dwm.guide.page.bind_key.body"
+    },
+    {
+      "type": "crafting",
+      "recipes": ["dwm:tardis_key"]
+    }
+  ]
+}

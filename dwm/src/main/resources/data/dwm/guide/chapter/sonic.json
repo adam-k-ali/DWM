@@ -1,0 +1,9 @@
+{
+  "chapter": { "id": "dwm:sonic" },
+  "titleKey": "dwm.guide.chapter.sonic",
+  "pages": [
+    { "id": "dwm:craft_sonic" },
+    { "id": "dwm:doctor_variants" },
+    { "id": "dwm:use_sonic" }
+  ]
+}

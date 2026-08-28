@@ -1,0 +1,15 @@
+{
+  "page": { "id": "dwm:chronoplasm" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.chronoplasm.title",
+      "bodyKey": "dwm.guide.page.chronoplasm.body"
+    },
+    {
+      "type": "crafting",
+      "recipes": ["dwm:white_chronoplasm_powder"],
+      "pattern": true
+    }
+  ]
+}

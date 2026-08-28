@@ -1,0 +1,10 @@
+{
+  "page": { "id": "dwm:use_sonic" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.use_sonic.title",
+      "bodyKey": "dwm.guide.page.use_sonic.body"
+    }
+  ]
+}

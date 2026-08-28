@@ -51,10 +51,7 @@ public class FieldGuideScreen extends Screen {
 
     public FieldGuideScreen(@Nullable FieldGuidePage initialPage) {
         super(Component.translatable("dwm.guide.title"));
-        if (initialPage != null) {
-            selectedChapter = FieldGuideCatalog.chapterForPage(initialPage);
-            selectedPage = initialPage;
-        }
+        selectedPage = initialPage;
     }
 
     @Override
@@ -63,11 +60,22 @@ public class FieldGuideScreen extends Screen {
         bookTop = FieldGuideBookLayout.bookTop(height);
         contentWidgets.clear();
 
+        List<FieldGuideChapter> chapters = chapters();
         if (selectedPage == null) {
-            selectedChapter = FieldGuideCatalog.chapters().getFirst();
-            selectedPage = selectedChapter.pages().getFirst();
+            if (!chapters.isEmpty() && !chapters.getFirst().pages().isEmpty()) {
+                selectedChapter = chapters.getFirst();
+                selectedPage = selectedChapter.pages().getFirst();
+            }
         } else if (selectedChapter == null) {
-            selectedChapter = FieldGuideCatalog.chapterForPage(selectedPage);
+            for (FieldGuideChapter chapter : chapters) {
+                if (chapter.pages().contains(selectedPage)) {
+                    selectedChapter = chapter;
+                    break;
+                }
+            }
+            if (selectedChapter == null) {
+                selectedPage = null;
+            }
         }
 
         backPageButton = addRenderableWidget(new PageButton(
@@ -129,7 +137,7 @@ public class FieldGuideScreen extends Screen {
 
     private Stack buildLeftPage() {
         Stack chapters = Stack.vertical(FieldGuideBookLayout.CHAPTER_BUTTON_GAP);
-        for (FieldGuideChapter chapter : FieldGuideCatalog.chapters()) {
+        for (FieldGuideChapter chapter : chapters()) {
             FieldGuideChapter targetChapter = chapter;
             boolean selected = chapter.equals(selectedChapter);
             chapters.add(new PlainTextButton(
@@ -317,6 +325,13 @@ public class FieldGuideScreen extends Screen {
         );
     }
 
+    private List<FieldGuideChapter> chapters() {
+        if (minecraft == null || minecraft.level == null) {
+            return List.of();
+        }
+        return FieldGuideCatalog.chapters(minecraft.level.registryAccess());
+    }
+
     private static Component styledChapterLabel(String titleKey, boolean selected) {
         return Component.translatable(titleKey).withStyle(selected
                 ? Style.EMPTY.withBold(true).withColor(FieldGuideBookLayout.CHAPTER_SELECTED_COLOR)
@@ -336,7 +351,7 @@ public class FieldGuideScreen extends Screen {
 
     private void selectPage(FieldGuidePage page) {
         selectedPage = page;
-        selectedChapter = FieldGuideCatalog.chapterForPage(page);
+        selectedChapter = FieldGuideCatalog.chapterForPage(chapters(), page);
         selectedCraftingVariantIndex = 0;
         List<FieldGuideRecipePanel.Station> stations = FieldGuideRecipePanel.availableStations(page);
         if (!stations.isEmpty() && !stations.contains(selectedStation)) {

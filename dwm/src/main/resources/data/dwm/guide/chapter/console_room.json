@@ -1,0 +1,10 @@
+{
+  "chapter": { "id": "dwm:console_room" },
+  "titleKey": "dwm.guide.chapter.console_room",
+  "pages": [
+    { "id": "dwm:chronoplasm" },
+    { "id": "dwm:tardis_wall" },
+    { "id": "dwm:roundel" },
+    { "id": "dwm:interior_props" }
+  ]
+}
