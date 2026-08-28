@@ -1,7 +1,7 @@
 # Screenplay tests (agents)
 
 This file applies to `src/screenplayTests/` — mod-owned **Screenplay** YAML scenarios only.
-The harness lives in the sibling [`screenplay/`](../../../screenplay/) Gradle build (`modRuntimeOnly` via composite includeBuild). It is not bundled into the production mod jar.
+The harness is added by the `com.adamkali.screenplay` plugin (composite includeBuild). YAML is loaded from this directory on disk. It is not bundled into the production mod jar.
 
 ## What this is
 YAML scenarios drive the **real Minecraft client** via Screenplay. Primitives and the compiler ship in `screenplay/common`. Mod scenarios stay under `resources/tests/` (e.g. `placeAndOpenTardis.yaml`). Vanilla demos ship inside `screenplay/common` resources and are run from the Screenplay build.

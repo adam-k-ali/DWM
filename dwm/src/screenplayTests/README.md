@@ -1,8 +1,9 @@
 # YAML client scenarios
 
-This directory holds mod-owned **Screenplay** YAML scenarios. The harness ships
-from the sibling [`screenplay/`](../../../screenplay/) Gradle build
-(`modRuntimeOnly` via composite includeBuild). It is not included in the production mod jar.
+This directory holds mod-owned **Screenplay** YAML scenarios. The
+`com.adamkali.screenplay` plugin adds the harness (composite includeBuild)
+includeBuild) and loads these files from disk. They are not included in the
+production mod jar.
 
 Full documentation (quick start + command API reference):
 https://adam-k-ali.github.io/DWM/
@@ -12,7 +13,7 @@ https://adam-k-ali.github.io/DWM/
 Run a test by its YAML filename without the extension:
 
 ```bash
-./dwm/gradlew runScreenplay -Pscreenplay=createWorld
+./dwm/gradlew runScreenplay -Pscreenplay=placeAndOpenTardis
 ./dwm/gradlew runScreenplay -Pscreenplay=fieldGuide -PscreenplayDisplay=xvfb
 ```
 
@@ -51,15 +52,15 @@ Select the framebuffer strategy with `-PscreenplayDisplay` (default `display`):
 | `xvfb` | Wraps the client with Loom’s `xvfb-run` path (Linux only). Still boots a real client against a virtual framebuffer; requires `xvfb` installed (`apt install xvfb`). Sets soft-GL-friendly client options and `LIBGL_ALWAYS_SOFTWARE=1`. |
 
 ```bash
-./dwm/gradlew runScreenplay -Pscreenplay=createWorld -PscreenplayDisplay=display
-./dwm/gradlew runScreenplay -Pscreenplay=createWorld -PscreenplayDisplay=xvfb -PscreenplayTimeout=120
+./dwm/gradlew runScreenplay -Pscreenplay=placeAndOpenTardis -PscreenplayDisplay=display
+./dwm/gradlew runScreenplay -Pscreenplay=placeAndOpenTardis -PscreenplayDisplay=xvfb -PscreenplayTimeout=120
 ```
 
 The default per-step timeout is 30 seconds. Override it when debugging (or for
 slow soft-GL CI runs):
 
 ```bash
-./dwm/gradlew runScreenplay -Pscreenplay=createWorld -PscreenplayTimeout=60
+./dwm/gradlew runScreenplay -Pscreenplay=placeAndOpenTardis -PscreenplayTimeout=60
 ```
 
 Results are written to:
