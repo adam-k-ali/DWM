@@ -35,26 +35,33 @@ steps:
   - walkUntil:
       dimension: dwm:tardis
   - waitTicks: 40
+  # Entrance is 5 blocks north of the console. Stand on the north floor tile
+  # (same idea as installConsoleCircuit's south-face tp) so nearest+index 0 is
+  # Panel4 cloak, not a farther control from spawn.
+  - runCommand: "/tp @s ~ ~ ~4"
+  - waitTicks: 5
+  - setSneaking:
+      enabled: false
+  - selectHotbar: 0
   - lookAt:
       x: "~"
       y: "~1"
-      z: "~5"
+      z: "~1"
   - waitTicks: 10
-  - selectHotbar: 0
-  - waitTicks: 5
   - interactWithEntity:
       type: dwm:console_control
       mode: nearest
-      maxDistance: 6
+      maxDistance: 4
       near:
         x: "~"
         y: "~1"
-        z: "~5"
+        z: "~"
       index: 0
   - waitUntil:
       overlay: "Cloak engaged"
   - selectHotbar: 1
   - waitTicks: 5
+  - runCommand: "/tp @s ~ ~ ~-4"
   - lookAt:
       x: "~"
       y: "~1"
