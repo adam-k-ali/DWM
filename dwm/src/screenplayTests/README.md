@@ -139,7 +139,8 @@ The MVP primitives are:
   timestamped filename. An optional `name` sets the PNG stem. Optional
   `compare: true` (requires `name`) diffs against a baseline PNG when
   `-PscreenplayBaselinesDir` / `screenplay.baselines-dir` is set (CI supplies
-  green `main` artifacts). Optional `maxDiffPixels` defaults to `0`. The step
+  green `main` artifacts). Optional `maxDiffPixels` defaults to `0` and counts
+  only pixels beyond Screenplay’s fixed per-channel color epsilon (`16`). The step
   waits until the file has been written before succeeding.
 - `startVanillaServer` — launches Mojang’s official dedicated-server jar as a
   child process (no Fabric/DWM on the server). It writes offline-mode superflat
@@ -201,8 +202,9 @@ The MVP primitives are:
   updates. Cheats (singleplayer) or operator (dedicated server) are required
   for privileged commands such as `/give`. `startVanillaServer` does not OP
   the player.
-- `pressKey` — presses a keyboard key once (for example `g` for a bound key or
-  `escape` for the pause menu). Pair with `waitUntil` when the key opens a
+- `pressKey` — presses a keyboard key once (for example `g` for a bound key,
+  `escape` for the pause menu, or `f1` to hide the HUD and first-person hand
+  before a screenshot compare). Pair with `waitUntil` when the key opens a
   screen on a later client tick.
 
 Field Guide scenario (`fieldGuide.yaml`) uses `pressKey: g`, chapter/page
