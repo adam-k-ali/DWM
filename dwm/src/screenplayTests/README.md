@@ -16,8 +16,10 @@ Run a test by its YAML filename without the extension:
 ./dwm/gradlew runScreenplay -Pscreenplay=fieldGuide -PscreenplayDisplay=xvfb
 ```
 
-Mod-owned scenarios include `placeAndOpenTardis` (TARDIS door/interior flow) and
-`fieldGuide` (Field Guide UI snapshots). PNGs from `captureScreenshot` land under
+Mod-owned scenarios include `placeAndOpenTardis` (TARDIS door/interior flow),
+`fieldGuide` (Field Guide UI snapshots), and DWM-060 circuit coverage:
+`fieldGuideCircuits`, `installConsoleCircuit`, and `remoteSummonCircuit`
+(console controls use the upstream `interactWithEntity` step). PNGs from `captureScreenshot` land under
 `build/screenplay/run/screenshots/` and are copied into
 `build/screenplay/results/<id>/screenshots/` by `runScreenplayTests`. **Do not**
 commit baseline PNGs — review screenshot diffs across CI runs or local runs when

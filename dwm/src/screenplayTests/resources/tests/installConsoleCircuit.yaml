@@ -1,0 +1,47 @@
+---
+name: Install Console Circuit
+type: test
+---
+steps:
+  - launchGame
+  - enterFoundTardis
+  - selectHotbar: 0
+  - lookAt:
+      x: "~"
+      y: "~1"
+      z: "~1"
+  - waitTicks: 10
+  - runCommand: "/item replace entity @s weapon.mainhand with minecraft:air"
+  - interactWithEntity:
+      type: dwm:console_control
+      mode: nearest
+      maxDistance: 4
+  - waitTicks: 10
+  - captureScreenshot:
+      name: circuit-broken-stabilisers
+  - runCommand: "/item replace entity @s weapon.mainhand with dwm:circuit_stabilisers"
+  - waitUntil:
+      holding: dwm:circuit_stabilisers
+  - lookAt:
+      x: "~"
+      y: "~1"
+      z: "~1"
+  - waitTicks: 5
+  - interactWithEntity:
+      type: dwm:console_control
+      mode: nearest
+      maxDistance: 4
+  - waitTicks: 10
+  - runCommand: "/item replace entity @s weapon.mainhand with minecraft:air"
+  - lookAt:
+      x: "~"
+      y: "~1"
+      z: "~1"
+  - waitTicks: 5
+  - interactWithEntity:
+      type: dwm:console_control
+      mode: nearest
+      maxDistance: 4
+  - waitTicks: 10
+  - captureScreenshot:
+      name: circuit-fitted-stabilisers

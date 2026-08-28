@@ -1,0 +1,31 @@
+---
+name: Enter Found TARDIS
+type: command
+---
+steps:
+  - createWorld:
+      worldType: superflat
+      gameMode: creative
+      difficulty: peaceful
+      allowCommands: true
+      seed: "42"
+  - closeScreen
+  - runCommand: "/time set day"
+  - runCommand: "/setblock ~1 ~ ~ dwm:tardis_block"
+  - runCommand: "/data merge block ~1 ~ ~ {worldgenFound:1b}"
+  - selectHotbar: 1
+  - lookAt:
+      x: "~1"
+      y: "~"
+      z: "~"
+  - useItem
+  - waitTicks: 25
+  - runCommand: "/tp @s ~-3 ~1 ~"
+  - lookAt:
+      x: "~3"
+      y: "~"
+      z: "~"
+  - walkUntil:
+      dimension: dwm:tardis
+  - waitTicks: 40
+  - runCommand: "/tp @s ~ ~ ~6"
