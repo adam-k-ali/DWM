@@ -12,6 +12,8 @@ public class FieldGuideGrantGameTests {
     @GameTest(structure = "fabric-gametest-api-v1:empty")
     public void tryGive_onlyOnce(GameTestHelper context) {
         ServerPlayer player = context.makeMockServerPlayerInLevel();
+        player.setAttached(FieldGuideGrant.RECEIVED, null);
+        player.getInventory().clearContent();
         if (!FieldGuideGrant.tryGive(player)) {
             throw new AssertionError("Expected first grant to succeed");
         }
