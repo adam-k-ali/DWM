@@ -100,6 +100,13 @@ public class TardisDataModel {
     public @Nullable UUID ownerUuid;
 
     /**
+     * Artron tank 0–{@link com.adamkali.dwm.tardis.logic.ArtronLogic#CAPACITY}. Boxed so Gson
+     * loads of older saves (missing field) stay full via null — see
+     * {@link com.adamkali.dwm.tardis.logic.ArtronLogic}.
+     */
+    public Integer artron;
+
+    /**
      * Circuit fitted flags. Boxed so Gson loads of older saves (missing field) stay
      * working via null — see {@link com.adamkali.dwm.tardis.logic.CircuitFittedLogic}.
      */
@@ -132,6 +139,7 @@ public class TardisDataModel {
         this.locationHistory = new ArrayList<>();
         this.selectedFastReturnIndex = 0;
         this.stabilisersEnabled = Boolean.TRUE;
+        this.artron = 500;
         this.planetLocatorFitted = Boolean.TRUE;
         this.waypointsFitted = Boolean.TRUE;
         this.playerLocatorFitted = Boolean.TRUE;
@@ -250,6 +258,7 @@ public class TardisDataModel {
                 + ", travelDestinationDimension=" + travelDestinationDimension
                 + ", travelDestinationMode=" + travelDestinationMode
                 + ", ownerUuid=" + ownerUuid
+                + ", artron=" + artron
                 + ", planetLocatorFitted=" + planetLocatorFitted
                 + ", waypointsFitted=" + waypointsFitted
                 + ", playerLocatorFitted=" + playerLocatorFitted
@@ -300,6 +309,7 @@ public class TardisDataModel {
                     && this.travelDestinationRotation == other.travelDestinationRotation
                     && Objects.equals(this.travelTargetPlayerUuid, other.travelTargetPlayerUuid)
                     && Objects.equals(this.ownerUuid, other.ownerUuid)
+                    && Objects.equals(this.artron, other.artron)
                     && Objects.equals(this.planetLocatorFitted, other.planetLocatorFitted)
                     && Objects.equals(this.waypointsFitted, other.waypointsFitted)
                     && Objects.equals(this.playerLocatorFitted, other.playerLocatorFitted)

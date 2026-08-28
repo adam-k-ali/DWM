@@ -29,8 +29,6 @@ public class ReaderModel extends EntityModel<TardisRenderState> {
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "textures/entity/temperature_reader.png");
     public static final Identifier REFUELER_TEXTURE =
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "textures/entity/refueler.png");
-    /** Parked cosmetic needle for the placeholder artron gauge. */
-    public static final float REFUELER_NEEDLE = 0.65F;
     /** Sweep from empty (−~69°) to full (+~69°). */
     public static final float NEEDLE_SWEEP_RAD = 2.4F;
 

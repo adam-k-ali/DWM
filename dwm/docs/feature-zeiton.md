@@ -17,12 +17,14 @@ Give Gallifrey a common energy gem—and rare Overworld traces—so later TARDIS
 - Ore generation in all Gallifrey biomes replacing `#dwm:gallifrey_ore_replaceables` (Gallifrey stone)
 - Rare Overworld traces replacing `#minecraft:stone_ore_replaceables` (no deepslate variant)
 - Localization, recipes, tags, and loot via datagen
+- **TARDIS fuel:** Zeiton Crystals used on the Panel 5 refueler add 25 artron (tank 0–500). Powder is not fuel — convert 4 powder → 1 crystal first.
 
 ## How It Works In-Game
 1. Mine Zeiton Ore with an iron (or better) pickaxe. Wood and stone picks drop nothing.
 2. Ore drops Zeiton Crystals (Fortune applies; Silk Touch keeps the ore for smelting/blasting).
 3. Shapeless: 1 crystal → 4 powder; 4 powder → 1 crystal.
 4. Shapeless: 1 iron ingot + 1 redstone → Ferrite Powder.
+5. Use Zeiton Crystals on the TARDIS Panel 5 refueler to add 25 artron (clamp 500). Powder is for later circuit crafts, not the tank.
 
 Overworld traces are a lucky find, not a reliable farm. Gallifrey remains the place to stockpile Zeiton.
 
@@ -31,6 +33,5 @@ Overworld traces are a lucky find, not a reliable farm. Gallifrey remains the pl
 - Ferrite is craft-only; there is no ferrite ore.
 
 ## Future Opportunities (Planned)
-- Premium artron fuel consumption (DWM-059).
 - Late console circuits using Zeiton powder and ferrite (DWM-060).
 - Zeiton torch / repeater / rails (out of scope here).

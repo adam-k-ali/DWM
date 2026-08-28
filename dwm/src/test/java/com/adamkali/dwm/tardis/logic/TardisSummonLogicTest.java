@@ -104,6 +104,16 @@ class TardisSummonLogicTest {
                 CircuitFittedLogic.CIRCUIT_BROKEN_KEY,
                 TardisSummonLogic.overlayKey(TardisSummonLogic.Result.CIRCUIT_BROKEN)
         );
+        assertEquals(
+                ArtronLogic.NOT_ENOUGH_KEY,
+                TardisSummonLogic.overlayKey(TardisSummonLogic.Result.EMPTY_TANK)
+        );
+        TardisDataModel empty = TardisDataLoader.create();
+        empty.artron = 0;
+        assertEquals(
+                ArtronLogic.ARTRON_EMPTY_KEY,
+                TardisSummonLogic.overlayKey(TardisSummonLogic.Result.EMPTY_TANK, empty)
+        );
     }
 
     @Test

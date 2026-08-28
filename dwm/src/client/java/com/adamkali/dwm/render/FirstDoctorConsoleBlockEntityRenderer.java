@@ -33,6 +33,7 @@ import com.adamkali.dwm.render.state.FirstDoctorConsoleBlockEntityRenderState;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
+import com.adamkali.dwm.tardis.logic.ArtronLogic;
 import com.adamkali.dwm.tardis.logic.ConsoleDisplayState;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
@@ -119,7 +120,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
                         RadiationReaderModel.TEXTURE_LOCATION,
                         display -> needle(display.reading(), ExteriorEnvironmentReadout.Reading::radiation)),
                 widget(LookTarget.REFUELER, readerModel, ReaderModel.REFUELER_TEXTURE,
-                        display -> ReaderModel.REFUELER_NEEDLE),
+                        display -> ArtronLogic.needleFrom(display.artron())),
                 widget(LookTarget.TELEPATHIC_CIRCUIT,
                         new TelepathicCircuitModel(context.bakeLayer(TelepathicCircuitModel.LAYER_LOCATION)),
                         TelepathicCircuitModel.TEXTURE_LOCATION, null),

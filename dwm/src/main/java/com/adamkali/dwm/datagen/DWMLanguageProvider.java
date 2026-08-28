@@ -425,7 +425,11 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.radiation", "Radiation: %s%%");
         t.add("dwm.console.reader_no_signal", "No exterior signal");
         t.add("dwm.console.reader_unavailable", "Reader unavailable");
-        t.add("dwm.console.refueler_stable", "Artron reserves: stable");
+        t.add("dwm.console.artron", "Artron reserves: %s%%");
+        t.add("dwm.console.artron_empty", "Artron reserves: empty");
+        t.add("dwm.console.artron_full", "Artron reserves already full");
+        t.add("dwm.console.artron_use_crystals", "Use Zeiton Crystals to refuel");
+        t.add("dwm.console.not_enough_artron", "Not enough artron");
         t.add("dwm.console.refueler_unavailable", "Refueler unavailable");
         t.add("dwm.console.telepathic_circuit", "Telepathic circuit");
         t.add("dwm.console.telepathic_home", "Telepathic circuit locked onto your home");
@@ -546,6 +550,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("advancements.dwm.first_hop.description", "Take a same-world flight");
         t.add("advancements.dwm.bind_key", "Spare Key");
         t.add("advancements.dwm.bind_key.description", "Bind a TARDIS key to your ship");
+        t.add("advancements.dwm.first_refuel", "Top Up");
+        t.add("advancements.dwm.first_refuel.description", "Feed Zeiton Crystals into the refueler");
         t.add("dwm.tt_capsule", "TT Capsule");
         t.add("dwm.first_doctor_box", "First Doctor Box");
         t.add("dwm.second_doctor_box", "Second Doctor Box");

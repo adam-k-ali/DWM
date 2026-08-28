@@ -25,6 +25,7 @@ public final class DWMCriteria {
     public static final PlayerTrigger CLAIM_TARDIS = register("claim_tardis");
     public static final PlayerTrigger FIRST_HOP = register("first_hop");
     public static final PlayerTrigger BIND_KEY = register("bind_key");
+    public static final PlayerTrigger TARDIS_REFUEL = register("tardis_refuel");
 
     private DWMCriteria() {
     }
