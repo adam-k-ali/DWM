@@ -44,13 +44,19 @@ public class FieldGuideScreen extends Screen {
     private int selectedCraftingVariantIndex;
     private int bookLeft;
     private int bookTop;
+    private final @Nullable Screen parent;
 
     public FieldGuideScreen() {
-        super(Component.translatable("dwm.guide.title"));
+        this(null, null);
     }
 
     public FieldGuideScreen(@Nullable FieldGuidePage initialPage) {
+        this(null, initialPage);
+    }
+
+    public FieldGuideScreen(@Nullable Screen parent, @Nullable FieldGuidePage initialPage) {
         super(Component.translatable("dwm.guide.title"));
+        this.parent = parent;
         selectedPage = initialPage;
     }
 
@@ -432,6 +438,13 @@ public class FieldGuideScreen extends Screen {
                 0xFFFFFFFF,
                 false
         );
+    }
+
+    @Override
+    public void onClose() {
+        if (minecraft != null) {
+            minecraft.gui.setScreen(parent);
+        }
     }
 
     @Override

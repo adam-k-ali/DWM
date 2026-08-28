@@ -8,7 +8,7 @@ Give players an always-available in-mod playbook for DWM crafting chains and cor
 
 ## Player Outcomes
 
-- Open a curated guide from anywhere in a world (keybind or pause menu).
+- Open a curated guide from anywhere in a world (keybind, first-join book, or Mod Menu).
 - Browse Quick Start, Sonic, Console Circuits, and Console Room Builder chapters immediately — no progression gate.
 - Read pages in an open-book layout with chapter index and page-turn navigation.
 - See vanilla-style crafting-table, furnace, and stonecutter recipe previews for referenced recipes.
@@ -18,9 +18,10 @@ Give players an always-available in-mod playbook for DWM crafting chains and cor
 | Method | Default |
 | --- | --- |
 | Keybind | **G** (`Controls → Doctor Who Mod → Open Field Guide`) |
-| Pause menu | **Field Guide** button on the in-game pause screen |
+| Item | **Field Guide** book given once on first join (use in air). Losing it is expected — G and Mod Menu remain. |
+| Mod Menu | **Mods → The Doctor Who Mod → Open Field Guide** (requires a loaded world) |
 
-There is no physical guide item. The screen is client-only; catalog content is loaded from datapacks and synced with the world.
+The screen is client-only; catalog content is loaded from datapacks and synced with the world.
 
 ## Presentation
 

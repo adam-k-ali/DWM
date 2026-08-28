@@ -31,17 +31,13 @@ steps:
   - captureScreenshot:
       name: field-guide-chronoplasm-recipe
   - closeScreen
-  - pressKey: escape
+  - selectHotbar: 0
   - waitUntil:
-      visible:
-        type: screen
-        name: PauseScreen
-  - assertAndClick:
-      type: button
-      name: "Field Guide"
+      holding: dwm:field_guide
+  - useItem: air
   - waitUntil:
       visible:
         type: screen
         name: FieldGuideScreen
   - captureScreenshot:
-      name: field-guide-via-pause
+      name: field-guide-via-item
