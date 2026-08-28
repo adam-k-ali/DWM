@@ -1,0 +1,26 @@
+---
+name: Screenplay Assertions Smoke
+type: test
+---
+steps:
+  - launchGame
+  - createWorld:
+      worldType: flat
+      gameMode: creative
+      allowCommands: true
+  - closeScreen
+  - runCommand: "/title @s actionbar {\"text\":\"This circuit is broken\"}"
+  - waitUntil:
+      overlay: "This circuit is broken"
+  - runCommand: "/give @s minecraft:dirt"
+  - waitUntil:
+      holding: minecraft:dirt
+  - runCommand: "/item replace entity @s weapon.mainhand with minecraft:air"
+  - waitUntil:
+      notHolding: minecraft:dirt
+  - runCommand: "/advancement grant @s only minecraft:dwm/first_circuit"
+  - waitTicks: 10
+  - waitUntil:
+      toast:
+        type: advancement
+        contains: "Spare Parts"

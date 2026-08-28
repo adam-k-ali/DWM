@@ -22,7 +22,7 @@ Provide exactly one of the following keys:
 | --- | --- | --- |
 | `type` | yes | Currently only `advancement` |
 | `contains` | no* | Substring match on the advancement toast title |
-| `id` | no* | Advancement id (for example `dwm:first_circuit`; `minecraft:` namespace may be omitted) |
+| `id` | no* | Advancement id (for example `minecraft:dwm/first_circuit`; `minecraft:` namespace may be omitted) |
 
 \* Provide at least one of `contains` or `id`.
 

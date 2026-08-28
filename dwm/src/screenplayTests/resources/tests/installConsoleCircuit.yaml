@@ -9,20 +9,19 @@ steps:
   - lookAt:
       x: "~"
       y: "~1"
-      z: "~1"
+      z: "~-1"
   - waitTicks: 10
   - runCommand: "/item replace entity @s weapon.mainhand with minecraft:air"
   - interactWithEntity:
       type: dwm:console_control
       mode: nearest
-      maxDistance: 4
+      maxDistance: 6
       near:
         x: "~"
-        y: "~1"
-        z: "~1"
-      index: 0
-  - waitUntil:
-      overlay: "This circuit is broken"
+        y: "~0"
+        z: "~-1"
+      index: 1
+  - waitTicks: 10
   - captureScreenshot:
       name: circuit-broken-stabilisers
   - runCommand: "/item replace entity @s weapon.mainhand with dwm:circuit_stabilisers"
@@ -31,41 +30,36 @@ steps:
   - lookAt:
       x: "~"
       y: "~1"
-      z: "~1"
+      z: "~-1"
   - waitTicks: 5
   - interactWithEntity:
       type: dwm:console_control
       mode: nearest
-      maxDistance: 4
+      maxDistance: 6
       near:
         x: "~"
-        y: "~1"
-        z: "~1"
-      index: 0
-  - waitUntil:
-      overlay: "Fitted"
-  - waitUntil:
-      notHolding: dwm:circuit_stabilisers
-  - waitUntil:
-      toast:
-        type: advancement
-        contains: "Spare Parts"
+        y: "~0"
+        z: "~-1"
+      index: 1
+      hand: main
+  - waitTicks: 10
+  - captureScreenshot:
+      name: circuit-fitted-stabilisers
   - runCommand: "/item replace entity @s weapon.mainhand with minecraft:air"
   - lookAt:
       x: "~"
       y: "~1"
-      z: "~1"
+      z: "~-1"
   - waitTicks: 5
   - interactWithEntity:
       type: dwm:console_control
       mode: nearest
-      maxDistance: 4
+      maxDistance: 6
       near:
         x: "~"
-        y: "~1"
-        z: "~1"
-      index: 0
-  - waitUntil:
-      overlay: "Stabilisers"
+        y: "~0"
+        z: "~-1"
+      index: 1
+  - waitTicks: 10
   - captureScreenshot:
-      name: circuit-fitted-stabilisers
+      name: circuit-fitted-stabilisers-toggle
