@@ -5,7 +5,6 @@ type: test
 steps:
   - launchGame
   - claimPlacedTardis
-  - selectHotbar: 0
   - runCommand: "/item replace entity @s weapon.mainhand with dwm:sonic_third_doctor"
   - waitUntil:
       holding: dwm:sonic_third_doctor
