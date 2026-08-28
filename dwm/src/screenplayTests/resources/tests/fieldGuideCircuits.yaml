@@ -13,6 +13,9 @@ steps:
       visible:
         type: screen
         name: FieldGuideScreen
+  # Hide first-person hand so CI compare is the book, not arm chrome.
+  - pressKey: f1
+  - waitTicks: 2
   - assertAndClick:
       type: button
       name: "Console Circuits"
