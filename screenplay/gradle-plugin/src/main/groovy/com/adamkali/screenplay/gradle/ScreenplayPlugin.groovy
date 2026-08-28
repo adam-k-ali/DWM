@@ -109,12 +109,14 @@ guiScale:1
         def scenarioId = project.providers.gradleProperty('screenplay').orElse('createWorld')
         def timeout = project.providers.gradleProperty('screenplayTimeout').orElse('30')
         def baselinesDirProperty = project.providers.gradleProperty('screenplayBaselinesDir')
+        def recordProperty = project.providers.gradleProperty('screenplayRecord')
         def reportFile = project.layout.buildDirectory.file("${extension.outputDir}/report.xml").get().asFile.absolutePath
         def vanillaServerDir = project.layout.buildDirectory.dir("${extension.outputDir}/vanilla-server").get().asFile.absolutePath
         def runDir = extension.runDir
         def baselinesDir = baselinesDirProperty.isPresent()
                 ? project.file(baselinesDirProperty.get()).absolutePath
                 : null
+        def recordValue = recordProperty.isPresent() ? normalizeRecordProperty(recordProperty.get()) : null
 
         if (loader == 'fabric') {
             def loom = project.extensions.findByName('loom')
@@ -137,6 +139,9 @@ guiScale:1
             run.property 'screenplay.vanilla-server-dir', vanillaServerDir
             if (baselinesDir != null) {
                 run.property 'screenplay.baselines-dir', baselinesDir
+            }
+            if (recordValue != null) {
+                run.property 'screenplay.record', recordValue
             }
             run.runDir runDir
 
@@ -183,14 +188,27 @@ guiScale:1
                 if (baselinesDir != null) {
                     run.systemProperty 'screenplay.baselines-dir', baselinesDir
                 }
+                if (recordValue != null) {
+                    run.systemProperty 'screenplay.record', recordValue
+                }
             }
         } catch (Throwable ex) {
             project.logger.warn("Screenplay could not fully configure ${loader} run: ${ex.message}")
         }
     }
 
+    private static String normalizeRecordProperty(String raw) {
+        def value = raw == null ? '' : raw.trim().toLowerCase()
+        if (!(value in ['true', 'false'])) {
+            throw new GradleException(
+                    "Invalid -PscreenplayRecord='${raw}'. Allowed values: true, false.")
+        }
+        return value
+    }
+
     private static void configureDisplayOnRunTask(Project project, ScreenplayExtension extension) {
         def displayMode = project.providers.gradleProperty('screenplayDisplay').orElse('display')
+        def recordProperty = project.providers.gradleProperty('screenplayRecord')
         project.tasks.configureEach { task ->
             if (!(task.name in ['runScreenplay', 'runScreenplayClient'])) {
                 return
@@ -232,6 +250,14 @@ guiScale:1
                                 'screenplayDisplay=xvfb requires xvfb-run on PATH. Install with: apt install xvfb')
                     }
                 }
+                if (recordProperty.isPresent() && normalizeRecordProperty(recordProperty.get()) == 'true') {
+                    def ffmpeg = new ProcessBuilder('which', 'ffmpeg').redirectErrorStream(true).start()
+                    ffmpeg.waitFor()
+                    if (ffmpeg.exitValue() != 0) {
+                        throw new GradleException(
+                                'screenplayRecord=true requires ffmpeg on PATH. Install with: apt install ffmpeg')
+                    }
+                }
             }
         }
     }
@@ -240,6 +266,7 @@ guiScale:1
         def displayMode = project.providers.gradleProperty('screenplayDisplay').orElse('display')
         def timeoutProperty = project.providers.gradleProperty('screenplayTimeout')
         def baselinesDirProperty = project.providers.gradleProperty('screenplayBaselinesDir')
+        def recordProperty = project.providers.gradleProperty('screenplayRecord')
         def projectDirFile = project.layout.projectDirectory.asFile
         def resultsRoot = project.layout.buildDirectory.dir("${extension.outputDir}/results")
         def testsDirs = extension.allTestsDirs()
@@ -283,6 +310,9 @@ guiScale:1
                     if (baselinesDirProperty.isPresent()) {
                         args << "-PscreenplayBaselinesDir=${baselinesDirProperty.get()}"
                     }
+                    if (recordProperty.isPresent()) {
+                        args << "-PscreenplayRecord=${recordProperty.get()}"
+                    }
                     def result = execOps.exec {
                         workingDir projectDirFile
                         commandLine args
@@ -305,6 +335,13 @@ guiScale:1
                         project.copy {
                             from screenshots
                             into new File(archiveDir, 'screenshots')
+                        }
+                    }
+                    def recordings = new File(projectDirFile, "build/${extension.outputDir}/run/recordings")
+                    if (recordings.isDirectory()) {
+                        project.copy {
+                            from recordings
+                            into new File(archiveDir, 'recordings')
                         }
                     }
 

@@ -12,8 +12,8 @@ Also: [`screenplay/README.md`](../../../screenplay/README.md), [`screenplay/meta
 ## Commands
 - Run a scenario or suite: `./dwm/gradlew runScreenplay -Pscreenplay=<yaml-filename-stem>`
 - Run all discovered suites + standalone `type: test` scenarios: `./dwm/gradlew runScreenplayTests`
-- Properties: `-PscreenplayDisplay=display|xvfb`, `-PscreenplayTimeout=<seconds>`, optional `-PscreenplayBaselinesDir=<dir>` for screenshot compare
-- Outputs: `dwm/build/screenplay/report.xml`, `metrics.json`, `diagnostics.txt`, screenshots under `dwm/build/screenplay/run/screenshots/`
+- Properties: `-PscreenplayDisplay=display|xvfb`, `-PscreenplayTimeout=<seconds>`, optional `-PscreenplayBaselinesDir=<dir>` for screenshot compare, optional `-PscreenplayRecord=true|false` (or YAML `record: true`) for ffmpeg screen recording
+- Outputs: `dwm/build/screenplay/report.xml`, `metrics.json`, `diagnostics.txt`, screenshots under `dwm/build/screenplay/run/screenshots/`, recordings under `dwm/build/screenplay/run/recordings/`
 - Per-run archives from `runScreenplayTests`: `dwm/build/screenplay/results/<id>/`
 
 ## Harness unit tests

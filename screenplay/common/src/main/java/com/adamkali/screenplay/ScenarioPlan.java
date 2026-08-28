@@ -3,7 +3,7 @@ package com.adamkali.screenplay;
 import java.util.List;
 import java.util.Map;
 
-public record ScenarioPlan(String id, String name, List<Step> steps) {
+public record ScenarioPlan(String id, String name, List<Step> steps, boolean record) {
     public ScenarioPlan {
         steps = List.copyOf(steps);
     }

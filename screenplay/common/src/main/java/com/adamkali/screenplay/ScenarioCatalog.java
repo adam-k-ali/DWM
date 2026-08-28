@@ -198,13 +198,20 @@ public final class ScenarioCatalog {
             default -> throw new ScenarioException(source + ": unsupported frontmatter type '" + rawType + "'");
         };
 
+        boolean record = optionalBoolean(frontmatter, "record", source);
         if (type == ScenarioDocument.Type.SUITE) {
-            return parseSuite(id, name, body, source);
+            return parseSuite(id, name, record, body, source);
         }
-        return parseTestOrCommand(id, name, type, body, source);
+        return parseTestOrCommand(id, name, type, record, body, source);
     }
 
-    private static ScenarioDocument parseSuite(String id, String name, Map<String, Object> body, String source) {
+    private static ScenarioDocument parseSuite(
+            String id,
+            String name,
+            boolean record,
+            Map<String, Object> body,
+            String source
+    ) {
         if (body.containsKey("parameters")) {
             throw new ScenarioException(source + ": suite documents may not declare parameters");
         }
@@ -227,6 +234,7 @@ public final class ScenarioCatalog {
                 id,
                 name,
                 ScenarioDocument.Type.SUITE,
+                record,
                 List.of(),
                 List.of(),
                 beforeAll,
@@ -242,6 +250,7 @@ public final class ScenarioCatalog {
             String id,
             String name,
             ScenarioDocument.Type type,
+            boolean record,
             Map<String, Object> body,
             String source
     ) {
@@ -257,6 +266,7 @@ public final class ScenarioCatalog {
                 id,
                 name,
                 type,
+                record,
                 parameters,
                 steps,
                 List.of(),
@@ -401,6 +411,17 @@ public final class ScenarioCatalog {
             throw new ScenarioException(context + ": '" + key + "' must be a non-empty string");
         }
         return string;
+    }
+
+    private static boolean optionalBoolean(Map<String, Object> values, String key, String context) {
+        if (!values.containsKey(key)) {
+            return false;
+        }
+        Object value = values.get(key);
+        if (value instanceof Boolean bool) {
+            return bool;
+        }
+        throw new ScenarioException(context + ": '" + key + "' must be a boolean");
     }
 
     private static boolean isYaml(Path path) {
