@@ -12,6 +12,7 @@ to a full reference page with parameters and YAML examples.
 - [debugScreen](commands/debugScreen.md) — Log the current screen class and every visible widget.
 - [keyboardInput](commands/keyboardInput.md) — Type text into the focused edit box.
 - [launchGame](commands/launchGame.md) — Wait until the title screen is ready.
+- [interactWithEntity](commands/interactWithEntity.md) — Right-click interact with an in-world entity (crosshair or nearest).
 - [lookAt](commands/lookAt.md) — Aim the camera by yaw/pitch or at block coordinates.
 - [openInventory](commands/openInventory.md) — Open the player inventory GUI.
 - [pressKey](commands/pressKey.md) — Press a keyboard key (keybinds, Escape, etc.).
