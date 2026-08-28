@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:dwm/first_circuit",
+  "criteria": {
+    "first_other_world": {
+      "trigger": "dwm:first_other_world"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.first_other_world.description"
+    },
+    "icon": {
+      "id": "minecraft:ender_pearl"
+    },
+    "title": {
+      "translate": "advancements.dwm.first_other_world"
+    }
+  },
+  "requirements": [
+    [
+      "first_other_world"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

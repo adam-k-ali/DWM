@@ -1512,6 +1512,66 @@ class ScenarioCompilerTest {
     }
 
     @Test
+    void compilesWaitUntilOverlayNotHoldingAndToast(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - waitUntil:
+                      overlay: "This circuit is broken"
+                  - waitUntil:
+                      notHolding: dwm:circuit_stabilisers
+                  - waitUntil:
+                      toast:
+                        type: advancement
+                        contains: "Spare Parts"
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(3, plan.steps().size());
+        assertEquals("This circuit is broken", plan.steps().get(0).arguments().get("overlay"));
+        assertEquals("waitUntil overlay \"This circuit is broken\"", plan.steps().get(0).displayName());
+        assertEquals("dwm:circuit_stabilisers", plan.steps().get(1).arguments().get("notHolding"));
+        assertEquals("waitUntil notHolding \"dwm:circuit_stabilisers\"", plan.steps().get(1).displayName());
+        @SuppressWarnings("unchecked")
+        Map<String, Object> toast = (Map<String, Object>) plan.steps().get(2).arguments().get("toast");
+        assertEquals("advancement", toast.get("type"));
+        assertEquals("Spare Parts", toast.get("contains"));
+        assertEquals("waitUntil toast advancement \"Spare Parts\"", plan.steps().get(2).displayName());
+    }
+
+    @Test
+    void compilesInteractWithEntityNearAndIndex(@TempDir Path root) throws Exception {
+        write(root.resolve("test.yaml"), """
+                ---
+                name: Test
+                type: test
+                ---
+                steps:
+                  - interactWithEntity:
+                      type: dwm:console_control
+                      mode: nearest
+                      near:
+                        x: "~"
+                        y: "~1"
+                        z: "~1"
+                      index: 1
+                """);
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(root)).compile("test");
+
+        assertEquals(1, plan.steps().size());
+        assertEquals("nearest", plan.steps().get(0).arguments().get("mode"));
+        assertEquals(1, plan.steps().get(0).arguments().get("index"));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> near = (Map<String, Object>) plan.steps().get(0).arguments().get("near");
+        assertEquals("~1", near.get("y"));
+    }
+
+    @Test
     void compilesWalkUntilDimensionAndCoordinates(@TempDir Path root) throws Exception {
         write(root.resolve("test.yaml"), """
                 ---
@@ -1559,12 +1619,18 @@ class ScenarioCompilerTest {
         ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(scenarioRoot))
                 .compile("portalLightingAndFog");
 
-        assertEquals(34, plan.steps().size());
-        assertEquals("portal-lighting-fog-boti.png", plan.steps().get(26).arguments().get("name"));
-        assertEquals(true, plan.steps().get(26).arguments().get("compare"));
-        assertEquals("walkUntil dimension \"dwm:tardis\"", plan.steps().get(29).displayName());
-        assertEquals("portal-lighting-fog-soto.png", plan.steps().get(33).arguments().get("name"));
-        assertEquals(true, plan.steps().get(33).arguments().get("compare"));
+        assertEquals(37, plan.steps().size());
+        assertEquals("runCommand", plan.steps().get(26).name());
+        assertEquals("pressKey", plan.steps().get(27).name());
+        assertEquals("f1", plan.steps().get(27).arguments().get("key"));
+        assertEquals(2, plan.steps().get(28).arguments().get("ticks"));
+        assertEquals("portal-lighting-fog-boti-nohud.png", plan.steps().get(29).arguments().get("name"));
+        assertEquals(true, plan.steps().get(29).arguments().get("compare"));
+        assertEquals(5000L, plan.steps().get(29).arguments().get("maxDiffPixels"));
+        assertEquals("walkUntil dimension \"dwm:tardis\"", plan.steps().get(32).displayName());
+        assertEquals("portal-lighting-fog-soto-nohud.png", plan.steps().get(36).arguments().get("name"));
+        assertEquals(true, plan.steps().get(36).arguments().get("compare"));
+        assertEquals(5000L, plan.steps().get(36).arguments().get("maxDiffPixels"));
     }
 
     @Test

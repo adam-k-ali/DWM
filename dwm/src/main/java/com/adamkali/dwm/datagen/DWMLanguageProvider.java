@@ -93,6 +93,20 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.guide.page.use_sonic.body",
                 "Right-click blocks and entities to interact. Many doors and panels respond to the sonic; sneak-use opens settings when available.");
 
+        t.add("dwm.guide.chapter.circuits", "Console Circuits");
+        t.add("dwm.guide.page.install_circuits.title", "Fitting a Circuit");
+        t.add("dwm.guide.page.install_circuits.body",
+                "Use a circuit item on its matching console control. Only the owner can install. Coordinate locks accept any of the X, Y, or Z toggles. Remote summon has no console control — hold a Stattenheim remote in the other hand and use the circuit. Found Type 40s start unfinished; claiming does not repair them. Fit circuits in any order.");
+        t.add("dwm.guide.page.landing_kit.title", "Landing Kit");
+        t.add("dwm.guide.page.landing_kit.body",
+                "Cheap Overworld crafts from ferrite powder: stabilisers, waypoints, fast return, and coordinate locks. No Zeiton required.");
+        t.add("dwm.guide.page.planet_locator_circuit.title", "Planet Locator");
+        t.add("dwm.guide.page.planet_locator_circuit.body",
+                "Ferrite and an ender pearl. This is the dimensional relay — other-world travel stays gated until it is fitted. Zeiton is not required to leave the Overworld.");
+        t.add("dwm.guide.page.late_circuits.title", "Late Circuits");
+        t.add("dwm.guide.page.late_circuits.body",
+                "Telepathic, cloak, chameleon, remote summon, and player locator. Each has a ferrite-plus-vanilla recipe, or a cheaper ferrite-plus-Zeiton alternative. Player locator is last and most expensive.");
+
         t.add("dwm.guide.chapter.console_room", "Console Room Builder");
         t.add("dwm.guide.page.chronoplasm.title", "Chronoplasm Powder");
         t.add("dwm.guide.page.chronoplasm.body",
@@ -149,6 +163,29 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.key.tooltip.bound", "Bound to a TARDIS");
         t.add("dwm.tardis.claimed", "This TARDIS is yours");
         addItem(t, DWMItems.STATTENHEIM_REMOTE, "Stattenheim Remote");
+        addItem(t, DWMItems.CIRCUIT_STABILISERS, "Stabilisers Circuit");
+        addItem(t, DWMItems.CIRCUIT_WAYPOINTS, "Waypoints Circuit");
+        addItem(t, DWMItems.CIRCUIT_FAST_RETURN, "Fast Return Circuit");
+        addItem(t, DWMItems.CIRCUIT_COORDINATE_LOCKS, "Coordinate Locks Circuit");
+        addItem(t, DWMItems.CIRCUIT_PLANET_LOCATOR, "Planet Locator Circuit");
+        addItem(t, DWMItems.CIRCUIT_TELEPATHIC, "Telepathic Circuit");
+        addItem(t, DWMItems.CIRCUIT_CLOAK, "Cloak Circuit");
+        addItem(t, DWMItems.CIRCUIT_CHAMELEON, "Chameleon Circuit");
+        addItem(t, DWMItems.CIRCUIT_REMOTE_SUMMON, "Remote Summon Circuit");
+        addItem(t, DWMItems.CIRCUIT_PLAYER_LOCATOR, "Player Locator Circuit");
+        t.add("dwm.circuit.planet_locator", "Planet locator");
+        t.add("dwm.circuit.waypoints", "Waypoints");
+        t.add("dwm.circuit.player_locator", "Player locator");
+        t.add("dwm.circuit.telepathic", "Telepathic circuit");
+        t.add("dwm.circuit.fast_return", "Fast return");
+        t.add("dwm.circuit.cloak", "Cloak");
+        t.add("dwm.circuit.chameleon", "Chameleon circuit");
+        t.add("dwm.circuit.coordinate_locks", "Coordinate locks");
+        t.add("dwm.circuit.stabilisers", "Stabilisers");
+        t.add("dwm.circuit.remote_summon", "Remote summon");
+        t.add("dwm.console.circuit_mismatch", "%s does not match %s");
+        t.add("dwm.console.circuit_already_fitted", "%s already fitted");
+        t.add("dwm.console.circuit_installed", "Fitted %s");
         t.add("dwm.stattenheim.summoned", "TARDIS incoming");
         t.add("dwm.stattenheim.no_tardis", "You do not own a TARDIS");
         t.add("dwm.stattenheim.in_progress", "TARDIS is already travelling");
@@ -430,18 +467,25 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.artron_full", "Artron reserves already full");
         t.add("dwm.console.artron_use_crystals", "Use Zeiton Crystals to refuel");
         t.add("dwm.console.not_enough_artron", "Not enough artron");
+        t.add("dwm.console.refueler", "Refueler");
         t.add("dwm.console.refueler_unavailable", "Refueler unavailable");
+        t.add("dwm.console.oxygen_reader", "Oxygen reader");
+        t.add("dwm.console.pressure_reader", "Pressure reader");
+        t.add("dwm.console.temperature_reader", "Temperature reader");
+        t.add("dwm.console.radiation_reader", "Radiation reader");
         t.add("dwm.console.telepathic_circuit", "Telepathic circuit");
         t.add("dwm.console.telepathic_home", "Telepathic circuit locked onto your home");
         t.add("dwm.console.telepathic_spawn", "Telepathic circuit locked onto world spawn");
         t.add("dwm.console.telepathic_unavailable", "Telepathic circuit unavailable");
         t.add("dwm.console.cloak_on", "Cloak engaged");
         t.add("dwm.console.cloak_off", "Cloak disengaged");
+        t.add("dwm.console.cloak", "Cloak");
         t.add("dwm.console.cloak_unavailable", "Cloak unavailable");
         t.add("dwm.console.doors_locked", "Doors locked");
         t.add("dwm.console.doors_unlocked", "Doors unlocked");
         t.add("dwm.console.doors_are_locked", "Doors are locked");
         t.add("dwm.console.doors_must_be_closed", "Doors must be closed");
+        t.add("dwm.console.door_lock", "Door lock");
         t.add("dwm.console.door_lock_unavailable", "Door lock unavailable");
         t.add("dwm.console.lock_x_on", "X axis locked");
         t.add("dwm.console.lock_x_off", "X axis unlocked");
@@ -449,6 +493,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.lock_y_off", "Y axis unlocked");
         t.add("dwm.console.lock_z_on", "Z axis locked");
         t.add("dwm.console.lock_z_off", "Z axis unlocked");
+        t.add("dwm.console.coordinate_locks", "Coordinate locks");
         t.add("dwm.console.coordinate_lock_unavailable", "Coordinate lock unavailable");
         t.add("dwm.command.tardis.rebuild.success", "TARDIS interior rebuilt (%s)");
         t.add("dwm.command.tardis.rebuild.no_owned", "You do not own a TARDIS — enter an unowned TARDIS to claim one");
@@ -552,6 +597,12 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("advancements.dwm.bind_key.description", "Bind a TARDIS key to your ship");
         t.add("advancements.dwm.first_refuel", "Top Up");
         t.add("advancements.dwm.first_refuel.description", "Feed Zeiton Crystals into the refueler");
+        t.add("advancements.dwm.first_circuit", "Spare Parts");
+        t.add("advancements.dwm.first_circuit.description", "Fit a circuit into the console");
+        t.add("advancements.dwm.first_other_world", "Other Worlds");
+        t.add("advancements.dwm.first_other_world.description", "Materialise in another dimension");
+        t.add("advancements.dwm.first_gallifrey", "Homeworld");
+        t.add("advancements.dwm.first_gallifrey.description", "Land on Gallifrey");
         t.add("dwm.tt_capsule", "TT Capsule");
         t.add("dwm.first_doctor_box", "First Doctor Box");
         t.add("dwm.second_doctor_box", "Second Doctor Box");

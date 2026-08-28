@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "dwm:ferrite_powder",
+    "dwm:zeiton_powder",
+    "dwm:zeiton_powder"
+  ],
+  "result": {
+    "id": "dwm:circuit_cloak"
+  }
+}

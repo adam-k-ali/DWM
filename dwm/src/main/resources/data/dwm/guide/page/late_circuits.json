@@ -1,0 +1,25 @@
+{
+  "page": { "id": "dwm:late_circuits" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.late_circuits.title",
+      "bodyKey": "dwm.guide.page.late_circuits.body"
+    },
+    {
+      "type": "crafting",
+      "recipes": [
+        "dwm:circuit_telepathic",
+        "dwm:circuit_telepathic_from_zeiton",
+        "dwm:circuit_cloak",
+        "dwm:circuit_cloak_from_zeiton",
+        "dwm:circuit_chameleon",
+        "dwm:circuit_chameleon_from_zeiton",
+        "dwm:circuit_remote_summon",
+        "dwm:circuit_remote_summon_from_zeiton",
+        "dwm:circuit_player_locator",
+        "dwm:circuit_player_locator_from_zeiton"
+      ]
+    }
+  ]
+}

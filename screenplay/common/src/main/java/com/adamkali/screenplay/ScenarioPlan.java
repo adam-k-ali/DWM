@@ -30,6 +30,19 @@ public record ScenarioPlan(String id, String name, List<Step> steps, boolean rec
             if (arguments.containsKey("holding")) {
                 return name + " holding \"" + arguments.get("holding") + "\"";
             }
+            if (arguments.containsKey("notHolding")) {
+                return name + " notHolding \"" + arguments.get("notHolding") + "\"";
+            }
+            if (arguments.containsKey("overlay")) {
+                return name + " overlay \"" + arguments.get("overlay") + "\"";
+            }
+            if (arguments.get("toast") instanceof Map<?, ?> toast) {
+                Object toastDetail = toast.get("contains");
+                if (toastDetail == null) {
+                    toastDetail = toast.get("id");
+                }
+                return name + " toast " + toast.get("type") + " \"" + toastDetail + "\"";
+            }
             if (arguments.containsKey("dimension")) {
                 return name + " dimension \"" + arguments.get("dimension") + "\"";
             }

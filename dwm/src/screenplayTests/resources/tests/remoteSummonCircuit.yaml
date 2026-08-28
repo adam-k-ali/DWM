@@ -1,0 +1,18 @@
+---
+name: Remote Summon Circuit
+type: test
+---
+steps:
+  - launchGame
+  - enterFoundTardis
+  - selectHotbar: 0
+  - runCommand: "/item replace entity @s weapon.mainhand with dwm:circuit_remote_summon"
+  - waitTicks: 10
+  - waitUntil:
+      holding: dwm:circuit_remote_summon
+  - runCommand: "/item replace entity @s weapon.offhand with dwm:stattenheim_remote"
+  - waitTicks: 5
+  - useItem: air
+  - waitTicks: 20
+  - captureScreenshot:
+      name: remote-summon-circuit-installed

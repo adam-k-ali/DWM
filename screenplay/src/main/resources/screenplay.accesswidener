@@ -1,3 +1,8 @@
 accessWidener	v2	official
 accessible	field	net/minecraft/client/gui/screens/ConnectScreen	status	Lnet/minecraft/network/chat/Component;
 accessible	method	net/minecraft/client/gui/screens/worldselection/CreateWorldScreen	onCreate	()V
+accessible	field	net/minecraft/client/gui/Hud	overlayMessageString	Lnet/minecraft/network/chat/Component;
+accessible	field	net/minecraft/client/gui/Hud	overlayMessageTime	I
+accessible	field	net/minecraft/client/gui/components/toasts/ToastManager	visibleToasts	Ljava/util/List;
+accessible	class	net/minecraft/client/gui/components/toasts/ToastManager$ToastInstance
+accessible	field	net/minecraft/client/gui/components/toasts/AdvancementToast	advancement	Lnet/minecraft/advancements/AdvancementHolder;

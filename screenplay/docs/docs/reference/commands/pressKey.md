@@ -23,6 +23,7 @@ A scalar string shorthand sets `key`:
 | `g`–`z` (single letter) | Dispatches through `KeyMapping.click` for bound keys |
 | `escape`, `esc` | Screen `keyPressed` when a GUI is open; otherwise pause-menu keybind |
 | `space` | Space bar |
+| `f1` | Hides the HUD and first-person hand (idempotent; for stable screenshot compares) |
 
 Unsupported names fail validation before the client boots the scenario.
 
@@ -46,6 +47,16 @@ Unsupported names fail validation before the client boots the scenario.
       name: PauseScreen
 ```
 
+```yaml
+# Hide HUD + hand before an in-world visual-regression capture
+- pressKey: f1
+- waitTicks: 2
+- captureScreenshot:
+    name: portal-view
+    compare: true
+    maxDiffPixels: 5000
+```
+
 ## Notes
 
 - Pair with [`waitUntil`](waitUntil.md) when the key opens a screen asynchronously
@@ -54,6 +65,9 @@ Unsupported names fail validation before the client boots the scenario.
   `EditBox` entry.
 - When a screen is open and handles the key (for example Escape closing a dialog),
   the screen receives `keyPressed` first.
+- `f1` sets the HUD hidden (does not toggle back on). Use before
+  [`captureScreenshot`](captureScreenshot.md) compares so player skin / hotbar
+  chrome cannot dominate the pixel budget.
 
 ## Related commands
 

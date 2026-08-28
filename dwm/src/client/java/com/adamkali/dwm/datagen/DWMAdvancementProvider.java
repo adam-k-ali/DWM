@@ -220,6 +220,51 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                 )
                 .addCriterion("first_refuel", emptyPlayerCriterion(DWMCriteria.TARDIS_REFUEL))
                 .save(consumer, DWMReference.MOD_ID + "/first_refuel");
+
+        AdvancementHolder firstCircuit = Advancement.Builder.advancement()
+                .parent(claimTardis)
+                .display(
+                        DWMItems.CIRCUIT_STABILISERS,
+                        Component.translatable("advancements.dwm.first_circuit"),
+                        Component.translatable("advancements.dwm.first_circuit.description"),
+                        null,
+                        AdvancementType.TASK,
+                        true,
+                        true,
+                        false
+                )
+                .addCriterion("first_circuit", emptyPlayerCriterion(DWMCriteria.FIRST_CIRCUIT))
+                .save(consumer, DWMReference.MOD_ID + "/first_circuit");
+
+        AdvancementHolder firstOtherWorld = Advancement.Builder.advancement()
+                .parent(firstCircuit)
+                .display(
+                        Items.ENDER_PEARL,
+                        Component.translatable("advancements.dwm.first_other_world"),
+                        Component.translatable("advancements.dwm.first_other_world.description"),
+                        null,
+                        AdvancementType.TASK,
+                        true,
+                        true,
+                        false
+                )
+                .addCriterion("first_other_world", emptyPlayerCriterion(DWMCriteria.FIRST_OTHER_WORLD))
+                .save(consumer, DWMReference.MOD_ID + "/first_other_world");
+
+        Advancement.Builder.advancement()
+                .parent(firstOtherWorld)
+                .display(
+                        DWMBlocks.GALLIFREY_GRASS_BLOCK,
+                        Component.translatable("advancements.dwm.first_gallifrey"),
+                        Component.translatable("advancements.dwm.first_gallifrey.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false
+                )
+                .addCriterion("first_gallifrey", emptyPlayerCriterion(DWMCriteria.FIRST_GALLIFREY))
+                .save(consumer, DWMReference.MOD_ID + "/first_gallifrey");
     }
 
     private static AdvancementHolder installSettingAdvancement(

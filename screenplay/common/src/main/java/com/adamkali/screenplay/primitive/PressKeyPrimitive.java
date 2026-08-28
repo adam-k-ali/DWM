@@ -37,8 +37,19 @@ public final class PressKeyPrimitive implements ScenarioPrimitive {
         if (context.client().player == null) {
             return false;
         }
-        InputConstants.Key key = resolveKey((String) context.arguments().get("key"));
+        String keyName = (String) context.arguments().get("key");
+        InputConstants.Key key = resolveKey(keyName);
         context.logger().info("Pressing key {}", key.getName());
+
+        // F1 / key.toggleGui: hide HUD + first-person hand for stable screenshot
+        // compares. Apply via Hud.toggle() so the change is immediate; KeyMapping
+        // click alone waits for Gui.handleKeybinds consumeClick on a later tick.
+        if ("f1".equals(keyName)) {
+            if (!context.client().gui.hud.isHidden()) {
+                context.client().gui.hud.toggle();
+            }
+            return true;
+        }
 
         if (isEscape(key)) {
             Screen screen = context.screen();
@@ -71,12 +82,13 @@ public final class PressKeyPrimitive implements ScenarioPrimitive {
         return switch (normalized) {
             case "escape", "esc" -> InputConstants.getKey("key.keyboard.escape");
             case "space" -> InputConstants.getKey("key.keyboard.space");
+            case "f1" -> InputConstants.getKey("key.keyboard.f1");
             default -> {
                 if (normalized.length() == 1 && normalized.charAt(0) >= 'a' && normalized.charAt(0) <= 'z') {
                     yield InputConstants.getKey("key.keyboard." + normalized);
                 }
                 throw new ScenarioException("Unsupported pressKey key '" + name
-                        + "'. Supported examples: g, escape, space.");
+                        + "'. Supported examples: g, escape, space, f1.");
             }
         };
     }
