@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "dwm:ferrite_powder",
+    "dwm:zeiton_crystals"
+  ],
+  "result": {
+    "id": "dwm:circuit_player_locator"
+  }
+}

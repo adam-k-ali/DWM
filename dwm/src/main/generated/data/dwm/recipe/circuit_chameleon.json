@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "dwm:ferrite_powder",
+    "minecraft:gold_ingot"
+  ],
+  "result": {
+    "id": "dwm:circuit_chameleon"
+  }
+}

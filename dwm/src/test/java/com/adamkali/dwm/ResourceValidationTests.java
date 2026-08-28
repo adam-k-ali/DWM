@@ -551,6 +551,35 @@ public class ResourceValidationTests {
     }
 
     /**
+     * Guards against {@code pruneDatagenItemModels} dropping circuit item defs
+     * (allowlist must include {@code circuit} substring).
+     */
+    @Test
+    public void generatedCircuitItemModelsExist() throws Exception {
+        Path itemsDir = Path.of("src/main/generated/assets/dwm/items");
+        assertTrue(Files.isDirectory(itemsDir), "Expected generated items dir at " + itemsDir);
+        String[] ids = {
+                "circuit_stabilisers",
+                "circuit_waypoints",
+                "circuit_fast_return",
+                "circuit_coordinate_locks",
+                "circuit_planet_locator",
+                "circuit_telepathic",
+                "circuit_cloak",
+                "circuit_chameleon",
+                "circuit_remote_summon",
+                "circuit_player_locator",
+        };
+        for (String id : ids) {
+            Path item = itemsDir.resolve(id + ".json");
+            assertTrue(
+                    Files.isRegularFile(item) && Files.size(item) > 0,
+                    "Missing generated circuit item model: " + item
+            );
+        }
+    }
+
+    /**
      * Guards against {@code pruneDatagenItemModels} dropping Gallifrey vanilla ore item defs
      * (allowlist must include {@code gallifrey} substring).
      */

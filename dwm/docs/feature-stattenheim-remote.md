@@ -26,9 +26,11 @@ Give the TARDIS owner a pocket remote that calls their ship to them, with a visi
 
 Failure overlays: no owned TARDIS, already travelling, cannot land here, circuit broken (found Type 40 with a broken remote-summon circuit — smoke puff at the click), not enough artron (same 10 / 30 cost as console demat; empty tank uses `Artron reserves: empty`).
 
+Repair the remote-summon circuit by using a **Remote Summon Circuit** while a Stattenheim remote is in the other hand (owner only; consumes unless creative). Clicking a console control with that item does not summon.
+
 ## Known Constraints
 - The remote is bound by player ownership, not item NBT — anyone holding it summons *their* TARDIS.
-- Found worldgen TARDISes start with a broken remote-summon circuit until repaired.
+- Found worldgen TARDISes start with a broken remote-summon circuit until the owner installs `circuit_remote_summon` with a remote in the other hand.
 - Collision stays solid during the fade. BOTI is skipped while the shell is translucent.
 - Non-sneak use does nothing.
 

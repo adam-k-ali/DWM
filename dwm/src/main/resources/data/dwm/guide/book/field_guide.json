@@ -3,6 +3,7 @@
   "chapters": [
     { "id": "dwm:quick_start" },
     { "id": "dwm:sonic" },
+    { "id": "dwm:circuits" },
     { "id": "dwm:console_room" }
   ]
 }

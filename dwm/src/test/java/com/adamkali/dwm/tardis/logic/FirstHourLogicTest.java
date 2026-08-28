@@ -49,4 +49,41 @@ class FirstHourLogicTest {
         assertFalse(FirstHourLogic.isSameWorldHop("", "minecraft:overworld", false));
         assertFalse(FirstHourLogic.isSameWorldHop("minecraft:overworld", "  ", false));
     }
+
+    @Test
+    void isOtherWorldHop_trueWhenDimensionsDifferNotSummon() {
+        assertTrue(FirstHourLogic.isOtherWorldHop(
+                "minecraft:overworld",
+                "minecraft:the_nether",
+                false
+        ));
+        assertTrue(FirstHourLogic.isOtherWorldHop(
+                "minecraft:overworld",
+                "dwm:gallifrey",
+                false
+        ));
+    }
+
+    @Test
+    void isOtherWorldHop_falseForSameWorldOrSummon() {
+        assertFalse(FirstHourLogic.isOtherWorldHop(
+                "minecraft:overworld",
+                "minecraft:overworld",
+                false
+        ));
+        assertFalse(FirstHourLogic.isOtherWorldHop(
+                "minecraft:overworld",
+                "minecraft:the_nether",
+                true
+        ));
+        assertFalse(FirstHourLogic.isOtherWorldHop(null, "minecraft:the_nether", false));
+    }
+
+    @Test
+    void isGallifreyLanding_trueForGallifreyNotSummon() {
+        assertTrue(FirstHourLogic.isGallifreyLanding("dwm:gallifrey", false));
+        assertFalse(FirstHourLogic.isGallifreyLanding("dwm:gallifrey", true));
+        assertFalse(FirstHourLogic.isGallifreyLanding("minecraft:overworld", false));
+        assertFalse(FirstHourLogic.isGallifreyLanding(null, false));
+    }
 }

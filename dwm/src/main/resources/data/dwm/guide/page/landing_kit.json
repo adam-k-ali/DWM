@@ -1,0 +1,19 @@
+{
+  "page": { "id": "dwm:landing_kit" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.landing_kit.title",
+      "bodyKey": "dwm.guide.page.landing_kit.body"
+    },
+    {
+      "type": "crafting",
+      "recipes": [
+        "dwm:circuit_stabilisers",
+        "dwm:circuit_waypoints",
+        "dwm:circuit_fast_return",
+        "dwm:circuit_coordinate_locks"
+      ]
+    }
+  ]
+}

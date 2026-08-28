@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "dwm:ferrite_powder",
+    "minecraft:ender_pearl"
+  ],
+  "result": {
+    "id": "dwm:circuit_planet_locator"
+  }
+}

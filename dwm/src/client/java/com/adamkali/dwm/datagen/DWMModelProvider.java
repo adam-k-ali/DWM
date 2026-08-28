@@ -71,6 +71,16 @@ public class DWMModelProvider extends FabricModelProvider {
         itemModelGenerator.generateFlatItem(DWMItems.ZEITON_CRYSTALS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.ZEITON_POWDER, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.FERRITE_POWDER, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.CIRCUIT_STABILISERS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.CIRCUIT_WAYPOINTS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.CIRCUIT_FAST_RETURN, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.CIRCUIT_COORDINATE_LOCKS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.CIRCUIT_PLANET_LOCATOR, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.CIRCUIT_TELEPATHIC, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.CIRCUIT_CLOAK, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.CIRCUIT_CHAMELEON, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.CIRCUIT_REMOTE_SUMMON, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.CIRCUIT_PLAYER_LOCATOR, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_SWORD, ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_SHOVEL, ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_PICKAXE, ModelTemplates.FLAT_HANDHELD_ITEM);

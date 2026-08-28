@@ -1,6 +1,7 @@
 package com.adamkali.dwm.tardis.logic;
 
 import com.adamkali.dwm.advancement.DWMCriteria;
+import com.adamkali.dwm.world.GallifreyDimensions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
@@ -31,6 +32,41 @@ public final class FirstHourLogic {
             return false;
         }
         return originDimension.equals(destinationDimension);
+    }
+
+    /**
+     * True when materialising completes a dimension change that should toast
+     * {@code first_other_world} (not a Stattenheim summon).
+     */
+    public static boolean isOtherWorldHop(
+            @Nullable String originDimension,
+            @Nullable String destinationDimension,
+            boolean summonPending
+    ) {
+        if (summonPending) {
+            return false;
+        }
+        if (originDimension == null || originDimension.isBlank()
+                || destinationDimension == null || destinationDimension.isBlank()) {
+            return false;
+        }
+        return !originDimension.equals(destinationDimension);
+    }
+
+    /**
+     * True when materialising lands in Gallifrey ({@code dwm:gallifrey}), not a Stattenheim summon.
+     */
+    public static boolean isGallifreyLanding(
+            @Nullable String destinationDimension,
+            boolean summonPending
+    ) {
+        if (summonPending) {
+            return false;
+        }
+        if (destinationDimension == null || destinationDimension.isBlank()) {
+            return false;
+        }
+        return GallifreyDimensions.DIMENSION_ID.toString().equals(destinationDimension);
     }
 
     /** Overlay + claim advancement for a newly claimed ship. */

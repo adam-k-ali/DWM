@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_ferrite_powder": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dwm:ferrite_powder"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "dwm:circuit_stabilisers"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_ferrite_powder"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "dwm:circuit_stabilisers"
+    ]
+  }
+}

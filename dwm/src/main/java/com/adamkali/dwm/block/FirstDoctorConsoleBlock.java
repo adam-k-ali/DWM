@@ -10,9 +10,11 @@ import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisExteriorLocation;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
+import com.adamkali.dwm.tardis.data.model.TardisCircuit;
 import com.adamkali.dwm.tardis.logic.ArtronLogic;
 import com.adamkali.dwm.tardis.logic.CloakLogic;
 import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
+import com.adamkali.dwm.tardis.logic.CircuitInstallLogic;
 import com.adamkali.dwm.tardis.logic.ConsolePilotLogic;
 import com.adamkali.dwm.tardis.logic.CoordinateLockLogic;
 import com.adamkali.dwm.tardis.logic.DoorLockLogic;
@@ -40,8 +42,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -167,6 +171,16 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             BlockPos pos,
             Player player
     ) {
+        return activateControl(target, world, pos, player, InteractionHand.MAIN_HAND);
+    }
+
+    public static InteractionResult activateControl(
+            FirstDoctorConsoleControls.LookTarget target,
+            Level world,
+            BlockPos pos,
+            Player player,
+            InteractionHand hand
+    ) {
         if (target == FirstDoctorConsoleControls.LookTarget.NONE) {
             return InteractionResult.PASS;
         }
@@ -188,6 +202,28 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         }
 
         TardisDataModel model = TardisDataLoader.get(tardisId);
+        ItemStack held = player.getItemInHand(hand);
+        TardisCircuit circuit = CircuitInstallLogic.circuitOf(held);
+        if (circuit != null) {
+            boolean otherHandIsRemote = CircuitInstallLogic.otherHandIsRemote(player, hand);
+            CircuitInstallLogic.Result result = CircuitInstallLogic.evaluateConsole(
+                    model,
+                    player.getUUID(),
+                    circuit,
+                    target,
+                    otherHandIsRemote
+            );
+            CircuitInstallLogic.apply(
+                    result,
+                    player,
+                    held,
+                    circuit,
+                    CircuitInstallLogic.controlName(target),
+                    model
+            );
+            return InteractionResult.CONSUME;
+        }
+
         if (!ConsolePilotLogic.isPublicReader(target)) {
             boolean allowed = target == FirstDoctorConsoleControls.LookTarget.DOOR_LOCK
                     ? ConsolePilotLogic.canToggleDoorLock(

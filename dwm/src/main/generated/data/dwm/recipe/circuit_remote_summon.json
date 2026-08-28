@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "dwm:ferrite_powder",
+    "minecraft:ender_pearl",
+    "minecraft:gold_nugget"
+  ],
+  "result": {
+    "id": "dwm:circuit_remote_summon"
+  }
+}

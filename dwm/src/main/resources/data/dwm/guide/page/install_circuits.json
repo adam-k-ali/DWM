@@ -1,0 +1,10 @@
+{
+  "page": { "id": "dwm:install_circuits" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.install_circuits.title",
+      "bodyKey": "dwm.guide.page.install_circuits.body"
+    }
+  ]
+}

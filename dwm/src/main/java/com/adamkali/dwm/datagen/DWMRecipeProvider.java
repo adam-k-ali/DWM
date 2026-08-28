@@ -122,6 +122,7 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 generateOrangeSandRecipes();
                 generateAzbantiumRecipes();
                 generateZeitonRecipes();
+                generateCircuitRecipes();
                 generateGallifreyVanillaOreRecipes();
                 generateInteriorDecorRecipes();
                 generateTardisKeyRecipe();
@@ -422,6 +423,80 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         .requires(Items.REDSTONE)
                         .unlockedBy(getHasName(Items.IRON_INGOT), has(Items.IRON_INGOT))
                         .save(output);
+            }
+
+            private void generateCircuitRecipes() {
+                shapelessCircuit(DWMItems.CIRCUIT_STABILISERS)
+                        .requires(DWMItems.FERRITE_POWDER)
+                        .requires(Items.REDSTONE)
+                        .save(output);
+                shapelessCircuit(DWMItems.CIRCUIT_WAYPOINTS)
+                        .requires(DWMItems.FERRITE_POWDER)
+                        .requires(Items.COMPASS)
+                        .save(output);
+                shapelessCircuit(DWMItems.CIRCUIT_FAST_RETURN)
+                        .requires(DWMItems.FERRITE_POWDER)
+                        .requires(Items.CLOCK)
+                        .save(output);
+                shapelessCircuit(DWMItems.CIRCUIT_COORDINATE_LOCKS)
+                        .requires(DWMItems.FERRITE_POWDER)
+                        .requires(Items.AMETHYST_SHARD)
+                        .save(output);
+                shapelessCircuit(DWMItems.CIRCUIT_PLANET_LOCATOR)
+                        .requires(DWMItems.FERRITE_POWDER)
+                        .requires(Items.ENDER_PEARL)
+                        .save(output);
+                shapelessCircuit(DWMItems.CIRCUIT_TELEPATHIC)
+                        .requires(DWMItems.FERRITE_POWDER)
+                        .requires(Items.ENDER_EYE)
+                        .save(output);
+                shapelessCircuit(DWMItems.CIRCUIT_CLOAK)
+                        .requires(DWMItems.FERRITE_POWDER)
+                        .requires(Items.PHANTOM_MEMBRANE)
+                        .save(output);
+                shapelessCircuit(DWMItems.CIRCUIT_CHAMELEON)
+                        .requires(DWMItems.FERRITE_POWDER)
+                        .requires(Items.GOLD_INGOT)
+                        .save(output);
+                shapelessCircuit(DWMItems.CIRCUIT_REMOTE_SUMMON)
+                        .requires(DWMItems.FERRITE_POWDER)
+                        .requires(Items.ENDER_PEARL)
+                        .requires(Items.GOLD_NUGGET)
+                        .save(output);
+                shapelessCircuit(DWMItems.CIRCUIT_PLAYER_LOCATOR)
+                        .requires(DWMItems.FERRITE_POWDER)
+                        .requires(Items.COMPASS)
+                        .requires(Items.ENDER_EYE)
+                        .save(output);
+
+                zeitonPowderAlt("circuit_telepathic");
+                zeitonPowderAlt("circuit_cloak");
+                zeitonPowderAlt("circuit_chameleon");
+                zeitonPowderAlt("circuit_remote_summon");
+                shapelessCircuit(DWMItems.CIRCUIT_PLAYER_LOCATOR)
+                        .requires(DWMItems.FERRITE_POWDER)
+                        .requires(DWMItems.ZEITON_CRYSTALS)
+                        .save(output, DWMReference.MOD_ID + ":circuit_player_locator_from_zeiton");
+            }
+
+            private net.minecraft.data.recipes.ShapelessRecipeBuilder shapelessCircuit(Item result) {
+                return shapeless(RecipeCategory.TOOLS, result)
+                        .unlockedBy(getHasName(DWMItems.FERRITE_POWDER), has(DWMItems.FERRITE_POWDER));
+            }
+
+            private void zeitonPowderAlt(String path) {
+                Item result = switch (path) {
+                    case "circuit_telepathic" -> DWMItems.CIRCUIT_TELEPATHIC;
+                    case "circuit_cloak" -> DWMItems.CIRCUIT_CLOAK;
+                    case "circuit_chameleon" -> DWMItems.CIRCUIT_CHAMELEON;
+                    case "circuit_remote_summon" -> DWMItems.CIRCUIT_REMOTE_SUMMON;
+                    default -> throw new IllegalArgumentException(path);
+                };
+                shapelessCircuit(result)
+                        .requires(DWMItems.FERRITE_POWDER)
+                        .requires(DWMItems.ZEITON_POWDER)
+                        .requires(DWMItems.ZEITON_POWDER)
+                        .save(output, DWMReference.MOD_ID + ":" + path + "_from_zeiton");
             }
 
             private void generateInteriorDecorRecipes() {

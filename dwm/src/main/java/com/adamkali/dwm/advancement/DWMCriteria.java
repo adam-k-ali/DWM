@@ -26,6 +26,9 @@ public final class DWMCriteria {
     public static final PlayerTrigger FIRST_HOP = register("first_hop");
     public static final PlayerTrigger BIND_KEY = register("bind_key");
     public static final PlayerTrigger TARDIS_REFUEL = register("tardis_refuel");
+    public static final PlayerTrigger FIRST_CIRCUIT = register("first_circuit");
+    public static final PlayerTrigger FIRST_OTHER_WORLD = register("first_other_world");
+    public static final PlayerTrigger FIRST_GALLIFREY = register("first_gallifrey");
 
     private DWMCriteria() {
     }

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "dwm:ferrite_powder",
+    "minecraft:compass",
+    "minecraft:ender_eye"
+  ],
+  "result": {
+    "id": "dwm:circuit_player_locator"
+  }
+}
