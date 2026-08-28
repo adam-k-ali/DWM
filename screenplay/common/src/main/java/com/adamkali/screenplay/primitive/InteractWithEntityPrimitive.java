@@ -1,10 +1,12 @@
 package com.adamkali.screenplay.primitive;
 
+import com.adamkali.screenplay.ScenarioCoordinates;
 import com.adamkali.screenplay.ScenarioException;
 import com.adamkali.screenplay.ScenarioIds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
@@ -22,9 +24,10 @@ import java.util.Map;
 import java.util.Set;
 
 public final class InteractWithEntityPrimitive implements ScenarioPrimitive {
-    private static final Set<String> KEYS = Set.of("type", "mode", "maxDistance", "hand");
+    private static final Set<String> KEYS = Set.of("type", "mode", "maxDistance", "hand", "near", "index");
     private static final Set<String> MODES = Set.of("crosshair", "nearest");
     private static final Set<String> HANDS = Set.of("main", "off");
+    private static final Set<String> NEAR_KEYS = Set.of("x", "y", "z");
     private static final double DEFAULT_MAX_DISTANCE = 6.0D;
 
     @Override
@@ -54,10 +57,18 @@ public final class InteractWithEntityPrimitive implements ScenarioPrimitive {
         Identifier typeId = Identifier.parse((String) arguments.get("type"));
         String mode = (String) arguments.get("mode");
         InteractionHand hand = parseHand((String) arguments.get("hand"));
+        Vec3 anchor = anchorPoint(player, arguments);
 
         Entity target = switch (mode) {
             case "crosshair" -> entityUnderCrosshair(client, typeId);
-            case "nearest" -> nearestEntity(client, player, typeId, (Double) arguments.get("maxDistance"));
+            case "nearest" -> nearestEntity(
+                    client,
+                    player,
+                    typeId,
+                    (Double) arguments.get("maxDistance"),
+                    anchor,
+                    (Integer) arguments.get("index")
+            );
             default -> null;
         };
         if (target == null) {
@@ -128,7 +139,69 @@ public final class InteractWithEntityPrimitive implements ScenarioPrimitive {
             }
         }
         normalized.put("hand", hand);
+
+        if (arguments.containsKey("near")) {
+            normalized.put("near", Map.copyOf(normalizeNear(arguments.get("near"))));
+        }
+
+        int index = 0;
+        if (arguments.containsKey("index")) {
+            Object value = arguments.get("index");
+            if (!(value instanceof Number number)) {
+                throw new ScenarioException("interactWithEntity index must be a non-negative integer");
+            }
+            double raw = number.doubleValue();
+            if (raw != Math.rint(raw) || raw < 0.0D) {
+                throw new ScenarioException("interactWithEntity index must be a non-negative integer");
+            }
+            index = number.intValue();
+        }
+        normalized.put("index", index);
         return normalized;
+    }
+
+    private static Map<String, Object> normalizeNear(Object value) {
+        if (!(value instanceof Map<?, ?> raw)) {
+            throw new ScenarioException("interactWithEntity near must be an object with x, y, and z");
+        }
+        Map<String, Object> near = new LinkedHashMap<>();
+        raw.forEach((key, entryValue) -> {
+            if (!(key instanceof String stringKey)) {
+                throw new ScenarioException("interactWithEntity near object keys must be strings");
+            }
+            near.put(stringKey, entryValue);
+        });
+        for (String key : near.keySet()) {
+            if (!NEAR_KEYS.contains(key)) {
+                throw new ScenarioException("interactWithEntity near does not accept '" + key + "'");
+            }
+        }
+        for (String axis : NEAR_KEYS) {
+            if (!near.containsKey(axis)) {
+                throw new ScenarioException("interactWithEntity near requires '" + axis + "'");
+            }
+        }
+        Map<String, Object> normalized = new LinkedHashMap<>();
+        for (String axis : NEAR_KEYS) {
+            ScenarioCoordinates.Component component = ScenarioCoordinates.parse(
+                    near.get(axis), "interactWithEntity near " + axis);
+            normalized.put(axis, component.authored());
+        }
+        return normalized;
+    }
+
+    private static Vec3 anchorPoint(LocalPlayer player, Map<String, Object> arguments) {
+        if (arguments.get("near") instanceof Map<?, ?> near) {
+            BlockPos origin = player.blockPosition();
+            double x = ScenarioCoordinates.parse(near.get("x"), "interactWithEntity near x")
+                    .resolve(origin.getX()) + 0.5D;
+            double y = ScenarioCoordinates.parse(near.get("y"), "interactWithEntity near y")
+                    .resolve(origin.getY()) + 0.5D;
+            double z = ScenarioCoordinates.parse(near.get("z"), "interactWithEntity near z")
+                    .resolve(origin.getZ()) + 0.5D;
+            return new Vec3(x, y, z);
+        }
+        return player.getEyePosition();
     }
 
     private static InteractionHand parseHand(String hand) {
@@ -156,12 +229,20 @@ public final class InteractWithEntityPrimitive implements ScenarioPrimitive {
         return new EntityHitResult(target, target.getBoundingBox().getCenter());
     }
 
-    private static Entity nearestEntity(Minecraft client, LocalPlayer player, Identifier typeId, double maxDistance) {
-        Vec3 eyes = player.getEyePosition();
+    private static Entity nearestEntity(
+            Minecraft client,
+            LocalPlayer player,
+            Identifier typeId,
+            double maxDistance,
+            Vec3 anchor,
+            int index
+    ) {
         AABB search = player.getBoundingBox().inflate(maxDistance);
         List<Entity> matches = client.level.getEntities(player, search, entity -> matchesType(entity, typeId));
         return matches.stream()
-                .min(Comparator.comparingDouble(entity -> entity.distanceToSqr(eyes)))
+                .sorted(Comparator.comparingDouble(entity -> entity.distanceToSqr(anchor)))
+                .skip(index)
+                .findFirst()
                 .orElse(null);
     }
 

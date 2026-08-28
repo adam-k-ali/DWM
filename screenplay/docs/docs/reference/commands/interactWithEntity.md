@@ -11,6 +11,8 @@ mod entities, etc.).
 | `mode` | string | no | `crosshair` | `crosshair` — entity under the crosshair must match `type`; `nearest` — closest matching entity within `maxDistance` |
 | `maxDistance` | number | no | `6` | Search radius for `nearest` mode |
 | `hand` | string | no | `main` | `main` or `off` — which hand sends the interact |
+| `near` | `{x, y, z}` | no | — | Anchor for sorting in `nearest` mode (relative/absolute coords same as [`lookAt`](lookAt.md)) |
+| `index` | integer | no | `0` | Pick the *n*th closest matching entity to the anchor (0 = closest) |
 
 ## Usage examples
 
@@ -30,6 +32,22 @@ mod entities, etc.).
     maxDistance: 8
 ```
 
+```yaml
+- lookAt:
+    x: "~"
+    y: "~1"
+    z: "~1"
+- interactWithEntity:
+    type: dwm:console_control
+    mode: nearest
+    maxDistance: 4
+    near:
+      x: "~"
+      y: "~1"
+      z: "~1"
+    index: 0
+```
+
 ## Notes
 
 - Requires a local player, game mode, loaded level, and **no open screen**.
@@ -37,7 +55,8 @@ mod entities, etc.).
   id equals `type`. Pair with [`lookAt`](lookAt.md) when several entities share
   the same type. Block hits can occlude small interaction hitboxes — prefer
   **`nearest`** when the target is an invisible interaction entity.
-- **`nearest` mode** picks the closest matching entity within `maxDistance`.
+- **`nearest` mode** picks the closest matching entity within `maxDistance`. Use
+  `near` + `index` when several interaction entities share the same type.
 - Succeeds as soon as the interact is sent — it does **not** wait for server
   side-effects. Pair with [`waitUntil`](waitUntil.md) when needed.
 

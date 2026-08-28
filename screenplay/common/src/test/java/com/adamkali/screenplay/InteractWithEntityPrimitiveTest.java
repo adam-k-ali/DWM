@@ -81,4 +81,44 @@ class InteractWithEntityPrimitiveTest {
         assertEquals("minecraft:villager", normalized.get("type"));
         assertFalse(normalized.containsKey("text"));
     }
+
+    @Test
+    void normalizeAcceptsNearAnchorAndIndex() {
+        Map<String, Object> normalized = InteractWithEntityPrimitive.normalize(Map.of(
+                "type", "dwm:console_control",
+                "mode", "nearest",
+                "maxDistance", 4,
+                "near", Map.of("x", "~", "y", "~1", "z", "~1"),
+                "index", 1
+        ));
+
+        assertEquals("nearest", normalized.get("mode"));
+        assertEquals(1, normalized.get("index"));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> near = (Map<String, Object>) normalized.get("near");
+        assertEquals("~", near.get("x"));
+        assertEquals("~1", near.get("y"));
+        assertEquals("~1", near.get("z"));
+    }
+
+    @Test
+    void normalizeRejectsInvalidNearAndIndex() {
+        ScenarioException missingAxis = assertThrows(
+                ScenarioException.class,
+                () -> InteractWithEntityPrimitive.normalize(Map.of(
+                        "type", "dwm:console_control",
+                        "near", Map.of("x", "~", "y", "~1")
+                ))
+        );
+        ScenarioException negativeIndex = assertThrows(
+                ScenarioException.class,
+                () -> InteractWithEntityPrimitive.normalize(Map.of(
+                        "type", "dwm:console_control",
+                        "index", -1
+                ))
+        );
+
+        assertTrue(missingAxis.getMessage().contains("near requires 'z'"));
+        assertTrue(negativeIndex.getMessage().contains("index must be a non-negative integer"));
+    }
 }

@@ -16,7 +16,13 @@ steps:
       type: dwm:console_control
       mode: nearest
       maxDistance: 4
-  - waitTicks: 10
+      near:
+        x: "~"
+        y: "~1"
+        z: "~1"
+      index: 0
+  - waitUntil:
+      overlay: "This circuit is broken"
   - captureScreenshot:
       name: circuit-broken-stabilisers
   - runCommand: "/item replace entity @s weapon.mainhand with dwm:circuit_stabilisers"
@@ -31,7 +37,19 @@ steps:
       type: dwm:console_control
       mode: nearest
       maxDistance: 4
-  - waitTicks: 10
+      near:
+        x: "~"
+        y: "~1"
+        z: "~1"
+      index: 0
+  - waitUntil:
+      overlay: "Fitted"
+  - waitUntil:
+      notHolding: dwm:circuit_stabilisers
+  - waitUntil:
+      toast:
+        type: advancement
+        contains: "Spare Parts"
   - runCommand: "/item replace entity @s weapon.mainhand with minecraft:air"
   - lookAt:
       x: "~"
@@ -42,6 +60,12 @@ steps:
       type: dwm:console_control
       mode: nearest
       maxDistance: 4
-  - waitTicks: 10
+      near:
+        x: "~"
+        y: "~1"
+        z: "~1"
+      index: 0
+  - waitUntil:
+      overlay: "Stabilisers"
   - captureScreenshot:
       name: circuit-fitted-stabilisers

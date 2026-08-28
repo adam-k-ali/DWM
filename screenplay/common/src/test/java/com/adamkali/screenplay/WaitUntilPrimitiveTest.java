@@ -56,4 +56,48 @@ class WaitUntilPrimitiveTest {
         assertTrue(missing.getMessage().contains("waitUntil block requires 'z'"));
         assertTrue(mixed.getMessage().contains("waitUntil requires exactly one of"));
     }
+
+    @Test
+    void normalizeNotHoldingAcceptsBareAndNamespacedIds() {
+        Map<String, Object> nested = WaitUntilPrimitive.normalize(Map.of(
+                "notHolding", Map.of("id", "dwm:circuit_stabilisers")));
+
+        assertEquals("dwm:circuit_stabilisers", nested.get("notHolding"));
+    }
+
+    @Test
+    void normalizeOverlayRequiresNonEmptyString() {
+        Map<String, Object> normalized = WaitUntilPrimitive.normalize(Map.of(
+                "overlay", "This circuit is broken"));
+
+        assertEquals("This circuit is broken", normalized.get("overlay"));
+    }
+
+    @Test
+    void normalizeToastAcceptsAdvancementContainsAndId() {
+        Map<String, Object> normalized = WaitUntilPrimitive.normalize(Map.of(
+                "toast", Map.of(
+                        "type", "advancement",
+                        "contains", "Spare Parts",
+                        "id", "dwm:first_circuit"
+                )
+        ));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> toast = (Map<String, Object>) normalized.get("toast");
+        assertEquals("advancement", toast.get("type"));
+        assertEquals("Spare Parts", toast.get("contains"));
+        assertEquals("dwm:first_circuit", toast.get("id"));
+    }
+
+    @Test
+    void normalizeToastRejectsMissingMatcher() {
+        ScenarioException exception = assertThrows(
+                ScenarioException.class,
+                () -> WaitUntilPrimitive.normalize(Map.of(
+                        "toast", Map.of("type", "advancement")))
+        );
+
+        assertTrue(exception.getMessage().contains("waitUntil toast requires 'contains' and/or 'id'"));
+    }
 }

@@ -13,6 +13,10 @@ steps:
   - runCommand: "/item replace entity @s weapon.offhand with dwm:stattenheim_remote"
   - waitTicks: 5
   - useItem: air
-  - waitTicks: 20
+  - waitUntil:
+      overlay: "Fitted"
+  - waitUntil:
+      notHolding: dwm:circuit_remote_summon
+  - waitTicks: 10
   - captureScreenshot:
       name: remote-summon-circuit-installed
