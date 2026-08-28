@@ -11,8 +11,7 @@ steps:
       seed: "42"
   - closeScreen
   - runCommand: "/time set day"
-  - runCommand: "/setblock ~1 ~ ~ dwm:tardis_block"
-  - runCommand: "/data merge block ~1 ~ ~ {worldgenFound:1b}"
+  - runCommand: "/setblock ~1 ~ ~ dwm:tardis_block{worldgenFound:1b}"
   - selectHotbar: 1
   - lookAt:
       x: "~1"
