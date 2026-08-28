@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:dwm/sonic_screwdriver",
+  "criteria": {
+    "sonic_ping": {
+      "trigger": "dwm:sonic_ping"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.sonic_ping.description"
+    },
+    "icon": {
+      "id": "minecraft:ender_eye"
+    },
+    "title": {
+      "translate": "advancements.dwm.sonic_ping"
+    }
+  },
+  "requirements": [
+    [
+      "sonic_ping"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
