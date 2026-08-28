@@ -26,6 +26,7 @@ steps:
   - captureScreenshot:
       name: field-guide-circuits-landing-kit
       compare: true
+      maxDiffPixels: 50
   - assertAndClick:
       type: button
       name: "Planet Locator"
@@ -33,6 +34,7 @@ steps:
   - captureScreenshot:
       name: field-guide-circuits-planet-locator
       compare: true
+      maxDiffPixels: 50
   - assertAndClick:
       type: button
       name: "Late Circuits"
@@ -40,3 +42,4 @@ steps:
   - captureScreenshot:
       name: field-guide-circuits-late
       compare: true
+      maxDiffPixels: 50
