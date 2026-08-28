@@ -1639,11 +1639,15 @@ class ScenarioCompilerTest {
 
         ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(scenarioRoot)).compile("sonicFieldModeHud");
 
-        assertEquals(18, plan.steps().size());
+        assertEquals(21, plan.steps().size());
         assertEquals("sonic-field-mode-indicator.png", plan.steps().get(10).arguments().get("name"));
         assertFalse(plan.steps().get(10).arguments().containsKey("compare"));
         assertEquals("sonic-field-mode-carousel.png", plan.steps().get(15).arguments().get("name"));
         assertFalse(plan.steps().get(15).arguments().containsKey("compare"));
+        assertEquals("pressKey", plan.steps().get(16).name());
+        assertEquals("right", plan.steps().get(16).arguments().get("key"));
+        assertEquals("sonic-field-mode-carousel-eight-slots.png", plan.steps().get(18).arguments().get("name"));
+        assertFalse(plan.steps().get(18).arguments().containsKey("compare"));
     }
 
     private static Path resolveScreenplayTests() {

@@ -14,6 +14,7 @@ public class DWMPacketIds {
     public static final Identifier RENAME_WAYPOINT_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "rename_waypoint");
     public static final Identifier SELECT_WAYPOINT_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "select_waypoint");
     public static final Identifier SELECT_PLAYER_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "select_player");
+    public static final Identifier SELECT_SONIC_FIELD_MODE_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "select_sonic_field_mode");
     public static final Identifier SONIC_PING_REVEAL_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sonic_ping_reveal");
 
     public static final Identifier REQUEST_PORTAL_STREAM_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "request_portal_stream");
