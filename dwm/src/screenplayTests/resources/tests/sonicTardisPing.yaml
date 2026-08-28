@@ -35,27 +35,32 @@ steps:
   - walkUntil:
       dimension: dwm:tardis
   - waitTicks: 40
-  - runCommand: "/tp @s ~ ~ ~3"
+  - runCommand: "/tp @s ~ ~ ~6"
   - lookAt:
       x: "~"
       y: "~1"
-      z: "~2"
+      z: "~-1"
   - waitTicks: 10
+  - selectHotbar: 0
+  - waitTicks: 5
   - interactWithEntity:
       type: dwm:console_control
       mode: nearest
       maxDistance: 6
       near:
         x: "~"
-        y: "~0"
-        z: "~2"
+        y: "~1"
+        z: "~-1"
       index: 0
   - waitUntil:
       overlay: "Cloak engaged"
+  - selectHotbar: 1
+  - waitTicks: 5
+  - runCommand: "/tp @s ~ ~ ~-6"
   - lookAt:
       x: "~"
       y: "~1"
-      z: "~-4"
+      z: "~-1"
   - waitTicks: 5
   - walkUntil:
       dimension: minecraft:overworld
