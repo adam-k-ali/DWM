@@ -24,10 +24,8 @@ public final class TardisSotoRenderer {
 
     /**
      * Eye height above the TARDIS block base for the exterior hitch.
-     * Matches the classic chameleon BOTI aperture mid-height (~0.75 would be exact center);
-     * kept slightly lower so the look-out sits nearer the threshold than mid-door.
      */
-    public static final double PREVIEW_EYE_HEIGHT = 0.75;
+    public static final double PREVIEW_EYE_HEIGHT = 1.75;
 
     /**
      * Exterior door opening center in footprint-relative coords
