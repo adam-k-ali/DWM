@@ -9,9 +9,12 @@ import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.render.soto.SotoExteriorMeshCache;
 import com.adamkali.dwm.render.soto.SotoSkyFogRenderer;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
+import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
+import com.adamkali.dwm.tardis.portal.PortalSampler;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix4fStack;
@@ -22,7 +25,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.Direction;
-import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -31,7 +33,6 @@ import net.minecraft.world.phys.Vec3;
  * warms the stream before the door opens.
  */
 public final class BotiPortalContent implements PortalContent {
-    private static final int FULLBRIGHT = LightCoordsUtil.pack(15, 15);
     private static final int DEFAULT_CLEAR_RGB = 0x203040;
 
     private final UUID tardisId;
@@ -71,12 +72,28 @@ public final class BotiPortalContent implements PortalContent {
 
     @Override
     public void renderInto(PortalContentContext context) {
+        PortalAtmosphere portal = PortalSceneStore.getAtmosphere(PortalStreamKind.BOTI, tardisId);
+        SotoAtmosphere atmosphere = portal != null ? SotoAtmosphere.fromPortal(portal) : SotoAtmosphere.DEFAULT;
+        context.bindTarget();
+        long fogStart = PortalPerfStats.begin();
+        int radius = BotiInteriorSampler.clipStreamRadiusChunks(SotoSkyFogRenderer.clientStreamRadiusChunks());
+        GpuBufferSlice previousFog = SotoSkyFogRenderer.applyPortalTerrainFog(
+                atmosphere, PortalSampler.fogStartBlocks(radius), PortalSampler.fogEndBlocks(radius)
+        );
+        PortalPerfStats.end(PortalPerfStats.Stage.SKY_FOG, fogStart);
+        try {
+            renderLitContent(context);
+        } finally {
+            SotoSkyFogRenderer.restoreFog(previousFog);
+        }
+    }
+
+    private void renderLitContent(PortalContentContext context) {
         UUID id = tardisId;
         float tickDelta = context.tickDelta();
         PortalCameraTransform.Result hitch = context.hitch();
         PoseStack sceneMatrices = context.sceneMatrices();
 
-        context.bindTarget();
         long opaqueStart = PortalPerfStats.begin();
         SotoGhostMeshCache.drawLayer(
                 PortalStreamKind.BOTI,
@@ -121,7 +138,7 @@ public final class BotiPortalContent implements PortalContent {
                             sceneMatrices,
                             submitStorage,
                             cameraState,
-                            FULLBRIGHT,
+                            -1,
                             tickDelta,
                             PortalStreamKind.BOTI,
                             id,

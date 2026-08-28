@@ -3,6 +3,7 @@ package com.adamkali.dwm.render.soto.ghost;
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.network.SyncPortalChunkS2CPayload;
 import com.adamkali.dwm.tardis.boti.BotiRelativePosCodec;
+import com.adamkali.dwm.tardis.portal.PortalLightData;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -73,10 +75,39 @@ class SotoGhostExteriorTest {
         Map<BlockPos, BlockState> blocksC = Map.of(pos, Blocks.DIRT.defaultBlockState());
         Map<BlockPos, CompoundTag> bes = Map.of(pos, new CompoundTag());
 
-        assertTrue(SotoGhostExterior.chunkContentUnchanged(blocksA, blocksB, null, null));
-        assertTrue(SotoGhostExterior.chunkContentUnchanged(null, Map.of(), null, Map.of()));
-        assertFalse(SotoGhostExterior.chunkContentUnchanged(blocksA, blocksC, null, null));
-        assertFalse(SotoGhostExterior.chunkContentUnchanged(blocksA, blocksB, null, bes));
+        assertTrue(SotoGhostExterior.chunkContentUnchanged(
+                blocksA, blocksB, null, null, PortalLightData.EMPTY, PortalLightData.EMPTY));
+        assertTrue(SotoGhostExterior.chunkContentUnchanged(
+                null, Map.of(), null, Map.of(), PortalLightData.EMPTY, PortalLightData.EMPTY));
+        assertFalse(SotoGhostExterior.chunkContentUnchanged(
+                blocksA, blocksC, null, null, PortalLightData.EMPTY, PortalLightData.EMPTY));
+        assertFalse(SotoGhostExterior.chunkContentUnchanged(
+                blocksA, blocksB, null, bes, PortalLightData.EMPTY, PortalLightData.EMPTY));
+    }
+
+    @Test
+    void applyChunk_exposesSampledBlockAndSkyLight() {
+        UUID id = UUID.randomUUID();
+        BlockPos rel = new BlockPos(2, 1, 3);
+        PortalLightData light = new PortalLightData(
+                rel, 1, 1, 1, new byte[]{PortalLightData.pack(5, 9)}
+        );
+        SyncPortalChunkS2CPayload payload = new SyncPortalChunkS2CPayload(
+                PortalStreamKind.BOTI, id, 6, 12, 100, 64, 200,
+                List.of(new SyncPortalChunkS2CPayload.BlockEntry(
+                        rel.getX(), rel.getY(), rel.getZ(),
+                        BotiRelativePosCodec.stateId(Blocks.STONE.defaultBlockState())
+                )),
+                List.of(),
+                light
+        );
+
+        SotoGhostExterior.applyChunk(PortalStreamKind.BOTI, payload);
+
+        SotoGhostExterior ghost = SotoGhostExterior.get(PortalStreamKind.BOTI, id);
+        assertNotNull(ghost);
+        assertEquals(5, ghost.getBrightness(LightLayer.BLOCK, rel));
+        assertEquals(9, ghost.getBrightness(LightLayer.SKY, rel));
     }
 
     @Test

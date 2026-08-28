@@ -1553,6 +1553,21 @@ class ScenarioCompilerTest {
     }
 
     @Test
+    void compilesPortalLightingAndFogVisualScenario() {
+        Path scenarioRoot = resolveScreenplayTests();
+
+        ScenarioPlan plan = new ScenarioCompiler(ScenarioCatalog.load(scenarioRoot))
+                .compile("portalLightingAndFog");
+
+        assertEquals(32, plan.steps().size());
+        assertEquals("portal-lighting-fog-boti.png", plan.steps().get(25).arguments().get("name"));
+        assertEquals(true, plan.steps().get(25).arguments().get("compare"));
+        assertEquals("walkUntil dimension \"dwm:tardis\"", plan.steps().get(27).displayName());
+        assertEquals("portal-lighting-fog-soto.png", plan.steps().get(31).arguments().get("name"));
+        assertEquals(true, plan.steps().get(31).arguments().get("compare"));
+    }
+
+    @Test
     void compilesSonicFieldModeHudScenarioWithoutScreenshotCompare() {
         Path scenarioRoot = resolveScreenplayTests();
 

@@ -140,7 +140,7 @@ class TardisInteriorPreloadServiceTest {
     void markBotiFootprintDirty_MarksExpectedColumnCount() {
         PortalStreamSyncService.markBotiFootprintDirty(TARDIS_ID);
         BlockPos origin = TardisPlotAllocator.plotOrigin(TARDIS_ID);
-        int[] bounds = BotiInteriorSampler.footprintChunkBounds(origin);
+        int[] bounds = BotiInteriorSampler.plotChunkBounds(origin);
         int expected = (bounds[1] - bounds[0] + 1) * (bounds[3] - bounds[2] + 1);
         assertEquals(expected, PortalStreamSyncService.botiDirtyChunkCountForTest(TARDIS_ID));
         assertTrue(expected > 0);

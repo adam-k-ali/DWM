@@ -4,6 +4,7 @@ import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.network.SyncPortalChunkS2CPayload;
 import com.adamkali.dwm.network.SyncPortalEntitySpawnS2CPayload;
+import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.adamkali.dwm.tardis.portal.PortalStreamSample;
 import org.junit.jupiter.api.BeforeAll;
@@ -36,9 +37,9 @@ class BotiRelativePosCodecTest {
 
     @Test
     void packUnpack_RoundTripsFootprintCoords() {
-        for (int x = 0; x < BotiInteriorSampler.SIZE_X; x++) {
-            for (int y = 0; y < BotiInteriorSampler.SIZE_Y; y++) {
-                for (int z = 0; z < BotiInteriorSampler.SIZE_Z; z++) {
+        for (int x = 0; x < FirstDoctorConsoleRoomLayout.SIZE_X; x++) {
+            for (int y = 0; y < FirstDoctorConsoleRoomLayout.SIZE_Y; y++) {
+                for (int z = 0; z < FirstDoctorConsoleRoomLayout.SIZE_Z; z++) {
                     BlockPos original = new BlockPos(x, y, z);
                     assertEquals(original, BotiRelativePosCodec.unpack(BotiRelativePosCodec.pack(original)));
                 }

@@ -1,7 +1,6 @@
 package com.adamkali.dwm.tardis.logic;
 
 import com.adamkali.dwm.network.TravelAudioS2CPayload;
-import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
@@ -60,7 +59,7 @@ public final class TardisTravelAudio {
         }
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
         for (ServerPlayer player : interior.players()) {
-            if (BotiInteriorSampler.isInsideFootprint(player.blockPosition(), origin)
+            if (isInsideConsoleRoom(player.blockPosition(), origin)
                     || player.blockPosition().closerThan(console, EXTERIOR_RANGE)) {
                 ServerPlayNetworking.send(player, interiorCue);
             }
@@ -89,7 +88,7 @@ public final class TardisTravelAudio {
         if (interior != null) {
             BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
             for (ServerPlayer player : interior.players()) {
-                if (BotiInteriorSampler.isInsideFootprint(player.blockPosition(), origin)
+                if (isInsideConsoleRoom(player.blockPosition(), origin)
                         || player.blockPosition().closerThan(consolePos(tardisId), EXTERIOR_RANGE)) {
                     ServerPlayNetworking.send(player, interiorStop);
                 }
@@ -123,7 +122,7 @@ public final class TardisTravelAudio {
         }
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
         for (ServerPlayer player : interior.players()) {
-            if (BotiInteriorSampler.isInsideFootprint(player.blockPosition(), origin)
+            if (isInsideConsoleRoom(player.blockPosition(), origin)
                     || player.blockPosition().closerThan(console, EXTERIOR_RANGE)) {
                 ServerPlayNetworking.send(player, interiorCue);
             }
@@ -132,5 +131,14 @@ public final class TardisTravelAudio {
 
     static BlockPos consolePos(UUID tardisId) {
         return TardisPlotAllocator.plotOrigin(tardisId).offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE);
+    }
+
+    static boolean isInsideConsoleRoom(BlockPos worldPos, BlockPos origin) {
+        int localX = worldPos.getX() - origin.getX();
+        int localY = worldPos.getY() - origin.getY();
+        int localZ = worldPos.getZ() - origin.getZ();
+        return localX >= 0 && localX < FirstDoctorConsoleRoomLayout.SIZE_X
+                && localY >= 0 && localY < FirstDoctorConsoleRoomLayout.SIZE_Y
+                && localZ >= 0 && localZ < FirstDoctorConsoleRoomLayout.SIZE_Z;
     }
 }

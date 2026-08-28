@@ -1,6 +1,7 @@
 package com.adamkali.dwm.tardis.soto;
 
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.portal.PortalSampler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -85,9 +86,13 @@ public final class SotoExteriorIndex {
     }
 
     /**
-     * Resolves the TARDIS whose exterior footprint contains {@code worldPos} in {@code worldKey}.
+     * Resolves the TARDIS whose exterior stream contains {@code worldPos} in {@code worldKey}.
      */
     public static @Nullable UUID resolve(ResourceKey<Level> worldKey, BlockPos worldPos) {
+        return resolve(worldKey, worldPos, PortalSampler.DEFAULT_STREAM_RADIUS_CHUNKS);
+    }
+
+    public static @Nullable UUID resolve(ResourceKey<Level> worldKey, BlockPos worldPos, int radiusChunks) {
         if (worldKey == null || worldPos == null) {
             return null;
         }
@@ -96,8 +101,7 @@ public final class SotoExteriorIndex {
             if (!key.worldKey().equals(worldKey)) {
                 continue;
             }
-            BlockPos footprintOrigin = SotoExteriorSampler.footprintOrigin(key.exteriorPos());
-            if (SotoExteriorSampler.isInsideFootprint(worldPos, footprintOrigin)) {
+            if (SotoExteriorSampler.isInsideStreamRadius(worldPos, key.exteriorPos(), radiusChunks)) {
                 return entry.getKey();
             }
         }

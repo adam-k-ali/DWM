@@ -1,0 +1,65 @@
+---
+name: Portal Lighting and Fog
+type: test
+---
+steps:
+  - launchGame
+  - createWorld:
+      worldType: superflat
+      gameMode: creative
+      difficulty: peaceful
+      seed: "42"
+  - closeScreen
+  - runCommand: "/gamerule sendCommandFeedback false"
+  - runCommand: "/gamerule doDaylightCycle false"
+  - runCommand: "/gamerule doWeatherCycle false"
+  - runCommand: "/gamerule doMobSpawning false"
+  - runCommand: "/time set midnight"
+  - runCommand: "/weather clear"
+  - runCommand: "/kill @e[type=!minecraft:player]"
+  # Near emissive marker and far pale wall make SOTO light falloff and 20–30 block fog visible.
+  - runCommand: "/fill ~-10 ~ ~-2 ~-10 ~4 ~2 minecraft:deepslate_tiles"
+  - runCommand: "/setblock ~-9 ~2 ~ minecraft:sea_lantern"
+  - runCommand: "/fill ~-29 ~ ~-2 ~-29 ~4 ~2 minecraft:white_concrete"
+  - runCommand: "/give @s dwm:tardis_block"
+  - waitUntil:
+      holding: dwm:tardis_block
+  - selectHotbar: 0
+  - lookAt:
+      x: "~1"
+      y: "~-1"
+      z: "~"
+  - useItem
+  - waitUntil:
+      block:
+        id: dwm:tardis_block
+        x: "~1"
+        y: "~"
+        z: "~"
+  - selectHotbar: 1
+  - lookAt:
+      x: "~1"
+      y: "~"
+      z: "~"
+  - useItem
+  - runCommand: "/tp @s ~-3 ~1 ~"
+  - lookAt:
+      x: "~3"
+      y: "~"
+      z: "~"
+  - waitTicks: 200
+  - captureScreenshot:
+      name: portal-lighting-fog-boti
+      compare: true
+  # Switch the exterior to day so SOTO exercises streamed sky light as well as the sea-lantern source.
+  - runCommand: "/time set day"
+  - walkUntil:
+      dimension: dwm:tardis
+  - runCommand: "/tp @s ~ ~ ~4"
+  - lookAt:
+      yaw: 180
+      pitch: 0
+  - waitTicks: 240
+  - captureScreenshot:
+      name: portal-lighting-fog-soto
+      compare: true

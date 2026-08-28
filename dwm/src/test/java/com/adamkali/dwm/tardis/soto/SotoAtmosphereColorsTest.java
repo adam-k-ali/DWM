@@ -115,4 +115,39 @@ class SotoAtmosphereColorsTest {
         assertEquals(1, SotoAtmosphereColors.moonPhase(24000L));
         assertEquals(0, SotoAtmosphereColors.moonPhase(8L * 24000L));
     }
+
+    @Test
+    void skyLightFactor_overworldDayNearOneNightNearFloor() {
+        float day = SotoAtmosphereColors.skyLightFactor(
+                SotoAtmosphereColors.EffectsKind.OVERWORLD,
+                SotoAtmosphereColors.skyAngle(6000L),
+                0.0f,
+                0.0f);
+        float night = SotoAtmosphereColors.skyLightFactor(
+                SotoAtmosphereColors.EffectsKind.OVERWORLD,
+                SotoAtmosphereColors.skyAngle(18000L),
+                0.0f,
+                0.0f);
+        assertTrue(day > 0.9f, "day sky factor should be near 1, was " + day);
+        assertEquals(SotoAtmosphereColors.NIGHT_SKY_LIGHT_FACTOR, night, 0.02f);
+    }
+
+    @Test
+    void skyLightFactor_netherAndEndAreZero() {
+        float angle = SotoAtmosphereColors.skyAngle(6000L);
+        assertEquals(0.0f, SotoAtmosphereColors.skyLightFactor(
+                SotoAtmosphereColors.EffectsKind.NETHER, angle, 0.0f, 0.0f));
+        assertEquals(0.0f, SotoAtmosphereColors.skyLightFactor(
+                SotoAtmosphereColors.EffectsKind.END, angle, 0.0f, 0.0f));
+    }
+
+    @Test
+    void ambientLightColor_matchesVanillaDimensionTypes() {
+        assertEquals(SotoAtmosphereColors.OVERWORLD_AMBIENT_LIGHT_COLOR,
+                SotoAtmosphereColors.ambientLightColor(SotoAtmosphereColors.EffectsKind.OVERWORLD));
+        assertEquals(SotoAtmosphereColors.NETHER_AMBIENT_LIGHT_COLOR,
+                SotoAtmosphereColors.ambientLightColor(SotoAtmosphereColors.EffectsKind.NETHER));
+        assertEquals(SotoAtmosphereColors.END_AMBIENT_LIGHT_COLOR,
+                SotoAtmosphereColors.ambientLightColor(SotoAtmosphereColors.EffectsKind.END));
+    }
 }

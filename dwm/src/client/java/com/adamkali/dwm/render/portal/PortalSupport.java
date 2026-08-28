@@ -28,10 +28,17 @@ public final class PortalSupport {
         initialized = true;
         LevelRenderEvents.START_MAIN.register(context -> PortalRenderTarget.beginClientFrame());
         // Portal FBO clear/mesh draws must not run mid-BER (blacks out world/items on 26.2).
-        LevelRenderEvents.END_MAIN.register(context -> PortalScheduler.flushEndMain());
+        LevelRenderEvents.END_MAIN.register(context -> {
+            try {
+                PortalScheduler.flushEndMain();
+            } finally {
+                PortalFogRenderer.endFrame();
+            }
+        });
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             PortalRenderTarget.closeGlobal();
             PortalFeatureFlush.closeGlobal();
+            PortalFogRenderer.closeGlobal();
         });
     }
 
@@ -71,6 +78,7 @@ public final class PortalSupport {
         }
         sessionAvailable = false;
         PortalRenderTarget.closeGlobal();
+        PortalFogRenderer.closeGlobal();
         if (!failureLogged) {
             failureLogged = true;
             if (error == null) {
@@ -85,5 +93,6 @@ public final class PortalSupport {
         sessionAvailable = true;
         failureLogged = false;
         PortalRenderTarget.closeGlobal();
+        PortalFogRenderer.closeGlobal();
     }
 }

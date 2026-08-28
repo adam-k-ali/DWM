@@ -5,6 +5,7 @@ import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
+import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
@@ -20,8 +21,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
@@ -188,6 +191,31 @@ public class TardisInteriorGameTests {
         }
 
         context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 80)
+    public void consoleRoomPlacer_EnablesAndCalculatesLightWithThreadedEngine(GameTestHelper context) {
+        ServerLevel interior = context.getLevel();
+        UUID tardisId = UUID.randomUUID();
+        BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
+        FirstDoctorConsoleRoomPlacer.place(interior, origin, tardisId);
+        BlockPos sourcePos = origin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.above(3));
+
+        context.runAfterDelay(40, () -> {
+            int brightness = interior.getBrightness(LightLayer.BLOCK, sourcePos);
+            if (brightness != 15) {
+                throw new AssertionError("Expected propagated block light 15 at " + sourcePos + " but got " + brightness);
+            }
+            var sample = BotiInteriorSampler.sampleStreamChunk(
+                    interior, tardisId, sourcePos.getX() >> 4, sourcePos.getZ() >> 4);
+            if (sample == null) {
+                throw new AssertionError("Expected BOTI stream sample after interior place (chunk should be FULL)");
+            }
+            if (sample.lightData().brightness(LightLayer.BLOCK, sourcePos, -1) != 15) {
+                throw new AssertionError("Expected BOTI sample to retain propagated block light");
+            }
+            context.succeed();
+        });
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty")

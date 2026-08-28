@@ -1,6 +1,7 @@
 package com.adamkali.dwm.network;
 
 import com.adamkali.dwm.tardis.boti.BotiRelativePosCodec;
+import com.adamkali.dwm.tardis.portal.PortalLightData;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.adamkali.dwm.tardis.portal.PortalStreamSample;
 import java.util.ArrayList;
@@ -29,8 +30,11 @@ public record SyncPortalChunkS2CPayload(
         int footprintOriginY,
         int footprintOriginZ,
         List<BlockEntry> blocks,
-        List<BlockEntityEntry> blockEntities
+        List<BlockEntityEntry> blockEntities,
+        PortalLightData lightData
 ) implements CustomPacketPayload {
+    private static final int MAX_LIGHT_BYTES = 16 * 384 * 16;
+
     public static final CustomPacketPayload.Type<SyncPortalChunkS2CPayload> ID =
             new CustomPacketPayload.Type<>(DWMPacketIds.SYNC_PORTAL_CHUNK_PACKET_ID);
 
@@ -41,6 +45,30 @@ public record SyncPortalChunkS2CPayload(
     }
 
     public record BlockEntityEntry(int relX, int relY, int relZ, CompoundTag nbt) {
+    }
+
+    public SyncPortalChunkS2CPayload(
+            PortalStreamKind kind,
+            UUID tardisId,
+            int chunkX,
+            int chunkZ,
+            int footprintOriginX,
+            int footprintOriginY,
+            int footprintOriginZ,
+            List<BlockEntry> blocks,
+            List<BlockEntityEntry> blockEntities
+    ) {
+        this(
+                kind, tardisId, chunkX, chunkZ,
+                footprintOriginX, footprintOriginY, footprintOriginZ,
+                blocks, blockEntities, PortalLightData.EMPTY
+        );
+    }
+
+    public SyncPortalChunkS2CPayload {
+        blocks = blocks == null ? List.of() : List.copyOf(blocks);
+        blockEntities = blockEntities == null ? List.of() : List.copyOf(blockEntities);
+        lightData = lightData == null ? PortalLightData.EMPTY : lightData;
     }
 
     private static void encode(SyncPortalChunkS2CPayload payload, RegistryFriendlyByteBuf buf) {
@@ -65,6 +93,14 @@ public record SyncPortalChunkS2CPayload(
             ByteBufCodecs.VAR_INT.encode(buf, entry.relZ());
             ByteBufCodecs.COMPOUND_TAG.encode(buf, entry.nbt());
         }
+        PortalLightData light = payload.lightData;
+        ByteBufCodecs.VAR_INT.encode(buf, light.min().getX());
+        ByteBufCodecs.VAR_INT.encode(buf, light.min().getY());
+        ByteBufCodecs.VAR_INT.encode(buf, light.min().getZ());
+        ByteBufCodecs.VAR_INT.encode(buf, light.sizeX());
+        ByteBufCodecs.VAR_INT.encode(buf, light.sizeY());
+        ByteBufCodecs.VAR_INT.encode(buf, light.sizeZ());
+        buf.writeByteArray(light.packedCopy());
     }
 
     private static SyncPortalChunkS2CPayload decode(RegistryFriendlyByteBuf buf) {
@@ -95,8 +131,19 @@ public record SyncPortalChunkS2CPayload(
                     ByteBufCodecs.COMPOUND_TAG.decode(buf)
             ));
         }
+        BlockPos lightMin = new BlockPos(
+                ByteBufCodecs.VAR_INT.decode(buf),
+                ByteBufCodecs.VAR_INT.decode(buf),
+                ByteBufCodecs.VAR_INT.decode(buf)
+        );
+        int lightSizeX = ByteBufCodecs.VAR_INT.decode(buf);
+        int lightSizeY = ByteBufCodecs.VAR_INT.decode(buf);
+        int lightSizeZ = ByteBufCodecs.VAR_INT.decode(buf);
+        PortalLightData lightData = new PortalLightData(
+                lightMin, lightSizeX, lightSizeY, lightSizeZ, buf.readByteArray(MAX_LIGHT_BYTES)
+        );
         return new SyncPortalChunkS2CPayload(
-                kind, tardisId, chunkX, chunkZ, originX, originY, originZ, blocks, blockEntities
+                kind, tardisId, chunkX, chunkZ, originX, originY, originZ, blocks, blockEntities, lightData
         );
     }
 
@@ -126,6 +173,11 @@ public record SyncPortalChunkS2CPayload(
                     entry.getValue()
             ));
         }
+        PortalLightData relativeLight = sample.lightData().translated(new BlockPos(
+                -footprintOrigin.getX(),
+                -footprintOrigin.getY(),
+                -footprintOrigin.getZ()
+        ));
         return new SyncPortalChunkS2CPayload(
                 kind,
                 tardisId,
@@ -135,7 +187,8 @@ public record SyncPortalChunkS2CPayload(
                 footprintOrigin.getY(),
                 footprintOrigin.getZ(),
                 blocks,
-                bes
+                bes,
+                relativeLight
         );
     }
 

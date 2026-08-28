@@ -4,6 +4,7 @@ import com.adamkali.dwm.render.portal.PortalCameraTransform;
 import com.adamkali.dwm.render.portal.PortalContent;
 import com.adamkali.dwm.render.portal.PortalContentContext;
 import com.adamkali.dwm.render.portal.PortalFeatureFlush;
+import com.adamkali.dwm.render.portal.PortalLightmap;
 import com.adamkali.dwm.render.portal.PortalPerfStats;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
@@ -24,14 +25,11 @@ import java.util.UUID;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
-import net.minecraft.util.LightCoordsUtil;
 
 /**
  * SOTO portal content: hitch-fixed exterior look-out with ghost terrain + entities.
  */
 public final class SotoPortalContent implements PortalContent {
-    private static final int FULLBRIGHT = LightCoordsUtil.FULL_BRIGHT;
-
     private final UUID tardisId;
 
     public SotoPortalContent(UUID tardisId) {
@@ -94,6 +92,7 @@ public final class SotoPortalContent implements PortalContent {
         context.bindTarget();
         GpuBufferSlice previousFog = SotoSkyFogRenderer.applyPortalTerrainFog(atmosphere);
         PortalPerfStats.end(PortalPerfStats.Stage.SKY_FOG, skyStart);
+        PortalLightmap portalLightmap = PortalLightmap.apply(Minecraft.getInstance(), atmosphere);
         try {
             long opaqueStart = PortalPerfStats.begin();
             SotoGhostMeshCache.drawLayer(
@@ -139,7 +138,7 @@ public final class SotoPortalContent implements PortalContent {
                                 sceneMatrices,
                                 submitStorage,
                                 cameraState,
-                                FULLBRIGHT,
+                                -1,
                                 tickDelta,
                                 PortalStreamKind.SOTO,
                                 id,
@@ -167,6 +166,9 @@ public final class SotoPortalContent implements PortalContent {
             }
         } finally {
             SotoSkyFogRenderer.restoreFog(previousFog);
+            if (portalLightmap != null) {
+                portalLightmap.close();
+            }
         }
     }
 }

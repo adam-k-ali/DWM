@@ -12,14 +12,14 @@ import org.mockito.Mockito;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -60,19 +60,6 @@ class BotiInteriorSamplerTest {
     }
 
     @Test
-    void isInsideFootprint_respectsRoomBounds() {
-        UUID id = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
-        BlockPos origin = TardisPlotAllocator.plotOrigin(id);
-
-        assertTrue(BotiInteriorSampler.isInsideFootprint(origin, origin));
-        assertTrue(BotiInteriorSampler.isInsideFootprint(
-                origin.offset(BotiInteriorSampler.SIZE_X - 1, BotiInteriorSampler.SIZE_Y - 1, BotiInteriorSampler.SIZE_Z - 1),
-                origin));
-        assertFalse(BotiInteriorSampler.isInsideFootprint(origin.offset(BotiInteriorSampler.SIZE_X, 0, 0), origin));
-        assertFalse(BotiInteriorSampler.isInsideFootprint(origin.offset(0, -1, 0), origin));
-    }
-
-    @Test
     void isBotiVisible_excludesInteriorDoorIncludesConsoleAndChest() {
         assertFalse(BotiInteriorSampler.isBotiVisible(DWMBlocks.TARDIS_INTERIOR_DOOR.defaultBlockState()));
         assertTrue(BotiInteriorSampler.isBotiVisible(DWMBlocks.FIRST_DOCTOR_CONSOLE.defaultBlockState()));
@@ -81,37 +68,65 @@ class BotiInteriorSamplerTest {
     }
 
     @Test
-    void footprintBox_matchesRoomDimensions() {
-        BlockPos origin = new BlockPos(64, 64, 128);
-        AABB box = BotiInteriorSampler.footprintBox(origin);
-        assertEquals(origin.getX(), box.minX);
-        assertEquals(origin.getY(), box.minY);
-        assertEquals(origin.getZ(), box.minZ);
-        assertEquals(origin.getX() + BotiInteriorSampler.SIZE_X, box.maxX);
-        assertEquals(origin.getY() + BotiInteriorSampler.SIZE_Y, box.maxY);
-        assertEquals(origin.getZ() + BotiInteriorSampler.SIZE_Z, box.maxZ);
+    void streamChunkBounds_clipsViewDistanceToPlot() {
+        BlockPos origin = new BlockPos(0, 64, 0);
+        int[] plot = BotiInteriorSampler.plotChunkBounds(origin);
+        int[] clipped = BotiInteriorSampler.streamChunkBounds(origin, 12);
+        assertEquals(plot[0], clipped[0]);
+        assertEquals(plot[1], clipped[1]);
+        assertEquals(plot[2], clipped[2]);
+        assertEquals(plot[3], clipped[3]);
+        assertTrue(clipped[1] - clipped[0] < 12);
     }
 
     @Test
-    void footprintChunkBounds_coversFullFootprint() {
-        BlockPos origin = new BlockPos(15, 64, 15); // straddles chunk boundary for 11-wide room
-        int[] bounds = BotiInteriorSampler.footprintChunkBounds(origin);
-        assertEquals(0, bounds[0]);
-        assertEquals(1, bounds[1]);
-        assertEquals(0, bounds[2]);
-        assertEquals(1, bounds[3]);
+    void clipStreamRadiusChunks_capsToPlot() {
+        assertEquals(0, BotiInteriorSampler.clipStreamRadiusChunks(0));
+        assertEquals(2, BotiInteriorSampler.clipStreamRadiusChunks(2));
+        assertTrue(BotiInteriorSampler.clipStreamRadiusChunks(12) <= 3);
+        assertEquals(
+                BotiInteriorSampler.clipStreamRadiusChunks(3),
+                BotiInteriorSampler.clipStreamRadiusChunks(32)
+        );
     }
 
     @Test
-    void captureEntity_NullEntityReturnsNull() {
-        assertNull(BotiInteriorSampler.captureEntity(null, BlockPos.ZERO));
+    void isInsidePlotStream_rejectsNeighborPlot() {
+        BlockPos origin = new BlockPos(0, 64, 0);
+        assertTrue(BotiInteriorSampler.isInsidePlotStream(origin, origin, 2));
+        assertFalse(BotiInteriorSampler.isInsidePlotStream(
+                origin.offset(TardisPlotAllocator.PLOT_SPACING, 0, 0), origin, 12));
     }
 
     @Test
-    void captureEntity_skipsConsoleControlInteraction() {
+    void isFootprintLightReady_waitsForStampedSourceBrightness() {
+        ServerLevel world = Mockito.mock(ServerLevel.class);
+        BlockPos origin = new BlockPos(15, 64, 15);
+        BlockPos sourcePos = origin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.above(3));
+        Mockito.when(world.getBlockState(sourcePos)).thenReturn(Blocks.AIR.defaultBlockState());
+
+        assertFalse(BotiInteriorSampler.isFootprintLightReady(world, origin));
+
+        Mockito.when(world.getBlockState(sourcePos)).thenReturn(Blocks.LIGHT.defaultBlockState());
+        Mockito.when(world.getBrightness(LightLayer.BLOCK, sourcePos)).thenReturn(0);
+        assertFalse(BotiInteriorSampler.isFootprintLightReady(world, origin));
+
+        Mockito.when(world.getBrightness(LightLayer.BLOCK, sourcePos)).thenReturn(15);
+        assertTrue(BotiInteriorSampler.isFootprintLightReady(world, origin));
+        assertFalse(BotiInteriorSampler.isFootprintLightReady(null, origin));
+        assertFalse(BotiInteriorSampler.isFootprintLightReady(world, null));
+    }
+
+    @Test
+    void captureEntityNbt_NullEntityReturnsNull() {
+        assertNull(BotiInteriorSampler.captureEntityNbt(null));
+    }
+
+    @Test
+    void captureEntityNbt_skipsConsoleControlInteraction() {
         ConsoleControlInteractionEntity entity = Mockito.mock(ConsoleControlInteractionEntity.class);
         Mockito.when(entity.isRemoved()).thenReturn(false);
-        assertNull(BotiInteriorSampler.captureEntity(entity, BlockPos.ZERO));
+        assertNull(BotiInteriorSampler.captureEntityNbt(entity));
     }
 
     @Test
