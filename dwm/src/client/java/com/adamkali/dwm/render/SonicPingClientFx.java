@@ -67,7 +67,7 @@ public final class SonicPingClientFx {
     }
 
     private static void spawnParticles(Level level, BlockPos pos) {
-        RandomSource random = level.random;
+        RandomSource random = level.getRandom();
         double cx = pos.getX() + 0.5;
         double cy = pos.getY() + 1.0;
         double cz = pos.getZ() + 0.5;
