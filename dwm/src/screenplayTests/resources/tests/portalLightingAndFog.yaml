@@ -54,6 +54,9 @@ steps:
   - captureScreenshot:
       name: portal-lighting-fog-boti
       compare: true
+      # Soft channel noise is covered by Screenplay's color epsilon; allow a small
+      # residual for llvmpipe edge AA on the portal silhouette / HUD chrome.
+      maxDiffPixels: 5000
   # Switch the exterior to day so SOTO exercises streamed sky light as well as the sea-lantern source.
   - runCommand: "/time set day"
   # Dimension walkUntil holds forward without re-aiming; look at the exterior again
@@ -72,3 +75,4 @@ steps:
   - captureScreenshot:
       name: portal-lighting-fog-soto
       compare: true
+      maxDiffPixels: 5000

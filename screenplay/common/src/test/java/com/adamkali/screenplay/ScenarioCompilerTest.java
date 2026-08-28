@@ -1562,9 +1562,11 @@ class ScenarioCompilerTest {
         assertEquals(34, plan.steps().size());
         assertEquals("portal-lighting-fog-boti.png", plan.steps().get(26).arguments().get("name"));
         assertEquals(true, plan.steps().get(26).arguments().get("compare"));
+        assertEquals(5000L, plan.steps().get(26).arguments().get("maxDiffPixels"));
         assertEquals("walkUntil dimension \"dwm:tardis\"", plan.steps().get(29).displayName());
         assertEquals("portal-lighting-fog-soto.png", plan.steps().get(33).arguments().get("name"));
         assertEquals(true, plan.steps().get(33).arguments().get("compare"));
+        assertEquals(5000L, plan.steps().get(33).arguments().get("maxDiffPixels"));
     }
 
     @Test
