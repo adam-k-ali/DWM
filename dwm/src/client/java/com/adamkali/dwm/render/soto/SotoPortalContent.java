@@ -4,6 +4,7 @@ import com.adamkali.dwm.render.portal.PortalCameraTransform;
 import com.adamkali.dwm.render.portal.PortalContent;
 import com.adamkali.dwm.render.portal.PortalContentContext;
 import com.adamkali.dwm.render.portal.PortalFeatureFlush;
+import com.adamkali.dwm.render.portal.PortalLightmap;
 import com.adamkali.dwm.render.portal.PortalPerfStats;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
@@ -91,6 +92,7 @@ public final class SotoPortalContent implements PortalContent {
         context.bindTarget();
         GpuBufferSlice previousFog = SotoSkyFogRenderer.applyPortalTerrainFog(atmosphere);
         PortalPerfStats.end(PortalPerfStats.Stage.SKY_FOG, skyStart);
+        PortalLightmap portalLightmap = PortalLightmap.apply(Minecraft.getInstance(), atmosphere);
         try {
             long opaqueStart = PortalPerfStats.begin();
             SotoGhostMeshCache.drawLayer(
@@ -164,6 +166,9 @@ public final class SotoPortalContent implements PortalContent {
             }
         } finally {
             SotoSkyFogRenderer.restoreFog(previousFog);
+            if (portalLightmap != null) {
+                portalLightmap.close();
+            }
         }
     }
 }

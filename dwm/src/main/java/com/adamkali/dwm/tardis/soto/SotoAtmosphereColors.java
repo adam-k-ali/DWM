@@ -130,4 +130,46 @@ public final class SotoAtmosphereColors {
         float h = Mth.square(1.0F - (1.0F - Mth.sin(g * (float) Math.PI)) * 0.99F);
         return ARGB.colorFromFloat(h, g * 0.3F + 0.7F, g * g * 0.7F + 0.2F, 0.2F);
     }
+
+    /**
+     * Overworld night floor from {@code minecraft:visual/sky_light_factor} (day timeline).
+     * Nether/End keep factor 0 so packed sky light does not wash out ambient.
+     */
+    public static final float NIGHT_SKY_LIGHT_FACTOR = 0.24F;
+    public static final int OVERWORLD_AMBIENT_LIGHT_COLOR = 0x0A0A0A;
+    public static final int NETHER_AMBIENT_LIGHT_COLOR = 0x302821;
+    public static final int END_AMBIENT_LIGHT_COLOR = 0x3F473F;
+
+    /**
+     * Lightmap {@code skyFactor}: overworld follows sun height with a 0.24 night floor,
+     * weather-blended toward that floor. Nether/End stay unlit by sky.
+     */
+    public static float skyLightFactor(EffectsKind kind, float skyAngle, float rainGradient, float thunderGradient) {
+        if (kind != EffectsKind.OVERWORLD) {
+            return 0.0F;
+        }
+        float factor = NIGHT_SKY_LIGHT_FACTOR + (1.0F - NIGHT_SKY_LIGHT_FACTOR) * sunHeight(skyAngle);
+        float weather = Math.max(clamp01(rainGradient) * 0.3125F, clamp01(thunderGradient) * 0.52734375F);
+        return Mth.lerp(weather, factor, NIGHT_SKY_LIGHT_FACTOR);
+    }
+
+    public static int ambientLightColor(EffectsKind kind) {
+        return switch (kind) {
+            case NETHER -> NETHER_AMBIENT_LIGHT_COLOR;
+            case END -> END_AMBIENT_LIGHT_COLOR;
+            case OVERWORLD -> OVERWORLD_AMBIENT_LIGHT_COLOR;
+        };
+    }
+
+    public static int skyLightColor(EffectsKind kind) {
+        return switch (kind) {
+            case NETHER -> 0x7A7AFF;
+            case END -> 0xAC60CD;
+            case OVERWORLD -> 0xFFFFFF;
+        };
+    }
+
+    private static float clamp01(float value) {
+        return Mth.clamp(value, 0.0F, 1.0F);
+    }
 }
