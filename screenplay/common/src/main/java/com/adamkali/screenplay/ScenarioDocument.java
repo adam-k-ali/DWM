@@ -7,6 +7,7 @@ public record ScenarioDocument(
         String id,
         String name,
         Type type,
+        boolean record,
         List<Parameter> parameters,
         List<Invocation> steps,
         List<Invocation> beforeAll,

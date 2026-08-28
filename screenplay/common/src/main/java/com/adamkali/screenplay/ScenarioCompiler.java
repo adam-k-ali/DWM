@@ -27,7 +27,7 @@ public final class ScenarioCompiler {
         ScenarioDocument test = catalog.requireTest(testId);
         List<ScenarioPlan.Step> expanded = new ArrayList<>();
         expand(test.steps(), test.source(), Map.of(), new ArrayDeque<>(), expanded);
-        return new ScenarioPlan(test.id(), test.name(), expanded);
+        return new ScenarioPlan(test.id(), test.name(), expanded, test.record());
     }
 
     public SuitePlan compileSuite(String suiteId) {
@@ -57,7 +57,16 @@ public final class ScenarioCompiler {
             }
             members.add(compile(testId));
         }
-        return new SuitePlan(suite.id(), suite.name(), beforeAll, beforeEach, afterEach, afterAll, members);
+        return new SuitePlan(
+                suite.id(),
+                suite.name(),
+                beforeAll,
+                beforeEach,
+                afterEach,
+                afterAll,
+                members,
+                suite.record()
+        );
     }
 
     private List<ScenarioPlan.Step> expandHook(List<ScenarioDocument.Invocation> invocations, String source) {

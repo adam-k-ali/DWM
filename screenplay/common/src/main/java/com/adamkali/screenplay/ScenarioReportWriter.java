@@ -36,7 +36,7 @@ final class ScenarioReportWriter {
     }
 
     void writeBootstrapFailure(String scenarioId, Throwable failure) {
-        ScenarioPlan plan = new ScenarioPlan(scenarioId, scenarioId, List.of());
+        ScenarioPlan plan = new ScenarioPlan(scenarioId, scenarioId, List.of(), false);
         write(plan, List.of(), message(failure), message(failure) + "\n");
     }
 
@@ -57,7 +57,7 @@ final class ScenarioReportWriter {
             );
             String metrics = suite
                     ? suiteMetricsJson(id, name, cases)
-                    : metricsJson(new ScenarioPlan(id, name, List.of()), cases.getFirst().steps(), cases.getFirst().failure());
+                    : metricsJson(new ScenarioPlan(id, name, List.of(), false), cases.getFirst().steps(), cases.getFirst().failure());
             Files.writeString(metricsFile(), metrics, StandardCharsets.UTF_8);
         } catch (IOException exception) {
             throw new ScenarioException("Could not write scenario report to " + reportFile, exception);
