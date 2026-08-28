@@ -35,11 +35,10 @@ steps:
   - walkUntil:
       dimension: dwm:tardis
   - waitTicks: 40
-  - runCommand: "/tp @s ~ ~ ~6"
   - lookAt:
       x: "~"
       y: "~1"
-      z: "~-1"
+      z: "~5"
   - waitTicks: 10
   - selectHotbar: 0
   - waitTicks: 5
@@ -50,13 +49,12 @@ steps:
       near:
         x: "~"
         y: "~1"
-        z: "~-1"
+        z: "~5"
       index: 0
   - waitUntil:
       overlay: "Cloak engaged"
   - selectHotbar: 1
   - waitTicks: 5
-  - runCommand: "/tp @s ~ ~ ~-6"
   - lookAt:
       x: "~"
       y: "~1"
