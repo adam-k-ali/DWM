@@ -62,6 +62,7 @@ class CircuitFittedLogicTest {
         }
         assertFalse(StabiliserLogic.isEnabled(model));
         assertEquals(DestinationMode.BIOME, model.getDestinationMode());
+        assertEquals(ArtronLogic.FOUND_START, ArtronLogic.read(model));
     }
 
     @Test

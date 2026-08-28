@@ -2,6 +2,9 @@ package com.adamkali.dwm.gametest;
 
 import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.block.FirstDoctorConsoleBlock;
+import com.adamkali.dwm.block.FirstDoctorConsoleControls.LookTarget;
+import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.item.DWMDataComponents;
 import com.adamkali.dwm.item.DWMItems;
@@ -12,6 +15,7 @@ import com.adamkali.dwm.network.ServerPayloadTypeRegistry;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
+import com.adamkali.dwm.tardis.logic.ArtronLogic;
 import com.adamkali.dwm.tardis.logic.FirstHourLogic;
 import com.adamkali.dwm.tardis.logic.TardisOwnershipLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
@@ -49,6 +53,7 @@ public class FirstHourAdvancementGameTests {
     private static final Identifier CLAIM_TARDIS = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/claim_tardis");
     private static final Identifier FIRST_HOP = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/first_hop");
     private static final Identifier BIND_KEY = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/bind_key");
+    private static final Identifier FIRST_REFUEL = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/first_refuel");
 
     @GameTest(structure = "fabric-gametest-api-v1:empty")
     public void sonicIronDoor_awardsAdvancement(GameTestHelper context) {
@@ -210,6 +215,50 @@ public class FirstHourAdvancementGameTests {
             throw new AssertionError("Expected key to bind");
         }
         assertAdvancementDone(context, player, BIND_KEY);
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void firstRefuel_awardsOnSuccessfulCrystalFill(GameTestHelper context) {
+        TardisDataLoader.tardisSaveDirectory = context.getLevel().getServer()
+                .getWorldPath(LevelResource.ROOT)
+                .resolve("gametest_tardis_data");
+
+        BlockPos tardisRel = new BlockPos(1, 2, 1);
+        BlockPos tardisAbs = context.absolutePos(tardisRel);
+        context.setBlock(tardisRel, DWMBlocks.TARDIS_BLOCK);
+        if (!(context.getLevel().getBlockEntity(tardisAbs) instanceof TardisBlockEntity tardis)) {
+            throw new AssertionError("Expected TardisBlockEntity");
+        }
+        UUID tardisId = tardis.getTardisId();
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            throw new AssertionError("Expected TARDIS data model");
+        }
+        model.artron = 50;
+
+        BlockPos consoleRel = new BlockPos(4, 2, 4);
+        BlockPos consoleAbs = context.absolutePos(consoleRel);
+        context.setBlock(
+                consoleRel,
+                DWMBlocks.FIRST_DOCTOR_CONSOLE.defaultBlockState()
+                        .setValue(FirstDoctorConsoleBlock.FACING, Direction.NORTH)
+        );
+        if (!(context.getLevel().getBlockEntity(consoleAbs) instanceof FirstDoctorConsoleBlockEntity console)) {
+            throw new AssertionError("Expected FirstDoctorConsoleBlockEntity");
+        }
+        console.setTardisId(tardisId);
+
+        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        ItemStack crystals = new ItemStack(DWMItems.ZEITON_CRYSTALS, 1);
+        player.setItemInHand(InteractionHand.MAIN_HAND, crystals);
+        FirstDoctorConsoleBlock.activateControl(
+                LookTarget.REFUELER, context.getLevel(), consoleAbs, player);
+
+        if (ArtronLogic.read(model) != 75) {
+            throw new AssertionError("Expected fill to add 25, got " + ArtronLogic.read(model));
+        }
+        assertAdvancementDone(context, player, FIRST_REFUEL);
         context.succeed();
     }
 

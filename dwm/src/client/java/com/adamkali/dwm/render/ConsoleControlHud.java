@@ -4,6 +4,7 @@ import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls.LookTarget;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.entity.ConsoleControlInteractionEntity;
+import com.adamkali.dwm.tardis.logic.ArtronLogic;
 import com.adamkali.dwm.tardis.logic.ConsoleDisplayState;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
@@ -85,7 +86,8 @@ public final class ConsoleControlHud {
             case PRESSURE_READER -> readerLabel(display, ExteriorEnvironmentReadout.Reading::pressure, "dwm.console.pressure");
             case TEMPERATURE_READER -> readerLabel(display, ExteriorEnvironmentReadout.Reading::temperature, "dwm.console.temperature");
             case RADIATION_READER -> readerLabel(display, ExteriorEnvironmentReadout.Reading::radiation, "dwm.console.radiation");
-            case REFUELER -> Component.translatable("dwm.console.refueler_stable");
+            case REFUELER -> ArtronLogic.reservesMessage(
+                    display == null ? ArtronLogic.CAPACITY : display.artron());
             case TELEPATHIC_CIRCUIT -> Component.translatable("dwm.console.telepathic_circuit");
             case CLOAK -> Component.translatable(
                     display != null && display.cloaked()

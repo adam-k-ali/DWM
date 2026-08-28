@@ -1,5 +1,6 @@
 package com.adamkali.dwm.block;
 
+import com.adamkali.dwm.advancement.DWMCriteria;
 import com.adamkali.dwm.block.entities.DWMBlockEntities;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.network.OpenPlayerLocatorScreen;
@@ -9,6 +10,7 @@ import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisExteriorLocation;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
+import com.adamkali.dwm.tardis.logic.ArtronLogic;
 import com.adamkali.dwm.tardis.logic.CloakLogic;
 import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
 import com.adamkali.dwm.tardis.logic.ConsolePilotLogic;
@@ -225,7 +227,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             case PRESSURE_READER -> handleReader(player, console, ExteriorEnvironmentReadout.Reading::pressure, "dwm.console.pressure");
             case TEMPERATURE_READER -> handleReader(player, console, ExteriorEnvironmentReadout.Reading::temperature, "dwm.console.temperature");
             case RADIATION_READER -> handleReader(player, console, ExteriorEnvironmentReadout.Reading::radiation, "dwm.console.radiation");
-            case REFUELER -> handleRefueler(player);
+            case REFUELER -> handleRefueler(player, serverWorld, tardisId);
             case TELEPATHIC_CIRCUIT -> handleTelepathic(world, pos, player, tardisId);
             case CLOAK -> handleCloak(world, pos, player, serverWorld, tardisId);
             case DOOR_LOCK -> handleDoorLock(world, pos, player, serverWorld, tardisId);
@@ -289,7 +291,8 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             }
             successKey = "dwm.console.travel_materialising";
         } else {
-            result = TardisTravelService.startTravel(tardisId, serverWorld.getServer());
+            result = TardisTravelService.startTravel(
+                    tardisId, serverWorld.getServer(), player.getAbilities().instabuild);
             successKey = "dwm.console.travel_dematerialising";
         }
 
@@ -300,6 +303,11 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         }
         if (result == InteractionResult.PASS) {
             player.sendOverlayMessage(Component.translatable("dwm.console.travel_in_progress"));
+            return InteractionResult.CONSUME;
+        }
+        if (TardisTravelService.FAIL_INSUFFICIENT_ARTRON.equals(TardisTravelService.peekLastTravelFailureReason())) {
+            TardisDataModel model = TardisDataLoader.get(tardisId);
+            player.sendOverlayMessage(Component.translatable(ArtronLogic.spendRefuseKey(model)));
             return InteractionResult.CONSUME;
         }
         player.sendOverlayMessage(Component.translatable("dwm.console.travel_unavailable"));
@@ -483,9 +491,36 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         return InteractionResult.SUCCESS;
     }
 
-    private static InteractionResult handleRefueler(Player player) {
-        player.sendOverlayMessage(Component.translatable("dwm.console.refueler_stable"));
-        return InteractionResult.SUCCESS;
+    private static InteractionResult handleRefueler(Player player, ServerLevel serverWorld, UUID tardisId) {
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.refueler_unavailable"));
+            return InteractionResult.CONSUME;
+        }
+        ArtronLogic.FillResult fill = ArtronLogic.tryFill(
+                model, player.getMainHandItem(), player.getAbilities().instabuild);
+        return switch (fill) {
+            case POWDER_HINT -> {
+                player.sendOverlayMessage(Component.translatable(ArtronLogic.ARTRON_USE_CRYSTALS_KEY));
+                yield InteractionResult.CONSUME;
+            }
+            case ALREADY_FULL -> {
+                player.sendOverlayMessage(Component.translatable(ArtronLogic.ARTRON_FULL_KEY));
+                yield InteractionResult.CONSUME;
+            }
+            case FILLED -> {
+                FirstDoctorConsoleSync.syncFromModel(serverWorld.getServer(), tardisId);
+                player.sendOverlayMessage(ArtronLogic.reservesMessage(ArtronLogic.read(model)));
+                if (player instanceof ServerPlayer serverPlayer) {
+                    DWMCriteria.TARDIS_REFUEL.trigger(serverPlayer);
+                }
+                yield InteractionResult.SUCCESS;
+            }
+            case READ -> {
+                player.sendOverlayMessage(ArtronLogic.reservesMessage(ArtronLogic.read(model)));
+                yield InteractionResult.SUCCESS;
+            }
+        };
     }
 
     private static InteractionResult handleTelepathic(

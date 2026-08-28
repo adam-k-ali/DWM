@@ -205,6 +205,21 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                 )
                 .addCriterion("bind_key", emptyPlayerCriterion(DWMCriteria.BIND_KEY))
                 .save(consumer, DWMReference.MOD_ID + "/bind_key");
+
+        Advancement.Builder.advancement()
+                .parent(claimTardis)
+                .display(
+                        DWMItems.ZEITON_CRYSTALS,
+                        Component.translatable("advancements.dwm.first_refuel"),
+                        Component.translatable("advancements.dwm.first_refuel.description"),
+                        null,
+                        AdvancementType.TASK,
+                        true,
+                        true,
+                        false
+                )
+                .addCriterion("first_refuel", emptyPlayerCriterion(DWMCriteria.TARDIS_REFUEL))
+                .save(consumer, DWMReference.MOD_ID + "/first_refuel");
     }
 
     private static AdvancementHolder installSettingAdvancement(

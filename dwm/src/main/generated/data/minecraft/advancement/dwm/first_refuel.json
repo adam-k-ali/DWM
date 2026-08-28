@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:dwm/claim_tardis",
+  "criteria": {
+    "first_refuel": {
+      "trigger": "dwm:tardis_refuel"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dwm.first_refuel.description"
+    },
+    "icon": {
+      "id": "dwm:zeiton_crystals"
+    },
+    "title": {
+      "translate": "advancements.dwm.first_refuel"
+    }
+  },
+  "requirements": [
+    [
+      "first_refuel"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

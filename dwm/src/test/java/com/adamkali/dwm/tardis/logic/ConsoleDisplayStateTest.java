@@ -38,6 +38,15 @@ class ConsoleDisplayStateTest {
         assertFalse(state.lockY());
         assertTrue(state.lockZ());
         assertEquals(reading, state.reading());
+        assertEquals(ArtronLogic.CAPACITY, state.artron());
+    }
+
+    @Test
+    void from_copiesArtronFromModel() {
+        TardisDataModel model = new TardisDataModel();
+        model.artron = 125;
+        ConsoleDisplayState state = ConsoleDisplayState.from(model, ExteriorEnvironmentReadout.Reading.none());
+        assertEquals(125, state.artron());
     }
 
     @Test
@@ -50,6 +59,7 @@ class ConsoleDisplayStateTest {
         assertTrue(state.stabilisersEnabled());
         assertFalse(state.cloaked());
         assertEquals(reading, state.reading());
+        assertEquals(ArtronLogic.CAPACITY, state.artron());
     }
 
     @Test
@@ -60,6 +70,7 @@ class ConsoleDisplayStateTest {
         assertEquals(0.9F, base.reading().oxygen(), 1e-4);
         assertTrue(base.stabilisersEnabled());
         assertEquals(TardisChameleonVariant.TT_CAPSULE, base.variant());
+        assertEquals(ArtronLogic.CAPACITY, base.artron());
     }
 
     @Test
@@ -69,5 +80,6 @@ class ConsoleDisplayStateTest {
         assertTrue(defaults.stabilisersEnabled());
         assertFalse(defaults.cloaked());
         assertTrue(defaults.reading().noSignal());
+        assertEquals(ArtronLogic.CAPACITY, defaults.artron());
     }
 }

@@ -1,5 +1,7 @@
 package com.adamkali.dwm.item;
 
+import com.adamkali.dwm.tardis.data.TardisDataLoader;
+import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
 import com.adamkali.dwm.tardis.logic.TardisSummonLogic;
 import net.minecraft.network.chat.Component;
@@ -40,7 +42,8 @@ public class StattenheimRemoteItem extends Item {
             CircuitFittedLogic.refuseBrokenAtBlock(player, serverLevel, context.getClickedPos());
             return InteractionResult.CONSUME;
         }
-        player.sendOverlayMessage(Component.translatable(TardisSummonLogic.overlayKey(result)));
+        TardisDataModel owned = TardisDataLoader.findOwnedBy(player.getUUID()).orElse(null);
+        player.sendOverlayMessage(Component.translatable(TardisSummonLogic.overlayKey(result, owned)));
         return InteractionResult.SUCCESS;
     }
 }

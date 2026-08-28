@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
@@ -21,11 +22,13 @@ public record ConsoleDisplayState(
         boolean lockX,
         boolean lockY,
         boolean lockZ,
-        ExteriorEnvironmentReadout.Reading reading
+        ExteriorEnvironmentReadout.Reading reading,
+        int artron
 ) {
     public ConsoleDisplayState {
         variant = variant == null ? TardisChameleonVariant.TT_CAPSULE : variant;
         reading = reading == null ? ExteriorEnvironmentReadout.Reading.none() : reading;
+        artron = Mth.clamp(artron, 0, ArtronLogic.CAPACITY);
     }
 
     public static ConsoleDisplayState defaults() {
@@ -37,7 +40,8 @@ public record ConsoleDisplayState(
                 false,
                 false,
                 false,
-                ExteriorEnvironmentReadout.Reading.none()
+                ExteriorEnvironmentReadout.Reading.none(),
+                ArtronLogic.CAPACITY
         );
     }
 
@@ -56,7 +60,8 @@ public record ConsoleDisplayState(
                     false,
                     false,
                     false,
-                    safeReading
+                    safeReading,
+                    ArtronLogic.CAPACITY
             );
         }
         return new ConsoleDisplayState(
@@ -67,7 +72,8 @@ public record ConsoleDisplayState(
                 model.lockX,
                 model.lockY,
                 model.lockZ,
-                safeReading
+                safeReading,
+                ArtronLogic.read(model)
         );
     }
 
@@ -80,7 +86,8 @@ public record ConsoleDisplayState(
                 lockX,
                 lockY,
                 lockZ,
-                nextReading == null ? ExteriorEnvironmentReadout.Reading.none() : nextReading
+                nextReading == null ? ExteriorEnvironmentReadout.Reading.none() : nextReading,
+                artron
         );
     }
 
@@ -98,6 +105,7 @@ public record ConsoleDisplayState(
         output.putFloat("syncedPressure", noSignal ? 0.0F : reading.pressure());
         output.putFloat("syncedTemperature", noSignal ? 0.0F : reading.temperature());
         output.putFloat("syncedRadiation", noSignal ? 0.0F : reading.radiation());
+        output.putInt("syncedArtron", artron);
     }
 
     public static ConsoleDisplayState read(ValueInput input) {
@@ -119,7 +127,8 @@ public record ConsoleDisplayState(
                 input.getBooleanOr("syncedLockX", false),
                 input.getBooleanOr("syncedLockY", false),
                 input.getBooleanOr("syncedLockZ", false),
-                reading
+                reading,
+                input.getIntOr("syncedArtron", ArtronLogic.CAPACITY)
         );
     }
 
@@ -152,6 +161,7 @@ public record ConsoleDisplayState(
                 && lockX == other.lockX
                 && lockY == other.lockY
                 && lockZ == other.lockZ
+                && artron == other.artron
                 && variant == other.variant
                 && Objects.equals(reading, other.reading);
     }
@@ -159,6 +169,6 @@ public record ConsoleDisplayState(
     @Override
     public int hashCode() {
         return Objects.hash(
-                variant, stabilisersEnabled, cloaked, doorsLocked, lockX, lockY, lockZ, reading);
+                variant, stabilisersEnabled, cloaked, doorsLocked, lockX, lockY, lockZ, reading, artron);
     }
 }

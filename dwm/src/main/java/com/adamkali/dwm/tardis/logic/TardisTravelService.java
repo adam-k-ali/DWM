@@ -60,8 +60,10 @@ public final class TardisTravelService {
      */
     public static final String FAIL_PLAYER_OFFLINE = "player_offline";
     public static final String FAIL_INVALID_LANDING = "invalid_landing";
+    public static final String FAIL_INSUFFICIENT_ARTRON = "insufficient_artron";
 
     private static @Nullable String lastMaterialiseFailureReason;
+    private static @Nullable String lastTravelFailureReason;
 
     private TardisTravelService() {
     }
@@ -70,9 +72,19 @@ public final class TardisTravelService {
         return lastMaterialiseFailureReason;
     }
 
+    public static @Nullable String peekLastTravelFailureReason() {
+        return lastTravelFailureReason;
+    }
+
     /** Test/helper: clear the last materialise failure reason. */
     public static void clearLastMaterialiseFailureReason() {
         lastMaterialiseFailureReason = null;
+        lastTravelFailureReason = null;
+    }
+
+    /** Test/helper: clear the last demat/summon travel failure reason. */
+    public static void clearLastTravelFailureReason() {
+        lastTravelFailureReason = null;
     }
 
     public static void initialize() {
@@ -87,6 +99,17 @@ public final class TardisTravelService {
      * {@link InteractionResult#PASS} when already traveling
      */
     public static InteractionResult startTravel(UUID tardisId, MinecraftServer server) {
+        return startTravel(tardisId, server, false);
+    }
+
+    /**
+     * Begins travel for {@code tardisId} toward its selected destination (biome, waypoint, or player).
+     *
+     * @return {@link InteractionResult#SUCCESS} when travel started,
+     * {@link InteractionResult#FAIL} when preconditions fail,
+     * {@link InteractionResult#PASS} when already traveling
+     */
+    public static InteractionResult startTravel(UUID tardisId, MinecraftServer server, boolean instabuild) {
         if (tardisId == null) {
             return InteractionResult.FAIL;
         }
@@ -197,6 +220,10 @@ public final class TardisTravelService {
             return InteractionResult.FAIL;
         }
 
+        if (!spendForDemat(model, destinationDimension, instabuild)) {
+            return InteractionResult.FAIL;
+        }
+
         model.travelDestinationMode = mode;
         model.travelDestinationDimension = destinationDimension;
         model.travelDestinationBiome = destinationBiome;
@@ -208,7 +235,9 @@ public final class TardisTravelService {
         model.travelPhaseTicks = 0;
         model.setTravelPhase(TardisTravelPhase.DEMATERIALISING);
         lastMaterialiseFailureReason = null;
+        lastTravelFailureReason = null;
         ACTIVE.add(tardisId);
+        FirstDoctorConsoleSync.syncFromModel(server, tardisId);
         return InteractionResult.SUCCESS;
     }
 
@@ -222,6 +251,21 @@ public final class TardisTravelService {
             String destinationDimension,
             BlockPos landing,
             int facingRotation
+    ) {
+        return startSummonTravel(tardisId, server, destinationDimension, landing, facingRotation, false);
+    }
+
+    /**
+     * Begins dematerialisation toward an exact summon landing, then auto-materialises
+     * when the TARDIS reaches {@link TardisTravelPhase#IN_FLIGHT}.
+     */
+    public static InteractionResult startSummonTravel(
+            UUID tardisId,
+            MinecraftServer server,
+            String destinationDimension,
+            BlockPos landing,
+            int facingRotation,
+            boolean instabuild
     ) {
         if (tardisId == null || landing == null) {
             return InteractionResult.FAIL;
@@ -252,6 +296,10 @@ public final class TardisTravelService {
             return InteractionResult.FAIL;
         }
 
+        if (!spendForDemat(model, destinationDimension, instabuild)) {
+            return InteractionResult.FAIL;
+        }
+
         model.travelDestinationMode = DestinationMode.WAYPOINT;
         model.travelDestinationDimension = destinationDimension;
         model.travelDestinationBiome = null;
@@ -263,9 +311,25 @@ public final class TardisTravelService {
         model.travelPhaseTicks = 0;
         model.setTravelPhase(TardisTravelPhase.DEMATERIALISING);
         lastMaterialiseFailureReason = null;
+        lastTravelFailureReason = null;
         SUMMON_PENDING.add(tardisId);
         ACTIVE.add(tardisId);
+        FirstDoctorConsoleSync.syncFromModel(server, tardisId);
         return InteractionResult.SUCCESS;
+    }
+
+    private static boolean spendForDemat(
+            TardisDataModel model,
+            String destinationDimension,
+            boolean instabuild
+    ) {
+        lastTravelFailureReason = null;
+        int cost = ArtronLogic.cost(model.exteriorDimension, destinationDimension);
+        if (ArtronLogic.trySpend(model, cost, instabuild)) {
+            return true;
+        }
+        lastTravelFailureReason = FAIL_INSUFFICIENT_ARTRON;
+        return false;
     }
 
     /**
@@ -843,6 +907,7 @@ public final class TardisTravelService {
         SHELL_REMOVED.clear();
         SUMMON_PENDING.clear();
         lastMaterialiseFailureReason = null;
+        lastTravelFailureReason = null;
     }
 
     /** Test helper: mark a TARDIS to auto-materialise after demat. */

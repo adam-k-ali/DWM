@@ -27,10 +27,15 @@ public final class TardisSummonLogic {
         IN_PROGRESS,
         INVALID_LANDING,
         UNAVAILABLE,
-        CIRCUIT_BROKEN
+        CIRCUIT_BROKEN,
+        EMPTY_TANK
     }
 
     public static String overlayKey(Result result) {
+        return overlayKey(result, null);
+    }
+
+    public static String overlayKey(Result result, @Nullable TardisDataModel model) {
         return switch (result) {
             case SUMMONED -> "dwm.stattenheim.summoned";
             case NO_TARDIS -> "dwm.stattenheim.no_tardis";
@@ -38,6 +43,7 @@ public final class TardisSummonLogic {
             case INVALID_LANDING -> "dwm.stattenheim.invalid_landing";
             case UNAVAILABLE -> "dwm.stattenheim.unavailable";
             case CIRCUIT_BROKEN -> CircuitFittedLogic.CIRCUIT_BROKEN_KEY;
+            case EMPTY_TANK -> ArtronLogic.spendRefuseKey(model);
         };
     }
 
@@ -150,13 +156,17 @@ public final class TardisSummonLogic {
                 world.getServer(),
                 destinationDimension,
                 landing,
-                facingRotation
+                facingRotation,
+                player.getAbilities().instabuild
         );
         if (started == InteractionResult.SUCCESS) {
             return Result.SUMMONED;
         }
         if (started == InteractionResult.PASS) {
             return Result.IN_PROGRESS;
+        }
+        if (TardisTravelService.FAIL_INSUFFICIENT_ARTRON.equals(TardisTravelService.peekLastTravelFailureReason())) {
+            return Result.EMPTY_TANK;
         }
         return Result.UNAVAILABLE;
     }

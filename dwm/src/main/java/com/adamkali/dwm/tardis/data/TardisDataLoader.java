@@ -4,6 +4,7 @@ import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
+import com.adamkali.dwm.tardis.logic.ArtronLogic;
 import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -153,12 +154,13 @@ public class TardisDataLoader {
     }
 
     /**
-     * Creates a found Type 40 profile: broken circuits, stabilisers off.
+     * Creates a found Type 40 profile: broken circuits, stabilisers off, low artron.
      * Used when a worldgen TARDIS exterior first assigns its UUID.
      */
     public static TardisDataModel createFoundUnfinished() {
         TardisDataModel model = new TardisDataModel();
         CircuitFittedLogic.applyFoundUnfinished(model);
+        ArtronLogic.applyFoundStart(model);
         tardisData.put(model.uuid, model);
         return model;
     }

@@ -3,6 +3,7 @@ package com.adamkali.dwm.tardis.data.model;
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.tardis.data.model.TardisCircuit;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.logic.ArtronLogic;
 import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
 import com.adamkali.dwm.tardis.logic.StabiliserLogic;
 import com.google.gson.Gson;
@@ -204,5 +205,20 @@ class TardisDataModelExteriorTest {
         for (TardisCircuit circuit : TardisCircuit.values()) {
             assertTrue(CircuitFittedLogic.isFitted(legacy, circuit), circuit.name());
         }
+    }
+
+    @Test
+    void artron_serializesThroughGsonAndLegacyNullMeansFull() {
+        TardisDataModel model = new TardisDataModel();
+        model.artron = 75;
+
+        Gson gson = new Gson();
+        TardisDataModel loaded = gson.fromJson(gson.toJson(model), TardisDataModel.class);
+
+        assertEquals(75, ArtronLogic.read(loaded));
+        assertEquals(model, loaded);
+
+        TardisDataModel legacy = gson.fromJson("{\"uuid\":\"" + model.uuid + "\"}", TardisDataModel.class);
+        assertEquals(ArtronLogic.CAPACITY, ArtronLogic.read(legacy), "missing field must default full");
     }
 }
