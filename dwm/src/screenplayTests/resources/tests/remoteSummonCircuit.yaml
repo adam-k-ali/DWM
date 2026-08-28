@@ -5,7 +5,8 @@ type: test
 steps:
   - launchGame
   - enterFoundTardis
-  - selectHotbar: 0
+  # Stay on the post-enter hotbar. selectHotbar then /item replace races the
+  # carried-item packet and leaves the client holding an empty slot.
   - runCommand: "/item replace entity @s weapon.mainhand with dwm:circuit_remote_summon"
   - waitTicks: 10
   - waitUntil:
