@@ -42,6 +42,9 @@ steps:
       y: "~"
       z: "~"
   - useItem
+  # Server validates use-item reach when the packet is applied. Teleporting in the
+  # same tick drops the door toggle; wait like placeAndOpenTardis so the click lands.
+  - waitTicks: 25
   - runCommand: "/tp @s ~-3 ~1 ~"
   - lookAt:
       x: "~3"
@@ -53,6 +56,12 @@ steps:
       compare: true
   # Switch the exterior to day so SOTO exercises streamed sky light as well as the sea-lantern source.
   - runCommand: "/time set day"
+  # Dimension walkUntil holds forward without re-aiming; look at the exterior again
+  # after the long BOTI wait so we walk into the open door, not past it.
+  - lookAt:
+      x: "~4"
+      y: "~1"
+      z: "~"
   - walkUntil:
       dimension: dwm:tardis
   - runCommand: "/tp @s ~ ~ ~4"
