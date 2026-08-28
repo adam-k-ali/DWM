@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
+import java.util.OptionalInt;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -11,9 +12,11 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 /**
@@ -70,12 +73,11 @@ public final class LandingSiteLogic {
         BlockPos biomePos = located.getFirst();
         // locateBiome can return coordinates in unloaded chunks; heightmap then reports world bottom.
         world.getChunk(biomePos);
-        int topY = world.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, biomePos.getX(), biomePos.getZ());
-        BlockPos landing = new BlockPos(biomePos.getX(), topY, biomePos.getZ());
-        if (!isValidLanding(world, landing, doorFacing)) {
+        Optional<BlockPos> landing = findSurfaceInColumn(world, biomePos.getX(), biomePos.getZ(), doorFacing);
+        if (landing.isEmpty()) {
             return findNearbyValidLanding(world, biomePos.getX(), biomePos.getZ(), doorFacing);
         }
-        return Optional.of(landing);
+        return landing;
     }
 
     /**
@@ -118,10 +120,9 @@ public final class LandingSiteLogic {
                     int x = originX + dx;
                     int z = originZ + dz;
                     world.getChunk(x >> 4, z >> 4);
-                    int topY = world.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
-                    BlockPos candidate = new BlockPos(x, topY, z);
-                    if (isValidLanding(world, candidate, doorFacing)) {
-                        return Optional.of(candidate);
+                    Optional<BlockPos> candidate = findSurfaceInColumn(world, x, z, doorFacing);
+                    if (candidate.isPresent()) {
+                        return candidate;
                     }
                 }
             }
@@ -150,16 +151,85 @@ public final class LandingSiteLogic {
             return Optional.empty();
         }
         world.getChunk(searchOrigin);
-        int topY = world.getHeight(
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                searchOrigin.getX(),
-                searchOrigin.getZ()
-        );
-        BlockPos landing = new BlockPos(searchOrigin.getX(), topY, searchOrigin.getZ());
-        if (isValidLanding(world, landing, doorFacing)) {
-            return Optional.of(landing);
+        Optional<BlockPos> landing = findSurfaceInColumn(
+                world, searchOrigin.getX(), searchOrigin.getZ(), doorFacing);
+        if (landing.isPresent()) {
+            return landing;
         }
         return findNearbyValidLanding(world, searchOrigin.getX(), searchOrigin.getZ(), doorFacing);
+    }
+
+    /**
+     * Exclusive top Y of the playable interior when {@code hasCeiling} is set
+     * (vanilla Nether: {@code minY + logicalHeight} = 128). Empty when there is no ceiling.
+     */
+    public static OptionalInt ceilingExclusiveY(boolean hasCeiling, int minY, int logicalHeight) {
+        if (!hasCeiling) {
+            return OptionalInt.empty();
+        }
+        return OptionalInt.of(minY + logicalHeight);
+    }
+
+    /**
+     * {@link #ceilingExclusiveY(boolean, int, int)} from {@code world}'s dimension type.
+     */
+    public static OptionalInt ceilingExclusiveY(@Nullable LevelReader world) {
+        if (world == null) {
+            return OptionalInt.empty();
+        }
+        DimensionType type = dimensionTypeOf(world);
+        if (type == null) {
+            return OptionalInt.empty();
+        }
+        return ceilingExclusiveY(type.hasCeiling(), world.getMinY(), type.logicalHeight());
+    }
+
+    /**
+     * Heightmap surface, or the highest safe floor below a dimensional ceiling.
+     * Empty when the column has no valid shell cell.
+     */
+    public static Optional<BlockPos> findSurfaceInColumn(
+            LevelReader world,
+            int x,
+            int z,
+            Direction doorFacing
+    ) {
+        return findSurfaceInColumn(world, x, z, doorFacing, ceilingExclusiveY(world));
+    }
+
+    /**
+     * Like {@link #findSurfaceInColumn(LevelReader, int, int, Direction)} with an explicit ceiling cap.
+     */
+    public static Optional<BlockPos> findSurfaceInColumn(
+            LevelReader world,
+            int x,
+            int z,
+            Direction doorFacing,
+            OptionalInt ceilingExclusiveY
+    ) {
+        if (world == null || doorFacing == null) {
+            return Optional.empty();
+        }
+        int heightmapY = world.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+        if (ceilingExclusiveY.isEmpty() || heightmapY < ceilingExclusiveY.getAsInt()) {
+            BlockPos landing = new BlockPos(x, heightmapY, z);
+            if (isValidLanding(world, landing, doorFacing)) {
+                return Optional.of(landing);
+            }
+            return Optional.empty();
+        }
+        int minY = world.getMinY();
+        int startY = ceilingExclusiveY.getAsInt() - 1;
+        for (int y = startY; y > minY; y--) {
+            BlockPos candidate = new BlockPos(x, y, z);
+            if (!isReplaceable(world.getBlockState(candidate))) {
+                continue;
+            }
+            if (isDryValidLanding(world, candidate, doorFacing)) {
+                return Optional.of(candidate);
+            }
+        }
+        return Optional.empty();
     }
 
     /**
@@ -192,7 +262,30 @@ public final class LandingSiteLogic {
         return isReplaceable(doorFeet) && isReplaceable(doorHead);
     }
 
+    private static boolean isDryValidLanding(LevelReader world, BlockPos pos, Direction doorFacing) {
+        if (!isValidLanding(world, pos, doorFacing)) {
+            return false;
+        }
+        BlockPos door = pos.relative(doorFacing);
+        return isDry(world.getBlockState(pos))
+                && isDry(world.getBlockState(pos.above()))
+                && isDry(world.getBlockState(door))
+                && isDry(world.getBlockState(door.above()));
+    }
+
+    private static boolean isDry(BlockState state) {
+        return state.getFluidState().isEmpty();
+    }
+
     private static boolean isReplaceable(BlockState state) {
         return state.isAir() || state.canBeReplaced();
+    }
+
+    @Nullable
+    private static DimensionType dimensionTypeOf(LevelReader world) {
+        if (world instanceof Level level) {
+            return level.dimensionType();
+        }
+        return null;
     }
 }

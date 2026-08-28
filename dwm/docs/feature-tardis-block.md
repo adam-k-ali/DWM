@@ -32,6 +32,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Ops `/tardis claim` (permission 2) overwrites ownership to the caller if they do not already own a TARDIS: stand inside an interior, or pass `/tardis claim <uuid>`.
 - Collision entry when the exterior door is open (`doorSwing >= 0.9`); exit via open interior doors.
 - Landing search requires replaceable space in the door-facing column (feet + head), not only the shell cell.
+- Automatic surface landings stay below a dimensional bedrock ceiling (e.g. the Nether roof); exact coordinates on it (waypoint, player, summon, fast return) are unchanged.
 - Single config toggle `enableDoorPortals` (default on) via Mod Menu / Cloth Config; legacy `enableBoti` / `enableSoto` migrate on load.
 - Interior doors use an invisible block + dedicated BER (`TardisClassicInteriorDoorModel`) with swing animation.
 - Materialisation lever travel: first pull dematerialises the exterior; after a short hold the TARDIS enters `IN_FLIGHT`; a second pull materialises at the destination resolved from the active `DestinationMode`.
