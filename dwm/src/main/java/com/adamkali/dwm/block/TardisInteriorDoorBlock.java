@@ -2,6 +2,7 @@ package com.adamkali.dwm.block;
 
 import com.adamkali.dwm.block.entities.DWMBlockEntities;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
+import com.adamkali.dwm.item.SonicTardisLogic;
 import com.adamkali.dwm.sound.DWMSounds;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
@@ -190,6 +191,9 @@ public class TardisInteriorDoorBlock extends Block implements EntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+        if (SonicTardisLogic.shouldYieldToSonic(player)) {
+            return InteractionResult.PASS;
+        }
         if (player.isShiftKeyDown()) {
             return InteractionResult.PASS;
         }

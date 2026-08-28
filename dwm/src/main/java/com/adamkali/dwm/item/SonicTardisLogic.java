@@ -102,6 +102,15 @@ public final class SonicTardisLogic {
     }
 
     /**
+     * 26.2 {@code ServerPlayerGameMode.useItemOn} runs {@code Block.useWithoutItem} before
+     * {@code Item.useOn}. Door blocks that consume that call would swallow Seal / Scan.
+     * GameMode only reaches {@code useWithoutItem} for the main hand.
+     */
+    public static boolean shouldYieldToSonic(Player player) {
+        return player != null && player.getMainHandItem().is(DWMItemTags.SONIC_SCREWDRIVERS);
+    }
+
+    /**
      * Server-side sonic use on a TARDIS exterior, interior door, or console.
      *
      * @return {@code true} when the clicked block is a TARDIS target

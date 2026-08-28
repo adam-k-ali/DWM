@@ -15,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -146,6 +147,25 @@ public class SonicTardisGameTests {
         useOn(stranger, seal, setup.tardisAbs());
         if (setup.model().doorsLocked) {
             throw new AssertionError("Stranger sonic must not lock another player's TARDIS");
+        }
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void exteriorDoorsYieldToHeldSonic(GameTestHelper context) {
+        Setup setup = placeOwnedExterior(context);
+        ItemStack sonic = new ItemStack(DWMItems.SONIC_THIRD_DOCTOR);
+        Player owner = setup.owner();
+        owner.setItemInHand(InteractionHand.MAIN_HAND, sonic);
+        boolean openBefore = setup.model().doorState.isOpen;
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(setup.tardisAbs()), Direction.WEST, setup.tardisAbs(), false);
+        InteractionResult yielded = context.getLevel().getBlockState(setup.tardisAbs())
+                .useWithoutItem(context.getLevel(), owner, hit);
+        if (yielded.consumesAction()) {
+            throw new AssertionError("Exterior doors must PASS when a sonic is in the main hand");
+        }
+        if (setup.model().doorState.isOpen != openBefore) {
+            throw new AssertionError("Yielding to a sonic must not toggle TARDIS doors");
         }
         context.succeed();
     }
