@@ -254,7 +254,7 @@ public final class WaitUntilPrimitive implements ScenarioPrimitive {
         if (gui == null) {
             return false;
         }
-        ToastManager toastManager = gui.toastManager;
+        ToastManager toastManager = gui.toastManager();
         if (toastManager == null || toastManager.visibleToasts.isEmpty()) {
             return false;
         }
