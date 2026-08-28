@@ -61,6 +61,10 @@ tickets/
 # Loom / local Fabric tooling caches
 .fabric/
 
+# Generated Minecraft named sources (Mojang EULA — do not commit decompiled .java)
+dwm/minecraft-sources/**
+!dwm/minecraft-sources/README.md
+
 # MkDocs local build output
 screenplay/docs/site/
 
