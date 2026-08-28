@@ -9,7 +9,7 @@ screenshots directory (`build/screenplay/run/screenshots/` by default).
 | --- | --- | --- | --- |
 | `name` | string | no | PNG stem or filename. `.png` is appended if missing. Must be a simple file name (no `/`, `\`, or `..`). Required when `compare` is `true`. |
 | `compare` | boolean | no | When `true`, compare the saved PNG against a baseline with the same filename under `screenplay.baselines-dir` (see below). Default off. |
-| `maxDiffPixels` | integer | no | Max pixels allowed to differ *beyond* the built-in per-channel color epsilon (`16`). Default `0`. Only meaningful with `compare: true`. |
+| `maxDiffPixels` | integer | no | Max pixels allowed to differ *beyond* the built-in per-channel color epsilon (`24`). Default `0`. Only meaningful with `compare: true`. |
 
 With no arguments, Minecraft chooses a vanilla timestamped filename.
 

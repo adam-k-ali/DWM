@@ -36,6 +36,7 @@ public final class ScenarioPrimitives {
                 new SelectHotbarPrimitive(),
                 new LookAtPrimitive(),
                 new UseItemPrimitive(),
+                new InteractWithEntityPrimitive(),
                 new WalkUntilPrimitive()
         ).stream().collect(Collectors.toMap(ScenarioPrimitive::name, Function.identity())));
 

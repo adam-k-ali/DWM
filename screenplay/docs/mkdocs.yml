@@ -69,6 +69,7 @@ nav:
       - keyboardInput: reference/commands/keyboardInput.md
       - pressKey: reference/commands/pressKey.md
       - launchGame: reference/commands/launchGame.md
+      - interactWithEntity: reference/commands/interactWithEntity.md
       - lookAt: reference/commands/lookAt.md
       - openInventory: reference/commands/openInventory.md
       - runCommand: reference/commands/runCommand.md
