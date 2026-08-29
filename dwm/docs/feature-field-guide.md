@@ -26,8 +26,8 @@ There is no physical guide item. The screen is client-only; catalog content is l
 
 - **Catalog shell:** a wide, two-page parchment spread with clear hierarchy and generous margins.
 - **Left page:** persistent chapter catalog plus the active chapter's topic index.
-- **Right page:** chapter context, topic title, concise guidance, and a readable station recipe diagram. Pages with multiple crafting variants show selectable result icons.
-- **Navigation:** book page-turn arrows move within a chapter; direct topic links support catalog lookup; **Done** closes the guide.
+- **Right page:** chapter context, topic title, body text, and a readable station recipe diagram. Pages with multiple crafting results show selectable result icons on their own wrapping row. Zeiton alternatives share an icon and a Vanilla/Zeiton toggle. Bodies that do not fit under the recipe continue on extra visual pages (recipe stays on visual page 1).
+- **Navigation:** book page-turn arrows walk visual pages inside a topic, then the next topic in the chapter (turning back lands on the previous topic's last visual page). Direct topic links open visual page 1. **Done** closes the guide. The page indicator counts visual pages in the chapter.
 
 ## Content (v1)
 
@@ -102,13 +102,16 @@ The catalog is three synced dynamic registries. Registry keys use the vanilla `m
 ## Known Constraints
 
 - Recipe panels resolve against the integrated server's recipe manager; multiplayer or missing datapacks show a graceful fallback message.
-- The guide lists curated pages, not every colour variant — pattern pages link white recipes and note dye swaps. Roundel A, B, and Big share one page with a crafting-variant selector.
+- The guide lists curated pages, not every colour variant — pattern pages link white recipes and note dye swaps. Roundel A, B, and Big share one page with a crafting-variant selector. Late Circuits groups vanilla and Zeiton recipes by result item (five icons plus a Vanilla/Zeiton toggle). Variant icons wrap if a page lists more than eight results.
+- Long bodies wrap to the right-page width and overflow onto extra visual pages instead of clipping. The datapack still has one page JSON per topic.
 
 ## Testing
 
-- Unit: `FieldGuideCatalogTest`, `FieldGuideRecipeGridBuilderTest`.
-- Screenplay: `fieldGuide.yaml` uses mod-agnostic `pressKey` and widget clicks only; PNGs land in CI artifacts (no committed baselines).
+- Unit: `FieldGuideCatalogTest`, `FieldGuideRecipeGridBuilderTest`, `FieldGuideBodyPaginatorTest`, `FieldGuideVariantGroupsTest`.
+- Screenplay: `fieldGuide.yaml` uses mod-agnostic `pressKey` and widget clicks only; `fieldGuideCircuits.yaml` turns **Next Page** on Late Circuits to capture the continuation spread. PNGs land in CI artifacts (no committed baselines).
 
 ```bash
 ./gradlew runScreenplay -Pscreenplay=fieldGuide -PscreenplayDisplay=xvfb
+./gradlew runScreenplay -Pscreenplay=fieldGuideCircuits -PscreenplayDisplay=xvfb
 ```
+
