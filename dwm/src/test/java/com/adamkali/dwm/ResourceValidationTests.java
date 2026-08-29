@@ -893,6 +893,35 @@ public class ResourceValidationTests {
         }
     }
 
+    @Test
+    public void generatedGallifreyVillageWorldgenExists() throws Exception {
+        Path worldgen = Path.of("src/main/generated/data/dwm/worldgen");
+        String[] paths = {
+                "structure/gallifrey_village.json",
+                "structure_set/gallifrey_village.json",
+                "processor_list/gallifrey_village.json",
+                "template_pool/village/gallifrey/town_centers.json",
+                "template_pool/village/gallifrey/streets.json",
+                "template_pool/village/gallifrey/houses.json",
+                "template_pool/village/gallifrey/terminators.json",
+                "template_pool/village/gallifrey/decor.json",
+                "template_pool/village/gallifrey/trees.json",
+                "placed_feature/ash_village.json",
+        };
+        for (String relative : paths) {
+            Path file = worldgen.resolve(relative);
+            assertTrue(
+                    Files.isRegularFile(file) && Files.size(file) > 0,
+                    "Missing generated Gallifrey village worldgen: " + file
+            );
+        }
+        Path biomeTag = Path.of("src/main/resources/data/dwm/tags/worldgen/biome/has_structure/gallifrey_village.json");
+        assertTrue(
+                Files.isRegularFile(biomeTag) && Files.size(biomeTag) > 0,
+                "Missing biome tag: " + biomeTag
+        );
+    }
+
     private static boolean biomeHasCreatureSpawn(String biomeFile, String entityId) throws Exception {
         Path path = Path.of("src/main/generated/data/dwm/worldgen/biome").resolve(biomeFile);
         assertTrue(Files.isRegularFile(path), "Missing generated biome: " + path);

@@ -21,6 +21,10 @@ public class DWMWorldgenProvider extends FabricDynamicRegistryProvider {
         addModEntries(registries, entries, Registries.PLACED_FEATURE);
         addModEntries(registries, entries, Registries.BIOME);
         addModEntries(registries, entries, Registries.NOISE_SETTINGS);
+        addModEntries(registries, entries, Registries.PROCESSOR_LIST);
+        addModEntries(registries, entries, Registries.TEMPLATE_POOL);
+        addModEntries(registries, entries, Registries.STRUCTURE);
+        addModEntries(registries, entries, Registries.STRUCTURE_SET);
     }
 
     private static <T> void addModEntries(

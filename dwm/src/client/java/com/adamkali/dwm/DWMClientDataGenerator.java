@@ -14,6 +14,10 @@ import com.adamkali.dwm.world.DWMBiomeBootstrap;
 import com.adamkali.dwm.world.DWMChunkGeneratorSettingsBootstrap;
 import com.adamkali.dwm.world.DWMConfiguredFeatureBootstrap;
 import com.adamkali.dwm.world.DWMPlacedFeatureBootstrap;
+import com.adamkali.dwm.world.DWMProcessorListsBootstrap;
+import com.adamkali.dwm.world.DWMStructureSetsBootstrap;
+import com.adamkali.dwm.world.DWMStructuresBootstrap;
+import com.adamkali.dwm.world.DWMVillagePoolsBootstrap;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.minecraft.core.RegistrySetBuilder;
@@ -46,5 +50,9 @@ public class DWMClientDataGenerator implements DataGeneratorEntrypoint {
         registryBuilder.add(Registries.PLACED_FEATURE, DWMPlacedFeatureBootstrap::bootstrap);
         registryBuilder.add(Registries.BIOME, DWMBiomeBootstrap::bootstrap);
         registryBuilder.add(Registries.NOISE_SETTINGS, DWMChunkGeneratorSettingsBootstrap::bootstrap);
+        registryBuilder.add(Registries.PROCESSOR_LIST, DWMProcessorListsBootstrap::bootstrap);
+        registryBuilder.add(Registries.TEMPLATE_POOL, DWMVillagePoolsBootstrap::bootstrap);
+        registryBuilder.add(Registries.STRUCTURE, DWMStructuresBootstrap::bootstrap);
+        registryBuilder.add(Registries.STRUCTURE_SET, DWMStructureSetsBootstrap::bootstrap);
     }
 }

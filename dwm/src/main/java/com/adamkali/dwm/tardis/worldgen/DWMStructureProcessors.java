@@ -1,6 +1,7 @@
 package com.adamkali.dwm.tardis.worldgen;
 
 import com.adamkali.dwm.DWMReference;
+import com.adamkali.dwm.world.village.GallifreyVillageProcessor;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -13,6 +14,7 @@ public final class DWMStructureProcessors {
 
     public static void initialize() {
         register("tardis_worldgen_marker", TardisWorldgenMarkerProcessor.MAP_CODEC);
+        register("gallifrey_village", GallifreyVillageProcessor.CODEC);
     }
 
     private static void register(String path, MapCodec<? extends StructureProcessor> codec) {

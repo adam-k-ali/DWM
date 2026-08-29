@@ -433,6 +433,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("tag.item.dwm.repairs_azbantium_equipment", "Azbantium Equipment Repair Materials");
         t.add("biome.dwm.gallifrey_wastes", "Gallifrey Wastes");
         t.add("biome.dwm.gallifrey_badlands", "Gallifrey Badlands");
+        t.add("structure.dwm.gallifrey_village", "Gallifrey Village");
         t.add("dwm.console.biome_selector", "Biome selector");
         t.add("dwm.console.biome_selected", "Biome: %s");
         t.add("dwm.console.biome_unavailable", "No biomes available for this dimension");

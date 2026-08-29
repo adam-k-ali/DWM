@@ -46,6 +46,12 @@ public final class DWMPlacedFeatureBootstrap {
                 PlacementUtils.countExtra(4, 0.1F, 1),
                 DWMBlocks.ASH_SAPLING
         );
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.ASH_VILLAGE,
+                configured.getOrThrow(DWMConfiguredFeatures.ASH),
+                PlacementUtils.filteredByBlockSurvival(DWMBlocks.ASH_SAPLING)
+        );
         registerTree(
                 registerable,
                 DWMPlacedFeatures.DARK_ASH_FOREST,

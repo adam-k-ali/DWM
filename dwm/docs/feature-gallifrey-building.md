@@ -44,4 +44,4 @@ Give players a Gallifrey-themed terrain and builder kit—stone, woods, and Cita
 - Soul wood family (fourth Gallifrey wood set).
 - Krubella / plutarch plants once proper cross (or intentional cube) sprites exist.
 - Wire archive colormaps for tinted grass/foliage if plants need biome tinting (grass block uses pre-colored deep-red textures).
-- Richer Gallifrey destination content (mobs, villages) on top of the shipped dimension.
+- Richer Gallifrey destination content (mobs) on top of the shipped dimension and villages.
