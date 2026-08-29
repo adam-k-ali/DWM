@@ -56,13 +56,18 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
     private static void addFieldGuide(TranslationBuilder t) {
         t.add("dwm.guide.title", "DWM Field Guide");
         t.add("dwm.guide.index.header", "Contents");
-        t.add("dwm.guide.open_button", "Field Guide");
+        t.add("dwm.guide.open_button", "Open Field Guide");
+        t.add("dwm.guide.item.tooltip", "Use to open the DWM Field Guide. Press G if you lose this book.");
+        t.add("dwm.guide.modmenu.needs_world", "Load a world to open the Field Guide");
+        t.add("dwm.config.open_button", "Configuration");
         t.add("key.dwm.field_guide", "Open Field Guide");
         t.add("key.category.dwm.dwm", "Doctor Who Mod");
         t.add("dwm.guide.recipe.crafting", "Crafting");
         t.add("dwm.guide.recipe.smelting", "Smelting");
         t.add("dwm.guide.recipe.stonecutting", "Stonecutting");
         t.add("dwm.guide.recipe.unavailable", "Recipe unavailable in this world.");
+        t.add("dwm.guide.recipe.path.vanilla", "Vanilla");
+        t.add("dwm.guide.recipe.path.zeiton", "Zeiton");
         t.add("dwm.guide.pattern.all_colours", "Colour variants use this pattern; swap the white ingredients.");
         t.add("dwm.guide.page.previous", "Previous Page");
         t.add("dwm.guide.page.next", "Next Page");
@@ -163,6 +168,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.key.tooltip.bound", "Bound to a TARDIS");
         t.add("dwm.tardis.claimed", "This TARDIS is yours");
         addItem(t, DWMItems.STATTENHEIM_REMOTE, "Stattenheim Remote");
+        addItem(t, DWMItems.FIELD_GUIDE, "Field Guide");
         addItem(t, DWMItems.CIRCUIT_STABILISERS, "Stabilisers Circuit");
         addItem(t, DWMItems.CIRCUIT_WAYPOINTS, "Waypoints Circuit");
         addItem(t, DWMItems.CIRCUIT_FAST_RETURN, "Fast Return Circuit");

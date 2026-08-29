@@ -61,6 +61,11 @@ public class DWMItems {
             new Item.Properties().stacksTo(1),
             "stattenheim_remote"
     );
+    public static final Item FIELD_GUIDE = register(
+            FieldGuideItem::new,
+            new Item.Properties().stacksTo(1),
+            "field_guide"
+    );
 
     public static final Item AZBANTIUM = register(Item::new, "azbantium");
 

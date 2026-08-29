@@ -4,7 +4,8 @@ import com.adamkali.dwm.gui.FieldGuideScreen;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.PauseScreen;
+import net.minecraft.client.gui.screens.Screen;
+import org.jetbrains.annotations.Nullable;
 
 @Environment(EnvType.CLIENT)
 public final class FieldGuideScreens {
@@ -12,17 +13,13 @@ public final class FieldGuideScreens {
     }
 
     public static void openDirect(Minecraft client) {
-        if (client.player == null) {
-            return;
-        }
-        client.setScreenAndShow(new FieldGuideScreen());
+        open(client, null);
     }
 
-    public static void openViaPauseMenu(Minecraft client) {
+    public static void open(Minecraft client, @Nullable Screen parent) {
         if (client.player == null) {
             return;
         }
-        client.setScreenAndShow(new PauseScreen(true));
-        FieldGuideScreenHooks.clickPauseMenuButton(client);
+        client.setScreenAndShow(new FieldGuideScreen(parent, null));
     }
 }
