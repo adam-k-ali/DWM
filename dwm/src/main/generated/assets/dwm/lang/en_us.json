@@ -359,6 +359,8 @@
   "dwm.guide.page.use_sonic.title": "Using the Sonic",
   "dwm.guide.pattern.all_colours": "Colour variants use this pattern; swap the white ingredients.",
   "dwm.guide.recipe.crafting": "Crafting",
+  "dwm.guide.recipe.path.vanilla": "Vanilla",
+  "dwm.guide.recipe.path.zeiton": "Zeiton",
   "dwm.guide.recipe.smelting": "Smelting",
   "dwm.guide.recipe.stonecutting": "Stonecutting",
   "dwm.guide.recipe.unavailable": "Recipe unavailable in this world.",

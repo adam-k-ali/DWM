@@ -45,3 +45,17 @@ steps:
   - captureScreenshot:
       name: field-guide-circuits-late-nohud
       compare: true
+  - assertAndClick:
+      type: button
+      name: "Zeiton"
+  - waitTicks: 5
+  - captureScreenshot:
+      name: field-guide-circuits-late-zeiton-nohud
+      compare: true
+  - assertAndClick:
+      type: button
+      name: "Next Page"
+  - waitTicks: 5
+  - captureScreenshot:
+      name: field-guide-circuits-late-continued-nohud
+      compare: true
