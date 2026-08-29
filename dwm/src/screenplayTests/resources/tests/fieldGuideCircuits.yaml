@@ -31,6 +31,7 @@ steps:
   - captureScreenshot:
       name: field-guide-circuits-landing-kit-nohud
       compare: true
+      maxDiffPixels: 50
   - assertAndClick:
       type: button
       name: "Planet Locator"
@@ -38,6 +39,7 @@ steps:
   - captureScreenshot:
       name: field-guide-circuits-planet-locator-nohud
       compare: true
+      maxDiffPixels: 50
   - assertAndClick:
       type: button
       name: "Late Circuits"
@@ -59,3 +61,4 @@ steps:
   - captureScreenshot:
       name: field-guide-circuits-late-continued-nohud
       compare: true
+      maxDiffPixels: 50

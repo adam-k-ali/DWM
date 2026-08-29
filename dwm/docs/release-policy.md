@@ -139,13 +139,20 @@ Example: `screenplay-v1.0.0+26.2` → Gradle `screenplay_version` `1.0.0+26.2` (
 4. Commit, merge to `main`, then create and push tag `screenplay-v{screenplay_version}` (manually, or via **Create Screenplay Release Tag**).
 5. Confirm **Release Screenplay** succeeds:
    - GitHub Release with Fabric, Forge, and NeoForge jars and notes from `screenplay/metadata/version.json`
+   - Gradle plugin `com.adamkali.screenplay` published to the Plugin Portal at the same `screenplay_version`
    - Modrinth multi-loader version upload to project `RdazTKdM` (Fabric API optional dependency)
 6. Optionally run **Sync Modrinth Screenplay** to PATCH the listing from `screenplay/metadata/` (Discord stays blank).
 
 Uses the same `MODRINTH_TOKEN` secret as DWM (`VERSION_CREATE` for releases, `PROJECT_WRITE` for listing sync). No CurseForge or Discord announce for Screenplay.
 
+| Secret | Purpose |
+| --- | --- |
+| `MODRINTH_TOKEN` | Shared with DWM |
+| `GRADLE_PUBLISH_KEY` | Gradle Plugin Portal publish key for `com.adamkali.screenplay` |
+| `GRADLE_PUBLISH_SECRET` | Gradle Plugin Portal publish secret |
+
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
 | [`.github/workflows/create-screenplay-release-tag.yml`](../../.github/workflows/create-screenplay-release-tag.yml) | `workflow_dispatch` | Create and push `screenplay-v*` from `screenplay/metadata/version.json` `promos.latest` if missing; then dispatch Release Screenplay |
-| [`.github/workflows/release-screenplay.yml`](../../.github/workflows/release-screenplay.yml) | push of tags `screenplay-v*`, or `workflow_dispatch` | Build loader jars; publish GitHub Release and Modrinth version |
+| [`.github/workflows/release-screenplay.yml`](../../.github/workflows/release-screenplay.yml) | push of tags `screenplay-v*`, or `workflow_dispatch` | Build loader jars; publish GitHub Release, Plugin Portal plugin, and Modrinth version |
 | [`.github/workflows/sync-modrinth-screenplay.yml`](../../.github/workflows/sync-modrinth-screenplay.yml) | `workflow_dispatch` | PATCH Modrinth Screenplay listing from [`screenplay/metadata/`](../../screenplay/metadata/) |

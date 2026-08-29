@@ -1,11 +1,10 @@
 plugins {
     id 'java-gradle-plugin'
     id 'groovy'
-    id 'maven-publish'
+    id 'com.gradle.plugin-publish' version '2.1.1'
 }
 
 group = 'com.adamkali.screenplay'
-version = '1.0.0'
 
 repositories {
     mavenCentral()
@@ -23,6 +22,7 @@ java {
 
 def screenplayProps = new Properties()
 file('../gradle.properties').withInputStream { stream -> screenplayProps.load(stream) }
+version = screenplayProps.getProperty('screenplay_version')
 
 processResources {
     def screenplayVersion = screenplayProps.getProperty('screenplay_version')
@@ -43,6 +43,7 @@ dependencies {
     // Compile against Loom API when available; plugin detects at runtime.
     compileOnly 'net.fabricmc:fabric-loom:1.17-SNAPSHOT'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testImplementation gradleTestKit()
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
@@ -51,22 +52,15 @@ tasks.named('test', Test) {
 }
 
 gradlePlugin {
+    website = 'https://adam-k-ali.github.io/DWM/'
+    vcsUrl = 'https://github.com/adam-k-ali/DWM'
     plugins {
         screenplay {
             id = 'com.adamkali.screenplay'
             implementationClass = 'com.adamkali.screenplay.gradle.ScreenplayPlugin'
             displayName = 'Screenplay'
             description = 'Real-client Minecraft scenario tests with CI screenshots'
+            tags.set(['minecraft', 'testing', 'fabric', 'forge', 'neoforge'])
         }
-    }
-}
-
-publishing {
-    publications {
-        create('mavenJava', MavenPublication) {
-            from components.java
-        }
-    }
-    repositories {
     }
 }
