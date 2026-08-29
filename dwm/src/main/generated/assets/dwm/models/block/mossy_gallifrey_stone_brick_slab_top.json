@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/slab_top",
+  "textures": {
+    "bottom": "dwm:block/mossy_gallifrey_stone_bricks",
+    "side": "dwm:block/mossy_gallifrey_stone_bricks",
+    "top": "dwm:block/mossy_gallifrey_stone_bricks"
+  }
+}

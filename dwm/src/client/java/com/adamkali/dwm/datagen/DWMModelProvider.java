@@ -22,13 +22,41 @@ public class DWMModelProvider extends FabricModelProvider {
     @Override
     public void generateBlockStateModels(BlockModelGenerators blockStateModelGenerator) {
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_STONE);
-        registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_STONE_BRICKS);
+        registerCubeFamily(
+                blockStateModelGenerator,
+                DWMBlocks.GALLIFREY_STONE_BRICKS,
+                DWMBlocks.GALLIFREY_STONE_BRICK_STAIRS,
+                DWMBlocks.GALLIFREY_STONE_BRICK_SLAB,
+                DWMBlocks.GALLIFREY_STONE_BRICK_WALL
+        );
         registerCubeAll(blockStateModelGenerator, DWMBlocks.CHISELED_GALLIFREY_STONE_BRICKS);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.CRACKED_GALLIFREY_STONE_BRICKS);
-        registerCubeAll(blockStateModelGenerator, DWMBlocks.MOSSY_GALLIFREY_STONE_BRICKS);
-        registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_COBBLESTONE);
-        registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE);
-        registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_SMOOTH_STONE);
+        registerCubeFamily(
+                blockStateModelGenerator,
+                DWMBlocks.MOSSY_GALLIFREY_STONE_BRICKS,
+                DWMBlocks.MOSSY_GALLIFREY_STONE_BRICK_STAIRS,
+                DWMBlocks.MOSSY_GALLIFREY_STONE_BRICK_SLAB,
+                DWMBlocks.MOSSY_GALLIFREY_STONE_BRICK_WALL
+        );
+        registerCubeFamily(
+                blockStateModelGenerator,
+                DWMBlocks.GALLIFREY_COBBLESTONE,
+                DWMBlocks.GALLIFREY_COBBLESTONE_STAIRS,
+                DWMBlocks.GALLIFREY_COBBLESTONE_SLAB,
+                DWMBlocks.GALLIFREY_COBBLESTONE_WALL
+        );
+        registerCubeFamily(
+                blockStateModelGenerator,
+                DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE,
+                DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE_STAIRS,
+                DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE_SLAB,
+                DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE_WALL
+        );
+        registerCubeSlab(
+                blockStateModelGenerator,
+                DWMBlocks.GALLIFREY_SMOOTH_STONE,
+                DWMBlocks.GALLIFREY_SMOOTH_STONE_SLAB
+        );
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_SAND);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_DIRT);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_COARSE_DIRT);
@@ -120,6 +148,30 @@ public class DWMModelProvider extends FabricModelProvider {
     private static void registerCubeAll(BlockModelGenerators generator, Block block) {
         generator.createTrivialCube(block);
         generator.registerSimpleItemModel(block, ModelLocationUtils.getModelLocation(block));
+    }
+
+    private static void registerCubeFamily(
+            BlockModelGenerators generator,
+            Block full,
+            Block stairs,
+            Block slab,
+            Block wall
+    ) {
+        TexturedModel cube = TexturedModel.CUBE.get(full);
+        generator.new BlockFamilyProvider(cube.getMapping())
+                .fullBlock(full, cube.getTemplate())
+                .stairs(stairs)
+                .slab(slab)
+                .wall(wall);
+        generator.registerSimpleItemModel(full, ModelLocationUtils.getModelLocation(full));
+    }
+
+    private static void registerCubeSlab(BlockModelGenerators generator, Block full, Block slab) {
+        TexturedModel cube = TexturedModel.CUBE.get(full);
+        generator.new BlockFamilyProvider(cube.getMapping())
+                .fullBlock(full, cube.getTemplate())
+                .slab(slab);
+        generator.registerSimpleItemModel(full, ModelLocationUtils.getModelLocation(full));
     }
 
     private static void registerGallifreyGrass(BlockModelGenerators generator) {
