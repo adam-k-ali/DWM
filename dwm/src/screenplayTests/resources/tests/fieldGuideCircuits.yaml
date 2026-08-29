@@ -13,6 +13,11 @@ steps:
       visible:
         type: screen
         name: FieldGuideScreen
+  # Hide HUD + first-person hand/skin so CI compares the guide pages, not
+  # player chrome (default skins differ across runs). New stem → NO BASELINE on
+  # this PR; green main establishes the no-HUD goldens afterward.
+  - pressKey: f1
+  - waitTicks: 2
   - assertAndClick:
       type: button
       name: "Console Circuits"
@@ -24,28 +29,33 @@ steps:
       name: "Landing Kit"
   - waitTicks: 5
   - captureScreenshot:
-      name: field-guide-circuits-landing-kit
+      name: field-guide-circuits-landing-kit-nohud
+      compare: true
   - assertAndClick:
       type: button
       name: "Planet Locator"
   - waitTicks: 5
   - captureScreenshot:
-      name: field-guide-circuits-planet-locator
+      name: field-guide-circuits-planet-locator-nohud
+      compare: true
   - assertAndClick:
       type: button
       name: "Late Circuits"
   - waitTicks: 5
   - captureScreenshot:
-      name: field-guide-circuits-late
+      name: field-guide-circuits-late-nohud
+      compare: true
   - assertAndClick:
       type: button
       name: "Zeiton"
   - waitTicks: 5
   - captureScreenshot:
-      name: field-guide-circuits-late-zeiton
+      name: field-guide-circuits-late-zeiton-nohud
+      compare: true
   - assertAndClick:
       type: button
       name: "Next Page"
   - waitTicks: 5
   - captureScreenshot:
-      name: field-guide-circuits-late-continued
+      name: field-guide-circuits-late-continued-nohud
+      compare: true
