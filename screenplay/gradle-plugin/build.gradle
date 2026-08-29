@@ -41,7 +41,7 @@ dependencies {
     implementation gradleApi()
     implementation localGroovy()
     // Compile against Loom API when available; plugin detects at runtime.
-    compileOnly 'net.fabricmc:fabric-loom:1.17-SNAPSHOT'
+    compileOnly 'net.fabricmc:fabric-loom:1.17.20'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
     testImplementation gradleTestKit()
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
