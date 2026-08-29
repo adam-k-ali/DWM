@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class GallifreyVillagePoolsTest {
     @Test
@@ -23,7 +22,20 @@ class GallifreyVillagePoolsTest {
                 ),
                 sources
         );
-        assertFalse(sources.contains(Identifier.withDefaultNamespace("village/plains/villagers")));
-        assertFalse(sources.contains(Identifier.withDefaultNamespace("village/common/iron_golem")));
+    }
+
+    @Test
+    void poolAliasesSuppressStructurePlacedMobs() {
+        Set<Identifier> emptySources = new HashSet<>(DWMVillagePools.emptyEntityAliasSources());
+        assertEquals(
+                Set.of(
+                        Identifier.withDefaultNamespace("village/plains/villagers"),
+                        Identifier.withDefaultNamespace("village/common/cats"),
+                        Identifier.withDefaultNamespace("village/common/iron_golem"),
+                        Identifier.withDefaultNamespace("village/common/animals")
+                ),
+                emptySources
+        );
+        assertEquals(Identifier.withDefaultNamespace("empty"), DWMVillagePools.emptyEntityAliasTarget());
     }
 }

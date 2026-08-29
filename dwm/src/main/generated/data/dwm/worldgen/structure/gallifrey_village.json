@@ -27,6 +27,26 @@
       "type": "minecraft:direct",
       "alias": "minecraft:village/plains/trees",
       "target": "dwm:village/gallifrey/trees"
+    },
+    {
+      "type": "minecraft:direct",
+      "alias": "minecraft:village/plains/villagers",
+      "target": "minecraft:empty"
+    },
+    {
+      "type": "minecraft:direct",
+      "alias": "minecraft:village/common/cats",
+      "target": "minecraft:empty"
+    },
+    {
+      "type": "minecraft:direct",
+      "alias": "minecraft:village/common/iron_golem",
+      "target": "minecraft:empty"
+    },
+    {
+      "type": "minecraft:direct",
+      "alias": "minecraft:village/common/animals",
+      "target": "minecraft:empty"
     }
   ],
   "project_start_to_heightmap": "WORLD_SURFACE_WG",

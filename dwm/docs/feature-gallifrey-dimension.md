@@ -21,7 +21,7 @@ Give TARDIS travel a unique destination world built from Gallifrey builder block
 - Gallifrey-textured coal, iron, gold, and diamond ores in Gallifrey stone (all biomes; drop vanilla items; Overworld-like vein distribution).
 - Archive colormap and cloud textures imported under `assets/dwm/textures/` for future tinting/sky work; grass block uses pre-colored deep-red textures.
 - TARDIS `BiomeSelectorLogic` maps `dwm:gallifrey` to `#dwm:is_gallifrey`.
-- Jigsaw villages (`dwm:gallifrey_village`) in plains and forest: vanilla plains layouts retextured to Ash wood and Gallifrey stone via pool aliases (no copied NBT). Wastes/badlands have no villages yet.
+- Jigsaw villages (`dwm:gallifrey_village`) in plains and forest: vanilla plains layouts retextured to Ash wood and Gallifrey stone via pool aliases (no copied NBT). Structure-placed villagers, cats, iron golems, and pen animals are aliased to empty (no village mobs). Wastes/badlands have no villages yet.
 - Gallifrey fauna: Broakir and Flutterwing on plains/forest; **Mewing Dog** (striped, mewing, wolf-like tame/sit/follow/breed) in **forest only**; **Time Lord** NPCs (four robe variants, villager-like wander; no trades yet) on plains/forest.
 
 ## How It Works In-Game

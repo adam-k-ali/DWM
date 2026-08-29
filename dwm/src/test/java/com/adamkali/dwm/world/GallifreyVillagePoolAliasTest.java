@@ -6,12 +6,10 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class GallifreyVillagePoolAliasTest {
     @Test
-    void aliasesRewritePlainsPoolsAndLeaveVillagersUnaliased() {
-        List<Identifier> sources = DWMVillagePools.plainsAliasSources();
+    void pieceAliasesRewritePlainsPools() {
         assertEquals(
                 List.of(
                         Identifier.withDefaultNamespace("village/plains/streets"),
@@ -20,10 +18,21 @@ class GallifreyVillagePoolAliasTest {
                         Identifier.withDefaultNamespace("village/plains/decor"),
                         Identifier.withDefaultNamespace("village/plains/trees")
                 ),
-                sources
+                DWMVillagePools.plainsAliasSources()
         );
-        assertFalse(sources.contains(Identifier.withDefaultNamespace("village/plains/villagers")));
-        assertFalse(sources.contains(Identifier.withDefaultNamespace("village/common/cats")));
-        assertFalse(sources.contains(Identifier.withDefaultNamespace("village/common/iron_golem")));
+    }
+
+    @Test
+    void entityPoolsAliasToEmpty() {
+        assertEquals(
+                List.of(
+                        Identifier.withDefaultNamespace("village/plains/villagers"),
+                        Identifier.withDefaultNamespace("village/common/cats"),
+                        Identifier.withDefaultNamespace("village/common/iron_golem"),
+                        Identifier.withDefaultNamespace("village/common/animals")
+                ),
+                DWMVillagePools.emptyEntityAliasSources()
+        );
+        assertEquals(Identifier.withDefaultNamespace("empty"), DWMVillagePools.emptyEntityAliasTarget());
     }
 }
