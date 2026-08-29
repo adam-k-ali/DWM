@@ -16,13 +16,16 @@ class GallifreyStoneFamilyTest {
 
     @Test
     void stoneFamilyContainsBuildingAndTerrainBlocks() {
-        assertEquals(15, DWMBlocks.GALLIFREY_STONE_FAMILY.size());
-        assertEquals(11, DWMBlocks.GALLIFREY_STONE_BUILDING_BLOCKS.size());
+        assertEquals(28, DWMBlocks.GALLIFREY_STONE_FAMILY.size());
+        assertEquals(24, DWMBlocks.GALLIFREY_STONE_BUILDING_BLOCKS.size());
         assertTrue(DWMBlocks.GALLIFREY_STONE_FAMILY.containsAll(DWMBlocks.GALLIFREY_STONE_BUILDING_BLOCKS));
         assertTrue(DWMBlocks.GALLIFREY_STONE_FAMILY.contains(DWMBlocks.GALLIFREY_SAND));
         assertTrue(DWMBlocks.GALLIFREY_STONE_FAMILY.contains(DWMBlocks.GALLIFREY_DIRT));
         assertTrue(DWMBlocks.GALLIFREY_STONE_FAMILY.contains(DWMBlocks.GALLIFREY_COARSE_DIRT));
         assertTrue(DWMBlocks.GALLIFREY_STONE_FAMILY.contains(DWMBlocks.GALLIFREY_GRASS_BLOCK));
+        assertTrue(DWMBlocks.GALLIFREY_STONE_BUILDING_BLOCKS.contains(DWMBlocks.GALLIFREY_COBBLESTONE_STAIRS));
+        assertTrue(DWMBlocks.GALLIFREY_STONE_BUILDING_BLOCKS.contains(DWMBlocks.GALLIFREY_STONE_BRICK_WALL));
+        assertTrue(DWMBlocks.GALLIFREY_STONE_BUILDING_BLOCKS.contains(DWMBlocks.GALLIFREY_SMOOTH_STONE_SLAB));
     }
 
     @Test

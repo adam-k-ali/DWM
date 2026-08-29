@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "dwm:gallifrey_cobblestone",
+  "result": {
+    "count": 2,
+    "id": "dwm:gallifrey_cobblestone_slab"
+  }
+}

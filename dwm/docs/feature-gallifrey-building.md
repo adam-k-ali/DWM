@@ -12,7 +12,7 @@ Give players a Gallifrey-themed terrain and builder kit—stone, woods, and Cita
 
 ## Implemented Now
 - **Gallifrey stone family**
-  - Building set: stone, stone bricks (including chiseled, cracked, and mossy), cobblestone and mossy cobblestone, smooth stone, sandstone, cut sandstone, chiseled sandstone
+  - Building set: stone, stone bricks (including chiseled, cracked, and mossy, plus stairs/slab/wall), cobblestone and mossy cobblestone (stairs/slab/wall), smooth stone (slab), sandstone, cut sandstone, chiseled sandstone
   - Terrain blocks: Gallifrey grass (deep-red top), dirt, coarse dirt, and sand
 - **Orange sand family** (distinct from Gallifrey sand; vanilla red-sandstone parity)
   - Terrain: orange sand

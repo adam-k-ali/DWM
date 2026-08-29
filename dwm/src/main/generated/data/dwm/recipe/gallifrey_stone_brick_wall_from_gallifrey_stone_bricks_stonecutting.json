@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "dwm:gallifrey_stone_bricks",
+  "result": {
+    "id": "dwm:gallifrey_stone_brick_wall"
+  }
+}

@@ -327,12 +327,25 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
     private static void addGallifreyStoneFamily(TranslationBuilder t) {
         addBlockAndItem(t, DWMBlocks.GALLIFREY_STONE, "Gallifrey Stone");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_STONE_BRICKS, "Gallifrey Stone Bricks");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_STONE_BRICK_STAIRS, "Gallifrey Stone Brick Stairs");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_STONE_BRICK_SLAB, "Gallifrey Stone Brick Slab");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_STONE_BRICK_WALL, "Gallifrey Stone Brick Wall");
         addBlockAndItem(t, DWMBlocks.CHISELED_GALLIFREY_STONE_BRICKS, "Chiseled Gallifrey Stone Bricks");
         addBlockAndItem(t, DWMBlocks.CRACKED_GALLIFREY_STONE_BRICKS, "Cracked Gallifrey Stone Bricks");
         addBlockAndItem(t, DWMBlocks.MOSSY_GALLIFREY_STONE_BRICKS, "Mossy Gallifrey Stone Bricks");
+        addBlockAndItem(t, DWMBlocks.MOSSY_GALLIFREY_STONE_BRICK_STAIRS, "Mossy Gallifrey Stone Brick Stairs");
+        addBlockAndItem(t, DWMBlocks.MOSSY_GALLIFREY_STONE_BRICK_SLAB, "Mossy Gallifrey Stone Brick Slab");
+        addBlockAndItem(t, DWMBlocks.MOSSY_GALLIFREY_STONE_BRICK_WALL, "Mossy Gallifrey Stone Brick Wall");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_COBBLESTONE, "Gallifrey Cobblestone");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_COBBLESTONE_STAIRS, "Gallifrey Cobblestone Stairs");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_COBBLESTONE_SLAB, "Gallifrey Cobblestone Slab");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_COBBLESTONE_WALL, "Gallifrey Cobblestone Wall");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE, "Mossy Gallifrey Cobblestone");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE_STAIRS, "Mossy Gallifrey Cobblestone Stairs");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE_SLAB, "Mossy Gallifrey Cobblestone Slab");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE_WALL, "Mossy Gallifrey Cobblestone Wall");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_SMOOTH_STONE, "Gallifrey Smooth Stone");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_SMOOTH_STONE_SLAB, "Gallifrey Smooth Stone Slab");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_SANDSTONE, "Gallifrey Sandstone");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_CUT_SANDSTONE, "Gallifrey Cut Sandstone");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_CHISELED_SANDSTONE, "Chiseled Gallifrey Sandstone");

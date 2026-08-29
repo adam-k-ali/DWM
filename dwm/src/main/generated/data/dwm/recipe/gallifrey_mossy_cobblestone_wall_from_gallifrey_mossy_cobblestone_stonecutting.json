@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "dwm:gallifrey_mossy_cobblestone",
+  "result": {
+    "id": "dwm:gallifrey_mossy_cobblestone_wall"
+  }
+}
