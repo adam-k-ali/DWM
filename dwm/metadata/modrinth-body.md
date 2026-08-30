@@ -1,57 +1,26 @@
 # The Doctor Who Mod
 
-Fly a working TARDIS, land on Gallifrey, and build with Time Lord materials — a focused Doctor Who toolkit for Fabric survival.
+Fly a working TARDIS, travel the universe, and tinker with Time Lord tools — a focused Doctor Who toolkit for Fabric survival.
+
+<!-- IMAGE: Hero — overworld police-box TARDIS, doors open, player claiming it; hint of bigger-inside through the doorway. Landscape 16:9, no HUD. -->
+![A TARDIS in the overworld, doors open](https://cdn.modrinth.com/data/CY3ponKT/images/2687adc99ad6bcdb1f1fdd77e6a1c1cde3da8549.png)
 
 ## Fly the TARDIS
 
-- Search the overworld for a TARDIS, open the doors, and walk into a First Doctor–style console room
-- Look through open exterior doors for a bigger-on-the-inside preview of the console room
-- Look back out through open interior doors to see the world outside
-- Bind a TARDIS Key to lock and unlock the doors
-- Sneak-use a Stattenheim Remote to summon your TARDIS to a clicked block
-- Set a destination at the First Doctor console with biome/planet dials, saved waypoints, an online player, fast return through previous landings, or the telepathic circuit (home bed or world spawn)
-- Cloak the exterior shell, lock the doors, pin X/Y/Z with coordinate lock, toggle stabilisers for precise vs scattered landing, and read exterior atmosphere and artron reserves
-- Pull the materialisation lever to dematerialise, fly, and land.
-- Use the chameleon circuit dial to pick First–Seventh Doctor boxes or the TT Capsule, with a spinning shell hologram
+Find a TARDIS, open the doors, and step into a console room that is bigger on the inside. Found ships start unfinished — you fit the circuits, feed the tank, and pull the lever. Visitors can look. Only you fly.
 
-## Explore Gallifrey
+<!-- IMAGE: First Doctor–style console room, rotor and console in frame, interior doors open onto the world outside. Landscape 16:9, no HUD. -->
+![Inside the TARDIS console room](https://cdn.modrinth.com/data/CY3ponKT/images/595f2d760fe1f0e501c5b5ddf0fed07398a608bc.png)
 
-- Travel to the Gallifrey destination dimension from the console planet locator
-- Choose among Gallifrey Plains, Forest, Wastes, and Badlands before you materialise
-- Explore deep-red grass, orange sand and badlands, Gallifrey stone, and themed woods
-- Meet Time Lord wanderers on plains and forest, in four robe variants
-- Spot Broakir on plains and forest, and Flutterwings in four species (Blue Crystal, Madrigal, Silverband, Wild Endeavour)
-- Tame Mewing Dogs in the forest with a bone — they sit, follow, take a dyed collar, and breed
-- Find Flower of Remembrance and Moonlight Bloom on plains and forest, and Saccharine Cane on wastes and badlands
-- Mine Azbantium veins and Gallifrey-textured coal, iron, gold, and diamond ores
+## Travel the universe
 
-## Build
+Explore alien skies, experience new wildlife, and use new materials that belong there. All available through your TARDIS doors.
 
-- Ash, Dark Ash, and Cardinal wood families (logs through doors, boats, and more)
-- Gallifrey stone, sandstone, dirt, grass, and Citadel wall / panel / tile / glass
-- Orange sand and orange sandstone (stairs, slabs, walls, cut, chiseled, and smooth)
-- Flower of Remembrance, Moonlight Bloom, and Saccharine Cane
-- Chronoplasm powder, colored TARDIS walls, and roundels for console-room builds
-- Craftable decor: sittable chairs, Decorational Column, TARDIS Globe, Compact and Full TARDIS Scanners, and TARDIS Ceiling Vent
+<!-- IMAGE: Current non-overworld destination (today: Gallifrey — red grass or orange badlands) plus at least one living thing. Landscape 16:9, no HUD. Swap when a stronger destination shot exists. -->
+![TARDIS on Gallifrey](https://cdn.modrinth.com/data/CY3ponKT/images/689af627d9bec9edc2d5ebdb9c18d3d019770ba6.png)
 
-## Azbantium
+## A Time Lord toolkit
 
-- Mine Azbantium ore in Gallifrey stone and smelt it into gems
-- Craft diamond-tier Azbantium tools and armor
+Use sonic screwdrivers, and build your next invention with an array of new blocks and tools.
 
-## Sonic Screwdrivers
-
-- Craft Second, Third, Fourth, and Fifth Doctor sonic variants
-- Toggle iron doors and trapdoors, prime TNT, break glass cleanly, damage slimes, and shear sheep
-
-## Quick start
-
-1. Explore the overworld until you find a TARDIS, then open the doors.
-2. Walk in once the doors are fully open.
-3. At the console, set planet and biome, then pull the materialisation lever.
-4. Pull again in flight to land — try Gallifrey for a first trip.
-5. Craft a TARDIS Key to lock the doors, or a Stattenheim Remote to summon the ship.
-
-## Community
-
-Join the Discord for feedback, builds, and updates: https://discord.gg/pGdRYBh
+The Field Guide in-game covers recipes and first steps. Join our community on discord. Share your builds and discoveries, and stay up to date with all the latest releases: https://discord.gg/pGdRYBh
