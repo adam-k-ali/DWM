@@ -1,7 +1,59 @@
 {
   "26.2": {
+    "1.6.0": {
+      "summary": "Repair a found Type 40 — craftable console circuits, a live artron tank, and Zeiton fuel — plus a Field Guide and a setting-based sonic.",
+      "added": [
+        "Block: Zeiton Ore",
+        "Block: Gallifrey Cobblestone Stairs",
+        "Block: Gallifrey Cobblestone Slab",
+        "Block: Gallifrey Cobblestone Wall",
+        "Block: Mossy Gallifrey Cobblestone Stairs",
+        "Block: Mossy Gallifrey Cobblestone Slab",
+        "Block: Mossy Gallifrey Cobblestone Wall",
+        "Block: Gallifrey Smooth Stone Slab",
+        "Block: Gallifrey Stone Brick Stairs",
+        "Block: Gallifrey Stone Brick Slab",
+        "Block: Gallifrey Stone Brick Wall",
+        "Item: Field Guide",
+        "Item: Planet Locator Circuit",
+        "Item: Waypoints Circuit",
+        "Item: Player Locator Circuit",
+        "Item: Telepathic Circuit",
+        "Item: Fast Return Circuit",
+        "Item: Cloak Circuit",
+        "Item: Chameleon Circuit",
+        "Item: Coordinate Locks Circuit",
+        "Item: Stabilisers Circuit",
+        "Item: Remote Summon Circuit",
+        "Item: Shatter Setting",
+        "Item: Prime Setting",
+        "Item: Disrupt Setting",
+        "Item: Shear Setting",
+        "Item: Zeiton Crystals",
+        "Item: Zeiton Powder",
+        "Item: Ferrite Powder",
+        "Misc: Field Guide (G, first-join book, or Mod Menu) with Quick Start, Sonic, Circuits, and Console Room chapters",
+        "Misc: Worldgen Type 40s start unfinished (broken circuits, 30 artron, same-world hops until repaired)",
+        "Misc: Owner-only console piloting (readers and refueler stay public; bound key still unlocks doors)",
+        "Misc: Live artron tank (0–500; Zeiton Crystals add 25; demat and summon spend 10 same-world or 30 to change dimension)",
+        "Misc: Zeiton ore in Gallifrey stone and rare Overworld traces",
+        "Misc: Sonic field-mode HUD carousel; pair with your TARDIS for Seal, Scan, and Ping",
+        "Misc: Doctor Who first-hour and sonic teaching advancement trees"
+      ],
+      "changed": [
+        "Misc: Crafted sonics start with Open only until settings are installed or the TARDIS handshake",
+        "Misc: Found worldgen TARDISes need spare circuits; creative, placed, and existing saves without new flags stay fully fitted and full",
+        "Misc: Only the owner can fly the console",
+        "Misc: Panel 5 refueler is a live artron tank fed with Zeiton Crystals",
+        "Misc: Bigger-on-the-inside and smaller-on-the-outside doorways use streamed lighting and atmosphere fog",
+        "Misc: TARDIS and console inventory icons are 3D; sonic GUI sprites",
+        "Misc: Using a sonic on TARDIS doors no longer opens them",
+        "Misc: Automatic surface landings stay below a dimensional bedrock ceiling"
+      ],
+      "removed": []
+    },
     "1.5.0": {
-      "summary": "Gallifrey comes alive — Time Lord wanderers, Broakir, Flutterwings, and tameable Mewing Dogs, plus smoother TARDIS doorway previews.",
+      "summary": "Gallifrey comes alive \u2014 Time Lord wanderers, Broakir, Flutterwings, and tameable Mewing Dogs, plus smoother TARDIS doorway previews.",
       "added": [
         "Entity: Broakir",
         "Entity: Flutterwing",
@@ -20,10 +72,12 @@
         "Misc: Bigger-on-the-inside doorway preview restored after a rendering regression",
         "Misc: Console room preloads near the exterior so the doorway look-in is ready when doors open"
       ],
-      "removed": []
+      "removed": [
+        
+      ]
     },
     "1.4.0": {
-      "summary": "Claim and summon your TARDIS — key, Stattenheim remote, and a fuller First Doctor console, plus interior decor, lighting, and shell fade.",
+      "summary": "Claim and summon your TARDIS \u2014 key, Stattenheim remote, and a fuller First Doctor console, plus interior decor, lighting, and shell fade.",
       "added": [
         "Block: Decorational Column",
         "Block: TARDIS Ceiling Vent",
@@ -364,7 +418,7 @@
     }
   },
   "promos": {
-    "latest": "26.2-1.5.0",
-    "recommended": "26.2-1.5.0"
+    "latest": "26.2-1.6.0",
+    "recommended": "26.2-1.6.0"
   }
 }
