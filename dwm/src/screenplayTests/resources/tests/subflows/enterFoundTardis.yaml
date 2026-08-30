@@ -20,6 +20,13 @@ steps:
   - useItem
   - waitTicks: 25
   - runCommand: "/tp @s ~-3 ~1 ~"
+  # walkUntil holds forward without re-aiming; look at the shell again after the
+  # teleport so we walk into the open door instead of past it.
+  - lookAt:
+      x: "~3"
+      y: "~"
+      z: "~"
+  - waitTicks: 5
   - lookAt:
       x: "~3"
       y: "~"
