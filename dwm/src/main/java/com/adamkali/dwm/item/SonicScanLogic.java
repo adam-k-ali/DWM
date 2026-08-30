@@ -11,7 +11,7 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Read-only Scan overlay. Prefix {@code Scan:} is substring-stable for Screenplay.
+ * Read-only Scan snapshot. Overlay prefix {@code Scan:} is substring-stable for Screenplay.
  */
 public final class SonicScanLogic {
     public static final String PREFIX = "Scan: ";
@@ -19,42 +19,51 @@ public final class SonicScanLogic {
     private SonicScanLogic() {
     }
 
-    public static Component overlay(
+    public record Snapshot(
+            boolean noSignal,
+            int oxygen,
+            int temperature,
+            int radiation,
+            boolean waterlogged,
+            boolean locked,
+            boolean cloaked,
+            TardisTravelPhase phase,
+            int artronPercent,
+            boolean artronEmpty
+    ) {
+    }
+
+    public static Snapshot snapshot(
             @Nullable TardisDataModel model,
             @Nullable Reading reading,
             boolean waterlogged
     ) {
-        return Component.literal(PREFIX + body(model, reading, waterlogged));
-    }
-
-    public static String body(
-            @Nullable TardisDataModel model,
-            @Nullable Reading reading,
-            boolean waterlogged
-    ) {
-        StringBuilder body = new StringBuilder();
-        if (reading == null || reading.noSignal()) {
-            body.append("No exterior signal");
-        } else {
-            body.append("Oxygen: ").append(percent(reading.oxygen())).append('%');
-            body.append("; Waterlogged: ").append(waterlogged ? "yes" : "no");
-            body.append("; Temperature: ").append(percent(reading.temperature())).append('%');
-            body.append("; Radiation: ").append(percent(reading.radiation())).append('%');
-        }
-        body.append("; Locked: ").append(DoorLockLogic.isLocked(model) ? "yes" : "no");
-        body.append("; Cloaked: ").append(CloakLogic.isCloaked(model) ? "yes" : "no");
-        TardisTravelPhase phase = model == null ? TardisTravelPhase.IDLE : model.getTravelPhase();
-        body.append("; Phase: ").append(phase.name());
-        body.append("; ").append(plainArtron(model));
-        return body.toString();
-    }
-
-    private static String plainArtron(@Nullable TardisDataModel model) {
+        boolean noSignal = reading == null || reading.noSignal();
         int artron = ArtronLogic.read(model);
-        if (artron <= 0) {
-            return "Artron reserves: empty";
-        }
-        return "Artron reserves: " + ArtronLogic.percent(artron) + "%";
+        TardisTravelPhase phase = model == null ? TardisTravelPhase.IDLE : model.getTravelPhase();
+        return new Snapshot(
+                noSignal,
+                noSignal ? 0 : percent(reading.oxygen()),
+                noSignal ? 0 : percent(reading.temperature()),
+                noSignal ? 0 : percent(reading.radiation()),
+                waterlogged,
+                DoorLockLogic.isLocked(model),
+                CloakLogic.isCloaked(model),
+                phase,
+                ArtronLogic.percent(artron),
+                artron <= 0
+        );
+    }
+
+    /**
+     * Short action-bar line for Screenplay ({@code Scan:} / {@code Locked:}); HUD shows the full snapshot.
+     */
+    public static Component overlay(Snapshot snapshot) {
+        return Component.literal(PREFIX + lockedLine(snapshot));
+    }
+
+    public static String lockedLine(Snapshot snapshot) {
+        return "Locked: " + (snapshot.locked() ? "yes" : "no");
     }
 
     private static int percent(float needle) {

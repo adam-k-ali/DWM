@@ -6,18 +6,21 @@ import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
+import com.adamkali.dwm.network.SonicScanS2CPayload;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.logic.DoorLockLogic;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
 import com.adamkali.dwm.tardis.logic.TardisOwnershipLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -171,7 +174,11 @@ public final class SonicTardisLogic {
             @Nullable TardisDataModel model
     ) {
         ScanSample sample = sampleExterior(serverLevel, tardisId, model);
-        player.sendOverlayMessage(SonicScanLogic.overlay(model, sample.reading(), sample.waterlogged()));
+        SonicScanLogic.Snapshot snapshot = SonicScanLogic.snapshot(model, sample.reading(), sample.waterlogged());
+        player.sendOverlayMessage(SonicScanLogic.overlay(snapshot));
+        if (player instanceof ServerPlayer serverPlayer) {
+            ServerPlayNetworking.send(serverPlayer, new SonicScanS2CPayload(snapshot));
+        }
     }
 
     private static ScanSample sampleExterior(

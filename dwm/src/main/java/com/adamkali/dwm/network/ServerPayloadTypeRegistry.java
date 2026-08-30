@@ -48,6 +48,7 @@ public class ServerPayloadTypeRegistry {
         PayloadTypeRegistry.clientboundPlay().register(SyncPortalPerfS2CPayload.ID, SyncPortalPerfS2CPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(TravelAudioS2CPayload.ID, TravelAudioS2CPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(SonicPingRevealS2CPayload.ID, SonicPingRevealS2CPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(SonicScanS2CPayload.ID, SonicScanS2CPayload.CODEC);
 
         PayloadTypeRegistry.serverboundPlay().register(UpdateTardisChameleonC2SPayload.ID, UpdateTardisChameleonC2SPayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(SaveWaypointC2SPayload.ID, SaveWaypointC2SPayload.CODEC);
