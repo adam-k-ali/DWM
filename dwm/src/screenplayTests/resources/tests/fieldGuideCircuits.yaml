@@ -39,11 +39,9 @@ steps:
       name: field-guide-circuits-landing-kit-nohud
       compare: true
       maxDiffPixels: 50
-  # Landing Kit is one visual slice; Next Page is the dedicated turn control
-  # (left-index "Planet Locator" can miss when another active widget overlaps).
   - assertAndClick:
       type: button
-      name: "Next Page"
+      name: "Planet Locator"
   - waitUntil:
       visible:
         type: label
@@ -55,7 +53,7 @@ steps:
       maxDiffPixels: 50
   - assertAndClick:
       type: button
-      name: "Next Page"
+      name: "Late Circuits"
   - waitUntil:
       visible:
         type: label
