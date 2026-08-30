@@ -214,8 +214,9 @@ The MVP primitives are:
   `waitUntil` when the key opens a screen on a later client tick.
 
 Field Guide scenario (`fieldGuide.yaml`) uses `pressKey: g`, chapter/page
-`assertAndClick` navigation, and `pressKey: escape` + pause-menu `"Field Guide"`
-for the secondary access path. No mod-specific Screenplay primitives are required.
+`assertAndClick` navigation, and the first-join `dwm:field_guide` item
+(`selectHotbar` + `useItem: air`) for the secondary access path. No mod-specific
+Screenplay primitives are required.
 
 ```yaml
 - waitUntil:

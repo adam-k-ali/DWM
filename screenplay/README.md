@@ -12,7 +12,7 @@ This directory is its own Gradle root (`./screenplay/gradlew`). DWM lives in the
 | `common/` | Shared YAML compiler, runner, primitives (unit-tested here) |
 | `loaders/forge` | Forge client mod + access transformer (included build) |
 | `loaders/neoforge` | NeoForge client mod + access transformer (included build) |
-| `gradle-plugin/` | `com.adamkali.screenplay` plugin (`runScreenplay`, `runScreenplayTests`, xvfb). Applying it adds the harness dependency and loads YAML from `src/screenplayTests/resources/tests/`. |
+| `gradle-plugin/` | `com.adamkali.screenplay` plugin on the Gradle Plugin Portal (`runScreenplay`, `runScreenplayTests`, xvfb). Applying it adds the harness dependency from GitHub Releases and loads YAML from `src/screenplayTests/resources/tests/`. |
 
 Forge and NeoForge live in the `loaders` included build so NeoGradle does not conflict with Fabric Loom run configs.
 

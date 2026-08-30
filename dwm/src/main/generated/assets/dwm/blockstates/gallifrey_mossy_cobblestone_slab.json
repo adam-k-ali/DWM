@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "dwm:block/gallifrey_mossy_cobblestone_slab"
+    },
+    "type=double": {
+      "model": "dwm:block/gallifrey_mossy_cobblestone"
+    },
+    "type=top": {
+      "model": "dwm:block/gallifrey_mossy_cobblestone_slab_top"
+    }
+  }
+}

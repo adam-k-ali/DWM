@@ -2,6 +2,11 @@
   "values": [
     "dwm:orange_sandstone_slab",
     "dwm:cut_orange_sandstone_slab",
-    "dwm:smooth_orange_sandstone_slab"
+    "dwm:smooth_orange_sandstone_slab",
+    "dwm:gallifrey_cobblestone_slab",
+    "dwm:gallifrey_mossy_cobblestone_slab",
+    "dwm:gallifrey_stone_brick_slab",
+    "dwm:mossy_gallifrey_stone_brick_slab",
+    "dwm:gallifrey_smooth_stone_slab"
   ]
 }

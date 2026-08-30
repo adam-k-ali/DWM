@@ -188,8 +188,21 @@ public class DWMBlocks {
     public static final Block CRACKED_GALLIFREY_STONE_BRICKS = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "cracked_gallifrey_stone_bricks");
     public static final Block MOSSY_GALLIFREY_STONE_BRICKS = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "mossy_gallifrey_stone_bricks");
     public static final Block GALLIFREY_COBBLESTONE = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "gallifrey_cobblestone");
+    public static final Block GALLIFREY_COBBLESTONE_STAIRS = registerStairs(GALLIFREY_COBBLESTONE, "gallifrey_cobblestone_stairs");
+    public static final Block GALLIFREY_COBBLESTONE_SLAB = registerSlab(GALLIFREY_COBBLESTONE, "gallifrey_cobblestone_slab");
+    public static final Block GALLIFREY_COBBLESTONE_WALL = registerWall(GALLIFREY_COBBLESTONE, "gallifrey_cobblestone_wall");
     public static final Block GALLIFREY_MOSSY_COBBLESTONE = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "gallifrey_mossy_cobblestone");
+    public static final Block GALLIFREY_MOSSY_COBBLESTONE_STAIRS = registerStairs(GALLIFREY_MOSSY_COBBLESTONE, "gallifrey_mossy_cobblestone_stairs");
+    public static final Block GALLIFREY_MOSSY_COBBLESTONE_SLAB = registerSlab(GALLIFREY_MOSSY_COBBLESTONE, "gallifrey_mossy_cobblestone_slab");
+    public static final Block GALLIFREY_MOSSY_COBBLESTONE_WALL = registerWall(GALLIFREY_MOSSY_COBBLESTONE, "gallifrey_mossy_cobblestone_wall");
+    public static final Block GALLIFREY_STONE_BRICK_STAIRS = registerStairs(GALLIFREY_STONE_BRICKS, "gallifrey_stone_brick_stairs");
+    public static final Block GALLIFREY_STONE_BRICK_SLAB = registerSlab(GALLIFREY_STONE_BRICKS, "gallifrey_stone_brick_slab");
+    public static final Block GALLIFREY_STONE_BRICK_WALL = registerWall(GALLIFREY_STONE_BRICKS, "gallifrey_stone_brick_wall");
+    public static final Block MOSSY_GALLIFREY_STONE_BRICK_STAIRS = registerStairs(MOSSY_GALLIFREY_STONE_BRICKS, "mossy_gallifrey_stone_brick_stairs");
+    public static final Block MOSSY_GALLIFREY_STONE_BRICK_SLAB = registerSlab(MOSSY_GALLIFREY_STONE_BRICKS, "mossy_gallifrey_stone_brick_slab");
+    public static final Block MOSSY_GALLIFREY_STONE_BRICK_WALL = registerWall(MOSSY_GALLIFREY_STONE_BRICKS, "mossy_gallifrey_stone_brick_wall");
     public static final Block GALLIFREY_SMOOTH_STONE = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "gallifrey_smooth_stone");
+    public static final Block GALLIFREY_SMOOTH_STONE_SLAB = registerSlab(GALLIFREY_SMOOTH_STONE, "gallifrey_smooth_stone_slab");
     public static final Block GALLIFREY_SANDSTONE = register(Block::new, DWMBlockSettings.GALLIFREY_SANDSTONE, "gallifrey_sandstone");
     public static final Block GALLIFREY_CUT_SANDSTONE = register(Block::new, DWMBlockSettings.GALLIFREY_SANDSTONE, "gallifrey_cut_sandstone");
     public static final Block GALLIFREY_CHISELED_SANDSTONE = register(Block::new, DWMBlockSettings.GALLIFREY_SANDSTONE, "gallifrey_chiseled_sandstone");
@@ -419,27 +432,61 @@ public class DWMBlocks {
     public static final List<Block> GALLIFREY_STONE_BUILDING_BLOCKS = List.of(
             GALLIFREY_STONE,
             GALLIFREY_STONE_BRICKS,
+            GALLIFREY_STONE_BRICK_STAIRS,
+            GALLIFREY_STONE_BRICK_SLAB,
+            GALLIFREY_STONE_BRICK_WALL,
             CHISELED_GALLIFREY_STONE_BRICKS,
             CRACKED_GALLIFREY_STONE_BRICKS,
             MOSSY_GALLIFREY_STONE_BRICKS,
+            MOSSY_GALLIFREY_STONE_BRICK_STAIRS,
+            MOSSY_GALLIFREY_STONE_BRICK_SLAB,
+            MOSSY_GALLIFREY_STONE_BRICK_WALL,
             GALLIFREY_COBBLESTONE,
+            GALLIFREY_COBBLESTONE_STAIRS,
+            GALLIFREY_COBBLESTONE_SLAB,
+            GALLIFREY_COBBLESTONE_WALL,
             GALLIFREY_MOSSY_COBBLESTONE,
+            GALLIFREY_MOSSY_COBBLESTONE_STAIRS,
+            GALLIFREY_MOSSY_COBBLESTONE_SLAB,
+            GALLIFREY_MOSSY_COBBLESTONE_WALL,
             GALLIFREY_SMOOTH_STONE,
+            GALLIFREY_SMOOTH_STONE_SLAB,
             GALLIFREY_SANDSTONE,
             GALLIFREY_CUT_SANDSTONE,
             GALLIFREY_CHISELED_SANDSTONE
+    );
+
+    public static final List<Block> GALLIFREY_STONE_SLABS = List.of(
+            GALLIFREY_COBBLESTONE_SLAB,
+            GALLIFREY_MOSSY_COBBLESTONE_SLAB,
+            GALLIFREY_STONE_BRICK_SLAB,
+            MOSSY_GALLIFREY_STONE_BRICK_SLAB,
+            GALLIFREY_SMOOTH_STONE_SLAB
     );
 
     /** Full Gallifrey stone-family set including terrain blocks. */
     public static final List<Block> GALLIFREY_STONE_FAMILY = List.of(
             GALLIFREY_STONE,
             GALLIFREY_STONE_BRICKS,
+            GALLIFREY_STONE_BRICK_STAIRS,
+            GALLIFREY_STONE_BRICK_SLAB,
+            GALLIFREY_STONE_BRICK_WALL,
             CHISELED_GALLIFREY_STONE_BRICKS,
             CRACKED_GALLIFREY_STONE_BRICKS,
             MOSSY_GALLIFREY_STONE_BRICKS,
+            MOSSY_GALLIFREY_STONE_BRICK_STAIRS,
+            MOSSY_GALLIFREY_STONE_BRICK_SLAB,
+            MOSSY_GALLIFREY_STONE_BRICK_WALL,
             GALLIFREY_COBBLESTONE,
+            GALLIFREY_COBBLESTONE_STAIRS,
+            GALLIFREY_COBBLESTONE_SLAB,
+            GALLIFREY_COBBLESTONE_WALL,
             GALLIFREY_MOSSY_COBBLESTONE,
+            GALLIFREY_MOSSY_COBBLESTONE_STAIRS,
+            GALLIFREY_MOSSY_COBBLESTONE_SLAB,
+            GALLIFREY_MOSSY_COBBLESTONE_WALL,
             GALLIFREY_SMOOTH_STONE,
+            GALLIFREY_SMOOTH_STONE_SLAB,
             GALLIFREY_SANDSTONE,
             GALLIFREY_CUT_SANDSTONE,
             GALLIFREY_CHISELED_SANDSTONE,
@@ -733,6 +780,22 @@ public class DWMBlocks {
 
     public static Block registerBlockWithoutItem(Function<BlockBehaviour.Properties, Block> factory, BlockBehaviour.Properties settings, String id) {
         return registerWithoutItem(factory, settings, id);
+    }
+
+    private static Block registerStairs(Block base, String id) {
+        return register(
+                settings -> new StairBlock(base.defaultBlockState(), settings),
+                BlockBehaviour.Properties.ofLegacyCopy(base),
+                id
+        );
+    }
+
+    private static Block registerSlab(Block base, String id) {
+        return register(SlabBlock::new, BlockBehaviour.Properties.ofLegacyCopy(base), id);
+    }
+
+    private static Block registerWall(Block base, String id) {
+        return register(WallBlock::new, BlockBehaviour.Properties.ofLegacyCopy(base), id);
     }
 
     private static Block register(Function<BlockBehaviour.Properties, Block> factory, BlockBehaviour.Properties settings, String id) {

@@ -129,11 +129,62 @@ The plugin sets (among others):
 - `screenplay.baselines-dir` — when `-PscreenplayBaselinesDir` is set
 - `screenplay.record` — when `-PscreenplayRecord` is set
 
+## GitHub Actions
+
+Consumer mods can use [`adam-k-ali/screenplay-action`](https://github.com/adam-k-ali/screenplay-action).
+Set up JDK 25 first; the action installs `xvfb` on Linux, runs `runScreenplayTests`, and uploads
+`build/screenplay/`.
+
+```yaml
+name: Screenplay
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  screenplay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+      - uses: gradle/actions/setup-gradle@v4
+      - uses: adam-k-ali/screenplay-action@v1
+```
+
+The same flow without the action:
+
+```yaml
+- uses: actions/setup-java@v4
+  with:
+    distribution: temurin
+    java-version: "25"
+- uses: gradle/actions/setup-gradle@v4
+- run: |
+    sudo apt-get update
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+      xvfb libgl1-mesa-dri libgl1 libasound2t64 \
+      libx11-6 libxext6 libxrender1 libxtst6 libxi6
+    chmod +x ./gradlew
+    ./gradlew runScreenplayTests -PscreenplayDisplay=xvfb -PscreenplayTimeout=120
+- uses: actions/upload-artifact@v4
+  if: always()
+  with:
+    name: screenplay-results
+    path: build/screenplay/
+    if-no-files-found: ignore
+```
+
 ## CI tips
 
 - Prefer `-PscreenplayDisplay=xvfb` on headless Linux runners.
 - Upload `report.xml`, `metrics.json`, diagnostics, screenshots, and recordings as workflow
   artifacts for agent and human review (and as the next `main` screenshot baseline).
-- On PRs, prepare baselines with `.github/scripts/prepare-screenplay-baselines.sh`
-  before `runScreenplayTests`.
+- This monorepo's PRs prepare baselines with `.github/scripts/prepare-screenplay-baselines.sh`
+  before `runScreenplayTests`. Consumer first-run CI does not need that.
 - Screen recording needs `ffmpeg` in addition to `xvfb`.

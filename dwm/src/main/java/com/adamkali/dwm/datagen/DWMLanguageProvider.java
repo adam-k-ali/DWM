@@ -56,13 +56,18 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
     private static void addFieldGuide(TranslationBuilder t) {
         t.add("dwm.guide.title", "DWM Field Guide");
         t.add("dwm.guide.index.header", "Contents");
-        t.add("dwm.guide.open_button", "Field Guide");
+        t.add("dwm.guide.open_button", "Open Field Guide");
+        t.add("dwm.guide.item.tooltip", "Use to open the DWM Field Guide. Press G if you lose this book.");
+        t.add("dwm.guide.modmenu.needs_world", "Load a world to open the Field Guide");
+        t.add("dwm.config.open_button", "Configuration");
         t.add("key.dwm.field_guide", "Open Field Guide");
         t.add("key.category.dwm.dwm", "Doctor Who Mod");
         t.add("dwm.guide.recipe.crafting", "Crafting");
         t.add("dwm.guide.recipe.smelting", "Smelting");
         t.add("dwm.guide.recipe.stonecutting", "Stonecutting");
         t.add("dwm.guide.recipe.unavailable", "Recipe unavailable in this world.");
+        t.add("dwm.guide.recipe.path.vanilla", "Vanilla");
+        t.add("dwm.guide.recipe.path.zeiton", "Zeiton");
         t.add("dwm.guide.pattern.all_colours", "Colour variants use this pattern; swap the white ingredients.");
         t.add("dwm.guide.page.previous", "Previous Page");
         t.add("dwm.guide.page.next", "Next Page");
@@ -195,6 +200,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.key.tooltip.bound", "Bound to a TARDIS");
         t.add("dwm.tardis.claimed", "This TARDIS is yours");
         addItem(t, DWMItems.STATTENHEIM_REMOTE, "Stattenheim Remote");
+        addItem(t, DWMItems.FIELD_GUIDE, "Field Guide");
         addItem(t, DWMItems.CIRCUIT_STABILISERS, "Stabilisers Circuit");
         addItem(t, DWMItems.CIRCUIT_WAYPOINTS, "Waypoints Circuit");
         addItem(t, DWMItems.CIRCUIT_FAST_RETURN, "Fast Return Circuit");
@@ -353,12 +359,25 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
     private static void addGallifreyStoneFamily(TranslationBuilder t) {
         addBlockAndItem(t, DWMBlocks.GALLIFREY_STONE, "Gallifrey Stone");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_STONE_BRICKS, "Gallifrey Stone Bricks");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_STONE_BRICK_STAIRS, "Gallifrey Stone Brick Stairs");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_STONE_BRICK_SLAB, "Gallifrey Stone Brick Slab");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_STONE_BRICK_WALL, "Gallifrey Stone Brick Wall");
         addBlockAndItem(t, DWMBlocks.CHISELED_GALLIFREY_STONE_BRICKS, "Chiseled Gallifrey Stone Bricks");
         addBlockAndItem(t, DWMBlocks.CRACKED_GALLIFREY_STONE_BRICKS, "Cracked Gallifrey Stone Bricks");
         addBlockAndItem(t, DWMBlocks.MOSSY_GALLIFREY_STONE_BRICKS, "Mossy Gallifrey Stone Bricks");
+        addBlockAndItem(t, DWMBlocks.MOSSY_GALLIFREY_STONE_BRICK_STAIRS, "Mossy Gallifrey Stone Brick Stairs");
+        addBlockAndItem(t, DWMBlocks.MOSSY_GALLIFREY_STONE_BRICK_SLAB, "Mossy Gallifrey Stone Brick Slab");
+        addBlockAndItem(t, DWMBlocks.MOSSY_GALLIFREY_STONE_BRICK_WALL, "Mossy Gallifrey Stone Brick Wall");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_COBBLESTONE, "Gallifrey Cobblestone");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_COBBLESTONE_STAIRS, "Gallifrey Cobblestone Stairs");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_COBBLESTONE_SLAB, "Gallifrey Cobblestone Slab");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_COBBLESTONE_WALL, "Gallifrey Cobblestone Wall");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE, "Mossy Gallifrey Cobblestone");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE_STAIRS, "Mossy Gallifrey Cobblestone Stairs");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE_SLAB, "Mossy Gallifrey Cobblestone Slab");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE_WALL, "Mossy Gallifrey Cobblestone Wall");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_SMOOTH_STONE, "Gallifrey Smooth Stone");
+        addBlockAndItem(t, DWMBlocks.GALLIFREY_SMOOTH_STONE_SLAB, "Gallifrey Smooth Stone Slab");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_SANDSTONE, "Gallifrey Sandstone");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_CUT_SANDSTONE, "Gallifrey Cut Sandstone");
         addBlockAndItem(t, DWMBlocks.GALLIFREY_CHISELED_SANDSTONE, "Chiseled Gallifrey Sandstone");

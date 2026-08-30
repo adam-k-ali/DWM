@@ -2,15 +2,21 @@
 
 Plugin ID: `com.adamkali.screenplay`
 
-Registered by the `screenplay/gradle-plugin` included build. Applying it is enough
+Published to the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/com.adamkali.screenplay).
+The plugin version matches the loader jars (for example `1.0.0+26.2`). Applying it is enough
 for a Fabric, Forge, or NeoForge project:
 
 - Detects the loader plugin
 - Adds the matching harness dependency (`screenplay-fabric` / `screenplay-forge` /
   `screenplay-neoforge`) unless `screenplay.addHarnessDependency=false`
+- Resolves those artifacts from the `screenplay-v*` GitHub Release (no extra `repositories {}`)
 - Creates the Screenplay client run if missing
 - Passes `screenplay.tests-dirs` so the client loads YAML from disk
 - Writes `myFirstTest.yaml` when the tests directory has no YAML yet
+
+This DWM monorepo still uses `includeBuild` for local plugin and loader development. Consumers
+should apply the Portal plugin as in the [Quick start](../quickstart.md) — do not copy
+`includeBuild` from this repository.
 
 The `screenplay { }` block is optional. Defaults match a typical Fabric mod.
 
@@ -58,6 +64,7 @@ run standalone.
 | `-PscreenplayRecord=true\|false` | Override screen recording (requires `ffmpeg`) |
 | `-PscreenplayBaselinesDir=<dir>` | Baseline PNGs for `captureScreenshot` compare |
 | `screenplay.addHarnessDependency=false` | Skip auto-adding the loader artifact (for Screenplay’s own builds) |
+| `screenplay.harnessRepositoryUrl` | Override the GitHub Release download base (tests only) |
 
 The client also receives `screenplay.tests-dirs` (path-separator–joined absolute
 paths of `testsDir` + `extraTestsDirs`). Consumer tests load from those folders;
@@ -67,13 +74,16 @@ harness jar.
 ## Dependencies
 
 The plugin adds the loader artifact for you. You do **not** need a `runtimeOnly`
-line in a consumer `build.gradle`.
+line or a Screenplay `repositories {}` block in a consumer `build.gradle`.
 
 | Loader | Artifact |
 | --- | --- |
-| Fabric | `screenplay-fabric` (`modRuntimeOnly` when Loom provides that configuration) |
-| Forge | `screenplay-forge` |
-| NeoForge | `screenplay-neoforge` |
+| Fabric | `com.adamkali.screenplay:screenplay-fabric` (`modRuntimeOnly` when Loom provides that configuration) |
+| Forge | `com.adamkali.screenplay:screenplay-forge` |
+| NeoForge | `com.adamkali.screenplay:screenplay-neoforge` |
+
+Those coordinates resolve from GitHub Releases for the tag `screenplay-v{version}`. Override
+the download base with `screenplay.harnessRepositoryUrl` only in tests.
 
 Java 25 and a Minecraft version matching the Screenplay release are required.
 The plugin fails with a short message when the project toolchain or Minecraft

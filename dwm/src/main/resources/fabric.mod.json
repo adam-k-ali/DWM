@@ -45,6 +45,7 @@
       "com.adamkali.dwm.gametest.ConsolePilotGameTests",
       "com.adamkali.dwm.gametest.ArtronGameTests",
       "com.adamkali.dwm.gametest.FirstHourAdvancementGameTests",
+      "com.adamkali.dwm.gametest.FieldGuideGrantGameTests",
       "com.adamkali.dwm.gametest.BroakirGameTests",
       "com.adamkali.dwm.gametest.FlutterwingGameTests",
       "com.adamkali.dwm.gametest.MewingDogGameTests",
