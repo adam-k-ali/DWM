@@ -1,0 +1,57 @@
+---
+name: Claim a player-placed TARDIS
+type: command
+---
+steps:
+  - createWorld:
+      worldType: superflat
+      gameMode: creative
+      difficulty: peaceful
+      allowCommands: true
+      name: Sonic TARDIS
+  - closeScreen
+  - runCommand: "/time set day"
+  - runCommand: "/weather clear"
+  - runCommand: "/give @s dwm:tardis_block"
+  - waitUntil:
+      holding: dwm:tardis_block
+  - selectHotbar: 0
+  - lookAt:
+      x: "~1"
+      y: "~-1"
+      z: "~"
+  - useItem
+  - waitUntil:
+      block:
+        id: dwm:tardis_block
+        x: "~1"
+        y: "~"
+        z: "~"
+  - selectHotbar: 1
+  - lookAt:
+      x: "~1"
+      y: "~"
+      z: "~"
+  - useItem
+  - waitTicks: 25
+  - runCommand: "/tp @s ~-3 ~1 ~"
+  - lookAt:
+      x: "~3"
+      y: "~"
+      z: "~"
+  - walkUntil:
+      dimension: dwm:tardis
+  - waitTicks: 40
+  - lookAt:
+      x: "~"
+      y: "~1"
+      z: "~-1"
+  - waitTicks: 5
+  - walkUntil:
+      dimension: minecraft:overworld
+  - waitTicks: 20
+  - lookAt:
+      x: "~1"
+      y: "~"
+      z: "~"
+  - waitTicks: 5

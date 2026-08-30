@@ -22,6 +22,7 @@ import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
 import com.adamkali.dwm.tardis.data.model.TardisTravelPhase;
 import com.adamkali.dwm.tardis.TardisExteriorFacing;
+import com.adamkali.dwm.render.portal.PortalApertureComposite;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisShellOpacity;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
@@ -92,6 +93,10 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
         state.shouldRenderBoti = TardisBotiRenderer.shouldRender(doorState);
         state.cloaked = entity.isSyncedCloaked()
                 || (entity.getTardisIdOrNull() != null && TardisLogic.isCloaked(entity.getTardisIdOrNull()));
+        state.pingReveal = SonicPingClientFx.isActive(entity.getTardisIdOrNull());
+        if (state.pingReveal) {
+            state.shouldRenderBoti = false;
+        }
         // Warm BOTI portal stream while the shell is in view — before the door opens.
         if (state.tardisId != null
                 && !state.cloaked
@@ -114,8 +119,11 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
             SubmitNodeCollector submitNodeCollector,
             CameraRenderState camera
     ) {
-        if (state.cloaked) {
+        if (state.cloaked && !state.pingReveal) {
             return;
+        }
+        if (state.pingReveal && state.shellAlpha > 0.55f) {
+            state.shellAlpha = 0.55f;
         }
         TardisModel model = modelCache.get(state.variant);
         Identifier texture = textureCache.get(state.variant);

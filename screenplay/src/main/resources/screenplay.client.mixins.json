@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.adamkali.screenplay.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "InputConstantsIsKeyDownMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

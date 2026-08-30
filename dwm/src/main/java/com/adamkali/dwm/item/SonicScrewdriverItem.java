@@ -58,8 +58,17 @@ public class SonicScrewdriverItem extends Item {
             @NonNull InteractionHand hand
     ) {
         if (!player.isShiftKeyDown()) {
-            // Un-sneak use-in-air reserved for DWM-061 ping.
-            return InteractionResult.PASS;
+            ItemStack stack = player.getItemInHand(hand);
+            if (SonicStateLogic.selected(stack) != SonicFieldMode.PING) {
+                return InteractionResult.PASS;
+            }
+            if (level.isClientSide()) {
+                return InteractionResult.SUCCESS;
+            }
+            if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                SonicPingLogic.tryPing(serverPlayer, stack);
+            }
+            return InteractionResult.CONSUME;
         }
         if (level.isClientSide()) {
             Consumer<ItemStack> opener = openFieldModeSelector;

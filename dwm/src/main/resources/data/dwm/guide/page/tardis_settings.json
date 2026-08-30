@@ -1,0 +1,10 @@
+{
+  "page": { "id": "dwm:tardis_settings" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.tardis_settings.title",
+      "bodyKey": "dwm.guide.page.tardis_settings.body"
+    }
+  ]
+}

@@ -32,6 +32,10 @@ steps:
   - waitTicks: 5
   - captureScreenshot:
       name: sonic-field-mode-carousel
+  - pressKey: right
+  - waitTicks: 2
+  - captureScreenshot:
+      name: sonic-field-mode-carousel-eight-slots
   - setSneaking:
       enabled: false
   - waitTicks: 2

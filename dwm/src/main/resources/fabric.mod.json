@@ -38,6 +38,7 @@
       "com.adamkali.dwm.gametest.GallifreyVanillaOresGameTests",
       "com.adamkali.dwm.gametest.ZeitonGameTests",
       "com.adamkali.dwm.gametest.SonicInteractionGameTests",
+      "com.adamkali.dwm.gametest.SonicTardisGameTests",
       "com.adamkali.dwm.gametest.StattenheimRemoteGameTests",
       "com.adamkali.dwm.gametest.ConsoleControlInteractionGameTests",
       "com.adamkali.dwm.gametest.CircuitFittedGameTests",

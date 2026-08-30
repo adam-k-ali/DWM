@@ -35,7 +35,7 @@ The screen is client-only; catalog content is loaded from datapacks and synced w
 | Chapter | Topics |
 | --- | --- |
 | **Quick Start** | Find TARDIS, claim, first hop, bind key |
-| **Sonic Toolkit** | Craft sonic, doctor variants, basic use |
+| **Sonic Toolkit** | Craft sonic, doctor variants, sneak-use carousel, field settings, TARDIS settings (pair / Seal / Scan / Ping) |
 | **Console Circuits** | Install ritual, landing kit, planet locator, late circuits (vanilla + Zeiton) |
 | **Console Room Builder** | Chronoplasm, wall, roundels (A/B/Big on one page), interior props (white canonical recipes; pattern note for colours) |
 

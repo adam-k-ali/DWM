@@ -1,7 +1,7 @@
 # click
 
-Wait for an active matching widget and dispatch a real screen mouse click at its
-center.
+Wait for an active matching widget and dispatch `mouseClicked` on that widget at
+its center.
 
 ## Parameters
 
@@ -26,7 +26,11 @@ center.
 
 ## Notes
 
-- Retries while the widget is missing or `active == false`.
+- Retries while the widget is missing, `active == false`, or the widget ignores
+  the click.
+- The event is sent to the matched widget, not via `Screen.getChildAt`. Vanilla
+  hit-testing returns the first overlapping active child, and `Screen.mouseClicked`
+  reports success even when that child does not handle the press.
 - `type: screen` is rejected at validation time.
 - Prefer [`assertAndClick`](assertAndClick.md) when you want an explicit assert
   before the click.

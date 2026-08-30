@@ -15,7 +15,7 @@ to a full reference page with parameters and YAML examples.
 - [interactWithEntity](commands/interactWithEntity.md) — Right-click interact with an in-world entity (crosshair or nearest).
 - [lookAt](commands/lookAt.md) — Aim the camera by yaw/pitch or at block coordinates.
 - [openInventory](commands/openInventory.md) — Open the player inventory GUI.
-- [pressKey](commands/pressKey.md) — Press a keyboard key (keybinds, Escape, etc.).
+- [pressKey](commands/pressKey.md) — Press a keyboard key (keybinds, Escape, arrows).
 - [runCommand](commands/runCommand.md) — Send an in-game slash command as the local player.
 - [selectHotbar](commands/selectHotbar.md) — Select hotbar slot `0`–`8` and sync to the server.
 - [setSneaking](commands/setSneaking.md) — Hold or release the client's sneak key.

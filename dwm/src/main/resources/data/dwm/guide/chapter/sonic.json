@@ -4,6 +4,8 @@
   "pages": [
     { "id": "dwm:craft_sonic" },
     { "id": "dwm:doctor_variants" },
-    { "id": "dwm:use_sonic" }
+    { "id": "dwm:use_sonic" },
+    { "id": "dwm:field_settings" },
+    { "id": "dwm:tardis_settings" }
   ]
 }

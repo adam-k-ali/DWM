@@ -1,0 +1,33 @@
+---
+name: Field Guide Sonic Toolkit
+type: test
+---
+steps:
+  - launchGame
+  - createWorld:
+      worldType: superflat
+      gameMode: creative
+  - closeScreen
+  - pressKey: g
+  - waitUntil:
+      visible:
+        type: screen
+        name: FieldGuideScreen
+  - assertAndClick:
+      type: button
+      name: "Sonic Toolkit"
+  - waitTicks: 5
+  - captureScreenshot:
+      name: field-guide-sonic-craft
+  - assertAndClick:
+      type: button
+      name: "Field Settings"
+  - waitTicks: 5
+  - captureScreenshot:
+      name: field-guide-sonic-field-settings
+  - assertAndClick:
+      type: button
+      name: "TARDIS Settings"
+  - waitTicks: 5
+  - captureScreenshot:
+      name: field-guide-sonic-tardis-settings

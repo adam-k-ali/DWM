@@ -12,6 +12,7 @@ import com.adamkali.dwm.tardis.interior.TardisEntryGate;
 import com.adamkali.dwm.tardis.interior.TardisInteriorService;
 import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
 import com.adamkali.dwm.tardis.logic.ConsolePilotLogic;
+import com.adamkali.dwm.item.SonicTardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -88,6 +89,9 @@ public class TardisBlock extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+        if (SonicTardisLogic.shouldYieldToSonic(player)) {
+            return InteractionResult.PASS;
+        }
         if (!(world.getBlockEntity(pos) instanceof TardisBlockEntity tardisBlockEntity)) {
             return InteractionResult.PASS;
         }
