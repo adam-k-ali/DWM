@@ -41,6 +41,14 @@ public final class ClickPrimitive extends SelectorPrimitive {
                 target.getY() + target.getHeight() / 2.0,
                 new MouseButtonInfo(0, 0)
         );
-        return screen.mouseClicked(event, false);
+        // Click the matched widget directly. Screen.getChildAt() returns the first
+        // overlapping active child, and Screen.mouseClicked() still reports success
+        // when that child ignores the press — so a named button can "succeed" without
+        // running its handler.
+        boolean handled = target.mouseClicked(event, false);
+        if (handled && screen != null && target.shouldTakeFocusAfterInteraction()) {
+            screen.setFocused(target);
+        }
+        return handled;
     }
 }

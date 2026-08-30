@@ -134,8 +134,8 @@ The MVP primitives are:
 
 - `launchGame` — waits until the title screen is ready.
 - `assertVisible` — waits for a visible matching widget.
-- `click` — waits for an active matching widget and dispatches a real screen
-  mouse click at its center.
+- `click` — waits for an active matching widget and dispatches `mouseClicked`
+  on that widget at its center.
 - `debugScreen` — immediately logs the current screen class and every visible
   widget (type, name, active, bounds). It takes no arguments and always
   succeeds on the tick it runs.
