@@ -17,6 +17,9 @@ steps:
       x: "~1"
       y: "~"
       z: "~"
+  # Hit result is from the previous client tick; wait so useItem opens the door
+  # instead of swinging at air.
+  - waitTicks: 5
   - useItem
   - waitTicks: 25
   - runCommand: "/tp @s ~-3 ~1 ~"
