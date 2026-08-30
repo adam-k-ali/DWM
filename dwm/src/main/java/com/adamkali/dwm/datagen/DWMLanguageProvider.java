@@ -165,7 +165,6 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.sonic.tardis_not_recognised", "This TARDIS does not recognise you");
         t.add("dwm.sonic.tardis_paired", "Screwdriver paired with this TARDIS");
         t.add("dwm.sonic.wrong_setting_seal_or_scan", "Wrong setting — Needs Seal or Scan");
-        t.add("dwm.sonic.scan", "Scan: %s");
         t.add("dwm.sonic.scan.title", "SCAN");
         t.add("dwm.sonic.scan.oxygen", "Oxygen");
         t.add("dwm.sonic.scan.temperature", "Temperature");

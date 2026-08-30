@@ -29,7 +29,6 @@ public final class SonicStateLogic {
     public static final String TARDIS_NOT_RECOGNISED_KEY = "dwm.sonic.tardis_not_recognised";
     public static final String TARDIS_PAIRED_KEY = "dwm.sonic.tardis_paired";
     public static final String WRONG_SETTING_SEAL_OR_SCAN_KEY = "dwm.sonic.wrong_setting_seal_or_scan";
-    public static final String SCAN_OVERLAY_KEY = "dwm.sonic.scan";
     public static final String PING_LOCATED_KEY = "dwm.sonic.ping.located";
     public static final String PING_CLOAK_NOT_FITTED_KEY = "dwm.sonic.ping.cloak_not_fitted";
     public static final String PING_CLOAK_NOT_ENGAGED_KEY = "dwm.sonic.ping.cloak_not_engaged";

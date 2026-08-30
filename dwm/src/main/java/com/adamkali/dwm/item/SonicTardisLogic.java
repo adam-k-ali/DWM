@@ -175,7 +175,6 @@ public final class SonicTardisLogic {
     ) {
         ScanSample sample = sampleExterior(serverLevel, tardisId, model);
         SonicScanLogic.Snapshot snapshot = SonicScanLogic.snapshot(model, sample.reading(), sample.waterlogged());
-        player.sendOverlayMessage(SonicScanLogic.overlay(snapshot));
         if (player instanceof ServerPlayer serverPlayer) {
             ServerPlayNetworking.send(serverPlayer, new SonicScanS2CPayload(snapshot));
         }

@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SonicScanLogicTest {
     @Test
-    void overlay_startsWithScanPrefixAndIncludesLockStatus() {
+    void snapshot_includesLockStatusAndEnvironmentPercents() {
         TardisDataModel model = new TardisDataModel();
         model.doorsLocked = true;
         model.cloaked = false;
@@ -19,10 +19,8 @@ class SonicScanLogicTest {
         model.artron = 250;
         Reading reading = new Reading(false, 1.0F, 0.5F, 0.4F, 0.12F);
         SonicScanLogic.Snapshot snapshot = SonicScanLogic.snapshot(model, reading, false);
-        String overlay = SonicScanLogic.overlay(snapshot).getString();
-        assertTrue(overlay.startsWith("Scan:"));
-        assertTrue(overlay.contains("Locked: yes"));
-        assertFalse(overlay.contains("Oxygen:"));
+        assertTrue(snapshot.locked());
+        assertFalse(snapshot.noSignal());
         assertEquals(100, snapshot.oxygen());
         assertEquals(40, snapshot.temperature());
         assertEquals(12, snapshot.radiation());
@@ -32,12 +30,13 @@ class SonicScanLogicTest {
     }
 
     @Test
-    void overlay_keepsPrefixWhenEnvironmentHasNoSignal() {
+    void snapshot_marksNoSignalWhenEnvironmentHasNone() {
         TardisDataModel model = new TardisDataModel();
         SonicScanLogic.Snapshot snapshot = SonicScanLogic.snapshot(model, Reading.none(), false);
         assertTrue(snapshot.noSignal());
-        String overlay = SonicScanLogic.overlay(snapshot).getString();
-        assertTrue(overlay.startsWith("Scan:"));
-        assertTrue(overlay.contains("Locked:"));
+        assertFalse(snapshot.locked());
+        assertEquals(0, snapshot.oxygen());
+        assertEquals(0, snapshot.temperature());
+        assertEquals(0, snapshot.radiation());
     }
 }

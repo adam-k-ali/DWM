@@ -7,15 +7,12 @@ import com.adamkali.dwm.tardis.logic.CloakLogic;
 import com.adamkali.dwm.tardis.logic.DoorLockLogic;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout.Reading;
-import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Read-only Scan snapshot. Overlay prefix {@code Scan:} is substring-stable for Screenplay.
+ * Read-only Scan snapshot for the client HUD.
  */
 public final class SonicScanLogic {
-    public static final String PREFIX = "Scan: ";
-
     private SonicScanLogic() {
     }
 
@@ -53,17 +50,6 @@ public final class SonicScanLogic {
                 ArtronLogic.percent(artron),
                 artron <= 0
         );
-    }
-
-    /**
-     * Short action-bar line for Screenplay ({@code Scan:} / {@code Locked:}); HUD shows the full snapshot.
-     */
-    public static Component overlay(Snapshot snapshot) {
-        return Component.literal(PREFIX + lockedLine(snapshot));
-    }
-
-    public static String lockedLine(Snapshot snapshot) {
-        return "Locked: " + (snapshot.locked() ? "yes" : "no");
     }
 
     private static int percent(float needle) {

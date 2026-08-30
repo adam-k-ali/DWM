@@ -75,7 +75,7 @@ The owner's first use of a crafted sonic on **their** exterior, interior doors, 
 | Mode | Behaviour |
 |------|-----------|
 | Seal | Toggle lock on the owner's **closed** doors (`Doors locked` / `Doors unlocked` / `Doors must be closed`). Does not open or close doors. |
-| Scan | Read-only overlay starting with `Scan:` (exterior environment plus locked / cloaked / travel phase / artron). |
+| Scan | Read-only compact HUD (exterior environment plus locked / cloaked / travel phase / artron). |
 | Ping | Unsneak use-in-air. Cloak must be fitted and engaged; range 32 blocks in the same dimension. Success: `TARDIS located`, owner-only silhouette and particles for 2s, 2s cooldown. Failures: `cloak not fitted` / `cloak not engaged` / `no signal`. |
 
 Paired doors with neither Seal nor Scan selected: `Wrong setting — Needs Seal or Scan`. Console after pairing: whir only.

@@ -29,7 +29,4 @@ steps:
       z: "~"
   - waitTicks: 5
   - useItem
-  - waitUntil:
-      overlay: "Scan:"
-  - waitUntil:
-      overlay: "Locked:"
+  - waitTicks: 5
