@@ -55,7 +55,7 @@ DWM consumes Screenplay via composite `includeBuild('../screenplay')` (Maven coo
 - Avoid touching large generated/resource surfaces unless the task requires it.
 - When fixing bugs, prefer the smallest change that addresses root cause and add regression coverage.
 - If a requested behavior cannot be fully automated/tested, document the limitation and propose follow-up automation.
-- Product backlog lives on GitHub: issues in [adam-k-ali/DWM](https://github.com/adam-k-ali/DWM/issues) and the [DWM project board](https://github.com/users/adam-k-ali/projects/7/views/1). Titles keep stable IDs (`DWM-NNN — …`, `E-NNN — …`). Status is Project Status (`Backlog` / `In progress` / `Done`) plus issue state; priority is the project Priority field (`P0`–`P3`). Epics are parent issues with ticket sub-issues. A local `tickets/` folder may exist as a gitignored archive — do not use it as the live board.
+- Product backlog lives on GitHub: issues in [adam-k-ali/DWM](https://github.com/adam-k-ali/DWM/issues) and the [DWM project board](https://github.com/users/adam-k-ali/projects/7/views/1). Titles keep stable IDs (`DWM-NNN — …`, `E-NNN — …`). Status is Project Status (`Backlog` / `Ready` / `In progress` / `Done` / `Cancelled`) plus issue state; priority is the project Priority field (`P0`–`P3`). Epics are parent issues with ticket sub-issues. A local `tickets/` folder may exist as a gitignored archive — do not use it as the live board.
 
 ## Fabric-Specific Development Rules
 - Keep Java 25 compatibility.
@@ -182,6 +182,7 @@ A single PR may carry more than one label if it touches multiple categories.
 - `dwm/tools/AGENTS.md` — offline Python audio tooling and fixture rules.
 - `.cursor/skills/fabric-gametest/SKILL.md` — authoring and registering Fabric GameTests.
 - `.cursor/skills/asset-import-pipeline/SKILL.md` — promoting archive textures and wiring datagen.
+- `.cursor/skills/refine/SKILL.md` — refine GitHub issues (`DWM-NNN` / `E-NNN`) into build-ready descriptions via `gh`; Project Status → `Ready` only when confirmed.
 
 ## Cursor Cloud specific instructions
 
