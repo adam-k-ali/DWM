@@ -12,6 +12,7 @@ class DimensionNamesTest {
     @Test
     void of_knownIds_useDimensionTranslationKeyWithHumanizedFallback() {
         assertTranslatable(DimensionNames.of("dwm:gallifrey"), "dimension.dwm.gallifrey", "Gallifrey");
+        assertTranslatable(DimensionNames.of("dwm:skaro"), "dimension.dwm.skaro", "Skaro");
         assertTranslatable(DimensionNames.of("minecraft:overworld"), "dimension.minecraft.overworld", "Overworld");
         assertTranslatable(
                 DimensionNames.of(Identifier.fromNamespaceAndPath("minecraft", "the_nether")),

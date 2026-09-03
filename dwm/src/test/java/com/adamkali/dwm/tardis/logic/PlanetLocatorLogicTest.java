@@ -22,16 +22,18 @@ class PlanetLocatorLogicTest {
         List<ResourceKey<Level>> input = List.of(
                 world("minecraft", "the_end"),
                 TardisDimensions.TARDIS_WORLD_KEY,
+                world("dwm", "skaro"),
                 world("minecraft", "overworld"),
                 world("minecraft", "the_nether")
         );
 
         List<ResourceKey<Level>> filtered = PlanetLocatorLogic.filterTravelDimensions(input);
 
-        assertEquals(3, filtered.size());
-        assertEquals("minecraft:overworld", filtered.get(0).identifier().toString());
-        assertEquals("minecraft:the_end", filtered.get(1).identifier().toString());
-        assertEquals("minecraft:the_nether", filtered.get(2).identifier().toString());
+        assertEquals(4, filtered.size());
+        assertEquals("dwm:skaro", filtered.get(0).identifier().toString());
+        assertEquals("minecraft:overworld", filtered.get(1).identifier().toString());
+        assertEquals("minecraft:the_end", filtered.get(2).identifier().toString());
+        assertEquals("minecraft:the_nether", filtered.get(3).identifier().toString());
         assertFalse(filtered.contains(TardisDimensions.TARDIS_WORLD_KEY));
     }
 

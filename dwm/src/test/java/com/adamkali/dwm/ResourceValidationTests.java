@@ -893,6 +893,86 @@ public class ResourceValidationTests {
         }
     }
 
+    @Test
+    public void skaroBiomesExistWithFiveIdContractAndNoGallifreyContent() throws Exception {
+        String[] biomeFiles = {
+                "skaro_irradiated_wastes.json",
+                "skaro_petrified_jungle.json",
+                "skaro_drammankin_mire.json",
+                "skaro_drammankin_mountains.json",
+                "skaro_thal_plateau.json"
+        };
+        Path biomeDir = Path.of("src/main/generated/data/dwm/worldgen/biome");
+        Path tag = Path.of("src/main/resources/data/dwm/tags/worldgen/biome/is_skaro.json");
+        assertTrue(Files.isRegularFile(tag), "Missing hand-maintained #dwm:is_skaro tag: " + tag);
+        JSONObject tagJson = new JSONObject(new JSONTokener(Files.newBufferedReader(tag)));
+        var values = tagJson.getJSONArray("values");
+        assertEquals(5, values.length(), "is_skaro must list exactly five biomes");
+        Set<String> tagged = new HashSet<>();
+        for (int i = 0; i < values.length(); i++) {
+            tagged.add(values.getString(i));
+        }
+        assertEquals(
+                Set.of(
+                        "dwm:skaro_irradiated_wastes",
+                        "dwm:skaro_petrified_jungle",
+                        "dwm:skaro_drammankin_mire",
+                        "dwm:skaro_drammankin_mountains",
+                        "dwm:skaro_thal_plateau"
+                ),
+                tagged
+        );
+
+        String[] forbiddenFeatureSubstrings = {
+                "dwm:gallifrey",
+                "dwm:azbantium",
+                "dwm:zeiton",
+                "dwm:ash",
+                "dwm:dark_ash",
+                "dwm:cardinal",
+                "dwm:saccharine"
+        };
+        String[] farmAnimals = {
+                "minecraft:cow",
+                "minecraft:pig",
+                "minecraft:sheep",
+                "minecraft:chicken",
+                "minecraft:horse",
+                "minecraft:donkey",
+                "minecraft:llama"
+        };
+        String[] gallifreyFauna = {
+                "dwm:broakir",
+                "dwm:flutterwing",
+                "dwm:mewing_dog",
+                "dwm:time_lord"
+        };
+
+        for (String biomeFile : biomeFiles) {
+            Path path = biomeDir.resolve(biomeFile);
+            assertTrue(Files.isRegularFile(path), "Missing generated Skaro biome: " + path);
+            JSONObject biome = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
+            var creatures = biome.getJSONObject("spawners").getJSONArray("creature");
+            assertEquals(0, creatures.length(), biomeFile + " must omit farm animals and Gallifrey fauna");
+            for (String farmAnimal : farmAnimals) {
+                assertFalse(biomeHasCreatureSpawn(biomeFile, farmAnimal), biomeFile + " must not spawn " + farmAnimal);
+            }
+            for (String fauna : gallifreyFauna) {
+                assertFalse(biomeHasCreatureSpawn(biomeFile, fauna), biomeFile + " must not spawn " + fauna);
+            }
+            String blob = Files.readString(path);
+            for (String forbidden : forbiddenFeatureSubstrings) {
+                assertFalse(
+                        blob.contains(forbidden),
+                        biomeFile + " must not include Gallifrey-only generated content: " + forbidden
+                );
+            }
+        }
+
+        Path noise = Path.of("src/main/generated/data/dwm/worldgen/noise_settings/skaro.json");
+        assertTrue(Files.isRegularFile(noise) && Files.size(noise) > 0, "Missing generated Skaro noise settings: " + noise);
+    }
+
     private static boolean biomeHasCreatureSpawn(String biomeFile, String entityId) throws Exception {
         Path path = Path.of("src/main/generated/data/dwm/worldgen/biome").resolve(biomeFile);
         assertTrue(Files.isRegularFile(path), "Missing generated biome: " + path);
