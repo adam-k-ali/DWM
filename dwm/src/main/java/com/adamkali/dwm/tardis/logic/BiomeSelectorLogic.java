@@ -46,6 +46,9 @@ public final class BiomeSelectorLogic {
         if (id.equals(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "gallifrey"))) {
             return Optional.of(DWMBiomeTags.IS_GALLIFREY);
         }
+        if (id.equals(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "skaro"))) {
+            return Optional.of(DWMBiomeTags.IS_SKARO);
+        }
         return Optional.empty();
     }
 

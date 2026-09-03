@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "dwm:skaro_irradiated_wastes",
+    "dwm:skaro_petrified_jungle",
+    "dwm:skaro_drammankin_mire",
+    "dwm:skaro_drammankin_mountains",
+    "dwm:skaro_thal_plateau"
+  ]
+}

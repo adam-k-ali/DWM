@@ -12,6 +12,12 @@ public final class DWMBiomeKeys {
     public static final ResourceKey<Biome> GALLIFREY_WASTES = key("gallifrey_wastes");
     public static final ResourceKey<Biome> GALLIFREY_BADLANDS = key("gallifrey_badlands");
 
+    public static final ResourceKey<Biome> SKARO_IRRADIATED_WASTES = key("skaro_irradiated_wastes");
+    public static final ResourceKey<Biome> SKARO_PETRIFIED_JUNGLE = key("skaro_petrified_jungle");
+    public static final ResourceKey<Biome> SKARO_DRAMMANKIN_MIRE = key("skaro_drammankin_mire");
+    public static final ResourceKey<Biome> SKARO_DRAMMANKIN_MOUNTAINS = key("skaro_drammankin_mountains");
+    public static final ResourceKey<Biome> SKARO_THAL_PLATEAU = key("skaro_thal_plateau");
+
     private static ResourceKey<Biome> key(String path) {
         return ResourceKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, path));
     }

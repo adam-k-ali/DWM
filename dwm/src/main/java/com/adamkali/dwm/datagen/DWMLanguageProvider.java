@@ -469,6 +469,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add(DWMEntityTypes.TIME_LORD, "Time Lord");
         addItem(t, DWMItems.TIME_LORD_SPAWN_EGG, "Time Lord Spawn Egg");
         t.add("dimension.dwm.gallifrey", "Gallifrey");
+        t.add("dimension.dwm.skaro", "Skaro");
         t.add("biome.dwm.gallifrey_plains", "Gallifrey Plains");
         t.add("biome.dwm.gallifrey_forest", "Gallifrey Forest");
         t.add("tag.item.dwm.gallifrey_plants", "Gallifrey Plants");
@@ -477,6 +478,11 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("tag.item.dwm.repairs_azbantium_equipment", "Azbantium Equipment Repair Materials");
         t.add("biome.dwm.gallifrey_wastes", "Gallifrey Wastes");
         t.add("biome.dwm.gallifrey_badlands", "Gallifrey Badlands");
+        t.add("biome.dwm.skaro_irradiated_wastes", "Irradiated Wastes");
+        t.add("biome.dwm.skaro_petrified_jungle", "Petrified Jungle");
+        t.add("biome.dwm.skaro_drammankin_mire", "Drammankin Mire");
+        t.add("biome.dwm.skaro_drammankin_mountains", "Drammankin Mountains");
+        t.add("biome.dwm.skaro_thal_plateau", "Thal Plateau");
         t.add("dwm.console.biome_selector", "Biome selector");
         t.add("dwm.console.biome_selected", "Biome: %s");
         t.add("dwm.console.biome_unavailable", "No biomes available for this dimension");
