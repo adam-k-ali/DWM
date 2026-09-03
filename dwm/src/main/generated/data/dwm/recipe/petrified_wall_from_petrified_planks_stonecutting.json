@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "dwm:petrified_planks",
+  "result": {
+    "id": "dwm:petrified_wall"
+  }
+}

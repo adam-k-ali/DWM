@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "group": "planks",
+  "ingredients": [
+    "#dwm:petrified_logs"
+  ],
+  "result": {
+    "count": 4,
+    "id": "dwm:petrified_planks"
+  }
+}
