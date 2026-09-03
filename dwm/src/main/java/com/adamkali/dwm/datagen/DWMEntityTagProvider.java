@@ -16,7 +16,8 @@ public class DWMEntityTagProvider extends FabricTagsProvider.EntityTypeTagsProvi
     @Override
     protected void addTags(HolderLookup.Provider wrapperLookup) {
         builder(EntityTypeTags.FALL_DAMAGE_IMMUNE)
-                .add(key(DWMEntityTypes.FLUTTERWING));
+                .add(key(DWMEntityTypes.FLUTTERWING))
+                .add(key(DWMEntityTypes.DALEK));
     }
 
     private static net.minecraft.resources.ResourceKey<EntityType<?>> key(EntityType<?> type) {

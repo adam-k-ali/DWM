@@ -15,6 +15,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 - [Gallifrey Dimension](./feature-gallifrey-dimension.md)
 - [Azbantium](./feature-azbantium.md)
 - [Zeiton](./feature-zeiton.md)
+- [Dalek](./feature-dalek.md)
 
 ### Experimental Features
 - [TARDIS Chameleon System](./feature-chameleon-system.md) (config-gated and disabled by default)

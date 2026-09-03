@@ -128,6 +128,7 @@ public class DWMModelProvider extends FabricModelProvider {
         itemModelGenerator.generateFlatItem(DWMItems.FLUTTERWING_SPAWN_EGG, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.MEWING_DOG_SPAWN_EGG, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.TIME_LORD_SPAWN_EGG, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.DALEK_SPAWN_EGG, ModelTemplates.FLAT_ITEM);
     }
 
     private static void registerGallifreyPlants(BlockModelGenerators generator) {

@@ -181,5 +181,41 @@
         "type": "event"
       }
     ]
+  },
+  "entity.dalek.ambient": {
+    "subtitle": "dwm.entity.dalek.ambient.subtitle",
+    "sounds": [
+      {
+        "name": "dwm:entity/dalek/ambient",
+        "volume": 0.7
+      }
+    ]
+  },
+  "entity.dalek.hurt": {
+    "subtitle": "dwm.entity.dalek.hurt.subtitle",
+    "sounds": [
+      {
+        "name": "dwm:entity/dalek/hurt",
+        "volume": 0.85
+      }
+    ]
+  },
+  "entity.dalek.death": {
+    "subtitle": "dwm.entity.dalek.death.subtitle",
+    "sounds": [
+      {
+        "name": "dwm:entity/dalek/death",
+        "volume": 0.9
+      }
+    ]
+  },
+  "entity.dalek.shoot": {
+    "subtitle": "dwm.entity.dalek.shoot.subtitle",
+    "sounds": [
+      {
+        "name": "dwm:entity/dalek/shoot",
+        "volume": 0.9
+      }
+    ]
   }
 }
