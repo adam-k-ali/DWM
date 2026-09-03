@@ -41,6 +41,14 @@ public class DWMLootTableProvider extends FabricBlockLootSubProvider {
             }
         }
 
+        for (Block block : DWMBlocks.PETRIFIED_FAMILY) {
+            if (block == DWMBlocks.PETRIFIED_SLAB) {
+                add(block, createSlabItemTable(block));
+            } else {
+                dropSelf(block);
+            }
+        }
+
         for (Block block : DWMBlocks.CITADEL_BUILDING_BLOCKS) {
             dropSelf(block);
         }

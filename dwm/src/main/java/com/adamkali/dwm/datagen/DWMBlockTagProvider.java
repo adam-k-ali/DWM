@@ -34,6 +34,17 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
             orangeSandTag.add(key(block));
         }
 
+        var petrifiedTag = builder(DWMBlockTags.PETRIFIED_BLOCKS);
+        for (Block block : DWMBlocks.PETRIFIED_FAMILY) {
+            petrifiedTag.add(key(block));
+        }
+
+        builder(DWMBlockTags.PETRIFIED_LOGS)
+                .add(key(DWMBlocks.PETRIFIED_LOG))
+                .add(key(DWMBlocks.PETRIFIED_WOOD))
+                .add(key(DWMBlocks.STRIPPED_PETRIFIED_LOG))
+                .add(key(DWMBlocks.STRIPPED_PETRIFIED_WOOD));
+
         var gallifreyPlantsTag = builder(DWMBlockTags.GALLIFREY_PLANTS);
         for (Block plant : DWMBlocks.GALLIFREY_PLANTS) {
             gallifreyPlantsTag.add(key(plant));
@@ -88,6 +99,9 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(key(DWMBlocks.GALLIFREY_IRON_ORE))
                 .add(key(DWMBlocks.GALLIFREY_GOLD_ORE))
                 .add(key(DWMBlocks.GALLIFREY_DIAMOND_ORE));
+        for (Block block : DWMBlocks.PETRIFIED_FAMILY) {
+            pickaxe.add(key(block));
+        }
 
         builder(BlockTags.NEEDS_STONE_TOOL)
                 .add(key(DWMBlocks.GALLIFREY_IRON_ORE));
@@ -126,7 +140,8 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
 
         var stairs = builder(BlockTags.STAIRS)
                 .add(key(DWMBlocks.ORANGE_SANDSTONE_STAIRS))
-                .add(key(DWMBlocks.SMOOTH_ORANGE_SANDSTONE_STAIRS));
+                .add(key(DWMBlocks.SMOOTH_ORANGE_SANDSTONE_STAIRS))
+                .add(key(DWMBlocks.PETRIFIED_STAIRS));
         stairs.add(key(DWMBlocks.GALLIFREY_COBBLESTONE_STAIRS));
         stairs.add(key(DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE_STAIRS));
         stairs.add(key(DWMBlocks.GALLIFREY_STONE_BRICK_STAIRS));
@@ -135,17 +150,22 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
         var slabs = builder(BlockTags.SLABS)
                 .add(key(DWMBlocks.ORANGE_SANDSTONE_SLAB))
                 .add(key(DWMBlocks.CUT_ORANGE_SANDSTONE_SLAB))
-                .add(key(DWMBlocks.SMOOTH_ORANGE_SANDSTONE_SLAB));
+                .add(key(DWMBlocks.SMOOTH_ORANGE_SANDSTONE_SLAB))
+                .add(key(DWMBlocks.PETRIFIED_SLAB));
         for (Block slab : DWMBlocks.GALLIFREY_STONE_SLABS) {
             slabs.add(key(slab));
         }
 
         var walls = builder(BlockTags.WALLS)
-                .add(key(DWMBlocks.ORANGE_SANDSTONE_WALL));
+                .add(key(DWMBlocks.ORANGE_SANDSTONE_WALL))
+                .add(key(DWMBlocks.PETRIFIED_WALL));
         walls.add(key(DWMBlocks.GALLIFREY_COBBLESTONE_WALL));
         walls.add(key(DWMBlocks.GALLIFREY_MOSSY_COBBLESTONE_WALL));
         walls.add(key(DWMBlocks.GALLIFREY_STONE_BRICK_WALL));
         walls.add(key(DWMBlocks.MOSSY_GALLIFREY_STONE_BRICK_WALL));
+
+        builder(BlockTags.PLANKS)
+                .add(key(DWMBlocks.PETRIFIED_PLANKS));
 
         builder(BlockTags.DIRT)
                 .add(key(DWMBlocks.GALLIFREY_DIRT))

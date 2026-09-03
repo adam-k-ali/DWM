@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.registry.CompostableRegistry;
+import net.fabricmc.fabric.api.registry.StrippableBlockRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -26,6 +27,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ColoredFallingBlock;
 import net.minecraft.world.level.block.FlowerBlock;
 import net.minecraft.world.level.block.FlowerPotBlock;
+import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.TransparentBlock;
@@ -254,6 +256,32 @@ public class DWMBlocks {
             BlockBehaviour.Properties.ofLegacyCopy(SMOOTH_ORANGE_SANDSTONE),
             "smooth_orange_sandstone_slab"
     );
+
+    /** Skaro petrified wood — mineralized trunks (nonflammable, pickaxe). */
+    public static final Block PETRIFIED_LOG = register(
+            RotatedPillarBlock::new,
+            DWMBlockSettings.petrifiedLog(DWMBlockSettings.PETRIFIED_PLANKS_COLOR, DWMBlockSettings.PETRIFIED_BARK_COLOR),
+            "petrified_log"
+    );
+    public static final Block PETRIFIED_WOOD = register(
+            RotatedPillarBlock::new,
+            DWMBlockSettings.petrifiedLog(DWMBlockSettings.PETRIFIED_BARK_COLOR, DWMBlockSettings.PETRIFIED_BARK_COLOR),
+            "petrified_wood"
+    );
+    public static final Block STRIPPED_PETRIFIED_LOG = register(
+            RotatedPillarBlock::new,
+            DWMBlockSettings.petrifiedLog(DWMBlockSettings.PETRIFIED_PLANKS_COLOR, DWMBlockSettings.PETRIFIED_PLANKS_COLOR),
+            "stripped_petrified_log"
+    );
+    public static final Block STRIPPED_PETRIFIED_WOOD = register(
+            RotatedPillarBlock::new,
+            DWMBlockSettings.petrifiedLog(DWMBlockSettings.PETRIFIED_PLANKS_COLOR, DWMBlockSettings.PETRIFIED_PLANKS_COLOR),
+            "stripped_petrified_wood"
+    );
+    public static final Block PETRIFIED_PLANKS = register(Block::new, DWMBlockSettings.petrified(), "petrified_planks");
+    public static final Block PETRIFIED_STAIRS = registerStairs(PETRIFIED_PLANKS, "petrified_stairs");
+    public static final Block PETRIFIED_SLAB = registerSlab(PETRIFIED_PLANKS, "petrified_slab");
+    public static final Block PETRIFIED_WALL = registerWall(PETRIFIED_PLANKS, "petrified_wall");
 
     public static final Block CITADEL_WALL = register(Block::new, DWMBlockSettings.CITADEL, "citadel_wall");
     public static final Block CITADEL_PANEL = register(Block::new, DWMBlockSettings.CITADEL, "citadel_panel");
@@ -525,6 +553,34 @@ public class DWMBlocks {
             SMOOTH_ORANGE_SANDSTONE_SLAB
     );
 
+    /** Natural-tab petrified trunks (axis pillars). */
+    public static final List<Block> PETRIFIED_NATURAL_BLOCKS = List.of(
+            PETRIFIED_LOG,
+            PETRIFIED_WOOD
+    );
+
+    /** Building-tab petrified set (excludes natural trunks). */
+    public static final List<Block> PETRIFIED_BUILDING_BLOCKS = List.of(
+            STRIPPED_PETRIFIED_LOG,
+            STRIPPED_PETRIFIED_WOOD,
+            PETRIFIED_PLANKS,
+            PETRIFIED_STAIRS,
+            PETRIFIED_SLAB,
+            PETRIFIED_WALL
+    );
+
+    /** Full Skaro petrified family. */
+    public static final List<Block> PETRIFIED_FAMILY = List.of(
+            PETRIFIED_LOG,
+            PETRIFIED_WOOD,
+            STRIPPED_PETRIFIED_LOG,
+            STRIPPED_PETRIFIED_WOOD,
+            PETRIFIED_PLANKS,
+            PETRIFIED_STAIRS,
+            PETRIFIED_SLAB,
+            PETRIFIED_WALL
+    );
+
     /** Citadel decorative solids (excludes glass). */
     public static final List<Block> CITADEL_BUILDING_BLOCKS = List.of(
             CITADEL_WALL,
@@ -592,6 +648,9 @@ public class DWMBlocks {
         for (RegisteredWoodFamily family : WOOD_FAMILIES) {
             WoodFamilyRegistrar.wireRuntime(family);
         }
+
+        StrippableBlockRegistry.register(PETRIFIED_LOG, STRIPPED_PETRIFIED_LOG);
+        StrippableBlockRegistry.register(PETRIFIED_WOOD, STRIPPED_PETRIFIED_WOOD);
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.BUILDING_BLOCKS).register(content -> {
             content.accept(BLACK_ROUNDEL_A);
@@ -718,6 +777,10 @@ public class DWMBlocks {
                 content.accept(block);
             }
 
+            for (Block block : PETRIFIED_BUILDING_BLOCKS) {
+                content.accept(block);
+            }
+
             for (Block block : CITADEL_FAMILY) {
                 content.accept(block);
             }
@@ -740,6 +803,9 @@ public class DWMBlocks {
             content.accept(GALLIFREY_COBBLESTONE);
             content.accept(GALLIFREY_MOSSY_COBBLESTONE);
             content.accept(GALLIFREY_STONE);
+            for (Block block : PETRIFIED_NATURAL_BLOCKS) {
+                content.accept(block);
+            }
             content.accept(AZBANTIUM_ORE);
             content.accept(ZEITON_ORE);
             for (Block ore : GALLIFREY_VANILLA_ORES) {

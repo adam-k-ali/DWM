@@ -72,6 +72,7 @@ public class DWMModelProvider extends FabricModelProvider {
         registerChiseledSandstone(blockStateModelGenerator, DWMBlocks.GALLIFREY_CHISELED_SANDSTONE, DWMBlocks.GALLIFREY_SANDSTONE);
 
         registerOrangeSandFamily(blockStateModelGenerator);
+        registerPetrifiedFamily(blockStateModelGenerator);
 
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyClientDatagen.generateBlockModels(blockStateModelGenerator, family);
@@ -258,6 +259,23 @@ public class DWMModelProvider extends FabricModelProvider {
         generator.registerSimpleItemModel(
                 DWMBlocks.SMOOTH_ORANGE_SANDSTONE,
                 ModelLocationUtils.getModelLocation(DWMBlocks.SMOOTH_ORANGE_SANDSTONE)
+        );
+    }
+
+    /** Petrified log/wood pillars + planks stairs/slab/wall (stone-like builder set). */
+    private static void registerPetrifiedFamily(BlockModelGenerators generator) {
+        generator.woodProvider(DWMBlocks.PETRIFIED_LOG)
+                .log(DWMBlocks.PETRIFIED_LOG)
+                .wood(DWMBlocks.PETRIFIED_WOOD);
+        generator.woodProvider(DWMBlocks.STRIPPED_PETRIFIED_LOG)
+                .log(DWMBlocks.STRIPPED_PETRIFIED_LOG)
+                .wood(DWMBlocks.STRIPPED_PETRIFIED_WOOD);
+        registerCubeFamily(
+                generator,
+                DWMBlocks.PETRIFIED_PLANKS,
+                DWMBlocks.PETRIFIED_STAIRS,
+                DWMBlocks.PETRIFIED_SLAB,
+                DWMBlocks.PETRIFIED_WALL
         );
     }
 }

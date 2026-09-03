@@ -85,6 +85,18 @@ public final class DWMBlockTags {
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "cardinal_logs")
     );
 
+    /** Full Skaro petrified family (logs, wood, planks, stairs, slab, wall). */
+    public static final TagKey<Block> PETRIFIED_BLOCKS = TagKey.create(
+            Registries.BLOCK,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "petrified_blocks")
+    );
+
+    /** Petrified log/wood variants (not {@code #minecraft:logs_that_burn}). */
+    public static final TagKey<Block> PETRIFIED_LOGS = TagKey.create(
+            Registries.BLOCK,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "petrified_logs")
+    );
+
     /**
      * Vanilla still ships {@code data/minecraft/tags/block/logs_that_burn.json}, but
      * {@link net.minecraft.tags.BlockTags} no longer exposes a constant in 26.2.

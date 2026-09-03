@@ -166,4 +166,30 @@ public class DWMBlockSettings {
                 .sound(SoundType.WOOD)
                 .ignitedByLava();
     }
+
+    public static final MapColor PETRIFIED_PLANKS_COLOR = MapColor.COLOR_GRAY;
+    public static final MapColor PETRIFIED_BARK_COLOR = MapColor.TERRACOTTA_GRAY;
+
+    /** Mineralized Skaro petrified wood — pickaxe, nonflammable (no {@code ignitedByLava}). */
+    public static BlockBehaviour.Properties petrified() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(PETRIFIED_PLANKS_COLOR)
+                .instrument(NoteBlockInstrument.BASEDRUM)
+                .requiresCorrectToolForDrops()
+                .strength(2.0F, 6.0F)
+                .sound(SoundType.BASALT);
+    }
+
+    /** Axis-aware petrified log/wood properties (nonflammable, pickaxe). */
+    public static BlockBehaviour.Properties petrifiedLog(MapColor topMapColor, MapColor sideMapColor) {
+        return BlockBehaviour.Properties.of()
+                .mapColor(state -> state.hasProperty(net.minecraft.world.level.block.RotatedPillarBlock.AXIS)
+                        && state.getValue(net.minecraft.world.level.block.RotatedPillarBlock.AXIS) == Direction.Axis.Y
+                        ? topMapColor
+                        : sideMapColor)
+                .instrument(NoteBlockInstrument.BASEDRUM)
+                .requiresCorrectToolForDrops()
+                .strength(2.0F, 6.0F)
+                .sound(SoundType.BASALT);
+    }
 }
