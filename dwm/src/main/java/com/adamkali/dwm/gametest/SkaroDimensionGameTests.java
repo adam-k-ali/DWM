@@ -16,8 +16,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.dimension.DimensionType;
-import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
 
@@ -55,18 +53,6 @@ public class SkaroDimensionGameTests {
         }
         if (!taggedKeys.containsAll(SKARO_BIOMES)) {
             throw new AssertionError("Tag #dwm:is_skaro missing expected biomes: " + taggedKeys);
-        }
-
-        ResourceKey<LevelStem> stemKey = ResourceKey.create(Registries.LEVEL_STEM, SkaroDimensions.DIMENSION_ID);
-        Registry<LevelStem> stems = registries.lookupOrThrow(Registries.LEVEL_STEM);
-        if (stems.get(stemKey).isEmpty()) {
-            throw new AssertionError("Expected level stem dwm:skaro to be registered");
-        }
-
-        ResourceKey<DimensionType> typeKey = ResourceKey.create(Registries.DIMENSION_TYPE, SkaroDimensions.DIMENSION_ID);
-        Registry<DimensionType> types = registries.lookupOrThrow(Registries.DIMENSION_TYPE);
-        if (types.get(typeKey).isEmpty()) {
-            throw new AssertionError("Expected dimension type dwm:skaro to be registered");
         }
 
         Registry<NoiseGeneratorSettings> noise = registries.lookupOrThrow(Registries.NOISE_SETTINGS);

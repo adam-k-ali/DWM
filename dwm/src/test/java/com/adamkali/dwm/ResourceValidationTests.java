@@ -971,6 +971,14 @@ public class ResourceValidationTests {
 
         Path noise = Path.of("src/main/generated/data/dwm/worldgen/noise_settings/skaro.json");
         assertTrue(Files.isRegularFile(noise) && Files.size(noise) > 0, "Missing generated Skaro noise settings: " + noise);
+        assertTrue(
+                Files.isRegularFile(Path.of("src/main/resources/data/dwm/dimension/skaro.json")),
+                "Missing hand-maintained dimension/skaro.json"
+        );
+        assertTrue(
+                Files.isRegularFile(Path.of("src/main/resources/data/dwm/dimension_type/skaro.json")),
+                "Missing hand-maintained dimension_type/skaro.json"
+        );
     }
 
     private static boolean biomeHasCreatureSpawn(String biomeFile, String entityId) throws Exception {
