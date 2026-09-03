@@ -19,6 +19,9 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 ### Experimental Features
 - [TARDIS Chameleon System](./feature-chameleon-system.md) (config-gated and disabled by default)
 
+### Planned Features
+- [Skaro Dimension](./feature-skaro-dimension.md) (planned destination world)
+
 ## Brand and Differentiation
 - [Branding Guidelines](./branding-guidelines.md)
 - [Differentiation Strategy](./differentiation-strategy.md)
@@ -29,4 +32,5 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 ## Scope Notes
 - These docs describe behavior currently implemented in this repository.
 - Experimental and partially implemented surfaces are explicitly labeled.
+- Planned Features describe intended destination worlds; they are not stable capabilities.
 - Future ideas are listed as opportunities, not current capabilities.
