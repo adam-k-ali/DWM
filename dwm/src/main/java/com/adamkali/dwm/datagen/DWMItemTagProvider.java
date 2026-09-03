@@ -29,6 +29,8 @@ public class DWMItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         copy(com.adamkali.dwm.block.DWMBlockTags.GALLIFREY_STONE, com.adamkali.dwm.item.DWMItemTags.GALLIFREY_STONE);
         copy(com.adamkali.dwm.block.DWMBlockTags.ORANGE_SAND, com.adamkali.dwm.item.DWMItemTags.ORANGE_SAND);
         copy(com.adamkali.dwm.block.DWMBlockTags.CITADEL, com.adamkali.dwm.item.DWMItemTags.CITADEL);
+        copy(DWMBlockTags.PETRIFIED_BLOCKS, DWMItemTags.PETRIFIED_BLOCKS);
+        copy(DWMBlockTags.PETRIFIED_LOGS, DWMItemTags.PETRIFIED_LOGS);
         copy(com.adamkali.dwm.block.DWMBlockTags.GALLIFREY_PLANTS, com.adamkali.dwm.item.DWMItemTags.GALLIFREY_PLANTS);
         copy(DWMBlockTags.AZBANTIUM_ORES, DWMItemTags.AZBANTIUM_ORES);
         copy(DWMBlockTags.ZEITON_ORES, DWMItemTags.ZEITON_ORES);

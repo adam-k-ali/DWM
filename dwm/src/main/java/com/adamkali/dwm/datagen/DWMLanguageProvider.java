@@ -21,6 +21,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addBuildingBlocks(translationBuilder);
         addGallifreyStoneFamily(translationBuilder);
         addOrangeSandFamily(translationBuilder);
+        addPetrifiedFamily(translationBuilder);
         addCitadelFamily(translationBuilder);
         addGallifreyPlants(translationBuilder);
         addAzbantiumSet(translationBuilder);
@@ -399,6 +400,17 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addBlockAndItem(t, DWMBlocks.SMOOTH_ORANGE_SANDSTONE, "Smooth Orange Sandstone");
         addBlockAndItem(t, DWMBlocks.SMOOTH_ORANGE_SANDSTONE_STAIRS, "Smooth Orange Sandstone Stairs");
         addBlockAndItem(t, DWMBlocks.SMOOTH_ORANGE_SANDSTONE_SLAB, "Smooth Orange Sandstone Slab");
+    }
+
+    private static void addPetrifiedFamily(TranslationBuilder t) {
+        addBlockAndItem(t, DWMBlocks.PETRIFIED_LOG, "Petrified Log");
+        addBlockAndItem(t, DWMBlocks.PETRIFIED_WOOD, "Petrified Wood");
+        addBlockAndItem(t, DWMBlocks.STRIPPED_PETRIFIED_LOG, "Stripped Petrified Log");
+        addBlockAndItem(t, DWMBlocks.STRIPPED_PETRIFIED_WOOD, "Stripped Petrified Wood");
+        addBlockAndItem(t, DWMBlocks.PETRIFIED_PLANKS, "Petrified Planks");
+        addBlockAndItem(t, DWMBlocks.PETRIFIED_STAIRS, "Petrified Stairs");
+        addBlockAndItem(t, DWMBlocks.PETRIFIED_SLAB, "Petrified Slab");
+        addBlockAndItem(t, DWMBlocks.PETRIFIED_WALL, "Petrified Wall");
     }
 
     private static void addCitadelFamily(TranslationBuilder t) {

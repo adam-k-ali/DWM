@@ -121,6 +121,7 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
 
                 generateGallifreyStoneShapeRecipes();
                 generateOrangeSandRecipes();
+                generatePetrifiedRecipes();
                 generateAzbantiumRecipes();
                 generateZeitonRecipes();
                 generateCircuitRecipes();
@@ -644,6 +645,22 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.CUT_ORANGE_SANDSTONE_SLAB, DWMBlocks.CUT_ORANGE_SANDSTONE, 2);
                 stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.SMOOTH_ORANGE_SANDSTONE_SLAB, DWMBlocks.SMOOTH_ORANGE_SANDSTONE, 2);
                 stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.SMOOTH_ORANGE_SANDSTONE_STAIRS, DWMBlocks.SMOOTH_ORANGE_SANDSTONE);
+            }
+
+            private void generatePetrifiedRecipes() {
+                planksFromLogs(DWMBlocks.PETRIFIED_PLANKS, DWMItemTags.PETRIFIED_LOGS, 4);
+                woodFromLogs(DWMBlocks.PETRIFIED_WOOD, DWMBlocks.PETRIFIED_LOG);
+                woodFromLogs(DWMBlocks.STRIPPED_PETRIFIED_WOOD, DWMBlocks.STRIPPED_PETRIFIED_LOG);
+
+                stairBuilder(DWMBlocks.PETRIFIED_STAIRS, Ingredient.of(DWMBlocks.PETRIFIED_PLANKS))
+                        .unlockedBy(getHasName(DWMBlocks.PETRIFIED_PLANKS), has(DWMBlocks.PETRIFIED_PLANKS))
+                        .save(output);
+                slab(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.PETRIFIED_SLAB, DWMBlocks.PETRIFIED_PLANKS);
+                wall(RecipeCategory.DECORATIONS, DWMBlocks.PETRIFIED_WALL, DWMBlocks.PETRIFIED_PLANKS);
+
+                stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.PETRIFIED_SLAB, DWMBlocks.PETRIFIED_PLANKS, 2);
+                stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.PETRIFIED_STAIRS, DWMBlocks.PETRIFIED_PLANKS);
+                stonecutterResultFromBase(RecipeCategory.DECORATIONS, DWMBlocks.PETRIFIED_WALL, DWMBlocks.PETRIFIED_PLANKS);
             }
         };
     }

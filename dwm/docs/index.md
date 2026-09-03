@@ -20,7 +20,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 - [TARDIS Chameleon System](./feature-chameleon-system.md) (config-gated and disabled by default)
 
 ### Planned Features
-- [Skaro Dimension](./feature-skaro-dimension.md) (planned destination world)
+- [Skaro Dimension](./feature-skaro-dimension.md) (destination world; petrified wood family shipped, dimension/worldgen still planned)
 
 ## Brand and Differentiation
 - [Branding Guidelines](./branding-guidelines.md)
