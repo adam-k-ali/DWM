@@ -29,10 +29,9 @@ public final class DWMWoodTypes {
             .register(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "cardinal"), CARDINAL_SET);
 
     /** Iron-like Dalekanium doors (redstone only; shared by silver and bronze). */
-    public static final BlockSetType DALEKANIUM_SET = new BlockSetTypeBuilder()
-            .openableByHand(false)
-            .openableByWindCharge(false)
-            .soundGroup(net.minecraft.world.level.block.SoundType.METAL)
+    public static final BlockSetType DALEKANIUM_SET = BlockSetTypeBuilder.copyOf(
+                    net.minecraft.world.level.block.state.properties.BlockSetType.IRON
+            )
             .register(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "dalekanium"));
 
     private DWMWoodTypes() {

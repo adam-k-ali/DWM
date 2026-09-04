@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_bronze_dalekanium_damaged_panel": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dwm:bronze_dalekanium_damaged_panel"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "dwm:bronze_dalekanium_floor_from_bronze_dalekanium_damaged_panel_stonecutting"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_bronze_dalekanium_damaged_panel"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "dwm:bronze_dalekanium_floor_from_bronze_dalekanium_damaged_panel_stonecutting"
+    ]
+  }
+}

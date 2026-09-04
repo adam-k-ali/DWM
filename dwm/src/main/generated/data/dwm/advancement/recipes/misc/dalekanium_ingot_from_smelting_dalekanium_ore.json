@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_dalekanium_ore": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dwm:dalekanium_ore"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "dwm:dalekanium_ingot_from_smelting_dalekanium_ore"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_dalekanium_ore"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "dwm:dalekanium_ingot_from_smelting_dalekanium_ore"
+    ]
+  }
+}
