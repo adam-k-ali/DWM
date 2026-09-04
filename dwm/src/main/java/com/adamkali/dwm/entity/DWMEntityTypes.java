@@ -29,11 +29,14 @@ public final class DWMEntityTypes {
     public static EntityType<FlutterwingEntity> FLUTTERWING;
     public static EntityType<MewingDogEntity> MEWING_DOG;
     public static EntityType<TimeLordEntity> TIME_LORD;
+    public static EntityType<DalekEntity> DALEK;
+    public static EntityType<DalekLaserEntity> DALEK_LASER;
 
     private DWMEntityTypes() {
     }
 
     public static void initialize() {
+        
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyRegistrar.registerBoatEntity(family);
         }
@@ -46,6 +49,8 @@ public final class DWMEntityTypes {
         FLUTTERWING = registerFlutterwing();
         MEWING_DOG = registerMewingDog();
         TIME_LORD = registerTimeLord();
+        DALEK = registerDalek();
+        DALEK_LASER = registerDalekLaser();
     }
 
     private static EntityType<TardisSeatEntity> registerSeat() {
@@ -181,6 +186,47 @@ public final class DWMEntityTypes {
                         .sized(0.6F, 1.95F)
                         .eyeHeight(1.62F)
                         .clientTrackingRange(10)
+                        .build(key)
+        );
+    }
+
+    private static EntityType<DalekEntity> registerDalek() {
+        Identifier id = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "dalek");
+        ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, id);
+        return Registry.register(
+                BuiltInRegistries.ENTITY_TYPE,
+                key,
+                FabricEntityType.Builder.createMob(
+                                DalekEntity::new,
+                                MobCategory.MONSTER,
+                                mob -> mob
+                                        .spawnPlacement(
+                                                SpawnPlacementTypes.ON_GROUND,
+                                                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                                                (type, level, reason, pos, random) ->
+                                                        Mob.checkMobSpawnRules(type, level, reason, pos, random)
+                                        )
+                                        .defaultAttributes(DalekEntity::createAttributes)
+                        )
+                        .sized(0.8F, 1.95F)
+                        .eyeHeight(1.7F)
+                        .clientTrackingRange(10)
+                        .build(key)
+        );
+    }
+
+    private static EntityType<DalekLaserEntity> registerDalekLaser() {
+        Identifier id = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "dalek_laser");
+        ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, id);
+        return Registry.register(
+                BuiltInRegistries.ENTITY_TYPE,
+                key,
+                EntityType.Builder.<DalekLaserEntity>of(DalekLaserEntity::new, MobCategory.MISC)
+                        .sized(0.25F, 0.25F)
+                        .clientTrackingRange(8)
+                        .updateInterval(1)
+                        .noSummon()
+                        .noLootTable()
                         .build(key)
         );
     }

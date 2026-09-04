@@ -291,7 +291,8 @@ tasks.register("pruneDatagenItemModels") {
                     || f.name.contains("broakir")
                     || f.name.contains("flutterwing")
                     || f.name.contains("mewing_dog")
-                    || f.name.contains("time_lord")) {
+                    || f.name.contains("time_lord")
+                    || f.name.contains("dalek")) {
                 return
             }
             f.delete()

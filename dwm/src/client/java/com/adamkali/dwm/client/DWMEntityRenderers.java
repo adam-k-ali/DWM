@@ -5,9 +5,13 @@ import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.model.entity.BroakirModel;
+import com.adamkali.dwm.model.entity.DalekLaserModel;
+import com.adamkali.dwm.model.entity.DalekModel;
 import com.adamkali.dwm.model.entity.FlutterwingModel;
 import com.adamkali.dwm.model.entity.TimeLordModel;
 import com.adamkali.dwm.render.BroakirRenderer;
+import com.adamkali.dwm.render.DalekLaserRenderer;
+import com.adamkali.dwm.render.DalekRenderer;
 import com.adamkali.dwm.render.FlutterwingRenderer;
 import com.adamkali.dwm.render.MewingDogRenderer;
 import com.adamkali.dwm.render.TimeLordRenderer;
@@ -44,5 +48,9 @@ public final class DWMEntityRenderers {
         EntityRendererRegistry.register(DWMEntityTypes.MEWING_DOG, MewingDogRenderer::new);
         ModelLayerRegistry.registerModelLayer(TimeLordModel.LAYER_LOCATION, TimeLordModel::createBodyLayer);
         EntityRendererRegistry.register(DWMEntityTypes.TIME_LORD, TimeLordRenderer::new);
+        ModelLayerRegistry.registerModelLayer(DalekModel.LAYER_LOCATION, DalekModel::createBodyLayer);
+        EntityRendererRegistry.register(DWMEntityTypes.DALEK, DalekRenderer::new);
+        ModelLayerRegistry.registerModelLayer(DalekLaserModel.LAYER_LOCATION, DalekLaserModel::createBodyLayer);
+        EntityRendererRegistry.register(DWMEntityTypes.DALEK_LASER, DalekLaserRenderer::new);
     }
 }

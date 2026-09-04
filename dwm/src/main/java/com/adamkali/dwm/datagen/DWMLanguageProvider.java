@@ -468,6 +468,9 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItem(t, DWMItems.MEWING_DOG_SPAWN_EGG, "Mewing Dog Spawn Egg");
         t.add(DWMEntityTypes.TIME_LORD, "Time Lord");
         addItem(t, DWMItems.TIME_LORD_SPAWN_EGG, "Time Lord Spawn Egg");
+        t.add(DWMEntityTypes.DALEK, "Dalek");
+        addItem(t, DWMItems.DALEK_SPAWN_EGG, "Dalek Spawn Egg");
+        t.add(DWMEntityTypes.DALEK_LASER, "Dalek Laser");
         t.add("dimension.dwm.gallifrey", "Gallifrey");
         t.add("biome.dwm.gallifrey_plains", "Gallifrey Plains");
         t.add("biome.dwm.gallifrey_forest", "Gallifrey Forest");
@@ -622,6 +625,10 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.entity.time_lord.ambient.subtitle", "Time Lord murmurs");
         t.add("dwm.entity.time_lord.hurt.subtitle", "Time Lord hurts");
         t.add("dwm.entity.time_lord.death.subtitle", "Time Lord dies");
+        t.add("dwm.entity.dalek.ambient.subtitle", "Dalek grates");
+        t.add("dwm.entity.dalek.hurt.subtitle", "Dalek hurts");
+        t.add("dwm.entity.dalek.death.subtitle", "Dalek dies");
+        t.add("dwm.entity.dalek.shoot.subtitle", "Dalek laser fires");
         t.add("config.dwm.title", "Doctor Who Mod");
         t.add("stat.dwm.sonic_screwdriver_use", "Uses of Sonic Screwdriver");
         t.add("advancements.dwm.root", "Doctor Who");

@@ -863,6 +863,137 @@ public class ResourceValidationTests {
     }
 
     @Test
+    public void dalekEntityTextureExists() throws Exception {
+        Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/dalek/1963.png");
+        assertTrue(
+                Files.isRegularFile(texture) && Files.size(texture) > 0,
+                "DalekRenderer expects assets/dwm/textures/entity/dalek/1963.png"
+        );
+        BufferedImage image = ImageIO.read(texture.toFile());
+        assertEquals(64, image.getWidth(), "Dalek atlas width");
+        assertEquals(64, image.getHeight(), "Dalek atlas height");
+        // New UV slots from DalekModel texOffs / fix_dalek_less.py SWATCHES.
+        assertRgb(image, 1, 1, 158, 160, 156, "casing (0,0)");
+        assertRgb(image, 1, 17, 22, 22, 22, "band (0,16)");
+        assertRgb(image, 37, 17, 48, 50, 54, "gun (36,16)");
+        assertRgb(image, 1, 33, 28, 28, 30, "plunger (0,32)");
+        assertRgb(image, 17, 33, 18, 18, 20, "eyestalk (16,32)");
+        assertRgb(image, 32, 32, 232, 236, 240, "lens (32,32)");
+        assertRgb(image, 41, 33, 214, 214, 210, "stud (40,32)");
+        assertRgb(image, 49, 33, 36, 176, 196, "light (48,32)");
+        // Old layout put the black band at (32,0); that cell is now casing silver.
+        assertRgb(image, 40, 8, 158, 160, 156, "former band cell is now casing");
+    }
+
+    private static void assertRgb(
+            BufferedImage image,
+            int x,
+            int y,
+            int red,
+            int green,
+            int blue,
+            String slot
+    ) {
+        int argb = image.getRGB(x, y);
+        assertEquals(255, (argb >>> 24) & 0xFF, slot + " alpha");
+        assertEquals(red, (argb >> 16) & 0xFF, slot + " red");
+        assertEquals(green, (argb >> 8) & 0xFF, slot + " green");
+        assertEquals(blue, argb & 0xFF, slot + " blue");
+    }
+
+    @Test
+    public void dalekSpawnEggTextureExists() throws Exception {
+        Path texture = Path.of("src/client/resources/assets/dwm/textures/item/dalek_spawn_egg.png");
+        assertTrue(
+                Files.isRegularFile(texture) && Files.size(texture) > 0,
+                "Spawn egg item model expects assets/dwm/textures/item/dalek_spawn_egg.png"
+        );
+    }
+
+    /**
+     * Guards against {@code pruneDatagenItemModels} dropping the Dalek spawn egg item def
+     * (allowlist must include {@code dalek} substring).
+     */
+    @Test
+    public void generatedDalekSpawnEggItemModelExists() throws Exception {
+        Path item = Path.of("src/main/generated/assets/dwm/items/dalek_spawn_egg.json");
+        assertTrue(
+                Files.isRegularFile(item) && Files.size(item) > 0,
+                "Missing generated Dalek spawn egg item model: " + item
+        );
+    }
+
+    @Test
+    public void gallifreyBiomesDoNotSpawnDalek() throws Exception {
+        for (String biome : new String[]{
+                "gallifrey_forest.json",
+                "gallifrey_plains.json",
+                "gallifrey_wastes.json",
+                "gallifrey_badlands.json"
+        }) {
+            assertFalse(biomeHasCreatureSpawn(biome, "dwm:dalek"));
+            assertFalse(biomeHasMonsterSpawn(biome, "dwm:dalek"));
+        }
+    }
+
+    @Test
+    public void dalekIsFallDamageImmune() throws Exception {
+        Path path = Path.of("src/main/generated/data/minecraft/tags/entity_type/fall_damage_immune.json");
+        assertTrue(Files.isRegularFile(path), "Missing generated fall_damage_immune entity tag: " + path);
+        JSONObject tag = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
+        var values = tag.getJSONArray("values");
+        boolean found = false;
+        for (int i = 0; i < values.length(); i++) {
+            if ("dwm:dalek".equals(values.getString(i))) {
+                found = true;
+                break;
+            }
+        }
+        assertTrue(found, "fall_damage_immune should include dwm:dalek");
+    }
+
+    @Test
+    public void dalekSoundFilesExist() throws Exception {
+        String[] names = {"ambient", "hurt", "death", "shoot"};
+        for (String name : names) {
+            Path sound = Path.of("src/client/resources/assets/dwm/sounds/entity/dalek/" + name + ".ogg");
+            assertTrue(
+                    Files.isRegularFile(sound) && Files.size(sound) > 0,
+                    "Dalek sound event expects " + sound
+            );
+        }
+        byte[] ambient = Files.readAllBytes(Path.of("src/client/resources/assets/dwm/sounds/entity/dalek/ambient.ogg"));
+        byte[] hurt = Files.readAllBytes(Path.of("src/client/resources/assets/dwm/sounds/entity/dalek/hurt.ogg"));
+        byte[] death = Files.readAllBytes(Path.of("src/client/resources/assets/dwm/sounds/entity/dalek/death.ogg"));
+        byte[] shoot = Files.readAllBytes(Path.of("src/client/resources/assets/dwm/sounds/entity/dalek/shoot.ogg"));
+        assertFalse(Arrays.equals(ambient, hurt), "ambient and hurt clips should differ");
+        assertFalse(Arrays.equals(hurt, death), "hurt and death clips should differ");
+        assertFalse(Arrays.equals(ambient, death), "ambient and death clips should differ");
+        assertFalse(Arrays.equals(shoot, ambient), "shoot and ambient clips should differ");
+    }
+
+    @Test
+    public void dalekSoundsAreCustomNotVanillaAliases() throws Exception {
+        Path path = Path.of("src/main/resources/assets/dwm/sounds.json");
+        JSONObject sounds = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
+        String[] events = {
+                "entity.dalek.ambient",
+                "entity.dalek.hurt",
+                "entity.dalek.death",
+                "entity.dalek.shoot"
+        };
+        for (String event : events) {
+            assertTrue(sounds.has(event), "Missing sound event: " + event);
+            var entries = sounds.getJSONObject(event).getJSONArray("sounds");
+            assertTrue(entries.length() > 0, event + " should list at least one clip");
+            for (int i = 0; i < entries.length(); i++) {
+                String name = entries.getJSONObject(i).getString("name");
+                assertTrue(name.startsWith("dwm:entity/dalek/"), event + " should use a custom dwm clip, got " + name);
+            }
+        }
+    }
+
+    @Test
     public void mewingDogAmbientSoundFilesExist() throws Exception {
         for (String name : new String[]{"ambient", "ambient_2"}) {
             Path sound = Path.of("src/client/resources/assets/dwm/sounds/entity/mewing_dog/" + name + ".ogg");
@@ -900,6 +1031,19 @@ public class ResourceValidationTests {
         var creatures = biome.getJSONObject("spawners").getJSONArray("creature");
         for (int i = 0; i < creatures.length(); i++) {
             if (entityId.equals(creatures.getJSONObject(i).getString("type"))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean biomeHasMonsterSpawn(String biomeFile, String entityId) throws Exception {
+        Path path = Path.of("src/main/generated/data/dwm/worldgen/biome").resolve(biomeFile);
+        assertTrue(Files.isRegularFile(path), "Missing generated biome: " + path);
+        JSONObject biome = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
+        var monsters = biome.getJSONObject("spawners").getJSONArray("monster");
+        for (int i = 0; i < monsters.length(); i++) {
+            if (entityId.equals(monsters.getJSONObject(i).getString("type"))) {
                 return true;
             }
         }
