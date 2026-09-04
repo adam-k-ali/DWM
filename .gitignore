@@ -54,6 +54,8 @@ tickets/
 .cursor/skills/*
 !.cursor/skills/refine/
 !.cursor/skills/refine/**
+!.cursor/skills/minecraft-sprite-style/
+!.cursor/skills/minecraft-sprite-style/**
 
 # accidental dependency jar extracts at repo root
 /LICENSE-fabric-rendering-v1
