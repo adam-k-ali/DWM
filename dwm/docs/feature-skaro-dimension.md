@@ -21,7 +21,7 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
   - Drammankin Mire: mud over dirt; olive fog and murky water.
   - Drammankin Mountains: stone / tuff / gravel over tuff; cold ash-grey atmosphere.
   - Thal Plateau: dirt / coarse dirt / terracotta; muted blue-grey sky.
-- Baseline caves, lakes, vanilla ores, and Overworld hostile/cave spawns in every biome. No passive farm animals. No Gallifrey plants, woods, ores, or fauna.
+- Baseline caves, lakes, and vanilla ores in every biome. Empty biome spawn tables (no Overworld hostiles, cave fauna, or farm animals). No Gallifrey plants, woods, ores, or fauna. Daleks, Thals, and Skaro fauna remain planned.
 - TARDIS planet locator discovers Skaro automatically as a loaded world. `BiomeSelectorLogic` maps `dwm:skaro` to `#dwm:is_skaro`.
 - **Petrified wood family** (DWM-064): mineralized Skaro trunks and builder variants.
   - Natural: `petrified_log`, `petrified_wood` (axis pillars).

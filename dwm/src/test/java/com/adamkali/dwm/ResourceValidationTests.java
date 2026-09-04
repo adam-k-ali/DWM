@@ -932,33 +932,28 @@ public class ResourceValidationTests {
                 "dwm:cardinal",
                 "dwm:saccharine"
         };
-        String[] farmAnimals = {
-                "minecraft:cow",
-                "minecraft:pig",
-                "minecraft:sheep",
-                "minecraft:chicken",
-                "minecraft:horse",
-                "minecraft:donkey",
-                "minecraft:llama"
-        };
-        String[] gallifreyFauna = {
-                "dwm:broakir",
-                "dwm:flutterwing",
-                "dwm:mewing_dog",
-                "dwm:time_lord"
+        String[] spawnCategories = {
+                "ambient",
+                "axolotls",
+                "creature",
+                "misc",
+                "monster",
+                "underground_water_creature",
+                "water_ambient",
+                "water_creature"
         };
 
         for (String biomeFile : biomeFiles) {
             Path path = biomeDir.resolve(biomeFile);
             assertTrue(Files.isRegularFile(path), "Missing generated Skaro biome: " + path);
             JSONObject biome = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
-            var creatures = biome.getJSONObject("spawners").getJSONArray("creature");
-            assertEquals(0, creatures.length(), biomeFile + " must omit farm animals and Gallifrey fauna");
-            for (String farmAnimal : farmAnimals) {
-                assertFalse(biomeHasCreatureSpawn(biomeFile, farmAnimal), biomeFile + " must not spawn " + farmAnimal);
-            }
-            for (String fauna : gallifreyFauna) {
-                assertFalse(biomeHasCreatureSpawn(biomeFile, fauna), biomeFile + " must not spawn " + fauna);
+            var spawners = biome.getJSONObject("spawners");
+            for (String category : spawnCategories) {
+                assertEquals(
+                        0,
+                        spawners.getJSONArray(category).length(),
+                        biomeFile + " must have empty spawners." + category
+                );
             }
             String blob = Files.readString(path);
             for (String forbidden : forbiddenFeatureSubstrings) {

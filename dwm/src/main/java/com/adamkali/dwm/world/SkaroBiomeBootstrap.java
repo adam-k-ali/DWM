@@ -39,7 +39,7 @@ public final class SkaroBiomeBootstrap {
                 false,
                 1.2F,
                 0.0F,
-                commonSpawns(),
+                emptySpawns(),
                 basicGeneration(features, carvers),
                 0x8B9A2A,
                 0x6A7A18,
@@ -58,7 +58,7 @@ public final class SkaroBiomeBootstrap {
                 true,
                 0.9F,
                 0.8F,
-                commonSpawns(),
+                emptySpawns(),
                 basicGeneration(features, carvers),
                 0x5A5040,
                 0x4A4030,
@@ -77,7 +77,7 @@ public final class SkaroBiomeBootstrap {
                 true,
                 0.8F,
                 0.9F,
-                commonSpawns(),
+                emptySpawns(),
                 basicGeneration(features, carvers),
                 0x3A4A28,
                 0x2A3A18,
@@ -96,7 +96,7 @@ public final class SkaroBiomeBootstrap {
                 false,
                 0.4F,
                 0.2F,
-                commonSpawns(),
+                emptySpawns(),
                 basicGeneration(features, carvers),
                 0x4A5558,
                 0x3A4548,
@@ -115,7 +115,7 @@ public final class SkaroBiomeBootstrap {
                 true,
                 0.7F,
                 0.4F,
-                commonSpawns(),
+                emptySpawns(),
                 basicGeneration(features, carvers),
                 0x4A6A7A,
                 0x3A5A6A,
@@ -126,10 +126,8 @@ public final class SkaroBiomeBootstrap {
         );
     }
 
-    private static MobSpawnSettings.Builder commonSpawns() {
-        MobSpawnSettings.Builder spawns = new MobSpawnSettings.Builder();
-        BiomeDefaultFeatures.commonSpawns(spawns);
-        return spawns;
+    private static MobSpawnSettings.Builder emptySpawns() {
+        return new MobSpawnSettings.Builder();
     }
 
     private static BiomeGenerationSettings.Builder basicGeneration(
