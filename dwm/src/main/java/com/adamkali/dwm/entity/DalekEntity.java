@@ -99,6 +99,7 @@ public class DalekEntity extends Monster implements RangedAttackMob {
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new DalekFlightGoal(this));
         this.goalSelector.addGoal(2, new RangedAttackGoal(this, 1.0, 40, 16.0F));
         this.goalSelector.addGoal(3, new WaterAvoidingRandomStrollGoal(this, 1.0) {
             @Override
@@ -148,32 +149,13 @@ public class DalekEntity extends Monster implements RangedAttackMob {
         }
     }
 
-    public void refreshFlightState() {
-        LivingEntity target = this.getTarget();
-        boolean hasTarget = target != null && target.isAlive();
-        double yDelta = hasTarget ? target.getY() - this.getY() : 0.0;
-        double distance = hasTarget ? this.distanceTo(target) : 0.0;
-        boolean hasGroundPath = !hasTarget || hasGroundPathTo(target);
-        this.setFlying(DalekFlight.shouldFly(
-                hasTarget,
-                yDelta,
-                hasGroundPath,
-                distance,
-                this.isFlying(),
-                this.onGround()
-        ));
-    }
-
-    private boolean hasGroundPathTo(LivingEntity target) {
+    boolean hasGroundPathTo(LivingEntity target) {
         Path path = this.groundNavigation.createPath(target, 0);
         return path != null;
     }
 
     @Override
     public void aiStep() {
-        if (!this.level().isClientSide()) {
-            this.refreshFlightState();
-        }
         super.aiStep();
         if (this.level().isClientSide()) {
             tickFlightParticles();

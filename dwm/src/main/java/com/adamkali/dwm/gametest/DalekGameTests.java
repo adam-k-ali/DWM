@@ -57,10 +57,11 @@ public class DalekGameTests {
         Player player = context.makeMockPlayer(GameType.SURVIVAL);
         player.snapTo(dalek.getX(), dalek.getY() + 6.0, dalek.getZ());
         dalek.setTarget(player);
-        dalek.refreshFlightState();
-        if (!dalek.isFlying()) {
-            throw new AssertionError("Expected Dalek to fly when the target is well above ground pathing");
-        }
-        context.succeed();
+        context.runAtTickTime(2, () -> {
+            if (!dalek.isFlying()) {
+                throw new AssertionError("Expected Dalek to fly when the target is well above ground pathing");
+            }
+            context.succeed();
+        });
     }
 }
