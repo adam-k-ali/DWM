@@ -40,6 +40,7 @@ public final class DWMBiomeBootstrap {
         registerable.register(DWMBiomeKeys.GALLIFREY_FOREST, createForest(features, carvers));
         registerable.register(DWMBiomeKeys.GALLIFREY_WASTES, createWastes(features, carvers));
         registerable.register(DWMBiomeKeys.GALLIFREY_BADLANDS, createBadlands(features, carvers));
+        SkaroBiomeBootstrap.bootstrap(registerable, features, carvers);
     }
 
     private static Biome createPlains(

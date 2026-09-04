@@ -1,0 +1,72 @@
+{
+  "type": "dwm:skaro",
+  "generator": {
+    "type": "minecraft:noise",
+    "settings": "dwm:skaro",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "dwm:skaro_irradiated_wastes",
+          "parameters": {
+            "temperature": 0.4,
+            "humidity": -0.3,
+            "continentalness": 0.0,
+            "erosion": 0.1,
+            "weirdness": 0.0,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "dwm:skaro_petrified_jungle",
+          "parameters": {
+            "temperature": 0.2,
+            "humidity": 0.7,
+            "continentalness": 0.15,
+            "erosion": -0.1,
+            "weirdness": 0.1,
+            "depth": 0.0,
+            "offset": 0.05
+          }
+        },
+        {
+          "biome": "dwm:skaro_drammankin_mire",
+          "parameters": {
+            "temperature": 0.1,
+            "humidity": 0.8,
+            "continentalness": -0.3,
+            "erosion": 0.2,
+            "weirdness": 0.0,
+            "depth": 0.0,
+            "offset": 0.08
+          }
+        },
+        {
+          "biome": "dwm:skaro_drammankin_mountains",
+          "parameters": {
+            "temperature": -0.2,
+            "humidity": -0.1,
+            "continentalness": 0.7,
+            "erosion": -0.4,
+            "weirdness": 0.2,
+            "depth": 0.0,
+            "offset": 0.1
+          }
+        },
+        {
+          "biome": "dwm:skaro_thal_plateau",
+          "parameters": {
+            "temperature": 0.0,
+            "humidity": 0.2,
+            "continentalness": 0.5,
+            "erosion": 0.4,
+            "weirdness": -0.2,
+            "depth": 0.0,
+            "offset": 0.45
+          }
+        }
+      ]
+    }
+  }
+}

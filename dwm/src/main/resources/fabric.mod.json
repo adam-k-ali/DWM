@@ -36,6 +36,7 @@
       "com.adamkali.dwm.gametest.GallifreyPlantsGameTests",
       "com.adamkali.dwm.gametest.AzbantiumGameTests",
       "com.adamkali.dwm.gametest.GallifreyVanillaOresGameTests",
+      "com.adamkali.dwm.gametest.SkaroDimensionGameTests",
       "com.adamkali.dwm.gametest.ZeitonGameTests",
       "com.adamkali.dwm.gametest.SonicInteractionGameTests",
       "com.adamkali.dwm.gametest.SonicTardisGameTests",

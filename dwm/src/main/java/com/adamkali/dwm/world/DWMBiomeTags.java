@@ -11,6 +11,10 @@ public final class DWMBiomeTags {
             Registries.BIOME,
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "is_gallifrey")
     );
+    public static final TagKey<Biome> IS_SKARO = TagKey.create(
+            Registries.BIOME,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "is_skaro")
+    );
 
     private DWMBiomeTags() {
     }

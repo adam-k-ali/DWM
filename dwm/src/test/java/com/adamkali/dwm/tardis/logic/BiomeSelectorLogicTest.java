@@ -24,6 +24,7 @@ class BiomeSelectorLogicTest {
         assertEquals(Optional.of(BiomeTags.IS_NETHER), BiomeSelectorLogic.tagForDimension("minecraft:the_nether"));
         assertEquals(Optional.of(BiomeTags.IS_END), BiomeSelectorLogic.tagForDimension("minecraft:the_end"));
         assertEquals(Optional.of(DWMBiomeTags.IS_GALLIFREY), BiomeSelectorLogic.tagForDimension("dwm:gallifrey"));
+        assertEquals(Optional.of(DWMBiomeTags.IS_SKARO), BiomeSelectorLogic.tagForDimension("dwm:skaro"));
         assertTrue(BiomeSelectorLogic.tagForDimension("dwm:tardis").isEmpty());
         assertTrue(BiomeSelectorLogic.tagForDimension(null).isEmpty());
         assertTrue(BiomeSelectorLogic.tagForDimension("").isEmpty());

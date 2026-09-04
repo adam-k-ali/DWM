@@ -11,6 +11,10 @@ public final class DWMChunkGeneratorSettings {
             Registries.NOISE_SETTINGS,
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "gallifrey")
     );
+    public static final ResourceKey<NoiseGeneratorSettings> SKARO = ResourceKey.create(
+            Registries.NOISE_SETTINGS,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "skaro")
+    );
 
     private DWMChunkGeneratorSettings() {
     }
