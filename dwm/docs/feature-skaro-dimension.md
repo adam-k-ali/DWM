@@ -30,25 +30,29 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
   - Tags: `#dwm:petrified_blocks`, `#dwm:petrified_logs` (not `#minecraft:logs_that_burn`).
 - **Petrified Jungle flora** (DWM-068 slice): configured features `petrified_tree`, `petrified_snag`, and `fallen_petrified_tree` placed only in `skaro_petrified_jungle` (branching trunks, straight snags, fallen logs — all `petrified_log`, no saplings/leaves).
 - **Vanilla terrain palette (intentional, not placeholder):** stone, tuff, deepslate, gravel, basalt, sand, red sand, terracotta, dirt, coarse dirt, rooted dirt, mud, and podzol. There is no custom Skaro stone, sand, sandstone, dust, or dirt family.
+- **Dalekanium material** (DWM-065): Skaro-only `dalekanium_ore` at iron spawn rate (vein 9 + small 4; placements upper/middle/small). Fortune → `raw_dalekanium`; Silk Touch keeps ore; smelt/blast → `dalekanium_ingot`. Storage `dalekanium_block` (9↔1). Daleks drop 1–2 `dalekanium_ingot` (+ Looting).
+- **Dalekanium alloys:** shapeless `dalekanium_ingot` + iron → 2× `silver_dalekanium_ingot` (classic silver); + copper → 2× `bronze_dalekanium_ingot` (2005 bronze). Alloy storage blocks pack 9↔1.
+- **Dalekanium architecture** (tag `#dwm:dalekanium_architecture`): silver and bronze palettes — wall, riveted wall, floor, panel, light (15), door (redstone-only), damaged wall, damaged panel. Craft 4 alloy ingots → 8 walls; stonecut within alloy. No glass/grille.
+- **Steel family** (tag `#dwm:steel`): `steel_ingot` (iron + coal), `steel_block`, full-collision `steel_grille` (6 steel → 16 grille). Companion builder material for vents/grilles — not Dalekanium.
 
 ## Planned (not yet in the jar)
-- Dalek architecture builder family (DWM-065).
 - Radiation, protective suit, and meter (DWM-067).
 - Remaining Skaro flora (Varga, radiation fungus, mutated reeds, ash scrub, Thal crop) under DWM-068.
 - Structures, Daleks/Thals/fauna population, Kaalann, and related tickets (DWM-069–074).
 
 ## How It Works In-Game
 1. Mine petrified logs with a pickaxe (or strip with an axe), then craft planks, stairs, slabs, and walls like other builder sets.
-2. At the console, cycle the planet locator until **Skaro** is selected, then cycle the biome dial among the five tagged regions.
-3. Pull the materialisation lever to dematerialise, then again in flight to land on Skaro. Radiation readouts are not shipped yet (DWM-067).
-4. Debug without a TARDIS: `/execute in dwm:skaro run tp @s ~ 128 ~`.
+2. Mine Dalekanium ore on Skaro (or loot Daleks), smelt to ingots, alloy with iron or copper, then craft silver/bronze architecture; craft steel from iron + coal for grilles.
+3. At the console, cycle the planet locator until **Skaro** is selected, then cycle the biome dial among the five tagged regions.
+4. Pull the materialisation lever to dematerialise, then again in flight to land on Skaro. Radiation readouts are not shipped yet (DWM-067).
+5. Debug without a TARDIS: `/execute in dwm:skaro run tp @s ~ 128 ~`.
 
 ## Known Constraints
 - Skaro is a TARDIS destination, not an alternate travel network or a campaign with bosses, quests, reputation, or a research GUI.
 - Terrain identity comes from **vanilla composition**, atmosphere, petrified vegetation, and Dalek architecture — not a full custom stone, sand, and dirt palette. That composition choice is product intent for DWM-066, not temporary art.
 - Petrified material is mineralized wood: pickaxe-effective, nonflammable, no saplings or leaves.
 - Sky/fog use biome colors and overworld dimension effects; there is no custom Skaro sky renderer.
-- Dalek architecture, radiation, remaining flora, entities, and structures remain owned by their child tickets under E-007.
+- Radiation, remaining flora, entities, and structures remain owned by their child tickets under E-007.
 
 ## Future Opportunities
 - Custom dimension effects for Skaro sky, fog, and clouds.

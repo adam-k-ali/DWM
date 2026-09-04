@@ -20,6 +20,8 @@ public final class DWMConfiguredFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> GALLIFREY_COAL_ORE_BURIED = key("gallifrey_coal_ore_buried");
     public static final ResourceKey<ConfiguredFeature<?, ?>> GALLIFREY_IRON_ORE = key("gallifrey_iron_ore");
     public static final ResourceKey<ConfiguredFeature<?, ?>> GALLIFREY_IRON_ORE_SMALL = key("gallifrey_iron_ore_small");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> DALEKANIUM_ORE = key("dalekanium_ore");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> DALEKANIUM_ORE_SMALL = key("dalekanium_ore_small");
     public static final ResourceKey<ConfiguredFeature<?, ?>> GALLIFREY_GOLD_ORE = key("gallifrey_gold_ore");
     public static final ResourceKey<ConfiguredFeature<?, ?>> GALLIFREY_GOLD_ORE_BURIED = key("gallifrey_gold_ore_buried");
     public static final ResourceKey<ConfiguredFeature<?, ?>> GALLIFREY_DIAMOND_ORE_SMALL = key("gallifrey_diamond_ore_small");

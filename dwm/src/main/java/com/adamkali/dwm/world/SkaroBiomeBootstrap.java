@@ -145,6 +145,9 @@ public final class SkaroBiomeBootstrap {
         BiomeDefaultFeatures.addDefaultMonsterRoom(generation);
         BiomeDefaultFeatures.addDefaultUndergroundVariety(generation);
         BiomeDefaultFeatures.addDefaultOres(generation);
+        generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.DALEKANIUM_ORE_UPPER);
+        generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.DALEKANIUM_ORE_MIDDLE);
+        generation.addFeature(GenerationStep.Decoration.UNDERGROUND_ORES, DWMPlacedFeatures.DALEKANIUM_ORE_SMALL);
         BiomeDefaultFeatures.addDefaultSoftDisks(generation);
         BiomeDefaultFeatures.addDefaultSprings(generation);
         BiomeDefaultFeatures.addSurfaceFreezing(generation);

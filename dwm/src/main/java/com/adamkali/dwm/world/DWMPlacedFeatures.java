@@ -24,6 +24,9 @@ public final class DWMPlacedFeatures {
     public static final ResourceKey<PlacedFeature> GALLIFREY_IRON_ORE_UPPER = key("gallifrey_iron_ore_upper");
     public static final ResourceKey<PlacedFeature> GALLIFREY_IRON_ORE_MIDDLE = key("gallifrey_iron_ore_middle");
     public static final ResourceKey<PlacedFeature> GALLIFREY_IRON_ORE_SMALL = key("gallifrey_iron_ore_small");
+    public static final ResourceKey<PlacedFeature> DALEKANIUM_ORE_UPPER = key("dalekanium_ore_upper");
+    public static final ResourceKey<PlacedFeature> DALEKANIUM_ORE_MIDDLE = key("dalekanium_ore_middle");
+    public static final ResourceKey<PlacedFeature> DALEKANIUM_ORE_SMALL = key("dalekanium_ore_small");
     public static final ResourceKey<PlacedFeature> GALLIFREY_GOLD_ORE = key("gallifrey_gold_ore");
     public static final ResourceKey<PlacedFeature> GALLIFREY_GOLD_ORE_LOWER = key("gallifrey_gold_ore_lower");
     public static final ResourceKey<PlacedFeature> GALLIFREY_DIAMOND_ORE = key("gallifrey_diamond_ore");

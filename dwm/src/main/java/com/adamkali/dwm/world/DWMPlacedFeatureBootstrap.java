@@ -147,6 +147,34 @@ public final class DWMPlacedFeatureBootstrap {
 
         PlacementUtils.register(
                 registerable,
+                DWMPlacedFeatures.DALEKANIUM_ORE_UPPER,
+                configured.getOrThrow(DWMConfiguredFeatures.DALEKANIUM_ORE),
+                CountPlacement.of(90),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.triangle(VerticalAnchor.absolute(80), VerticalAnchor.absolute(384)),
+                BiomeFilter.biome()
+        );
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.DALEKANIUM_ORE_MIDDLE,
+                configured.getOrThrow(DWMConfiguredFeatures.DALEKANIUM_ORE),
+                CountPlacement.of(10),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.triangle(VerticalAnchor.absolute(-24), VerticalAnchor.absolute(56)),
+                BiomeFilter.biome()
+        );
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.DALEKANIUM_ORE_SMALL,
+                configured.getOrThrow(DWMConfiguredFeatures.DALEKANIUM_ORE_SMALL),
+                CountPlacement.of(10),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.uniform(VerticalAnchor.aboveBottom(0), VerticalAnchor.absolute(72)),
+                BiomeFilter.biome()
+        );
+
+        PlacementUtils.register(
+                registerable,
                 DWMPlacedFeatures.GALLIFREY_GOLD_ORE,
                 configured.getOrThrow(DWMConfiguredFeatures.GALLIFREY_GOLD_ORE_BURIED),
                 CountPlacement.of(4),

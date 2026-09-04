@@ -27,4 +27,29 @@ public class DWMItemTags {
     /** Vanilla still ships item tag JSON; ItemTags no longer exposes constants in 26.2. */
     public static final TagKey<Item> DOORS = TagKey.create(Registries.ITEM, Identifier.withDefaultNamespace("doors"));
     public static final TagKey<Item> TRAPDOORS = TagKey.create(Registries.ITEM, Identifier.withDefaultNamespace("trapdoors"));
+
+    public static final TagKey<Item> DALEKANIUM_ORES = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "dalekanium_ores")
+    );
+
+    public static final TagKey<Item> DALEKANIUM_ARCHITECTURE = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "dalekanium_architecture")
+    );
+
+    public static final TagKey<Item> SILVER_DALEKANIUM_ARCHITECTURE = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "silver_dalekanium_architecture")
+    );
+
+    public static final TagKey<Item> BRONZE_DALEKANIUM_ARCHITECTURE = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "bronze_dalekanium_architecture")
+    );
+
+    public static final TagKey<Item> STEEL = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "steel")
+    );
 }
