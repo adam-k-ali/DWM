@@ -27,6 +27,10 @@ public final class DWMConfiguredFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> GALLIFREY_DIAMOND_ORE_LARGE = key("gallifrey_diamond_ore_large");
     public static final ResourceKey<ConfiguredFeature<?, ?>> GALLIFREY_DIAMOND_ORE_BURIED = key("gallifrey_diamond_ore_buried");
 
+    public static final ResourceKey<ConfiguredFeature<?, ?>> PETRIFIED_TREE = key("petrified_tree");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> PETRIFIED_SNAG = key("petrified_snag");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> FALLEN_PETRIFIED_TREE = key("fallen_petrified_tree");
+
     private static ResourceKey<ConfiguredFeature<?, ?>> key(String path) {
         return ResourceKey.create(
                 Registries.CONFIGURED_FEATURE,

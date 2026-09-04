@@ -75,7 +75,10 @@
       "minecraft:spring_lava"
     ],
     [
-      "minecraft:glow_lichen"
+      "minecraft:glow_lichen",
+      "dwm:petrified_jungle_trees",
+      "dwm:petrified_jungle_snags",
+      "dwm:fallen_petrified_jungle_trees"
     ],
     [
       "minecraft:freeze_top_layer"

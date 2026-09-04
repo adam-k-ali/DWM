@@ -962,7 +962,30 @@ public class ResourceValidationTests {
                         biomeFile + " must not include Gallifrey-only generated content: " + forbidden
                 );
             }
+            if ("skaro_petrified_jungle.json".equals(biomeFile)) {
+                assertTrue(
+                        blob.contains("dwm:petrified_jungle_trees"),
+                        biomeFile + " must include petrified jungle trees"
+                );
+                assertTrue(
+                        blob.contains("dwm:petrified_jungle_snags"),
+                        biomeFile + " must include petrified jungle snags"
+                );
+                assertTrue(
+                        blob.contains("dwm:fallen_petrified_jungle_trees"),
+                        biomeFile + " must include fallen petrified jungle trees"
+                );
+            } else {
+                assertFalse(
+                        blob.contains("dwm:petrified_jungle_trees")
+                                || blob.contains("dwm:petrified_jungle_snags")
+                                || blob.contains("dwm:fallen_petrified_jungle_trees"),
+                        biomeFile + " must not include petrified jungle vegetation"
+                );
+            }
         }
+
+        assertPetrifiedTreeConfiguredFeaturesAreLogOnly();
 
         Path noise = Path.of("src/main/generated/data/dwm/worldgen/noise_settings/skaro.json");
         assertTrue(Files.isRegularFile(noise) && Files.size(noise) > 0, "Missing generated Skaro noise settings: " + noise);
@@ -974,6 +997,23 @@ public class ResourceValidationTests {
                 Files.isRegularFile(Path.of("src/main/resources/data/dwm/dimension_type/skaro.json")),
                 "Missing hand-maintained dimension_type/skaro.json"
         );
+    }
+
+    private static void assertPetrifiedTreeConfiguredFeaturesAreLogOnly() throws Exception {
+        Path configuredDir = Path.of("src/main/generated/data/dwm/worldgen/configured_feature");
+        String[] petrifiedFeatures = {
+                "petrified_tree.json",
+                "petrified_snag.json",
+                "fallen_petrified_tree.json"
+        };
+        for (String featureFile : petrifiedFeatures) {
+            Path path = configuredDir.resolve(featureFile);
+            assertTrue(Files.isRegularFile(path), "Missing generated configured feature: " + path);
+            String blob = Files.readString(path);
+            assertTrue(blob.contains("dwm:petrified_log"), featureFile + " must use petrified_log");
+            assertFalse(blob.contains("leaves"), featureFile + " must not reference leaves");
+            assertFalse(blob.contains("sapling"), featureFile + " must not reference saplings");
+        }
     }
 
     private static boolean biomeHasCreatureSpawn(String biomeFile, String entityId) throws Exception {
