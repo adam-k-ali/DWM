@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CookingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.block.Block;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -123,6 +124,8 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 generateOrangeSandRecipes();
                 generatePetrifiedRecipes();
                 generateAzbantiumRecipes();
+                generateDalekaniumRecipes();
+                generateSteelRecipes();
                 generateZeitonRecipes();
                 generateCircuitRecipes();
                 generateGallifreyVanillaOreRecipes();
@@ -436,6 +439,160 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         .pattern("# #")
                         .pattern("# #")
                         .unlockedBy(getHasName(DWMItems.AZBANTIUM), has(DWMItems.AZBANTIUM))
+                        .save(output);
+            }
+
+            private void generateDalekaniumRecipes() {
+                oreSmelting(
+                        List.of(DWMBlocks.DALEKANIUM_ORE),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        DWMItems.DALEKANIUM_INGOT,
+                        0.7F,
+                        200,
+                        "dalekanium"
+                );
+                oreBlasting(
+                        List.of(DWMBlocks.DALEKANIUM_ORE),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        DWMItems.DALEKANIUM_INGOT,
+                        0.7F,
+                        100,
+                        "dalekanium"
+                );
+                oreSmelting(
+                        List.of(DWMItems.RAW_DALEKANIUM),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        DWMItems.DALEKANIUM_INGOT,
+                        0.7F,
+                        200,
+                        "dalekanium"
+                );
+                oreBlasting(
+                        List.of(DWMItems.RAW_DALEKANIUM),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        DWMItems.DALEKANIUM_INGOT,
+                        0.7F,
+                        100,
+                        "dalekanium"
+                );
+
+                packAndUnpack(DWMItems.DALEKANIUM_INGOT, DWMBlocks.DALEKANIUM_BLOCK, "dalekanium");
+                packAndUnpack(DWMItems.SILVER_DALEKANIUM_INGOT, DWMBlocks.SILVER_DALEKANIUM_BLOCK, "silver_dalekanium");
+                packAndUnpack(DWMItems.BRONZE_DALEKANIUM_INGOT, DWMBlocks.BRONZE_DALEKANIUM_BLOCK, "bronze_dalekanium");
+
+                shapeless(RecipeCategory.MISC, DWMItems.SILVER_DALEKANIUM_INGOT, 2)
+                        .requires(DWMItems.DALEKANIUM_INGOT)
+                        .requires(Items.IRON_INGOT)
+                        .unlockedBy(getHasName(DWMItems.DALEKANIUM_INGOT), has(DWMItems.DALEKANIUM_INGOT))
+                        .save(output);
+                shapeless(RecipeCategory.MISC, DWMItems.BRONZE_DALEKANIUM_INGOT, 2)
+                        .requires(DWMItems.DALEKANIUM_INGOT)
+                        .requires(Items.COPPER_INGOT)
+                        .unlockedBy(getHasName(DWMItems.DALEKANIUM_INGOT), has(DWMItems.DALEKANIUM_INGOT))
+                        .save(output);
+
+                generateDalekaniumArchitectureRecipes(
+                        DWMItems.SILVER_DALEKANIUM_INGOT,
+                        DWMBlocks.SILVER_DALEKANIUM_WALL,
+                        DWMBlocks.SILVER_DALEKANIUM_RIVETED_WALL,
+                        DWMBlocks.SILVER_DALEKANIUM_FLOOR,
+                        DWMBlocks.SILVER_DALEKANIUM_PANEL,
+                        DWMBlocks.SILVER_DALEKANIUM_LIGHT,
+                        DWMBlocks.SILVER_DALEKANIUM_DOOR,
+                        DWMBlocks.SILVER_DALEKANIUM_DAMAGED_WALL,
+                        DWMBlocks.SILVER_DALEKANIUM_DAMAGED_PANEL
+                );
+                generateDalekaniumArchitectureRecipes(
+                        DWMItems.BRONZE_DALEKANIUM_INGOT,
+                        DWMBlocks.BRONZE_DALEKANIUM_WALL,
+                        DWMBlocks.BRONZE_DALEKANIUM_RIVETED_WALL,
+                        DWMBlocks.BRONZE_DALEKANIUM_FLOOR,
+                        DWMBlocks.BRONZE_DALEKANIUM_PANEL,
+                        DWMBlocks.BRONZE_DALEKANIUM_LIGHT,
+                        DWMBlocks.BRONZE_DALEKANIUM_DOOR,
+                        DWMBlocks.BRONZE_DALEKANIUM_DAMAGED_WALL,
+                        DWMBlocks.BRONZE_DALEKANIUM_DAMAGED_PANEL
+                );
+            }
+
+            private void generateDalekaniumArchitectureRecipes(
+                    net.minecraft.world.item.Item ingot,
+                    Block wall,
+                    Block rivetedWall,
+                    Block floor,
+                    Block panel,
+                    Block light,
+                    Block door,
+                    Block damagedWall,
+                    Block damagedPanel
+            ) {
+                shaped(RecipeCategory.BUILDING_BLOCKS, wall, 8)
+                        .define('#', ingot)
+                        .pattern("##")
+                        .pattern("##")
+                        .unlockedBy(getHasName(ingot), has(ingot))
+                        .save(output);
+
+                Block[] solids = {wall, rivetedWall, floor, panel, damagedWall, damagedPanel};
+                for (Block from : solids) {
+                    for (Block to : solids) {
+                        if (from != to) {
+                            stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, to, from);
+                        }
+                    }
+                }
+
+                shaped(RecipeCategory.BUILDING_BLOCKS, light, 4)
+                        .define('#', wall)
+                        .define('G', Items.GLOWSTONE)
+                        .pattern(" # ")
+                        .pattern("#G#")
+                        .pattern(" # ")
+                        .unlockedBy(getHasName(wall), has(wall))
+                        .save(output);
+
+                shaped(RecipeCategory.REDSTONE, door)
+                        .define('#', wall)
+                        .pattern("##")
+                        .pattern("##")
+                        .pattern("##")
+                        .unlockedBy(getHasName(wall), has(wall))
+                        .save(output);
+            }
+
+            private void packAndUnpack(net.minecraft.world.item.Item ingot, Block storage, String name) {
+                shaped(RecipeCategory.BUILDING_BLOCKS, storage)
+                        .define('#', ingot)
+                        .pattern("###")
+                        .pattern("###")
+                        .pattern("###")
+                        .unlockedBy(getHasName(ingot), has(ingot))
+                        .save(output);
+
+                shapeless(RecipeCategory.MISC, ingot, 9)
+                        .requires(storage)
+                        .unlockedBy(getHasName(storage), has(storage))
+                        .save(output, name + "_ingot_from_" + name + "_block");
+            }
+
+            private void generateSteelRecipes() {
+                shapeless(RecipeCategory.MISC, DWMItems.STEEL_INGOT)
+                        .requires(Items.IRON_INGOT)
+                        .requires(Items.COAL)
+                        .unlockedBy("has_iron_ingot", has(Items.IRON_INGOT))
+                        .save(output);
+
+                packAndUnpack(DWMItems.STEEL_INGOT, DWMBlocks.STEEL_BLOCK, "steel");
+
+                shaped(RecipeCategory.BUILDING_BLOCKS, DWMBlocks.STEEL_GRILLE, 16)
+                        .define('#', DWMItems.STEEL_INGOT)
+                        .pattern("###")
+                        .pattern("###")
+                        .unlockedBy(getHasName(DWMItems.STEEL_INGOT), has(DWMItems.STEEL_INGOT))
                         .save(output);
             }
 

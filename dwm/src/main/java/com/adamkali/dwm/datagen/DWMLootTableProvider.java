@@ -65,6 +65,24 @@ public class DWMLootTableProvider extends FabricBlockLootSubProvider {
         dropSelf(DWMBlocks.AZBANTIUM_BLOCK);
         add(DWMBlocks.ZEITON_ORE, createOreDrop(DWMBlocks.ZEITON_ORE, DWMItems.ZEITON_CRYSTALS));
 
+        add(DWMBlocks.DALEKANIUM_ORE, createOreDrop(DWMBlocks.DALEKANIUM_ORE, DWMItems.RAW_DALEKANIUM));
+        dropSelf(DWMBlocks.DALEKANIUM_BLOCK);
+        dropSelf(DWMBlocks.SILVER_DALEKANIUM_BLOCK);
+        dropSelf(DWMBlocks.BRONZE_DALEKANIUM_BLOCK);
+        for (Block block : DWMBlocks.DALEKANIUM_ARCHITECTURE) {
+            if (block instanceof net.minecraft.world.level.block.DoorBlock) {
+                add(block, createSinglePropConditionTable(
+                        block,
+                        net.minecraft.world.level.block.DoorBlock.HALF,
+                        net.minecraft.world.level.block.state.properties.DoubleBlockHalf.LOWER
+                ));
+            } else {
+                dropSelf(block);
+            }
+        }
+        dropSelf(DWMBlocks.STEEL_BLOCK);
+        dropSelf(DWMBlocks.STEEL_GRILLE);
+
         add(DWMBlocks.GALLIFREY_COAL_ORE, createOreDrop(DWMBlocks.GALLIFREY_COAL_ORE, Items.COAL));
         add(DWMBlocks.GALLIFREY_IRON_ORE, createOreDrop(DWMBlocks.GALLIFREY_IRON_ORE, Items.RAW_IRON));
         add(DWMBlocks.GALLIFREY_GOLD_ORE, createOreDrop(DWMBlocks.GALLIFREY_GOLD_ORE, Items.RAW_GOLD));

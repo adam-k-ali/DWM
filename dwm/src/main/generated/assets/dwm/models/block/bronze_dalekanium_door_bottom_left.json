@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/door_bottom_left",
+  "textures": {
+    "bottom": "dwm:block/bronze_dalekanium_door_bottom",
+    "top": "dwm:block/bronze_dalekanium_door_top"
+  }
+}

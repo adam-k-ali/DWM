@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "dwm:silver_dalekanium_panel",
+  "result": {
+    "id": "dwm:silver_dalekanium_damaged_panel"
+  }
+}

@@ -65,6 +65,9 @@
       "minecraft:ore_lapis_buried",
       "minecraft:ore_copper",
       "minecraft:underwater_magma",
+      "dwm:dalekanium_ore_upper",
+      "dwm:dalekanium_ore_middle",
+      "dwm:dalekanium_ore_small",
       "minecraft:disk_sand",
       "minecraft:disk_clay",
       "minecraft:disk_gravel"

@@ -84,6 +84,20 @@ public class DWMModelProvider extends FabricModelProvider {
         registerCubeAll(blockStateModelGenerator, DWMBlocks.AZBANTIUM_BLOCK);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.ZEITON_ORE);
 
+        registerCubeAll(blockStateModelGenerator, DWMBlocks.DALEKANIUM_ORE);
+        registerCubeAll(blockStateModelGenerator, DWMBlocks.DALEKANIUM_BLOCK);
+        registerCubeAll(blockStateModelGenerator, DWMBlocks.SILVER_DALEKANIUM_BLOCK);
+        registerCubeAll(blockStateModelGenerator, DWMBlocks.BRONZE_DALEKANIUM_BLOCK);
+        for (Block block : DWMBlocks.DALEKANIUM_ARCHITECTURE) {
+            if (block == DWMBlocks.SILVER_DALEKANIUM_DOOR || block == DWMBlocks.BRONZE_DALEKANIUM_DOOR) {
+                blockStateModelGenerator.createDoor(block);
+            } else {
+                registerCubeAll(blockStateModelGenerator, block);
+            }
+        }
+        registerCubeAll(blockStateModelGenerator, DWMBlocks.STEEL_BLOCK);
+        registerCubeAll(blockStateModelGenerator, DWMBlocks.STEEL_GRILLE);
+
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_COAL_ORE);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_IRON_ORE);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_GOLD_ORE);
@@ -97,6 +111,11 @@ public class DWMModelProvider extends FabricModelProvider {
         }
 
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.RAW_DALEKANIUM, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.DALEKANIUM_INGOT, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.SILVER_DALEKANIUM_INGOT, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.BRONZE_DALEKANIUM_INGOT, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.STEEL_INGOT, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.ZEITON_CRYSTALS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.ZEITON_POWDER, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.FERRITE_POWDER, ModelTemplates.FLAT_ITEM);

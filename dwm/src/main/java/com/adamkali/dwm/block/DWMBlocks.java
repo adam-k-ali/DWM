@@ -25,6 +25,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ColoredFallingBlock;
+import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.FlowerBlock;
 import net.minecraft.world.level.block.FlowerPotBlock;
 import net.minecraft.world.level.block.RotatedPillarBlock;
@@ -34,6 +35,7 @@ import net.minecraft.world.level.block.TransparentBlock;
 import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Function;
@@ -290,6 +292,108 @@ public class DWMBlocks {
 
     public static final Block AZBANTIUM_ORE = register(Block::new, DWMBlockSettings.azbantium(), "azbantium_ore");
     public static final Block AZBANTIUM_BLOCK = register(Block::new, DWMBlockSettings.azbantium(), "azbantium_block");
+
+    public static final Block DALEKANIUM_ORE = register(Block::new, DWMBlockSettings.dalekaniumOre(), "dalekanium_ore");
+    public static final Block DALEKANIUM_BLOCK = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumStorage(MapColor.COLOR_GRAY),
+            "dalekanium_block"
+    );
+    public static final Block SILVER_DALEKANIUM_BLOCK = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumStorage(MapColor.METAL),
+            "silver_dalekanium_block"
+    );
+    public static final Block BRONZE_DALEKANIUM_BLOCK = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumStorage(MapColor.TERRACOTTA_ORANGE),
+            "bronze_dalekanium_block"
+    );
+
+    public static final Block SILVER_DALEKANIUM_WALL = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumMetal(MapColor.METAL),
+            "silver_dalekanium_wall"
+    );
+    public static final Block SILVER_DALEKANIUM_RIVETED_WALL = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumMetal(MapColor.METAL),
+            "silver_dalekanium_riveted_wall"
+    );
+    public static final Block SILVER_DALEKANIUM_FLOOR = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumMetal(MapColor.METAL),
+            "silver_dalekanium_floor"
+    );
+    public static final Block SILVER_DALEKANIUM_PANEL = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumMetal(MapColor.METAL),
+            "silver_dalekanium_panel"
+    );
+    public static final Block SILVER_DALEKANIUM_LIGHT = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumLight(MapColor.METAL),
+            "silver_dalekanium_light"
+    );
+    public static final Block SILVER_DALEKANIUM_DOOR = register(
+            s -> new DoorBlock(DWMWoodTypes.DALEKANIUM_SET, s),
+            DWMBlockSettings.dalekaniumDoor(MapColor.METAL),
+            "silver_dalekanium_door"
+    );
+    public static final Block SILVER_DALEKANIUM_DAMAGED_WALL = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumMetal(MapColor.METAL),
+            "silver_dalekanium_damaged_wall"
+    );
+    public static final Block SILVER_DALEKANIUM_DAMAGED_PANEL = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumMetal(MapColor.METAL),
+            "silver_dalekanium_damaged_panel"
+    );
+
+    public static final Block BRONZE_DALEKANIUM_WALL = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumMetal(MapColor.TERRACOTTA_ORANGE),
+            "bronze_dalekanium_wall"
+    );
+    public static final Block BRONZE_DALEKANIUM_RIVETED_WALL = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumMetal(MapColor.TERRACOTTA_ORANGE),
+            "bronze_dalekanium_riveted_wall"
+    );
+    public static final Block BRONZE_DALEKANIUM_FLOOR = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumMetal(MapColor.TERRACOTTA_ORANGE),
+            "bronze_dalekanium_floor"
+    );
+    public static final Block BRONZE_DALEKANIUM_PANEL = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumMetal(MapColor.TERRACOTTA_ORANGE),
+            "bronze_dalekanium_panel"
+    );
+    public static final Block BRONZE_DALEKANIUM_LIGHT = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumLight(MapColor.TERRACOTTA_ORANGE),
+            "bronze_dalekanium_light"
+    );
+    public static final Block BRONZE_DALEKANIUM_DOOR = register(
+            s -> new DoorBlock(DWMWoodTypes.DALEKANIUM_SET, s),
+            DWMBlockSettings.dalekaniumDoor(MapColor.TERRACOTTA_ORANGE),
+            "bronze_dalekanium_door"
+    );
+    public static final Block BRONZE_DALEKANIUM_DAMAGED_WALL = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumMetal(MapColor.TERRACOTTA_ORANGE),
+            "bronze_dalekanium_damaged_wall"
+    );
+    public static final Block BRONZE_DALEKANIUM_DAMAGED_PANEL = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumMetal(MapColor.TERRACOTTA_ORANGE),
+            "bronze_dalekanium_damaged_panel"
+    );
+
+    public static final Block STEEL_BLOCK = register(Block::new, DWMBlockSettings.steel(), "steel_block");
+    public static final Block STEEL_GRILLE = register(Block::new, DWMBlockSettings.steel(), "steel_grille");
 
     public static final Block ZEITON_ORE = register(Block::new, DWMBlockSettings.gallifreyVanillaOre(), "zeiton_ore");
 
@@ -601,6 +705,46 @@ public class DWMBlocks {
             AZBANTIUM_BLOCK
     );
 
+    /** Silver Dalekanium architecture (classic 1963 look). */
+    public static final List<Block> SILVER_DALEKANIUM_ARCHITECTURE = List.of(
+            SILVER_DALEKANIUM_WALL,
+            SILVER_DALEKANIUM_RIVETED_WALL,
+            SILVER_DALEKANIUM_FLOOR,
+            SILVER_DALEKANIUM_PANEL,
+            SILVER_DALEKANIUM_LIGHT,
+            SILVER_DALEKANIUM_DOOR,
+            SILVER_DALEKANIUM_DAMAGED_WALL,
+            SILVER_DALEKANIUM_DAMAGED_PANEL
+    );
+
+    /** Bronze Dalekanium architecture (2005 look). */
+    public static final List<Block> BRONZE_DALEKANIUM_ARCHITECTURE = List.of(
+            BRONZE_DALEKANIUM_WALL,
+            BRONZE_DALEKANIUM_RIVETED_WALL,
+            BRONZE_DALEKANIUM_FLOOR,
+            BRONZE_DALEKANIUM_PANEL,
+            BRONZE_DALEKANIUM_LIGHT,
+            BRONZE_DALEKANIUM_DOOR,
+            BRONZE_DALEKANIUM_DAMAGED_WALL,
+            BRONZE_DALEKANIUM_DAMAGED_PANEL
+    );
+
+    /** Union of silver + bronze Dalekanium architecture (structure tag). */
+    public static final List<Block> DALEKANIUM_ARCHITECTURE;
+
+    static {
+        List<Block> architecture = new ArrayList<>(16);
+        architecture.addAll(SILVER_DALEKANIUM_ARCHITECTURE);
+        architecture.addAll(BRONZE_DALEKANIUM_ARCHITECTURE);
+        DALEKANIUM_ARCHITECTURE = List.copyOf(architecture);
+    }
+
+    /** Steel storage + grille. */
+    public static final List<Block> STEEL_FAMILY = List.of(
+            STEEL_BLOCK,
+            STEEL_GRILLE
+    );
+
     /** Gallifrey-stone-textured ores that drop vanilla coal / raw iron / raw gold / diamond. */
     public static final List<Block> GALLIFREY_VANILLA_ORES = List.of(
             GALLIFREY_COAL_ORE,
@@ -785,6 +929,19 @@ public class DWMBlocks {
                 content.accept(block);
             }
 
+            content.accept(DALEKANIUM_BLOCK);
+            content.accept(SILVER_DALEKANIUM_BLOCK);
+            content.accept(BRONZE_DALEKANIUM_BLOCK);
+            for (Block block : SILVER_DALEKANIUM_ARCHITECTURE) {
+                content.accept(block);
+            }
+            for (Block block : BRONZE_DALEKANIUM_ARCHITECTURE) {
+                content.accept(block);
+            }
+            for (Block block : STEEL_FAMILY) {
+                content.accept(block);
+            }
+
             content.accept(AZBANTIUM_BLOCK);
 
             for (RegisteredWoodFamily family : WOOD_FAMILIES) {
@@ -807,6 +964,7 @@ public class DWMBlocks {
                 content.accept(block);
             }
             content.accept(AZBANTIUM_ORE);
+            content.accept(DALEKANIUM_ORE);
             content.accept(ZEITON_ORE);
             for (Block ore : GALLIFREY_VANILLA_ORES) {
                 content.accept(ore);
@@ -823,6 +981,8 @@ public class DWMBlocks {
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.REDSTONE_BLOCKS).register(content -> {
             content.accept(TARDIS_DOOR_BUTTON);
+            content.accept(SILVER_DALEKANIUM_DOOR);
+            content.accept(BRONZE_DALEKANIUM_DOOR);
             for (RegisteredWoodFamily family : WOOD_FAMILIES) {
                 content.accept(family.blocks().button());
                 content.accept(family.blocks().pressurePlate());
