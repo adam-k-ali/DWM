@@ -123,6 +123,7 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 generateOrangeSandRecipes();
                 generatePetrifiedRecipes();
                 generateAzbantiumRecipes();
+                generateProtectiveSuitRecipes();
                 generateZeitonRecipes();
                 generateCircuitRecipes();
                 generateGallifreyVanillaOreRecipes();
@@ -436,6 +437,45 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         .pattern("# #")
                         .pattern("# #")
                         .unlockedBy(getHasName(DWMItems.AZBANTIUM), has(DWMItems.AZBANTIUM))
+                        .save(output);
+            }
+
+            private void generateProtectiveSuitRecipes() {
+                shaped(RecipeCategory.COMBAT, DWMItems.PROTECTIVE_SUIT_HELMET)
+                        .define('Y', Items.WOOL.yellow())
+                        .define('G', Items.GLASS)
+                        .pattern("YYY")
+                        .pattern("YGY")
+                        .unlockedBy(getHasName(Items.WOOL.yellow()), has(Items.WOOL.yellow()))
+                        .save(output);
+                shaped(RecipeCategory.COMBAT, DWMItems.PROTECTIVE_SUIT_CHESTPLATE)
+                        .define('Y', Items.WOOL.yellow())
+                        .pattern("Y Y")
+                        .pattern("YYY")
+                        .pattern("YYY")
+                        .unlockedBy(getHasName(Items.WOOL.yellow()), has(Items.WOOL.yellow()))
+                        .save(output);
+                shaped(RecipeCategory.COMBAT, DWMItems.PROTECTIVE_SUIT_LEGGINGS)
+                        .define('Y', Items.WOOL.yellow())
+                        .pattern("YYY")
+                        .pattern("Y Y")
+                        .pattern("Y Y")
+                        .unlockedBy(getHasName(Items.WOOL.yellow()), has(Items.WOOL.yellow()))
+                        .save(output);
+                shaped(RecipeCategory.COMBAT, DWMItems.PROTECTIVE_SUIT_BOOTS)
+                        .define('Y', Items.WOOL.yellow())
+                        .pattern("Y Y")
+                        .pattern("Y Y")
+                        .unlockedBy(getHasName(Items.WOOL.yellow()), has(Items.WOOL.yellow()))
+                        .save(output);
+                shaped(RecipeCategory.TOOLS, DWMItems.RADIATION_METER)
+                        .define('I', Items.IRON_INGOT)
+                        .define('G', Items.GLASS)
+                        .define('R', Items.REDSTONE)
+                        .pattern(" I ")
+                        .pattern("GRG")
+                        .pattern(" I ")
+                        .unlockedBy(getHasName(Items.REDSTONE), has(Items.REDSTONE))
                         .save(output);
             }
 

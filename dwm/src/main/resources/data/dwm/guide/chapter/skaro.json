@@ -1,0 +1,9 @@
+{
+  "chapter": { "id": "dwm:skaro" },
+  "titleKey": "dwm.guide.chapter.skaro",
+  "pages": [
+    { "id": "dwm:skaro_radiation" },
+    { "id": "dwm:radiation_meter" },
+    { "id": "dwm:protective_suit" }
+  ]
+}

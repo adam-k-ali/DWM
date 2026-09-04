@@ -9,7 +9,7 @@ Give players an always-available in-mod playbook for DWM crafting chains and cor
 ## Player Outcomes
 
 - Open a curated guide from anywhere in a world (keybind, first-join book, or Mod Menu).
-- Browse Quick Start, Sonic, Console Circuits, and Console Room Builder chapters immediately — no progression gate.
+- Browse Quick Start, Sonic, Console Circuits, Console Room Builder, and Skaro Survival chapters immediately — no progression gate.
 - Read pages in an open-book layout with chapter index and page-turn navigation.
 - See vanilla-style crafting-table, furnace, and stonecutter recipe previews for referenced recipes.
 
@@ -38,8 +38,9 @@ The screen is client-only; catalog content is loaded from datapacks and synced w
 | **Sonic Toolkit** | Craft sonic, doctor variants, sneak-use carousel, field settings, TARDIS settings (pair / Seal / Scan / Ping) |
 | **Console Circuits** | Install ritual, landing kit, planet locator, late circuits (vanilla + Zeiton) |
 | **Console Room Builder** | Chronoplasm, wall, roundels (A/B/Big on one page), interior props (white canonical recipes; pattern note for colours) |
+| **Skaro Survival** | Radiation hazards, radiation meter craft, protective suit crafts |
 
-Future phases may add Gallifrey building, Azbantium, dimension reference, and chameleon notes.
+Future phases may add Gallifrey building, Azbantium, and chameleon notes.
 
 ## Datapack layout
 
@@ -48,7 +49,7 @@ The catalog is three synced dynamic registries. Registry keys use the vanilla `m
 | Registry | Folder | Built-in entry |
 | --- | --- | --- |
 | `minecraft:guide/book` | `data/<ns>/guide/book/` | `dwm:field_guide` |
-| `minecraft:guide/chapter` | `data/<ns>/guide/chapter/` | `dwm:quick_start`, `dwm:sonic`, `dwm:circuits`, `dwm:console_room` |
+| `minecraft:guide/chapter` | `data/<ns>/guide/chapter/` | `dwm:quick_start`, `dwm:sonic`, `dwm:circuits`, `dwm:console_room`, `dwm:skaro` |
 | `minecraft:guide/page` | `data/<ns>/guide/page/` | one JSON per page |
 
 **Book**
@@ -60,7 +61,8 @@ The catalog is three synced dynamic registries. Registry keys use the vanilla `m
     { "id": "dwm:quick_start" },
     { "id": "dwm:sonic" },
     { "id": "dwm:circuits" },
-    { "id": "dwm:console_room" }
+    { "id": "dwm:console_room" },
+    { "id": "dwm:skaro" }
   ]
 }
 ```

@@ -132,6 +132,17 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.guide.page.interior_props.title", "Interior Props");
         t.add("dwm.guide.page.interior_props.body",
                 "Chairs, scanners, vents, and columns craft from white TARDIS wall. Small chairs are sittable with an empty-hand use.");
+
+        t.add("dwm.guide.chapter.skaro", "Skaro Survival");
+        t.add("dwm.guide.page.skaro_radiation.title", "Skaro Radiation");
+        t.add("dwm.guide.page.skaro_radiation.body",
+                "Skaro biomes expose ambient radiation from low on the Thal Plateau to extreme in the Irradiated Wastes and Drammankin Mire. Read it on the console radiation reader, sonic Scan, or a handheld meter before leaving the TARDIS. A full protective suit blocks ambient damage; leaving Skaro clears exposure with no lingering dose.");
+        t.add("dwm.guide.page.radiation_meter.title", "Radiation Meter");
+        t.add("dwm.guide.page.radiation_meter.body",
+                "Craft a meter from iron, glass, and redstone. Use it in the air to show the local radiation percentage in the action bar — the same environmental reading the console and sonic report.");
+        t.add("dwm.guide.page.protective_suit.title", "Protective Suit");
+        t.add("dwm.guide.page.protective_suit.body",
+                "Craft all four yellow-wool suit pieces (helmet uses a glass visor). Each correctly worn piece reduces ambient exposure; wearing the complete set prevents Skaro radiation damage.");
     }
 
     private static void addItems(TranslationBuilder t) {
@@ -441,6 +452,11 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItem(t, DWMItems.AZBANTIUM_CHESTPLATE, "Azbantium Chestplate");
         addItem(t, DWMItems.AZBANTIUM_LEGGINGS, "Azbantium Leggings");
         addItem(t, DWMItems.AZBANTIUM_BOOTS, "Azbantium Boots");
+        addItem(t, DWMItems.PROTECTIVE_SUIT_HELMET, "Protective Suit Helmet");
+        addItem(t, DWMItems.PROTECTIVE_SUIT_CHESTPLATE, "Protective Suit Chestplate");
+        addItem(t, DWMItems.PROTECTIVE_SUIT_LEGGINGS, "Protective Suit Leggings");
+        addItem(t, DWMItems.PROTECTIVE_SUIT_BOOTS, "Protective Suit Boots");
+        addItem(t, DWMItems.RADIATION_METER, "Radiation Meter");
     }
 
     private static void addZeitonSet(TranslationBuilder t) {
@@ -479,6 +495,10 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("tag.item.dwm.azbantium_ores", "Azbantium Ores");
         t.add("tag.item.dwm.zeiton_ores", "Zeiton Ores");
         t.add("tag.item.dwm.repairs_azbantium_equipment", "Azbantium Equipment Repair Materials");
+        t.add("tag.item.dwm.repairs_protective_suit", "Protective Suit Repair Materials");
+        t.add("tag.item.dwm.protective_suit", "Protective Suit");
+        t.add("death.attack.radiation", "%1$s was irradiated");
+        t.add("death.attack.radiation.player", "%1$s was irradiated whilst fighting %2$s");
         t.add("biome.dwm.gallifrey_wastes", "Gallifrey Wastes");
         t.add("biome.dwm.gallifrey_badlands", "Gallifrey Badlands");
         t.add("biome.dwm.skaro_irradiated_wastes", "Irradiated Wastes");

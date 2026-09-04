@@ -128,6 +128,32 @@ public class DWMItems {
             "azbantium_boots"
     );
 
+    public static final Item PROTECTIVE_SUIT_HELMET = register(
+            Item::new,
+            new Item.Properties().humanoidArmor(DWMArmorMaterials.PROTECTIVE_SUIT, ArmorType.HELMET),
+            "protective_suit_helmet"
+    );
+    public static final Item PROTECTIVE_SUIT_CHESTPLATE = register(
+            Item::new,
+            new Item.Properties().humanoidArmor(DWMArmorMaterials.PROTECTIVE_SUIT, ArmorType.CHESTPLATE),
+            "protective_suit_chestplate"
+    );
+    public static final Item PROTECTIVE_SUIT_LEGGINGS = register(
+            Item::new,
+            new Item.Properties().humanoidArmor(DWMArmorMaterials.PROTECTIVE_SUIT, ArmorType.LEGGINGS),
+            "protective_suit_leggings"
+    );
+    public static final Item PROTECTIVE_SUIT_BOOTS = register(
+            Item::new,
+            new Item.Properties().humanoidArmor(DWMArmorMaterials.PROTECTIVE_SUIT, ArmorType.BOOTS),
+            "protective_suit_boots"
+    );
+    public static final Item RADIATION_METER = register(
+            RadiationMeterItem::new,
+            new Item.Properties().stacksTo(1),
+            "radiation_meter"
+    );
+
     public static Item ASH_SIGN;
     public static Item ASH_HANGING_SIGN;
     public static Item ASH_BOAT;
@@ -202,6 +228,7 @@ public class DWMItems {
             content.accept(SONIC_SETTING_SHEAR);
             content.accept(TARDIS_KEY);
             content.accept(STATTENHEIM_REMOTE);
+            content.accept(RADIATION_METER);
             content.accept(CIRCUIT_STABILISERS);
             content.accept(CIRCUIT_WAYPOINTS);
             content.accept(CIRCUIT_FAST_RETURN);
@@ -227,6 +254,10 @@ public class DWMItems {
             content.accept(AZBANTIUM_CHESTPLATE);
             content.accept(AZBANTIUM_LEGGINGS);
             content.accept(AZBANTIUM_BOOTS);
+            content.accept(PROTECTIVE_SUIT_HELMET);
+            content.accept(PROTECTIVE_SUIT_CHESTPLATE);
+            content.accept(PROTECTIVE_SUIT_LEGGINGS);
+            content.accept(PROTECTIVE_SUIT_BOOTS);
         });
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.FUNCTIONAL_BLOCKS).register(content -> {
