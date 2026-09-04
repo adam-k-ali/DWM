@@ -10,6 +10,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.biome.Biome;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Server-authoritative Skaro ambient radiation. Recomputes each cadence tick; stores no dose.
@@ -34,18 +35,33 @@ public final class RadiationExposureService {
     }
 
     /**
-     * Applies one exposure check for a player in the given level. Used by GameTests.
+     * Applies one exposure check for a player in the given level.
      */
     public static void applyExposure(Player player, ServerLevel level) {
+        applyExposure(player, level, null);
+    }
+
+    /**
+     * @param ambientOverride when non-null, skips Skaro dimension/biome lookup so GameTests can
+     *                        exercise damage/mitigation on the default test overworld (custom
+     *                        dimensions are not always loaded by the GameTest server).
+     */
+    public static void applyExposure(Player player, ServerLevel level, @Nullable Float ambientOverride) {
         if (!RadiationExposureLogic.isEligiblePlayer(player)) {
             return;
         }
-        if (!RadiationExposureLogic.isExposedDimension(level)) {
-            return;
+
+        float ambient;
+        if (ambientOverride != null) {
+            ambient = ambientOverride;
+        } else {
+            if (!RadiationExposureLogic.isExposedDimension(level)) {
+                return;
+            }
+            Holder<Biome> biome = level.getBiome(player.blockPosition());
+            ambient = RadiationExposureLogic.ambientForBiome(biome.unwrapKey().orElse(null));
         }
 
-        Holder<Biome> biome = level.getBiome(player.blockPosition());
-        float ambient = RadiationExposureLogic.ambientForBiome(biome.unwrapKey().orElse(null));
         float effective = RadiationExposureLogic.effectiveExposure(
                 ambient,
                 RadiationExposureLogic.countSuitPieces(player)

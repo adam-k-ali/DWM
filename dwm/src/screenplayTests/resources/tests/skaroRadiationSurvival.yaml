@@ -4,7 +4,13 @@ type: test
 ---
 steps:
   - launchGame
-  - runCommand: "/gamemode survival"
+  - createWorld:
+      worldType: superflat
+      gameMode: survival
+      difficulty: peaceful
+      allowCommands: true
+      name: Skaro Radiation
+  - closeScreen
   - runCommand: "/item replace entity @s armor.head with dwm:protective_suit_helmet"
   - runCommand: "/item replace entity @s armor.chest with dwm:protective_suit_chestplate"
   - runCommand: "/item replace entity @s armor.legs with dwm:protective_suit_leggings"
@@ -18,3 +24,5 @@ steps:
   - waitUntil:
       overlay: "Radiation:"
   - waitTicks: 80
+  - captureScreenshot:
+      name: skaro-radiation-suited
