@@ -65,17 +65,29 @@ public final class RadiationExposureLogic {
     }
 
     public static int countSuitPieces(ItemStack head, ItemStack chest, ItemStack legs, ItemStack feet) {
+        return countSuitPieces(
+                itemOf(head),
+                itemOf(chest),
+                itemOf(legs),
+                itemOf(feet)
+        );
+    }
+
+    /**
+     * Counts correctly slotted protective-suit pieces by item identity (unit-test friendly).
+     */
+    public static int countSuitPieces(@Nullable Item head, @Nullable Item chest, @Nullable Item legs, @Nullable Item feet) {
         int count = 0;
-        if (isPiece(head, DWMItems.PROTECTIVE_SUIT_HELMET)) {
+        if (head == DWMItems.PROTECTIVE_SUIT_HELMET) {
             count++;
         }
-        if (isPiece(chest, DWMItems.PROTECTIVE_SUIT_CHESTPLATE)) {
+        if (chest == DWMItems.PROTECTIVE_SUIT_CHESTPLATE) {
             count++;
         }
-        if (isPiece(legs, DWMItems.PROTECTIVE_SUIT_LEGGINGS)) {
+        if (legs == DWMItems.PROTECTIVE_SUIT_LEGGINGS) {
             count++;
         }
-        if (isPiece(feet, DWMItems.PROTECTIVE_SUIT_BOOTS)) {
+        if (feet == DWMItems.PROTECTIVE_SUIT_BOOTS) {
             count++;
         }
         return count;
@@ -120,8 +132,11 @@ public final class RadiationExposureLogic {
         return SkaroDimensions.isSkaroWorld(level);
     }
 
-    private static boolean isPiece(ItemStack stack, Item expected) {
-        return stack != null && !stack.isEmpty() && stack.is(expected);
+    private static @Nullable Item itemOf(@Nullable ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return null;
+        }
+        return stack.getItem();
     }
 
     private static float clamp01(float value) {

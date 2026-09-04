@@ -3,7 +3,7 @@ package com.adamkali.dwm.world.radiation;
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.item.DWMItems;
 import com.adamkali.dwm.world.DWMBiomeKeys;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -61,31 +61,31 @@ class RadiationExposureLogicTest {
     @Test
     void suitPieceCount_requiresCorrectSlotItems() {
         assertEquals(0, RadiationExposureLogic.countSuitPieces(
-                ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY
+                (Item) null, null, null, null
         ));
         assertEquals(1, RadiationExposureLogic.countSuitPieces(
-                new ItemStack(DWMItems.PROTECTIVE_SUIT_HELMET),
-                ItemStack.EMPTY,
-                ItemStack.EMPTY,
-                ItemStack.EMPTY
+                DWMItems.PROTECTIVE_SUIT_HELMET,
+                null,
+                null,
+                null
         ));
         assertEquals(4, RadiationExposureLogic.countSuitPieces(
-                new ItemStack(DWMItems.PROTECTIVE_SUIT_HELMET),
-                new ItemStack(DWMItems.PROTECTIVE_SUIT_CHESTPLATE),
-                new ItemStack(DWMItems.PROTECTIVE_SUIT_LEGGINGS),
-                new ItemStack(DWMItems.PROTECTIVE_SUIT_BOOTS)
+                DWMItems.PROTECTIVE_SUIT_HELMET,
+                DWMItems.PROTECTIVE_SUIT_CHESTPLATE,
+                DWMItems.PROTECTIVE_SUIT_LEGGINGS,
+                DWMItems.PROTECTIVE_SUIT_BOOTS
         ));
         assertEquals(0, RadiationExposureLogic.countSuitPieces(
-                new ItemStack(Items.LEATHER_HELMET),
-                new ItemStack(Items.LEATHER_CHESTPLATE),
-                new ItemStack(Items.LEATHER_LEGGINGS),
-                new ItemStack(Items.LEATHER_BOOTS)
+                Items.LEATHER_HELMET,
+                Items.LEATHER_CHESTPLATE,
+                Items.LEATHER_LEGGINGS,
+                Items.LEATHER_BOOTS
         ));
         assertEquals(0, RadiationExposureLogic.countSuitPieces(
-                new ItemStack(DWMItems.PROTECTIVE_SUIT_BOOTS),
-                new ItemStack(DWMItems.PROTECTIVE_SUIT_HELMET),
-                new ItemStack(DWMItems.PROTECTIVE_SUIT_CHESTPLATE),
-                new ItemStack(DWMItems.PROTECTIVE_SUIT_LEGGINGS)
+                DWMItems.PROTECTIVE_SUIT_BOOTS,
+                DWMItems.PROTECTIVE_SUIT_HELMET,
+                DWMItems.PROTECTIVE_SUIT_CHESTPLATE,
+                DWMItems.PROTECTIVE_SUIT_LEGGINGS
         ));
     }
 
