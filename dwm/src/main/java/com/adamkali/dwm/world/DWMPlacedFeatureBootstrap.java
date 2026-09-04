@@ -200,6 +200,28 @@ public final class DWMPlacedFeatureBootstrap {
                 HeightRangePlacement.triangle(VerticalAnchor.aboveBottom(-80), VerticalAnchor.aboveBottom(80)),
                 BiomeFilter.biome()
         );
+
+        registerSaplingFreeTree(
+                registerable,
+                DWMPlacedFeatures.PETRIFIED_JUNGLE_TREES,
+                configured.getOrThrow(DWMConfiguredFeatures.PETRIFIED_TREE),
+                PlacementUtils.countExtra(12, 0.1F, 1)
+        );
+        registerSaplingFreeTree(
+                registerable,
+                DWMPlacedFeatures.PETRIFIED_JUNGLE_SNAGS,
+                configured.getOrThrow(DWMConfiguredFeatures.PETRIFIED_SNAG),
+                PlacementUtils.countExtra(8, 0.1F, 1)
+        );
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.FALLEN_PETRIFIED_JUNGLE_TREES,
+                configured.getOrThrow(DWMConfiguredFeatures.FALLEN_PETRIFIED_TREE),
+                RarityFilter.onAverageOnceEvery(6),
+                InSquarePlacement.spread(),
+                PlacementUtils.HEIGHTMAP_OCEAN_FLOOR,
+                BiomeFilter.biome()
+        );
     }
 
     private static void registerTree(
@@ -214,6 +236,21 @@ public final class DWMPlacedFeatureBootstrap {
                 key,
                 feature,
                 VegetationPlacements.treePlacement(countModifier, sapling)
+        );
+    }
+
+    /** Tree placement without a sapling would-survive check (petrified wood has no saplings). */
+    private static void registerSaplingFreeTree(
+            BootstrapContext<PlacedFeature> registerable,
+            ResourceKey<PlacedFeature> key,
+            Holder<ConfiguredFeature<?, ?>> feature,
+            PlacementModifier countModifier
+    ) {
+        PlacementUtils.register(
+                registerable,
+                key,
+                feature,
+                VegetationPlacements.treePlacement(countModifier)
         );
     }
 

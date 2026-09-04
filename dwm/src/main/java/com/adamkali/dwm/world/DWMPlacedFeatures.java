@@ -31,6 +31,10 @@ public final class DWMPlacedFeatures {
     public static final ResourceKey<PlacedFeature> GALLIFREY_DIAMOND_ORE_LARGE = key("gallifrey_diamond_ore_large");
     public static final ResourceKey<PlacedFeature> GALLIFREY_DIAMOND_ORE_BURIED = key("gallifrey_diamond_ore_buried");
 
+    public static final ResourceKey<PlacedFeature> PETRIFIED_JUNGLE_TREES = key("petrified_jungle_trees");
+    public static final ResourceKey<PlacedFeature> PETRIFIED_JUNGLE_SNAGS = key("petrified_jungle_snags");
+    public static final ResourceKey<PlacedFeature> FALLEN_PETRIFIED_JUNGLE_TREES = key("fallen_petrified_jungle_trees");
+
     private static ResourceKey<PlacedFeature> key(String path) {
         return ResourceKey.create(Registries.PLACED_FEATURE, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, path));
     }

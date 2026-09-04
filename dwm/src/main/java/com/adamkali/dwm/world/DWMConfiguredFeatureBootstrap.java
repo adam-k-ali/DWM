@@ -8,21 +8,28 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.random.WeightedList;
 import net.minecraft.util.valueproviders.BiasedToBottomInt;
 import net.minecraft.util.valueproviders.ConstantInt;
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.BlockColumnConfiguration;
+import net.minecraft.world.level.levelgen.feature.configurations.FallenTreeConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.SimpleBlockConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.TreeConfiguration;
 import net.minecraft.world.level.levelgen.feature.featuresize.TwoLayersFeatureSize;
 import net.minecraft.world.level.levelgen.feature.foliageplacers.BlobFoliagePlacer;
+import net.minecraft.world.level.levelgen.feature.foliageplacers.FoliagePlacer;
 import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider;
 import net.minecraft.world.level.levelgen.feature.stateproviders.WeightedStateProvider;
+import net.minecraft.world.level.levelgen.feature.trunkplacers.FancyTrunkPlacer;
 import net.minecraft.world.level.levelgen.feature.trunkplacers.StraightTrunkPlacer;
+import net.minecraft.world.level.levelgen.feature.trunkplacers.TrunkPlacer;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
+
+import java.util.OptionalInt;
 
 public final class DWMConfiguredFeatureBootstrap {
     private DWMConfiguredFeatureBootstrap() {
@@ -88,6 +95,31 @@ public final class DWMConfiguredFeatureBootstrap {
         registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_DIAMOND_ORE_MEDIUM, DWMBlocks.GALLIFREY_DIAMOND_ORE, 8, 0.5F);
         registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_DIAMOND_ORE_LARGE, DWMBlocks.GALLIFREY_DIAMOND_ORE, 12, 0.7F);
         registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_DIAMOND_ORE_BURIED, DWMBlocks.GALLIFREY_DIAMOND_ORE, 8, 1.0F);
+
+        registerPetrifiedTree(
+                registerable,
+                DWMConfiguredFeatures.PETRIFIED_TREE,
+                new FancyTrunkPlacer(3, 11, 0),
+                new BlobFoliagePlacer(ConstantInt.of(1), ConstantInt.of(0), 2),
+                new TwoLayersFeatureSize(0, 0, 0, OptionalInt.of(4))
+        );
+        registerPetrifiedTree(
+                registerable,
+                DWMConfiguredFeatures.PETRIFIED_SNAG,
+                new StraightTrunkPlacer(4, 2, 0),
+                new BlobFoliagePlacer(ConstantInt.of(0), ConstantInt.of(0), 1),
+                new TwoLayersFeatureSize(1, 0, 1)
+        );
+        registerable.register(
+                DWMConfiguredFeatures.FALLEN_PETRIFIED_TREE,
+                new ConfiguredFeature<>(
+                        Feature.FALLEN_TREE,
+                        new FallenTreeConfiguration.FallenTreeConfigurationBuilder(
+                                BlockStateProvider.simple(DWMBlocks.PETRIFIED_LOG),
+                                UniformInt.of(4, 11)
+                        ).build()
+                )
+        );
     }
 
     private static void registerOre(
@@ -140,6 +172,35 @@ public final class DWMConfiguredFeatureBootstrap {
                                 BlockStateProvider.simple(leaves),
                                 new BlobFoliagePlacer(ConstantInt.of(2), ConstantInt.of(0), 3),
                                 new TwoLayersFeatureSize(1, 0, 1),
+                                TreeConfiguration.defaultPlaceBelowTreeTrunkProvider(
+                                        registerable.lookup(Registries.BIOME)
+                                )
+                        ).ignoreVines().build()
+                )
+        );
+    }
+
+    /**
+     * Dead mineralized trunks: trunk and "foliage" are both petrified log (no leaves/saplings).
+     */
+    private static void registerPetrifiedTree(
+            BootstrapContext<ConfiguredFeature<?, ?>> registerable,
+            ResourceKey<ConfiguredFeature<?, ?>> key,
+            TrunkPlacer trunkPlacer,
+            FoliagePlacer foliagePlacer,
+            TwoLayersFeatureSize minimumSize
+    ) {
+        BlockState log = DWMBlocks.PETRIFIED_LOG.defaultBlockState();
+        registerable.register(
+                key,
+                new ConfiguredFeature<>(
+                        Feature.TREE,
+                        new TreeConfiguration.TreeConfigurationBuilder(
+                                BlockStateProvider.simple(log),
+                                trunkPlacer,
+                                BlockStateProvider.simple(log),
+                                foliagePlacer,
+                                minimumSize,
                                 TreeConfiguration.defaultPlaceBelowTreeTrunkProvider(
                                         registerable.lookup(Registries.BIOME)
                                 )

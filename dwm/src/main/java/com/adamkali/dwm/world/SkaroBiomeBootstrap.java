@@ -9,6 +9,7 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeGenerationSettings;
 import net.minecraft.world.level.biome.BiomeSpecialEffects;
 import net.minecraft.world.level.biome.MobSpawnSettings;
+import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
@@ -54,12 +55,16 @@ public final class SkaroBiomeBootstrap {
             HolderGetter<PlacedFeature> features,
             HolderGetter<ConfiguredWorldCarver<?>> carvers
     ) {
+        BiomeGenerationSettings.Builder generation = basicGeneration(features, carvers);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.PETRIFIED_JUNGLE_TREES);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.PETRIFIED_JUNGLE_SNAGS);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.FALLEN_PETRIFIED_JUNGLE_TREES);
         return buildBiome(
                 true,
                 0.9F,
                 0.8F,
                 emptySpawns(),
-                basicGeneration(features, carvers),
+                generation,
                 0x5A5040,
                 0x4A4030,
                 0x6E5E4E,
