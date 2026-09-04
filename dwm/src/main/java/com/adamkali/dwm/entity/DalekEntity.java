@@ -99,7 +99,7 @@ public class DalekEntity extends Monster implements RangedAttackMob {
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(1, new DalekFlightGoal(this));
+        this.goalSelector.addGoal(1, new DalekFlightGoal(this, 2.5, 4.0));
         this.goalSelector.addGoal(2, new RangedAttackGoal(this, 1.0, 40, 16.0F));
         this.goalSelector.addGoal(3, new WaterAvoidingRandomStrollGoal(this, 1.0) {
             @Override

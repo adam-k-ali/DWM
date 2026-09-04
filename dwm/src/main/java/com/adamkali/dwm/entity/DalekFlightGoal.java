@@ -9,13 +9,14 @@ import net.minecraft.world.entity.ai.goal.Goal;
  * Does not take MOVE/LOOK flags so ranged attack can run while airborne.
  */
 public class DalekFlightGoal extends Goal {
-    public static final double FLY_Y_DELTA = 2.5;
-    public static final double MIN_DISTANCE_FOR_MISSING_PATH = 4.0;
-
     private final DalekEntity dalek;
+    private final double flyYDelta;
+    private final double minDistanceForMissingPath;
 
-    public DalekFlightGoal(DalekEntity dalek) {
+    public DalekFlightGoal(DalekEntity dalek, double flyYDelta, double minDistanceForMissingPath) {
         this.dalek = dalek;
+        this.flyYDelta = flyYDelta;
+        this.minDistanceForMissingPath = minDistanceForMissingPath;
     }
 
     /**
@@ -25,6 +26,8 @@ public class DalekFlightGoal extends Goal {
      * @param horizontalDistance planar distance to the target
      * @param currentlyFlying whether the Dalek is already in flying mode
      * @param onGround whether the Dalek is standing on a block
+     * @param flyYDelta Y delta above which the Dalek takes off
+     * @param minDistanceForMissingPath distance beyond which a missing ground path triggers flight
      */
     static boolean shouldFly(
             boolean hasTarget,
@@ -32,15 +35,17 @@ public class DalekFlightGoal extends Goal {
             boolean hasGroundPath,
             double horizontalDistance,
             boolean currentlyFlying,
-            boolean onGround
+            boolean onGround,
+            double flyYDelta,
+            double minDistanceForMissingPath
     ) {
         if (!hasTarget) {
             return false;
         }
-        if (targetYDelta > FLY_Y_DELTA) {
+        if (targetYDelta > flyYDelta) {
             return true;
         }
-        if (!hasGroundPath && horizontalDistance > MIN_DISTANCE_FOR_MISSING_PATH) {
+        if (!hasGroundPath && horizontalDistance > minDistanceForMissingPath) {
             return true;
         }
         return currentlyFlying && !onGround;
@@ -59,7 +64,9 @@ public class DalekFlightGoal extends Goal {
                 hasGroundPath,
                 distance,
                 dalek.isFlying(),
-                dalek.onGround()
+                dalek.onGround(),
+                flyYDelta,
+                minDistanceForMissingPath
         );
     }
 
