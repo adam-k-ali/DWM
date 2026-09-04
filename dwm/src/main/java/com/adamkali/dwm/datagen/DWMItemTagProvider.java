@@ -13,6 +13,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import java.util.concurrent.CompletableFuture;
 
 public class DWMItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
@@ -44,15 +45,31 @@ public class DWMItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         builder(DWMItemTags.REPAIRS_AZBANTIUM_EQUIPMENT)
                 .add(DWMItems.AZBANTIUM.builtInRegistryHolder().key());
 
+        builder(DWMItemTags.REPAIRS_PROTECTIVE_SUIT)
+                .add(Items.WOOL.yellow().builtInRegistryHolder().key());
+        builder(DWMItemTags.PROTECTIVE_SUIT)
+                .add(DWMItems.PROTECTIVE_SUIT_HELMET.builtInRegistryHolder().key())
+                .add(DWMItems.PROTECTIVE_SUIT_CHESTPLATE.builtInRegistryHolder().key())
+                .add(DWMItems.PROTECTIVE_SUIT_LEGGINGS.builtInRegistryHolder().key())
+                .add(DWMItems.PROTECTIVE_SUIT_BOOTS.builtInRegistryHolder().key());
+
         builder(ItemTags.SWORDS).add(DWMItems.AZBANTIUM_SWORD.builtInRegistryHolder().key());
         builder(ItemTags.SHOVELS).add(DWMItems.AZBANTIUM_SHOVEL.builtInRegistryHolder().key());
         builder(ItemTags.PICKAXES).add(DWMItems.AZBANTIUM_PICKAXE.builtInRegistryHolder().key());
         builder(ItemTags.AXES).add(DWMItems.AZBANTIUM_AXE.builtInRegistryHolder().key());
         builder(ItemTags.HOES).add(DWMItems.AZBANTIUM_HOE.builtInRegistryHolder().key());
-        builder(ItemTags.HEAD_ARMOR).add(DWMItems.AZBANTIUM_HELMET.builtInRegistryHolder().key());
-        builder(ItemTags.CHEST_ARMOR).add(DWMItems.AZBANTIUM_CHESTPLATE.builtInRegistryHolder().key());
-        builder(ItemTags.LEG_ARMOR).add(DWMItems.AZBANTIUM_LEGGINGS.builtInRegistryHolder().key());
-        builder(ItemTags.FOOT_ARMOR).add(DWMItems.AZBANTIUM_BOOTS.builtInRegistryHolder().key());
+        builder(ItemTags.HEAD_ARMOR)
+                .add(DWMItems.AZBANTIUM_HELMET.builtInRegistryHolder().key())
+                .add(DWMItems.PROTECTIVE_SUIT_HELMET.builtInRegistryHolder().key());
+        builder(ItemTags.CHEST_ARMOR)
+                .add(DWMItems.AZBANTIUM_CHESTPLATE.builtInRegistryHolder().key())
+                .add(DWMItems.PROTECTIVE_SUIT_CHESTPLATE.builtInRegistryHolder().key());
+        builder(ItemTags.LEG_ARMOR)
+                .add(DWMItems.AZBANTIUM_LEGGINGS.builtInRegistryHolder().key())
+                .add(DWMItems.PROTECTIVE_SUIT_LEGGINGS.builtInRegistryHolder().key());
+        builder(ItemTags.FOOT_ARMOR)
+                .add(DWMItems.AZBANTIUM_BOOTS.builtInRegistryHolder().key())
+                .add(DWMItems.PROTECTIVE_SUIT_BOOTS.builtInRegistryHolder().key());
 
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyDatagen.generateItemTags(new WoodFamilyDatagen.ItemTagSink() {

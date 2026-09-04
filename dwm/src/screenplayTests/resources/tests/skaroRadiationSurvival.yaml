@@ -1,0 +1,20 @@
+---
+name: Skaro Radiation Survival
+type: test
+---
+steps:
+  - launchGame
+  - runCommand: "/gamemode survival"
+  - runCommand: "/item replace entity @s armor.head with dwm:protective_suit_helmet"
+  - runCommand: "/item replace entity @s armor.chest with dwm:protective_suit_chestplate"
+  - runCommand: "/item replace entity @s armor.legs with dwm:protective_suit_leggings"
+  - runCommand: "/item replace entity @s armor.feet with dwm:protective_suit_boots"
+  - runCommand: "/item replace entity @s weapon.mainhand with dwm:radiation_meter"
+  - waitUntil:
+      holding: dwm:radiation_meter
+  - runCommand: "/execute in dwm:skaro run tp @s 0 128 0"
+  - waitTicks: 40
+  - useItem: air
+  - waitUntil:
+      overlay: "Radiation:"
+  - waitTicks: 80

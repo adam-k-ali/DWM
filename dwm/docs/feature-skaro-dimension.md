@@ -1,6 +1,6 @@
 # Feature: Skaro Dimension
 
-See also: [Docs Index](./index.md), [Gallifrey Dimension](./feature-gallifrey-dimension.md), [TARDIS Exterior Block](./feature-tardis-block.md), [Building Content System](./feature-building-content.md), [Differentiation Strategy](./differentiation-strategy.md)
+See also: [Docs Index](./index.md), [Gallifrey Dimension](./feature-gallifrey-dimension.md), [TARDIS Exterior Block](./feature-tardis-block.md), [Building Content System](./feature-building-content.md), [Differentiation Strategy](./differentiation-strategy.md), [Field Guide](./feature-field-guide.md)
 
 ## Product Intent
 Give TARDIS travel a hostile destination world that is not another recolored Overworld: post–Thousand Year War Skaro, where preparation matters, instruments warn before the doors open, and every new material family is useful to builders.
@@ -30,25 +30,34 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
   - Tags: `#dwm:petrified_blocks`, `#dwm:petrified_logs` (not `#minecraft:logs_that_burn`).
 - **Petrified Jungle flora** (DWM-068 slice): configured features `petrified_tree`, `petrified_snag`, and `fallen_petrified_tree` placed only in `skaro_petrified_jungle` (branching trunks, straight snags, fallen logs — all `petrified_log`, no saplings/leaves).
 - **Vanilla terrain palette (intentional, not placeholder):** stone, tuff, deepslate, gravel, basalt, sand, red sand, terracotta, dirt, coarse dirt, rooted dirt, mud, and podzol. There is no custom Skaro stone, sand, sandstone, dust, or dirt family.
+- **Radiation hazards and survival equipment** (DWM-067):
+  - Server-authoritative ambient exposure only on Skaro for survival players (creative/spectator ignored). No stored dose — leaving Skaro clears future exposure immediately.
+  - Biome ambient values (`0.0–1.0`): Thal Plateau `0.15`, Petrified Jungle `0.40`, Drammankin Mountains `0.55`, Drammankin Mire `0.80`, Irradiated Wastes `0.95`.
+  - Mitigation: each correctly equipped protective-suit piece subtracts `0.25` from ambient (`effective = clamp01(ambient - 0.25 * pieces)`). A full set prevents ambient damage.
+  - Damage cadence: every **40** ticks; amount `1.0 × effective` via custom damage type `dwm:radiation` (bypasses vanilla armor; suit mitigation is the only reduction).
+  - Instruments agree on environmental (unmitigated) readings: console radiation reader, sonic Scan, and handheld `radiation_meter` action-bar `Radiation: N%`.
+  - Crafting: yellow-wool protective suit (helmet uses a glass visor); meter from iron, glass, and redstone. Field Guide chapter **Skaro Survival** documents hazards, meter, and suit recipes.
 
 ## Planned (not yet in the jar)
 - Dalek architecture builder family (DWM-065).
-- Radiation, protective suit, and meter (DWM-067).
 - Remaining Skaro flora (Varga, radiation fungus, mutated reeds, ash scrub, Thal crop) under DWM-068.
 - Structures, Daleks/Thals/fauna population, Kaalann, and related tickets (DWM-069–074).
 
 ## How It Works In-Game
 1. Mine petrified logs with a pickaxe (or strip with an axe), then craft planks, stairs, slabs, and walls like other builder sets.
 2. At the console, cycle the planet locator until **Skaro** is selected, then cycle the biome dial among the five tagged regions.
-3. Pull the materialisation lever to dematerialise, then again in flight to land on Skaro. Radiation readouts are not shipped yet (DWM-067).
-4. Debug without a TARDIS: `/execute in dwm:skaro run tp @s ~ 128 ~`.
+3. Check radiation on the console reader, sonic Scan, or craft/use a radiation meter before opening the doors.
+4. Craft and wear the full protective suit when exploring hazardous biomes.
+5. Pull the materialisation lever to dematerialise, then again in flight to land on Skaro.
+6. Debug without a TARDIS: `/execute in dwm:skaro run tp @s ~ 128 ~`.
 
 ## Known Constraints
 - Skaro is a TARDIS destination, not an alternate travel network or a campaign with bosses, quests, reputation, or a research GUI.
 - Terrain identity comes from **vanilla composition**, atmosphere, petrified vegetation, and Dalek architecture — not a full custom stone, sand, and dirt palette. That composition choice is product intent for DWM-066, not temporary art.
 - Petrified material is mineralized wood: pickaxe-effective, nonflammable, no saplings or leaves.
 - Sky/fog use biome colors and overworld dimension effects; there is no custom Skaro sky renderer.
-- Dalek architecture, radiation, remaining flora, entities, and structures remain owned by their child tickets under E-007.
+- Ambient radiation has no persistent dose, medicine, oxygen, suit degradation, block/entity weapon radiation, or structure hotspots (owned by later tickets).
+- Dalek architecture, remaining flora, entities, and structures remain owned by their child tickets under E-007.
 
 ## Future Opportunities
 - Custom dimension effects for Skaro sky, fog, and clouds.
