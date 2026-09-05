@@ -39,7 +39,7 @@ repositories {
 
 dependencies {
     implementation minecraft.dependency("net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}")
-    implementation 'org.yaml:snakeyaml:2.6'
+    implementation 'org.yaml:snakeyaml:2.7'
 }
 
 def screenplayCommon = rootProject.file('../common')
