@@ -39,7 +39,7 @@ repositories {
 
 dependencies {
     implementation "net.neoforged:neoforge:${project.neoforge_version}"
-    implementation 'org.yaml:snakeyaml:2.6'
+    implementation 'org.yaml:snakeyaml:2.7'
 }
 
 def screenplayCommon = rootProject.file('../common')
