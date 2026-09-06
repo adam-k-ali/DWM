@@ -1,6 +1,6 @@
 # Feature: Azbantium
 
-See also: [Docs Index](./index.md), [Gallifrey Dimension](./feature-gallifrey-dimension.md), [Gallifrey Building](./feature-gallifrey-building.md)
+See also: [Docs Index](./index.md), [Gallifrey Dimension](./feature-gallifrey-dimension.md), [Gallifrey Building](./feature-gallifrey-building.md), [Colour palette](./palettes/azbantium.md)
 
 ## Product Intent
 Give Gallifrey a signature hard gem material—minable only with diamond-tier tools—so survival progression on the destination world has a clear late-game craft and equip goal.

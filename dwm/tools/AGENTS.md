@@ -1,10 +1,10 @@
 # AGENTS.md
 
 ## Scope
-This file applies to `dwm/tools/` — offline Python scripts for TARDIS travel SFX and related analysis. These are **not** invoked by Gradle or CI.
+This file applies to `dwm/tools/` — offline Python scripts for TARDIS travel SFX, related analysis, and family palette docs. These are **not** invoked by Gradle or CI.
 
 ## Local Context
-Scripts synthesize and validate `.ogg` travel loops from spectral targets. Generated game assets are written into `src/client/resources/assets/dwm/sounds/` (or paths documented in each script). Reference audio for analysis stays local and gitignored.
+Scripts synthesize and validate `.ogg` travel loops from spectral targets. Generated game assets are written into `src/client/resources/assets/dwm/sounds/` (or paths documented in each script). Reference audio for analysis stays local and gitignored. Family palette docs write Markdown + PNG swatches under `docs/palettes/`.
 
 ## Commands
 - Create venv (once): `python3 -m venv tools/.venv && tools/.venv/bin/pip install -r tools/requirements.txt`
@@ -14,6 +14,7 @@ Scripts synthesize and validate `.ogg` travel loops from spectral targets. Gener
 - Flutterwing SFX: `tools/.venv/bin/python tools/generate_flutterwing_sfx.py`
 - Mewing Dog SFX: `tools/.venv/bin/python tools/generate_mewing_dog_sfx.py`
 - Dalek SFX: `tools/.venv/bin/python tools/generate_dalek_sfx.py`
+- Family palette docs: `tools/.venv/bin/python tools/generate_family_palette_docs.py --palette docs/palettes/<family>.json --out-dir docs/palettes` (run from `dwm/`)
 
 See `tools/fixtures/README.md` for validate/compare report options.
 

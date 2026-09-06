@@ -26,6 +26,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 ## Brand and Differentiation
 - [Branding Guidelines](./branding-guidelines.md)
 - [Differentiation Strategy](./differentiation-strategy.md)
+- [Block family colour palettes](./palettes/index.md)
 
 ## Releases
 - [Release Policy](./release-policy.md) (cadence, versioning, Modrinth + CurseForge + Discord checklist, CI)

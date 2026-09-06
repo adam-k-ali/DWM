@@ -1,6 +1,6 @@
 # Feature: Zeiton
 
-See also: [Docs Index](./index.md), [Gallifrey Dimension](./feature-gallifrey-dimension.md), [Azbantium](./feature-azbantium.md)
+See also: [Docs Index](./index.md), [Gallifrey Dimension](./feature-gallifrey-dimension.md), [Azbantium](./feature-azbantium.md), [Colour palette](./palettes/zeiton.md)
 
 ## Product Intent
 Give Gallifrey a common energy gem—and rare Overworld traces—so later TARDIS fuel and console-circuit crafts have a distinct ingredient loop without requiring a diamond pickaxe.
