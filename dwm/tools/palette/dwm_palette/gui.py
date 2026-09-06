@@ -1,4 +1,4 @@
-"""CustomTkinter GUI for editing palette seeds and previewing stone/ore recolour.
+"""CustomTkinter GUI for editing palette seeds and previewing stone/ore/gem/crystal recolour.
 
 Offline tooling only — imported by generate_docs --gui.
 """
@@ -20,13 +20,15 @@ from dwm_palette.recolor import (
     HEX_RE,
     Rgb,
     apply_host_palette,
+    apply_mineral_item_palette,
     apply_ore_palettes,
     load_palette,
     load_rgb_image,
 )
 
 PREVIEW_SCALE = 24  # 16×16 → 384×384
-PreviewMode = Literal["Stone", "Ore"]
+PreviewMode = Literal["Stone", "Ore", "Gem", "Crystal"]
+ITEM_MODES = frozenset({"Gem", "Crystal"})
 
 
 class FamilyPaletteGui(ctk.CTk):
@@ -39,6 +41,11 @@ class FamilyPaletteGui(ctk.CTk):
         ore_host_colours: frozenset[Rgb],
         ore_template_label: str,
         ore_save_dir: Path,
+        gem_rgba: Any,
+        gem_template_label: str,
+        crystal_rgba: Any,
+        crystal_template_label: str,
+        item_save_dir: Path,
     ) -> None:
         super().__init__()
         self.title("Family palette recolour")
@@ -53,10 +60,15 @@ class FamilyPaletteGui(ctk.CTk):
         self._stone_template_path = stone_template_path
         self._ore_template_label = ore_template_label
         self._ore_save_dir = ore_save_dir
+        self._gem_template_label = gem_template_label
+        self._crystal_template_label = crystal_template_label
+        self._item_save_dir = item_save_dir
 
         self._stone_rgb = load_rgb_image(stone_template_path)
         self._ore_rgb = ore_rgb
         self._ore_host_colours = ore_host_colours
+        self._gem_rgba = gem_rgba
+        self._crystal_rgba = crystal_rgba
         self._host: dict[str, Any] = load_palette(host_palette_path)
         self._mineral: dict[str, Any] = load_palette(mineral_palette_path)
 
@@ -84,21 +96,28 @@ class FamilyPaletteGui(ctk.CTk):
         left.grid_rowconfigure(2, weight=1)
         left.grid_rowconfigure(4, weight=1)
 
+        self._host_section = ctk.CTkFrame(left, fg_color="transparent")
+        self._host_section.grid(row=0, column=0, rowspan=4, sticky="nsew", padx=0, pady=0)
+        self._host_section.grid_columnconfigure(0, weight=1)
+        self._host_section.grid_rowconfigure(2, weight=1)
+
         self._host_title = ctk.CTkLabel(
-            left, text="", font=ctk.CTkFont(size=16, weight="bold"), anchor="w"
+            self._host_section, text="", font=ctk.CTkFont(size=16, weight="bold"), anchor="w"
         )
         self._host_title.grid(row=0, column=0, sticky="ew", padx=12, pady=(12, 2))
 
         self._host_meta = ctk.CTkLabel(
-            left, text="", font=ctk.CTkFont(size=12), anchor="w", text_color="gray70"
+            self._host_section, text="", font=ctk.CTkFont(size=12), anchor="w", text_color="gray70"
         )
         self._host_meta.grid(row=1, column=0, sticky="ew", padx=12, pady=(0, 8))
 
-        self._host_frame = ctk.CTkScrollableFrame(left, label_text="Host palette (mid + derived)")
+        self._host_frame = ctk.CTkScrollableFrame(
+            self._host_section, label_text="Host palette (mid + derived)"
+        )
         self._host_frame.grid(row=2, column=0, sticky="nsew", padx=12, pady=4)
         self._host_frame.grid_columnconfigure(1, weight=1)
 
-        host_btns = ctk.CTkFrame(left, fg_color="transparent")
+        host_btns = ctk.CTkFrame(self._host_section, fg_color="transparent")
         host_btns.grid(row=3, column=0, sticky="ew", padx=12, pady=(8, 4))
         host_btns.grid_columnconfigure(0, weight=1)
         host_btns.grid_columnconfigure(1, weight=1)
@@ -156,7 +175,7 @@ class FamilyPaletteGui(ctk.CTk):
         self._mode_var = ctk.StringVar(value="Stone")
         self._mode_seg = ctk.CTkSegmentedButton(
             right,
-            values=["Stone", "Ore"],
+            values=["Stone", "Ore", "Gem", "Crystal"],
             variable=self._mode_var,
             command=self._on_mode_changed,
         )
@@ -188,15 +207,25 @@ class FamilyPaletteGui(ctk.CTk):
         self._apply_mode_visibility()
 
     def _apply_mode_visibility(self) -> None:
-        if self._mode == "Ore":
+        if self._mode == "Stone":
+            self._host_section.grid()
+            self._mineral_section.grid_remove()
+            self._preview_title.configure(text="Stone preview")
+        elif self._mode == "Ore":
+            self._host_section.grid()
             self._mineral_section.grid()
             self._preview_title.configure(text="Ore preview")
         else:
-            self._mineral_section.grid_remove()
-            self._preview_title.configure(text="Stone preview")
+            # Gem / Crystal — mineral only
+            self._host_section.grid_remove()
+            self._mineral_section.grid()
+            self._preview_title.configure(text=f"{self._mode} preview")
 
     def _on_mode_changed(self, value: str) -> None:
-        self._mode = "Ore" if value == "Ore" else "Stone"
+        if value in ("Stone", "Ore", "Gem", "Crystal"):
+            self._mode = value  # type: ignore[assignment]
+        else:
+            self._mode = "Stone"
         self._apply_mode_visibility()
         self._refresh_preview()
 
@@ -456,25 +485,35 @@ class FamilyPaletteGui(ctk.CTk):
         messagebox.showinfo("Saved", f"Wrote {path}")
 
     def _compute_preview_rgb(self):
-        if not self._reexpand(self._host, self._host_seed_var.get().strip()):
-            return None
         if self._mode == "Stone":
+            if not self._reexpand(self._host, self._host_seed_var.get().strip()):
+                return None
             return apply_host_palette(self._stone_rgb, palette_hexes(self._host))
+
         if not self._reexpand(self._mineral, self._mineral_seed_var.get().strip()):
             return None
-        return apply_ore_palettes(
-            self._ore_rgb,
-            palette_hexes(self._host),
-            palette_hexes(self._mineral),
-            self._ore_host_colours,
-        )
+        mineral_hexes = palette_hexes(self._mineral)
+
+        if self._mode == "Ore":
+            if not self._reexpand(self._host, self._host_seed_var.get().strip()):
+                return None
+            return apply_ore_palettes(
+                self._ore_rgb,
+                palette_hexes(self._host),
+                mineral_hexes,
+                self._ore_host_colours,
+            )
+
+        template = self._gem_rgba if self._mode == "Gem" else self._crystal_rgba
+        return apply_mineral_item_palette(template, mineral_hexes)
 
     def _refresh_preview(self) -> None:
         remapped = self._compute_preview_rgb()
         if remapped is None:
             return
         self._last_preview_rgb = remapped
-        pil = Image.fromarray(remapped, mode="RGB")
+        mode = "RGBA" if remapped.shape[2] == 4 else "RGB"
+        pil = Image.fromarray(remapped, mode=mode)
         scaled = pil.resize(
             (pil.width * PREVIEW_SCALE, pil.height * PREVIEW_SCALE),
             resample=Image.Resampling.NEAREST,
@@ -491,11 +530,23 @@ class FamilyPaletteGui(ctk.CTk):
                     f"host: {self._host_path.name}"
                 )
             )
-        else:
+        elif self._mode == "Ore":
             self._preview_meta.configure(
                 text=(
                     f"Ore template: {self._ore_template_label}  ·  "
                     f"host: {self._host_path.name}  ·  "
+                    f"mineral: {self._mineral_path.name}"
+                )
+            )
+        else:
+            label = (
+                self._gem_template_label
+                if self._mode == "Gem"
+                else self._crystal_template_label
+            )
+            self._preview_meta.configure(
+                text=(
+                    f"{self._mode} template: {label}  ·  "
                     f"mineral: {self._mineral_path.name}"
                 )
             )
@@ -512,6 +563,11 @@ class FamilyPaletteGui(ctk.CTk):
         if self._mode == "Ore":
             suggested = f"{self._mineral['family_id']}_ore.png"
             initial_dir = str(self._ore_save_dir)
+        elif self._mode in ITEM_MODES:
+            suggested = f"{self._mineral['family_id']}.png"
+            if self._mode == "Crystal":
+                suggested = f"{self._mineral['family_id']}_crystals.png"
+            initial_dir = str(self._item_save_dir)
         else:
             suggested = f"{self._host['family_id']}.png"
             initial_dir = str(self._stone_template_path.parent)
@@ -527,11 +583,13 @@ class FamilyPaletteGui(ctk.CTk):
             return
         path = Path(path_str)
         try:
-            Image.fromarray(remapped, mode="RGB").save(path)
+            img_mode = "RGBA" if remapped.shape[2] == 4 else "RGB"
+            Image.fromarray(remapped, mode=img_mode).save(path)
         except OSError as exc:
             messagebox.showerror("Save PNG failed", str(exc))
             return
         messagebox.showinfo("Saved", f"Wrote {path}")
+
 
 
 def run_gui(
@@ -542,6 +600,11 @@ def run_gui(
     ore_host_colours: frozenset[Rgb],
     ore_template_label: str,
     ore_save_dir: Path,
+    gem_rgba: Any,
+    gem_template_label: str,
+    crystal_rgba: Any,
+    crystal_template_label: str,
+    item_save_dir: Path,
 ) -> None:
     if not palette_path.is_file():
         raise FileNotFoundError(f"host palette not found: {palette_path}")
@@ -553,6 +616,10 @@ def run_gui(
         raise ValueError("ore_rgb is required")
     if not ore_host_colours:
         raise ValueError("ore_host_colours must be a non-empty frozenset")
+    if gem_rgba is None:
+        raise ValueError("gem_rgba is required")
+    if crystal_rgba is None:
+        raise ValueError("crystal_rgba is required")
 
     load_palette(palette_path)
     load_rgb_image(template_path)
@@ -566,5 +633,10 @@ def run_gui(
         ore_host_colours=ore_host_colours,
         ore_template_label=ore_template_label,
         ore_save_dir=ore_save_dir,
+        gem_rgba=gem_rgba,
+        gem_template_label=gem_template_label,
+        crystal_rgba=crystal_rgba,
+        crystal_template_label=crystal_template_label,
+        item_save_dir=item_save_dir,
     )
     app.mainloop()

@@ -9,8 +9,10 @@ Writes Markdown + PNG swatches under `dwm/docs/palettes/`. Palette JSON is **see
 The GUI remaps:
 - **Stone** mode — a stone cube template using the **host** palette slot.
 - **Ore** mode — emerald-ore layout (`products.json` → `minecraft:block/emerald_ore.png` from the Loom client jar) using **host** + **mineral** palette slots.
+- **Gem** mode — diamond item layout (`products.json` → `minecraft:item/diamond.png`) using the **mineral** slot only; alpha outside the silhouette is preserved.
+- **Crystal** mode — quartz item layout (`products.json` → `minecraft:item/quartz.png`) using the **mineral** slot only; alpha outside the silhouette is preserved.
 
-Products (`dwm/docs/palettes/products.json`) choose which palette is host vs mineral for each block; a palette file itself is not typed as host or family.
+Products (`dwm/docs/palettes/products.json`) choose archetype, template, and which palette is host vs mineral; a palette file itself is not typed as host or family. Gem/crystal products omit `host`.
 
 ## Commands (from repo root)
 
@@ -20,6 +22,9 @@ poetry -C dwm/tools/palette run generate-family-palette-docs \
   --palette dwm/docs/palettes/<family>.json \
   --out-dir dwm/docs/palettes
 poetry -C dwm/tools/palette run generate-family-palette-docs --gui
+# Headless product export (gem/crystal/ore):
+#   --export-product azbantium --out dwm/src/client/resources/assets/dwm/textures/item/azbantium.png
+#   --export-product zeiton_crystals --out dwm/src/client/resources/assets/dwm/textures/item/zeiton_crystals.png
 # Optional ore defaults override:
 #   --mineral-palette dwm/docs/palettes/zeiton.json
 #   --ore-template dwm/src/client/resources/assets/dwm/textures/block/gallifrey_coal_ore.png

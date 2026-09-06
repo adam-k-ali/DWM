@@ -13,6 +13,18 @@
       "template": "minecraft:block/emerald_ore.png",
       "host": "gallifrey_stone",
       "mineral": "azbantium"
+    },
+    {
+      "id": "azbantium",
+      "archetype": "gem",
+      "template": "minecraft:item/diamond.png",
+      "mineral": "azbantium"
+    },
+    {
+      "id": "zeiton_crystals",
+      "archetype": "crystal",
+      "template": "minecraft:item/quartz.png",
+      "mineral": "zeiton"
     }
   ]
 }
