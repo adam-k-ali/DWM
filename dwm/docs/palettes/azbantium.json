@@ -2,16 +2,7 @@
   "family_id": "azbantium",
   "display_name": "Azbantium",
   "map_color": "COLOR_LIGHT_BLUE",
-  "notes": "Gallifrey-stone host with silver/white ore veins; storage block is pale icy cyan. Map colour is light blue for the mineral family.",
-  "roles": [
-    {"role": "host_shadow", "hex": "#6B2912", "notes": "Gallifrey stone darkest"},
-    {"role": "host_mid", "hex": "#843D1D", "notes": "Gallifrey stone primary fill"},
-    {"role": "host_hi", "hex": "#974F27", "notes": "Gallifrey stone highlight"},
-    {"role": "vein_shadow", "hex": "#BBBBBB", "notes": "Silver ore inclusion"},
-    {"role": "vein_mid", "hex": "#E8E8E8", "notes": "Silver ore mid"},
-    {"role": "vein_hi", "hex": "#FFFFFF", "notes": "Silver ore highlight"},
-    {"role": "gem_shadow", "hex": "#95B8BA", "notes": "Storage block shadow (icy cyan)"},
-    {"role": "gem_mid", "hex": "#CDEAE5", "notes": "Storage block body"},
-    {"role": "gem_hi", "hex": "#EAF9F5", "notes": "Storage block highlight"}
-  ]
+  "notes": "Icy cyan mineral. Gallifrey ores use this as the mineral on gallifrey_stone (vanilla emerald-ore template). Map colour is light blue for the mineral family.",
+  "seed": "#CDEAE5",
+  "profile": "mineral"
 }

@@ -2,11 +2,7 @@
   "family_id": "gallifrey_stone",
   "display_name": "Gallifrey Stone",
   "map_color": "TERRACOTTA_ORANGE",
-  "notes": "Canonical Gallifrey stone host atlas from gallifrey_stone.png. Shared by Gallifrey vanilla ores (coal, iron, gold, diamond). Zeiton and Azbantium ore hosts are near-miss browns and are not this palette.",
-  "roles": [
-    {"role": "host_shadow", "hex": "#632715", "notes": "Darkest stone flecks"},
-    {"role": "host_dark", "hex": "#75331B", "notes": "Dark mid tone"},
-    {"role": "host_mid", "hex": "#853D20", "notes": "Primary stone fill"},
-    {"role": "host_hi", "hex": "#9E5129", "notes": "Stone highlight"}
-  ]
+  "notes": "Canonical Gallifrey stone host atlas from gallifrey_stone.png. Shared by Gallifrey vanilla ores (coal, iron, gold, diamond) and by Zeiton / Azbantium ore products as the host palette.",
+  "seed": "#853D20",
+  "profile": "stone"
 }

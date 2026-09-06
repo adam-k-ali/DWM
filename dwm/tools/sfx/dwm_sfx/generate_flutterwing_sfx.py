@@ -21,6 +21,8 @@ from pathlib import Path
 
 import numpy as np
 
+from dwm_sfx.paths import find_dwm_root
+
 SR = 44100
 
 
@@ -280,7 +282,7 @@ def main() -> int:
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=Path(__file__).resolve().parents[1]
+        default=find_dwm_root()
         / "src/client/resources/assets/dwm/sounds/entity/flutterwing",
     )
     parser.add_argument("--seed", type=int, default=1963)

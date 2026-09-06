@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Synthesize Dalek ambient / hurt / death / shoot SFX.
+Synthesize Mewing Dog ambient SFX.
 
-Original mechanical synthesis only — metallic grate, laser zap, casing impact.
-Does not sample or imitate BBC Dalek speech.
+Gallifrey forest dogs that mew (PROSE: The Twins in the Wood). Soft cat-like
+mews — short tonal chirps with a light breathy onset. Original synthesis only.
 
 Requires numpy; writes WAV then ffmpeg → OGG (same path as Flutterwing SFX).
 """
@@ -20,10 +20,13 @@ from pathlib import Path
 
 import numpy as np
 
+from dwm_sfx.paths import find_dwm_root
+
 SR = 44100
 
 
 def write_wav(path: Path, samples: np.ndarray, sample_rate: int = SR) -> None:
+    """Write stereo WAV (duplicated mono) — Homebrew ffmpeg's vorbis encoder requires 2ch."""
     clipped = np.clip(samples, -1.0, 1.0)
     mono = (clipped * 32767.0).astype(np.int16)
     stereo = np.empty(mono.size * 2, dtype=np.int16)
@@ -77,73 +80,72 @@ def fft_bandpass(signal: np.ndarray, low: float, high: float, order: int = 4) ->
     return np.fft.irfft(spec * lp * hp, n=n)
 
 
-def metallic_partials(n: int, t0: float, duration_s: float, freqs: list[float], amp: float) -> np.ndarray:
+def hann(n: int) -> np.ndarray:
+    if n <= 1:
+        return np.ones(n)
+    return 0.5 - 0.5 * np.cos(2.0 * math.pi * np.arange(n) / max(n - 1, 1))
+
+
+def mew_chirp(
+    n: int,
+    t0: float,
+    duration_s: float,
+    f0: float,
+    f1: float,
+    amp: float,
+) -> np.ndarray:
     out = np.zeros(n)
     i0 = int(round(t0 * SR))
     length = int(round(duration_s * SR))
-    if length <= 1 or i0 >= n:
+    if length <= 1 or i0 >= n or i0 < 0:
         return out
-    length = min(length, n - max(i0, 0))
-    if i0 < 0:
-        return out
+    length = min(length, n - i0)
     t = np.arange(length) / SR
-    decay = np.exp(-t / max(duration_s * 0.28, 1e-4))
-    window = 0.5 - 0.5 * np.cos(2.0 * math.pi * np.arange(length) / max(length - 1, 1))
-    mix = np.zeros(length)
-    for i, freq in enumerate(freqs):
-        mix += np.sin(2.0 * math.pi * freq * t) * (0.55 ** i)
-    out[i0 : i0 + length] = mix * decay * window * amp
+    # Slight upward-then-settle mew contour
+    mid = duration_s * 0.35
+    freq = np.where(
+        t < mid,
+        f0 + (f1 - f0) * (t / mid),
+        f1 + (f0 * 0.92 - f1) * ((t - mid) / max(duration_s - mid, 1e-4)),
+    )
+    phase = 2.0 * math.pi * np.cumsum(freq) / SR
+    # Soft odd harmonics for a cat-like tone (not a pure sine)
+    tone = (
+        np.sin(phase)
+        + 0.28 * np.sin(2.0 * phase)
+        + 0.12 * np.sin(3.0 * phase)
+    )
+    env = hann(length) * np.exp(-t / max(duration_s * 0.55, 1e-4))
+    out[i0 : i0 + length] = tone * env * amp
+    return out
+
+
+def breath_onset(n: int, rng: np.random.Generator, t0: float, duration_s: float, amp: float) -> np.ndarray:
+    out = np.zeros(n)
+    i0 = int(round(t0 * SR))
+    length = int(round(duration_s * SR))
+    if length <= 1 or i0 >= n or i0 < 0:
+        return out
+    length = min(length, n - i0)
+    noise = fft_bandpass(rng.standard_normal(length), 800.0, 4200.0, order=3)
+    out[i0 : i0 + length] = noise * hann(length) * amp
     return out
 
 
 def synthesize_ambient(rng: np.random.Generator, *, variant: int = 0) -> np.ndarray:
-    duration = 0.85 if variant == 0 else 0.96
+    duration = 0.72 if variant == 0 else 0.86
     n = int(duration * SR)
-    t = np.arange(n) / SR
-    grate = fft_bandpass(rng.standard_normal(n), 180.0, 1400.0, order=3)
-    servo = np.sin(2.0 * math.pi * (42.0 if variant == 0 else 36.0) * t)
-    servo *= 0.18 + 0.08 * np.sin(2.0 * math.pi * 3.2 * t)
-    clicks = np.zeros(n)
-    for t0 in (0.08, 0.31, 0.54, 0.72):
-        clicks += metallic_partials(n, t0 + float(rng.uniform(-0.02, 0.02)), 0.07, [720.0, 1180.0, 1830.0], 0.12)
-    mix = grate * 0.42 + servo * 0.55 + clicks
-    return fade(peak_normalize(mix, 0.62), 0.02, 0.12)
-
-
-def synthesize_hurt(rng: np.random.Generator) -> np.ndarray:
-    duration = 0.32
-    n = int(duration * SR)
-    impact = fft_bandpass(rng.standard_normal(n), 200.0, 4200.0, order=2)
-    env = np.exp(-np.arange(n) / SR / 0.07)
-    clang = metallic_partials(n, 0.0, 0.22, [510.0, 980.0, 1640.0, 2470.0], 0.7)
-    mix = impact * env * 0.55 + clang
-    return fade(peak_normalize(mix, 0.88), 0.001, 0.06)
-
-
-def synthesize_death(rng: np.random.Generator) -> np.ndarray:
-    duration = 0.95
-    n = int(duration * SR)
-    t = np.arange(n) / SR
-    wind_down = np.sin(2.0 * math.pi * (90.0 - 55.0 * t) * t) * np.exp(-t * 2.4)
-    scrapes = fft_bandpass(rng.standard_normal(n), 90.0, 900.0, order=2) * np.exp(-t * 1.8)
-    clangs = (
-        metallic_partials(n, 0.02, 0.28, [430.0, 870.0, 1410.0], 0.55)
-        + metallic_partials(n, 0.22, 0.35, [310.0, 640.0, 1020.0], 0.4)
-        + metallic_partials(n, 0.52, 0.38, [220.0, 480.0], 0.28)
-    )
-    mix = wind_down * 0.45 + scrapes * 0.5 + clangs
-    return fade(peak_normalize(mix, 0.82), 0.004, 0.14)
-
-
-def synthesize_shoot(rng: np.random.Generator) -> np.ndarray:
-    duration = 0.28
-    n = int(duration * SR)
-    t = np.arange(n) / SR
-    sweep = np.sin(2.0 * math.pi * (1680.0 + 2200.0 * t) * t) * np.exp(-t / 0.09)
-    hiss = fft_bandpass(rng.standard_normal(n), 2400.0, 7800.0, order=2) * np.exp(-t / 0.06)
-    click = metallic_partials(n, 0.0, 0.04, [2100.0, 3400.0], 0.35)
-    mix = sweep * 0.7 + hiss * 0.45 + click
-    return fade(peak_normalize(mix, 0.9), 0.001, 0.05)
+    f0 = 780.0 if variant == 0 else 690.0
+    f1 = 1180.0 if variant == 0 else 1040.0
+    # One or two soft mews
+    mix = mew_chirp(n, 0.04, 0.28 if variant == 0 else 0.34, f0, f1, 0.72)
+    mix += breath_onset(n, rng, 0.02, 0.08, 0.12)
+    if variant == 1:
+        mix += mew_chirp(n, 0.42, 0.26, f0 * 1.08, f1 * 0.95, 0.48)
+        mix += breath_onset(n, rng, 0.40, 0.07, 0.08)
+    # Tiny room noise so it doesn't sound dry/synthetic
+    hiss = fft_bandpass(rng.standard_normal(n), 200.0, 6000.0, order=2) * 0.015
+    return fade(peak_normalize(mix + hiss, 0.78), 0.004, 0.08)
 
 
 def spectral_centroid(signal: np.ndarray) -> float:
@@ -158,8 +160,8 @@ def main() -> int:
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=Path(__file__).resolve().parents[1]
-        / "src/client/resources/assets/dwm/sounds/entity/dalek",
+        default=find_dwm_root()
+        / "src/client/resources/assets/dwm/sounds/entity/mewing_dog",
     )
     parser.add_argument("--seed", type=int, default=1963)
     args = parser.parse_args()
@@ -170,12 +172,10 @@ def main() -> int:
     rng = np.random.default_rng(args.seed)
     jobs = [
         ("ambient", synthesize_ambient(rng, variant=0)),
-        ("hurt", synthesize_hurt(rng)),
-        ("death", synthesize_death(rng)),
-        ("shoot", synthesize_shoot(rng)),
+        ("ambient_2", synthesize_ambient(rng, variant=1)),
     ]
 
-    with tempfile.TemporaryDirectory(prefix="dalek_sfx_") as tmp:
+    with tempfile.TemporaryDirectory(prefix="mewing_dog_sfx_") as tmp:
         tmp_dir = Path(tmp)
         for name, samples in jobs:
             wav_path = tmp_dir / f"{name}.wav"

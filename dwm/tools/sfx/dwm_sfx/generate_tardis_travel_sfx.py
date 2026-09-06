@@ -7,7 +7,7 @@ bass piano strings → tape varispeed → feedback/echo; materialise is the reve
 motion; in-flight is the same vocabulary at higher pitch; thud is a short landing bang.
 
 Metallic texture is modal/inharmonic + light FM/ring-mod, then shaped with a
-baked analysis-derived spectral envelope (tools/fixtures/baked_vworp_targets.npz)
+baked analysis-derived spectral envelope (fixtures/baked_vworp_targets.npz)
 so the loop tracks golden timbre/dynamics without packaging reference audio.
 
 Does not sample or copy BBC media. Requires numpy; writes WAV then ffmpeg → OGG.
@@ -24,6 +24,15 @@ from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
+
+from dwm_sfx.paths import find_dwm_root, find_sfx_project_root
+from dwm_sfx.tardis_sfx_analysis import (
+    hard_gate_failures,
+    load_audio_mono,
+    ref_analysis_slice,
+    resample_linear,
+    spectral_report,
+)
 
 SR = 44100
 # One full vworp ≈ 1.75s (centroid autocorr on reference); 2 per seamless loop.
@@ -50,7 +59,7 @@ FLIGHT_HF_CUTOFF_HZ = HF_CUTOFF_HZ
 MORPH_N_FFT = 1024
 MORPH_HOP = 256
 MORPH_STRENGTH = 0.92
-BAKED_TARGETS = Path(__file__).resolve().parent / "fixtures" / "baked_vworp_targets.npz"
+BAKED_TARGETS = find_sfx_project_root() / "fixtures" / "baked_vworp_targets.npz"
 
 
 def write_wav(path: Path, samples: np.ndarray, sample_rate: int = SR) -> None:
@@ -115,11 +124,6 @@ def write_loop_ogg(
     """
     write_wav(wav_path, samples)
     wav_to_ogg(wav_path, ogg_path)
-    # Late import keeps module import light when only synthesizing in tests.
-    tools_dir = Path(__file__).resolve().parent
-    if str(tools_dir) not in sys.path:
-        sys.path.insert(0, str(tools_dir))
-    from tardis_sfx_analysis import load_audio_mono  # noqa: E402
 
     decoded, dec_sr = load_audio_mono(ogg_path)
     if dec_sr != SR:
@@ -312,7 +316,7 @@ def _load_baked_targets() -> tuple[np.ndarray, np.ndarray]:
     if not BAKED_TARGETS.exists():
         raise FileNotFoundError(
             f"Missing baked vworp targets: {BAKED_TARGETS}\n"
-            "Regenerate with tools/fixtures/golden analysis helpers."
+            "Regenerate with fixtures/golden analysis helpers."
         )
     data = np.load(BAKED_TARGETS)
     return data["snaps"].astype(np.float64), data["env64"].astype(np.float64)
@@ -753,26 +757,16 @@ def synthesize_thud(rng: np.random.Generator) -> np.ndarray:
 
 
 def main() -> int:
-    # Shared analysis lives beside this script (tools/).
-    tools_dir = Path(__file__).resolve().parent
-    sys.path.insert(0, str(tools_dir))
-    from tardis_sfx_analysis import (  # noqa: E402
-        hard_gate_failures,
-        load_audio_mono,
-        ref_analysis_slice,
-        resample_linear,
-        spectral_report,
-    )
-
-    default_ref = tools_dir / "fixtures" / "tardis_ref.wav"
-    default_compare = tools_dir / "fixtures" / "compare_out"
+    project_root = find_sfx_project_root()
+    dwm_root = find_dwm_root()
+    default_ref = project_root / "fixtures" / "tardis_ref.wav"
+    default_compare = project_root / "fixtures" / "compare_out"
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=Path(__file__).resolve().parents[1]
-        / "src/client/resources/assets/dwm/sounds",
+        default=dwm_root / "src/client/resources/assets/dwm/sounds",
     )
     parser.add_argument("--seed", type=int, default=1963)
     parser.add_argument(
@@ -841,7 +835,7 @@ def main() -> int:
         if not ref_path.exists():
             print(
                 f"Missing golden reference: {ref_path}\n"
-                f"Run: tools/.venv/bin/python tools/fetch_tardis_ref.py",
+                f"Run: poetry -C dwm/tools/sfx run fetch-tardis-ref",
                 file=sys.stderr,
             )
             exit_code = 2
@@ -858,22 +852,21 @@ def main() -> int:
                 print("Validation OK vs reference spectral traits.")
 
             if args.compare_report is not None:
-                # Defer to compare CLI for plots/report (keeps generator lean).
-                compare = tools_dir / "compare_tardis_sfx.py"
-                cmd = [
-                    sys.executable,
-                    str(compare),
-                    "--ref",
-                    str(ref_path),
-                    "--ours",
-                    str(out_dir / "tardis_dematerialise_loop.ogg"),
-                    "--mat",
-                    str(out_dir / "tardis_materialise_loop.ogg"),
-                    "--out-dir",
-                    str(args.compare_report),
-                ]
+                from dwm_sfx.compare_tardis_sfx import main as compare_main
+
                 print("Running compare report…")
-                subprocess.run(cmd, check=False)
+                compare_main(
+                    [
+                        "--ref",
+                        str(ref_path),
+                        "--ours",
+                        str(out_dir / "tardis_dematerialise_loop.ogg"),
+                        "--mat",
+                        str(out_dir / "tardis_materialise_loop.ogg"),
+                        "--out-dir",
+                        str(args.compare_report),
+                    ]
+                )
 
     for wav in tmp.glob("*.wav"):
         wav.unlink()

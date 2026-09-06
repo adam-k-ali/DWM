@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "dwm-palette"
+version = "0.1.0"
+description = "Offline family colour-palette docs and recolour GUI for The Doctor Who Mod"
+authors = ["Adam Ali"]
+packages = [{ include = "dwm_palette" }]
+include = ["dwm_palette/data/*.json"]
+
+[tool.poetry.dependencies]
+python = ">=3.11"
+numpy = ">=1.26"
+matplotlib = ">=3.8"
+pillow = ">=10.0"
+customtkinter = ">=5.2"
+
+[tool.poetry.scripts]
+generate-family-palette-docs = "dwm_palette.generate_docs:main"
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
