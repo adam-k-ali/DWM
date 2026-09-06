@@ -30,13 +30,13 @@ nudge motif while keeping silhouette and value structure.
 | | |
 |--|--|
 | **Template** | [templates/ore_stone.png](templates/ore_stone.png) |
-| **Vanilla study** | `textures/block/coal_ore.png`, `iron_ore.png`, `gold_ore.png`, `diamond_ore.png` |
+| **Vanilla study** | `textures/block/emerald_ore.png` (primary), `diamond_ore.png`, `iron_ore.png`, `gold_ore.png` — avoid coal ore for high-contrast minerals |
 | **Size / alpha** | 16×16, fully opaque |
-| **Palette roles** | `host_*` + `vein_shadow`, `vein_mid`, `vein_hi` |
+| **Palette roles** | `host_*` + `vein_shadow`, `vein_dark`, `vein_mid`, `vein_hi` |
 
-**Do:** Sparse mineral **clusters** on a readable host; keep most pixels as host; vein blobs have a dark rim + mid fill + rare hi flecks.
+**Do:** Sparse mineral **clusters** on a readable host; keep most pixels as host; vein blobs have a dark rim + dark fill + mid + rare hi flecks (4 mineral steps).
 
-**Don’t:** Cover the face in mineral; soft glow around veins; transparent pixels.
+**Don’t:** Cover the face in mineral; soft glow around veins; transparent pixels; use crushed dark coal greys as the mineral value structure.
 
 **Recolor:** Greys → `host_*`; accent pixels → `vein_*`.
 
@@ -49,7 +49,7 @@ nudge motif while keeping silhouette and value structure.
 | **Template** | [templates/gem_item.png](templates/gem_item.png) |
 | **Vanilla study** | `textures/item/diamond.png`, `textures/item/emerald.png` |
 | **Size / alpha** | 16×16, transparent outside silhouette |
-| **Palette roles** | `gem_shadow`, `gem_mid`, `gem_hi` (optionally share hue with `vein_*`) |
+| **Palette roles** | `gem_shadow`, `gem_dark`, `gem_mid`, `gem_hi` (optionally share hue with `vein_*`) |
 
 **Do:** Faceted silhouette; strong center / upper highlight; clear outline; shared family hue with the ore.
 

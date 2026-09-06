@@ -2,7 +2,7 @@
   "family_id": "zeiton",
   "display_name": "Zeiton",
   "map_color": "TERRACOTTA_ORANGE",
-  "notes": "Emerald/teal mineral. Gallifrey ores use this as the mineral on gallifrey_stone (coal-ore template). Map colour follows the Gallifrey ore host (terracotta orange), not the green veins.",
+  "notes": "Emerald/teal mineral. Gallifrey ores use this as the mineral on gallifrey_stone (vanilla emerald-ore template). Map colour follows the Gallifrey ore host (terracotta orange), not the green veins.",
   "seed": "#09AF71",
   "profile": "mineral"
 }

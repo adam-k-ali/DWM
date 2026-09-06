@@ -5,12 +5,24 @@ Offline tooling only — not invoked by Gradle or CI.
 
 from __future__ import annotations
 
+import io
 import json
+import re
+import zipfile
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 from dwm_palette.profiles import expand_ramp, get_profile
 from dwm_palette.recolor import HEX_RE, luminance, parse_hex
+
+# Product templates under assets/dwm/textures/…, or vanilla study ids:
+#   minecraft:block/<name>.png  → Loom minecraft-client.jar
+MINECRAFT_TEMPLATE_RE = re.compile(
+    r"^minecraft:(block|item)/([a-z0-9_./]+\.png)$"
+)
 
 
 def load_palette(path: Path) -> dict[str, Any]:
@@ -146,8 +158,89 @@ def resolve_product_palettes(
     return load_palette(host_path), load_palette(mineral_path)
 
 
+def read_minecraft_version(dwm_root: Path) -> str:
+    """Read ``minecraft_version`` from ``dwm/gradle.properties``."""
+    props = dwm_root / "gradle.properties"
+    if not props.is_file():
+        raise FileNotFoundError(f"gradle.properties not found: {props}")
+    for line in props.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if stripped.startswith("minecraft_version="):
+            value = stripped.split("=", 1)[1].strip()
+            if value:
+                return value
+    raise ValueError(f"{props}: missing minecraft_version=")
+
+
+def minecraft_client_jar(dwm_root: Path) -> Path:
+    """Path to Fabric Loom's ``minecraft-client.jar`` for this DWM Minecraft version."""
+    version = read_minecraft_version(dwm_root)
+    jar = (
+        Path.home()
+        / ".gradle"
+        / "caches"
+        / "fabric-loom"
+        / version
+        / "minecraft-client.jar"
+    )
+    if not jar.is_file():
+        raise FileNotFoundError(
+            f"minecraft-client.jar not found at {jar} "
+            f"(run ./dwm/gradlew genSources or a Loom task to populate the cache)"
+        )
+    return jar
+
+
+def is_minecraft_template(template: str) -> bool:
+    return bool(MINECRAFT_TEMPLATE_RE.match(template))
+
+
+def minecraft_jar_entry(template: str) -> str:
+    """Map ``minecraft:block/foo.png`` → ``assets/minecraft/textures/block/foo.png``."""
+    match = MINECRAFT_TEMPLATE_RE.match(template)
+    if not match:
+        raise ValueError(
+            f"not a minecraft: template id: {template!r} "
+            "(expected minecraft:block/<name>.png or minecraft:item/<name>.png)"
+        )
+    kind, name = match.group(1), match.group(2)
+    return f"assets/minecraft/textures/{kind}/{name}"
+
+
+@lru_cache(maxsize=16)
+def _load_png_from_jar(jar_path: str, entry: str) -> bytes:
+    with zipfile.ZipFile(jar_path) as zf:
+        try:
+            return zf.read(entry)
+        except KeyError as exc:
+            raise FileNotFoundError(
+                f"{entry} not found in {jar_path}"
+            ) from exc
+
+
+def load_minecraft_rgb(dwm_root: Path, template: str) -> np.ndarray:
+    """Load a vanilla texture from the Loom client jar as HxWx3 uint8."""
+    from PIL import Image
+
+    entry = minecraft_jar_entry(template)
+    jar = minecraft_client_jar(dwm_root)
+    raw = _load_png_from_jar(str(jar), entry)
+    with Image.open(io.BytesIO(raw)) as img:
+        rgb = img.convert("RGB")
+        return np.asarray(rgb, dtype=np.uint8)
+
+
 def texture_path(dwm_root: Path, template: str) -> Path:
-    """Resolve a product template path relative to assets/dwm/textures/."""
+    """Resolve a DWM-owned product template under assets/dwm/textures/.
+
+    Vanilla ``minecraft:…`` ids are not filesystem paths — use
+    :func:`load_template_rgb` / :func:`resolve_template` instead.
+    """
+    if is_minecraft_template(template):
+        raise ValueError(
+            f"template {template!r} is a vanilla study id; "
+            "use load_template_rgb() or resolve_template()"
+        )
     return (
         dwm_root
         / "src"
@@ -160,10 +253,37 @@ def texture_path(dwm_root: Path, template: str) -> Path:
     )
 
 
+def load_template_rgb(dwm_root: Path, template: str) -> np.ndarray:
+    """Load a product template RGB array (DWM path or vanilla jar entry)."""
+    from dwm_palette.recolor import load_rgb_image
+
+    if is_minecraft_template(template):
+        return load_minecraft_rgb(dwm_root, template)
+    path = texture_path(dwm_root, template)
+    if not path.is_file():
+        raise FileNotFoundError(f"template not found: {path}")
+    return load_rgb_image(path)
+
+
+def resolve_template(dwm_root: Path, template: str) -> str | Path:
+    """Return a display/label path for *template* (jar entry or DWM Path)."""
+    if is_minecraft_template(template):
+        return minecraft_jar_entry(template)
+    return texture_path(dwm_root, template)
+
+
+def vanilla_stone_host_colours(dwm_root: Path) -> frozenset[tuple[int, int, int]]:
+    """Unique RGB triples from vanilla ``stone.png`` (ore host classifier)."""
+    from dwm_palette.recolor import host_colour_set
+
+    stone = load_minecraft_rgb(dwm_root, "minecraft:block/stone.png")
+    return host_colour_set(stone)
+
+
 def default_ore_template_from_products(
     dwm_root: Path, product_id: str = "azbantium_ore"
-) -> Path:
-    """Resolve an ore template path from products.json."""
+) -> str:
+    """Return the ore template id/path string from products.json."""
     products = load_products(dwm_root / "docs" / "palettes" / "products.json")
     product = find_product(products, product_id)
-    return texture_path(dwm_root, product["template"])
+    return product["template"]

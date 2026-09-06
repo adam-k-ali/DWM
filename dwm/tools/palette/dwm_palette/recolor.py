@@ -174,8 +174,10 @@ def apply_ore_palettes(
     """Remap ore template: host pixels → host hexes, mineral pixels → vein hexes.
 
     Host colours are classified against *host_colours* (frozen stone template
-    uniques), not the live edited host hex list. Mineral colours use rank
-    mapping so dark coal greys still reach light vein highlights.
+    uniques — vanilla ``stone.png`` for emerald layouts, or a DWM host cube for
+    remapped DWM ores), not the live edited host hex list. Mineral colours use
+    rank mapping so many source vein steps still reach the full target ramp
+    (e.g. emerald's 8 greens → 4 mineral profile steps).
 
     Returns a new HxWx3 uint8 array.
     """

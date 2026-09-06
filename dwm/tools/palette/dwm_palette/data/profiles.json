@@ -10,9 +10,13 @@
     }
   },
   "mineral": {
-    "steps": ["shadow", "mid", "hi"],
+    "steps": ["shadow", "dark", "mid", "hi"],
     "mid": "mid",
-    "delta_L": [-0.076, 0.0, 0.14],
-    "chroma_ratio": [1.04, 1.0, 0.85]
+    "delta_L": [-0.278815, -0.191247, 0.0, 0.182704],
+    "chroma_ratio": [0.745847, 0.827976, 1.0, 0.216516],
+    "reference": {
+      "seed": "#17DD62",
+      "hexes": ["#007B18", "#1C9829", "#17DD62", "#D9FFEB"]
+    }
   }
 }

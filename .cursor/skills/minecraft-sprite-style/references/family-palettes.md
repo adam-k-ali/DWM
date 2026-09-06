@@ -22,7 +22,7 @@ A palette JSON is **not** a list of every step hex. It is:
 | Field | Meaning |
 |-------|---------|
 | `seed` | Mid colour (`#RRGGBB`) — the only colour you pick |
-| `profile` | Named contrast ramp: `stone` (4 steps) or `mineral` (3 steps) |
+| `profile` | Named contrast ramp: `stone` (4 steps) or `mineral` (4 steps: shadow/dark/mid/hi) |
 
 Profiles live in `dwm/tools/palette/dwm_palette/data/profiles.json`. Step hexes
 (`shadow` / `dark` / `mid` / `hi`) are **generated** from the seed. Do not
@@ -45,7 +45,7 @@ poetry -C dwm/tools/palette run generate-family-palette-docs --gui
 3. **Expand** (tool or docs page) to get step hexes.
 4. **Map template channels** — greys → host palette steps; accent → mineral palette steps.
 5. For ores, use `gallifrey_stone` as host and the mineral palette as veins on the
-   coal-ore template (see `products.json`).
+   emerald-ore template (see `products.json` — `minecraft:block/emerald_ore.png`).
 
 ## Usage role names (when drawing)
 
@@ -54,8 +54,8 @@ When talking about pixels on a sprite, prefix the expanded steps by usage:
 | Usage name | Typical use |
 |------------|-------------|
 | `host_shadow` / `host_dark` / `host_mid` / `host_hi` | Host stone noise (from a `stone` palette) |
-| `vein_shadow` / `vein_mid` / `vein_hi` | Ore mineral clusters (from a `mineral` palette) |
-| `gem_shadow` / `gem_mid` / `gem_hi` | Gem / crystal / storage (often same mineral palette) |
+| `vein_shadow` / `vein_dark` / `vein_mid` / `vein_hi` | Ore mineral clusters (from a `mineral` palette) |
+| `gem_shadow` / `gem_dark` / `gem_mid` / `gem_hi` | Gem / crystal / storage (often same mineral palette) |
 | `plant_stem` / `plant_leaf` / `plant_leaf_hi` | Cross plants |
 | `powder_shadow` / `powder_mid` / `powder_hi` | Dust piles |
 | `handle_shadow` / `handle_mid` | Tool handles |

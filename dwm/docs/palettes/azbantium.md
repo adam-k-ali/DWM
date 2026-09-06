@@ -6,7 +6,7 @@ Seed: `#CDEAE5` · Profile: `mineral`
 
 Map colour: `COLOR_LIGHT_BLUE`
 
-Icy cyan mineral. Gallifrey ores use this as the mineral on gallifrey_stone (coal-ore template). Map colour is light blue for the mineral family.
+Icy cyan mineral. Gallifrey ores use this as the mineral on gallifrey_stone (vanilla emerald-ore template). Map colour is light blue for the mineral family.
 
 Step hexes below are **generated** from the seed and named contrast profile (not hand-authored).
 
@@ -14,8 +14,9 @@ Step hexes below are **generated** from the seed and named contrast profile (not
 
 | Role | Hex | Notes |
 |------|-----|-------|
-| `shadow` | `#B4D1CC` |  |
+| `shadow` | `#7C908C` |  |
+| `dark` | `#95ABA7` |  |
 | `mid` | `#CDEAE5` |  |
-| `hi` | `#ECFFFF` |  |
+| `hi` | `#FAFFFF` |  |
 
 Source JSON: [`azbantium.json`](./azbantium.json). Regenerate with `poetry -C dwm/tools/palette run generate-family-palette-docs` (from repo root: `--palette dwm/docs/palettes/<id>.json --out-dir dwm/docs/palettes`).

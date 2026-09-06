@@ -18,9 +18,9 @@ from dwm_palette.palette import palette_hexes, save_palette_json
 from dwm_palette.profiles import expand_ramp
 from dwm_palette.recolor import (
     HEX_RE,
+    Rgb,
     apply_host_palette,
     apply_ore_palettes,
-    host_colour_set,
     load_palette,
     load_rgb_image,
 )
@@ -35,7 +35,10 @@ class FamilyPaletteGui(ctk.CTk):
         host_palette_path: Path,
         stone_template_path: Path,
         mineral_palette_path: Path,
-        ore_template_path: Path,
+        ore_rgb: Any,
+        ore_host_colours: frozenset[Rgb],
+        ore_template_label: str,
+        ore_save_dir: Path,
     ) -> None:
         super().__init__()
         self.title("Family palette recolour")
@@ -48,11 +51,12 @@ class FamilyPaletteGui(ctk.CTk):
         self._host_path = host_palette_path
         self._mineral_path = mineral_palette_path
         self._stone_template_path = stone_template_path
-        self._ore_template_path = ore_template_path
+        self._ore_template_label = ore_template_label
+        self._ore_save_dir = ore_save_dir
 
         self._stone_rgb = load_rgb_image(stone_template_path)
-        self._host_colours = host_colour_set(self._stone_rgb)
-        self._ore_rgb = load_rgb_image(ore_template_path)
+        self._ore_rgb = ore_rgb
+        self._ore_host_colours = ore_host_colours
         self._host: dict[str, Any] = load_palette(host_palette_path)
         self._mineral: dict[str, Any] = load_palette(mineral_palette_path)
 
@@ -462,7 +466,7 @@ class FamilyPaletteGui(ctk.CTk):
             self._ore_rgb,
             palette_hexes(self._host),
             palette_hexes(self._mineral),
-            self._host_colours,
+            self._ore_host_colours,
         )
 
     def _refresh_preview(self) -> None:
@@ -490,7 +494,7 @@ class FamilyPaletteGui(ctk.CTk):
         else:
             self._preview_meta.configure(
                 text=(
-                    f"Ore template: {self._ore_template_path.name}  ·  "
+                    f"Ore template: {self._ore_template_label}  ·  "
                     f"host: {self._host_path.name}  ·  "
                     f"mineral: {self._mineral_path.name}"
                 )
@@ -507,7 +511,7 @@ class FamilyPaletteGui(ctk.CTk):
 
         if self._mode == "Ore":
             suggested = f"{self._mineral['family_id']}_ore.png"
-            initial_dir = str(self._ore_template_path.parent)
+            initial_dir = str(self._ore_save_dir)
         else:
             suggested = f"{self._host['family_id']}.png"
             initial_dir = str(self._stone_template_path.parent)
@@ -534,7 +538,10 @@ def run_gui(
     palette_path: Path,
     template_path: Path,
     mineral_palette_path: Path,
-    ore_template_path: Path,
+    ore_rgb: Any,
+    ore_host_colours: frozenset[Rgb],
+    ore_template_label: str,
+    ore_save_dir: Path,
 ) -> None:
     if not palette_path.is_file():
         raise FileNotFoundError(f"host palette not found: {palette_path}")
@@ -542,18 +549,22 @@ def run_gui(
         raise FileNotFoundError(f"stone template not found: {template_path}")
     if not mineral_palette_path.is_file():
         raise FileNotFoundError(f"mineral palette not found: {mineral_palette_path}")
-    if not ore_template_path.is_file():
-        raise FileNotFoundError(f"ore template not found: {ore_template_path}")
+    if ore_rgb is None:
+        raise ValueError("ore_rgb is required")
+    if not ore_host_colours:
+        raise ValueError("ore_host_colours must be a non-empty frozenset")
 
     load_palette(palette_path)
     load_rgb_image(template_path)
     load_palette(mineral_palette_path)
-    load_rgb_image(ore_template_path)
 
     app = FamilyPaletteGui(
         host_palette_path=palette_path,
         stone_template_path=template_path,
         mineral_palette_path=mineral_palette_path,
-        ore_template_path=ore_template_path,
+        ore_rgb=ore_rgb,
+        ore_host_colours=ore_host_colours,
+        ore_template_label=ore_template_label,
+        ore_save_dir=ore_save_dir,
     )
     app.mainloop()

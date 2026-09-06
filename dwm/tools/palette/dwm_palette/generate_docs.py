@@ -25,9 +25,14 @@ from typing import Any
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
-from dwm_palette.palette import default_ore_template_from_products
+from dwm_palette.palette import (
+    default_ore_template_from_products,
+    is_minecraft_template,
+    load_template_rgb,
+    vanilla_stone_host_colours,
+)
 from dwm_palette.paths import find_dwm_root
-from dwm_palette.recolor import load_palette, luminance, parse_hex
+from dwm_palette.recolor import host_colour_set, load_palette, load_rgb_image, luminance, parse_hex
 
 DWM_DIR = find_dwm_root()
 DEFAULT_PALETTE = DWM_DIR / "docs" / "palettes" / "gallifrey_stone.json"
@@ -42,6 +47,16 @@ DEFAULT_TEMPLATE = (
     / "textures"
     / "block"
     / "gallifrey_stone.png"
+)
+DEFAULT_ORE_SAVE_DIR = (
+    DWM_DIR
+    / "src"
+    / "client"
+    / "resources"
+    / "assets"
+    / "dwm"
+    / "textures"
+    / "block"
 )
 
 
@@ -145,6 +160,43 @@ def generate(palette_path: Path, out_dir: Path) -> tuple[Path, Path]:
     return md_path, swatch_path
 
 
+def _resolve_ore_for_gui(
+    ore_template_arg: Path | None,
+) -> tuple[Any, frozenset, str, Path]:
+    """Load ore RGB + host classifier colours for the GUI.
+
+    Default is the products.json template (vanilla emerald from the Loom jar),
+    classified against vanilla ``stone.png``. A filesystem ``--ore-template``
+    override uses Gallifrey stone colours from the stone cube template path
+    only when the override is a DWM-owned PNG (already on host hexes).
+    """
+    if ore_template_arg is not None:
+        path = ore_template_arg.resolve()
+        if not path.is_file():
+            raise FileNotFoundError(f"ore template not found: {path}")
+        ore_rgb = load_rgb_image(path)
+        # DWM remapped ores (e.g. gallifrey_coal_ore) sit on host hexes;
+        # classify against the stone cube template the GUI already loaded.
+        stone_rgb = load_rgb_image(DEFAULT_TEMPLATE)
+        return (
+            ore_rgb,
+            host_colour_set(stone_rgb),
+            path.name,
+            path.parent,
+        )
+
+    template_id = default_ore_template_from_products(DWM_DIR)
+    ore_rgb = load_template_rgb(DWM_DIR, template_id)
+    if is_minecraft_template(template_id):
+        host_colours = vanilla_stone_host_colours(DWM_DIR)
+        label = template_id
+    else:
+        stone_rgb = load_rgb_image(DEFAULT_TEMPLATE)
+        host_colours = host_colour_set(stone_rgb)
+        label = Path(template_id).name
+    return ore_rgb, host_colours, label, DEFAULT_ORE_SAVE_DIR
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=(
@@ -182,7 +234,7 @@ def main(argv: list[str] | None = None) -> int:
         "--ore-template",
         type=Path,
         help="Ore-in-stone template PNG for GUI ore preview "
-        "(default: from products.json azbantium_ore → gallifrey_coal_ore.png).",
+        "(default: from products.json → minecraft:block/emerald_ore.png via Loom jar).",
     )
     args = parser.parse_args(argv)
 
@@ -191,8 +243,8 @@ def main(argv: list[str] | None = None) -> int:
         template_path = args.template or DEFAULT_TEMPLATE
         mineral_palette_path = args.mineral_palette or DEFAULT_MINERAL_PALETTE
         try:
-            ore_template_path = args.ore_template or default_ore_template_from_products(
-                DWM_DIR
+            ore_rgb, ore_host_colours, ore_label, ore_save_dir = _resolve_ore_for_gui(
+                args.ore_template
             )
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             print(f"error: {exc}", file=sys.stderr)
@@ -204,7 +256,10 @@ def main(argv: list[str] | None = None) -> int:
                 palette_path=palette_path,
                 template_path=template_path,
                 mineral_palette_path=mineral_palette_path,
-                ore_template_path=ore_template_path,
+                ore_rgb=ore_rgb,
+                ore_host_colours=ore_host_colours,
+                ore_template_label=ore_label,
+                ore_save_dir=ore_save_dir,
             )
         except ImportError as exc:
             print(
