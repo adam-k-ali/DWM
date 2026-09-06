@@ -1,0 +1,18 @@
+{
+  "products": [
+    {
+      "id": "zeiton_ore",
+      "archetype": "ore",
+      "template": "block/gallifrey_coal_ore.png",
+      "host": "gallifrey_stone",
+      "mineral": "zeiton"
+    },
+    {
+      "id": "azbantium_ore",
+      "archetype": "ore",
+      "template": "block/gallifrey_coal_ore.png",
+      "host": "gallifrey_stone",
+      "mineral": "azbantium"
+    }
+  ]
+}

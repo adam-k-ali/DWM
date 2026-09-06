@@ -5,7 +5,6 @@ Offline tooling only — not invoked by Gradle or CI.
 
 from __future__ import annotations
 
-import json
 import re
 from pathlib import Path
 from typing import Any
@@ -46,86 +45,22 @@ def luminance_u8(rgb: Rgb) -> float:
 
 
 def load_palette(path: Path) -> dict[str, Any]:
-    data = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(data, dict):
-        raise ValueError(f"{path}: root must be a JSON object")
+    """Load a seed+profile palette JSON and expand to step roles."""
+    from dwm_palette.palette import load_palette as _load_palette
 
-    family_id = data.get("family_id")
-    display_name = data.get("display_name")
-    roles = data.get("roles")
-    if not isinstance(family_id, str) or not family_id:
-        raise ValueError(f"{path}: family_id must be a non-empty string")
-    if not isinstance(display_name, str) or not display_name:
-        raise ValueError(f"{path}: display_name must be a non-empty string")
-    if not isinstance(roles, list) or not roles:
-        raise ValueError(f"{path}: roles must be a non-empty list")
-
-    seen: set[str] = set()
-    normalized: list[dict[str, str]] = []
-    for i, entry in enumerate(roles):
-        if not isinstance(entry, dict):
-            raise ValueError(f"{path}: roles[{i}] must be an object")
-        role = entry.get("role")
-        hex_value = entry.get("hex")
-        notes = entry.get("notes", "")
-        if not isinstance(role, str) or not role:
-            raise ValueError(f"{path}: roles[{i}].role must be a non-empty string")
-        if role in seen:
-            raise ValueError(f"{path}: duplicate role {role!r}")
-        seen.add(role)
-        if not isinstance(hex_value, str) or not HEX_RE.match(hex_value):
-            raise ValueError(
-                f"{path}: roles[{i}].hex must be #RRGGBB, got {hex_value!r}"
-            )
-        if notes is None:
-            notes = ""
-        if not isinstance(notes, str):
-            raise ValueError(f"{path}: roles[{i}].notes must be a string")
-        normalized.append(
-            {"role": role, "hex": hex_value.upper(), "notes": notes}
-        )
-
-    map_color = data.get("map_color")
-    if map_color is not None and not isinstance(map_color, str):
-        raise ValueError(f"{path}: map_color must be a string when present")
-    notes = data.get("notes", "")
-    if notes is None:
-        notes = ""
-    if not isinstance(notes, str):
-        raise ValueError(f"{path}: notes must be a string when present")
-
-    return {
-        "family_id": family_id,
-        "display_name": display_name,
-        "map_color": map_color,
-        "notes": notes,
-        "roles": normalized,
-    }
+    return _load_palette(path)
 
 
-def host_hexes(palette: dict[str, Any]) -> list[str]:
-    """Return host_* role hexes sorted dark→light by luminance."""
-    hosts = [
-        entry["hex"]
-        for entry in palette["roles"]
-        if entry["role"].startswith("host_")
-    ]
-    if not hosts:
-        raise ValueError("palette has no host_* roles")
-    return sorted(hosts, key=lambda h: luminance(parse_hex(h)))
+def palette_hexes(palette: dict[str, Any]) -> list[str]:
+    """Return expanded step hexes sorted dark→light by luminance."""
+    from dwm_palette.palette import palette_hexes as _palette_hexes
+
+    return _palette_hexes(palette)
 
 
-def vein_hexes(palette: dict[str, Any]) -> list[str]:
-    """Return vein_* role hexes sorted dark→light by luminance."""
-    veins = [
-        entry["hex"]
-        for entry in palette["roles"]
-        if entry["role"].startswith("vein_")
-    ]
-    if not veins:
-        raise ValueError("palette has no vein_* roles")
-    return sorted(veins, key=lambda h: luminance(parse_hex(h)))
-
+# Back-compat aliases: any palette's expanded steps (usage is host vs mineral at product time).
+host_hexes = palette_hexes
+vein_hexes = palette_hexes
 
 def unique_colours_by_luminance(image_rgb: np.ndarray) -> list[Rgb]:
     if image_rgb.ndim != 3 or image_rgb.shape[2] < 3:

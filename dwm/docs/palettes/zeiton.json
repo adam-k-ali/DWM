@@ -2,13 +2,7 @@
   "family_id": "zeiton",
   "display_name": "Zeiton",
   "map_color": "TERRACOTTA_ORANGE",
-  "notes": "Gallifrey-stone host; emerald/teal mineral veins. Map colour follows the Gallifrey ore host (terracotta orange), not the green veins.",
-  "roles": [
-    {"role": "host_shadow", "hex": "#5C1F0D", "notes": "Gallifrey stone darkest"},
-    {"role": "host_mid", "hex": "#843D1D", "notes": "Gallifrey stone primary fill"},
-    {"role": "host_hi", "hex": "#974F27", "notes": "Gallifrey stone highlight"},
-    {"role": "vein_shadow", "hex": "#009649", "notes": "Emerald vein dark"},
-    {"role": "vein_mid", "hex": "#09AF71", "notes": "Teal-green vein fill"},
-    {"role": "vein_hi", "hex": "#72EAC3", "notes": "Mint vein highlight"}
-  ]
+  "notes": "Emerald/teal mineral. Gallifrey ores use this as the mineral on gallifrey_stone (coal-ore template). Map colour follows the Gallifrey ore host (terracotta orange), not the green veins.",
+  "seed": "#09AF71",
+  "profile": "mineral"
 }

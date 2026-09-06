@@ -1,0 +1,18 @@
+{
+  "stone": {
+    "steps": ["shadow", "dark", "mid", "hi"],
+    "mid": "mid",
+    "delta_L": [-0.093033, -0.042596, 0.0, 0.072132],
+    "chroma_ratio": [0.855246, 0.928294, 1.0, 1.07304],
+    "reference": {
+      "seed": "#853D20",
+      "hexes": ["#632715", "#75331B", "#853D20", "#9E5129"]
+    }
+  },
+  "mineral": {
+    "steps": ["shadow", "mid", "hi"],
+    "mid": "mid",
+    "delta_L": [-0.076, 0.0, 0.14],
+    "chroma_ratio": [1.04, 1.0, 0.85]
+  }
+}

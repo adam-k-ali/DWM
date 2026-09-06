@@ -1,63 +1,74 @@
 # Family colour palettes
 
-Define a small reusable palette **before** drawing ore / gem / powder / tool sprites
+Define reusable palettes **before** drawing ore / gem / powder / tool sprites
 for the same material family so inventory icons read as one set.
 
-## Steps
+Authoring lives under `dwm/docs/palettes/` and the offline palette tool
+(`dwm/tools/palette/`). See `dwm/tools/palette/AGENTS.md`.
 
-1. **Pick study refs** from the Loom client jar (1–2 files). Examples:
-   - Stone-hosted gem family → `textures/block/stone.png` + `textures/block/diamond_ore.png` + `textures/item/diamond.png`
-   - Metal tool family → `textures/item/iron_ingot.png` + `textures/item/iron_pickaxe.png`
-2. **Extract ~4–8 colours** as discrete RGB hex values (shadow / mid / highlight / accent). Ignore near-duplicates.
-3. **Assign roles** (names below). Keep the same role names across the family.
-4. **Map template channels** — skill templates use **host greys** + **one accent** (see [templates/README.md](templates/README.md)). Remap greys → host roles; accent → mineral/metal/plant roles.
-5. **Record the table** in the PR description (or a short note next to the change) when adding a family.
+## Authoring (seed + profile)
 
-## Role catalogue
+A palette JSON is **not** a list of every step hex. It is:
 
-| Role | Typical use |
-|------|-------------|
-| `host_shadow` | Darkest host stone / deepslate noise |
-| `host_mid` | Primary host fill |
-| `host_hi` | Host highlight flecks |
-| `vein_shadow` | Dark edge of ore clusters |
-| `vein_mid` | Main mineral / ore fill |
-| `vein_hi` | Specular flecks on ore |
-| `gem_shadow` | Gem / crystal dark facet |
-| `gem_mid` | Gem body |
-| `gem_hi` | Gem highlight |
-| `plant_stem` | Stem / wood of cross plants |
-| `plant_leaf` | Foliage mid |
-| `plant_leaf_hi` | Foliage tip / light |
-| `powder_shadow` | Dust pile dark |
-| `powder_mid` | Dust body |
-| `powder_hi` | Dust highlight grains |
-| `handle_shadow` | Tool handle dark wood |
-| `handle_mid` | Tool handle mid |
-| `metal_shadow` | Tool head / blade dark |
-| `metal_mid` | Tool head / blade mid |
-| `metal_hi` | Tool head / blade highlight |
-
-Not every family needs every role. Ore+gem families usually need `host_*` + `vein_*` + `gem_*`. Tools need `handle_*` + `metal_*` (metal may alias `vein_*` / `gem_*` if the head uses the same material).
-
-## Table format
-
-```markdown
-### Palette — <family_id>
-
-| Role | Hex | Notes |
-|------|-----|-------|
-| host_shadow | #585858 | from vanilla stone study |
-| host_mid | #7F7F7F | |
-| host_hi | #8F8F8F | |
-| vein_mid | #8DADB1 | family accent |
-| vein_hi | #B8E8E0 | |
-| gem_mid | #20C5B5 | shared with vein family |
-| gem_hi | #A1FBE8 | |
+```json
+{
+  "family_id": "zeiton",
+  "display_name": "Zeiton",
+  "seed": "#09AF71",
+  "profile": "mineral"
+}
 ```
+
+| Field | Meaning |
+|-------|---------|
+| `seed` | Mid colour (`#RRGGBB`) — the only colour you pick |
+| `profile` | Named contrast ramp: `stone` (4 steps) or `mineral` (3 steps) |
+
+Profiles live in `dwm/tools/palette/dwm_palette/data/profiles.json`. Step hexes
+(`shadow` / `dark` / `mid` / `hi`) are **generated** from the seed. Do not
+hand-author shadow/hi unless you are changing the shared profile itself.
+
+A palette is just a palette. Usage as **host** or **mineral** is chosen when
+making a block (see `dwm/docs/palettes/products.json`), not on the palette file.
+
+```bash
+poetry -C dwm/tools/palette run generate-family-palette-docs \
+  --palette dwm/docs/palettes/<id>.json \
+  --out-dir dwm/docs/palettes
+poetry -C dwm/tools/palette run generate-family-palette-docs --gui
+```
+
+## Steps when drawing by hand
+
+1. **Pick study refs** from the Loom client jar (1–2 files).
+2. **Choose a mid seed** and profile (`stone` for hosts, `mineral` for veins/gems).
+3. **Expand** (tool or docs page) to get step hexes.
+4. **Map template channels** — greys → host palette steps; accent → mineral palette steps.
+5. For ores, use `gallifrey_stone` as host and the mineral palette as veins on the
+   coal-ore template (see `products.json`).
+
+## Usage role names (when drawing)
+
+When talking about pixels on a sprite, prefix the expanded steps by usage:
+
+| Usage name | Typical use |
+|------------|-------------|
+| `host_shadow` / `host_dark` / `host_mid` / `host_hi` | Host stone noise (from a `stone` palette) |
+| `vein_shadow` / `vein_mid` / `vein_hi` | Ore mineral clusters (from a `mineral` palette) |
+| `gem_shadow` / `gem_mid` / `gem_hi` | Gem / crystal / storage (often same mineral palette) |
+| `plant_stem` / `plant_leaf` / `plant_leaf_hi` | Cross plants |
+| `powder_shadow` / `powder_mid` / `powder_hi` | Dust piles |
+| `handle_shadow` / `handle_mid` | Tool handles |
+| `metal_shadow` / `metal_mid` / `metal_hi` | Tool heads (often alias mineral) |
+
+These prefixes are **usage labels**, not fields in palette JSON. Ore+gem families
+usually need a host palette + a mineral palette. Tools need handle + metal
+(metal may reuse the mineral palette).
 
 ## Rules
 
-- Reuse the **same hex** for the same role across ore, gem, powder, and tool head.
-- Prefer shifting **value** (darker/lighter) over introducing new hues for “extra” shades.
+- Reuse the **same palette** (same seed) across ore, gem, powder, and tool head.
+- Prefer shifting **value** via the profile over inventing new hues for extra shades.
 - Keep the full family within a coherent hue story (one accent hue + neutral host).
+- Do not duplicate host hexes inside mineral palette JSON — reference the host
+  palette from the product instead.

@@ -1,4 +1,4 @@
-"""CustomTkinter GUI for editing family palettes and previewing stone/ore recolour.
+"""CustomTkinter GUI for editing palette seeds and previewing stone/ore recolour.
 
 Offline tooling only — imported by generate_docs --gui.
 """
@@ -14,16 +14,15 @@ from typing import Any, Literal
 import customtkinter as ctk
 from PIL import Image
 
+from dwm_palette.palette import palette_hexes, save_palette_json
+from dwm_palette.profiles import expand_ramp
 from dwm_palette.recolor import (
     HEX_RE,
     apply_host_palette,
     apply_ore_palettes,
     host_colour_set,
-    host_hexes,
     load_palette,
     load_rgb_image,
-    split_ore_colours,
-    vein_hexes,
 )
 
 PREVIEW_SCALE = 24  # 16×16 → 384×384
@@ -33,41 +32,40 @@ PreviewMode = Literal["Stone", "Ore"]
 class FamilyPaletteGui(ctk.CTk):
     def __init__(
         self,
-        palette_path: Path,
-        template_path: Path,
+        host_palette_path: Path,
+        stone_template_path: Path,
         mineral_palette_path: Path,
         ore_template_path: Path,
     ) -> None:
         super().__init__()
         self.title("Family palette recolour")
-        self.geometry("1000x560")
-        self.minsize(860, 480)
+        self.geometry("1000x600")
+        self.minsize(860, 520)
 
         ctk.set_appearance_mode("System")
         ctk.set_default_color_theme("blue")
 
-        self._palette_path = palette_path
-        self._template_path = template_path
-        self._mineral_palette_path = mineral_palette_path
+        self._host_path = host_palette_path
+        self._mineral_path = mineral_palette_path
+        self._stone_template_path = stone_template_path
         self._ore_template_path = ore_template_path
 
-        self._template_rgb = load_rgb_image(template_path)
-        self._host_colours = host_colour_set(self._template_rgb)
+        self._stone_rgb = load_rgb_image(stone_template_path)
+        self._host_colours = host_colour_set(self._stone_rgb)
         self._ore_rgb = load_rgb_image(ore_template_path)
-        self._palette: dict[str, Any] = load_palette(palette_path)
-        self._mineral_palette: dict[str, Any] = load_palette(mineral_palette_path)
+        self._host: dict[str, Any] = load_palette(host_palette_path)
+        self._mineral: dict[str, Any] = load_palette(mineral_palette_path)
 
         self._mode: PreviewMode = "Stone"
-        self._hex_vars: list[tk.StringVar] = []
-        self._swatch_buttons: list[ctk.CTkButton] = []
-        self._mineral_hex_vars: list[tk.StringVar] = []
-        self._mineral_swatch_buttons: list[ctk.CTkButton] = []
-        self._mineral_role_indices: list[int] = []
+        self._host_seed_var = tk.StringVar(value=self._host["seed"])
+        self._mineral_seed_var = tk.StringVar(value=self._mineral["seed"])
+        self._host_step_labels: list[ctk.CTkLabel] = []
+        self._mineral_step_labels: list[ctk.CTkLabel] = []
         self._preview_image: ctk.CTkImage | None = None
         self._last_preview_rgb = None
 
         self._build_layout()
-        self._reload_palette_ui()
+        self._reload_host_ui()
         self._reload_mineral_ui()
         self._refresh_preview()
 
@@ -82,24 +80,30 @@ class FamilyPaletteGui(ctk.CTk):
         left.grid_rowconfigure(2, weight=1)
         left.grid_rowconfigure(4, weight=1)
 
-        self._title_label = ctk.CTkLabel(
+        self._host_title = ctk.CTkLabel(
             left, text="", font=ctk.CTkFont(size=16, weight="bold"), anchor="w"
         )
-        self._title_label.grid(row=0, column=0, sticky="ew", padx=12, pady=(12, 2))
+        self._host_title.grid(row=0, column=0, sticky="ew", padx=12, pady=(12, 2))
 
-        self._meta_label = ctk.CTkLabel(
+        self._host_meta = ctk.CTkLabel(
             left, text="", font=ctk.CTkFont(size=12), anchor="w", text_color="gray70"
         )
-        self._meta_label.grid(row=1, column=0, sticky="ew", padx=12, pady=(0, 8))
+        self._host_meta.grid(row=1, column=0, sticky="ew", padx=12, pady=(0, 8))
 
-        self._roles_frame = ctk.CTkScrollableFrame(left, label_text="Host roles")
-        self._roles_frame.grid(row=2, column=0, sticky="nsew", padx=12, pady=4)
-        self._roles_frame.grid_columnconfigure(2, weight=1)
+        self._host_frame = ctk.CTkScrollableFrame(left, label_text="Host palette (mid + derived)")
+        self._host_frame.grid(row=2, column=0, sticky="nsew", padx=12, pady=4)
+        self._host_frame.grid_columnconfigure(1, weight=1)
 
-        load_host_btn = ctk.CTkButton(
-            left, text="Load host palette…", command=self._on_load_palette
+        host_btns = ctk.CTkFrame(left, fg_color="transparent")
+        host_btns.grid(row=3, column=0, sticky="ew", padx=12, pady=(8, 4))
+        host_btns.grid_columnconfigure(0, weight=1)
+        host_btns.grid_columnconfigure(1, weight=1)
+        ctk.CTkButton(host_btns, text="Load host…", command=self._on_load_host).grid(
+            row=0, column=0, sticky="ew", padx=(0, 4)
         )
-        load_host_btn.grid(row=3, column=0, sticky="ew", padx=12, pady=(8, 4))
+        ctk.CTkButton(host_btns, text="Save host JSON…", command=self._on_save_host).grid(
+            row=0, column=1, sticky="ew", padx=(4, 0)
+        )
 
         self._mineral_section = ctk.CTkFrame(left, fg_color="transparent")
         self._mineral_section.grid(row=4, column=0, sticky="nsew", padx=0, pady=0)
@@ -121,28 +125,24 @@ class FamilyPaletteGui(ctk.CTk):
             anchor="w",
             text_color="gray70",
         )
-        self._mineral_meta.grid(row=1, column=0, sticky="ew", padx=12, pady=(0, 4))
+        self._mineral_meta.grid(row=0, column=0, sticky="ew", padx=12, pady=(28, 0))
 
-        self._mineral_roles_frame = ctk.CTkScrollableFrame(
-            self._mineral_section, label_text="Mineral vein roles"
+        self._mineral_frame = ctk.CTkScrollableFrame(
+            self._mineral_section, label_text="Mineral palette (mid + derived)"
         )
-        self._mineral_roles_frame.grid(row=2, column=0, sticky="nsew", padx=12, pady=4)
-        self._mineral_roles_frame.grid_columnconfigure(2, weight=1)
-        self._mineral_section.grid_rowconfigure(2, weight=1)
+        self._mineral_frame.grid(row=1, column=0, sticky="nsew", padx=12, pady=4)
+        self._mineral_frame.grid_columnconfigure(1, weight=1)
 
-        self._load_mineral_btn = ctk.CTkButton(
-            self._mineral_section,
-            text="Load mineral palette…",
-            command=self._on_load_mineral_palette,
-        )
-        self._load_mineral_btn.grid(row=3, column=0, sticky="ew", padx=12, pady=(4, 4))
-
-        self._load_ore_btn = ctk.CTkButton(
-            self._mineral_section,
-            text="Load ore template…",
-            command=self._on_load_ore_template,
-        )
-        self._load_ore_btn.grid(row=4, column=0, sticky="ew", padx=12, pady=(0, 12))
+        mineral_btns = ctk.CTkFrame(self._mineral_section, fg_color="transparent")
+        mineral_btns.grid(row=2, column=0, sticky="ew", padx=12, pady=(4, 12))
+        mineral_btns.grid_columnconfigure(0, weight=1)
+        mineral_btns.grid_columnconfigure(1, weight=1)
+        ctk.CTkButton(
+            mineral_btns, text="Load mineral…", command=self._on_load_mineral
+        ).grid(row=0, column=0, sticky="ew", padx=(0, 4))
+        ctk.CTkButton(
+            mineral_btns, text="Save mineral JSON…", command=self._on_save_mineral
+        ).grid(row=0, column=1, sticky="ew", padx=(4, 0))
 
         right = ctk.CTkFrame(self)
         right.grid(row=0, column=1, sticky="nsew", padx=(6, 12), pady=12)
@@ -196,283 +196,272 @@ class FamilyPaletteGui(ctk.CTk):
         self._apply_mode_visibility()
         self._refresh_preview()
 
-    def _reload_palette_ui(self) -> None:
-        for child in self._roles_frame.winfo_children():
+    def _reexpand(self, palette: dict[str, Any], seed: str) -> bool:
+        if not HEX_RE.match(seed):
+            return False
+        seed_u = seed.upper()
+        palette["seed"] = seed_u
+        palette["roles"] = expand_ramp(seed_u, palette["profile"])
+        return True
+
+    def _fill_palette_editor(
+        self,
+        frame: ctk.CTkScrollableFrame,
+        palette: dict[str, Any],
+        seed_var: tk.StringVar,
+        on_seed_changed,
+        on_pick_mid,
+        step_label_list: list[ctk.CTkLabel],
+    ) -> None:
+        for child in frame.winfo_children():
             child.destroy()
-        self._hex_vars.clear()
-        self._swatch_buttons.clear()
+        step_label_list.clear()
 
-        self._title_label.configure(text=self._palette["display_name"])
-        self._meta_label.configure(
-            text=f"family_id: {self._palette['family_id']}  ·  {self._palette_path.name}"
+        ctk.CTkLabel(frame, text="mid", anchor="w").grid(
+            row=0, column=0, sticky="w", padx=(4, 8), pady=4
         )
+        mid_swatch = ctk.CTkButton(
+            frame,
+            text="",
+            width=36,
+            height=28,
+            fg_color=palette["seed"],
+            hover_color=palette["seed"],
+            border_width=1,
+            border_color="#555555",
+            command=on_pick_mid,
+        )
+        mid_swatch.grid(row=0, column=1, padx=4, pady=4)
+        seed_var.set(palette["seed"])
+        seed_var.trace_add("write", lambda *_a: on_seed_changed())
+        entry = ctk.CTkEntry(
+            frame,
+            textvariable=seed_var,
+            width=100,
+            font=ctk.CTkFont(family="Menlo", size=12),
+        )
+        entry.grid(row=0, column=2, sticky="ew", padx=4, pady=4)
 
-        header_font = ctk.CTkFont(size=11, weight="bold")
-        ctk.CTkLabel(self._roles_frame, text="Role", font=header_font).grid(
-            row=0, column=0, sticky="w", padx=(4, 8), pady=(0, 4)
-        )
-        ctk.CTkLabel(self._roles_frame, text="", font=header_font).grid(
-            row=0, column=1, padx=4, pady=(0, 4)
-        )
-        ctk.CTkLabel(self._roles_frame, text="Hex", font=header_font).grid(
-            row=0, column=2, sticky="w", padx=4, pady=(0, 4)
-        )
+        ctk.CTkLabel(
+            frame,
+            text=f"profile: {palette['profile']} (derived)",
+            font=ctk.CTkFont(size=11),
+            text_color="gray70",
+            anchor="w",
+        ).grid(row=1, column=0, columnspan=3, sticky="ew", padx=4, pady=(8, 4))
 
-        for i, entry in enumerate(self._palette["roles"]):
-            row = i + 1
-            ctk.CTkLabel(self._roles_frame, text=entry["role"], anchor="w").grid(
-                row=row, column=0, sticky="w", padx=(4, 8), pady=4
+        for i, role in enumerate(palette["roles"]):
+            row = i + 2
+            ctk.CTkLabel(frame, text=role["role"], anchor="w").grid(
+                row=row, column=0, sticky="w", padx=(4, 8), pady=2
             )
-
-            swatch = ctk.CTkButton(
-                self._roles_frame,
+            swatch = ctk.CTkLabel(
+                frame,
                 text="",
                 width=36,
-                height=28,
-                fg_color=entry["hex"],
-                hover_color=entry["hex"],
-                border_width=1,
-                border_color="#555555",
-                command=lambda idx=i: self._on_pick_colour(idx),
+                height=22,
+                fg_color=role["hex"],
+                corner_radius=4,
             )
-            swatch.grid(row=row, column=1, padx=4, pady=4)
-            self._swatch_buttons.append(swatch)
+            swatch.grid(row=row, column=1, padx=4, pady=2)
+            hex_label = ctk.CTkLabel(
+                frame,
+                text=role["hex"],
+                font=ctk.CTkFont(family="Menlo", size=11),
+                anchor="w",
+            )
+            hex_label.grid(row=row, column=2, sticky="w", padx=4, pady=2)
+            step_label_list.append(swatch)
+            step_label_list.append(hex_label)
 
-            var = tk.StringVar(value=entry["hex"])
-            var.trace_add("write", lambda *_args, idx=i: self._on_hex_changed(idx))
-            entry_box = ctk.CTkEntry(
-                self._roles_frame,
-                textvariable=var,
-                width=100,
-                font=ctk.CTkFont(family="Menlo", size=12),
+        # Stash mid swatch on the frame for refresh.
+        frame._mid_swatch = mid_swatch  # type: ignore[attr-defined]
+
+    def _refresh_derived_swatches(
+        self,
+        frame: ctk.CTkScrollableFrame,
+        palette: dict[str, Any],
+        step_label_list: list[ctk.CTkLabel],
+    ) -> None:
+        mid_swatch = getattr(frame, "_mid_swatch", None)
+        if mid_swatch is not None:
+            mid_swatch.configure(fg_color=palette["seed"], hover_color=palette["seed"])
+        # Labels alternate swatch, hex for each role.
+        for i, role in enumerate(palette["roles"]):
+            swatch_i = i * 2
+            hex_i = i * 2 + 1
+            if swatch_i < len(step_label_list):
+                step_label_list[swatch_i].configure(fg_color=role["hex"])
+            if hex_i < len(step_label_list):
+                step_label_list[hex_i].configure(text=role["hex"])
+
+    def _reload_host_ui(self) -> None:
+        self._host_title.configure(text=self._host["display_name"])
+        self._host_meta.configure(
+            text=(
+                f"family_id: {self._host['family_id']}  ·  "
+                f"{self._host_path.name}  ·  profile: {self._host['profile']}"
             )
-            entry_box.grid(row=row, column=2, sticky="ew", padx=4, pady=4)
-            self._hex_vars.append(var)
+        )
+        # Rebuild StringVar to avoid stacking traces.
+        self._host_seed_var = tk.StringVar(value=self._host["seed"])
+        self._fill_palette_editor(
+            self._host_frame,
+            self._host,
+            self._host_seed_var,
+            self._on_host_seed_changed,
+            self._on_pick_host_mid,
+            self._host_step_labels,
+        )
 
     def _reload_mineral_ui(self) -> None:
-        for child in self._mineral_roles_frame.winfo_children():
-            child.destroy()
-        self._mineral_hex_vars.clear()
-        self._mineral_swatch_buttons.clear()
-        self._mineral_role_indices.clear()
-
-        self._mineral_title.configure(text=self._mineral_palette["display_name"])
+        self._mineral_title.configure(text=self._mineral["display_name"])
         self._mineral_meta.configure(
             text=(
-                f"family_id: {self._mineral_palette['family_id']}  ·  "
-                f"{self._mineral_palette_path.name}"
+                f"family_id: {self._mineral['family_id']}  ·  "
+                f"{self._mineral_path.name}  ·  profile: {self._mineral['profile']}"
             )
         )
-
-        header_font = ctk.CTkFont(size=11, weight="bold")
-        ctk.CTkLabel(self._mineral_roles_frame, text="Role", font=header_font).grid(
-            row=0, column=0, sticky="w", padx=(4, 8), pady=(0, 4)
-        )
-        ctk.CTkLabel(self._mineral_roles_frame, text="", font=header_font).grid(
-            row=0, column=1, padx=4, pady=(0, 4)
-        )
-        ctk.CTkLabel(self._mineral_roles_frame, text="Hex", font=header_font).grid(
-            row=0, column=2, sticky="w", padx=4, pady=(0, 4)
+        self._mineral_seed_var = tk.StringVar(value=self._mineral["seed"])
+        self._fill_palette_editor(
+            self._mineral_frame,
+            self._mineral,
+            self._mineral_seed_var,
+            self._on_mineral_seed_changed,
+            self._on_pick_mineral_mid,
+            self._mineral_step_labels,
         )
 
-        ui_row = 1
-        for i, entry in enumerate(self._mineral_palette["roles"]):
-            if not entry["role"].startswith("vein_"):
-                continue
-            self._mineral_role_indices.append(i)
-
-            ctk.CTkLabel(
-                self._mineral_roles_frame, text=entry["role"], anchor="w"
-            ).grid(row=ui_row, column=0, sticky="w", padx=(4, 8), pady=4)
-
-            swatch = ctk.CTkButton(
-                self._mineral_roles_frame,
-                text="",
-                width=36,
-                height=28,
-                fg_color=entry["hex"],
-                hover_color=entry["hex"],
-                border_width=1,
-                border_color="#555555",
-                command=lambda idx=len(self._mineral_role_indices) - 1: self._on_pick_mineral_colour(
-                    idx
-                ),
-            )
-            swatch.grid(row=ui_row, column=1, padx=4, pady=4)
-            self._mineral_swatch_buttons.append(swatch)
-
-            var = tk.StringVar(value=entry["hex"])
-            var.trace_add(
-                "write",
-                lambda *_args, idx=len(self._mineral_hex_vars): self._on_mineral_hex_changed(
-                    idx
-                ),
-            )
-            entry_box = ctk.CTkEntry(
-                self._mineral_roles_frame,
-                textvariable=var,
-                width=100,
-                font=ctk.CTkFont(family="Menlo", size=12),
-            )
-            entry_box.grid(row=ui_row, column=2, sticky="ew", padx=4, pady=4)
-            self._mineral_hex_vars.append(var)
-            ui_row += 1
-
-    def _sync_palette_from_vars(self) -> bool:
-        """Apply valid hex fields into self._palette. True when all host_* hexes are valid."""
-        roles = self._palette["roles"]
-        for i, var in enumerate(self._hex_vars):
-            value = var.get().strip()
-            if not HEX_RE.match(value):
-                continue
-            roles[i]["hex"] = value.upper()
-            self._swatch_buttons[i].configure(
-                fg_color=roles[i]["hex"], hover_color=roles[i]["hex"]
-            )
-        try:
-            hosts = host_hexes(self._palette)
-        except ValueError:
-            return False
-        return all(HEX_RE.match(h) for h in hosts)
-
-    def _sync_mineral_from_vars(self) -> bool:
-        """Apply valid vein hex fields. True when all vein_* hexes are valid."""
-        roles = self._mineral_palette["roles"]
-        for ui_i, var in enumerate(self._mineral_hex_vars):
-            value = var.get().strip()
-            if not HEX_RE.match(value):
-                continue
-            role_i = self._mineral_role_indices[ui_i]
-            roles[role_i]["hex"] = value.upper()
-            self._mineral_swatch_buttons[ui_i].configure(
-                fg_color=roles[role_i]["hex"], hover_color=roles[role_i]["hex"]
-            )
-        try:
-            veins = vein_hexes(self._mineral_palette)
-        except ValueError:
-            return False
-        return all(HEX_RE.match(h) for h in veins)
-
-    def _on_hex_changed(self, index: int) -> None:
-        if index >= len(self._hex_vars):
+    def _on_host_seed_changed(self) -> None:
+        value = self._host_seed_var.get().strip()
+        if not self._reexpand(self._host, value):
             return
-        value = self._hex_vars[index].get().strip()
-        if not HEX_RE.match(value):
-            return
-        self._palette["roles"][index]["hex"] = value.upper()
-        self._swatch_buttons[index].configure(
-            fg_color=self._palette["roles"][index]["hex"],
-            hover_color=self._palette["roles"][index]["hex"],
+        self._refresh_derived_swatches(
+            self._host_frame, self._host, self._host_step_labels
         )
         self._refresh_preview()
 
-    def _on_mineral_hex_changed(self, index: int) -> None:
-        if index >= len(self._mineral_hex_vars):
+    def _on_mineral_seed_changed(self) -> None:
+        value = self._mineral_seed_var.get().strip()
+        if not self._reexpand(self._mineral, value):
             return
-        value = self._mineral_hex_vars[index].get().strip()
-        if not HEX_RE.match(value):
-            return
-        role_i = self._mineral_role_indices[index]
-        self._mineral_palette["roles"][role_i]["hex"] = value.upper()
-        self._mineral_swatch_buttons[index].configure(
-            fg_color=self._mineral_palette["roles"][role_i]["hex"],
-            hover_color=self._mineral_palette["roles"][role_i]["hex"],
+        self._refresh_derived_swatches(
+            self._mineral_frame, self._mineral, self._mineral_step_labels
         )
         self._refresh_preview()
 
-    def _on_pick_colour(self, index: int) -> None:
-        current = self._palette["roles"][index]["hex"]
+    def _on_pick_host_mid(self) -> None:
         picked = colorchooser.askcolor(
-            color=current, title=f"Pick colour for {self._palette['roles'][index]['role']}"
+            color=self._host["seed"], title=f"Pick mid for {self._host['display_name']}"
         )
         if not picked or not picked[1]:
             return
-        hex_value = picked[1].upper()
-        self._hex_vars[index].set(hex_value)
+        self._host_seed_var.set(picked[1].upper())
 
-    def _on_pick_mineral_colour(self, index: int) -> None:
-        role_i = self._mineral_role_indices[index]
-        current = self._mineral_palette["roles"][role_i]["hex"]
+    def _on_pick_mineral_mid(self) -> None:
         picked = colorchooser.askcolor(
-            color=current,
-            title=f"Pick colour for {self._mineral_palette['roles'][role_i]['role']}",
+            color=self._mineral["seed"],
+            title=f"Pick mid for {self._mineral['display_name']}",
         )
         if not picked or not picked[1]:
             return
-        hex_value = picked[1].upper()
-        self._mineral_hex_vars[index].set(hex_value)
+        self._mineral_seed_var.set(picked[1].upper())
 
-    def _on_load_palette(self) -> None:
+    def _on_load_host(self) -> None:
         path_str = filedialog.askopenfilename(
             title="Load host palette JSON",
             filetypes=[("Palette JSON", "*.json"), ("All files", "*.*")],
-            initialdir=str(self._palette_path.parent),
+            initialdir=str(self._host_path.parent),
         )
         if not path_str:
             return
         path = Path(path_str)
         try:
             palette = load_palette(path)
-            host_hexes(palette)
+            palette_hexes(palette)
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             messagebox.showerror("Load host palette failed", str(exc))
             return
-        self._palette_path = path
-        self._palette = palette
-        self._reload_palette_ui()
+        self._host_path = path
+        self._host = palette
+        self._reload_host_ui()
         self._refresh_preview()
 
-    def _on_load_mineral_palette(self) -> None:
+    def _on_load_mineral(self) -> None:
         path_str = filedialog.askopenfilename(
             title="Load mineral palette JSON",
             filetypes=[("Palette JSON", "*.json"), ("All files", "*.*")],
-            initialdir=str(self._mineral_palette_path.parent),
+            initialdir=str(self._mineral_path.parent),
         )
         if not path_str:
             return
         path = Path(path_str)
         try:
             palette = load_palette(path)
-            vein_hexes(palette)
+            palette_hexes(palette)
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             messagebox.showerror("Load mineral palette failed", str(exc))
             return
-        self._mineral_palette_path = path
-        self._mineral_palette = palette
+        self._mineral_path = path
+        self._mineral = palette
         self._reload_mineral_ui()
         self._refresh_preview()
 
-    def _on_load_ore_template(self) -> None:
-        path_str = filedialog.askopenfilename(
-            title="Load ore template PNG",
-            filetypes=[("PNG images", "*.png"), ("All files", "*.*")],
-            initialdir=str(self._ore_template_path.parent),
+    def _on_save_host(self) -> None:
+        if not self._reexpand(self._host, self._host_seed_var.get().strip()):
+            messagebox.showerror("Save failed", "Host mid hex is invalid.")
+            return
+        path_str = filedialog.asksaveasfilename(
+            title="Save host palette JSON",
+            defaultextension=".json",
+            filetypes=[("Palette JSON", "*.json"), ("All files", "*.*")],
+            initialdir=str(self._host_path.parent),
+            initialfile=self._host_path.name,
         )
         if not path_str:
             return
         path = Path(path_str)
         try:
-            ore_rgb = load_rgb_image(path)
-            # Validate split against frozen stone host colours.
-            split_ore_colours(ore_rgb, self._host_colours)
-        except (OSError, ValueError) as exc:
-            messagebox.showerror("Load ore template failed", str(exc))
+            save_palette_json(self._host, path)
+        except OSError as exc:
+            messagebox.showerror("Save failed", str(exc))
             return
-        self._ore_template_path = path
-        self._ore_rgb = ore_rgb
-        self._refresh_preview()
+        self._host_path = path
+        messagebox.showinfo("Saved", f"Wrote {path}")
+
+    def _on_save_mineral(self) -> None:
+        if not self._reexpand(self._mineral, self._mineral_seed_var.get().strip()):
+            messagebox.showerror("Save failed", "Mineral mid hex is invalid.")
+            return
+        path_str = filedialog.asksaveasfilename(
+            title="Save mineral palette JSON",
+            defaultextension=".json",
+            filetypes=[("Palette JSON", "*.json"), ("All files", "*.*")],
+            initialdir=str(self._mineral_path.parent),
+            initialfile=self._mineral_path.name,
+        )
+        if not path_str:
+            return
+        path = Path(path_str)
+        try:
+            save_palette_json(self._mineral, path)
+        except OSError as exc:
+            messagebox.showerror("Save failed", str(exc))
+            return
+        self._mineral_path = path
+        messagebox.showinfo("Saved", f"Wrote {path}")
 
     def _compute_preview_rgb(self):
-        if not self._sync_palette_from_vars():
+        if not self._reexpand(self._host, self._host_seed_var.get().strip()):
             return None
         if self._mode == "Stone":
-            return apply_host_palette(self._template_rgb, host_hexes(self._palette))
-        if not self._sync_mineral_from_vars():
+            return apply_host_palette(self._stone_rgb, palette_hexes(self._host))
+        if not self._reexpand(self._mineral, self._mineral_seed_var.get().strip()):
             return None
         return apply_ore_palettes(
             self._ore_rgb,
-            host_hexes(self._palette),
-            vein_hexes(self._mineral_palette),
+            palette_hexes(self._host),
+            palette_hexes(self._mineral),
             self._host_colours,
         )
 
@@ -494,16 +483,16 @@ class FamilyPaletteGui(ctk.CTk):
         if self._mode == "Stone":
             self._preview_meta.configure(
                 text=(
-                    f"Template: {self._template_path.name}  ·  "
-                    "host_* roles drive the preview"
+                    f"Template: {self._stone_template_path.name}  ·  "
+                    f"host: {self._host_path.name}"
                 )
             )
         else:
             self._preview_meta.configure(
                 text=(
                     f"Ore template: {self._ore_template_path.name}  ·  "
-                    f"host: {self._palette_path.name}  ·  "
-                    f"mineral: {self._mineral_palette_path.name}"
+                    f"host: {self._host_path.name}  ·  "
+                    f"mineral: {self._mineral_path.name}"
                 )
             )
 
@@ -512,16 +501,16 @@ class FamilyPaletteGui(ctk.CTk):
         if remapped is None:
             messagebox.showerror(
                 "Save PNG failed",
-                "Cannot save: host or mineral palette hexes are incomplete/invalid.",
+                "Cannot save: host or mineral mid hex is incomplete/invalid.",
             )
             return
 
         if self._mode == "Ore":
-            suggested = f"{self._mineral_palette['family_id']}_ore.png"
+            suggested = f"{self._mineral['family_id']}_ore.png"
             initial_dir = str(self._ore_template_path.parent)
         else:
-            suggested = f"{self._palette['family_id']}.png"
-            initial_dir = str(self._template_path.parent)
+            suggested = f"{self._host['family_id']}.png"
+            initial_dir = str(self._stone_template_path.parent)
 
         path_str = filedialog.asksaveasfilename(
             title="Save PNG",
@@ -548,24 +537,22 @@ def run_gui(
     ore_template_path: Path,
 ) -> None:
     if not palette_path.is_file():
-        raise FileNotFoundError(f"palette not found: {palette_path}")
+        raise FileNotFoundError(f"host palette not found: {palette_path}")
     if not template_path.is_file():
-        raise FileNotFoundError(f"template not found: {template_path}")
+        raise FileNotFoundError(f"stone template not found: {template_path}")
     if not mineral_palette_path.is_file():
         raise FileNotFoundError(f"mineral palette not found: {mineral_palette_path}")
     if not ore_template_path.is_file():
         raise FileNotFoundError(f"ore template not found: {ore_template_path}")
 
-    # Validate early so ImportError/ValueError surface before the window.
     load_palette(palette_path)
     load_rgb_image(template_path)
-    mineral = load_palette(mineral_palette_path)
-    vein_hexes(mineral)
+    load_palette(mineral_palette_path)
     load_rgb_image(ore_template_path)
 
     app = FamilyPaletteGui(
-        palette_path=palette_path,
-        template_path=template_path,
+        host_palette_path=palette_path,
+        stone_template_path=template_path,
         mineral_palette_path=mineral_palette_path,
         ore_template_path=ore_template_path,
     )

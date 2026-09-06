@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Offline family colour-palette docs and recolour GUI for The Doctor Who Mod"
 authors = ["Adam Ali"]
 packages = [{ include = "dwm_palette" }]
+include = ["dwm_palette/data/*.json"]
 
 [tool.poetry.dependencies]
 python = ">=3.11"

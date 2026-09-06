@@ -1,4 +1,4 @@
-"""Generate Markdown + PNG swatch docs from a family colour-palette JSON file.
+"""Generate Markdown + PNG swatch docs from a palette JSON file.
 
 Offline helper for block/item family palettes. Not invoked by Gradle or CI.
 
@@ -25,6 +25,7 @@ from typing import Any
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
+from dwm_palette.palette import default_ore_template_from_products
 from dwm_palette.paths import find_dwm_root
 from dwm_palette.recolor import load_palette, luminance, parse_hex
 
@@ -41,17 +42,6 @@ DEFAULT_TEMPLATE = (
     / "textures"
     / "block"
     / "gallifrey_stone.png"
-)
-DEFAULT_ORE_TEMPLATE = (
-    DWM_DIR
-    / "src"
-    / "client"
-    / "resources"
-    / "assets"
-    / "dwm"
-    / "textures"
-    / "block"
-    / "gallifrey_coal_ore.png"
 )
 
 
@@ -104,6 +94,8 @@ def write_markdown(palette: dict[str, Any], out_path: Path, swatch_name: str) ->
         "",
         f"Family id: `{palette['family_id']}`",
         "",
+        f"Seed: `{palette['seed']}` · Profile: `{palette['profile']}`",
+        "",
     ]
     if palette.get("map_color"):
         lines.append(f"Map colour: `{palette['map_color']}`")
@@ -111,6 +103,12 @@ def write_markdown(palette: dict[str, Any], out_path: Path, swatch_name: str) ->
     if palette.get("notes"):
         lines.append(palette["notes"])
         lines.append("")
+
+    lines.append(
+        "Step hexes below are **generated** from the seed and named contrast profile "
+        "(not hand-authored)."
+    )
+    lines.append("")
 
     lines.extend(
         [
@@ -121,7 +119,7 @@ def write_markdown(palette: dict[str, Any], out_path: Path, swatch_name: str) ->
         ]
     )
     for entry in palette["roles"]:
-        notes = entry["notes"].replace("|", "\\|")
+        notes = entry["notes"].replace("|", "\\|") if entry["notes"] else ""
         lines.append(f"| `{entry['role']}` | `{entry['hex']}` | {notes} |")
     lines.append("")
     lines.append(
@@ -162,7 +160,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--palette",
         type=Path,
-        help="Path to palette JSON (role→hex definition).",
+        help="Path to host palette JSON (seed + profile).",
     )
     parser.add_argument(
         "--out-dir",
@@ -178,14 +176,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--mineral-palette",
         type=Path,
-        help="Mineral palette JSON with vein_* roles for ore preview "
-        "(default: azbantium.json).",
+        help="Mineral palette JSON for ore preview (default: azbantium.json).",
     )
     parser.add_argument(
         "--ore-template",
         type=Path,
         help="Ore-in-stone template PNG for GUI ore preview "
-        "(default: gallifrey_coal_ore.png).",
+        "(default: from products.json azbantium_ore → gallifrey_coal_ore.png).",
     )
     args = parser.parse_args(argv)
 
@@ -193,7 +190,13 @@ def main(argv: list[str] | None = None) -> int:
         palette_path = args.palette or DEFAULT_PALETTE
         template_path = args.template or DEFAULT_TEMPLATE
         mineral_palette_path = args.mineral_palette or DEFAULT_MINERAL_PALETTE
-        ore_template_path = args.ore_template or DEFAULT_ORE_TEMPLATE
+        try:
+            ore_template_path = args.ore_template or default_ore_template_from_products(
+                DWM_DIR
+            )
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
         try:
             from dwm_palette.gui import run_gui
 
