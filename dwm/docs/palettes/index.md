@@ -12,5 +12,6 @@ tools/.venv/bin/python tools/generate_family_palette_docs.py \
 
 ## Families
 
-- [Zeiton](./zeiton.md) — Gallifrey-stone host; emerald/teal veins
-- [Azbantium](./azbantium.md) — Gallifrey-stone host; silver veins; icy cyan storage block
+- [Gallifrey Stone](./gallifrey_stone.md) — canonical terracotta-brown host (shared by Gallifrey vanilla ores)
+- [Zeiton](./zeiton.md) — Gallifrey-stone-like host; emerald/teal veins
+- [Azbantium](./azbantium.md) — Gallifrey-stone-like host; silver veins; icy cyan storage block
