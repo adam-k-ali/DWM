@@ -2,12 +2,18 @@
 
 Canonical hex role tables and PNG swatches for DWM block/item material families.
 
-Generate or refresh a page from its JSON source (from `dwm/`):
+Generate or refresh a page from its JSON source (from repo root):
 
 ```bash
-tools/.venv/bin/python tools/generate_family_palette_docs.py \
-  --palette docs/palettes/<family_id>.json \
-  --out-dir docs/palettes
+poetry -C dwm/tools/palette run generate-family-palette-docs \
+  --palette dwm/docs/palettes/<family_id>.json \
+  --out-dir dwm/docs/palettes
+```
+
+Preview stone recolour interactively (defaults to Gallifrey stone palette + texture):
+
+```bash
+poetry -C dwm/tools/palette run generate-family-palette-docs --gui
 ```
 
 ## Families

@@ -15,4 +15,4 @@ Canonical Gallifrey stone host atlas from gallifrey_stone.png. Shared by Gallifr
 | `host_mid` | `#853D20` | Primary stone fill |
 | `host_hi` | `#9E5129` | Stone highlight |
 
-Source JSON: [`gallifrey_stone.json`](./gallifrey_stone.json). Regenerate with `tools/generate_family_palette_docs.py` (from `dwm/`: `--palette docs/palettes/<id>.json --out-dir docs/palettes`).
+Source JSON: [`gallifrey_stone.json`](./gallifrey_stone.json). Regenerate with `poetry -C dwm/tools/palette run generate-family-palette-docs` (from repo root: `--palette dwm/docs/palettes/<id>.json --out-dir dwm/docs/palettes`).

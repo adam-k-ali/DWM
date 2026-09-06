@@ -1,30 +1,22 @@
 # AGENTS.md
 
 ## Scope
-This file applies to `dwm/tools/` — offline Python scripts for TARDIS travel SFX, related analysis, and family palette docs. These are **not** invoked by Gradle or CI.
+This file applies to `dwm/tools/` — offline Python tooling for DWM. These projects are **not** invoked by Gradle or CI.
 
-## Local Context
-Scripts synthesize and validate `.ogg` travel loops from spectral targets. Generated game assets are written into `src/client/resources/assets/dwm/sounds/` (or paths documented in each script). Reference audio for analysis stays local and gitignored. Family palette docs write Markdown + PNG swatches under `docs/palettes/`.
+## Projects
 
-## Commands
-- Create venv (once): `python3 -m venv tools/.venv && tools/.venv/bin/pip install -r tools/requirements.txt`
-- Fetch local golden reference (analysis only, gitignored): `tools/.venv/bin/python tools/fetch_tardis_ref.py`
-- Generate travel SFX: `tools/.venv/bin/python tools/generate_tardis_travel_sfx.py`
-- Compare against golden: `tools/.venv/bin/python tools/compare_tardis_sfx.py`
-- Flutterwing SFX: `tools/.venv/bin/python tools/generate_flutterwing_sfx.py`
-- Mewing Dog SFX: `tools/.venv/bin/python tools/generate_mewing_dog_sfx.py`
-- Dalek SFX: `tools/.venv/bin/python tools/generate_dalek_sfx.py`
-- Family palette docs: `tools/.venv/bin/python tools/generate_family_palette_docs.py --palette docs/palettes/<family>.json --out-dir docs/palettes` (run from `dwm/`)
+| Project | Path | Purpose |
+| --- | --- | --- |
+| Palette | [`palette/`](palette/) | Family colour-palette docs + recolour GUI |
+| SFX | [`sfx/`](sfx/) | TARDIS travel and entity SFX generation/analysis |
 
-See `tools/fixtures/README.md` for validate/compare report options.
+Each project is a Poetry package with its own `pyproject.toml`, in-project `.venv`, and nested `AGENTS.md`.
 
-## Conventions
-- Run scripts from the **repo root** unless a script documents otherwise.
-- `tools/fixtures/baked_vworp_targets.npz` is committed (analysis targets); WAV/MP3 goldens under `tools/fixtures/` are **not** committed.
-- After regenerating OGGs, smoke in-game or rely on existing sound-related tests; there is no automated audio gate in `./dwm/gradlew build`.
-- Do not redistribute downloaded reference clips — analysis/local dev only.
+## Commands (from repo root)
 
-## Common Pitfalls
-- Do not commit `tools/.venv/` or fetched `tardis_ref.wav`.
-- Matplotlib/compare outputs under `tools/fixtures/compare_out/` are local reports — commit only if intentionally updating checked-in fixtures.
-- Python version may differ from Java 25; the venv is independent of the Gradle toolchain.
+```bash
+poetry -C dwm/tools/palette install
+poetry -C dwm/tools/sfx install
+```
+
+See each project's `AGENTS.md` for run/test commands.

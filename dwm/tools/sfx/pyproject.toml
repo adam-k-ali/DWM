@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "dwm-sfx"
+version = "0.1.0"
+description = "Offline TARDIS and entity SFX generation/analysis for The Doctor Who Mod"
+authors = ["Adam Ali"]
+packages = [{ include = "dwm_sfx" }]
+
+[tool.poetry.dependencies]
+python = ">=3.11"
+numpy = ">=1.26"
+matplotlib = ">=3.8"
+
+[tool.poetry.scripts]
+generate-tardis-travel-sfx = "dwm_sfx.generate_tardis_travel_sfx:main"
+compare-tardis-sfx = "dwm_sfx.compare_tardis_sfx:main"
+fetch-tardis-ref = "dwm_sfx.fetch_tardis_ref:main"
+generate-flutterwing-sfx = "dwm_sfx.generate_flutterwing_sfx:main"
+generate-mewing-dog-sfx = "dwm_sfx.generate_mewing_dog_sfx:main"
+generate-dalek-sfx = "dwm_sfx.generate_dalek_sfx:main"
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"

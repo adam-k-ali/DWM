@@ -17,4 +17,4 @@ Gallifrey-stone host; emerald/teal mineral veins. Map colour follows the Gallifr
 | `vein_mid` | `#09AF71` | Teal-green vein fill |
 | `vein_hi` | `#72EAC3` | Mint vein highlight |
 
-Source JSON: [`zeiton.json`](./zeiton.json). Regenerate with `tools/generate_family_palette_docs.py` (from `dwm/`: `--palette docs/palettes/<id>.json --out-dir docs/palettes`).
+Source JSON: [`zeiton.json`](./zeiton.json). Regenerate with `poetry -C dwm/tools/palette run generate-family-palette-docs` (from repo root: `--palette dwm/docs/palettes/<id>.json --out-dir dwm/docs/palettes`).

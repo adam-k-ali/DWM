@@ -2,7 +2,7 @@
 """
 Download a public TARDIS materialisation clip for local analysis only.
 
-Writes tools/fixtures/tardis_ref.wav (gitignored). Never package this into the mod.
+Writes fixtures/tardis_ref.wav (gitignored). Never package this into the mod.
 """
 
 from __future__ import annotations
@@ -13,20 +13,22 @@ import sys
 import urllib.request
 from pathlib import Path
 
+from dwm_sfx.paths import find_sfx_project_root
+
 DEFAULT_URL = "https://www.myinstants.com/media/sounds/tardis.mp3"
-FIXTURES = Path(__file__).resolve().parent / "fixtures"
+FIXTURES = find_sfx_project_root() / "fixtures"
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--url", default=DEFAULT_URL)
     parser.add_argument(
         "--out",
         type=Path,
         default=FIXTURES / "tardis_ref.wav",
-        help="Output WAV path (default: tools/fixtures/tardis_ref.wav)",
+        help="Output WAV path (default: fixtures/tardis_ref.wav)",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     out: Path = args.out
     out.parent.mkdir(parents=True, exist_ok=True)

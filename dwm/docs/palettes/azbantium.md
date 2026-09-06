@@ -20,4 +20,4 @@ Gallifrey-stone host with silver/white ore veins; storage block is pale icy cyan
 | `gem_mid` | `#CDEAE5` | Storage block body |
 | `gem_hi` | `#EAF9F5` | Storage block highlight |
 
-Source JSON: [`azbantium.json`](./azbantium.json). Regenerate with `tools/generate_family_palette_docs.py` (from `dwm/`: `--palette docs/palettes/<id>.json --out-dir docs/palettes`).
+Source JSON: [`azbantium.json`](./azbantium.json). Regenerate with `poetry -C dwm/tools/palette run generate-family-palette-docs` (from repo root: `--palette dwm/docs/palettes/<id>.json --out-dir dwm/docs/palettes`).

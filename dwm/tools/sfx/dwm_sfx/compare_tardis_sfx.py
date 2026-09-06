@@ -5,7 +5,7 @@ Compare generated TARDIS travel SFX against a local golden reference.
 Prints a failure-mode metric table, writes envelope/spectrogram/centroid/band
 PNGs + markdown report, and optionally plays a loudness-matched A/B clip.
 
-Golden audio is analysis-only (tools/fixtures/) and must never be packaged.
+Golden audio is analysis-only (fixtures/) and must never be packaged.
 """
 
 from __future__ import annotations
@@ -16,7 +16,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from tardis_sfx_analysis import (
+from dwm_sfx.paths import find_dwm_root, find_sfx_project_root
+from dwm_sfx.tardis_sfx_analysis import (
     SR,
     build_metric_rows,
     format_metric_table,
@@ -31,12 +32,13 @@ from tardis_sfx_analysis import (
     write_markdown_report,
 )
 
-ROOT = Path(__file__).resolve().parent
-DEFAULT_REF = ROOT / "fixtures" / "tardis_ref.wav"
+PROJECT_ROOT = find_sfx_project_root()
+DWM_ROOT = find_dwm_root()
+DEFAULT_REF = PROJECT_ROOT / "fixtures" / "tardis_ref.wav"
 DEFAULT_OURS = (
-    ROOT.parent / "src/client/resources/assets/dwm/sounds/tardis_dematerialise_loop.ogg"
+    DWM_ROOT / "src/client/resources/assets/dwm/sounds/tardis_dematerialise_loop.ogg"
 )
-DEFAULT_OUT = ROOT / "fixtures" / "compare_out"
+DEFAULT_OUT = PROJECT_ROOT / "fixtures" / "compare_out"
 
 
 def play_wav(path: Path) -> None:
@@ -55,7 +57,7 @@ def play_wav(path: Path) -> None:
         print(f"Wrote A/B WAV (open manually): {path}")
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ref", type=Path, default=DEFAULT_REF, help="Golden WAV/MP3")
     parser.add_argument("--ours", type=Path, default=DEFAULT_OURS, help="Generated OGG/WAV")
@@ -76,19 +78,19 @@ def main() -> int:
         action="store_true",
         help="Exit 1 if hard spectral gates fail (same as generator --validate-ref)",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if not args.ref.exists():
         print(
             f"Missing golden reference: {args.ref}\n"
-            f"Run: tools/.venv/bin/python tools/fetch_tardis_ref.py",
+            f"Run: poetry -C dwm/tools/sfx run fetch-tardis-ref",
             file=sys.stderr,
         )
         return 2
     if not args.ours.exists():
         print(
             f"Missing generated audio: {args.ours}\n"
-            f"Run: tools/.venv/bin/python tools/generate_tardis_travel_sfx.py",
+            f"Run: poetry -C dwm/tools/sfx run generate-tardis-travel-sfx",
             file=sys.stderr,
         )
         return 2
@@ -158,6 +160,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    # Allow running as tools/compare_tardis_sfx.py without installing a package.
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
     raise SystemExit(main())

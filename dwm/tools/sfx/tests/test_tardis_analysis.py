@@ -1,29 +1,23 @@
-#!/usr/bin/env python3
 """Unit tests for TARDIS SFX analysis helpers.
 
-Run: tools/.venv/bin/python tools/test_tardis_sfx_analysis.py
+Run: (cd dwm/tools/sfx && poetry run python -m unittest discover -s tests)
 """
 
 from __future__ import annotations
 
 import math
-import sys
 import unittest
-from pathlib import Path
 
 import numpy as np
 
-TOOLS = Path(__file__).resolve().parent
-if str(TOOLS) not in sys.path:
-    sys.path.insert(0, str(TOOLS))
-
-from tardis_sfx_analysis import (  # noqa: E402
+from dwm_sfx.tardis_sfx_analysis import (
     SR,
     EXPECTED_VWORP_S,
     _proximity,
     envelope_similarity,
     mel_similarity,
     similarity_score,
+    spectral_report,
     verdict_similarity,
 )
 
@@ -92,8 +86,7 @@ class SimilarityScoreTests(unittest.TestCase):
 
 class FlightLoopTests(unittest.TestCase):
     def test_pitch_shift_raises_centroid(self) -> None:
-        from generate_tardis_travel_sfx import pitch_shift  # noqa: E402
-        from tardis_sfx_analysis import spectral_report  # noqa: E402
+        from dwm_sfx.generate_tardis_travel_sfx import pitch_shift
 
         n = int(0.5 * SR)
         t = np.arange(n) / SR
@@ -103,12 +96,11 @@ class FlightLoopTests(unittest.TestCase):
         self.assertGreater(shifted, base * 1.05)
 
     def test_flight_loop_higher_than_demat(self) -> None:
-        from generate_tardis_travel_sfx import (  # noqa: E402
+        from dwm_sfx.generate_tardis_travel_sfx import (
             FLIGHT_PITCH,
             synthesize_demat_loop,
             synthesize_flight_loop,
         )
-        from tardis_sfx_analysis import spectral_report  # noqa: E402
 
         demat = synthesize_demat_loop(np.random.default_rng(1963))
         flight = synthesize_flight_loop(np.random.default_rng(1963))
@@ -120,7 +112,7 @@ class FlightLoopTests(unittest.TestCase):
         self.assertGreater(flight_c, demat_c * 0.85)
 
     def test_loop_seams_are_continuous(self) -> None:
-        from generate_tardis_travel_sfx import (  # noqa: E402
+        from dwm_sfx.generate_tardis_travel_sfx import (
             SR as GSR,
             synthesize_demat_loop,
             synthesize_flight_loop,
