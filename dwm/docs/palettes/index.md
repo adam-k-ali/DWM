@@ -10,11 +10,13 @@ poetry -C dwm/tools/palette run generate-family-palette-docs \
   --out-dir dwm/docs/palettes
 ```
 
-Preview stone recolour interactively (defaults to Gallifrey stone palette + texture):
+Preview stone or ore recolour interactively (defaults: Gallifrey stone host + Azbantium mineral veins on the Gallifrey coal-ore layout):
 
 ```bash
 poetry -C dwm/tools/palette run generate-family-palette-docs --gui
 ```
+
+In the GUI, switch **Stone** / **Ore**. Ore mode takes a host palette JSON (`host_*`) and a mineral palette JSON (`vein_*`) and remaps `gallifrey_coal_ore.png`. Use **Save PNG…** to export the 16×16 result.
 
 ## Families
 

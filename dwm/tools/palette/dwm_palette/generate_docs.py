@@ -11,6 +11,7 @@ Docs example (from repo root)::
 GUI example::
 
     poetry -C dwm/tools/palette run generate-family-palette-docs --gui
+    # Optional: --mineral-palette … --ore-template …
 """
 
 from __future__ import annotations
@@ -29,6 +30,7 @@ from dwm_palette.recolor import load_palette, luminance, parse_hex
 
 DWM_DIR = find_dwm_root()
 DEFAULT_PALETTE = DWM_DIR / "docs" / "palettes" / "gallifrey_stone.json"
+DEFAULT_MINERAL_PALETTE = DWM_DIR / "docs" / "palettes" / "azbantium.json"
 DEFAULT_TEMPLATE = (
     DWM_DIR
     / "src"
@@ -39,6 +41,17 @@ DEFAULT_TEMPLATE = (
     / "textures"
     / "block"
     / "gallifrey_stone.png"
+)
+DEFAULT_ORE_TEMPLATE = (
+    DWM_DIR
+    / "src"
+    / "client"
+    / "resources"
+    / "assets"
+    / "dwm"
+    / "textures"
+    / "block"
+    / "gallifrey_coal_ore.png"
 )
 
 
@@ -159,17 +172,37 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--template",
         type=Path,
-        help="Stone template PNG for GUI preview (default: gallifrey_stone.png).",
+        help="Stone template PNG for GUI host preview / classification "
+        "(default: gallifrey_stone.png).",
+    )
+    parser.add_argument(
+        "--mineral-palette",
+        type=Path,
+        help="Mineral palette JSON with vein_* roles for ore preview "
+        "(default: azbantium.json).",
+    )
+    parser.add_argument(
+        "--ore-template",
+        type=Path,
+        help="Ore-in-stone template PNG for GUI ore preview "
+        "(default: gallifrey_coal_ore.png).",
     )
     args = parser.parse_args(argv)
 
     if args.gui:
         palette_path = args.palette or DEFAULT_PALETTE
         template_path = args.template or DEFAULT_TEMPLATE
+        mineral_palette_path = args.mineral_palette or DEFAULT_MINERAL_PALETTE
+        ore_template_path = args.ore_template or DEFAULT_ORE_TEMPLATE
         try:
             from dwm_palette.gui import run_gui
 
-            run_gui(palette_path=palette_path, template_path=template_path)
+            run_gui(
+                palette_path=palette_path,
+                template_path=template_path,
+                mineral_palette_path=mineral_palette_path,
+                ore_template_path=ore_template_path,
+            )
         except ImportError as exc:
             print(
                 "error: GUI dependencies missing "

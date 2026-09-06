@@ -1,4 +1,4 @@
-"""Family palette loading and host-stone recolour helpers.
+"""Family palette loading and host-stone / ore recolour helpers.
 
 Offline tooling only — not invoked by Gradle or CI.
 """
@@ -115,6 +115,18 @@ def host_hexes(palette: dict[str, Any]) -> list[str]:
     return sorted(hosts, key=lambda h: luminance(parse_hex(h)))
 
 
+def vein_hexes(palette: dict[str, Any]) -> list[str]:
+    """Return vein_* role hexes sorted dark→light by luminance."""
+    veins = [
+        entry["hex"]
+        for entry in palette["roles"]
+        if entry["role"].startswith("vein_")
+    ]
+    if not veins:
+        raise ValueError("palette has no vein_* roles")
+    return sorted(veins, key=lambda h: luminance(parse_hex(h)))
+
+
 def unique_colours_by_luminance(image_rgb: np.ndarray) -> list[Rgb]:
     if image_rgb.ndim != 3 or image_rgb.shape[2] < 3:
         raise ValueError("image_rgb must be HxWx3 (or HxWx4) array")
@@ -122,6 +134,25 @@ def unique_colours_by_luminance(image_rgb: np.ndarray) -> list[Rgb]:
     flat = rgb.reshape(-1, 3)
     unique = {tuple(int(c) for c in row) for row in flat}
     return sorted(unique, key=luminance_u8)  # type: ignore[arg-type]
+
+
+def host_colour_set(stone_rgb: np.ndarray) -> frozenset[Rgb]:
+    """Unique RGB triples from a stone template, used to classify ore host pixels."""
+    return frozenset(unique_colours_by_luminance(stone_rgb))
+
+
+def split_ore_colours(
+    ore_rgb: np.ndarray, host_colours: frozenset[Rgb]
+) -> tuple[list[Rgb], list[Rgb]]:
+    """Split ore unique colours into host (in host_colours) vs mineral (the rest)."""
+    colours = unique_colours_by_luminance(ore_rgb)
+    host = [c for c in colours if c in host_colours]
+    mineral = [c for c in colours if c not in host_colours]
+    if not host:
+        raise ValueError("ore template has no host pixels matching stone colours")
+    if not mineral:
+        raise ValueError("ore template has no mineral pixels (all match stone colours)")
+    return host, mineral
 
 
 def build_host_colour_map(
@@ -150,6 +181,35 @@ def build_host_colour_map(
     return colour_map
 
 
+def build_rank_colour_map(
+    source_colours: list[Rgb], target_hex_list: list[str]
+) -> dict[Rgb, Rgb]:
+    """Map source colours onto target hexes by luminance rank (not nearest luma).
+
+    Source and targets are sorted dark→light. When counts differ, each source
+    index maps to ``round(i * (n_targets - 1) / (n_sources - 1))`` (half-up).
+    """
+    if not source_colours:
+        raise ValueError("source colour list is empty")
+    if not target_hex_list:
+        raise ValueError("target hex list is empty")
+
+    sources = sorted(source_colours, key=luminance_u8)
+    targets = [hex_to_rgb(h) for h in target_hex_list]
+    # target_hex_list is already dark→light; keep that order.
+    n_src = len(sources)
+    n_tgt = len(targets)
+    colour_map: dict[Rgb, Rgb] = {}
+    if n_src == 1:
+        colour_map[sources[0]] = targets[0]
+        return colour_map
+
+    for i, colour in enumerate(sources):
+        target_i = int(i * (n_tgt - 1) / (n_src - 1) + 0.5)
+        colour_map[colour] = targets[target_i]
+    return colour_map
+
+
 def apply_host_palette(template_rgb: np.ndarray, host_hex_list: list[str]) -> np.ndarray:
     """Remap template pixels onto host palette hexes (no interpolation).
 
@@ -160,6 +220,36 @@ def apply_host_palette(template_rgb: np.ndarray, host_hex_list: list[str]) -> np
     src = template_rgb[:, :, :3].astype(np.uint8, copy=False)
     colours = unique_colours_by_luminance(src)
     colour_map = build_host_colour_map(colours, host_hex_list)
+
+    h, w, _ = src.shape
+    out = np.empty((h, w, 3), dtype=np.uint8)
+    for y in range(h):
+        for x in range(w):
+            key = (int(src[y, x, 0]), int(src[y, x, 1]), int(src[y, x, 2]))
+            out[y, x] = colour_map[key]
+    return out
+
+
+def apply_ore_palettes(
+    ore_rgb: np.ndarray,
+    host_hex_list: list[str],
+    vein_hex_list: list[str],
+    host_colours: frozenset[Rgb],
+) -> np.ndarray:
+    """Remap ore template: host pixels → host hexes, mineral pixels → vein hexes.
+
+    Host colours are classified against *host_colours* (frozen stone template
+    uniques), not the live edited host hex list. Mineral colours use rank
+    mapping so dark coal greys still reach light vein highlights.
+
+    Returns a new HxWx3 uint8 array.
+    """
+    if ore_rgb.ndim != 3 or ore_rgb.shape[2] < 3:
+        raise ValueError("ore_rgb must be HxWx3 (or HxWx4) array")
+    src = ore_rgb[:, :, :3].astype(np.uint8, copy=False)
+    host_src, mineral_src = split_ore_colours(src, host_colours)
+    colour_map = build_host_colour_map(host_src, host_hex_list)
+    colour_map.update(build_rank_colour_map(mineral_src, vein_hex_list))
 
     h, w, _ = src.shape
     out = np.empty((h, w, 3), dtype=np.uint8)
