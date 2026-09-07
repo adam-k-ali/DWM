@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "Y": "minecraft:yellow_wool"
+  },
+  "pattern": [
+    "Y Y",
+    "YYY",
+    "YYY"
+  ],
+  "result": {
+    "id": "dwm:protective_suit_chestplate"
+  }
+}

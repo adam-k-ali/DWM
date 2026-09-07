@@ -1,7 +1,10 @@
 package com.adamkali.dwm.tardis.logic;
 
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.world.SkaroDimensions;
+import com.adamkali.dwm.world.radiation.RadiationExposureLogic;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.Level;
@@ -20,6 +23,7 @@ public final class ExteriorEnvironmentReadout {
         OVERWORLD,
         NETHER,
         END,
+        SKARO,
         OTHER
     }
 
@@ -34,10 +38,11 @@ public final class ExteriorEnvironmentReadout {
             boolean waterlogged,
             boolean hasAir,
             float biomeTemperature,
-            boolean thundering
+            boolean thundering,
+            @Nullable Identifier biomeId
     ) {
         public static Sample none() {
-            return new Sample(true, DimensionKind.OTHER, 0, 63, false, false, 0.0F, false);
+            return new Sample(true, DimensionKind.OTHER, 0, 63, false, false, 0.0F, false, null);
         }
     }
 
@@ -87,7 +92,7 @@ public final class ExteriorEnvironmentReadout {
         return switch (sample.dimension()) {
             case NETHER -> 0.35F;
             case END -> 0.45F;
-            case OVERWORLD, OTHER -> 1.0F;
+            case OVERWORLD, SKARO, OTHER -> 1.0F;
         };
     }
 
@@ -97,7 +102,7 @@ public final class ExteriorEnvironmentReadout {
         float baseline = switch (sample.dimension()) {
             case NETHER -> 0.7F;
             case END -> 0.35F;
-            case OVERWORLD, OTHER -> 0.5F;
+            case OVERWORLD, SKARO, OTHER -> 0.5F;
         };
         return clamp01(baseline + relative * 0.4F);
     }
@@ -111,6 +116,7 @@ public final class ExteriorEnvironmentReadout {
         return switch (sample.dimension()) {
             case NETHER -> 0.9F;
             case END -> 0.55F;
+            case SKARO -> RadiationExposureLogic.ambientForBiomeId(sample.biomeId());
             case OVERWORLD, OTHER -> sample.thundering() ? 0.35F : 0.12F;
         };
     }
@@ -135,6 +141,9 @@ public final class ExteriorEnvironmentReadout {
         boolean waterlogged = isWaterlogged(state);
         boolean hasAir = !waterlogged && (state.isAir() || state.canBeReplaced());
         float biomeTemp = world.getBiome(exteriorPos).value().getBaseTemperature();
+        Identifier biomeId = world.getBiome(exteriorPos).unwrapKey()
+                .map(key -> key.identifier())
+                .orElse(null);
         return new Sample(
                 false,
                 kindOf(world),
@@ -143,13 +152,17 @@ public final class ExteriorEnvironmentReadout {
                 waterlogged,
                 hasAir,
                 biomeTemp,
-                world.isThundering()
+                world.isThundering(),
+                biomeId
         );
     }
 
     public static DimensionKind kindOf(Level world) {
         if (world == null) {
             return DimensionKind.OTHER;
+        }
+        if (SkaroDimensions.isSkaroWorld(world)) {
+            return DimensionKind.SKARO;
         }
         if (world.dimension() == Level.NETHER) {
             return DimensionKind.NETHER;
@@ -167,6 +180,9 @@ public final class ExteriorEnvironmentReadout {
         if (id.endsWith("the_end")) {
             return DimensionKind.END;
         }
+        if (id.equals(SkaroDimensions.DIMENSION_ID.toString())) {
+            return DimensionKind.SKARO;
+        }
         return DimensionKind.OTHER;
     }
 
@@ -182,6 +198,9 @@ public final class ExteriorEnvironmentReadout {
         }
         if (dimensionId.endsWith("overworld")) {
             return DimensionKind.OVERWORLD;
+        }
+        if (dimensionId.equals(SkaroDimensions.DIMENSION_ID.toString()) || dimensionId.endsWith(":skaro")) {
+            return DimensionKind.SKARO;
         }
         return DimensionKind.OTHER;
     }

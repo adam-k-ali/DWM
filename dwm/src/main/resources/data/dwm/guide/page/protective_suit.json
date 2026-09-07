@@ -1,0 +1,19 @@
+{
+  "page": { "id": "dwm:protective_suit" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.protective_suit.title",
+      "bodyKey": "dwm.guide.page.protective_suit.body"
+    },
+    {
+      "type": "crafting",
+      "recipes": [
+        "dwm:protective_suit_helmet",
+        "dwm:protective_suit_chestplate",
+        "dwm:protective_suit_leggings",
+        "dwm:protective_suit_boots"
+      ]
+    }
+  ]
+}

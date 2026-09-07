@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "Y": "minecraft:yellow_wool"
+  },
+  "pattern": [
+    "Y Y",
+    "Y Y"
+  ],
+  "result": {
+    "id": "dwm:protective_suit_boots"
+  }
+}

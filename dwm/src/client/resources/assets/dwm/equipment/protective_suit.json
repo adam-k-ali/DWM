@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "dwm:protective_suit"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "dwm:protective_suit"
+      }
+    ]
+  }
+}

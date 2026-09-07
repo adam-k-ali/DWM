@@ -1,0 +1,10 @@
+{
+  "page": { "id": "dwm:skaro_radiation" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.skaro_radiation.title",
+      "bodyKey": "dwm.guide.page.skaro_radiation.body"
+    }
+  ]
+}

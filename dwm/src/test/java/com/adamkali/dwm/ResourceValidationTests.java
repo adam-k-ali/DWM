@@ -515,6 +515,30 @@ public class ResourceValidationTests {
     }
 
     /**
+     * Guards against {@code pruneDatagenItemModels} dropping protective suit / meter item defs
+     * (allowlist must include {@code protective_suit} and {@code radiation_meter} substrings).
+     */
+    @Test
+    public void generatedProtectiveSuitItemModelsExist() throws Exception {
+        Path itemsDir = Path.of("src/main/generated/assets/dwm/items");
+        assertTrue(Files.isDirectory(itemsDir), "Expected generated items dir at " + itemsDir);
+        String[] ids = {
+                "protective_suit_helmet",
+                "protective_suit_chestplate",
+                "protective_suit_leggings",
+                "protective_suit_boots",
+                "radiation_meter",
+        };
+        for (String id : ids) {
+            Path item = itemsDir.resolve(id + ".json");
+            assertTrue(
+                    Files.isRegularFile(item) && Files.size(item) > 0,
+                    "Missing generated protective suit / meter item model: " + item
+            );
+        }
+    }
+
+    /**
      * Guards against {@code pruneDatagenItemModels} dropping zeiton/ferrite item defs
      * (allowlist must include {@code zeiton} and {@code ferrite} substrings).
      */

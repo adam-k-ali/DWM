@@ -1,0 +1,14 @@
+{
+  "page": { "id": "dwm:radiation_meter" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.radiation_meter.title",
+      "bodyKey": "dwm.guide.page.radiation_meter.body"
+    },
+    {
+      "type": "crafting",
+      "recipes": ["dwm:radiation_meter"]
+    }
+  ]
+}
