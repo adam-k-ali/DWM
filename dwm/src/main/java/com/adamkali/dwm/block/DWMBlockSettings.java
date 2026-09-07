@@ -192,4 +192,59 @@ public class DWMBlockSettings {
                 .strength(2.0F, 6.0F)
                 .sound(SoundType.BASALT);
     }
+
+    /** Skaro Dalekanium ore — iron hardness, stone-hosted. */
+    public static BlockBehaviour.Properties dalekaniumOre() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.STONE)
+                .instrument(NoteBlockInstrument.BASEDRUM)
+                .requiresCorrectToolForDrops()
+                .strength(3.0F)
+                .sound(SoundType.STONE);
+    }
+
+    /** Dalekanium / alloy storage blocks. */
+    public static BlockBehaviour.Properties dalekaniumStorage(MapColor mapColor) {
+        return BlockBehaviour.Properties.of()
+                .mapColor(mapColor)
+                .instrument(NoteBlockInstrument.IRON_XYLOPHONE)
+                .requiresCorrectToolForDrops()
+                .strength(5.0F, 12.0F)
+                .sound(SoundType.METAL);
+    }
+
+    /** Alloy Dalekanium architecture solids (wall, panel, floor, …). */
+    public static BlockBehaviour.Properties dalekaniumMetal(MapColor mapColor) {
+        return BlockBehaviour.Properties.of()
+                .mapColor(mapColor)
+                .instrument(NoteBlockInstrument.IRON_XYLOPHONE)
+                .requiresCorrectToolForDrops()
+                .strength(4.0F, 10.0F)
+                .sound(SoundType.METAL);
+    }
+
+    /** Dalekanium corridor light. */
+    public static BlockBehaviour.Properties dalekaniumLight(MapColor mapColor) {
+        return dalekaniumMetal(mapColor).lightLevel(state -> 15);
+    }
+
+    /** Iron-like Dalekanium door (no occlusion). */
+    public static BlockBehaviour.Properties dalekaniumDoor(MapColor mapColor) {
+        return BlockBehaviour.Properties.of()
+                .mapColor(mapColor)
+                .requiresCorrectToolForDrops()
+                .strength(5.0F)
+                .noOcclusion()
+                .pushReaction(PushReaction.DESTROY);
+    }
+
+    /** Steel storage / grille solids. */
+    public static BlockBehaviour.Properties steel() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.METAL)
+                .instrument(NoteBlockInstrument.IRON_XYLOPHONE)
+                .requiresCorrectToolForDrops()
+                .strength(4.0F, 8.0F)
+                .sound(SoundType.METAL);
+    }
 }

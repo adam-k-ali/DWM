@@ -863,6 +863,17 @@ public class ResourceValidationTests {
     }
 
     @Test
+    public void dalekLootTableDropsDalekaniumIngot() throws Exception {
+        Path loot = Path.of("src/main/generated/data/dwm/loot_table/entities/dalek.json");
+        assertTrue(Files.isRegularFile(loot), "Missing Dalek entity loot table: " + loot);
+        String json = Files.readString(loot);
+        assertTrue(
+                json.contains("dwm:dalekanium_ingot"),
+                "Dalek loot should drop dalekanium_ingot, got: " + json
+        );
+    }
+
+    @Test
     public void dalekEntityTextureExists() throws Exception {
         Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/dalek/1963.png");
         assertTrue(

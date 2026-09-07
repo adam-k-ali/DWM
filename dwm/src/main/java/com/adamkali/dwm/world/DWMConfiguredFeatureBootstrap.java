@@ -89,6 +89,22 @@ public final class DWMConfiguredFeatureBootstrap {
         registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_COAL_ORE_BURIED, DWMBlocks.GALLIFREY_COAL_ORE, 17, 0.5F);
         registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_IRON_ORE, DWMBlocks.GALLIFREY_IRON_ORE, 9, 0.0F);
         registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_IRON_ORE_SMALL, DWMBlocks.GALLIFREY_IRON_ORE, 4, 0.0F);
+        registerOre(
+                registerable,
+                DWMConfiguredFeatures.DALEKANIUM_ORE,
+                DWMBlocks.DALEKANIUM_ORE,
+                DWMBlockTags.STONE_ORE_REPLACEABLES,
+                9,
+                0.0F
+        );
+        registerOre(
+                registerable,
+                DWMConfiguredFeatures.DALEKANIUM_ORE_SMALL,
+                DWMBlocks.DALEKANIUM_ORE,
+                DWMBlockTags.STONE_ORE_REPLACEABLES,
+                4,
+                0.0F
+        );
         registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_GOLD_ORE, DWMBlocks.GALLIFREY_GOLD_ORE, 9, 0.0F);
         registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_GOLD_ORE_BURIED, DWMBlocks.GALLIFREY_GOLD_ORE, 9, 0.5F);
         registerOre(registerable, DWMConfiguredFeatures.GALLIFREY_DIAMOND_ORE_SMALL, DWMBlocks.GALLIFREY_DIAMOND_ORE, 4, 0.5F);

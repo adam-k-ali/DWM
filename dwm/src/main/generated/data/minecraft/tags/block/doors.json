@@ -2,6 +2,8 @@
   "values": [
     "dwm:ash_door",
     "dwm:dark_ash_door",
-    "dwm:cardinal_door"
+    "dwm:cardinal_door",
+    "dwm:silver_dalekanium_door",
+    "dwm:bronze_dalekanium_door"
   ]
 }

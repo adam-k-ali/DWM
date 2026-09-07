@@ -23,6 +23,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addOrangeSandFamily(translationBuilder);
         addPetrifiedFamily(translationBuilder);
         addCitadelFamily(translationBuilder);
+        addDalekaniumFamily(translationBuilder);
+        addSteelFamily(translationBuilder);
         addGallifreyPlants(translationBuilder);
         addAzbantiumSet(translationBuilder);
         addZeitonSet(translationBuilder);
@@ -418,6 +420,41 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addBlockAndItem(t, DWMBlocks.CITADEL_PANEL, "Citadel Panel");
         addBlockAndItem(t, DWMBlocks.CITADEL_TILE, "Citadel Tile");
         addBlockAndItem(t, DWMBlocks.CITADEL_GLASS, "Citadel Glass");
+    }
+
+    private static void addDalekaniumFamily(TranslationBuilder t) {
+        addBlockAndItem(t, DWMBlocks.DALEKANIUM_ORE, "Dalekanium Ore");
+        addBlockAndItem(t, DWMBlocks.DALEKANIUM_BLOCK, "Dalekanium Block");
+        addBlockAndItem(t, DWMBlocks.SILVER_DALEKANIUM_BLOCK, "Silver Dalekanium Block");
+        addBlockAndItem(t, DWMBlocks.BRONZE_DALEKANIUM_BLOCK, "Bronze Dalekanium Block");
+        addItem(t, DWMItems.RAW_DALEKANIUM, "Raw Dalekanium");
+        addItem(t, DWMItems.DALEKANIUM_INGOT, "Dalekanium Ingot");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_INGOT, "Silver Dalekanium Ingot");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_INGOT, "Bronze Dalekanium Ingot");
+
+        addBlockAndItem(t, DWMBlocks.SILVER_DALEKANIUM_WALL, "Silver Dalekanium Wall");
+        addBlockAndItem(t, DWMBlocks.SILVER_DALEKANIUM_RIVETED_WALL, "Silver Dalekanium Riveted Wall");
+        addBlockAndItem(t, DWMBlocks.SILVER_DALEKANIUM_FLOOR, "Silver Dalekanium Floor");
+        addBlockAndItem(t, DWMBlocks.SILVER_DALEKANIUM_PANEL, "Silver Dalekanium Panel");
+        addBlockAndItem(t, DWMBlocks.SILVER_DALEKANIUM_LIGHT, "Silver Dalekanium Light");
+        addBlockAndItem(t, DWMBlocks.SILVER_DALEKANIUM_DOOR, "Silver Dalekanium Door");
+        addBlockAndItem(t, DWMBlocks.SILVER_DALEKANIUM_DAMAGED_WALL, "Silver Dalekanium Damaged Wall");
+        addBlockAndItem(t, DWMBlocks.SILVER_DALEKANIUM_DAMAGED_PANEL, "Silver Dalekanium Damaged Panel");
+
+        addBlockAndItem(t, DWMBlocks.BRONZE_DALEKANIUM_WALL, "Bronze Dalekanium Wall");
+        addBlockAndItem(t, DWMBlocks.BRONZE_DALEKANIUM_RIVETED_WALL, "Bronze Dalekanium Riveted Wall");
+        addBlockAndItem(t, DWMBlocks.BRONZE_DALEKANIUM_FLOOR, "Bronze Dalekanium Floor");
+        addBlockAndItem(t, DWMBlocks.BRONZE_DALEKANIUM_PANEL, "Bronze Dalekanium Panel");
+        addBlockAndItem(t, DWMBlocks.BRONZE_DALEKANIUM_LIGHT, "Bronze Dalekanium Light");
+        addBlockAndItem(t, DWMBlocks.BRONZE_DALEKANIUM_DOOR, "Bronze Dalekanium Door");
+        addBlockAndItem(t, DWMBlocks.BRONZE_DALEKANIUM_DAMAGED_WALL, "Bronze Dalekanium Damaged Wall");
+        addBlockAndItem(t, DWMBlocks.BRONZE_DALEKANIUM_DAMAGED_PANEL, "Bronze Dalekanium Damaged Panel");
+    }
+
+    private static void addSteelFamily(TranslationBuilder t) {
+        addItem(t, DWMItems.STEEL_INGOT, "Steel Ingot");
+        addBlockAndItem(t, DWMBlocks.STEEL_BLOCK, "Steel Block");
+        addBlockAndItem(t, DWMBlocks.STEEL_GRILLE, "Steel Grille");
     }
 
     private static void addGallifreyPlants(TranslationBuilder t) {

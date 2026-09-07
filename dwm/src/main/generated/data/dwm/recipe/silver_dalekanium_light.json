@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "key": {
+    "#": "dwm:silver_dalekanium_wall",
+    "G": "minecraft:glowstone"
+  },
+  "pattern": [
+    " # ",
+    "#G#",
+    " # "
+  ],
+  "result": {
+    "count": 4,
+    "id": "dwm:silver_dalekanium_light"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "dwm:dalekanium_ingot",
+    "minecraft:iron_ingot"
+  ],
+  "result": {
+    "count": 2,
+    "id": "dwm:silver_dalekanium_ingot"
+  }
+}

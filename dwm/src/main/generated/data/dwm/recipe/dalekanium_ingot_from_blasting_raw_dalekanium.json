@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:blasting",
+  "experience": 0.7,
+  "group": "dalekanium",
+  "ingredient": "dwm:raw_dalekanium",
+  "result": {
+    "id": "dwm:dalekanium_ingot"
+  }
+}

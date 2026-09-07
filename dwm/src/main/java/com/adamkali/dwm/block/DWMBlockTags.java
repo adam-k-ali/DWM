@@ -115,6 +115,33 @@ public final class DWMBlockTags {
             Identifier.withDefaultNamespace("saplings")
     );
 
+    public static final TagKey<Block> DALEKANIUM_ORES = TagKey.create(
+            Registries.BLOCK,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "dalekanium_ores")
+    );
+
+    /** All silver + bronze Dalekanium architecture blocks (structures). */
+    public static final TagKey<Block> DALEKANIUM_ARCHITECTURE = TagKey.create(
+            Registries.BLOCK,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "dalekanium_architecture")
+    );
+
+    public static final TagKey<Block> SILVER_DALEKANIUM_ARCHITECTURE = TagKey.create(
+            Registries.BLOCK,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "silver_dalekanium_architecture")
+    );
+
+    public static final TagKey<Block> BRONZE_DALEKANIUM_ARCHITECTURE = TagKey.create(
+            Registries.BLOCK,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "bronze_dalekanium_architecture")
+    );
+
+    /** Steel storage + grille. */
+    public static final TagKey<Block> STEEL = TagKey.create(
+            Registries.BLOCK,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "steel")
+    );
+
     private DWMBlockTags() {
     }
 }

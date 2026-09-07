@@ -69,6 +69,12 @@ public class DWMItems {
 
     public static final Item AZBANTIUM = register(Item::new, "azbantium");
 
+    public static final Item RAW_DALEKANIUM = register(Item::new, "raw_dalekanium");
+    public static final Item DALEKANIUM_INGOT = register(Item::new, "dalekanium_ingot");
+    public static final Item SILVER_DALEKANIUM_INGOT = register(Item::new, "silver_dalekanium_ingot");
+    public static final Item BRONZE_DALEKANIUM_INGOT = register(Item::new, "bronze_dalekanium_ingot");
+    public static final Item STEEL_INGOT = register(Item::new, "steel_ingot");
+
     public static final Item ZEITON_CRYSTALS = register(Item::new, "zeiton_crystals");
     public static final Item ZEITON_POWDER = register(Item::new, "zeiton_powder");
     public static final Item FERRITE_POWDER = register(Item::new, "ferrite_powder");
@@ -186,6 +192,11 @@ public class DWMItems {
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.INGREDIENTS).register(content -> {
             content.accept(AZBANTIUM);
+            content.accept(RAW_DALEKANIUM);
+            content.accept(DALEKANIUM_INGOT);
+            content.accept(SILVER_DALEKANIUM_INGOT);
+            content.accept(BRONZE_DALEKANIUM_INGOT);
+            content.accept(STEEL_INGOT);
             content.accept(ZEITON_CRYSTALS);
             content.accept(ZEITON_POWDER);
             content.accept(FERRITE_POWDER);

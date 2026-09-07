@@ -29,6 +29,26 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(key(DWMBlocks.CITADEL_TILE))
                 .add(key(DWMBlocks.CITADEL_GLASS));
 
+        builder(DWMBlockTags.DALEKANIUM_ORES)
+                .add(key(DWMBlocks.DALEKANIUM_ORE));
+
+        var silverArchitecture = builder(DWMBlockTags.SILVER_DALEKANIUM_ARCHITECTURE);
+        for (Block block : DWMBlocks.SILVER_DALEKANIUM_ARCHITECTURE) {
+            silverArchitecture.add(key(block));
+        }
+        var bronzeArchitecture = builder(DWMBlockTags.BRONZE_DALEKANIUM_ARCHITECTURE);
+        for (Block block : DWMBlocks.BRONZE_DALEKANIUM_ARCHITECTURE) {
+            bronzeArchitecture.add(key(block));
+        }
+        var dalekaniumArchitecture = builder(DWMBlockTags.DALEKANIUM_ARCHITECTURE);
+        for (Block block : DWMBlocks.DALEKANIUM_ARCHITECTURE) {
+            dalekaniumArchitecture.add(key(block));
+        }
+
+        builder(DWMBlockTags.STEEL)
+                .add(key(DWMBlocks.STEEL_BLOCK))
+                .add(key(DWMBlocks.STEEL_GRILLE));
+
         var orangeSandTag = builder(DWMBlockTags.ORANGE_SAND);
         for (Block block : DWMBlocks.ORANGE_SAND_FAMILY) {
             orangeSandTag.add(key(block));
@@ -98,18 +118,36 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(key(DWMBlocks.GALLIFREY_COAL_ORE))
                 .add(key(DWMBlocks.GALLIFREY_IRON_ORE))
                 .add(key(DWMBlocks.GALLIFREY_GOLD_ORE))
-                .add(key(DWMBlocks.GALLIFREY_DIAMOND_ORE));
+                .add(key(DWMBlocks.GALLIFREY_DIAMOND_ORE))
+                .add(key(DWMBlocks.DALEKANIUM_ORE))
+                .add(key(DWMBlocks.DALEKANIUM_BLOCK))
+                .add(key(DWMBlocks.SILVER_DALEKANIUM_BLOCK))
+                .add(key(DWMBlocks.BRONZE_DALEKANIUM_BLOCK))
+                .add(key(DWMBlocks.STEEL_BLOCK))
+                .add(key(DWMBlocks.STEEL_GRILLE));
+        for (Block block : DWMBlocks.DALEKANIUM_ARCHITECTURE) {
+            pickaxe.add(key(block));
+        }
         for (Block block : DWMBlocks.PETRIFIED_FAMILY) {
             pickaxe.add(key(block));
         }
 
         builder(BlockTags.NEEDS_STONE_TOOL)
-                .add(key(DWMBlocks.GALLIFREY_IRON_ORE));
+                .add(key(DWMBlocks.GALLIFREY_IRON_ORE))
+                .add(key(DWMBlocks.DALEKANIUM_ORE));
 
         builder(BlockTags.NEEDS_IRON_TOOL)
                 .add(key(DWMBlocks.GALLIFREY_GOLD_ORE))
                 .add(key(DWMBlocks.GALLIFREY_DIAMOND_ORE))
-                .add(key(DWMBlocks.ZEITON_ORE));
+                .add(key(DWMBlocks.ZEITON_ORE))
+                .add(key(DWMBlocks.DALEKANIUM_BLOCK))
+                .add(key(DWMBlocks.SILVER_DALEKANIUM_BLOCK))
+                .add(key(DWMBlocks.BRONZE_DALEKANIUM_BLOCK))
+                .add(key(DWMBlocks.STEEL_BLOCK))
+                .add(key(DWMBlocks.STEEL_GRILLE));
+        for (Block block : DWMBlocks.DALEKANIUM_ARCHITECTURE) {
+            builder(BlockTags.NEEDS_IRON_TOOL).add(key(block));
+        }
 
         builder(BlockTags.NEEDS_DIAMOND_TOOL)
                 .add(key(DWMBlocks.AZBANTIUM_ORE))
@@ -185,6 +223,10 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 }
             }, family);
         }
+
+        builder(BlockTags.DOORS)
+                .add(key(DWMBlocks.SILVER_DALEKANIUM_DOOR))
+                .add(key(DWMBlocks.BRONZE_DALEKANIUM_DOOR));
     }
 
     private static net.minecraft.resources.ResourceKey<Block> key(Block block) {

@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "dwm:silver_dalekanium_riveted_wall",
+  "result": {
+    "id": "dwm:silver_dalekanium_damaged_wall"
+  }
+}

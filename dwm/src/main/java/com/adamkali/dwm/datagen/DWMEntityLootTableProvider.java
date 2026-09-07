@@ -1,6 +1,7 @@
 package com.adamkali.dwm.datagen;
 
 import com.adamkali.dwm.entity.DWMEntityTypes;
+import com.adamkali.dwm.item.DWMItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricEntityLootSubProvider;
 import net.minecraft.core.HolderLookup;
@@ -36,7 +37,19 @@ public class DWMEntityLootTableProvider extends FabricEntityLootSubProvider {
         );
         add(DWMEntityTypes.FLUTTERWING, LootTable.lootTable());
         add(DWMEntityTypes.TIME_LORD, LootTable.lootTable());
-        add(DWMEntityTypes.DALEK, LootTable.lootTable());
+        add(
+                DWMEntityTypes.DALEK,
+                LootTable.lootTable().withPool(
+                        LootPool.lootPool()
+                                .setRolls(ConstantValue.exactly(1.0F))
+                                .add(LootItem.lootTableItem(DWMItems.DALEKANIUM_INGOT)
+                                        .apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0F, 2.0F)))
+                                        .apply(EnchantedCountIncreaseFunction.lootingMultiplier(
+                                                this.registries,
+                                                UniformGenerator.between(0.0F, 1.0F)
+                                        )))
+                )
+        );
         add(
                 DWMEntityTypes.MEWING_DOG,
                 LootTable.lootTable().withPool(

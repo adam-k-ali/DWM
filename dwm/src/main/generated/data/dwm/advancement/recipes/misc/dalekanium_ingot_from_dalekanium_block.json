@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_dalekanium_block": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dwm:dalekanium_block"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "dwm:dalekanium_ingot_from_dalekanium_block"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_dalekanium_block"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "dwm:dalekanium_ingot_from_dalekanium_block"
+    ]
+  }
+}

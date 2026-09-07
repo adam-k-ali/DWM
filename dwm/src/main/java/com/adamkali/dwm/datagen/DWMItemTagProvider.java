@@ -34,6 +34,11 @@ public class DWMItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         copy(com.adamkali.dwm.block.DWMBlockTags.GALLIFREY_PLANTS, com.adamkali.dwm.item.DWMItemTags.GALLIFREY_PLANTS);
         copy(DWMBlockTags.AZBANTIUM_ORES, DWMItemTags.AZBANTIUM_ORES);
         copy(DWMBlockTags.ZEITON_ORES, DWMItemTags.ZEITON_ORES);
+        copy(DWMBlockTags.DALEKANIUM_ORES, DWMItemTags.DALEKANIUM_ORES);
+        copy(DWMBlockTags.DALEKANIUM_ARCHITECTURE, DWMItemTags.DALEKANIUM_ARCHITECTURE);
+        copy(DWMBlockTags.SILVER_DALEKANIUM_ARCHITECTURE, DWMItemTags.SILVER_DALEKANIUM_ARCHITECTURE);
+        copy(DWMBlockTags.BRONZE_DALEKANIUM_ARCHITECTURE, DWMItemTags.BRONZE_DALEKANIUM_ARCHITECTURE);
+        copy(DWMBlockTags.STEEL, DWMItemTags.STEEL);
         copy(DWMBlockTags.COAL_ORES, ItemTags.COAL_ORES);
         copy(BlockTags.IRON_ORES, ItemTags.IRON_ORES);
         copy(BlockTags.GOLD_ORES, ItemTags.GOLD_ORES);
@@ -43,6 +48,9 @@ public class DWMItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
 
         builder(DWMItemTags.REPAIRS_AZBANTIUM_EQUIPMENT)
                 .add(DWMItems.AZBANTIUM.builtInRegistryHolder().key());
+
+        builder(DWMItemTags.STEEL)
+                .add(DWMItems.STEEL_INGOT.builtInRegistryHolder().key());
 
         builder(ItemTags.SWORDS).add(DWMItems.AZBANTIUM_SWORD.builtInRegistryHolder().key());
         builder(ItemTags.SHOVELS).add(DWMItems.AZBANTIUM_SHOVEL.builtInRegistryHolder().key());
