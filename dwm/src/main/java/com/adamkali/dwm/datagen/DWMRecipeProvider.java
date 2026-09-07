@@ -123,6 +123,7 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 generateOrangeSandRecipes();
                 generatePetrifiedRecipes();
                 generateAzbantiumRecipes();
+                generateSteelRecipes();
                 generateZeitonRecipes();
                 generateCircuitRecipes();
                 generateGallifreyVanillaOreRecipes();
@@ -436,6 +437,55 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         .pattern("# #")
                         .pattern("# #")
                         .unlockedBy(getHasName(DWMItems.AZBANTIUM), has(DWMItems.AZBANTIUM))
+                        .save(output);
+            }
+
+            private void generateSteelRecipes() {
+                shapeless(RecipeCategory.MISC, DWMItems.STEEL_INGOT)
+                        .requires(Items.IRON_INGOT)
+                        .requires(Items.COAL)
+                        .unlockedBy(getHasName(Items.IRON_INGOT), has(Items.IRON_INGOT))
+                        .save(output);
+
+                shaped(RecipeCategory.COMBAT, DWMItems.STEEL_SWORD)
+                        .define('#', DWMItems.STEEL_INGOT)
+                        .define('S', Items.STICK)
+                        .pattern("#")
+                        .pattern("#")
+                        .pattern("S")
+                        .unlockedBy(getHasName(DWMItems.STEEL_INGOT), has(DWMItems.STEEL_INGOT))
+                        .save(output);
+                shaped(RecipeCategory.TOOLS, DWMItems.STEEL_SHOVEL)
+                        .define('#', DWMItems.STEEL_INGOT)
+                        .define('S', Items.STICK)
+                        .pattern("#")
+                        .pattern("S")
+                        .pattern("S")
+                        .unlockedBy(getHasName(DWMItems.STEEL_INGOT), has(DWMItems.STEEL_INGOT))
+                        .save(output);
+                shaped(RecipeCategory.TOOLS, DWMItems.STEEL_PICKAXE)
+                        .define('#', DWMItems.STEEL_INGOT)
+                        .define('S', Items.STICK)
+                        .pattern("###")
+                        .pattern(" S ")
+                        .pattern(" S ")
+                        .unlockedBy(getHasName(DWMItems.STEEL_INGOT), has(DWMItems.STEEL_INGOT))
+                        .save(output);
+                shaped(RecipeCategory.TOOLS, DWMItems.STEEL_AXE)
+                        .define('#', DWMItems.STEEL_INGOT)
+                        .define('S', Items.STICK)
+                        .pattern("##")
+                        .pattern("#S")
+                        .pattern(" S")
+                        .unlockedBy(getHasName(DWMItems.STEEL_INGOT), has(DWMItems.STEEL_INGOT))
+                        .save(output);
+                shaped(RecipeCategory.TOOLS, DWMItems.STEEL_HOE)
+                        .define('#', DWMItems.STEEL_INGOT)
+                        .define('S', Items.STICK)
+                        .pattern("##")
+                        .pattern(" S")
+                        .pattern(" S")
+                        .unlockedBy(getHasName(DWMItems.STEEL_INGOT), has(DWMItems.STEEL_INGOT))
                         .save(output);
             }
 

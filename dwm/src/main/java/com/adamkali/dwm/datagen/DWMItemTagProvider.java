@@ -43,12 +43,24 @@ public class DWMItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
 
         builder(DWMItemTags.REPAIRS_AZBANTIUM_EQUIPMENT)
                 .add(DWMItems.AZBANTIUM.builtInRegistryHolder().key());
+        builder(DWMItemTags.REPAIRS_STEEL_EQUIPMENT)
+                .add(DWMItems.STEEL_INGOT.builtInRegistryHolder().key());
 
-        builder(ItemTags.SWORDS).add(DWMItems.AZBANTIUM_SWORD.builtInRegistryHolder().key());
-        builder(ItemTags.SHOVELS).add(DWMItems.AZBANTIUM_SHOVEL.builtInRegistryHolder().key());
-        builder(ItemTags.PICKAXES).add(DWMItems.AZBANTIUM_PICKAXE.builtInRegistryHolder().key());
-        builder(ItemTags.AXES).add(DWMItems.AZBANTIUM_AXE.builtInRegistryHolder().key());
-        builder(ItemTags.HOES).add(DWMItems.AZBANTIUM_HOE.builtInRegistryHolder().key());
+        builder(ItemTags.SWORDS)
+                .add(DWMItems.AZBANTIUM_SWORD.builtInRegistryHolder().key())
+                .add(DWMItems.STEEL_SWORD.builtInRegistryHolder().key());
+        builder(ItemTags.SHOVELS)
+                .add(DWMItems.AZBANTIUM_SHOVEL.builtInRegistryHolder().key())
+                .add(DWMItems.STEEL_SHOVEL.builtInRegistryHolder().key());
+        builder(ItemTags.PICKAXES)
+                .add(DWMItems.AZBANTIUM_PICKAXE.builtInRegistryHolder().key())
+                .add(DWMItems.STEEL_PICKAXE.builtInRegistryHolder().key());
+        builder(ItemTags.AXES)
+                .add(DWMItems.AZBANTIUM_AXE.builtInRegistryHolder().key())
+                .add(DWMItems.STEEL_AXE.builtInRegistryHolder().key());
+        builder(ItemTags.HOES)
+                .add(DWMItems.AZBANTIUM_HOE.builtInRegistryHolder().key())
+                .add(DWMItems.STEEL_HOE.builtInRegistryHolder().key());
         builder(ItemTags.HEAD_ARMOR).add(DWMItems.AZBANTIUM_HELMET.builtInRegistryHolder().key());
         builder(ItemTags.CHEST_ARMOR).add(DWMItems.AZBANTIUM_CHESTPLATE.builtInRegistryHolder().key());
         builder(ItemTags.LEG_ARMOR).add(DWMItems.AZBANTIUM_LEGGINGS.builtInRegistryHolder().key());

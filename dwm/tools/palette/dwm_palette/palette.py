@@ -102,7 +102,7 @@ def save_palette_json(palette: dict[str, Any], path: Path) -> None:
 # Mineral-only item archetypes (no host / handle slot).
 MINERAL_ONLY_ARCHETYPES = frozenset({"gem", "crystal", "ingot"})
 # Tool archetypes: handle wood + mineral metal.
-TOOL_ARCHETYPES = frozenset({"pickaxe", "sword"})
+TOOL_ARCHETYPES = frozenset({"pickaxe", "sword", "shovel", "axe", "hoe"})
 
 
 def load_products(path: Path) -> list[dict[str, Any]]:
@@ -175,7 +175,7 @@ def load_products(path: Path) -> list[dict[str, Any]]:
         else:
             raise ValueError(
                 f"{path}: products[{i}].archetype {archetype!r} is unsupported "
-                "(expected ore, gem, crystal, ingot, pickaxe, or sword)"
+                "(expected ore, gem, crystal, ingot, pickaxe, sword, shovel, axe, or hoe)"
             )
         normalized.append(item)
     return normalized

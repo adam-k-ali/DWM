@@ -711,6 +711,12 @@
   "item.dwm.sonic_setting_shear": "Shear Setting",
   "item.dwm.sonic_third_doctor": "Sonic Screwdriver (Third Doctor)",
   "item.dwm.stattenheim_remote": "Stattenheim Remote",
+  "item.dwm.steel_axe": "Steel Axe",
+  "item.dwm.steel_hoe": "Steel Hoe",
+  "item.dwm.steel_ingot": "Steel Ingot",
+  "item.dwm.steel_pickaxe": "Steel Pickaxe",
+  "item.dwm.steel_shovel": "Steel Shovel",
+  "item.dwm.steel_sword": "Steel Sword",
   "item.dwm.stripped_ash_log": "Stripped Ash Log",
   "item.dwm.stripped_ash_wood": "Stripped Ash Wood",
   "item.dwm.stripped_cardinal_log": "Stripped Cardinal Log",
@@ -757,5 +763,6 @@
   "tag.item.dwm.azbantium_ores": "Azbantium Ores",
   "tag.item.dwm.gallifrey_plants": "Gallifrey Plants",
   "tag.item.dwm.repairs_azbantium_equipment": "Azbantium Equipment Repair Materials",
+  "tag.item.dwm.repairs_steel_equipment": "Steel Equipment Repair Materials",
   "tag.item.dwm.zeiton_ores": "Zeiton Ores"
 }

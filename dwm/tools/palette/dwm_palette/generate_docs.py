@@ -258,7 +258,7 @@ def _export_product(product_id: str, out_path: Path) -> None:
         Image.fromarray(out, mode="RGBA").save(out_path)
         return
 
-    if archetype in ("pickaxe", "sword"):
+    if archetype in ("pickaxe", "sword", "shovel", "axe", "hoe"):
         handle, metal = resolve_tool_product_palettes(product, palettes_dir)
         template = load_template_rgba(DWM_DIR, product["template"])
         handle_colours = vanilla_tool_handle_colours(DWM_DIR)

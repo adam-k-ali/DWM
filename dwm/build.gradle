@@ -283,6 +283,7 @@ tasks.register("pruneDatagenItemModels") {
                     || f.name.contains("moonlight_bloom")
                     || f.name.contains("saccharine_cane")
                     || f.name.contains("azbantium")
+                    || f.name.contains("steel")
                     || f.name.contains("zeiton")
                     || f.name.contains("ferrite")
                     || f.name.contains("stattenheim")

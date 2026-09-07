@@ -23,6 +23,10 @@ public class DWMItemTags {
             Registries.ITEM,
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "repairs_azbantium_equipment")
     );
+    public static final TagKey<Item> REPAIRS_STEEL_EQUIPMENT = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "repairs_steel_equipment")
+    );
 
     /** Vanilla still ships item tag JSON; ItemTags no longer exposes constants in 26.2. */
     public static final TagKey<Item> DOORS = TagKey.create(Registries.ITEM, Identifier.withDefaultNamespace("doors"));
