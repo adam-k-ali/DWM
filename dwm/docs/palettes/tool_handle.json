@@ -1,0 +1,8 @@
+{
+  "family_id": "tool_handle",
+  "display_name": "Tool Handle",
+  "map_color": "TERRACOTTA_BROWN",
+  "notes": "Oak-stick wood browns for tool handles. Seed matches the mid of vanilla stick.png; used as the handle slot on pickaxe and sword products.",
+  "seed": "#684E1E",
+  "profile": "stone"
+}

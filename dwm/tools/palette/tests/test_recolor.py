@@ -21,6 +21,7 @@ from dwm_palette.palette import (
     minecraft_client_jar,
     palette_hexes,
     vanilla_stone_host_colours,
+    vanilla_tool_handle_colours,
 )
 from dwm_palette.paths import find_dwm_root
 from dwm_palette.profiles import expand_ramp
@@ -28,12 +29,14 @@ from dwm_palette.recolor import (
     apply_mineral_item_palette,
     apply_host_palette,
     apply_ore_palettes,
+    apply_tool_item_palette,
     build_rank_colour_map,
     host_colour_set,
     load_rgb_image,
     parse_hex,
     rgb_to_hex,
     split_ore_colours,
+    split_tool_colours,
     unique_colours_by_luminance,
 )
 
@@ -43,6 +46,8 @@ TEXTURES = DWM / "src" / "client" / "resources" / "assets" / "dwm" / "textures" 
 GALLIFREY_JSON = PALETTES / "gallifrey_stone.json"
 ZEITON_JSON = PALETTES / "zeiton.json"
 AZBANTIUM_JSON = PALETTES / "azbantium.json"
+STEEL_JSON = PALETTES / "steel.json"
+TOOL_HANDLE_JSON = PALETTES / "tool_handle.json"
 PRODUCTS_JSON = PALETTES / "products.json"
 GALLIFREY_PNG = TEXTURES / "gallifrey_stone.png"
 COAL_ORE_PNG = TEXTURES / "gallifrey_coal_ore.png"
@@ -51,6 +56,8 @@ GALLIFREY_HEXES = ["#632715", "#75331B", "#853D20", "#9E5129"]
 COAL_VEIN_GREYS = ["#252525", "#2E2E2E", "#363636", "#393C36", "#494B3F"]
 EMERALD_TEMPLATE = "minecraft:block/emerald_ore.png"
 EMERALD_MINERAL_REF = ["#007B18", "#1C9829", "#17DD62", "#D9FFEB"]
+STICK_HANDLE_HEXES = ["#281E0B", "#493615", "#684E1E", "#896727"]
+STEEL_SEED = "#58616A"
 
 
 def _role_hex(palette: dict, role: str) -> str:
@@ -120,6 +127,26 @@ class PaletteSchemaTests(unittest.TestCase):
         self.assertEqual(_role_hex(palette, "mid"), "#CDEAE5")
         self.assertEqual(len(palette["roles"]), 4)
 
+    def test_steel_is_dark_silvery_mineral(self) -> None:
+        raw = json.loads(STEEL_JSON.read_text(encoding="utf-8"))
+        self.assertEqual(raw["seed"].upper(), STEEL_SEED)
+        self.assertEqual(raw["profile"], "mineral")
+        self.assertEqual(raw["map_color"], "COLOR_GRAY")
+        palette = load_palette(STEEL_JSON)
+        self.assertEqual(_role_hex(palette, "mid"), STEEL_SEED)
+        self.assertEqual(len(palette["roles"]), 4)
+        hexes = palette_hexes(palette)
+        lums = [rgb_to_oklab(parse_hex(h))[0] for h in hexes]
+        self.assertEqual(lums, sorted(lums))
+
+    def test_tool_handle_is_stone_wood(self) -> None:
+        raw = json.loads(TOOL_HANDLE_JSON.read_text(encoding="utf-8"))
+        self.assertEqual(raw["seed"].upper(), "#684E1E")
+        self.assertEqual(raw["profile"], "stone")
+        palette = load_palette(TOOL_HANDLE_JSON)
+        self.assertEqual(_role_hex(palette, "mid"), "#684E1E")
+        self.assertEqual(len(palette["roles"]), 4)
+
     def test_products_share_gallifrey_host_and_emerald_template(self) -> None:
         products = load_products(PRODUCTS_JSON)
         by_id = {p["id"]: p for p in products}
@@ -143,6 +170,28 @@ class PaletteSchemaTests(unittest.TestCase):
         self.assertEqual(by_id["zeiton_crystals"]["mineral"], "zeiton")
         self.assertNotIn("host", by_id["zeiton_crystals"])
 
+        self.assertIn("steel_ingot", by_id)
+        self.assertEqual(by_id["steel_ingot"]["archetype"], "ingot")
+        self.assertEqual(by_id["steel_ingot"]["template"], "minecraft:item/iron_ingot.png")
+        self.assertEqual(by_id["steel_ingot"]["mineral"], "steel")
+        self.assertNotIn("host", by_id["steel_ingot"])
+        self.assertNotIn("handle", by_id["steel_ingot"])
+
+        self.assertIn("steel_pickaxe", by_id)
+        self.assertEqual(by_id["steel_pickaxe"]["archetype"], "pickaxe")
+        self.assertEqual(
+            by_id["steel_pickaxe"]["template"], "minecraft:item/iron_pickaxe.png"
+        )
+        self.assertEqual(by_id["steel_pickaxe"]["handle"], "tool_handle")
+        self.assertEqual(by_id["steel_pickaxe"]["mineral"], "steel")
+        self.assertNotIn("host", by_id["steel_pickaxe"])
+
+        self.assertIn("steel_sword", by_id)
+        self.assertEqual(by_id["steel_sword"]["archetype"], "sword")
+        self.assertEqual(by_id["steel_sword"]["template"], "minecraft:item/iron_sword.png")
+        self.assertEqual(by_id["steel_sword"]["handle"], "tool_handle")
+        self.assertEqual(by_id["steel_sword"]["mineral"], "steel")
+        self.assertNotIn("host", by_id["steel_sword"])
 
 class ApplyHostPaletteTests(unittest.TestCase):
     def test_synthetic_greys_map_onto_four_host_hexes(self) -> None:
@@ -364,6 +413,106 @@ class ApplyMineralItemPaletteTests(unittest.TestCase):
         }
         self.assertTrue(gem_cols <= set(az_hexes))
         self.assertTrue(crystal_cols <= set(zt_hexes))
+
+
+class ApplyToolItemPaletteTests(unittest.TestCase):
+    def test_synthetic_tool_preserves_alpha_and_splits_channels(self) -> None:
+        handle_src = [(0x28, 0x1E, 0x0B), (0x68, 0x4E, 0x1E)]
+        metal_src = [(0x40, 0x40, 0x40), (0xC0, 0xC0, 0xC0)]
+        template = np.zeros((2, 2, 4), dtype=np.uint8)
+        template[0, 0] = [*handle_src[0], 255]
+        template[0, 1] = [*handle_src[1], 200]
+        template[1, 0] = [*metal_src[0], 255]
+        template[1, 1] = [*metal_src[1], 128]
+        handle_hexes = ["#281E0B", "#684E1E"]
+        metal_hexes = ["#13191E", "#58616A", "#949698"]
+        handle_colours = frozenset(handle_src)
+        out = apply_tool_item_palette(
+            template, handle_hexes, metal_hexes, handle_colours
+        )
+        self.assertEqual(out.shape, (2, 2, 4))
+        self.assertEqual(int(out[0, 0, 3]), 255)
+        self.assertEqual(int(out[0, 1, 3]), 200)
+        self.assertEqual(int(out[1, 0, 3]), 255)
+        self.assertEqual(int(out[1, 1, 3]), 128)
+        handle_out = {
+            rgb_to_hex(tuple(int(c) for c in out[0, x, :3])) for x in range(2)
+        }
+        metal_out = {
+            rgb_to_hex(tuple(int(c) for c in out[1, x, :3])) for x in range(2)
+        }
+        self.assertTrue(handle_out <= set(handle_hexes))
+        self.assertTrue(metal_out <= set(metal_hexes))
+        self.assertIn(metal_hexes[0], metal_out)
+        self.assertIn(metal_hexes[-1], metal_out)
+
+    @unittest.skipUnless(
+        (Path.home() / ".gradle/caches/fabric-loom").is_dir(),
+        "Fabric Loom cache not present",
+    )
+    def test_iron_tools_split_against_stick_and_remap_to_steel(self) -> None:
+        try:
+            handle_colours = vanilla_tool_handle_colours(DWM)
+            sword = load_template_rgba(DWM, "minecraft:item/iron_sword.png")
+            pickaxe = load_template_rgba(DWM, "minecraft:item/iron_pickaxe.png")
+            ingot = load_template_rgba(DWM, "minecraft:item/iron_ingot.png")
+        except FileNotFoundError:
+            self.skipTest("minecraft-client.jar not in Loom cache")
+
+        stick_hexes = {rgb_to_hex(c) for c in handle_colours}
+        self.assertEqual(stick_hexes, set(STICK_HANDLE_HEXES))
+
+        for name, tool in (("sword", sword), ("pickaxe", pickaxe)):
+            handle_src, metal_src = split_tool_colours(tool, handle_colours)
+            self.assertGreaterEqual(len(handle_src), 1, name)
+            self.assertGreaterEqual(len(metal_src), 1, name)
+            for c in handle_src:
+                self.assertIn(c, handle_colours, name)
+
+        handle_palette = load_palette(TOOL_HANDLE_JSON)
+        steel_palette = load_palette(STEEL_JSON)
+        handle_hexes = palette_hexes(handle_palette)
+        steel_hexes = palette_hexes(steel_palette)
+
+        for name, tool in (("sword", sword), ("pickaxe", pickaxe)):
+            out = apply_tool_item_palette(
+                tool, handle_hexes, steel_hexes, handle_colours
+            )
+            np.testing.assert_array_equal(out[:, :, 3], tool[:, :, 3], err_msg=name)
+            handle_src, metal_src = split_tool_colours(tool, handle_colours)
+            handle_set = set(handle_src)
+            metal_set = set(metal_src)
+            allowed = set(handle_hexes) | set(steel_hexes)
+            h, w, _ = tool.shape
+            for y in range(h):
+                for x in range(w):
+                    if out[y, x, 3] == 0:
+                        continue
+                    src_key = (
+                        int(tool[y, x, 0]),
+                        int(tool[y, x, 1]),
+                        int(tool[y, x, 2]),
+                    )
+                    out_hex = rgb_to_hex(tuple(int(c) for c in out[y, x, :3]))
+                    self.assertIn(out_hex, allowed, name)
+                    if src_key in handle_set:
+                        self.assertIn(out_hex, set(handle_hexes), name)
+                    else:
+                        self.assertIn(src_key, metal_set, name)
+                        self.assertIn(out_hex, set(steel_hexes), name)
+
+        steel_ingot = apply_mineral_item_palette(ingot, steel_hexes)
+        np.testing.assert_array_equal(steel_ingot[:, :, 3], ingot[:, :, 3])
+        ingot_cols = {
+            rgb_to_hex(tuple(int(c) for c in steel_ingot[y, x, :3]))
+            for y in range(steel_ingot.shape[0])
+            for x in range(steel_ingot.shape[1])
+            if steel_ingot[y, x, 3] > 0
+        }
+        self.assertTrue(ingot_cols <= set(steel_hexes))
+        self.assertIn(steel_hexes[0], ingot_cols)
+        self.assertIn(steel_hexes[-1], ingot_cols)
+
 
 if __name__ == "__main__":
     raise SystemExit(unittest.main())

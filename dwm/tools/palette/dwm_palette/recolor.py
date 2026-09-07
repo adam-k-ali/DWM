@@ -221,8 +221,9 @@ def apply_mineral_item_palette(
 ) -> np.ndarray:
     """Remap opaque item pixels onto mineral hexes; leave transparent pixels alone.
 
-    Used for gem and crystal item archetypes (no host split). Opaque colours are
-    rank-mapped onto the mineral ramp. Original alpha is preserved.
+    Used for gem, crystal, and ingot item archetypes (no host/handle split).
+    Opaque colours are rank-mapped onto the mineral ramp. Original alpha is
+    preserved.
 
     Returns a new HxWx4 uint8 array.
     """
@@ -240,6 +241,70 @@ def apply_mineral_item_palette(
     opaque_rgb = src[:, :, :3][opaque]
     colours = unique_colours_by_luminance(opaque_rgb.reshape(-1, 1, 3))
     colour_map = build_rank_colour_map(colours, mineral_hex_list)
+
+    out = src.copy()
+    h, w, _ = src.shape
+    for y in range(h):
+        for x in range(w):
+            if out[y, x, 3] == 0:
+                continue
+            key = (int(src[y, x, 0]), int(src[y, x, 1]), int(src[y, x, 2]))
+            mapped = colour_map[key]
+            out[y, x, 0] = mapped[0]
+            out[y, x, 1] = mapped[1]
+            out[y, x, 2] = mapped[2]
+            # alpha unchanged
+    return out
+
+
+def split_tool_colours(
+    tool_rgba: np.ndarray, handle_colours: frozenset[Rgb]
+) -> tuple[list[Rgb], list[Rgb]]:
+    """Split opaque tool colours into handle (in handle_colours) vs metal."""
+    if tool_rgba.ndim != 3 or tool_rgba.shape[2] != 4:
+        raise ValueError("tool_rgba must be HxWx4 array")
+    src = tool_rgba.astype(np.uint8, copy=False)
+    opaque = src[:, :, 3] > 0
+    if not np.any(opaque):
+        raise ValueError("tool template has no opaque pixels")
+    opaque_rgb = src[:, :, :3][opaque]
+    colours = unique_colours_by_luminance(opaque_rgb.reshape(-1, 1, 3))
+    handle = [c for c in colours if c in handle_colours]
+    metal = [c for c in colours if c not in handle_colours]
+    if not handle:
+        raise ValueError("tool template has no handle pixels matching stick colours")
+    if not metal:
+        raise ValueError("tool template has no metal pixels (all match stick colours)")
+    return handle, metal
+
+
+def apply_tool_item_palette(
+    template_rgba: np.ndarray,
+    handle_hex_list: list[str],
+    metal_hex_list: list[str],
+    handle_colours: frozenset[Rgb],
+) -> np.ndarray:
+    """Remap tool item: handle pixels → handle hexes, metal pixels → metal hexes.
+
+    Handle colours are classified against *handle_colours* (frozen stick template
+    uniques for vanilla iron tools). Metal colours use rank mapping onto the
+    metal/mineral ramp. Original alpha is preserved.
+
+    Returns a new HxWx4 uint8 array.
+    """
+    if template_rgba.ndim != 3 or template_rgba.shape[2] != 4:
+        raise ValueError("template_rgba must be HxWx4 array")
+    if not handle_hex_list:
+        raise ValueError("handle hex list is empty")
+    if not metal_hex_list:
+        raise ValueError("metal hex list is empty")
+    if not handle_colours:
+        raise ValueError("handle_colours must be a non-empty frozenset")
+
+    src = template_rgba.astype(np.uint8, copy=False)
+    handle_src, metal_src = split_tool_colours(src, handle_colours)
+    colour_map = build_host_colour_map(handle_src, handle_hex_list)
+    colour_map.update(build_rank_colour_map(metal_src, metal_hex_list))
 
     out = src.copy()
     h, w, _ = src.shape
