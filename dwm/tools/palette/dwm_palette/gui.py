@@ -1,6 +1,8 @@
-"""CustomTkinter GUI for editing palette seeds and previewing stone/ore/gem/crystal recolour.
+"""CustomTkinter GUI for editing palette seeds and previewing recolour modes.
 
 Offline tooling only — imported by generate_docs --gui.
+
+Modes: Stone, Ore, Gem, Crystal, Ingot, Pickaxe, Sword.
 """
 
 from __future__ import annotations
@@ -22,13 +24,18 @@ from dwm_palette.recolor import (
     apply_host_palette,
     apply_mineral_item_palette,
     apply_ore_palettes,
+    apply_tool_item_palette,
     load_palette,
     load_rgb_image,
 )
 
 PREVIEW_SCALE = 24  # 16×16 → 384×384
-PreviewMode = Literal["Stone", "Ore", "Gem", "Crystal"]
-ITEM_MODES = frozenset({"Gem", "Crystal"})
+PreviewMode = Literal[
+    "Stone", "Ore", "Gem", "Crystal", "Ingot", "Pickaxe", "Sword"
+]
+MINERAL_ONLY_MODES = frozenset({"Gem", "Crystal", "Ingot"})
+TOOL_MODES = frozenset({"Pickaxe", "Sword"})
+ALL_MODES = ("Stone", "Ore", "Gem", "Crystal", "Ingot", "Pickaxe", "Sword")
 
 
 class FamilyPaletteGui(ctk.CTk):
@@ -45,23 +52,36 @@ class FamilyPaletteGui(ctk.CTk):
         gem_template_label: str,
         crystal_rgba: Any,
         crystal_template_label: str,
+        ingot_rgba: Any,
+        ingot_template_label: str,
+        pickaxe_rgba: Any,
+        pickaxe_template_label: str,
+        sword_rgba: Any,
+        sword_template_label: str,
+        tool_handle_colours: frozenset[Rgb],
         item_save_dir: Path,
+        handle_palette_path: Path | None = None,
     ) -> None:
         super().__init__()
         self.title("Family palette recolour")
-        self.geometry("1000x600")
-        self.minsize(860, 520)
+        self.geometry("1100x620")
+        self.minsize(920, 540)
 
         ctk.set_appearance_mode("System")
         ctk.set_default_color_theme("blue")
 
         self._host_path = host_palette_path
+        self._stone_host_path = host_palette_path
+        self._handle_path = handle_palette_path
         self._mineral_path = mineral_palette_path
         self._stone_template_path = stone_template_path
         self._ore_template_label = ore_template_label
         self._ore_save_dir = ore_save_dir
         self._gem_template_label = gem_template_label
         self._crystal_template_label = crystal_template_label
+        self._ingot_template_label = ingot_template_label
+        self._pickaxe_template_label = pickaxe_template_label
+        self._sword_template_label = sword_template_label
         self._item_save_dir = item_save_dir
 
         self._stone_rgb = load_rgb_image(stone_template_path)
@@ -69,6 +89,10 @@ class FamilyPaletteGui(ctk.CTk):
         self._ore_host_colours = ore_host_colours
         self._gem_rgba = gem_rgba
         self._crystal_rgba = crystal_rgba
+        self._ingot_rgba = ingot_rgba
+        self._pickaxe_rgba = pickaxe_rgba
+        self._sword_rgba = sword_rgba
+        self._tool_handle_colours = tool_handle_colours
         self._host: dict[str, Any] = load_palette(host_palette_path)
         self._mineral: dict[str, Any] = load_palette(mineral_palette_path)
 
@@ -87,7 +111,7 @@ class FamilyPaletteGui(ctk.CTk):
 
     def _build_layout(self) -> None:
         self.grid_columnconfigure(0, weight=1, minsize=360)
-        self.grid_columnconfigure(1, weight=1, minsize=420)
+        self.grid_columnconfigure(1, weight=1, minsize=480)
         self.grid_rowconfigure(0, weight=1)
 
         left = ctk.CTkFrame(self)
@@ -121,12 +145,14 @@ class FamilyPaletteGui(ctk.CTk):
         host_btns.grid(row=3, column=0, sticky="ew", padx=12, pady=(8, 4))
         host_btns.grid_columnconfigure(0, weight=1)
         host_btns.grid_columnconfigure(1, weight=1)
-        ctk.CTkButton(host_btns, text="Load host…", command=self._on_load_host).grid(
-            row=0, column=0, sticky="ew", padx=(0, 4)
+        self._load_host_btn = ctk.CTkButton(
+            host_btns, text="Load host…", command=self._on_load_host
         )
-        ctk.CTkButton(host_btns, text="Save host JSON…", command=self._on_save_host).grid(
-            row=0, column=1, sticky="ew", padx=(4, 0)
+        self._load_host_btn.grid(row=0, column=0, sticky="ew", padx=(0, 4))
+        self._save_host_btn = ctk.CTkButton(
+            host_btns, text="Save host JSON…", command=self._on_save_host
         )
+        self._save_host_btn.grid(row=0, column=1, sticky="ew", padx=(4, 0))
 
         self._mineral_section = ctk.CTkFrame(left, fg_color="transparent")
         self._mineral_section.grid(row=4, column=0, sticky="nsew", padx=0, pady=0)
@@ -160,12 +186,14 @@ class FamilyPaletteGui(ctk.CTk):
         mineral_btns.grid(row=2, column=0, sticky="ew", padx=12, pady=(4, 12))
         mineral_btns.grid_columnconfigure(0, weight=1)
         mineral_btns.grid_columnconfigure(1, weight=1)
-        ctk.CTkButton(
+        self._load_mineral_btn = ctk.CTkButton(
             mineral_btns, text="Load mineral…", command=self._on_load_mineral
-        ).grid(row=0, column=0, sticky="ew", padx=(0, 4))
-        ctk.CTkButton(
+        )
+        self._load_mineral_btn.grid(row=0, column=0, sticky="ew", padx=(0, 4))
+        self._save_mineral_btn = ctk.CTkButton(
             mineral_btns, text="Save mineral JSON…", command=self._on_save_mineral
-        ).grid(row=0, column=1, sticky="ew", padx=(4, 0))
+        )
+        self._save_mineral_btn.grid(row=0, column=1, sticky="ew", padx=(4, 0))
 
         right = ctk.CTkFrame(self)
         right.grid(row=0, column=1, sticky="nsew", padx=(6, 12), pady=12)
@@ -175,7 +203,7 @@ class FamilyPaletteGui(ctk.CTk):
         self._mode_var = ctk.StringVar(value="Stone")
         self._mode_seg = ctk.CTkSegmentedButton(
             right,
-            values=["Stone", "Ore", "Gem", "Crystal"],
+            values=list(ALL_MODES),
             variable=self._mode_var,
             command=self._on_mode_changed,
         )
@@ -211,23 +239,87 @@ class FamilyPaletteGui(ctk.CTk):
             self._host_section.grid()
             self._mineral_section.grid_remove()
             self._preview_title.configure(text="Stone preview")
+            self._set_host_slot_labels(handle=False)
+            self._set_mineral_slot_labels(metal=False)
         elif self._mode == "Ore":
             self._host_section.grid()
             self._mineral_section.grid()
             self._preview_title.configure(text="Ore preview")
+            self._set_host_slot_labels(handle=False)
+            self._set_mineral_slot_labels(metal=False)
+        elif self._mode in TOOL_MODES:
+            self._host_section.grid()
+            self._mineral_section.grid()
+            self._preview_title.configure(text=f"{self._mode} preview")
+            self._set_host_slot_labels(handle=True)
+            self._set_mineral_slot_labels(metal=True)
         else:
-            # Gem / Crystal — mineral only
+            # Gem / Crystal / Ingot — mineral only
             self._host_section.grid_remove()
             self._mineral_section.grid()
             self._preview_title.configure(text=f"{self._mode} preview")
+            self._set_mineral_slot_labels(metal=False)
+
+    def _set_host_slot_labels(self, *, handle: bool) -> None:
+        if handle:
+            self._host_frame.configure(label_text="Handle palette (mid + derived)")
+            self._load_host_btn.configure(text="Load handle…")
+            self._save_host_btn.configure(text="Save handle JSON…")
+        else:
+            self._host_frame.configure(label_text="Host palette (mid + derived)")
+            self._load_host_btn.configure(text="Load host…")
+            self._save_host_btn.configure(text="Save host JSON…")
+
+    def _set_mineral_slot_labels(self, *, metal: bool) -> None:
+        if metal:
+            self._mineral_frame.configure(label_text="Metal palette (mid + derived)")
+            self._load_mineral_btn.configure(text="Load metal…")
+            self._save_mineral_btn.configure(text="Save metal JSON…")
+        else:
+            self._mineral_frame.configure(label_text="Mineral palette (mid + derived)")
+            self._load_mineral_btn.configure(text="Load mineral…")
+            self._save_mineral_btn.configure(text="Save mineral JSON…")
 
     def _on_mode_changed(self, value: str) -> None:
-        if value in ("Stone", "Ore", "Gem", "Crystal"):
+        prev = self._mode
+        if value in ALL_MODES:
             self._mode = value  # type: ignore[assignment]
         else:
             self._mode = "Stone"
+        self._sync_slots_for_mode(prev)
         self._apply_mode_visibility()
         self._refresh_preview()
+
+    def _sync_slots_for_mode(self, prev: PreviewMode) -> None:
+        """Swap host↔handle (and remember paths) when entering/leaving tool modes."""
+        entering_tool = self._mode in TOOL_MODES and prev not in TOOL_MODES
+        leaving_tool = prev in TOOL_MODES and self._mode not in TOOL_MODES
+        if entering_tool:
+            # Remember stone/ore host; load handle palette if available.
+            self._stone_host_path = self._host_path
+            if self._handle_path is not None and self._handle_path.is_file():
+                try:
+                    palette = load_palette(self._handle_path)
+                    palette_hexes(palette)
+                except (OSError, ValueError, json.JSONDecodeError):
+                    pass
+                else:
+                    self._host_path = self._handle_path
+                    self._host = palette
+                    self._reload_host_ui()
+        elif leaving_tool:
+            # Remember handle path from the slot; restore stone/ore host.
+            self._handle_path = self._host_path
+            if self._stone_host_path.is_file() and self._stone_host_path != self._host_path:
+                try:
+                    palette = load_palette(self._stone_host_path)
+                    palette_hexes(palette)
+                except (OSError, ValueError, json.JSONDecodeError):
+                    pass
+                else:
+                    self._host_path = self._stone_host_path
+                    self._host = palette
+                    self._reload_host_ui()
 
     def _reexpand(self, palette: dict[str, Any], seed: str) -> bool:
         if not HEX_RE.match(seed):
@@ -367,25 +459,23 @@ class FamilyPaletteGui(ctk.CTk):
 
     def _on_host_seed_changed(self) -> None:
         value = self._host_seed_var.get().strip()
-        if not self._reexpand(self._host, value):
-            return
-        self._refresh_derived_swatches(
-            self._host_frame, self._host, self._host_step_labels
-        )
-        self._refresh_preview()
+        if self._reexpand(self._host, value):
+            self._refresh_derived_swatches(
+                self._host_frame, self._host, self._host_step_labels
+            )
+            self._refresh_preview()
 
     def _on_mineral_seed_changed(self) -> None:
         value = self._mineral_seed_var.get().strip()
-        if not self._reexpand(self._mineral, value):
-            return
-        self._refresh_derived_swatches(
-            self._mineral_frame, self._mineral, self._mineral_step_labels
-        )
-        self._refresh_preview()
+        if self._reexpand(self._mineral, value):
+            self._refresh_derived_swatches(
+                self._mineral_frame, self._mineral, self._mineral_step_labels
+            )
+            self._refresh_preview()
 
     def _on_pick_host_mid(self) -> None:
         picked = colorchooser.askcolor(
-            color=self._host["seed"], title=f"Pick mid for {self._host['display_name']}"
+            color=self._host["seed"], title="Pick host/handle mid colour"
         )
         if not picked or not picked[1]:
             return
@@ -393,16 +483,16 @@ class FamilyPaletteGui(ctk.CTk):
 
     def _on_pick_mineral_mid(self) -> None:
         picked = colorchooser.askcolor(
-            color=self._mineral["seed"],
-            title=f"Pick mid for {self._mineral['display_name']}",
+            color=self._mineral["seed"], title="Pick mineral/metal mid colour"
         )
         if not picked or not picked[1]:
             return
         self._mineral_seed_var.set(picked[1].upper())
 
     def _on_load_host(self) -> None:
+        slot = "handle" if self._mode in TOOL_MODES else "host"
         path_str = filedialog.askopenfilename(
-            title="Load host palette JSON",
+            title=f"Load {slot} palette JSON",
             filetypes=[("Palette JSON", "*.json"), ("All files", "*.*")],
             initialdir=str(self._host_path.parent),
         )
@@ -413,7 +503,7 @@ class FamilyPaletteGui(ctk.CTk):
             palette = load_palette(path)
             palette_hexes(palette)
         except (OSError, ValueError, json.JSONDecodeError) as exc:
-            messagebox.showerror("Load host palette failed", str(exc))
+            messagebox.showerror(f"Load {slot} palette failed", str(exc))
             return
         self._host_path = path
         self._host = palette
@@ -421,8 +511,9 @@ class FamilyPaletteGui(ctk.CTk):
         self._refresh_preview()
 
     def _on_load_mineral(self) -> None:
+        slot = "metal" if self._mode in TOOL_MODES else "mineral"
         path_str = filedialog.askopenfilename(
-            title="Load mineral palette JSON",
+            title=f"Load {slot} palette JSON",
             filetypes=[("Palette JSON", "*.json"), ("All files", "*.*")],
             initialdir=str(self._mineral_path.parent),
         )
@@ -433,7 +524,7 @@ class FamilyPaletteGui(ctk.CTk):
             palette = load_palette(path)
             palette_hexes(palette)
         except (OSError, ValueError, json.JSONDecodeError) as exc:
-            messagebox.showerror("Load mineral palette failed", str(exc))
+            messagebox.showerror(f"Load {slot} palette failed", str(exc))
             return
         self._mineral_path = path
         self._mineral = palette
@@ -441,11 +532,12 @@ class FamilyPaletteGui(ctk.CTk):
         self._refresh_preview()
 
     def _on_save_host(self) -> None:
+        slot = "handle" if self._mode in TOOL_MODES else "host"
         if not self._reexpand(self._host, self._host_seed_var.get().strip()):
-            messagebox.showerror("Save failed", "Host mid hex is invalid.")
+            messagebox.showerror("Save failed", f"{slot.capitalize()} mid hex is invalid.")
             return
         path_str = filedialog.asksaveasfilename(
-            title="Save host palette JSON",
+            title=f"Save {slot} palette JSON",
             defaultextension=".json",
             filetypes=[("Palette JSON", "*.json"), ("All files", "*.*")],
             initialdir=str(self._host_path.parent),
@@ -463,11 +555,12 @@ class FamilyPaletteGui(ctk.CTk):
         messagebox.showinfo("Saved", f"Wrote {path}")
 
     def _on_save_mineral(self) -> None:
+        slot = "metal" if self._mode in TOOL_MODES else "mineral"
         if not self._reexpand(self._mineral, self._mineral_seed_var.get().strip()):
-            messagebox.showerror("Save failed", "Mineral mid hex is invalid.")
+            messagebox.showerror("Save failed", f"{slot.capitalize()} mid hex is invalid.")
             return
         path_str = filedialog.asksaveasfilename(
-            title="Save mineral palette JSON",
+            title=f"Save {slot} palette JSON",
             defaultextension=".json",
             filetypes=[("Palette JSON", "*.json"), ("All files", "*.*")],
             initialdir=str(self._mineral_path.parent),
@@ -483,6 +576,19 @@ class FamilyPaletteGui(ctk.CTk):
             return
         self._mineral_path = path
         messagebox.showinfo("Saved", f"Wrote {path}")
+
+    def _item_template_for_mode(self) -> tuple[Any, str]:
+        if self._mode == "Gem":
+            return self._gem_rgba, self._gem_template_label
+        if self._mode == "Crystal":
+            return self._crystal_rgba, self._crystal_template_label
+        if self._mode == "Ingot":
+            return self._ingot_rgba, self._ingot_template_label
+        if self._mode == "Pickaxe":
+            return self._pickaxe_rgba, self._pickaxe_template_label
+        if self._mode == "Sword":
+            return self._sword_rgba, self._sword_template_label
+        raise ValueError(f"not an item mode: {self._mode}")
 
     def _compute_preview_rgb(self):
         if self._mode == "Stone":
@@ -504,7 +610,18 @@ class FamilyPaletteGui(ctk.CTk):
                 self._ore_host_colours,
             )
 
-        template = self._gem_rgba if self._mode == "Gem" else self._crystal_rgba
+        if self._mode in TOOL_MODES:
+            if not self._reexpand(self._host, self._host_seed_var.get().strip()):
+                return None
+            template, _label = self._item_template_for_mode()
+            return apply_tool_item_palette(
+                template,
+                palette_hexes(self._host),
+                mineral_hexes,
+                self._tool_handle_colours,
+            )
+
+        template, _label = self._item_template_for_mode()
         return apply_mineral_item_palette(template, mineral_hexes)
 
     def _refresh_preview(self) -> None:
@@ -538,12 +655,17 @@ class FamilyPaletteGui(ctk.CTk):
                     f"mineral: {self._mineral_path.name}"
                 )
             )
-        else:
-            label = (
-                self._gem_template_label
-                if self._mode == "Gem"
-                else self._crystal_template_label
+        elif self._mode in TOOL_MODES:
+            _template, label = self._item_template_for_mode()
+            self._preview_meta.configure(
+                text=(
+                    f"{self._mode} template: {label}  ·  "
+                    f"handle: {self._host_path.name}  ·  "
+                    f"metal: {self._mineral_path.name}"
+                )
             )
+        else:
+            _template, label = self._item_template_for_mode()
             self._preview_meta.configure(
                 text=(
                     f"{self._mode} template: {label}  ·  "
@@ -556,17 +678,24 @@ class FamilyPaletteGui(ctk.CTk):
         if remapped is None:
             messagebox.showerror(
                 "Save PNG failed",
-                "Cannot save: host or mineral mid hex is incomplete/invalid.",
+                "Cannot save: host/handle or mineral/metal mid hex is incomplete/invalid.",
             )
             return
 
         if self._mode == "Ore":
             suggested = f"{self._mineral['family_id']}_ore.png"
             initial_dir = str(self._ore_save_dir)
-        elif self._mode in ITEM_MODES:
-            suggested = f"{self._mineral['family_id']}.png"
+        elif self._mode in MINERAL_ONLY_MODES | TOOL_MODES:
             if self._mode == "Crystal":
                 suggested = f"{self._mineral['family_id']}_crystals.png"
+            elif self._mode == "Ingot":
+                suggested = f"{self._mineral['family_id']}_ingot.png"
+            elif self._mode == "Pickaxe":
+                suggested = f"{self._mineral['family_id']}_pickaxe.png"
+            elif self._mode == "Sword":
+                suggested = f"{self._mineral['family_id']}_sword.png"
+            else:
+                suggested = f"{self._mineral['family_id']}.png"
             initial_dir = str(self._item_save_dir)
         else:
             suggested = f"{self._host['family_id']}.png"
@@ -591,7 +720,6 @@ class FamilyPaletteGui(ctk.CTk):
         messagebox.showinfo("Saved", f"Wrote {path}")
 
 
-
 def run_gui(
     palette_path: Path,
     template_path: Path,
@@ -604,7 +732,15 @@ def run_gui(
     gem_template_label: str,
     crystal_rgba: Any,
     crystal_template_label: str,
+    ingot_rgba: Any,
+    ingot_template_label: str,
+    pickaxe_rgba: Any,
+    pickaxe_template_label: str,
+    sword_rgba: Any,
+    sword_template_label: str,
+    tool_handle_colours: frozenset[Rgb],
     item_save_dir: Path,
+    handle_palette_path: Path | None = None,
 ) -> None:
     if not palette_path.is_file():
         raise FileNotFoundError(f"host palette not found: {palette_path}")
@@ -620,6 +756,14 @@ def run_gui(
         raise ValueError("gem_rgba is required")
     if crystal_rgba is None:
         raise ValueError("crystal_rgba is required")
+    if ingot_rgba is None:
+        raise ValueError("ingot_rgba is required")
+    if pickaxe_rgba is None:
+        raise ValueError("pickaxe_rgba is required")
+    if sword_rgba is None:
+        raise ValueError("sword_rgba is required")
+    if not tool_handle_colours:
+        raise ValueError("tool_handle_colours must be a non-empty frozenset")
 
     load_palette(palette_path)
     load_rgb_image(template_path)
@@ -637,6 +781,14 @@ def run_gui(
         gem_template_label=gem_template_label,
         crystal_rgba=crystal_rgba,
         crystal_template_label=crystal_template_label,
+        ingot_rgba=ingot_rgba,
+        ingot_template_label=ingot_template_label,
+        pickaxe_rgba=pickaxe_rgba,
+        pickaxe_template_label=pickaxe_template_label,
+        sword_rgba=sword_rgba,
+        sword_template_label=sword_template_label,
+        tool_handle_colours=tool_handle_colours,
         item_save_dir=item_save_dir,
+        handle_palette_path=handle_palette_path,
     )
     app.mainloop()

@@ -99,11 +99,18 @@ def save_palette_json(palette: dict[str, Any], path: Path) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+# Mineral-only item archetypes (no host / handle slot).
+MINERAL_ONLY_ARCHETYPES = frozenset({"gem", "crystal", "ingot"})
+# Tool archetypes: handle wood + mineral metal.
+TOOL_ARCHETYPES = frozenset({"pickaxe", "sword"})
+
+
 def load_products(path: Path) -> list[dict[str, Any]]:
     """Load products.json and return the products list.
 
-    Ore products require ``host`` + ``mineral``. Gem and crystal products require
-    ``mineral`` only (no host).
+    Ore products require ``host`` + ``mineral``. Gem, crystal, and ingot products
+    require ``mineral`` only (no host/handle). Pickaxe and sword products require
+    ``handle`` + ``mineral`` (no host).
     """
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
@@ -119,6 +126,7 @@ def load_products(path: Path) -> list[dict[str, Any]]:
         archetype = entry.get("archetype")
         template = entry.get("template")
         host = entry.get("host")
+        handle = entry.get("handle")
         mineral = entry.get("mineral")
         if not isinstance(pid, str) or not pid:
             raise ValueError(f"{path}: products[{i}].id must be a non-empty string")
@@ -135,17 +143,40 @@ def load_products(path: Path) -> list[dict[str, Any]]:
             "template": template,
             "mineral": mineral,
         }
-        if archetype in ("gem", "crystal"):
+        if archetype in MINERAL_ONLY_ARCHETYPES:
             if host is not None:
                 raise ValueError(
                     f"{path}: products[{i}] archetype {archetype!r} must not set host"
                 )
-        else:
+            if handle is not None:
+                raise ValueError(
+                    f"{path}: products[{i}] archetype {archetype!r} must not set handle"
+                )
+        elif archetype in TOOL_ARCHETYPES:
+            if host is not None:
+                raise ValueError(
+                    f"{path}: products[{i}] archetype {archetype!r} must not set host"
+                )
+            if not isinstance(handle, str) or not handle:
+                raise ValueError(
+                    f"{path}: products[{i}].handle must be a non-empty string"
+                )
+            item["handle"] = handle
+        elif archetype == "ore":
+            if handle is not None:
+                raise ValueError(
+                    f"{path}: products[{i}] archetype {archetype!r} must not set handle"
+                )
             if not isinstance(host, str) or not host:
                 raise ValueError(
                     f"{path}: products[{i}].host must be a non-empty string"
                 )
             item["host"] = host
+        else:
+            raise ValueError(
+                f"{path}: products[{i}].archetype {archetype!r} is unsupported "
+                "(expected ore, gem, crystal, ingot, pickaxe, or sword)"
+            )
         normalized.append(item)
     return normalized
 
@@ -160,7 +191,7 @@ def find_product(products: list[dict[str, Any]], product_id: str) -> dict[str, A
 def resolve_product_palettes(
     product: dict[str, Any], palettes_dir: Path
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Load host and mineral palettes for a product from *palettes_dir*."""
+    """Load host and mineral palettes for an ore product from *palettes_dir*."""
     host_path = palettes_dir / f"{product['host']}.json"
     mineral_path = palettes_dir / f"{product['mineral']}.json"
     if not host_path.is_file():
@@ -168,6 +199,19 @@ def resolve_product_palettes(
     if not mineral_path.is_file():
         raise FileNotFoundError(f"mineral palette not found: {mineral_path}")
     return load_palette(host_path), load_palette(mineral_path)
+
+
+def resolve_tool_product_palettes(
+    product: dict[str, Any], palettes_dir: Path
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Load handle and mineral (metal) palettes for a tool product."""
+    handle_path = palettes_dir / f"{product['handle']}.json"
+    mineral_path = palettes_dir / f"{product['mineral']}.json"
+    if not handle_path.is_file():
+        raise FileNotFoundError(f"handle palette not found: {handle_path}")
+    if not mineral_path.is_file():
+        raise FileNotFoundError(f"mineral palette not found: {mineral_path}")
+    return load_palette(handle_path), load_palette(mineral_path)
 
 
 def read_minecraft_version(dwm_root: Path) -> str:
@@ -316,6 +360,18 @@ def vanilla_stone_host_colours(dwm_root: Path) -> frozenset[tuple[int, int, int]
     return host_colour_set(stone)
 
 
+def vanilla_tool_handle_colours(dwm_root: Path) -> frozenset[tuple[int, int, int]]:
+    """Unique opaque RGB triples from vanilla ``stick.png`` (tool handle classifier)."""
+    from dwm_palette.recolor import unique_colours_by_luminance
+
+    stick = load_minecraft_rgba(dwm_root, "minecraft:item/stick.png")
+    opaque = stick[:, :, 3] > 0
+    if not np.any(opaque):
+        raise ValueError("stick.png has no opaque pixels")
+    opaque_rgb = stick[:, :, :3][opaque]
+    return frozenset(unique_colours_by_luminance(opaque_rgb.reshape(-1, 1, 3)))
+
+
 def default_ore_template_from_products(
     dwm_root: Path, product_id: str = "azbantium_ore"
 ) -> str:
@@ -328,12 +384,13 @@ def default_ore_template_from_products(
 def default_item_template_from_products(
     dwm_root: Path, product_id: str
 ) -> str:
-    """Return a gem/crystal template id from products.json."""
+    """Return an item template id from products.json (gem/crystal/ingot/tool)."""
     products = load_products(dwm_root / "docs" / "palettes" / "products.json")
     product = find_product(products, product_id)
-    if product["archetype"] not in ("gem", "crystal"):
+    allowed = MINERAL_ONLY_ARCHETYPES | TOOL_ARCHETYPES
+    if product["archetype"] not in allowed:
         raise ValueError(
             f"product {product_id!r} archetype is {product['archetype']!r}, "
-            "expected gem or crystal"
+            f"expected one of {sorted(allowed)}"
         )
     return product["template"]

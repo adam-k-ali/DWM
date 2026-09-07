@@ -106,7 +106,7 @@ nudge motif while keeping silhouette and value structure.
 
 **Don’t:** Symmetric centered icons; merging handle into head colour; thick AA outlines.
 
-**Recolor:** Brown/grey handle pixels → `handle_*`; accent head → `metal_*` (often same as `vein_*` / `gem_*`).
+**Recolor:** Brown/grey handle pixels → `handle_*`; accent head → `metal_*` (often same as `vein_*` / `gem_*`). The palette tool automates this via `products.json` archetype `pickaxe` (vanilla iron pickaxe + `stick.png` handle classifier).
 
 ---
 
@@ -115,7 +115,7 @@ nudge motif while keeping silhouette and value structure.
 | | |
 |--|--|
 | **Template** | [templates/tool_sword.png](templates/tool_sword.png) |
-| **Vanilla study** | `textures/item/diamond_sword.png` |
+| **Vanilla study** | `textures/item/diamond_sword.png` (study) / `iron_sword.png` (palette product template) |
 | **Size / alpha** | 16×16, transparent outside silhouette |
 | **Palette roles** | `handle_*` + `metal_*` (blade) |
 
@@ -123,4 +123,21 @@ nudge motif while keeping silhouette and value structure.
 
 **Don’t:** Soft glow blade; oversized guard; opaque canvas.
 
-**Recolor:** Handle → `handle_*`; blade/guard accent → `metal_*`.
+**Recolor:** Handle → `handle_*`; blade/guard accent → `metal_*`. The palette tool automates this via `products.json` archetype `sword`.
+
+---
+
+## Ingot item
+
+| | |
+|--|--|
+| **Template** | (palette product) `minecraft:item/iron_ingot.png` |
+| **Vanilla study** | `textures/item/iron_ingot.png`, `gold_ingot.png` |
+| **Size / alpha** | 16×16, transparent outside silhouette |
+| **Palette roles** | `metal_shadow`, `metal_dark`, `metal_mid`, `metal_hi` (mineral ramp) |
+
+**Do:** Bar silhouette; strong value steps; shared family hue with tool heads.
+
+**Don’t:** Soft airbrush; opaque full-canvas square.
+
+**Recolor:** Opaque greys → mineral/metal ramp (same remapper as gem/crystal). See `steel_ingot` in `products.json`.

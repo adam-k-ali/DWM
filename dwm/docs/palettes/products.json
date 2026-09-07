@@ -25,6 +25,26 @@
       "archetype": "crystal",
       "template": "minecraft:item/quartz.png",
       "mineral": "zeiton"
+    },
+    {
+      "id": "steel_ingot",
+      "archetype": "ingot",
+      "template": "minecraft:item/iron_ingot.png",
+      "mineral": "steel"
+    },
+    {
+      "id": "steel_pickaxe",
+      "archetype": "pickaxe",
+      "template": "minecraft:item/iron_pickaxe.png",
+      "handle": "tool_handle",
+      "mineral": "steel"
+    },
+    {
+      "id": "steel_sword",
+      "archetype": "sword",
+      "template": "minecraft:item/iron_sword.png",
+      "handle": "tool_handle",
+      "mineral": "steel"
     }
   ]
 }

@@ -34,7 +34,9 @@ from dwm_palette.palette import (
     load_template_rgba,
     load_template_rgb,
     palette_hexes,
+    resolve_tool_product_palettes,
     vanilla_stone_host_colours,
+    vanilla_tool_handle_colours,
 )
 from dwm_palette.paths import find_dwm_root
 from dwm_palette.recolor import host_colour_set, load_palette, load_rgb_image, luminance, parse_hex
@@ -42,6 +44,7 @@ from dwm_palette.recolor import host_colour_set, load_palette, load_rgb_image, l
 DWM_DIR = find_dwm_root()
 DEFAULT_PALETTE = DWM_DIR / "docs" / "palettes" / "gallifrey_stone.json"
 DEFAULT_MINERAL_PALETTE = DWM_DIR / "docs" / "palettes" / "azbantium.json"
+DEFAULT_HANDLE_PALETTE = DWM_DIR / "docs" / "palettes" / "tool_handle.json"
 DEFAULT_TEMPLATE = (
     DWM_DIR
     / "src"
@@ -218,7 +221,7 @@ def _resolve_item_template(
     product_id: str,
     override: Path | None,
 ) -> tuple[Any, str]:
-    """Load gem/crystal RGBA template (products.json default or filesystem override)."""
+    """Load item RGBA template (products.json default or filesystem override)."""
     if override is not None:
         path = override.resolve()
         if not path.is_file():
@@ -234,7 +237,11 @@ def _resolve_item_template(
 
 def _export_product(product_id: str, out_path: Path) -> None:
     """Headless export of a product texture to *out_path*."""
-    from dwm_palette.recolor import apply_mineral_item_palette, apply_ore_palettes
+    from dwm_palette.recolor import (
+        apply_mineral_item_palette,
+        apply_ore_palettes,
+        apply_tool_item_palette,
+    )
 
     products = load_products(DWM_DIR / "docs" / "palettes" / "products.json")
     product = find_product(products, product_id)
@@ -242,10 +249,25 @@ def _export_product(product_id: str, out_path: Path) -> None:
     archetype = product["archetype"]
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    if archetype in ("gem", "crystal"):
+    if archetype in ("gem", "crystal", "ingot"):
         mineral = load_palette(palettes_dir / f"{product['mineral']}.json")
         template = load_template_rgba(DWM_DIR, product["template"])
         out = apply_mineral_item_palette(template, palette_hexes(mineral))
+        from PIL import Image
+
+        Image.fromarray(out, mode="RGBA").save(out_path)
+        return
+
+    if archetype in ("pickaxe", "sword"):
+        handle, metal = resolve_tool_product_palettes(product, palettes_dir)
+        template = load_template_rgba(DWM_DIR, product["template"])
+        handle_colours = vanilla_tool_handle_colours(DWM_DIR)
+        out = apply_tool_item_palette(
+            template,
+            palette_hexes(handle),
+            palette_hexes(metal),
+            handle_colours,
+        )
         from PIL import Image
 
         Image.fromarray(out, mode="RGBA").save(out_path)
@@ -326,6 +348,29 @@ def main(argv: list[str] | None = None) -> int:
         "(default: from products.json → minecraft:item/quartz.png via Loom jar).",
     )
     parser.add_argument(
+        "--ingot-template",
+        type=Path,
+        help="Ingot item template PNG for GUI ingot preview "
+        "(default: from products.json → minecraft:item/iron_ingot.png via Loom jar).",
+    )
+    parser.add_argument(
+        "--pickaxe-template",
+        type=Path,
+        help="Pickaxe item template PNG for GUI pickaxe preview "
+        "(default: from products.json → minecraft:item/iron_pickaxe.png via Loom jar).",
+    )
+    parser.add_argument(
+        "--sword-template",
+        type=Path,
+        help="Sword item template PNG for GUI sword preview "
+        "(default: from products.json → minecraft:item/iron_sword.png via Loom jar).",
+    )
+    parser.add_argument(
+        "--handle-palette",
+        type=Path,
+        help="Handle palette JSON for tool preview (default: tool_handle.json).",
+    )
+    parser.add_argument(
         "--export-product",
         type=str,
         help="Headlessly remap a products.json id and write --out PNG.",
@@ -355,6 +400,7 @@ def main(argv: list[str] | None = None) -> int:
         palette_path = args.palette or DEFAULT_PALETTE
         template_path = args.template or DEFAULT_TEMPLATE
         mineral_palette_path = args.mineral_palette or DEFAULT_MINERAL_PALETTE
+        handle_palette_path = args.handle_palette or DEFAULT_HANDLE_PALETTE
         try:
             ore_rgb, ore_host_colours, ore_label, ore_save_dir = _resolve_ore_for_gui(
                 args.ore_template
@@ -369,6 +415,16 @@ def main(argv: list[str] | None = None) -> int:
             crystal_rgba, crystal_label = _resolve_item_template(
                 "zeiton_crystals", args.crystal_template
             )
+            ingot_rgba, ingot_label = _resolve_item_template(
+                "steel_ingot", args.ingot_template
+            )
+            pickaxe_rgba, pickaxe_label = _resolve_item_template(
+                "steel_pickaxe", args.pickaxe_template
+            )
+            sword_rgba, sword_label = _resolve_item_template(
+                "steel_sword", args.sword_template
+            )
+            tool_handle_colours = vanilla_tool_handle_colours(DWM_DIR)
             run_gui(
                 palette_path=palette_path,
                 template_path=template_path,
@@ -381,7 +437,15 @@ def main(argv: list[str] | None = None) -> int:
                 gem_template_label=gem_label,
                 crystal_rgba=crystal_rgba,
                 crystal_template_label=crystal_label,
+                ingot_rgba=ingot_rgba,
+                ingot_template_label=ingot_label,
+                pickaxe_rgba=pickaxe_rgba,
+                pickaxe_template_label=pickaxe_label,
+                sword_rgba=sword_rgba,
+                sword_template_label=sword_label,
+                tool_handle_colours=tool_handle_colours,
                 item_save_dir=DEFAULT_ITEM_SAVE_DIR,
+                handle_palette_path=handle_palette_path,
             )
         except ImportError as exc:
             print(
