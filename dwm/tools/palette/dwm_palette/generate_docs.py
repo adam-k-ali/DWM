@@ -26,9 +26,14 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
 from dwm_palette.palette import (
+    default_item_template_from_products,
     default_ore_template_from_products,
+    find_product,
     is_minecraft_template,
+    load_products,
+    load_template_rgba,
     load_template_rgb,
+    palette_hexes,
     vanilla_stone_host_colours,
 )
 from dwm_palette.paths import find_dwm_root
@@ -57,6 +62,17 @@ DEFAULT_ORE_SAVE_DIR = (
     / "dwm"
     / "textures"
     / "block"
+)
+
+DEFAULT_ITEM_SAVE_DIR = (
+    DWM_DIR
+    / "src"
+    / "client"
+    / "resources"
+    / "assets"
+    / "dwm"
+    / "textures"
+    / "item"
 )
 
 
@@ -197,6 +213,67 @@ def _resolve_ore_for_gui(
     return ore_rgb, host_colours, label, DEFAULT_ORE_SAVE_DIR
 
 
+
+def _resolve_item_template(
+    product_id: str,
+    override: Path | None,
+) -> tuple[Any, str]:
+    """Load gem/crystal RGBA template (products.json default or filesystem override)."""
+    if override is not None:
+        path = override.resolve()
+        if not path.is_file():
+            raise FileNotFoundError(f"item template not found: {path}")
+        from dwm_palette.recolor import load_rgba_image
+
+        return load_rgba_image(path), path.name
+
+    template_id = default_item_template_from_products(DWM_DIR, product_id)
+    rgba = load_template_rgba(DWM_DIR, template_id)
+    return rgba, template_id
+
+
+def _export_product(product_id: str, out_path: Path) -> None:
+    """Headless export of a product texture to *out_path*."""
+    from dwm_palette.recolor import apply_mineral_item_palette, apply_ore_palettes
+
+    products = load_products(DWM_DIR / "docs" / "palettes" / "products.json")
+    product = find_product(products, product_id)
+    palettes_dir = DWM_DIR / "docs" / "palettes"
+    archetype = product["archetype"]
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if archetype in ("gem", "crystal"):
+        mineral = load_palette(palettes_dir / f"{product['mineral']}.json")
+        template = load_template_rgba(DWM_DIR, product["template"])
+        out = apply_mineral_item_palette(template, palette_hexes(mineral))
+        from PIL import Image
+
+        Image.fromarray(out, mode="RGBA").save(out_path)
+        return
+
+    if archetype == "ore":
+        host = load_palette(palettes_dir / f"{product['host']}.json")
+        mineral = load_palette(palettes_dir / f"{product['mineral']}.json")
+        ore = load_template_rgb(DWM_DIR, product["template"])
+        if is_minecraft_template(product["template"]):
+            host_colours = vanilla_stone_host_colours(DWM_DIR)
+        else:
+            stone = load_rgb_image(DEFAULT_TEMPLATE)
+            host_colours = host_colour_set(stone)
+        out = apply_ore_palettes(
+            ore,
+            palette_hexes(host),
+            palette_hexes(mineral),
+            host_colours,
+        )
+        from PIL import Image
+
+        Image.fromarray(out, mode="RGB").save(out_path)
+        return
+
+    raise ValueError(f"unsupported product archetype {archetype!r}")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=(
@@ -236,7 +313,43 @@ def main(argv: list[str] | None = None) -> int:
         help="Ore-in-stone template PNG for GUI ore preview "
         "(default: from products.json → minecraft:block/emerald_ore.png via Loom jar).",
     )
+    parser.add_argument(
+        "--gem-template",
+        type=Path,
+        help="Gem item template PNG for GUI gem preview "
+        "(default: from products.json → minecraft:item/diamond.png via Loom jar).",
+    )
+    parser.add_argument(
+        "--crystal-template",
+        type=Path,
+        help="Crystal item template PNG for GUI crystal preview "
+        "(default: from products.json → minecraft:item/quartz.png via Loom jar).",
+    )
+    parser.add_argument(
+        "--export-product",
+        type=str,
+        help="Headlessly remap a products.json id and write --out PNG.",
+    )
+    parser.add_argument(
+        "--out",
+        type=Path,
+        help="Output PNG path for --export-product.",
+    )
     args = parser.parse_args(argv)
+
+    if args.export_product:
+        if args.out is None:
+            parser.error("--out is required with --export-product")
+        out_path = args.out.expanduser()
+        if not out_path.is_absolute():
+            out_path = (DWM_DIR / out_path).resolve()
+        try:
+            _export_product(args.export_product, out_path)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        print(f"wrote {out_path}")
+        return 0
 
     if args.gui:
         palette_path = args.palette or DEFAULT_PALETTE
@@ -252,6 +365,10 @@ def main(argv: list[str] | None = None) -> int:
         try:
             from dwm_palette.gui import run_gui
 
+            gem_rgba, gem_label = _resolve_item_template("azbantium", args.gem_template)
+            crystal_rgba, crystal_label = _resolve_item_template(
+                "zeiton_crystals", args.crystal_template
+            )
             run_gui(
                 palette_path=palette_path,
                 template_path=template_path,
@@ -260,6 +377,11 @@ def main(argv: list[str] | None = None) -> int:
                 ore_host_colours=ore_host_colours,
                 ore_template_label=ore_label,
                 ore_save_dir=ore_save_dir,
+                gem_rgba=gem_rgba,
+                gem_template_label=gem_label,
+                crystal_rgba=crystal_rgba,
+                crystal_template_label=crystal_label,
+                item_save_dir=DEFAULT_ITEM_SAVE_DIR,
             )
         except ImportError as exc:
             print(

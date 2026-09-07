@@ -12,13 +12,13 @@ poetry -C dwm/tools/palette run generate-family-palette-docs \
   --out-dir dwm/docs/palettes
 ```
 
-Preview stone or ore recolour interactively (defaults: Gallifrey stone host + Azbantium mineral on the vanilla emerald-ore layout from [`products.json`](./products.json)):
+Preview stone, ore, gem, or crystal recolour interactively (defaults: Gallifrey stone host + Azbantium mineral on the vanilla emerald-ore layout from [`products.json`](./products.json)):
 
 ```bash
 poetry -C dwm/tools/palette run generate-family-palette-docs --gui
 ```
 
-In the GUI, switch **Stone** / **Ore**. Ore mode takes any palette in the **host** slot and any palette in the **mineral** slot and remaps `minecraft:block/emerald_ore.png` (loaded from the Loom client jar; not committed). Edit **mids** only; contrast comes from the profile. Use **Save PNG…** to export the 16×16 result.
+In the GUI, switch **Stone** / **Ore** / **Gem** / **Crystal**. Ore mode takes any palette in the **host** slot and any palette in the **mineral** slot and remaps `minecraft:block/emerald_ore.png`. Gem mode remaps `minecraft:item/diamond.png`; Crystal mode remaps `minecraft:item/quartz.png` (both from the Loom client jar; not committed) using the mineral slot only, preserving transparency. Edit **mids** only; contrast comes from the profile. Use **Save PNG…** to export the 16×16 result.
 
 ## Palettes
 
@@ -28,9 +28,11 @@ In the GUI, switch **Stone** / **Ore**. Ore mode takes any palette in the **host
 
 ## Products
 
-Ore blocks pick host + mineral palettes in [`products.json`](./products.json):
+Blocks and items pick palettes in [`products.json`](./products.json):
 
-| Product | Host | Mineral | Template |
-|---------|------|---------|----------|
-| `zeiton_ore` | `gallifrey_stone` | `zeiton` | `minecraft:block/emerald_ore.png` |
-| `azbantium_ore` | `gallifrey_stone` | `azbantium` | `minecraft:block/emerald_ore.png` |
+| Product | Archetype | Host | Mineral | Template |
+|---------|-----------|------|---------|----------|
+| `zeiton_ore` | ore | `gallifrey_stone` | `zeiton` | `minecraft:block/emerald_ore.png` |
+| `azbantium_ore` | ore | `gallifrey_stone` | `azbantium` | `minecraft:block/emerald_ore.png` |
+| `azbantium` | gem | — | `azbantium` | `minecraft:item/diamond.png` |
+| `zeiton_crystals` | crystal | — | `zeiton` | `minecraft:item/quartz.png` |

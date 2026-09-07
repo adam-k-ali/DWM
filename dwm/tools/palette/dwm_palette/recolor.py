@@ -204,3 +204,53 @@ def load_rgb_image(path: Path) -> np.ndarray:
     with Image.open(path) as img:
         rgb = img.convert("RGB")
         return np.asarray(rgb, dtype=np.uint8)
+
+
+
+def load_rgba_image(path: Path) -> np.ndarray:
+    """Load a PNG as HxWx4 uint8 via Pillow (alpha preserved)."""
+    from PIL import Image
+
+    with Image.open(path) as img:
+        rgba = img.convert("RGBA")
+        return np.asarray(rgba, dtype=np.uint8)
+
+
+def apply_mineral_item_palette(
+    template_rgba: np.ndarray, mineral_hex_list: list[str]
+) -> np.ndarray:
+    """Remap opaque item pixels onto mineral hexes; leave transparent pixels alone.
+
+    Used for gem and crystal item archetypes (no host split). Opaque colours are
+    rank-mapped onto the mineral ramp. Original alpha is preserved.
+
+    Returns a new HxWx4 uint8 array.
+    """
+    if template_rgba.ndim != 3 or template_rgba.shape[2] != 4:
+        raise ValueError("template_rgba must be HxWx4 array")
+    if not mineral_hex_list:
+        raise ValueError("mineral hex list is empty")
+
+    src = template_rgba.astype(np.uint8, copy=False)
+    alpha = src[:, :, 3]
+    opaque = alpha > 0
+    if not np.any(opaque):
+        return src.copy()
+
+    opaque_rgb = src[:, :, :3][opaque]
+    colours = unique_colours_by_luminance(opaque_rgb.reshape(-1, 1, 3))
+    colour_map = build_rank_colour_map(colours, mineral_hex_list)
+
+    out = src.copy()
+    h, w, _ = src.shape
+    for y in range(h):
+        for x in range(w):
+            if out[y, x, 3] == 0:
+                continue
+            key = (int(src[y, x, 0]), int(src[y, x, 1]), int(src[y, x, 2]))
+            mapped = colour_map[key]
+            out[y, x, 0] = mapped[0]
+            out[y, x, 1] = mapped[1]
+            out[y, x, 2] = mapped[2]
+            # alpha unchanged
+    return out

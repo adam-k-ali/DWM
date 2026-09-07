@@ -17,6 +17,7 @@ from dwm_palette.palette import (
     load_palette,
     load_products,
     load_template_rgb,
+    load_template_rgba,
     minecraft_client_jar,
     palette_hexes,
     vanilla_stone_host_colours,
@@ -24,6 +25,7 @@ from dwm_palette.palette import (
 from dwm_palette.paths import find_dwm_root
 from dwm_palette.profiles import expand_ramp
 from dwm_palette.recolor import (
+    apply_mineral_item_palette,
     apply_host_palette,
     apply_ore_palettes,
     build_rank_colour_map,
@@ -129,6 +131,17 @@ class PaletteSchemaTests(unittest.TestCase):
             self.assertTrue(is_minecraft_template(by_id[pid]["template"]))
         self.assertEqual(by_id["zeiton_ore"]["mineral"], "zeiton")
         self.assertEqual(by_id["azbantium_ore"]["mineral"], "azbantium")
+
+        self.assertIn("azbantium", by_id)
+        self.assertIn("zeiton_crystals", by_id)
+        self.assertEqual(by_id["azbantium"]["archetype"], "gem")
+        self.assertEqual(by_id["azbantium"]["template"], "minecraft:item/diamond.png")
+        self.assertEqual(by_id["azbantium"]["mineral"], "azbantium")
+        self.assertNotIn("host", by_id["azbantium"])
+        self.assertEqual(by_id["zeiton_crystals"]["archetype"], "crystal")
+        self.assertEqual(by_id["zeiton_crystals"]["template"], "minecraft:item/quartz.png")
+        self.assertEqual(by_id["zeiton_crystals"]["mineral"], "zeiton")
+        self.assertNotIn("host", by_id["zeiton_crystals"])
 
 
 class ApplyHostPaletteTests(unittest.TestCase):
@@ -288,6 +301,69 @@ class ApplyOrePalettesTests(unittest.TestCase):
         self.assertTrue(out_hexes & set(veins))
         self.assertTrue(out_hexes & set(hosts))
 
+
+
+class ApplyMineralItemPaletteTests(unittest.TestCase):
+    def test_synthetic_rgba_preserves_alpha_and_rank_maps(self) -> None:
+        template = np.zeros((2, 2, 4), dtype=np.uint8)
+        template[0, 0] = [0, 0, 0, 0]
+        template[0, 1] = [40, 40, 40, 255]
+        template[1, 0] = [120, 120, 120, 200]
+        template[1, 1] = [200, 200, 200, 128]
+        minerals = ["#112233", "#334455", "#556677", "#778899"]
+        out = apply_mineral_item_palette(template, minerals)
+        self.assertEqual(out.shape, (2, 2, 4))
+        self.assertEqual(int(out[0, 0, 3]), 0)
+        self.assertEqual(tuple(out[0, 0, :3]), (0, 0, 0))
+        self.assertEqual(int(out[0, 1, 3]), 255)
+        self.assertEqual(int(out[1, 0, 3]), 200)
+        self.assertEqual(int(out[1, 1, 3]), 128)
+        opaque_hexes = {
+            rgb_to_hex(tuple(int(c) for c in out[y, x, :3]))
+            for y in range(2)
+            for x in range(2)
+            if out[y, x, 3] > 0
+        }
+        self.assertTrue(opaque_hexes <= set(minerals))
+        self.assertIn(minerals[0], opaque_hexes)
+        self.assertIn(minerals[-1], opaque_hexes)
+
+    @unittest.skipUnless(
+        (Path.home() / ".gradle/caches/fabric-loom").is_dir(),
+        "Fabric Loom cache not present",
+    )
+    def test_diamond_gem_and_quartz_crystal_masks(self) -> None:
+        try:
+            diamond = load_template_rgba(DWM, "minecraft:item/diamond.png")
+            quartz = load_template_rgba(DWM, "minecraft:item/quartz.png")
+        except FileNotFoundError:
+            self.skipTest("minecraft-client.jar not in Loom cache")
+
+        az = load_palette(AZBANTIUM_JSON)
+        zt = load_palette(ZEITON_JSON)
+        az_hexes = palette_hexes(az)
+        zt_hexes = palette_hexes(zt)
+
+        gem = apply_mineral_item_palette(diamond, az_hexes)
+        crystal = apply_mineral_item_palette(quartz, zt_hexes)
+
+        np.testing.assert_array_equal(gem[:, :, 3], diamond[:, :, 3])
+        np.testing.assert_array_equal(crystal[:, :, 3], quartz[:, :, 3])
+
+        gem_cols = {
+            rgb_to_hex(tuple(int(c) for c in gem[y, x, :3]))
+            for y in range(gem.shape[0])
+            for x in range(gem.shape[1])
+            if gem[y, x, 3] > 0
+        }
+        crystal_cols = {
+            rgb_to_hex(tuple(int(c) for c in crystal[y, x, :3]))
+            for y in range(crystal.shape[0])
+            for x in range(crystal.shape[1])
+            if crystal[y, x, 3] > 0
+        }
+        self.assertTrue(gem_cols <= set(az_hexes))
+        self.assertTrue(crystal_cols <= set(zt_hexes))
 
 if __name__ == "__main__":
     raise SystemExit(unittest.main())

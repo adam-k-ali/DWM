@@ -100,7 +100,11 @@ def save_palette_json(palette: dict[str, Any], path: Path) -> None:
 
 
 def load_products(path: Path) -> list[dict[str, Any]]:
-    """Load products.json and return the products list."""
+    """Load products.json and return the products list.
+
+    Ore products require ``host`` + ``mineral``. Gem and crystal products require
+    ``mineral`` only (no host).
+    """
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
         raise ValueError(f"{path}: root must be a JSON object")
@@ -122,19 +126,27 @@ def load_products(path: Path) -> list[dict[str, Any]]:
             raise ValueError(f"{path}: products[{i}].archetype must be a non-empty string")
         if not isinstance(template, str) or not template:
             raise ValueError(f"{path}: products[{i}].template must be a non-empty string")
-        if not isinstance(host, str) or not host:
-            raise ValueError(f"{path}: products[{i}].host must be a non-empty string")
         if not isinstance(mineral, str) or not mineral:
             raise ValueError(f"{path}: products[{i}].mineral must be a non-empty string")
-        normalized.append(
-            {
-                "id": pid,
-                "archetype": archetype,
-                "template": template,
-                "host": host,
-                "mineral": mineral,
-            }
-        )
+
+        item: dict[str, Any] = {
+            "id": pid,
+            "archetype": archetype,
+            "template": template,
+            "mineral": mineral,
+        }
+        if archetype in ("gem", "crystal"):
+            if host is not None:
+                raise ValueError(
+                    f"{path}: products[{i}] archetype {archetype!r} must not set host"
+                )
+        else:
+            if not isinstance(host, str) or not host:
+                raise ValueError(
+                    f"{path}: products[{i}].host must be a non-empty string"
+                )
+            item["host"] = host
+        normalized.append(item)
     return normalized
 
 
@@ -230,6 +242,18 @@ def load_minecraft_rgb(dwm_root: Path, template: str) -> np.ndarray:
         return np.asarray(rgb, dtype=np.uint8)
 
 
+def load_minecraft_rgba(dwm_root: Path, template: str) -> np.ndarray:
+    """Load a vanilla texture from the Loom client jar as HxWx4 uint8."""
+    from PIL import Image
+
+    entry = minecraft_jar_entry(template)
+    jar = minecraft_client_jar(dwm_root)
+    raw = _load_png_from_jar(str(jar), entry)
+    with Image.open(io.BytesIO(raw)) as img:
+        rgba = img.convert("RGBA")
+        return np.asarray(rgba, dtype=np.uint8)
+
+
 def texture_path(dwm_root: Path, template: str) -> Path:
     """Resolve a DWM-owned product template under assets/dwm/textures/.
 
@@ -265,6 +289,18 @@ def load_template_rgb(dwm_root: Path, template: str) -> np.ndarray:
     return load_rgb_image(path)
 
 
+def load_template_rgba(dwm_root: Path, template: str) -> np.ndarray:
+    """Load a product template RGBA array (DWM path or vanilla jar entry)."""
+    from dwm_palette.recolor import load_rgba_image
+
+    if is_minecraft_template(template):
+        return load_minecraft_rgba(dwm_root, template)
+    path = texture_path(dwm_root, template)
+    if not path.is_file():
+        raise FileNotFoundError(f"template not found: {path}")
+    return load_rgba_image(path)
+
+
 def resolve_template(dwm_root: Path, template: str) -> str | Path:
     """Return a display/label path for *template* (jar entry or DWM Path)."""
     if is_minecraft_template(template):
@@ -286,4 +322,18 @@ def default_ore_template_from_products(
     """Return the ore template id/path string from products.json."""
     products = load_products(dwm_root / "docs" / "palettes" / "products.json")
     product = find_product(products, product_id)
+    return product["template"]
+
+
+def default_item_template_from_products(
+    dwm_root: Path, product_id: str
+) -> str:
+    """Return a gem/crystal template id from products.json."""
+    products = load_products(dwm_root / "docs" / "palettes" / "products.json")
+    product = find_product(products, product_id)
+    if product["archetype"] not in ("gem", "crystal"):
+        raise ValueError(
+            f"product {product_id!r} archetype is {product['archetype']!r}, "
+            "expected gem or crystal"
+        )
     return product["template"]
