@@ -193,6 +193,27 @@ class PaletteSchemaTests(unittest.TestCase):
         self.assertEqual(by_id["steel_sword"]["mineral"], "steel")
         self.assertNotIn("host", by_id["steel_sword"])
 
+        self.assertIn("steel_shovel", by_id)
+        self.assertEqual(by_id["steel_shovel"]["archetype"], "shovel")
+        self.assertEqual(by_id["steel_shovel"]["template"], "minecraft:item/iron_shovel.png")
+        self.assertEqual(by_id["steel_shovel"]["handle"], "tool_handle")
+        self.assertEqual(by_id["steel_shovel"]["mineral"], "steel")
+        self.assertNotIn("host", by_id["steel_shovel"])
+
+        self.assertIn("steel_axe", by_id)
+        self.assertEqual(by_id["steel_axe"]["archetype"], "axe")
+        self.assertEqual(by_id["steel_axe"]["template"], "minecraft:item/iron_axe.png")
+        self.assertEqual(by_id["steel_axe"]["handle"], "tool_handle")
+        self.assertEqual(by_id["steel_axe"]["mineral"], "steel")
+        self.assertNotIn("host", by_id["steel_axe"])
+
+        self.assertIn("steel_hoe", by_id)
+        self.assertEqual(by_id["steel_hoe"]["archetype"], "hoe")
+        self.assertEqual(by_id["steel_hoe"]["template"], "minecraft:item/iron_hoe.png")
+        self.assertEqual(by_id["steel_hoe"]["handle"], "tool_handle")
+        self.assertEqual(by_id["steel_hoe"]["mineral"], "steel")
+        self.assertNotIn("host", by_id["steel_hoe"])
+
 class ApplyHostPaletteTests(unittest.TestCase):
     def test_synthetic_greys_map_onto_four_host_hexes(self) -> None:
         template = np.array(

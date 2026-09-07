@@ -45,6 +45,27 @@
       "template": "minecraft:item/iron_sword.png",
       "handle": "tool_handle",
       "mineral": "steel"
+    },
+    {
+      "id": "steel_shovel",
+      "archetype": "shovel",
+      "template": "minecraft:item/iron_shovel.png",
+      "handle": "tool_handle",
+      "mineral": "steel"
+    },
+    {
+      "id": "steel_axe",
+      "archetype": "axe",
+      "template": "minecraft:item/iron_axe.png",
+      "handle": "tool_handle",
+      "mineral": "steel"
+    },
+    {
+      "id": "steel_hoe",
+      "archetype": "hoe",
+      "template": "minecraft:item/iron_hoe.png",
+      "handle": "tool_handle",
+      "mineral": "steel"
     }
   ]
 }

@@ -97,6 +97,7 @@ public class DWMModelProvider extends FabricModelProvider {
         }
 
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.STEEL_INGOT, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.ZEITON_CRYSTALS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.ZEITON_POWDER, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.FERRITE_POWDER, ModelTemplates.FLAT_ITEM);
@@ -110,6 +111,11 @@ public class DWMModelProvider extends FabricModelProvider {
         itemModelGenerator.generateFlatItem(DWMItems.CIRCUIT_CHAMELEON, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.CIRCUIT_REMOTE_SUMMON, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.CIRCUIT_PLAYER_LOCATOR, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.STEEL_SWORD, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.STEEL_SHOVEL, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.STEEL_PICKAXE, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.STEEL_AXE, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.STEEL_HOE, ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_SWORD, ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_SHOVEL, ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_PICKAXE, ModelTemplates.FLAT_HANDHELD_ITEM);

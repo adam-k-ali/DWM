@@ -41,3 +41,6 @@ Blocks and items pick palettes in [`products.json`](./products.json):
 | `steel_ingot` | ingot | — | `steel` | `minecraft:item/iron_ingot.png` |
 | `steel_pickaxe` | pickaxe | handle: `tool_handle` | `steel` | `minecraft:item/iron_pickaxe.png` |
 | `steel_sword` | sword | handle: `tool_handle` | `steel` | `minecraft:item/iron_sword.png` |
+| `steel_shovel` | shovel | handle: `tool_handle` | `steel` | `minecraft:item/iron_shovel.png` |
+| `steel_axe` | axe | handle: `tool_handle` | `steel` | `minecraft:item/iron_axe.png` |
+| `steel_hoe` | hoe | handle: `tool_handle` | `steel` | `minecraft:item/iron_hoe.png` |

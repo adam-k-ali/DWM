@@ -12,9 +12,9 @@ The GUI remaps:
 - **Gem** mode — diamond item layout (`products.json` → `minecraft:item/diamond.png`) using the **mineral** slot only; alpha outside the silhouette is preserved.
 - **Crystal** mode — quartz item layout (`products.json` → `minecraft:item/quartz.png`) using the **mineral** slot only; alpha outside the silhouette is preserved.
 - **Ingot** mode — iron-ingot layout (`products.json` → `minecraft:item/iron_ingot.png`) using the **mineral** slot only; alpha preserved (same remapper as gem/crystal).
-- **Pickaxe** / **Sword** modes — iron tool layouts using **handle** + **metal** (mineral) slots; handle pixels are classified against vanilla `stick.png` colours (frozen at load), metal pixels take the mineral ramp; alpha preserved.
+- **Pickaxe** / **Sword** / **Shovel** / **Axe** / **Hoe** modes — iron tool layouts using **handle** + **metal** (mineral) slots; handle pixels are classified against vanilla `stick.png` colours (frozen at load), metal pixels take the mineral ramp; alpha preserved.
 
-Products (`dwm/docs/palettes/products.json`) choose archetype, template, and which palette is host / handle / mineral; a palette file itself is not typed as host or family. Gem/crystal/ingot products omit `host` and `handle`. Pickaxe/sword products use `handle` + `mineral` (no `host`).
+Products (`dwm/docs/palettes/products.json`) choose archetype, template, and which palette is host / handle / mineral; a palette file itself is not typed as host or family. Gem/crystal/ingot products omit `host` and `handle`. Tool products (pickaxe/sword/shovel/axe/hoe) use `handle` + `mineral` (no `host`).
 
 ## Commands (from repo root)
 
@@ -24,11 +24,12 @@ poetry -C dwm/tools/palette run generate-family-palette-docs \
   --palette dwm/docs/palettes/<family>.json \
   --out-dir dwm/docs/palettes
 poetry -C dwm/tools/palette run generate-family-palette-docs --gui
-# Headless product export (gem/crystal/ingot/ore/pickaxe/sword):
+# Headless product export (gem/crystal/ingot/ore/pickaxe/sword/shovel/axe/hoe):
 #   --export-product azbantium --out dwm/src/client/resources/assets/dwm/textures/item/azbantium.png
 #   --export-product zeiton_crystals --out dwm/src/client/resources/assets/dwm/textures/item/zeiton_crystals.png
 #   --export-product steel_ingot --out dwm/src/client/resources/assets/dwm/textures/item/steel_ingot.png
 #   --export-product steel_pickaxe --out dwm/src/client/resources/assets/dwm/textures/item/steel_pickaxe.png
+#   --export-product steel_shovel --out dwm/src/client/resources/assets/dwm/textures/item/steel_shovel.png
 # Optional ore defaults override:
 #   --mineral-palette dwm/docs/palettes/zeiton.json
 #   --ore-template dwm/src/client/resources/assets/dwm/textures/block/gallifrey_coal_ore.png

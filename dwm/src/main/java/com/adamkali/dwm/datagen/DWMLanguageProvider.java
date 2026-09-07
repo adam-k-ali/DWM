@@ -25,6 +25,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addCitadelFamily(translationBuilder);
         addGallifreyPlants(translationBuilder);
         addAzbantiumSet(translationBuilder);
+        addSteelSet(translationBuilder);
         addZeitonSet(translationBuilder);
         addGallifreyVanillaOres(translationBuilder);
         for (var family : DWMBlocks.WOOD_FAMILIES) {
@@ -443,6 +444,15 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItem(t, DWMItems.AZBANTIUM_BOOTS, "Azbantium Boots");
     }
 
+    private static void addSteelSet(TranslationBuilder t) {
+        addItem(t, DWMItems.STEEL_INGOT, "Steel Ingot");
+        addItem(t, DWMItems.STEEL_SWORD, "Steel Sword");
+        addItem(t, DWMItems.STEEL_SHOVEL, "Steel Shovel");
+        addItem(t, DWMItems.STEEL_PICKAXE, "Steel Pickaxe");
+        addItem(t, DWMItems.STEEL_AXE, "Steel Axe");
+        addItem(t, DWMItems.STEEL_HOE, "Steel Hoe");
+    }
+
     private static void addZeitonSet(TranslationBuilder t) {
         addBlockAndItem(t, DWMBlocks.ZEITON_ORE, "Zeiton Ore");
         addItem(t, DWMItems.ZEITON_CRYSTALS, "Zeiton Crystals");
@@ -479,6 +489,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("tag.item.dwm.azbantium_ores", "Azbantium Ores");
         t.add("tag.item.dwm.zeiton_ores", "Zeiton Ores");
         t.add("tag.item.dwm.repairs_azbantium_equipment", "Azbantium Equipment Repair Materials");
+        t.add("tag.item.dwm.repairs_steel_equipment", "Steel Equipment Repair Materials");
         t.add("biome.dwm.gallifrey_wastes", "Gallifrey Wastes");
         t.add("biome.dwm.gallifrey_badlands", "Gallifrey Badlands");
         t.add("biome.dwm.skaro_irradiated_wastes", "Irradiated Wastes");

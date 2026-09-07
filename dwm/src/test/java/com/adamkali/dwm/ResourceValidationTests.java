@@ -515,6 +515,31 @@ public class ResourceValidationTests {
     }
 
     /**
+     * Guards against {@code pruneDatagenItemModels} dropping steel item defs
+     * (allowlist must include {@code steel} substring).
+     */
+    @Test
+    public void generatedSteelItemModelsExist() throws Exception {
+        Path itemsDir = Path.of("src/main/generated/assets/dwm/items");
+        assertTrue(Files.isDirectory(itemsDir), "Expected generated items dir at " + itemsDir);
+        String[] ids = {
+                "steel_ingot",
+                "steel_sword",
+                "steel_shovel",
+                "steel_pickaxe",
+                "steel_axe",
+                "steel_hoe",
+        };
+        for (String id : ids) {
+            Path item = itemsDir.resolve(id + ".json");
+            assertTrue(
+                    Files.isRegularFile(item) && Files.size(item) > 0,
+                    "Missing generated steel item model: " + item
+            );
+        }
+    }
+
+    /**
      * Guards against {@code pruneDatagenItemModels} dropping zeiton/ferrite item defs
      * (allowlist must include {@code zeiton} and {@code ferrite} substrings).
      */
