@@ -26,6 +26,8 @@ In the GUI, switch **Stone** / **Ore** / **Gem** / **Crystal** / **Ingot** / **P
 - [Zeiton](./zeiton.md) — emerald/teal mineral (`profile: mineral`)
 - [Azbantium](./azbantium.md) — icy cyan mineral (`profile: mineral`)
 - [Steel](./steel.md) — dark silvery-grey metal (`profile: mineral`)
+- [Silver Dalekanium](./silver_dalekanium.md) — cool bright silver alloy (`profile: mineral`)
+- [Bronze Dalekanium](./bronze_dalekanium.md) — warm copper-bronze alloy (`profile: mineral`)
 - [Tool Handle](./tool_handle.md) — oak-stick wood browns for tool handles (`profile: stone`)
 
 ## Products
@@ -39,6 +41,8 @@ Blocks and items pick palettes in [`products.json`](./products.json):
 | `azbantium` | gem | — | `azbantium` | `minecraft:item/diamond.png` |
 | `zeiton_crystals` | crystal | — | `zeiton` | `minecraft:item/quartz.png` |
 | `steel_ingot` | ingot | — | `steel` | `minecraft:item/iron_ingot.png` |
+| `silver_dalekanium_ingot` | ingot | — | `silver_dalekanium` | `minecraft:item/iron_ingot.png` |
+| `bronze_dalekanium_ingot` | ingot | — | `bronze_dalekanium` | `minecraft:item/iron_ingot.png` |
 | `steel_pickaxe` | pickaxe | handle: `tool_handle` | `steel` | `minecraft:item/iron_pickaxe.png` |
 | `steel_sword` | sword | handle: `tool_handle` | `steel` | `minecraft:item/iron_sword.png` |
 | `steel_shovel` | shovel | handle: `tool_handle` | `steel` | `minecraft:item/iron_shovel.png` |
