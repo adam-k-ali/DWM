@@ -33,6 +33,18 @@
       "mineral": "steel"
     },
     {
+      "id": "silver_dalekanium_ingot",
+      "archetype": "ingot",
+      "template": "minecraft:item/iron_ingot.png",
+      "mineral": "silver_dalekanium"
+    },
+    {
+      "id": "bronze_dalekanium_ingot",
+      "archetype": "ingot",
+      "template": "minecraft:item/iron_ingot.png",
+      "mineral": "bronze_dalekanium"
+    },
+    {
       "id": "steel_pickaxe",
       "archetype": "pickaxe",
       "template": "minecraft:item/iron_pickaxe.png",

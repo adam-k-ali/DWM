@@ -1,0 +1,8 @@
+{
+  "family_id": "silver_dalekanium",
+  "display_name": "Silver Dalekanium",
+  "map_color": "COLOR_LIGHT_GRAY",
+  "notes": "Cool bright silver Dalekanium alloy (dalekanium + iron) for Skaro architecture and ingots. Lighter than steel; use as the mineral/metal slot on ingot and architecture sprites.",
+  "seed": "#8C949C",
+  "profile": "mineral"
+}
