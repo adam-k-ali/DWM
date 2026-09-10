@@ -223,6 +223,21 @@ class TardisTravelServiceTest {
     }
 
     @Test
+    void requestMaterialise_returnsPassWhenLandingResolveAlreadyCommittedAndWaiting() {
+        try (MockedStatic<TardisDataLoader> loader = Mockito.mockStatic(TardisDataLoader.class)) {
+            loader.when(() -> TardisDataLoader.get(tardisId)).thenReturn(model);
+            model.setTravelPhase(TardisTravelPhase.IN_FLIGHT);
+            TardisTravelService.putFlightShellForTests(tardisId, tardisId);
+            LandingResolveService.enqueueForTest(tardisId, true, LandingResolveService.Phase.LOAD);
+
+            assertEquals(
+                    InteractionResult.PASS,
+                    TardisTravelService.requestMaterialise(tardisId, Mockito.mock(net.minecraft.server.MinecraftServer.class)));
+            assertEquals(TardisTravelPhase.IN_FLIGHT, model.getTravelPhase());
+        }
+    }
+
+    @Test
     void materialiseAt_returnsPassWhenNotInFlight() {
         try (MockedStatic<TardisDataLoader> loader = Mockito.mockStatic(TardisDataLoader.class)) {
             loader.when(() -> TardisDataLoader.get(tardisId)).thenReturn(model);

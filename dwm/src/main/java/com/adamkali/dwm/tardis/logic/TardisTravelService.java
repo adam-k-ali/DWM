@@ -27,7 +27,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -335,11 +334,23 @@ public final class TardisTravelService {
     /**
      * Begins materialisation while {@code tardisId} is {@link TardisTravelPhase#IN_FLIGHT}.
      *
-     * @return {@link InteractionResult#SUCCESS} when materialisation started,
+     * @return {@link InteractionResult#SUCCESS} when materialisation started or was queued,
      * {@link InteractionResult#FAIL} when preconditions fail,
      * {@link InteractionResult#PASS} when not in a phase that accepts materialise
      */
     public static InteractionResult requestMaterialise(UUID tardisId, MinecraftServer server) {
+        return requestMaterialise(tardisId, server, null);
+    }
+
+    /**
+     * Like {@link #requestMaterialise(UUID, MinecraftServer)} and records {@code requesterUuid}
+     * for a delayed overlay if landing resolve fails after the lever returns.
+     */
+    public static InteractionResult requestMaterialise(
+            UUID tardisId,
+            MinecraftServer server,
+            @Nullable UUID requesterUuid
+    ) {
         if (tardisId == null) {
             return InteractionResult.FAIL;
         }
@@ -361,64 +372,22 @@ public final class TardisTravelService {
             return InteractionResult.FAIL;
         }
 
-        DestinationMode mode = effectiveTravelMode(model);
-        ServerLevel destinationWorld;
-        BlockPos landing;
-        int facingRotation = snapshot.facingRotation();
-        if (isExactCoordMode(mode)) {
-            facingRotation = model.travelDestinationRotation;
-        }
-        Direction doorFacing = TardisExteriorFacing.doorDirection(facingRotation);
-
-        if (mode == DestinationMode.PLAYER) {
-            Optional<ServerPlayer> target = PlayerLocatorLogic.resolve(server, model.travelTargetPlayerUuid);
-            if (target.isEmpty()) {
-                // Stay in flight — do not silently land elsewhere.
-                lastMaterialiseFailureReason = FAIL_PLAYER_OFFLINE;
-                return InteractionResult.FAIL;
-            }
-            ServerPlayer player = target.get();
-            destinationWorld = (ServerLevel) player.level();
-            Optional<BlockPos> resolved = resolvePlayerLanding(
-                    destinationWorld, player.blockPosition(), doorFacing);
-            if (resolved.isEmpty()) {
-                lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
-                return InteractionResult.FAIL;
-            }
-            landing = resolved.get();
-        } else {
-            destinationWorld = getDestinationWorld(server, model);
-            if (destinationWorld == null) {
-                abortToIdle(server, tardisId, model);
-                return InteractionResult.FAIL;
-            }
-            BlockPos oldPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
-            Optional<BlockPos> resolved = resolveLanding(destinationWorld, model, oldPos, doorFacing);
-            if (resolved.isEmpty() && isExactCoordMode(mode)) {
-                lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
-                return InteractionResult.FAIL;
-            }
-            landing = resolved.orElse(oldPos);
+        if (LandingResolveService.isCommitted(tardisId) && LandingResolveService.isWaitingForLanding(tardisId)) {
+            return InteractionResult.PASS;
         }
 
-        Optional<BlockPos> scattered = StabiliserLogic.applyScatter(
-                destinationWorld,
-                landing,
-                doorFacing,
-                model,
-                destinationWorld.getRandom()
-        );
-        if (scattered.isEmpty()) {
-            lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
+        InteractionResult immediate = tryImmediateMaterialise(tardisId, server, model, snapshot);
+        if (immediate != null) {
+            return immediate;
+        }
+
+        if (!LandingResolveService.commit(server, tardisId, requesterUuid)) {
+            if (lastMaterialiseFailureReason == null) {
+                lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
+            }
             return InteractionResult.FAIL;
         }
-        landing = CoordinateLockLogic.apply(scattered.get(), model);
-        if (!LandingSiteLogic.isValidLanding(destinationWorld, landing, doorFacing)) {
-            lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
-            return InteractionResult.FAIL;
-        }
-
-        return completeMaterialise(tardisId, server, model, snapshot, destinationWorld, landing, facingRotation);
+        return InteractionResult.SUCCESS;
     }
 
     /**
@@ -453,11 +422,153 @@ public final class TardisTravelService {
             return InteractionResult.FAIL;
         }
         Direction doorFacing = TardisExteriorFacing.doorDirection(facingRotation);
-        if (!LandingSiteLogic.isValidLanding(destinationWorld, landing, doorFacing)) {
+        if (LandingSiteLogic.isRegionLoaded(
+                destinationWorld, landing, LandingSiteLogic.NEARBY_TICKET_CHUNK_RADIUS)) {
+            if (!LandingSiteLogic.isValidLanding(destinationWorld, landing, doorFacing)) {
+                lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
+                return InteractionResult.FAIL;
+            }
+            LandingResolveService.cancel(tardisId);
+            return completeMaterialise(tardisId, server, model, snapshot, destinationWorld, landing, facingRotation);
+        }
+        return LandingResolveService.commitExact(
+                server, tardisId, destinationWorld, landing, facingRotation, null)
+                ? InteractionResult.SUCCESS
+                : InteractionResult.FAIL;
+    }
+
+    /**
+     * Immediate place when destination chunks are already FULL. {@code null} means defer to
+     * {@link LandingResolveService}.
+     */
+    private static @Nullable InteractionResult tryImmediateMaterialise(
+            UUID tardisId,
+            MinecraftServer server,
+            TardisDataModel model,
+            ShellSnapshot snapshot
+    ) {
+        DestinationMode mode = effectiveTravelMode(model);
+        int facingRotation = flightFacingRotation(tardisId, model);
+        Direction doorFacing = TardisExteriorFacing.doorDirection(facingRotation);
+        boolean scatter = !StabiliserLogic.isEnabled(model);
+        int radius = LandingSiteLogic.ticketChunkRadius(scatter);
+
+        if (mode == DestinationMode.PLAYER) {
+            Optional<ServerPlayer> target = PlayerLocatorLogic.resolve(server, model.travelTargetPlayerUuid);
+            if (target.isEmpty()) {
+                lastMaterialiseFailureReason = FAIL_PLAYER_OFFLINE;
+                return InteractionResult.FAIL;
+            }
+            ServerLevel destinationWorld = (ServerLevel) target.get().level();
+            BlockPos playerPos = target.get().blockPosition();
+            if (!LandingSiteLogic.isRegionLoaded(destinationWorld, playerPos, radius)) {
+                return null;
+            }
+            Optional<BlockPos> resolved = LandingSiteLogic.findLandingAtOrNearby(
+                    destinationWorld, playerPos, doorFacing);
+            return finishImmediate(
+                    tardisId, server, model, snapshot, destinationWorld, resolved, facingRotation, doorFacing, true);
+        }
+
+        ServerLevel destinationWorld = getDestinationWorld(server, model);
+        if (destinationWorld == null) {
+            abortToIdle(server, tardisId, model);
+            return InteractionResult.FAIL;
+        }
+
+        if (mode == DestinationMode.BIOME) {
+            return null;
+        }
+
+        Optional<BlockPos> target = exactCoordTargetFromSnapshot(model);
+        if (target.isEmpty()) {
             lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
             return InteractionResult.FAIL;
         }
+        if (!LandingSiteLogic.isRegionLoaded(destinationWorld, target.get(), radius)) {
+            return null;
+        }
+        Optional<BlockPos> resolved = LandingSiteLogic.findLandingAtOrNearby(
+                destinationWorld, target.get(), doorFacing);
+        return finishImmediate(
+                tardisId, server, model, snapshot, destinationWorld, resolved, facingRotation, doorFacing, true);
+    }
+
+    private static @Nullable InteractionResult finishImmediate(
+            UUID tardisId,
+            MinecraftServer server,
+            TardisDataModel model,
+            ShellSnapshot snapshot,
+            ServerLevel destinationWorld,
+            Optional<BlockPos> resolved,
+            int facingRotation,
+            Direction doorFacing,
+            boolean failIfEmpty
+    ) {
+        if (resolved.isEmpty()) {
+            if (failIfEmpty) {
+                lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
+                return InteractionResult.FAIL;
+            }
+            return null;
+        }
+        Optional<BlockPos> finished = finishTravelLanding(destinationWorld, model, resolved.get(), doorFacing);
+        if (finished.isEmpty()) {
+            lastMaterialiseFailureReason = FAIL_INVALID_LANDING;
+            return InteractionResult.FAIL;
+        }
+        LandingResolveService.cancel(tardisId);
+        return completeMaterialise(
+                tardisId, server, model, snapshot, destinationWorld, finished.get(), facingRotation);
+    }
+
+    static Optional<BlockPos> finishTravelLanding(
+            ServerLevel world,
+            TardisDataModel model,
+            BlockPos resolved,
+            Direction doorFacing
+    ) {
+        Optional<BlockPos> scattered = StabiliserLogic.applyScatter(
+                world, resolved, doorFacing, model, world.getRandom());
+        if (scattered.isEmpty()) {
+            return Optional.empty();
+        }
+        BlockPos locked = CoordinateLockLogic.apply(scattered.get(), model);
+        if (!LandingSiteLogic.isValidLanding(world, locked, doorFacing)) {
+            return Optional.empty();
+        }
+        return Optional.of(locked);
+    }
+
+    static InteractionResult completeResolvedMaterialise(
+            UUID tardisId,
+            MinecraftServer server,
+            ServerLevel destinationWorld,
+            BlockPos landing,
+            int facingRotation
+    ) {
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        ShellSnapshot snapshot = FLIGHT_SHELLS.get(tardisId);
+        if (model == null || snapshot == null) {
+            if (model != null) {
+                abortToIdle(server, tardisId, model);
+            }
+            return InteractionResult.FAIL;
+        }
         return completeMaterialise(tardisId, server, model, snapshot, destinationWorld, landing, facingRotation);
+    }
+
+    static int flightFacingRotation(UUID tardisId, TardisDataModel model) {
+        ShellSnapshot snapshot = FLIGHT_SHELLS.get(tardisId);
+        int facingRotation = snapshot != null ? snapshot.facingRotation() : model.exteriorRotation;
+        if (isExactCoordMode(effectiveTravelMode(model))) {
+            facingRotation = model.travelDestinationRotation;
+        }
+        return facingRotation;
+    }
+
+    static void setLastMaterialiseFailureReason(@Nullable String reason) {
+        lastMaterialiseFailureReason = reason;
     }
 
     private static InteractionResult completeMaterialise(
@@ -474,6 +585,7 @@ public final class TardisTravelService {
         boolean summonPending = isSummonPending(tardisId);
 
         FastReturnLogic.pushDeparted(model);
+        LandingResolveService.cancel(tardisId);
         placeShell(destinationWorld, landing, snapshot, facingRotation);
         if (destinationWorld.getBlockEntity(landing) instanceof TardisBlockEntity be) {
             be.setSyncedTravelPhase(TardisTravelPhase.MATERIALISING, destinationWorld.getGameTime());
@@ -608,9 +720,7 @@ public final class TardisTravelService {
 
         switch (model.getTravelPhase()) {
             case DEMATERIALISING -> tickDematerialising(server, tardisId, model);
-            case IN_FLIGHT -> {
-                // Wait for lever-gated {@link #requestMaterialise}.
-            }
+            case IN_FLIGHT -> LandingResolveService.tick(server, tardisId);
             case MATERIALISING -> tickMaterialising(server, tardisId, model);
             case IDLE -> ACTIVE.remove(tardisId);
         }
@@ -639,9 +749,14 @@ public final class TardisTravelService {
                             landing,
                             model.travelDestinationRotation
                     );
-                    if (summoned == InteractionResult.SUCCESS) {
+                    if (summoned == InteractionResult.SUCCESS && !LandingResolveService.hasJob(tardisId)) {
                         return;
                     }
+                } else {
+                    LandingResolveService.prefetch(server, tardisId);
+                }
+                if (model.getTravelPhase() != TardisTravelPhase.IN_FLIGHT) {
+                    return;
                 }
                 BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
                 ServerLevel exteriorWorld = getExteriorWorld(server, model);
@@ -737,36 +852,6 @@ public final class TardisTravelService {
         );
     }
 
-    private static Optional<BlockPos> resolveLanding(
-            ServerLevel world,
-            TardisDataModel model,
-            BlockPos searchOrigin,
-            Direction doorFacing
-    ) {
-        DestinationMode mode = effectiveTravelMode(model);
-        if (isExactCoordMode(mode)) {
-            return exactCoordTargetFromSnapshot(model)
-                    .flatMap(target -> LandingSiteLogic.findLandingAtOrNearby(world, target, doorFacing));
-        }
-        Optional<ResourceKey<Biome>> biome = LandingSiteLogic.parseBiome(model.travelDestinationBiome);
-        if (biome.isPresent()) {
-            Optional<BlockPos> landing = LandingSiteLogic.findLanding(
-                    world, biome.get(), searchOrigin, doorFacing);
-            if (landing.isPresent()) {
-                return landing;
-            }
-        }
-        return LandingSiteLogic.findSurfaceLanding(world, searchOrigin, doorFacing);
-    }
-
-    private static Optional<BlockPos> resolvePlayerLanding(
-            ServerLevel world,
-            BlockPos playerPos,
-            Direction doorFacing
-    ) {
-        return LandingSiteLogic.findLandingAtOrNearby(world, playerPos, doorFacing);
-    }
-
     /**
      * Pure destination-mode selection check (no exterior-block or loaded-world checks).
      * Package-visible for unit tests.
@@ -835,7 +920,8 @@ public final class TardisTravelService {
         ));
     }
 
-    private static void abortToIdle(MinecraftServer server, UUID tardisId, TardisDataModel model) {
+    static void abortToIdle(MinecraftServer server, UUID tardisId, TardisDataModel model) {
+        LandingResolveService.cancel(tardisId);
         ShellSnapshot snapshot = FLIGHT_SHELLS.remove(tardisId);
         SHELL_REMOVED.remove(tardisId);
         ServerLevel exteriorWorld = getExteriorWorld(server, model);
@@ -868,7 +954,7 @@ public final class TardisTravelService {
             ShellSnapshot snapshot,
             int facingRotation
     ) {
-        world.getChunk(pos);
+        world.getChunk(pos.getX() >> 4, pos.getZ() >> 4);
         BlockState state = DWMBlocks.TARDIS_BLOCK.defaultBlockState()
                 .setValue(TardisBlock.FACING_ROTATION, facingRotation);
         world.setBlock(pos, state, 3);
@@ -881,7 +967,7 @@ public final class TardisTravelService {
         return level(server, model.exteriorDimension);
     }
 
-    private static @Nullable ServerLevel getDestinationWorld(MinecraftServer server, TardisDataModel model) {
+    static @Nullable ServerLevel getDestinationWorld(MinecraftServer server, TardisDataModel model) {
         String destination = model.travelDestinationDimension;
         if (destination == null || destination.isBlank()) {
             destination = TardisLogic.effectiveDestinationDimension(model);
@@ -927,6 +1013,7 @@ public final class TardisTravelService {
         SUMMON_PENDING.clear();
         lastMaterialiseFailureReason = null;
         lastTravelFailureReason = null;
+        LandingResolveService.clear();
     }
 
     /** Test helper: mark a TARDIS to auto-materialise after demat. */

@@ -278,6 +278,7 @@
   "dwm.console.travel_in_flight": "TARDIS is already in flight",
   "dwm.console.travel_in_progress": "Travel sequence already in progress",
   "dwm.console.travel_invalid_landing": "No valid landing site nearby — stay in flight",
+  "dwm.console.travel_locating_landing": "Locating landing site...",
   "dwm.console.travel_materialising": "Materialising...",
   "dwm.console.travel_player_offline": "Selected player is offline — cannot materialise",
   "dwm.console.travel_unavailable": "Unable to travel — set a destination and ensure the exterior is linked",
