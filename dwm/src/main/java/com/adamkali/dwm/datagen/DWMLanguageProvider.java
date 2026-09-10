@@ -518,6 +518,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.console.materialisation_lever_pulled", "Materialisation lever engaged");
         t.add("dwm.console.travel_dematerialising", "Dematerialising...");
         t.add("dwm.console.travel_materialising", "Materialising...");
+        t.add("dwm.console.travel_locating_landing", "Locating landing site...");
         t.add("dwm.console.travel_unavailable", "Unable to travel — set a destination and ensure the exterior is linked");
         t.add("dwm.console.travel_in_flight", "TARDIS is already in flight");
         t.add("dwm.console.travel_in_progress", "Travel sequence already in progress");

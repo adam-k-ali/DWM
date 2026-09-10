@@ -71,7 +71,9 @@ public final class StabiliserLogic {
             int z = center.getZ() + offset[1];
             lastX = x;
             lastZ = z;
-            world.getChunk(x >> 4, z >> 4);
+            if (!LandingSiteLogic.isColumnReadable(world, x, z)) {
+                continue;
+            }
             Optional<BlockPos> candidate = LandingSiteLogic.findSurfaceInColumn(world, x, z, doorFacing);
             if (candidate.isPresent()) {
                 return candidate;

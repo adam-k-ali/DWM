@@ -144,6 +144,48 @@ class LandingSiteLogicTest {
         assertTrue(LandingSiteLogic.isValidLanding(world, new BlockPos(0, 128, 0), DOOR));
     }
 
+    @Test
+    void findLandingAtOrNearby_acceptsExactValidCell() {
+        LevelReader world = column(-64, 64, y -> {
+            if (y == 63) {
+                return Blocks.GRASS_BLOCK.defaultBlockState();
+            }
+            if (y < 63) {
+                return Blocks.STONE.defaultBlockState();
+            }
+            return Blocks.AIR.defaultBlockState();
+        });
+
+        assertEquals(
+                new BlockPos(0, 64, 0),
+                LandingSiteLogic.findLandingAtOrNearby(world, new BlockPos(0, 64, 0), DOOR).orElseThrow());
+    }
+
+    @Test
+    void ticketChunkRadius_scatterUsesLargerNeighbourhood() {
+        assertEquals(
+                LandingSiteLogic.NEARBY_TICKET_CHUNK_RADIUS,
+                LandingSiteLogic.ticketChunkRadius(false));
+        assertEquals(
+                LandingSiteLogic.SCATTER_TICKET_CHUNK_RADIUS,
+                LandingSiteLogic.ticketChunkRadius(true));
+        assertTrue(LandingSiteLogic.SCATTER_TICKET_CHUNK_RADIUS
+                > LandingSiteLogic.NEARBY_TICKET_CHUNK_RADIUS);
+    }
+
+    @Test
+    void isRegionLoaded_falseWhenWorldOrCenterNull() {
+        assertFalse(LandingSiteLogic.isRegionLoaded(null, BlockPos.ZERO, 1));
+        assertFalse(LandingSiteLogic.isRegionLoaded(null, null, 1));
+    }
+
+    @Test
+    void isColumnReadable_trueForNonServerLevelReader() {
+        LevelReader world = column(0, 64, y -> Blocks.AIR.defaultBlockState());
+        assertTrue(LandingSiteLogic.isColumnReadable(world, 0, 0));
+        assertFalse(LandingSiteLogic.isColumnReadable(null, 0, 0));
+    }
+
     private static LevelReader column(int minY, int heightmapY, IntFunction<BlockState> atY) {
         LevelReader world = Mockito.mock(LevelReader.class);
         Mockito.when(world.getMinY()).thenReturn(minY);
