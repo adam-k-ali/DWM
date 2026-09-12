@@ -836,6 +836,7 @@ public class DWMBlocks {
         });
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.FUNCTIONAL_BLOCKS).register(content -> {
+            content.accept(TARDIS_BLOCK);
             content.accept(FIRST_DOCTOR_CONSOLE);
         });
     }
