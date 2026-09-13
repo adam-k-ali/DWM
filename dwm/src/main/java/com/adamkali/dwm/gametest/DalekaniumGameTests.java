@@ -5,6 +5,7 @@ import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.item.DWMItems;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
@@ -115,6 +116,17 @@ public class DalekaniumGameTests {
                 DWMItems.BRONZE_DALEKANIUM_HOE
         );
 
+        assertDalekaniumStorageRecipes(
+                context,
+                DWMItems.SILVER_DALEKANIUM_INGOT,
+                DWMBlocks.SILVER_DALEKANIUM_BLOCK
+        );
+        assertDalekaniumStorageRecipes(
+                context,
+                DWMItems.BRONZE_DALEKANIUM_INGOT,
+                DWMBlocks.BRONZE_DALEKANIUM_BLOCK
+        );
+
         context.succeed();
     }
 
@@ -154,6 +166,63 @@ public class DalekaniumGameTests {
         );
 
         context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void storageBlocksDropSelfWithIronPickaxe(GameTestHelper context) {
+        Player player = context.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack ironPickaxe = new ItemStack(Items.IRON_PICKAXE);
+        BlockPos blockPos = new BlockPos(1, 1, 1);
+
+        for (Block block : DWMBlocks.DALEKANIUM_STORAGE_BLOCKS) {
+            BlockState state = block.defaultBlockState();
+            if (!ironPickaxe.isCorrectToolForDrops(state)) {
+                throw new AssertionError("Expected iron pickaxe to be correct tool for " + block);
+            }
+            context.setBlock(blockPos, state);
+            assertHasItem(
+                    getDrops(context, player, blockPos, ironPickaxe),
+                    block.asItem(),
+                    1,
+                    block + " with iron pickaxe"
+            );
+        }
+
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void storageBlocksRejectStonePickaxeAsCorrectTool(GameTestHelper context) {
+        ItemStack stonePickaxe = new ItemStack(Items.STONE_PICKAXE);
+        for (Block block : DWMBlocks.DALEKANIUM_STORAGE_BLOCKS) {
+            BlockState state = block.defaultBlockState();
+            if (stonePickaxe.isCorrectToolForDrops(state)) {
+                throw new AssertionError("Expected stone pickaxe to be incorrect for " + block + " drops");
+            }
+            if (!state.requiresCorrectToolForDrops()) {
+                throw new AssertionError("Expected " + block + " to require the correct tool for drops");
+            }
+        }
+        context.succeed();
+    }
+
+    private static void assertDalekaniumStorageRecipes(GameTestHelper context, Item ingot, Block block) {
+        String blockPath = BuiltInRegistries.BLOCK.getKey(block).getPath();
+        String ingotPath = BuiltInRegistries.ITEM.getKey(ingot).getPath();
+        assertCrafts(
+                context,
+                blockPath,
+                grid(3, 3, ingot, ingot, ingot, ingot, ingot, ingot, ingot, ingot, ingot),
+                block.asItem(),
+                1
+        );
+        assertCrafts(
+                context,
+                ingotPath + "_from_" + blockPath,
+                grid(1, 1, block),
+                ingot,
+                9
+        );
     }
 
     private static void assertDalekaniumToolRecipes(

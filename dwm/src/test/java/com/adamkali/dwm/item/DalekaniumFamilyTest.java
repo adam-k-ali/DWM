@@ -23,6 +23,11 @@ class DalekaniumFamilyTest {
     @Test
     void oreIngotsAndToolsAreRegistered() {
         assertNotNull(DWMBlocks.DALEKANIUM_ORE);
+        assertNotNull(DWMBlocks.SILVER_DALEKANIUM_BLOCK);
+        assertNotNull(DWMBlocks.BRONZE_DALEKANIUM_BLOCK);
+        assertEquals(2, DWMBlocks.DALEKANIUM_STORAGE_BLOCKS.size());
+        assertTrue(DWMBlocks.DALEKANIUM_STORAGE_BLOCKS.contains(DWMBlocks.SILVER_DALEKANIUM_BLOCK));
+        assertTrue(DWMBlocks.DALEKANIUM_STORAGE_BLOCKS.contains(DWMBlocks.BRONZE_DALEKANIUM_BLOCK));
         assertNotNull(DWMItems.SILVER_DALEKANIUM_INGOT);
         assertNotNull(DWMItems.BRONZE_DALEKANIUM_INGOT);
         assertNotNull(DWMItems.SILVER_DALEKANIUM_SWORD);
@@ -40,6 +45,12 @@ class DalekaniumFamilyTest {
     @Test
     void oreMatchesIronHardness() {
         assertEquals(3.0F, DWMBlocks.DALEKANIUM_ORE.defaultDestroyTime());
+    }
+
+    @Test
+    void storageBlocksMatchIronBlockHardness() {
+        assertEquals(5.0F, DWMBlocks.SILVER_DALEKANIUM_BLOCK.defaultDestroyTime());
+        assertEquals(5.0F, DWMBlocks.BRONZE_DALEKANIUM_BLOCK.defaultDestroyTime());
     }
 
     @Test

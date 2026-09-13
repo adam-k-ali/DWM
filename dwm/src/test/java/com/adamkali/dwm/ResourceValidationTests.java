@@ -549,6 +549,8 @@ public class ResourceValidationTests {
         assertTrue(Files.isDirectory(itemsDir), "Expected generated items dir at " + itemsDir);
         String[] ids = {
                 "dalekanium_ore",
+                "silver_dalekanium_block",
+                "bronze_dalekanium_block",
                 "silver_dalekanium_ingot",
                 "bronze_dalekanium_ingot",
                 "silver_dalekanium_sword",
