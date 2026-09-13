@@ -1,0 +1,9 @@
+{
+  "model": {
+    "type": "minecraft:special",
+    "base": "dwm:item/radiation_meter",
+    "model": {
+      "type": "dwm:radiation_meter"
+    }
+  }
+}

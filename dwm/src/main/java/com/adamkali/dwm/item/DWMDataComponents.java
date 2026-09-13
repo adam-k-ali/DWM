@@ -1,6 +1,7 @@
 package com.adamkali.dwm.item;
 
 import com.adamkali.dwm.DWMReference;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.core.Registry;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
@@ -24,6 +25,16 @@ public final class DWMDataComponents {
             DataComponentType.<SonicState>builder()
                     .persistent(SonicState.CODEC)
                     .networkSynchronized(SonicState.STREAM_CODEC)
+                    .build()
+    );
+
+    /**
+     * Ephemeral server reading shown by a held radiation meter.
+     */
+    public static final @NonNull DataComponentType<Integer> RADIATION_LEVEL = register(
+            "radiation_level",
+            DataComponentType.<Integer>builder()
+                    .networkSynchronized(ByteBufCodecs.VAR_INT)
                     .build()
     );
 
