@@ -220,6 +220,25 @@ class PaletteSchemaTests(unittest.TestCase):
         self.assertIn("bronze_dalekanium_ingot", by_id)
         self.assertEqual(by_id["bronze_dalekanium_ingot"]["mineral"], "bronze_dalekanium")
 
+        self.assertIn("silver_dalekanium_block", by_id)
+        self.assertEqual(by_id["silver_dalekanium_block"]["archetype"], "block")
+        self.assertEqual(
+            by_id["silver_dalekanium_block"]["template"],
+            "minecraft:block/iron_block.png",
+        )
+        self.assertEqual(by_id["silver_dalekanium_block"]["mineral"], "silver_dalekanium")
+        self.assertNotIn("host", by_id["silver_dalekanium_block"])
+        self.assertNotIn("handle", by_id["silver_dalekanium_block"])
+        self.assertIn("bronze_dalekanium_block", by_id)
+        self.assertEqual(by_id["bronze_dalekanium_block"]["archetype"], "block")
+        self.assertEqual(
+            by_id["bronze_dalekanium_block"]["template"],
+            "minecraft:block/iron_block.png",
+        )
+        self.assertEqual(by_id["bronze_dalekanium_block"]["mineral"], "bronze_dalekanium")
+        self.assertNotIn("host", by_id["bronze_dalekanium_block"])
+        self.assertNotIn("handle", by_id["bronze_dalekanium_block"])
+
         self.assertIn("dalekanium_ore", by_id)
         self.assertEqual(by_id["dalekanium_ore"]["archetype"], "ore")
         self.assertEqual(by_id["dalekanium_ore"]["host"], "vanilla_stone")

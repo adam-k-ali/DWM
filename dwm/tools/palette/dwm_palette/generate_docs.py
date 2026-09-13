@@ -249,7 +249,7 @@ def _export_product(product_id: str, out_path: Path) -> None:
     archetype = product["archetype"]
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    if archetype in ("gem", "crystal", "ingot"):
+    if archetype in ("gem", "crystal", "ingot", "block"):
         mineral = load_palette(palettes_dir / f"{product['mineral']}.json")
         template = load_template_rgba(DWM_DIR, product["template"])
         out = apply_mineral_item_palette(template, palette_hexes(mineral))

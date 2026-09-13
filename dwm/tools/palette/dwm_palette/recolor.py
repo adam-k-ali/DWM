@@ -221,7 +221,7 @@ def apply_mineral_item_palette(
 ) -> np.ndarray:
     """Remap opaque item pixels onto mineral hexes; leave transparent pixels alone.
 
-    Used for gem, crystal, and ingot item archetypes (no host/handle split).
+    Used for gem, crystal, ingot, and block item archetypes (no host/handle split).
     Opaque colours are rank-mapped onto the mineral ramp. Original alpha is
     preserved.
 

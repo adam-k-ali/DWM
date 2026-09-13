@@ -100,7 +100,7 @@ def save_palette_json(palette: dict[str, Any], path: Path) -> None:
 
 
 # Mineral-only item archetypes (no host / handle slot).
-MINERAL_ONLY_ARCHETYPES = frozenset({"gem", "crystal", "ingot"})
+MINERAL_ONLY_ARCHETYPES = frozenset({"gem", "crystal", "ingot", "block"})
 # Tool archetypes: handle wood + mineral metal.
 TOOL_ARCHETYPES = frozenset({"pickaxe", "sword", "shovel", "axe", "hoe"})
 
@@ -108,9 +108,9 @@ TOOL_ARCHETYPES = frozenset({"pickaxe", "sword", "shovel", "axe", "hoe"})
 def load_products(path: Path) -> list[dict[str, Any]]:
     """Load products.json and return the products list.
 
-    Ore products require ``host`` + ``mineral``. Gem, crystal, and ingot products
-    require ``mineral`` only (no host/handle). Pickaxe and sword products require
-    ``handle`` + ``mineral`` (no host).
+    Ore products require ``host`` + ``mineral``. Gem, crystal, ingot, and block
+    products require ``mineral`` only (no host/handle). Pickaxe and sword products
+    require ``handle`` + ``mineral`` (no host).
     """
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
@@ -175,7 +175,7 @@ def load_products(path: Path) -> list[dict[str, Any]]:
         else:
             raise ValueError(
                 f"{path}: products[{i}].archetype {archetype!r} is unsupported "
-                "(expected ore, gem, crystal, ingot, pickaxe, sword, shovel, axe, or hoe)"
+                "(expected ore, gem, crystal, ingot, block, pickaxe, sword, shovel, axe, or hoe)"
             )
         normalized.append(item)
     return normalized
@@ -384,7 +384,7 @@ def default_ore_template_from_products(
 def default_item_template_from_products(
     dwm_root: Path, product_id: str
 ) -> str:
-    """Return an item template id from products.json (gem/crystal/ingot/tool)."""
+    """Return an item template id from products.json (gem/crystal/ingot/block/tool)."""
     products = load_products(dwm_root / "docs" / "palettes" / "products.json")
     product = find_product(products, product_id)
     allowed = MINERAL_ONLY_ARCHETYPES | TOOL_ARCHETYPES
