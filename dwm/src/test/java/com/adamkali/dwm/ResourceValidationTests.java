@@ -411,6 +411,29 @@ public class ResourceValidationTests {
         );
     }
 
+    /**
+     * The handheld meter uses a component-aware special renderer for its live screen.
+     */
+    @Test
+    public void radiationMeterItemModelIsSpecialRenderer() throws Exception {
+        assertSpecialItemRenderer(
+                "radiation_meter",
+                "dwm:item/radiation_meter"
+        );
+
+        BufferedImage body = ImageIO.read(Path.of(
+                "src/client/resources/assets/dwm/textures/entity/radiation_meter.png"
+        ).toFile());
+        assertEquals(64, body.getWidth());
+        assertEquals(64, body.getHeight());
+
+        BufferedImage digits = ImageIO.read(Path.of(
+                "src/client/resources/assets/dwm/textures/entity/radiation_meter_digits.png"
+        ).toFile());
+        assertEquals(64, digits.getWidth());
+        assertEquals(8, digits.getHeight());
+    }
+
     private static void assertSpecialItemRenderer(String id, String expectedParticle) throws Exception {
         Path itemDef = Path.of("src/client/resources/assets/dwm/items/" + id + ".json");
         JSONObject def = readJson(itemDef);
@@ -515,8 +538,7 @@ public class ResourceValidationTests {
     }
 
     /**
-     * Guards against {@code pruneDatagenItemModels} dropping protective suit / meter item defs
-     * (allowlist must include {@code protective_suit} and {@code radiation_meter} substrings).
+     * Guards against {@code pruneDatagenItemModels} dropping protective-suit item defs.
      */
     @Test
     public void generatedProtectiveSuitItemModelsExist() throws Exception {
@@ -527,13 +549,12 @@ public class ResourceValidationTests {
                 "protective_suit_chestplate",
                 "protective_suit_leggings",
                 "protective_suit_boots",
-                "radiation_meter",
         };
         for (String id : ids) {
             Path item = itemsDir.resolve(id + ".json");
             assertTrue(
                     Files.isRegularFile(item) && Files.size(item) > 0,
-                    "Missing generated protective suit / meter item model: " + item
+                    "Missing generated protective-suit item model: " + item
             );
         }
     }

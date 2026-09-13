@@ -135,7 +135,7 @@ public final class ExteriorEnvironmentReadout {
         return fromSample(sampleFacts(exteriorWorld, exteriorPos));
     }
 
-    public static Sample sampleFacts(ServerLevel world, BlockPos exteriorPos) {
+    public static Sample sampleFacts(Level world, BlockPos exteriorPos) {
         BlockPos atmosphere = atmospherePos(world, exteriorPos);
         BlockState state = world.getBlockState(atmosphere);
         boolean waterlogged = isWaterlogged(state);
@@ -205,7 +205,7 @@ public final class ExteriorEnvironmentReadout {
         return DimensionKind.OTHER;
     }
 
-    private static BlockPos atmospherePos(ServerLevel world, BlockPos exteriorPos) {
+    private static BlockPos atmospherePos(Level world, BlockPos exteriorPos) {
         BlockState shell = world.getBlockState(exteriorPos);
         if (shell.is(DWMBlocks.TARDIS_BLOCK)) {
             return exteriorPos.above();

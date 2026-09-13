@@ -259,11 +259,11 @@ fabricApi {
 }
 
 // Fabric ModelProvider auto-emits item models for every BlockItem; hand-maintained items
-// (roundels, sonic, TARDIS, …) live under src/client/resources. Keep only datagen-owned
+// (roundels, sonic, TARDIS, radiation meter, …) live under src/client/resources. Keep only datagen-owned
 // Gallifrey / wood-family / citadel / orange-sand item models in generated
 // (ash covers dark_ash via substring; orange_sand covers cut_/chiseled_/smooth_orange_sandstone;
 // Gallifrey plant IDs lack a shared "gallifrey" prefix so they are listed explicitly;
-// azbantium / protective_suit / radiation_meter / zeiton / ferrite / stattenheim / sonic_setting / circuit / broakir / flutterwing / mewing_dog / time_lord cover those standalone items).
+// azbantium / protective_suit / zeiton / ferrite / stattenheim / sonic_setting / circuit / broakir / flutterwing / mewing_dog / time_lord cover those standalone items).
 tasks.register("pruneDatagenItemModels") {
     group = "fabric"
     description = "Remove generated item models that duplicate hand-maintained client assets"
@@ -284,7 +284,6 @@ tasks.register("pruneDatagenItemModels") {
                     || f.name.contains("saccharine_cane")
                     || f.name.contains("azbantium")
                     || f.name.contains("protective_suit")
-                    || f.name.contains("radiation_meter")
                     || f.name.contains("steel")
                     || f.name.contains("zeiton")
                     || f.name.contains("ferrite")

@@ -145,7 +145,6 @@ public class DWMModelProvider extends FabricModelProvider {
         itemModelGenerator.generateFlatItem(DWMItems.PROTECTIVE_SUIT_CHESTPLATE, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.PROTECTIVE_SUIT_LEGGINGS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.PROTECTIVE_SUIT_BOOTS, ModelTemplates.FLAT_ITEM);
-        itemModelGenerator.generateFlatItem(DWMItems.RADIATION_METER, ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.STATTENHEIM_REMOTE, ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.SONIC_SETTING_SHATTER, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.SONIC_SETTING_PRIME, ModelTemplates.FLAT_ITEM);

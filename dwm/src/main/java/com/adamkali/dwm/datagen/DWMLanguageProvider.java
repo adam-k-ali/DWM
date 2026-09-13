@@ -141,7 +141,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
                 "Skaro biomes expose ambient radiation from low on the Thal Plateau to extreme in the Irradiated Wastes and Drammankin Mire. Read it on the console radiation reader, sonic Scan, or a handheld meter before leaving the TARDIS. A full protective suit blocks ambient damage; leaving Skaro clears exposure with no lingering dose.");
         t.add("dwm.guide.page.radiation_meter.title", "Radiation Meter");
         t.add("dwm.guide.page.radiation_meter.body",
-                "Craft a meter from iron, glass, and redstone. Use it in the air to show the local radiation percentage in the action bar — the same environmental reading the console and sonic report.");
+                "Craft a meter from iron, glass, and redstone, then hold it to read the local radiation percentage directly on its colour-coded screen. It reports the same environmental reading as the console and sonic.");
         t.add("dwm.guide.page.protective_suit.title", "Protective Suit");
         t.add("dwm.guide.page.protective_suit.body",
                 "Craft all four yellow-wool suit pieces (helmet uses a glass visor). Each correctly worn piece reduces ambient exposure; wearing the complete set prevents Skaro radiation damage.");

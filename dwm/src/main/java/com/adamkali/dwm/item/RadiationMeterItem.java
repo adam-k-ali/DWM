@@ -1,57 +1,55 @@
 package com.adamkali.dwm.item;
 
-import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
-import com.adamkali.dwm.world.SkaroDimensions;
-import com.adamkali.dwm.world.radiation.RadiationExposureLogic;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.level.Level;
-import org.jspecify.annotations.NonNull;
+import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Handheld environmental radiation meter. Reports ambient location radiation (not suit-mitigated).
+ * Handheld environmental radiation meter. Its synchronized component drives the item screen.
  */
 public class RadiationMeterItem extends Item {
+    static final int UPDATE_INTERVAL_TICKS = 10;
+
     public RadiationMeterItem(Properties properties) {
         super(properties);
     }
 
     @Override
-    public @NonNull InteractionResult use(
-            @NonNull Level level,
-            @NonNull Player player,
-            @NonNull InteractionHand hand
+    public void inventoryTick(
+            ItemStack stack,
+            ServerLevel level,
+            Entity owner,
+            @Nullable EquipmentSlot slot
     ) {
-        if (level.isClientSide()) {
-            return InteractionResult.SUCCESS;
+        if (!(owner instanceof Player) || (slot != EquipmentSlot.MAINHAND && slot != EquipmentSlot.OFFHAND)) {
+            return;
         }
-        if (!(level instanceof ServerLevel serverLevel)) {
-            return InteractionResult.CONSUME;
+        if (stack.has(DWMDataComponents.RADIATION_LEVEL)
+                && owner.tickCount % UPDATE_INTERVAL_TICKS != 0) {
+            return;
         }
 
-        int percent = meterPercent(serverLevel, player.blockPosition());
-        player.sendOverlayMessage(Component.translatable("dwm.console.radiation", percent));
-        return InteractionResult.SUCCESS;
+        updateReading(stack, RadiationMeterReadout.percent(level, owner.blockPosition()));
     }
 
-    static int meterPercent(ServerLevel level, BlockPos pos) {
-        if (SkaroDimensions.isSkaroWorld(level)) {
-            float ambient = RadiationExposureLogic.ambientForBiome(
-                    level.getBiome(pos).unwrapKey().orElse(null)
-            );
-            return RadiationExposureLogic.meterPercent(ambient);
+    static boolean updateReading(ItemStack stack, int percent) {
+        int clamped = clampReading(percent);
+        if (!shouldUpdate(stack.get(DWMDataComponents.RADIATION_LEVEL), clamped)) {
+            return false;
         }
-        ExteriorEnvironmentReadout.Reading reading = ExteriorEnvironmentReadout.fromSample(
-                ExteriorEnvironmentReadout.sampleFacts(level, pos)
-        );
-        if (reading.noSignal() || ExteriorEnvironmentReadout.isNoSignal(reading.radiation())) {
-            return 0;
-        }
-        return RadiationExposureLogic.meterPercent(reading.radiation());
+        stack.set(DWMDataComponents.RADIATION_LEVEL, clamped);
+        return true;
+    }
+
+    static int clampReading(int percent) {
+        return Math.max(0, Math.min(100, percent));
+    }
+
+    static boolean shouldUpdate(@Nullable Integer current, int next) {
+        return current == null || current != next;
     }
 }

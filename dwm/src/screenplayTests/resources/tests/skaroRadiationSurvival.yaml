@@ -18,11 +18,17 @@ steps:
   - runCommand: "/item replace entity @s weapon.mainhand with dwm:radiation_meter"
   - waitUntil:
       holding: dwm:radiation_meter
+  # Creative + a raised sand pad so chunk load cannot drop the player into a Skaro lake.
+  - runCommand: "/gamemode creative"
   - runCommand: "/execute in dwm:skaro run tp @s 0 128 0"
-  - waitTicks: 40
-  - useItem: air
-  - waitUntil:
-      overlay: "Radiation:"
   - waitTicks: 80
+  - runCommand: "/fill -4 127 -4 4 127 4 minecraft:sand"
+  - runCommand: "/fill -4 128 -4 4 132 4 minecraft:air"
+  - runCommand: "/tp @s 0 128 0"
+  - lookAt:
+      yaw: 0
+      pitch: 12
+  - runCommand: "/gamemode survival"
+  - waitTicks: 40
   - captureScreenshot:
       name: skaro-radiation-suited
