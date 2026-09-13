@@ -23,6 +23,18 @@ public class DWMItemTags {
             Registries.ITEM,
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "dalekanium_ores")
     );
+    public static final TagKey<Item> DALEKANIUM_ARCHITECTURE = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "dalekanium_architecture")
+    );
+    public static final TagKey<Item> SILVER_DALEKANIUM_ARCHITECTURE = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "silver_dalekanium_architecture")
+    );
+    public static final TagKey<Item> BRONZE_DALEKANIUM_ARCHITECTURE = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "bronze_dalekanium_architecture")
+    );
     public static final TagKey<Item> REPAIRS_AZBANTIUM_EQUIPMENT = TagKey.create(
             Registries.ITEM,
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "repairs_azbantium_equipment")

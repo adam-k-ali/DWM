@@ -65,6 +65,9 @@ public class DWMLootTableProvider extends FabricBlockLootSubProvider {
         dropSelf(DWMBlocks.AZBANTIUM_BLOCK);
         add(DWMBlocks.ZEITON_ORE, createOreDrop(DWMBlocks.ZEITON_ORE, DWMItems.ZEITON_CRYSTALS));
         dropSelf(DWMBlocks.DALEKANIUM_ORE);
+        for (Block block : DWMBlocks.DALEKANIUM_ARCHITECTURE) {
+            dropSelf(block);
+        }
 
         add(DWMBlocks.GALLIFREY_COAL_ORE, createOreDrop(DWMBlocks.GALLIFREY_COAL_ORE, Items.COAL));
         add(DWMBlocks.GALLIFREY_IRON_ORE, createOreDrop(DWMBlocks.GALLIFREY_IRON_ORE, Items.RAW_IRON));

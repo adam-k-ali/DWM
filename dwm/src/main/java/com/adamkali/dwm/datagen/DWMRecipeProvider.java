@@ -532,6 +532,17 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         DWMItems.BRONZE_DALEKANIUM_AXE,
                         DWMItems.BRONZE_DALEKANIUM_HOE
                 );
+
+                generateDalekaniumPanelRecipes(
+                        DWMItems.SILVER_DALEKANIUM_INGOT,
+                        DWMBlocks.SILVER_DALEKANIUM_PANEL,
+                        DWMBlocks.SILVER_DALEKANIUM_RIVETED_WALL
+                );
+                generateDalekaniumPanelRecipes(
+                        DWMItems.BRONZE_DALEKANIUM_INGOT,
+                        DWMBlocks.BRONZE_DALEKANIUM_PANEL,
+                        DWMBlocks.BRONZE_DALEKANIUM_RIVETED_WALL
+                );
             }
 
             private void generateDalekaniumToolRecipes(
@@ -582,6 +593,21 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         .pattern(" S")
                         .unlockedBy(getHasName(ingot), has(ingot))
                         .save(output);
+            }
+
+            private void generateDalekaniumPanelRecipes(
+                    Item ingot,
+                    net.minecraft.world.level.block.Block panel,
+                    net.minecraft.world.level.block.Block rivetedWall
+            ) {
+                shaped(RecipeCategory.BUILDING_BLOCKS, panel, 8)
+                        .define('#', ingot)
+                        .pattern("##")
+                        .pattern("##")
+                        .unlockedBy(getHasName(ingot), has(ingot))
+                        .save(output);
+                stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, rivetedWall, panel);
+                stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, panel, rivetedWall);
             }
 
             private void generateZeitonRecipes() {

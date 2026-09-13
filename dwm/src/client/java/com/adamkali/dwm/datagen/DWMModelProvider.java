@@ -84,6 +84,9 @@ public class DWMModelProvider extends FabricModelProvider {
         registerCubeAll(blockStateModelGenerator, DWMBlocks.AZBANTIUM_BLOCK);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.ZEITON_ORE);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.DALEKANIUM_ORE);
+        for (Block block : DWMBlocks.DALEKANIUM_ARCHITECTURE) {
+            registerCubeAll(blockStateModelGenerator, block);
+        }
 
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_COAL_ORE);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_IRON_ORE);

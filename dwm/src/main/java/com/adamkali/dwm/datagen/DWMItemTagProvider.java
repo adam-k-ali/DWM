@@ -35,6 +35,9 @@ public class DWMItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         copy(DWMBlockTags.AZBANTIUM_ORES, DWMItemTags.AZBANTIUM_ORES);
         copy(DWMBlockTags.ZEITON_ORES, DWMItemTags.ZEITON_ORES);
         copy(DWMBlockTags.DALEKANIUM_ORES, DWMItemTags.DALEKANIUM_ORES);
+        copy(DWMBlockTags.DALEKANIUM_ARCHITECTURE, DWMItemTags.DALEKANIUM_ARCHITECTURE);
+        copy(DWMBlockTags.SILVER_DALEKANIUM_ARCHITECTURE, DWMItemTags.SILVER_DALEKANIUM_ARCHITECTURE);
+        copy(DWMBlockTags.BRONZE_DALEKANIUM_ARCHITECTURE, DWMItemTags.BRONZE_DALEKANIUM_ARCHITECTURE);
         copy(DWMBlockTags.COAL_ORES, ItemTags.COAL_ORES);
         copy(BlockTags.IRON_ORES, ItemTags.IRON_ORES);
         copy(BlockTags.GOLD_ORES, ItemTags.GOLD_ORES);
