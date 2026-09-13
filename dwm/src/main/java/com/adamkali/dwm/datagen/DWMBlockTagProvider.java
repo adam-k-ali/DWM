@@ -99,6 +99,8 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(key(DWMBlocks.AZBANTIUM_BLOCK))
                 .add(key(DWMBlocks.ZEITON_ORE))
                 .add(key(DWMBlocks.DALEKANIUM_ORE))
+                .add(key(DWMBlocks.SILVER_DALEKANIUM_BLOCK))
+                .add(key(DWMBlocks.BRONZE_DALEKANIUM_BLOCK))
                 .add(key(DWMBlocks.GALLIFREY_COAL_ORE))
                 .add(key(DWMBlocks.GALLIFREY_IRON_ORE))
                 .add(key(DWMBlocks.GALLIFREY_GOLD_ORE))
@@ -114,11 +116,17 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(key(DWMBlocks.GALLIFREY_GOLD_ORE))
                 .add(key(DWMBlocks.GALLIFREY_DIAMOND_ORE))
                 .add(key(DWMBlocks.ZEITON_ORE))
-                .add(key(DWMBlocks.DALEKANIUM_ORE));
+                .add(key(DWMBlocks.DALEKANIUM_ORE))
+                .add(key(DWMBlocks.SILVER_DALEKANIUM_BLOCK))
+                .add(key(DWMBlocks.BRONZE_DALEKANIUM_BLOCK));
 
         builder(BlockTags.NEEDS_DIAMOND_TOOL)
                 .add(key(DWMBlocks.AZBANTIUM_ORE))
                 .add(key(DWMBlocks.AZBANTIUM_BLOCK));
+
+        builder(BlockTags.BEACON_BASE_BLOCKS)
+                .add(key(DWMBlocks.SILVER_DALEKANIUM_BLOCK))
+                .add(key(DWMBlocks.BRONZE_DALEKANIUM_BLOCK));
 
         builder(DWMBlockTags.COAL_ORES)
                 .add(key(DWMBlocks.GALLIFREY_COAL_ORE));

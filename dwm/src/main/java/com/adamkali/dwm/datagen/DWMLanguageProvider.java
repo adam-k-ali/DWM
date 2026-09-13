@@ -456,6 +456,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
 
     private static void addDalekaniumSet(TranslationBuilder t) {
         addBlockAndItem(t, DWMBlocks.DALEKANIUM_ORE, "Dalekanium Ore");
+        addBlockAndItem(t, DWMBlocks.SILVER_DALEKANIUM_BLOCK, "Block of Silver Dalekanium");
+        addBlockAndItem(t, DWMBlocks.BRONZE_DALEKANIUM_BLOCK, "Block of Bronze Dalekanium");
         addItem(t, DWMItems.SILVER_DALEKANIUM_INGOT, "Silver Dalekanium Ingot");
         addItem(t, DWMItems.BRONZE_DALEKANIUM_INGOT, "Bronze Dalekanium Ingot");
         addItem(t, DWMItems.SILVER_DALEKANIUM_SWORD, "Silver Dalekanium Sword");

@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CookingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.block.Block;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -532,6 +533,30 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         DWMItems.BRONZE_DALEKANIUM_AXE,
                         DWMItems.BRONZE_DALEKANIUM_HOE
                 );
+
+                generateDalekaniumStorageRecipes(
+                        DWMItems.SILVER_DALEKANIUM_INGOT,
+                        DWMBlocks.SILVER_DALEKANIUM_BLOCK
+                );
+                generateDalekaniumStorageRecipes(
+                        DWMItems.BRONZE_DALEKANIUM_INGOT,
+                        DWMBlocks.BRONZE_DALEKANIUM_BLOCK
+                );
+            }
+
+            private void generateDalekaniumStorageRecipes(Item ingot, Block block) {
+                shaped(RecipeCategory.BUILDING_BLOCKS, block)
+                        .define('#', ingot)
+                        .pattern("###")
+                        .pattern("###")
+                        .pattern("###")
+                        .unlockedBy(getHasName(ingot), has(ingot))
+                        .save(output);
+
+                shapeless(RecipeCategory.MISC, ingot, 9)
+                        .requires(block)
+                        .unlockedBy(getHasName(block), has(block))
+                        .save(output, DWMReference.MOD_ID + ":" + getItemName(ingot) + "_from_" + getItemName(block));
             }
 
             private void generateDalekaniumToolRecipes(

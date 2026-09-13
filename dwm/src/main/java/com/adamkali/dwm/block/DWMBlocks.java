@@ -294,6 +294,16 @@ public class DWMBlocks {
     public static final Block ZEITON_ORE = register(Block::new, DWMBlockSettings.gallifreyVanillaOre(), "zeiton_ore");
 
     public static final Block DALEKANIUM_ORE = register(Block::new, DWMBlockSettings.dalekaniumOre(), "dalekanium_ore");
+    public static final Block SILVER_DALEKANIUM_BLOCK = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumStorageBlock(MapColor.COLOR_LIGHT_GRAY),
+            "silver_dalekanium_block"
+    );
+    public static final Block BRONZE_DALEKANIUM_BLOCK = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumStorageBlock(MapColor.COLOR_ORANGE),
+            "bronze_dalekanium_block"
+    );
 
     public static final Block GALLIFREY_COAL_ORE = register(Block::new, DWMBlockSettings.gallifreyVanillaOre(), "gallifrey_coal_ore");
     public static final Block GALLIFREY_IRON_ORE = register(Block::new, DWMBlockSettings.gallifreyVanillaOre(), "gallifrey_iron_ore");
@@ -603,6 +613,11 @@ public class DWMBlocks {
             AZBANTIUM_BLOCK
     );
 
+    public static final List<Block> DALEKANIUM_STORAGE_BLOCKS = List.of(
+            SILVER_DALEKANIUM_BLOCK,
+            BRONZE_DALEKANIUM_BLOCK
+    );
+
     /** Gallifrey-stone-textured ores that drop vanilla coal / raw iron / raw gold / diamond. */
     public static final List<Block> GALLIFREY_VANILLA_ORES = List.of(
             GALLIFREY_COAL_ORE,
@@ -788,6 +803,8 @@ public class DWMBlocks {
             }
 
             content.accept(AZBANTIUM_BLOCK);
+            content.accept(SILVER_DALEKANIUM_BLOCK);
+            content.accept(BRONZE_DALEKANIUM_BLOCK);
 
             for (RegisteredWoodFamily family : WOOD_FAMILIES) {
                 for (Block block : family.buildingBlocks()) {

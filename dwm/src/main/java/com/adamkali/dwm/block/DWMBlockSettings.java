@@ -165,6 +165,16 @@ public class DWMBlockSettings {
                 .sound(SoundType.STONE);
     }
 
+    /** Compact Dalekanium storage cubes (iron-block hardness; avoids shared setId mutation). */
+    public static BlockBehaviour.Properties dalekaniumStorageBlock(MapColor mapColor) {
+        return BlockBehaviour.Properties.of()
+                .mapColor(mapColor)
+                .instrument(NoteBlockInstrument.IRON_XYLOPHONE)
+                .requiresCorrectToolForDrops()
+                .strength(5.0F, 6.0F)
+                .sound(SoundType.METAL);
+    }
+
     public static BlockBehaviour.Properties ashLog(MapColor topMapColor, MapColor sideMapColor) {
         return BlockBehaviour.Properties.of()
                 .mapColor(state -> state.hasProperty(net.minecraft.world.level.block.RotatedPillarBlock.AXIS)

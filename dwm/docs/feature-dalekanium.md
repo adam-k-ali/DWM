@@ -11,9 +11,11 @@ Give Skaro a signature metal that players mine, smelt, and alloy: silver Dalekan
 - Alloy silver Dalekanium with copper to make bronze Dalekanium ingots.
 - Craft silver and bronze Dalekanium tool sets (sword, pickaxe, axe, shovel, hoe).
 - Repair each set with its matching ingot.
+- Compact nine matching ingots into a storage block, and unpack a block back into nine ingots.
 
 ## Implemented Now
-- **Block:** Dalekanium Ore (`dwm:dalekanium_ore`) — hardness 3.0, iron pickaxe required, drops itself
+- **Blocks:** Dalekanium Ore (`dwm:dalekanium_ore`) — hardness 3.0, iron pickaxe required, drops itself
+- **Storage:** Block of Silver Dalekanium (`dwm:silver_dalekanium_block`) and Block of Bronze Dalekanium (`dwm:bronze_dalekanium_block`) — hardness 5.0 / resistance 6.0, iron pickaxe required, drop themselves, valid beacon bases
 - **Items:** Silver Dalekanium Ingot, Bronze Dalekanium Ingot
 - **Tools:** silver and bronze sword, pickaxe, axe, shovel, hoe
 - **Tier:** iron harvest level (`INCORRECT_FOR_IRON_TOOL`)
@@ -27,10 +29,11 @@ Give Skaro a signature metal that players mine, smelt, and alloy: silver Dalekan
 2. Smelt or blast the ore into a silver Dalekanium ingot.
 3. Combine one silver Dalekanium ingot with one copper ingot for a bronze Dalekanium ingot.
 4. Craft tools with the matching ingot and sticks using the same shaped patterns as iron/diamond tools.
-5. Both tool sets mine the same blocks as iron and steel, but last longer and mine/hit slightly harder; bronze is a small step above silver.
+5. Arrange nine matching ingots in a square for a storage block; place the block in a crafting grid to unpack nine ingots.
+6. Both tool sets mine the same blocks as iron and steel, but last longer and mine/hit slightly harder; bronze is a small step above silver.
 
 ## Known Constraints
-- No Dalekanium armor, storage block, raw ore, or architecture family in this feature (Dalek walls/doors remain DWM-065).
+- No Dalekanium armor, raw ore, or architecture family in this feature (Dalek walls/doors remain DWM-065).
 - No deepslate variant; ore does not generate on Gallifrey or in the Overworld.
 - Charcoal-style substitutes do not apply: bronze specifically requires `minecraft:copper_ingot`.
 
