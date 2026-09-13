@@ -12,7 +12,7 @@ The GUI remaps:
 - **Gem** mode — diamond item layout (`products.json` → `minecraft:item/diamond.png`) using the **mineral** slot only; alpha outside the silhouette is preserved.
 - **Crystal** mode — quartz item layout (`products.json` → `minecraft:item/quartz.png`) using the **mineral** slot only; alpha outside the silhouette is preserved.
 - **Ingot** mode — iron-ingot layout (`products.json` → `minecraft:item/iron_ingot.png`) using the **mineral** slot only; alpha preserved (same remapper as gem/crystal).
-- **Cube** products (headless `--export-product` only) — opaque block faces (`minecraft:block/quartz_block_bottom.png` for Dalekanium panels; this is the vanilla smooth quartz cube face) remapped with mineral **rank** mapping so low-contrast quartz noise still spans the four mineral steps.
+- **Cube** products (headless `--export-product` only) — opaque block faces (`minecraft:block/quartz_block_bottom.png` for Dalekanium panels; this is the vanilla smooth quartz cube face) retinted to the mineral **mid** while keeping the template's own lightness grain. Do not rank-map cubes onto the four mineral steps — that item-sprite contrast (~0.46 ΔL) makes smooth quartz (~0.02 ΔL) look striped.
 - **Pickaxe** / **Sword** / **Shovel** / **Axe** / **Hoe** modes — iron tool layouts using **handle** + **metal** (mineral) slots; handle pixels are classified against vanilla `stick.png` colours (frozen at load), metal pixels take the mineral ramp; alpha preserved.
 
 Products (`dwm/docs/palettes/products.json`) choose archetype, template, and which palette is host / handle / mineral; a palette file itself is not typed as host or family. Gem/crystal/ingot/cube products omit `host` and `handle`. Tool products (pickaxe/sword/shovel/axe/hoe) use `handle` + `mineral` (no `host`).
@@ -59,6 +59,7 @@ poetry -C dwm/tools/palette run generate-family-palette-docs --gui
 - The palette GUI needs Tk (`import tkinter`). On Homebrew Python 3.14 install `brew install python-tk@3.14` if `_tkinter` is missing.
 - Python version may differ from Java 25; the venv is independent of the Gradle toolchain.
 - Nearest-luminance vein mapping would crush dark source greys onto mineral shadow for bright minerals — ore remapping uses **rank** mapping instead.
+- Cube faces must keep the template's lightness span. Rank-mapping quartz's three close greys onto mineral shadow/mid/hi stretches contrast ~20×.
 - Zeiton/Azbantium must not duplicate Gallifrey host hexes; ores reference `gallifrey_stone` via `products.json`.
 - Coal-ore layouts have low vein contrast; prefer emerald ore as the mineral product template.
 - Steel tool products need both `tool_handle` and `steel` palette JSON files present under `dwm/docs/palettes/`.

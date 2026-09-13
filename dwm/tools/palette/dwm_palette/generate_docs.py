@@ -238,6 +238,7 @@ def _resolve_item_template(
 def _export_product(product_id: str, out_path: Path) -> None:
     """Headless export of a product texture to *out_path*."""
     from dwm_palette.recolor import (
+        apply_cube_palette,
         apply_mineral_item_palette,
         apply_ore_palettes,
         apply_tool_item_palette,
@@ -260,14 +261,14 @@ def _export_product(product_id: str, out_path: Path) -> None:
 
     if archetype == "cube":
         mineral = load_palette(palettes_dir / f"{product['mineral']}.json")
-        template = load_template_rgba(DWM_DIR, product["template"])
-        # Rank-map like other mineral products so low-contrast quartz noise
-        # still spans the four mineral steps (nearest-luma crush is a single grey).
-        out = apply_mineral_item_palette(template, palette_hexes(mineral))
+        template = load_template_rgb(DWM_DIR, product["template"])
+        # Keep the template's own lightness grain (smooth quartz is ~0.02 ΔL).
+        # Rank-mapping onto the mineral item ramp (~0.46 ΔL) is far too contrasty.
+        out = apply_cube_palette(template, _role_hex(mineral, "mid"))
         from PIL import Image
         import numpy as np
 
-        Image.fromarray(np.ascontiguousarray(out[:, :, :3]), mode="RGB").save(out_path)
+        Image.fromarray(np.ascontiguousarray(out), mode="RGB").save(out_path)
         return
 
     if archetype in ("pickaxe", "sword", "shovel", "axe", "hoe"):
@@ -308,13 +309,17 @@ def _export_product(product_id: str, out_path: Path) -> None:
     raise ValueError(f"unsupported product archetype {archetype!r}")
 
 
+def _role_hex(palette: dict[str, Any], role: str) -> str:
+    for entry in palette["roles"]:
+        if entry["role"] == role:
+            return str(entry["hex"])
+    raise ValueError(f"palette missing role {role!r}")
+
+
 def _role_rgb(palette: dict[str, Any], role: str) -> tuple[int, int, int]:
     from dwm_palette.recolor import hex_to_rgb
 
-    for entry in palette["roles"]:
-        if entry["role"] == role:
-            return hex_to_rgb(entry["hex"])
-    raise ValueError(f"palette missing role {role!r}")
+    return hex_to_rgb(_role_hex(palette, role))
 
 
 def _stamp_corner_rivets(in_path: Path, palette_path: Path, out_path: Path) -> None:
