@@ -588,6 +588,12 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.command.tardis.claim.already_owns_another", "You already own a TARDIS");
         t.add("dwm.command.tardis.claim.unknown", "Unknown TARDIS: %s");
         t.add("dwm.command.tardis.claim.not_inside", "Stand inside a TARDIS interior to claim it, or pass a UUID");
+        t.add("dwm.command.blueprint.success", "Placed blueprint '%s' (%s blocks)");
+        t.add("dwm.command.blueprint.missing", "Blueprint not found: %s");
+        t.add("dwm.command.blueprint.invalid", "Invalid blueprint JSON: %s");
+        t.add("dwm.command.blueprint.unsafe_name", "Unsafe blueprint name: %s");
+        t.add("dwm.command.blueprint.unknown_block", "Unknown block in blueprint: %s");
+        t.add("dwm.command.blueprint.too_large", "Blueprint is too large (%s voxels); maximum is 250000");
         t.add("dwm.gui.waypoint.title", "Waypoint Selector");
         t.add("dwm.gui.waypoint.save", "Save");
         t.add("dwm.gui.waypoint.rename", "Rename");

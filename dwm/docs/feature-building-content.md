@@ -39,3 +39,4 @@ Enable players to quickly build coherent Doctor Who-inspired interiors and exter
 ## Future Opportunities
 - Add builder starter kits and pattern guides.
 - Expand family variants while maintaining naming/material consistency.
+- Ops can already paste geometric layouts with [Blueprints](./feature-blueprints.md) (`/blueprint place`); a survival-facing tool on top of that format is still open.
