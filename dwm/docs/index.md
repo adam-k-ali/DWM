@@ -15,6 +15,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 - [Gallifrey Dimension](./feature-gallifrey-dimension.md)
 - [Azbantium](./feature-azbantium.md)
 - [Steel](./feature-steel.md)
+- [Dalekanium](./feature-dalekanium.md)
 - [Zeiton](./feature-zeiton.md)
 - [Dalek](./feature-dalek.md)
 

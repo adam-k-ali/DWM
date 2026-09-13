@@ -1,0 +1,8 @@
+{
+  "family_id": "vanilla_stone",
+  "display_name": "Vanilla Stone",
+  "map_color": "STONE",
+  "notes": "Overworld stone host for Skaro ores. Seed is the mid grey of vanilla stone.png so emerald-ore remaps keep a vanilla host.",
+  "seed": "#7F7F7F",
+  "profile": "stone"
+}

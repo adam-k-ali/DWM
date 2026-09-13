@@ -293,6 +293,8 @@ public class DWMBlocks {
 
     public static final Block ZEITON_ORE = register(Block::new, DWMBlockSettings.gallifreyVanillaOre(), "zeiton_ore");
 
+    public static final Block DALEKANIUM_ORE = register(Block::new, DWMBlockSettings.dalekaniumOre(), "dalekanium_ore");
+
     public static final Block GALLIFREY_COAL_ORE = register(Block::new, DWMBlockSettings.gallifreyVanillaOre(), "gallifrey_coal_ore");
     public static final Block GALLIFREY_IRON_ORE = register(Block::new, DWMBlockSettings.gallifreyVanillaOre(), "gallifrey_iron_ore");
     public static final Block GALLIFREY_GOLD_ORE = register(Block::new, DWMBlockSettings.gallifreyVanillaOre(), "gallifrey_gold_ore");
@@ -808,6 +810,7 @@ public class DWMBlocks {
             }
             content.accept(AZBANTIUM_ORE);
             content.accept(ZEITON_ORE);
+            content.accept(DALEKANIUM_ORE);
             for (Block ore : GALLIFREY_VANILLA_ORES) {
                 content.accept(ore);
             }

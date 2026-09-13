@@ -97,6 +97,15 @@ public final class DWMPlacedFeatureBootstrap {
                 HeightRangePlacement.triangle(VerticalAnchor.absolute(0), VerticalAnchor.absolute(48)),
                 BiomeFilter.biome()
         );
+        PlacementUtils.register(
+                registerable,
+                DWMPlacedFeatures.DALEKANIUM_ORE,
+                configured.getOrThrow(DWMConfiguredFeatures.DALEKANIUM_ORE),
+                CountPlacement.of(10),
+                InSquarePlacement.spread(),
+                HeightRangePlacement.triangle(VerticalAnchor.absolute(-24), VerticalAnchor.absolute(56)),
+                BiomeFilter.biome()
+        );
 
         PlacementUtils.register(
                 registerable,

@@ -34,6 +34,7 @@ public class DWMItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         copy(com.adamkali.dwm.block.DWMBlockTags.GALLIFREY_PLANTS, com.adamkali.dwm.item.DWMItemTags.GALLIFREY_PLANTS);
         copy(DWMBlockTags.AZBANTIUM_ORES, DWMItemTags.AZBANTIUM_ORES);
         copy(DWMBlockTags.ZEITON_ORES, DWMItemTags.ZEITON_ORES);
+        copy(DWMBlockTags.DALEKANIUM_ORES, DWMItemTags.DALEKANIUM_ORES);
         copy(DWMBlockTags.COAL_ORES, ItemTags.COAL_ORES);
         copy(BlockTags.IRON_ORES, ItemTags.IRON_ORES);
         copy(BlockTags.GOLD_ORES, ItemTags.GOLD_ORES);
@@ -45,22 +46,36 @@ public class DWMItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
                 .add(DWMItems.AZBANTIUM.builtInRegistryHolder().key());
         builder(DWMItemTags.REPAIRS_STEEL_EQUIPMENT)
                 .add(DWMItems.STEEL_INGOT.builtInRegistryHolder().key());
+        builder(DWMItemTags.REPAIRS_SILVER_DALEKANIUM_EQUIPMENT)
+                .add(DWMItems.SILVER_DALEKANIUM_INGOT.builtInRegistryHolder().key());
+        builder(DWMItemTags.REPAIRS_BRONZE_DALEKANIUM_EQUIPMENT)
+                .add(DWMItems.BRONZE_DALEKANIUM_INGOT.builtInRegistryHolder().key());
 
         builder(ItemTags.SWORDS)
                 .add(DWMItems.AZBANTIUM_SWORD.builtInRegistryHolder().key())
-                .add(DWMItems.STEEL_SWORD.builtInRegistryHolder().key());
+                .add(DWMItems.STEEL_SWORD.builtInRegistryHolder().key())
+                .add(DWMItems.SILVER_DALEKANIUM_SWORD.builtInRegistryHolder().key())
+                .add(DWMItems.BRONZE_DALEKANIUM_SWORD.builtInRegistryHolder().key());
         builder(ItemTags.SHOVELS)
                 .add(DWMItems.AZBANTIUM_SHOVEL.builtInRegistryHolder().key())
-                .add(DWMItems.STEEL_SHOVEL.builtInRegistryHolder().key());
+                .add(DWMItems.STEEL_SHOVEL.builtInRegistryHolder().key())
+                .add(DWMItems.SILVER_DALEKANIUM_SHOVEL.builtInRegistryHolder().key())
+                .add(DWMItems.BRONZE_DALEKANIUM_SHOVEL.builtInRegistryHolder().key());
         builder(ItemTags.PICKAXES)
                 .add(DWMItems.AZBANTIUM_PICKAXE.builtInRegistryHolder().key())
-                .add(DWMItems.STEEL_PICKAXE.builtInRegistryHolder().key());
+                .add(DWMItems.STEEL_PICKAXE.builtInRegistryHolder().key())
+                .add(DWMItems.SILVER_DALEKANIUM_PICKAXE.builtInRegistryHolder().key())
+                .add(DWMItems.BRONZE_DALEKANIUM_PICKAXE.builtInRegistryHolder().key());
         builder(ItemTags.AXES)
                 .add(DWMItems.AZBANTIUM_AXE.builtInRegistryHolder().key())
-                .add(DWMItems.STEEL_AXE.builtInRegistryHolder().key());
+                .add(DWMItems.STEEL_AXE.builtInRegistryHolder().key())
+                .add(DWMItems.SILVER_DALEKANIUM_AXE.builtInRegistryHolder().key())
+                .add(DWMItems.BRONZE_DALEKANIUM_AXE.builtInRegistryHolder().key());
         builder(ItemTags.HOES)
                 .add(DWMItems.AZBANTIUM_HOE.builtInRegistryHolder().key())
-                .add(DWMItems.STEEL_HOE.builtInRegistryHolder().key());
+                .add(DWMItems.STEEL_HOE.builtInRegistryHolder().key())
+                .add(DWMItems.SILVER_DALEKANIUM_HOE.builtInRegistryHolder().key())
+                .add(DWMItems.BRONZE_DALEKANIUM_HOE.builtInRegistryHolder().key());
         builder(ItemTags.HEAD_ARMOR).add(DWMItems.AZBANTIUM_HELMET.builtInRegistryHolder().key());
         builder(ItemTags.CHEST_ARMOR).add(DWMItems.AZBANTIUM_CHESTPLATE.builtInRegistryHolder().key());
         builder(ItemTags.LEG_ARMOR).add(DWMItems.AZBANTIUM_LEGGINGS.builtInRegistryHolder().key());
