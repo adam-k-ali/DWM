@@ -26,6 +26,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addGallifreyPlants(translationBuilder);
         addAzbantiumSet(translationBuilder);
         addSteelSet(translationBuilder);
+        addDalekaniumSet(translationBuilder);
         addZeitonSet(translationBuilder);
         addGallifreyVanillaOres(translationBuilder);
         for (var family : DWMBlocks.WOOD_FAMILIES) {
@@ -453,6 +454,22 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItem(t, DWMItems.STEEL_HOE, "Steel Hoe");
     }
 
+    private static void addDalekaniumSet(TranslationBuilder t) {
+        addBlockAndItem(t, DWMBlocks.DALEKANIUM_ORE, "Dalekanium Ore");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_INGOT, "Silver Dalekanium Ingot");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_INGOT, "Bronze Dalekanium Ingot");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_SWORD, "Silver Dalekanium Sword");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_SHOVEL, "Silver Dalekanium Shovel");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_PICKAXE, "Silver Dalekanium Pickaxe");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_AXE, "Silver Dalekanium Axe");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_HOE, "Silver Dalekanium Hoe");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_SWORD, "Bronze Dalekanium Sword");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_SHOVEL, "Bronze Dalekanium Shovel");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_PICKAXE, "Bronze Dalekanium Pickaxe");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_AXE, "Bronze Dalekanium Axe");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_HOE, "Bronze Dalekanium Hoe");
+    }
+
     private static void addZeitonSet(TranslationBuilder t) {
         addBlockAndItem(t, DWMBlocks.ZEITON_ORE, "Zeiton Ore");
         addItem(t, DWMItems.ZEITON_CRYSTALS, "Zeiton Crystals");
@@ -488,8 +505,11 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("tag.item.dwm.gallifrey_plants", "Gallifrey Plants");
         t.add("tag.item.dwm.azbantium_ores", "Azbantium Ores");
         t.add("tag.item.dwm.zeiton_ores", "Zeiton Ores");
+        t.add("tag.item.dwm.dalekanium_ores", "Dalekanium Ores");
         t.add("tag.item.dwm.repairs_azbantium_equipment", "Azbantium Equipment Repair Materials");
         t.add("tag.item.dwm.repairs_steel_equipment", "Steel Equipment Repair Materials");
+        t.add("tag.item.dwm.repairs_silver_dalekanium_equipment", "Silver Dalekanium Equipment Repair Materials");
+        t.add("tag.item.dwm.repairs_bronze_dalekanium_equipment", "Bronze Dalekanium Equipment Repair Materials");
         t.add("biome.dwm.gallifrey_wastes", "Gallifrey Wastes");
         t.add("biome.dwm.gallifrey_badlands", "Gallifrey Badlands");
         t.add("biome.dwm.skaro_irradiated_wastes", "Irradiated Wastes");

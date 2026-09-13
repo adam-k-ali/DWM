@@ -214,6 +214,37 @@ class PaletteSchemaTests(unittest.TestCase):
         self.assertEqual(by_id["steel_hoe"]["mineral"], "steel")
         self.assertNotIn("host", by_id["steel_hoe"])
 
+        self.assertIn("silver_dalekanium_ingot", by_id)
+        self.assertEqual(by_id["silver_dalekanium_ingot"]["archetype"], "ingot")
+        self.assertEqual(by_id["silver_dalekanium_ingot"]["mineral"], "silver_dalekanium")
+        self.assertIn("bronze_dalekanium_ingot", by_id)
+        self.assertEqual(by_id["bronze_dalekanium_ingot"]["mineral"], "bronze_dalekanium")
+
+        self.assertIn("dalekanium_ore", by_id)
+        self.assertEqual(by_id["dalekanium_ore"]["archetype"], "ore")
+        self.assertEqual(by_id["dalekanium_ore"]["host"], "vanilla_stone")
+        self.assertEqual(by_id["dalekanium_ore"]["mineral"], "silver_dalekanium")
+        self.assertEqual(
+            by_id["dalekanium_ore"]["template"], "minecraft:block/emerald_ore.png"
+        )
+
+        for alloy in ("silver_dalekanium", "bronze_dalekanium"):
+            for tool, template in (
+                ("pickaxe", "iron_pickaxe"),
+                ("sword", "iron_sword"),
+                ("shovel", "iron_shovel"),
+                ("axe", "iron_axe"),
+                ("hoe", "iron_hoe"),
+            ):
+                product_id = f"{alloy}_{tool}"
+                self.assertIn(product_id, by_id)
+                self.assertEqual(by_id[product_id]["archetype"], tool)
+                self.assertEqual(by_id[product_id]["handle"], "tool_handle")
+                self.assertEqual(by_id[product_id]["mineral"], alloy)
+                self.assertEqual(
+                    by_id[product_id]["template"], f"minecraft:item/{template}.png"
+                )
+
 class ApplyHostPaletteTests(unittest.TestCase):
     def test_synthetic_greys_map_onto_four_host_hexes(self) -> None:
         template = np.array(

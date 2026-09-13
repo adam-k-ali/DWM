@@ -155,6 +155,16 @@ public class DWMBlockSettings {
                 .sound(SoundType.STONE);
     }
 
+    /** Skaro dalekanium ore in vanilla stone (iron hardness; avoids shared setId mutation). */
+    public static BlockBehaviour.Properties dalekaniumOre() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_LIGHT_GRAY)
+                .instrument(NoteBlockInstrument.BASEDRUM)
+                .requiresCorrectToolForDrops()
+                .strength(3.0F)
+                .sound(SoundType.STONE);
+    }
+
     public static BlockBehaviour.Properties ashLog(MapColor topMapColor, MapColor sideMapColor) {
         return BlockBehaviour.Properties.of()
                 .mapColor(state -> state.hasProperty(net.minecraft.world.level.block.RotatedPillarBlock.AXIS)

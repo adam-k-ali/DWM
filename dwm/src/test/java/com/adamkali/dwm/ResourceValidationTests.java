@@ -540,6 +540,38 @@ public class ResourceValidationTests {
     }
 
     /**
+     * Guards against {@code pruneDatagenItemModels} dropping dalekanium item defs
+     * (allowlist must include {@code dalek} substring).
+     */
+    @Test
+    public void generatedDalekaniumItemModelsExist() throws Exception {
+        Path itemsDir = Path.of("src/main/generated/assets/dwm/items");
+        assertTrue(Files.isDirectory(itemsDir), "Expected generated items dir at " + itemsDir);
+        String[] ids = {
+                "dalekanium_ore",
+                "silver_dalekanium_ingot",
+                "bronze_dalekanium_ingot",
+                "silver_dalekanium_sword",
+                "silver_dalekanium_shovel",
+                "silver_dalekanium_pickaxe",
+                "silver_dalekanium_axe",
+                "silver_dalekanium_hoe",
+                "bronze_dalekanium_sword",
+                "bronze_dalekanium_shovel",
+                "bronze_dalekanium_pickaxe",
+                "bronze_dalekanium_axe",
+                "bronze_dalekanium_hoe",
+        };
+        for (String id : ids) {
+            Path item = itemsDir.resolve(id + ".json");
+            assertTrue(
+                    Files.isRegularFile(item) && Files.size(item) > 0,
+                    "Missing generated dalekanium item model: " + item
+            );
+        }
+    }
+
+    /**
      * Guards against {@code pruneDatagenItemModels} dropping zeiton/ferrite item defs
      * (allowlist must include {@code zeiton} and {@code ferrite} substrings).
      */

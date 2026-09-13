@@ -43,6 +43,11 @@ public final class DWMBlockTags {
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "zeiton_ores")
     );
 
+    public static final TagKey<Block> DALEKANIUM_ORES = TagKey.create(
+            Registries.BLOCK,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "dalekanium_ores")
+    );
+
     /**
      * Vanilla still ships {@code data/minecraft/tags/block/stone_ore_replaceables.json}, but
      * {@link net.minecraft.tags.BlockTags} no longer exposes a constant in 26.2.

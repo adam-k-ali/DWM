@@ -28,6 +28,7 @@ In the GUI, switch **Stone** / **Ore** / **Gem** / **Crystal** / **Ingot** / **P
 - [Steel](./steel.md) — dark silvery-grey metal (`profile: mineral`)
 - [Silver Dalekanium](./silver_dalekanium.md) — cool bright silver alloy (`profile: mineral`)
 - [Bronze Dalekanium](./bronze_dalekanium.md) — warm copper-bronze alloy (`profile: mineral`)
+- [Vanilla Stone](./vanilla_stone.md) — overworld stone host for Skaro ores (`profile: stone`)
 - [Tool Handle](./tool_handle.md) — oak-stick wood browns for tool handles (`profile: stone`)
 
 ## Products
@@ -38,6 +39,7 @@ Blocks and items pick palettes in [`products.json`](./products.json):
 |---------|-----------|---------------|---------|----------|
 | `zeiton_ore` | ore | host: `gallifrey_stone` | `zeiton` | `minecraft:block/emerald_ore.png` |
 | `azbantium_ore` | ore | host: `gallifrey_stone` | `azbantium` | `minecraft:block/emerald_ore.png` |
+| `dalekanium_ore` | ore | host: `vanilla_stone` | `silver_dalekanium` | `minecraft:block/emerald_ore.png` |
 | `azbantium` | gem | — | `azbantium` | `minecraft:item/diamond.png` |
 | `zeiton_crystals` | crystal | — | `zeiton` | `minecraft:item/quartz.png` |
 | `steel_ingot` | ingot | — | `steel` | `minecraft:item/iron_ingot.png` |
@@ -48,3 +50,13 @@ Blocks and items pick palettes in [`products.json`](./products.json):
 | `steel_shovel` | shovel | handle: `tool_handle` | `steel` | `minecraft:item/iron_shovel.png` |
 | `steel_axe` | axe | handle: `tool_handle` | `steel` | `minecraft:item/iron_axe.png` |
 | `steel_hoe` | hoe | handle: `tool_handle` | `steel` | `minecraft:item/iron_hoe.png` |
+| `silver_dalekanium_pickaxe` | pickaxe | handle: `tool_handle` | `silver_dalekanium` | `minecraft:item/iron_pickaxe.png` |
+| `silver_dalekanium_sword` | sword | handle: `tool_handle` | `silver_dalekanium` | `minecraft:item/iron_sword.png` |
+| `silver_dalekanium_shovel` | shovel | handle: `tool_handle` | `silver_dalekanium` | `minecraft:item/iron_shovel.png` |
+| `silver_dalekanium_axe` | axe | handle: `tool_handle` | `silver_dalekanium` | `minecraft:item/iron_axe.png` |
+| `silver_dalekanium_hoe` | hoe | handle: `tool_handle` | `silver_dalekanium` | `minecraft:item/iron_hoe.png` |
+| `bronze_dalekanium_pickaxe` | pickaxe | handle: `tool_handle` | `bronze_dalekanium` | `minecraft:item/iron_pickaxe.png` |
+| `bronze_dalekanium_sword` | sword | handle: `tool_handle` | `bronze_dalekanium` | `minecraft:item/iron_sword.png` |
+| `bronze_dalekanium_shovel` | shovel | handle: `tool_handle` | `bronze_dalekanium` | `minecraft:item/iron_shovel.png` |
+| `bronze_dalekanium_axe` | axe | handle: `tool_handle` | `bronze_dalekanium` | `minecraft:item/iron_axe.png` |
+| `bronze_dalekanium_hoe` | hoe | handle: `tool_handle` | `bronze_dalekanium` | `minecraft:item/iron_hoe.png` |
