@@ -22,6 +22,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.item.crafting.StonecutterRecipe;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -156,6 +157,90 @@ public class DalekaniumGameTests {
         context.succeed();
     }
 
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void architecturePanelsDropSelfWithIronPickaxe(GameTestHelper context) {
+        Player player = context.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ItemStack ironPickaxe = new ItemStack(Items.IRON_PICKAXE);
+        ItemStack stonePickaxe = new ItemStack(Items.STONE_PICKAXE);
+
+        for (Block block : DWMBlocks.DALEKANIUM_ARCHITECTURE) {
+            BlockState state = block.defaultBlockState();
+            if (!state.requiresCorrectToolForDrops()) {
+                throw new AssertionError("Expected " + block + " to require the correct tool for drops");
+            }
+            if (!ironPickaxe.isCorrectToolForDrops(state)) {
+                throw new AssertionError("Expected iron pickaxe to be correct tool for " + block);
+            }
+            if (stonePickaxe.isCorrectToolForDrops(state)) {
+                throw new AssertionError("Expected stone pickaxe to be incorrect for " + block);
+            }
+
+            context.setBlock(pos, state);
+            assertHasItem(
+                    getDrops(context, player, pos, ironPickaxe),
+                    block.asItem(),
+                    1,
+                    block + " with iron pickaxe"
+            );
+        }
+
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void architecturePanelRecipesProduceExpectedOutputs(GameTestHelper context) {
+        assertCrafts(
+                context,
+                "silver_dalekanium_panel",
+                grid(2, 2,
+                        DWMItems.SILVER_DALEKANIUM_INGOT, DWMItems.SILVER_DALEKANIUM_INGOT,
+                        DWMItems.SILVER_DALEKANIUM_INGOT, DWMItems.SILVER_DALEKANIUM_INGOT),
+                DWMBlocks.SILVER_DALEKANIUM_PANEL.asItem(),
+                8
+        );
+        assertCrafts(
+                context,
+                "bronze_dalekanium_panel",
+                grid(2, 2,
+                        DWMItems.BRONZE_DALEKANIUM_INGOT, DWMItems.BRONZE_DALEKANIUM_INGOT,
+                        DWMItems.BRONZE_DALEKANIUM_INGOT, DWMItems.BRONZE_DALEKANIUM_INGOT),
+                DWMBlocks.BRONZE_DALEKANIUM_PANEL.asItem(),
+                8
+        );
+
+        assertStonecuts(
+                context,
+                "silver_dalekanium_riveted_wall_from_silver_dalekanium_panel_stonecutting",
+                DWMBlocks.SILVER_DALEKANIUM_PANEL.asItem(),
+                DWMBlocks.SILVER_DALEKANIUM_RIVETED_WALL.asItem(),
+                1
+        );
+        assertStonecuts(
+                context,
+                "silver_dalekanium_panel_from_silver_dalekanium_riveted_wall_stonecutting",
+                DWMBlocks.SILVER_DALEKANIUM_RIVETED_WALL.asItem(),
+                DWMBlocks.SILVER_DALEKANIUM_PANEL.asItem(),
+                1
+        );
+        assertStonecuts(
+                context,
+                "bronze_dalekanium_riveted_wall_from_bronze_dalekanium_panel_stonecutting",
+                DWMBlocks.BRONZE_DALEKANIUM_PANEL.asItem(),
+                DWMBlocks.BRONZE_DALEKANIUM_RIVETED_WALL.asItem(),
+                1
+        );
+        assertStonecuts(
+                context,
+                "bronze_dalekanium_panel_from_bronze_dalekanium_riveted_wall_stonecutting",
+                DWMBlocks.BRONZE_DALEKANIUM_RIVETED_WALL.asItem(),
+                DWMBlocks.BRONZE_DALEKANIUM_PANEL.asItem(),
+                1
+        );
+
+        context.succeed();
+    }
+
     private static void assertDalekaniumToolRecipes(
             GameTestHelper context,
             String prefix,
@@ -269,6 +354,44 @@ public class DalekaniumGameTests {
         }
 
         ItemStack result = craftingRecipe.assemble(input);
+        if (!result.is(expected) || result.getCount() != count) {
+            throw new AssertionError(
+                    "Recipe dwm:" + recipePath + " expected " + count + "x " + expected
+                            + " but got " + result.getCount() + "x " + result.getItem()
+            );
+        }
+    }
+
+    private static void assertStonecuts(
+            GameTestHelper context,
+            String recipePath,
+            Item input,
+            Item expected,
+            int count
+    ) {
+        ServerLevel world = context.getLevel();
+        RecipeManager recipes = world.getServer().getRecipeManager();
+        ResourceKey<Recipe<?>> key = ResourceKey.create(
+                Registries.RECIPE,
+                Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, recipePath)
+        );
+        Optional<RecipeHolder<?>> byId = recipes.byKey(key);
+        if (byId.isEmpty()) {
+            throw new AssertionError("Missing recipe dwm:" + recipePath);
+        }
+        if (!(byId.get().value() instanceof StonecutterRecipe stonecutter)) {
+            throw new AssertionError("Recipe dwm:" + recipePath + " is not a stonecutter recipe");
+        }
+        SingleRecipeInput recipeInput = new SingleRecipeInput(new ItemStack(input));
+        if (!stonecutter.matches(recipeInput, world)) {
+            throw new AssertionError("Recipe dwm:" + recipePath + " did not match stonecutting input");
+        }
+        Optional<RecipeHolder<StonecutterRecipe>> match =
+                recipes.getRecipeFor(RecipeType.STONECUTTING, recipeInput, world);
+        if (match.isEmpty()) {
+            throw new AssertionError("No stonecutting match for dwm:" + recipePath);
+        }
+        ItemStack result = stonecutter.assemble(recipeInput);
         if (!result.is(expected) || result.getCount() != count) {
             throw new AssertionError(
                     "Recipe dwm:" + recipePath + " expected " + count + "x " + expected

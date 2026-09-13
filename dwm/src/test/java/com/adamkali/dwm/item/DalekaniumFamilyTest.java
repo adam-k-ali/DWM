@@ -35,6 +35,10 @@ class DalekaniumFamilyTest {
         assertNotNull(DWMItems.BRONZE_DALEKANIUM_PICKAXE);
         assertNotNull(DWMItems.BRONZE_DALEKANIUM_AXE);
         assertNotNull(DWMItems.BRONZE_DALEKANIUM_HOE);
+        assertNotNull(DWMBlocks.SILVER_DALEKANIUM_PANEL);
+        assertNotNull(DWMBlocks.SILVER_DALEKANIUM_RIVETED_WALL);
+        assertNotNull(DWMBlocks.BRONZE_DALEKANIUM_PANEL);
+        assertNotNull(DWMBlocks.BRONZE_DALEKANIUM_RIVETED_WALL);
     }
 
     @Test

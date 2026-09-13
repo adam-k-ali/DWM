@@ -52,6 +52,18 @@
       "mineral": "bronze_dalekanium"
     },
     {
+      "id": "silver_dalekanium_panel",
+      "archetype": "cube",
+      "template": "minecraft:block/quartz_block_bottom.png",
+      "mineral": "silver_dalekanium"
+    },
+    {
+      "id": "bronze_dalekanium_panel",
+      "archetype": "cube",
+      "template": "minecraft:block/quartz_block_bottom.png",
+      "mineral": "bronze_dalekanium"
+    },
+    {
       "id": "steel_pickaxe",
       "archetype": "pickaxe",
       "template": "minecraft:item/iron_pickaxe.png",

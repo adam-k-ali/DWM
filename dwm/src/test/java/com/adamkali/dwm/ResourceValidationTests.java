@@ -561,6 +561,10 @@ public class ResourceValidationTests {
                 "bronze_dalekanium_pickaxe",
                 "bronze_dalekanium_axe",
                 "bronze_dalekanium_hoe",
+                "silver_dalekanium_panel",
+                "silver_dalekanium_riveted_wall",
+                "bronze_dalekanium_panel",
+                "bronze_dalekanium_riveted_wall",
         };
         for (String id : ids) {
             Path item = itemsDir.resolve(id + ".json");

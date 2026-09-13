@@ -238,6 +238,7 @@ def _resolve_item_template(
 def _export_product(product_id: str, out_path: Path) -> None:
     """Headless export of a product texture to *out_path*."""
     from dwm_palette.recolor import (
+        apply_cube_palette,
         apply_mineral_item_palette,
         apply_ore_palettes,
         apply_tool_item_palette,
@@ -256,6 +257,18 @@ def _export_product(product_id: str, out_path: Path) -> None:
         from PIL import Image
 
         Image.fromarray(out, mode="RGBA").save(out_path)
+        return
+
+    if archetype == "cube":
+        mineral = load_palette(palettes_dir / f"{product['mineral']}.json")
+        template = load_template_rgb(DWM_DIR, product["template"])
+        # Keep the template's own lightness grain (smooth quartz is ~0.02 ΔL).
+        # Rank-mapping onto the mineral item ramp (~0.46 ΔL) is far too contrasty.
+        out = apply_cube_palette(template, _role_hex(mineral, "mid"))
+        from PIL import Image
+        import numpy as np
+
+        Image.fromarray(np.ascontiguousarray(out), mode="RGB").save(out_path)
         return
 
     if archetype in ("pickaxe", "sword", "shovel", "axe", "hoe"):
@@ -294,6 +307,35 @@ def _export_product(product_id: str, out_path: Path) -> None:
         return
 
     raise ValueError(f"unsupported product archetype {archetype!r}")
+
+
+def _role_hex(palette: dict[str, Any], role: str) -> str:
+    for entry in palette["roles"]:
+        if entry["role"] == role:
+            return str(entry["hex"])
+    raise ValueError(f"palette missing role {role!r}")
+
+
+def _role_rgb(palette: dict[str, Any], role: str) -> tuple[int, int, int]:
+    from dwm_palette.recolor import hex_to_rgb
+
+    return hex_to_rgb(_role_hex(palette, role))
+
+
+def _stamp_corner_rivets(in_path: Path, palette_path: Path, out_path: Path) -> None:
+    from PIL import Image
+    from dwm_palette.recolor import stamp_corner_rivets
+
+    palette = load_palette(palette_path)
+    src = load_rgb_image(in_path)
+    out = stamp_corner_rivets(
+        src,
+        _role_rgb(palette, "shadow"),
+        _role_rgb(palette, "dark"),
+        _role_rgb(palette, "hi"),
+    )
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(out, mode="RGB").save(out_path)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -376,9 +418,20 @@ def main(argv: list[str] | None = None) -> int:
         help="Headlessly remap a products.json id and write --out PNG.",
     )
     parser.add_argument(
+        "--stamp-corner-rivets",
+        action="store_true",
+        help="Stamp one inset 2×2 rivet in each corner of --in using --palette.",
+    )
+    parser.add_argument(
+        "--in",
+        dest="in_path",
+        type=Path,
+        help="Input PNG for --stamp-corner-rivets.",
+    )
+    parser.add_argument(
         "--out",
         type=Path,
-        help="Output PNG path for --export-product.",
+        help="Output PNG path for --export-product or --stamp-corner-rivets.",
     )
     args = parser.parse_args(argv)
 
@@ -390,6 +443,26 @@ def main(argv: list[str] | None = None) -> int:
             out_path = (DWM_DIR / out_path).resolve()
         try:
             _export_product(args.export_product, out_path)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        print(f"wrote {out_path}")
+        return 0
+
+    if args.stamp_corner_rivets:
+        if args.in_path is None or args.palette is None or args.out is None:
+            parser.error("--stamp-corner-rivets requires --in, --palette, and --out")
+        in_path = args.in_path.expanduser()
+        if not in_path.is_absolute():
+            in_path = (DWM_DIR / in_path).resolve()
+        palette_path = args.palette.expanduser()
+        if not palette_path.is_absolute():
+            palette_path = (DWM_DIR / palette_path).resolve()
+        out_path = args.out.expanduser()
+        if not out_path.is_absolute():
+            out_path = (DWM_DIR / out_path).resolve()
+        try:
+            _stamp_corner_rivets(in_path, palette_path, out_path)
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             print(f"error: {exc}", file=sys.stderr)
             return 1

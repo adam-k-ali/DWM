@@ -165,6 +165,16 @@ public class DWMBlockSettings {
                 .sound(SoundType.STONE);
     }
 
+    /** Alloy Dalekanium architecture solids (panel, riveted wall, …). */
+    public static BlockBehaviour.Properties dalekaniumMetal(MapColor mapColor) {
+        return BlockBehaviour.Properties.of()
+                .mapColor(mapColor)
+                .instrument(NoteBlockInstrument.IRON_XYLOPHONE)
+                .requiresCorrectToolForDrops()
+                .strength(4.0F, 10.0F)
+                .sound(SoundType.METAL);
+    }
+
     public static BlockBehaviour.Properties ashLog(MapColor topMapColor, MapColor sideMapColor) {
         return BlockBehaviour.Properties.of()
                 .mapColor(state -> state.hasProperty(net.minecraft.world.level.block.RotatedPillarBlock.AXIS)
