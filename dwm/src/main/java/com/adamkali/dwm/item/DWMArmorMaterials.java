@@ -11,16 +11,16 @@ import net.minecraft.world.item.equipment.EquipmentAssets;
 
 public final class DWMArmorMaterials {
     public static final int AZBANTIUM_BASE_DURABILITY = 33;
-    public static final int PROTECTIVE_SUIT_BASE_DURABILITY = 5;
+    public static final int EVA_SUIT_BASE_DURABILITY = 5;
 
     public static final ResourceKey<EquipmentAsset> AZBANTIUM_EQUIPMENT = ResourceKey.create(
             EquipmentAssets.ROOT_ID,
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "azbantium")
     );
 
-    public static final ResourceKey<EquipmentAsset> PROTECTIVE_SUIT_EQUIPMENT = ResourceKey.create(
+    public static final ResourceKey<EquipmentAsset> EVA_SUIT_EQUIPMENT = ResourceKey.create(
             EquipmentAssets.ROOT_ID,
-            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "protective_suit")
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "eva_suit")
     );
 
     public static final ArmorMaterial AZBANTIUM = new ArmorMaterial(
@@ -35,15 +35,15 @@ public final class DWMArmorMaterials {
     );
 
     /** Leather-tier defense; radiation mitigation is handled by {@code RadiationExposureLogic}. */
-    public static final ArmorMaterial PROTECTIVE_SUIT = new ArmorMaterial(
-            PROTECTIVE_SUIT_BASE_DURABILITY,
+    public static final ArmorMaterial EVA_SUIT = new ArmorMaterial(
+            EVA_SUIT_BASE_DURABILITY,
             ArmorMaterials.makeDefense(1, 2, 3, 1, 3),
             15,
             SoundEvents.ARMOR_EQUIP_LEATHER,
             0.0F,
             0.0F,
-            DWMItemTags.REPAIRS_PROTECTIVE_SUIT,
-            PROTECTIVE_SUIT_EQUIPMENT
+            DWMItemTags.REPAIRS_EVA_SUIT,
+            EVA_SUIT_EQUIPMENT
     );
 
     private DWMArmorMaterials() {

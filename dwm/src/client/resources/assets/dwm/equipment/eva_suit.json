@@ -2,12 +2,12 @@
   "layers": {
     "humanoid": [
       {
-        "texture": "dwm:protective_suit"
+        "texture": "dwm:eva_suit"
       }
     ],
     "humanoid_leggings": [
       {
-        "texture": "dwm:protective_suit"
+        "texture": "dwm:eva_suit"
       }
     ]
   }

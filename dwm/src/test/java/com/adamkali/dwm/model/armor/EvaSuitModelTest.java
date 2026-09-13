@@ -9,19 +9,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class ProtectiveSuitModelTest {
+class EvaSuitModelTest {
     @Test
-    void layerSetUsesProtectiveSuitId() {
-        assertEquals("protective_suit", ProtectiveSuitModel.LAYER_SET.head().model().getPath());
-        assertEquals("helmet", ProtectiveSuitModel.LAYER_SET.head().layer());
-        assertEquals("chestplate", ProtectiveSuitModel.LAYER_SET.chest().layer());
-        assertEquals("leggings", ProtectiveSuitModel.LAYER_SET.legs().layer());
-        assertEquals("boots", ProtectiveSuitModel.LAYER_SET.feet().layer());
+    void layerSetUsesEvaSuitId() {
+        assertEquals("eva_suit", EvaSuitModel.LAYER_SET.head().model().getPath());
+        assertEquals("helmet", EvaSuitModel.LAYER_SET.head().layer());
+        assertEquals("chestplate", EvaSuitModel.LAYER_SET.chest().layer());
+        assertEquals("leggings", EvaSuitModel.LAYER_SET.legs().layer());
+        assertEquals("boots", EvaSuitModel.LAYER_SET.feet().layer());
     }
 
     @Test
     void helmetBakesSealedShellVisorAndNeckRing() {
-        ModelPart root = ProtectiveSuitModel.createHelmetLayer().bakeRoot();
+        ModelPart root = EvaSuitModel.createHelmetLayer().bakeRoot();
         assertHumanoidPartsPresent(root);
         ModelPart head = root.getChild("head");
         assertTrue(head.hasChild("helmet_shell"));
@@ -34,7 +34,7 @@ class ProtectiveSuitModelTest {
 
     @Test
     void chestBakesBackpackAndFullSleeves() {
-        ModelPart root = ProtectiveSuitModel.createChestLayer().bakeRoot();
+        ModelPart root = EvaSuitModel.createChestLayer().bakeRoot();
         assertHumanoidPartsPresent(root);
         ModelPart body = root.getChild("body");
         assertFalse(body.isEmpty());
@@ -48,7 +48,7 @@ class ProtectiveSuitModelTest {
 
     @Test
     void leggingsBakeWaistAndLegsOnly() {
-        ModelPart root = ProtectiveSuitModel.createLeggingsLayer().bakeRoot();
+        ModelPart root = EvaSuitModel.createLeggingsLayer().bakeRoot();
         assertHumanoidPartsPresent(root);
         assertFalse(root.getChild("body").isEmpty());
         assertFalse(root.getChild("right_leg").isEmpty());
@@ -60,7 +60,7 @@ class ProtectiveSuitModelTest {
 
     @Test
     void bootsBakeLowerLegsOnly() {
-        ModelPart root = ProtectiveSuitModel.createBootsLayer().bakeRoot();
+        ModelPart root = EvaSuitModel.createBootsLayer().bakeRoot();
         assertHumanoidPartsPresent(root);
         assertFalse(root.getChild("right_leg").isEmpty());
         assertFalse(root.getChild("left_leg").isEmpty());
@@ -72,7 +72,7 @@ class ProtectiveSuitModelTest {
 
     @Test
     void createArmorLayerSetReturnsFourLayers() {
-        ArmorModelSet<LayerDefinition> set = ProtectiveSuitModel.createArmorLayerSet();
+        ArmorModelSet<LayerDefinition> set = EvaSuitModel.createArmorLayerSet();
         assertTrue(set.head().bakeRoot().getChild("head").hasChild("visor"));
         assertTrue(set.chest().bakeRoot().getChild("body").hasChild("backpack"));
         assertFalse(set.legs().bakeRoot().getChild("right_leg").isEmpty());

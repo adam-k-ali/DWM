@@ -4,6 +4,6 @@
   "pages": [
     { "id": "dwm:skaro_radiation" },
     { "id": "dwm:radiation_meter" },
-    { "id": "dwm:protective_suit" }
+    { "id": "dwm:eva_suit" }
   ]
 }

@@ -1,0 +1,19 @@
+{
+  "page": { "id": "dwm:eva_suit" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.eva_suit.title",
+      "bodyKey": "dwm.guide.page.eva_suit.body"
+    },
+    {
+      "type": "crafting",
+      "recipes": [
+        "dwm:eva_suit_helmet",
+        "dwm:eva_suit_chestplate",
+        "dwm:eva_suit_leggings",
+        "dwm:eva_suit_boots"
+      ]
+    }
+  ]
+}

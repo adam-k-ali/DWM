@@ -138,12 +138,12 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.guide.chapter.skaro", "Skaro Survival");
         t.add("dwm.guide.page.skaro_radiation.title", "Skaro Radiation");
         t.add("dwm.guide.page.skaro_radiation.body",
-                "Skaro biomes expose ambient radiation from low on the Thal Plateau to extreme in the Irradiated Wastes and Drammankin Mire. Read it on the console radiation reader, sonic Scan, or a handheld meter before leaving the TARDIS. A full protective suit blocks ambient damage; leaving Skaro clears exposure with no lingering dose.");
+                "Skaro biomes expose ambient radiation from low on the Thal Plateau to extreme in the Irradiated Wastes and Drammankin Mire. Read it on the console radiation reader, sonic Scan, or a handheld meter before leaving the TARDIS. A full EVA suit blocks ambient damage; leaving Skaro clears exposure with no lingering dose.");
         t.add("dwm.guide.page.radiation_meter.title", "Radiation Meter");
         t.add("dwm.guide.page.radiation_meter.body",
                 "Craft a meter from iron, glass, and redstone, then hold it to read the local radiation percentage directly on its colour-coded screen. It reports the same environmental reading as the console and sonic.");
-        t.add("dwm.guide.page.protective_suit.title", "Protective Suit");
-        t.add("dwm.guide.page.protective_suit.body",
+        t.add("dwm.guide.page.eva_suit.title", "EVA Suit");
+        t.add("dwm.guide.page.eva_suit.body",
                 "Craft all four yellow-wool suit pieces (helmet uses a glass visor). Each correctly worn piece reduces ambient exposure; wearing the complete set prevents Skaro radiation damage.");
     }
 
@@ -454,10 +454,10 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItem(t, DWMItems.AZBANTIUM_CHESTPLATE, "Azbantium Chestplate");
         addItem(t, DWMItems.AZBANTIUM_LEGGINGS, "Azbantium Leggings");
         addItem(t, DWMItems.AZBANTIUM_BOOTS, "Azbantium Boots");
-        addItem(t, DWMItems.PROTECTIVE_SUIT_HELMET, "Protective Suit Helmet");
-        addItem(t, DWMItems.PROTECTIVE_SUIT_CHESTPLATE, "Protective Suit Chestplate");
-        addItem(t, DWMItems.PROTECTIVE_SUIT_LEGGINGS, "Protective Suit Leggings");
-        addItem(t, DWMItems.PROTECTIVE_SUIT_BOOTS, "Protective Suit Boots");
+        addItem(t, DWMItems.EVA_SUIT_HELMET, "EVA Suit Helmet");
+        addItem(t, DWMItems.EVA_SUIT_CHESTPLATE, "EVA Suit Chestplate");
+        addItem(t, DWMItems.EVA_SUIT_LEGGINGS, "EVA Suit Leggings");
+        addItem(t, DWMItems.EVA_SUIT_BOOTS, "EVA Suit Boots");
         addItem(t, DWMItems.RADIATION_METER, "Radiation Meter");
     }
 
@@ -533,8 +533,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("tag.item.dwm.repairs_steel_equipment", "Steel Equipment Repair Materials");
         t.add("tag.item.dwm.repairs_silver_dalekanium_equipment", "Silver Dalekanium Equipment Repair Materials");
         t.add("tag.item.dwm.repairs_bronze_dalekanium_equipment", "Bronze Dalekanium Equipment Repair Materials");
-        t.add("tag.item.dwm.repairs_protective_suit", "Protective Suit Repair Materials");
-        t.add("tag.item.dwm.protective_suit", "Protective Suit");
+        t.add("tag.item.dwm.repairs_eva_suit", "EVA Suit Repair Materials");
+        t.add("tag.item.dwm.eva_suit", "EVA Suit");
         t.add("death.attack.radiation", "%1$s was irradiated");
         t.add("death.attack.radiation.player", "%1$s was irradiated whilst fighting %2$s");
         t.add("biome.dwm.gallifrey_wastes", "Gallifrey Wastes");

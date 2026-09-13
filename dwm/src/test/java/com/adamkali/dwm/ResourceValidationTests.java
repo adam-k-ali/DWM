@@ -538,23 +538,23 @@ public class ResourceValidationTests {
     }
 
     /**
-     * Guards against {@code pruneDatagenItemModels} dropping protective-suit item defs.
+     * Guards against {@code pruneDatagenItemModels} dropping EVA-suit item defs.
      */
     @Test
-    public void generatedProtectiveSuitItemModelsExist() throws Exception {
+    public void generatedEvaSuitItemModelsExist() throws Exception {
         Path itemsDir = Path.of("src/main/generated/assets/dwm/items");
         assertTrue(Files.isDirectory(itemsDir), "Expected generated items dir at " + itemsDir);
         String[] ids = {
-                "protective_suit_helmet",
-                "protective_suit_chestplate",
-                "protective_suit_leggings",
-                "protective_suit_boots",
+                "eva_suit_helmet",
+                "eva_suit_chestplate",
+                "eva_suit_leggings",
+                "eva_suit_boots",
         };
         for (String id : ids) {
             Path item = itemsDir.resolve(id + ".json");
             assertTrue(
                     Files.isRegularFile(item) && Files.size(item) > 0,
-                    "Missing generated protective-suit item model: " + item
+                    "Missing generated EVA-suit item model: " + item
             );
         }
     }
@@ -564,21 +564,21 @@ public class ResourceValidationTests {
      * transparent corners, fully opaque pixels, and a tight colour budget.
      */
     @Test
-    public void protectiveSuitTexturesMatchEvaContract() throws Exception {
+    public void evaSuitTexturesMatchContract() throws Exception {
         Path outer = Path.of(
-                "src/client/resources/assets/dwm/textures/entity/equipment/humanoid/protective_suit.png"
+                "src/client/resources/assets/dwm/textures/entity/equipment/humanoid/eva_suit.png"
         );
         Path leggings = Path.of(
-                "src/client/resources/assets/dwm/textures/entity/equipment/humanoid_leggings/protective_suit.png"
+                "src/client/resources/assets/dwm/textures/entity/equipment/humanoid_leggings/eva_suit.png"
         );
         assertAtlasSize(outer, 128, 64);
         assertAtlasSize(leggings, 128, 64);
 
         String[] itemIds = {
-                "protective_suit_helmet",
-                "protective_suit_chestplate",
-                "protective_suit_leggings",
-                "protective_suit_boots",
+                "eva_suit_helmet",
+                "eva_suit_chestplate",
+                "eva_suit_leggings",
+                "eva_suit_boots",
         };
         for (String id : itemIds) {
             Path png = Path.of("src/client/resources/assets/dwm/textures/item/" + id + ".png");

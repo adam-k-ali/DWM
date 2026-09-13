@@ -202,25 +202,25 @@ public class DWMItems {
             "azbantium_boots"
     );
 
-    public static final Item PROTECTIVE_SUIT_HELMET = register(
+    public static final Item EVA_SUIT_HELMET = register(
             Item::new,
-            new Item.Properties().humanoidArmor(DWMArmorMaterials.PROTECTIVE_SUIT, ArmorType.HELMET),
-            "protective_suit_helmet"
+            new Item.Properties().humanoidArmor(DWMArmorMaterials.EVA_SUIT, ArmorType.HELMET),
+            "eva_suit_helmet"
     );
-    public static final Item PROTECTIVE_SUIT_CHESTPLATE = register(
+    public static final Item EVA_SUIT_CHESTPLATE = register(
             Item::new,
-            new Item.Properties().humanoidArmor(DWMArmorMaterials.PROTECTIVE_SUIT, ArmorType.CHESTPLATE),
-            "protective_suit_chestplate"
+            new Item.Properties().humanoidArmor(DWMArmorMaterials.EVA_SUIT, ArmorType.CHESTPLATE),
+            "eva_suit_chestplate"
     );
-    public static final Item PROTECTIVE_SUIT_LEGGINGS = register(
+    public static final Item EVA_SUIT_LEGGINGS = register(
             Item::new,
-            new Item.Properties().humanoidArmor(DWMArmorMaterials.PROTECTIVE_SUIT, ArmorType.LEGGINGS),
-            "protective_suit_leggings"
+            new Item.Properties().humanoidArmor(DWMArmorMaterials.EVA_SUIT, ArmorType.LEGGINGS),
+            "eva_suit_leggings"
     );
-    public static final Item PROTECTIVE_SUIT_BOOTS = register(
+    public static final Item EVA_SUIT_BOOTS = register(
             Item::new,
-            new Item.Properties().humanoidArmor(DWMArmorMaterials.PROTECTIVE_SUIT, ArmorType.BOOTS),
-            "protective_suit_boots"
+            new Item.Properties().humanoidArmor(DWMArmorMaterials.EVA_SUIT, ArmorType.BOOTS),
+            "eva_suit_boots"
     );
     public static final Item RADIATION_METER = register(
             RadiationMeterItem::new,
@@ -346,10 +346,10 @@ public class DWMItems {
             content.accept(AZBANTIUM_CHESTPLATE);
             content.accept(AZBANTIUM_LEGGINGS);
             content.accept(AZBANTIUM_BOOTS);
-            content.accept(PROTECTIVE_SUIT_HELMET);
-            content.accept(PROTECTIVE_SUIT_CHESTPLATE);
-            content.accept(PROTECTIVE_SUIT_LEGGINGS);
-            content.accept(PROTECTIVE_SUIT_BOOTS);
+            content.accept(EVA_SUIT_HELMET);
+            content.accept(EVA_SUIT_CHESTPLATE);
+            content.accept(EVA_SUIT_LEGGINGS);
+            content.accept(EVA_SUIT_BOOTS);
         });
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.FUNCTIONAL_BLOCKS).register(content -> {

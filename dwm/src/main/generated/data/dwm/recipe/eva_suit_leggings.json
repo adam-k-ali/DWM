@@ -5,11 +5,11 @@
     "Y": "minecraft:yellow_wool"
   },
   "pattern": [
-    "Y Y",
     "YYY",
-    "YYY"
+    "Y Y",
+    "Y Y"
   ],
   "result": {
-    "id": "dwm:protective_suit_chestplate"
+    "id": "dwm:eva_suit_leggings"
   }
 }

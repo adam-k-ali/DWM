@@ -1,7 +1,7 @@
 package com.adamkali.dwm.render;
 
 import com.adamkali.dwm.item.DWMItems;
-import com.adamkali.dwm.model.armor.ProtectiveSuitModel;
+import com.adamkali.dwm.model.armor.EvaSuitModel;
 import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -18,17 +18,17 @@ import net.minecraft.world.item.ItemStack;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 /**
- * Renders the custom EVA protective-suit meshes in place of vanilla armour
+ * Renders the custom EVA-suit meshes in place of vanilla armour
  * layers, copying the parent humanoid pose so walk / crouch / attack animate.
  */
-public final class ProtectiveSuitArmorRenderer implements ArmorRenderer {
-    private final ArmorModelSet<ProtectiveSuitModel> models;
+public final class EvaSuitArmorRenderer implements ArmorRenderer {
+    private final ArmorModelSet<EvaSuitModel> models;
 
-    public ProtectiveSuitArmorRenderer(EntityRendererProvider.Context context) {
+    public EvaSuitArmorRenderer(EntityRendererProvider.Context context) {
         this.models = ArmorModelSet.bake(
-                ProtectiveSuitModel.LAYER_SET,
+                EvaSuitModel.LAYER_SET,
                 context.getModelSet(),
-                ProtectiveSuitModel::new
+                EvaSuitModel::new
         );
     }
 
@@ -42,10 +42,10 @@ public final class ProtectiveSuitArmorRenderer implements ArmorRenderer {
             int light,
             HumanoidModel<HumanoidRenderState> contextModel
     ) {
-        ProtectiveSuitModel model = this.models.get(slot);
+        EvaSuitModel model = this.models.get(slot);
         Identifier texture = slot == EquipmentSlot.LEGS
-                ? ProtectiveSuitModel.LEGGINGS_TEXTURE
-                : ProtectiveSuitModel.OUTER_TEXTURE;
+                ? EvaSuitModel.LEGGINGS_TEXTURE
+                : EvaSuitModel.OUTER_TEXTURE;
 
         ArmorRenderer.submitTransformCopyingModel(
                 contextModel,
@@ -91,11 +91,11 @@ public final class ProtectiveSuitArmorRenderer implements ArmorRenderer {
 
     public static void register() {
         ArmorRenderer.register(
-                ProtectiveSuitArmorRenderer::new,
-                DWMItems.PROTECTIVE_SUIT_HELMET,
-                DWMItems.PROTECTIVE_SUIT_CHESTPLATE,
-                DWMItems.PROTECTIVE_SUIT_LEGGINGS,
-                DWMItems.PROTECTIVE_SUIT_BOOTS
+                EvaSuitArmorRenderer::new,
+                DWMItems.EVA_SUIT_HELMET,
+                DWMItems.EVA_SUIT_CHESTPLATE,
+                DWMItems.EVA_SUIT_LEGGINGS,
+                DWMItems.EVA_SUIT_BOOTS
         );
     }
 }

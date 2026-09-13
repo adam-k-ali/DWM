@@ -74,20 +74,20 @@ public final class RadiationExposureLogic {
     }
 
     /**
-     * Counts correctly slotted protective-suit pieces by item identity (unit-test friendly).
+     * Counts correctly slotted EVA-suit pieces by item identity (unit-test friendly).
      */
     public static int countSuitPieces(@Nullable Item head, @Nullable Item chest, @Nullable Item legs, @Nullable Item feet) {
         int count = 0;
-        if (head == DWMItems.PROTECTIVE_SUIT_HELMET) {
+        if (head == DWMItems.EVA_SUIT_HELMET) {
             count++;
         }
-        if (chest == DWMItems.PROTECTIVE_SUIT_CHESTPLATE) {
+        if (chest == DWMItems.EVA_SUIT_CHESTPLATE) {
             count++;
         }
-        if (legs == DWMItems.PROTECTIVE_SUIT_LEGGINGS) {
+        if (legs == DWMItems.EVA_SUIT_LEGGINGS) {
             count++;
         }
-        if (feet == DWMItems.PROTECTIVE_SUIT_BOOTS) {
+        if (feet == DWMItems.EVA_SUIT_BOOTS) {
             count++;
         }
         return count;

@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:protective_suit_leggings"
+        "recipe": "dwm:eva_suit_leggings"
       },
       "trigger": "minecraft:recipe_unlocked"
     },
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "dwm:protective_suit_leggings"
+      "dwm:eva_suit_leggings"
     ]
   }
 }

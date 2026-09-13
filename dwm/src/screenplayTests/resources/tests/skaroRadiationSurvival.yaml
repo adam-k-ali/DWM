@@ -11,10 +11,10 @@ steps:
       allowCommands: true
       name: Skaro Radiation
   - closeScreen
-  - runCommand: "/item replace entity @s armor.head with dwm:protective_suit_helmet"
-  - runCommand: "/item replace entity @s armor.chest with dwm:protective_suit_chestplate"
-  - runCommand: "/item replace entity @s armor.legs with dwm:protective_suit_leggings"
-  - runCommand: "/item replace entity @s armor.feet with dwm:protective_suit_boots"
+  - runCommand: "/item replace entity @s armor.head with dwm:eva_suit_helmet"
+  - runCommand: "/item replace entity @s armor.chest with dwm:eva_suit_chestplate"
+  - runCommand: "/item replace entity @s armor.legs with dwm:eva_suit_leggings"
+  - runCommand: "/item replace entity @s armor.feet with dwm:eva_suit_boots"
   - runCommand: "/item replace entity @s weapon.mainhand with dwm:radiation_meter"
   - waitUntil:
       holding: dwm:radiation_meter

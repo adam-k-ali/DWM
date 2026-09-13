@@ -38,7 +38,7 @@ public class SkaroRadiationGameTests {
         ServerLevel level = context.getLevel();
         Player player = context.makeMockPlayer(GameType.SURVIVAL);
         player.setHealth(20.0F);
-        player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(DWMItems.PROTECTIVE_SUIT_HELMET));
+        player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(DWMItems.EVA_SUIT_HELMET));
         float expectedEffective = RadiationExposureLogic.effectiveExposure(TEST_AMBIENT, 1);
         float expectedDamage = RadiationExposureLogic.damageAmount(expectedEffective);
         clearHurtCooldown(player);
@@ -61,7 +61,7 @@ public class SkaroRadiationGameTests {
         float before = player.getHealth();
         RadiationExposureService.applyExposure(player, level, TEST_AMBIENT);
         if (player.getHealth() != before) {
-            throw new AssertionError("Expected full protective suit to prevent ambient radiation damage");
+            throw new AssertionError("Expected full EVA suit to prevent ambient radiation damage");
         }
         context.succeed();
     }
@@ -94,10 +94,10 @@ public class SkaroRadiationGameTests {
     }
 
     private static void equipFullSuit(Player player) {
-        player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(DWMItems.PROTECTIVE_SUIT_HELMET));
-        player.setItemSlot(EquipmentSlot.CHEST, new ItemStack(DWMItems.PROTECTIVE_SUIT_CHESTPLATE));
-        player.setItemSlot(EquipmentSlot.LEGS, new ItemStack(DWMItems.PROTECTIVE_SUIT_LEGGINGS));
-        player.setItemSlot(EquipmentSlot.FEET, new ItemStack(DWMItems.PROTECTIVE_SUIT_BOOTS));
+        player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(DWMItems.EVA_SUIT_HELMET));
+        player.setItemSlot(EquipmentSlot.CHEST, new ItemStack(DWMItems.EVA_SUIT_CHESTPLATE));
+        player.setItemSlot(EquipmentSlot.LEGS, new ItemStack(DWMItems.EVA_SUIT_LEGGINGS));
+        player.setItemSlot(EquipmentSlot.FEET, new ItemStack(DWMItems.EVA_SUIT_BOOTS));
     }
 
     private static void clearHurtCooldown(Player player) {

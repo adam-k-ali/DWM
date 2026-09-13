@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:protective_suit_chestplate"
+        "recipe": "dwm:eva_suit_helmet"
       },
       "trigger": "minecraft:recipe_unlocked"
     },
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "dwm:protective_suit_chestplate"
+      "dwm:eva_suit_helmet"
     ]
   }
 }

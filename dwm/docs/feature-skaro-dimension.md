@@ -7,7 +7,7 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
 
 ## Player Outcomes
 - Reach Skaro from the First Doctor console by cycling the planet locator, then land in a chosen region with the biome dial.
-- Read radiation on the console, sonic scan, and a handheld meter before stepping outside; survive ambient exposure with a full protective suit.
+- Read radiation on the console, sonic scan, and a handheld meter before stepping outside; survive ambient exposure with a full EVA suit.
 - Explore five distinct regions — irradiated wastes, a petrified jungle, the Drammankin mire and mountains, and a rare Thal plateau — built from vanilla terrain composition, petrified wood, and Dalek architecture.
 - Encounter Dalek patrols, mutant fauna, Thal settlements, war landmarks, a Kaled bunker, and the Dalek city of Kaalann.
 
@@ -34,10 +34,10 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
 - **Radiation hazards and survival equipment** (DWM-067):
   - Server-authoritative ambient exposure only on Skaro for survival players (creative/spectator ignored). No stored dose — leaving Skaro clears future exposure immediately.
   - Biome ambient values (`0.0–1.0`): Thal Plateau `0.15`, Petrified Jungle `0.40`, Drammankin Mountains `0.55`, Drammankin Mire `0.80`, Irradiated Wastes `0.95`.
-  - Mitigation: each correctly equipped protective-suit piece subtracts `0.25` from ambient (`effective = clamp01(ambient - 0.25 * pieces)`). A full set prevents ambient damage.
+  - Mitigation: each correctly equipped EVA-suit piece subtracts `0.25` from ambient (`effective = clamp01(ambient - 0.25 * pieces)`). A full set prevents ambient damage.
   - Damage cadence: every **40** ticks; amount `1.0 × effective` via custom damage type `dwm:radiation` (bypasses vanilla armor; suit mitigation is the only reduction).
   - Instruments agree on environmental (unmitigated) readings: console radiation reader, sonic Scan, and the handheld `radiation_meter` colour-coded percentage screen.
-  - Crafting: yellow-wool protective suit (helmet uses a glass visor); meter from iron, glass, and redstone. Field Guide chapter **Skaro Survival** documents hazards, meter, and suit recipes.
+  - Crafting: yellow-wool EVA suit (helmet uses a glass visor); meter from iron, glass, and redstone. Field Guide chapter **Skaro Survival** documents hazards, meter, and suit recipes.
 
 ## Planned (not yet in the jar)
 - Remaining Dalek architecture builder family (DWM-065): wall, floor, light, door, damaged variants.
@@ -48,7 +48,7 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
 1. Mine petrified logs with a pickaxe (or strip with an axe), then craft planks, stairs, slabs, and walls like other builder sets.
 2. At the console, cycle the planet locator until **Skaro** is selected, then cycle the biome dial among the five tagged regions.
 3. Check radiation on the console reader, sonic Scan, or hold a radiation meter and read its screen before opening the doors.
-4. Craft and wear the full protective suit when exploring hazardous biomes.
+4. Craft and wear the full EVA suit when exploring hazardous biomes.
 5. Pull the materialisation lever to dematerialise, then again in flight to land on Skaro.
 6. Debug without a TARDIS: `/execute in dwm:skaro run tp @s ~ 128 ~`.
 
@@ -64,4 +64,4 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
 - Custom dimension effects for Skaro sky, fog, and clouds.
 - Thal trades or professions if a later settlement loop needs them.
 - Additional Dalek ranks, vehicles, or city-state mechanics beyond the baseline patrol and structure presence.
-- Protective-suit degradation, medicines, or structure-scale radiation hotspots.
+- EVA-suit degradation, medicines, or structure-scale radiation hotspots.

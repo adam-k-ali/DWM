@@ -123,7 +123,7 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 generateOrangeSandRecipes();
                 generatePetrifiedRecipes();
                 generateAzbantiumRecipes();
-                generateProtectiveSuitRecipes();
+                generateEvaSuitRecipes();
                 generateSteelRecipes();
                 generateDalekaniumRecipes();
                 generateZeitonRecipes();
@@ -442,29 +442,29 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         .save(output);
             }
 
-            private void generateProtectiveSuitRecipes() {
-                shaped(RecipeCategory.COMBAT, DWMItems.PROTECTIVE_SUIT_HELMET)
+            private void generateEvaSuitRecipes() {
+                shaped(RecipeCategory.COMBAT, DWMItems.EVA_SUIT_HELMET)
                         .define('Y', Items.WOOL.yellow())
                         .define('G', Items.GLASS)
                         .pattern("YYY")
                         .pattern("YGY")
                         .unlockedBy(getHasName(Items.WOOL.yellow()), has(Items.WOOL.yellow()))
                         .save(output);
-                shaped(RecipeCategory.COMBAT, DWMItems.PROTECTIVE_SUIT_CHESTPLATE)
+                shaped(RecipeCategory.COMBAT, DWMItems.EVA_SUIT_CHESTPLATE)
                         .define('Y', Items.WOOL.yellow())
                         .pattern("Y Y")
                         .pattern("YYY")
                         .pattern("YYY")
                         .unlockedBy(getHasName(Items.WOOL.yellow()), has(Items.WOOL.yellow()))
                         .save(output);
-                shaped(RecipeCategory.COMBAT, DWMItems.PROTECTIVE_SUIT_LEGGINGS)
+                shaped(RecipeCategory.COMBAT, DWMItems.EVA_SUIT_LEGGINGS)
                         .define('Y', Items.WOOL.yellow())
                         .pattern("YYY")
                         .pattern("Y Y")
                         .pattern("Y Y")
                         .unlockedBy(getHasName(Items.WOOL.yellow()), has(Items.WOOL.yellow()))
                         .save(output);
-                shaped(RecipeCategory.COMBAT, DWMItems.PROTECTIVE_SUIT_BOOTS)
+                shaped(RecipeCategory.COMBAT, DWMItems.EVA_SUIT_BOOTS)
                         .define('Y', Items.WOOL.yellow())
                         .pattern("Y Y")
                         .pattern("Y Y")

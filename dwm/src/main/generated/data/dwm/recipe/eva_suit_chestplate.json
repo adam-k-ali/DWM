@@ -2,14 +2,14 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "G": "minecraft:glass",
     "Y": "minecraft:yellow_wool"
   },
   "pattern": [
+    "Y Y",
     "YYY",
-    "YGY"
+    "YYY"
   ],
   "result": {
-    "id": "dwm:protective_suit_helmet"
+    "id": "dwm:eva_suit_chestplate"
   }
 }

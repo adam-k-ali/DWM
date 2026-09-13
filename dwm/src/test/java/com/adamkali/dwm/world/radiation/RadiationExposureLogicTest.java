@@ -64,16 +64,16 @@ class RadiationExposureLogicTest {
                 (Item) null, null, null, null
         ));
         assertEquals(1, RadiationExposureLogic.countSuitPieces(
-                DWMItems.PROTECTIVE_SUIT_HELMET,
+                DWMItems.EVA_SUIT_HELMET,
                 null,
                 null,
                 null
         ));
         assertEquals(4, RadiationExposureLogic.countSuitPieces(
-                DWMItems.PROTECTIVE_SUIT_HELMET,
-                DWMItems.PROTECTIVE_SUIT_CHESTPLATE,
-                DWMItems.PROTECTIVE_SUIT_LEGGINGS,
-                DWMItems.PROTECTIVE_SUIT_BOOTS
+                DWMItems.EVA_SUIT_HELMET,
+                DWMItems.EVA_SUIT_CHESTPLATE,
+                DWMItems.EVA_SUIT_LEGGINGS,
+                DWMItems.EVA_SUIT_BOOTS
         ));
         assertEquals(0, RadiationExposureLogic.countSuitPieces(
                 Items.LEATHER_HELMET,
@@ -82,10 +82,10 @@ class RadiationExposureLogicTest {
                 Items.LEATHER_BOOTS
         ));
         assertEquals(0, RadiationExposureLogic.countSuitPieces(
-                DWMItems.PROTECTIVE_SUIT_BOOTS,
-                DWMItems.PROTECTIVE_SUIT_HELMET,
-                DWMItems.PROTECTIVE_SUIT_CHESTPLATE,
-                DWMItems.PROTECTIVE_SUIT_LEGGINGS
+                DWMItems.EVA_SUIT_BOOTS,
+                DWMItems.EVA_SUIT_HELMET,
+                DWMItems.EVA_SUIT_CHESTPLATE,
+                DWMItems.EVA_SUIT_LEGGINGS
         ));
     }
 

@@ -15,12 +15,12 @@ import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.resources.Identifier;
 
 /**
- * Compact EVA protective suit. Slot-specific meshes keep standard humanoid part
+ * Compact EVA suit. Slot-specific meshes keep standard humanoid part
  * names so player animation copies cleanly; visor / backpack are children of the
  * moving parent parts.
  */
-public class ProtectiveSuitModel extends HumanoidModel<HumanoidRenderState> {
-    public static final String MODEL_ID = "protective_suit";
+public class EvaSuitModel extends HumanoidModel<HumanoidRenderState> {
+    public static final String MODEL_ID = "eva_suit";
 
     public static final ArmorModelSet<ModelLayerLocation> LAYER_SET = new ArmorModelSet<>(
             layer("helmet"),
@@ -31,18 +31,18 @@ public class ProtectiveSuitModel extends HumanoidModel<HumanoidRenderState> {
 
     public static final Identifier OUTER_TEXTURE = Identifier.fromNamespaceAndPath(
             DWMReference.MOD_ID,
-            "textures/entity/equipment/humanoid/protective_suit.png"
+            "textures/entity/equipment/humanoid/eva_suit.png"
     );
 
     public static final Identifier LEGGINGS_TEXTURE = Identifier.fromNamespaceAndPath(
             DWMReference.MOD_ID,
-            "textures/entity/equipment/humanoid_leggings/protective_suit.png"
+            "textures/entity/equipment/humanoid_leggings/eva_suit.png"
     );
 
     private static final int TEXTURE_WIDTH = 128;
     private static final int TEXTURE_HEIGHT = 64;
 
-    public ProtectiveSuitModel(ModelPart root) {
+    public EvaSuitModel(ModelPart root) {
         super(root);
     }
 
