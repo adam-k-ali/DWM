@@ -539,6 +539,71 @@ public class ResourceValidationTests {
     }
 
     /**
+     * EVA suit worn atlases are 128×64 fabric maps; inventory icons are 16×16 with
+     * transparent corners, fully opaque pixels, and a tight colour budget.
+     */
+    @Test
+    public void protectiveSuitTexturesMatchEvaContract() throws Exception {
+        Path outer = Path.of(
+                "src/client/resources/assets/dwm/textures/entity/equipment/humanoid/protective_suit.png"
+        );
+        Path leggings = Path.of(
+                "src/client/resources/assets/dwm/textures/entity/equipment/humanoid_leggings/protective_suit.png"
+        );
+        assertAtlasSize(outer, 128, 64);
+        assertAtlasSize(leggings, 128, 64);
+
+        String[] itemIds = {
+                "protective_suit_helmet",
+                "protective_suit_chestplate",
+                "protective_suit_leggings",
+                "protective_suit_boots",
+        };
+        for (String id : itemIds) {
+            Path png = Path.of("src/client/resources/assets/dwm/textures/item/" + id + ".png");
+            assertTrue(Files.isRegularFile(png) && Files.size(png) > 0, "Missing item sprite: " + png);
+            BufferedImage image = ImageIO.read(png.toFile());
+            assertEquals(16, image.getWidth(), id + " width");
+            assertEquals(16, image.getHeight(), id + " height");
+            assertEquals(0, (image.getRGB(0, 0) >>> 24) & 0xFF, id + " top-left alpha");
+            assertEquals(0, (image.getRGB(15, 0) >>> 24) & 0xFF, id + " top-right alpha");
+            assertEquals(0, (image.getRGB(0, 15) >>> 24) & 0xFF, id + " bottom-left alpha");
+            assertEquals(0, (image.getRGB(15, 15) >>> 24) & 0xFF, id + " bottom-right alpha");
+
+            Set<Integer> opaqueRgb = new HashSet<>();
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    int argb = image.getRGB(x, y);
+                    int alpha = (argb >>> 24) & 0xFF;
+                    if (alpha == 0) {
+                        continue;
+                    }
+                    assertEquals(255, alpha, id + " semi-transparent pixel at " + x + "," + y);
+                    opaqueRgb.add(argb & 0xFFFFFF);
+                }
+            }
+            assertFalse(opaqueRgb.isEmpty(), id + " has no opaque pixels");
+            assertTrue(
+                    opaqueRgb.size() <= 12,
+                    id + " exceeds colour budget: " + opaqueRgb.size()
+            );
+        }
+    }
+
+    private static void assertAtlasSize(Path png, int width, int height) throws Exception {
+        assertTrue(Files.isRegularFile(png) && Files.size(png) > 0, "Missing atlas: " + png);
+        BufferedImage image = ImageIO.read(png.toFile());
+        assertEquals(width, image.getWidth(), png + " width");
+        assertEquals(height, image.getHeight(), png + " height");
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int alpha = (image.getRGB(x, y) >>> 24) & 0xFF;
+                assertTrue(alpha == 0 || alpha == 255, png + " soft alpha at " + x + "," + y);
+            }
+        }
+    }
+
+    /**
      * Guards against {@code pruneDatagenItemModels} dropping steel item defs
      * (allowlist must include {@code steel} substring).
      */

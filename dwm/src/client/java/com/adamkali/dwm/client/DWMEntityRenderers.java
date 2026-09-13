@@ -4,6 +4,7 @@ import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.entity.DWMEntityTypes;
+import com.adamkali.dwm.model.armor.ProtectiveSuitModel;
 import com.adamkali.dwm.model.entity.BroakirModel;
 import com.adamkali.dwm.model.entity.DalekLaserModel;
 import com.adamkali.dwm.model.entity.DalekModel;
@@ -14,6 +15,7 @@ import com.adamkali.dwm.render.DalekLaserRenderer;
 import com.adamkali.dwm.render.DalekRenderer;
 import com.adamkali.dwm.render.FlutterwingRenderer;
 import com.adamkali.dwm.render.MewingDogRenderer;
+import com.adamkali.dwm.render.ProtectiveSuitArmorRenderer;
 import com.adamkali.dwm.render.TimeLordRenderer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
@@ -28,6 +30,12 @@ public final class DWMEntityRenderers {
     }
 
     public static void initialize() {
+        ModelLayerRegistry.registerArmorModelLayers(
+                ProtectiveSuitModel.LAYER_SET,
+                ProtectiveSuitModel::createArmorLayerSet
+        );
+        ProtectiveSuitArmorRenderer.register();
+
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             ModelLayerLocation layer = new ModelLayerLocation(
                     Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "boat/" + family.definition().id()),
