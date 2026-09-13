@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "dwm:bronze_dalekanium_riveted_wall"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ]
+}

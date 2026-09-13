@@ -293,6 +293,29 @@ public class DWMBlocks {
 
     public static final Block ZEITON_ORE = register(Block::new, DWMBlockSettings.gallifreyVanillaOre(), "zeiton_ore");
 
+    public static final Block DALEKANIUM_ORE = register(Block::new, DWMBlockSettings.dalekaniumOre(), "dalekanium_ore");
+
+    public static final Block SILVER_DALEKANIUM_PANEL = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumMetal(MapColor.COLOR_LIGHT_GRAY),
+            "silver_dalekanium_panel"
+    );
+    public static final Block SILVER_DALEKANIUM_RIVETED_WALL = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumMetal(MapColor.COLOR_LIGHT_GRAY),
+            "silver_dalekanium_riveted_wall"
+    );
+    public static final Block BRONZE_DALEKANIUM_PANEL = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumMetal(MapColor.COLOR_ORANGE),
+            "bronze_dalekanium_panel"
+    );
+    public static final Block BRONZE_DALEKANIUM_RIVETED_WALL = register(
+            Block::new,
+            DWMBlockSettings.dalekaniumMetal(MapColor.COLOR_ORANGE),
+            "bronze_dalekanium_riveted_wall"
+    );
+
     public static final Block GALLIFREY_COAL_ORE = register(Block::new, DWMBlockSettings.gallifreyVanillaOre(), "gallifrey_coal_ore");
     public static final Block GALLIFREY_IRON_ORE = register(Block::new, DWMBlockSettings.gallifreyVanillaOre(), "gallifrey_iron_ore");
     public static final Block GALLIFREY_GOLD_ORE = register(Block::new, DWMBlockSettings.gallifreyVanillaOre(), "gallifrey_gold_ore");
@@ -601,6 +624,26 @@ public class DWMBlocks {
             AZBANTIUM_BLOCK
     );
 
+    /** Silver Dalekanium architecture (panel slice; grows with DWM-065). */
+    public static final List<Block> SILVER_DALEKANIUM_ARCHITECTURE = List.of(
+            SILVER_DALEKANIUM_PANEL,
+            SILVER_DALEKANIUM_RIVETED_WALL
+    );
+
+    /** Bronze Dalekanium architecture (panel slice; grows with DWM-065). */
+    public static final List<Block> BRONZE_DALEKANIUM_ARCHITECTURE = List.of(
+            BRONZE_DALEKANIUM_PANEL,
+            BRONZE_DALEKANIUM_RIVETED_WALL
+    );
+
+    /** Union of silver + bronze Dalekanium architecture (structure tag). */
+    public static final List<Block> DALEKANIUM_ARCHITECTURE = List.of(
+            SILVER_DALEKANIUM_PANEL,
+            SILVER_DALEKANIUM_RIVETED_WALL,
+            BRONZE_DALEKANIUM_PANEL,
+            BRONZE_DALEKANIUM_RIVETED_WALL
+    );
+
     /** Gallifrey-stone-textured ores that drop vanilla coal / raw iron / raw gold / diamond. */
     public static final List<Block> GALLIFREY_VANILLA_ORES = List.of(
             GALLIFREY_COAL_ORE,
@@ -785,6 +828,10 @@ public class DWMBlocks {
                 content.accept(block);
             }
 
+            for (Block block : DALEKANIUM_ARCHITECTURE) {
+                content.accept(block);
+            }
+
             content.accept(AZBANTIUM_BLOCK);
 
             for (RegisteredWoodFamily family : WOOD_FAMILIES) {
@@ -808,6 +855,7 @@ public class DWMBlocks {
             }
             content.accept(AZBANTIUM_ORE);
             content.accept(ZEITON_ORE);
+            content.accept(DALEKANIUM_ORE);
             for (Block ore : GALLIFREY_VANILLA_ORES) {
                 content.accept(ore);
             }

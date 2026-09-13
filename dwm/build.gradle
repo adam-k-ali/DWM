@@ -285,6 +285,7 @@ tasks.register("pruneDatagenItemModels") {
                     || f.name.contains("azbantium")
                     || f.name.contains("protective_suit")
                     || f.name.contains("radiation_meter")
+                    || f.name.contains("steel")
                     || f.name.contains("zeiton")
                     || f.name.contains("ferrite")
                     || f.name.contains("stattenheim")

@@ -79,11 +79,11 @@ dwm/build/screenplay/metrics.json
 screenplay/build/screenplay/metrics.json
 
 # local tool venvs
-dwm/tools/.venv/
-dwm/tools/__pycache__/
+dwm/tools/*/.venv/
+dwm/tools/**/__pycache__/
 
 # local SFX golden / compare outputs (analysis only — never commit BBC/media samples)
-dwm/tools/fixtures/*.wav
-dwm/tools/fixtures/*.mp3
-dwm/tools/fixtures/*.ogg
-dwm/tools/fixtures/compare_out/
+dwm/tools/sfx/fixtures/*.wav
+dwm/tools/sfx/fixtures/*.mp3
+dwm/tools/sfx/fixtures/*.ogg
+dwm/tools/sfx/fixtures/compare_out/

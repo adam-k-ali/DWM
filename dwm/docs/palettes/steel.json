@@ -1,0 +1,8 @@
+{
+  "family_id": "steel",
+  "display_name": "Steel",
+  "map_color": "COLOR_GRAY",
+  "notes": "Dark silvery-grey metal for ingots and tool heads. Cooler and darker than vanilla iron mid greys; use as the mineral/metal slot on ingot, pickaxe, and sword products.",
+  "seed": "#58616A",
+  "profile": "mineral"
+}

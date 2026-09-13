@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smelting",
+  "experience": 0.7,
+  "group": "silver_dalekanium",
+  "ingredient": "dwm:dalekanium_ore",
+  "result": {
+    "id": "dwm:silver_dalekanium_ingot"
+  }
+}

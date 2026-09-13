@@ -1,0 +1,172 @@
+{
+  "products": [
+    {
+      "id": "zeiton_ore",
+      "archetype": "ore",
+      "template": "minecraft:block/emerald_ore.png",
+      "host": "gallifrey_stone",
+      "mineral": "zeiton"
+    },
+    {
+      "id": "azbantium_ore",
+      "archetype": "ore",
+      "template": "minecraft:block/emerald_ore.png",
+      "host": "gallifrey_stone",
+      "mineral": "azbantium"
+    },
+    {
+      "id": "dalekanium_ore",
+      "archetype": "ore",
+      "template": "minecraft:block/emerald_ore.png",
+      "host": "vanilla_stone",
+      "mineral": "silver_dalekanium"
+    },
+    {
+      "id": "azbantium",
+      "archetype": "gem",
+      "template": "minecraft:item/diamond.png",
+      "mineral": "azbantium"
+    },
+    {
+      "id": "zeiton_crystals",
+      "archetype": "crystal",
+      "template": "minecraft:item/quartz.png",
+      "mineral": "zeiton"
+    },
+    {
+      "id": "steel_ingot",
+      "archetype": "ingot",
+      "template": "minecraft:item/iron_ingot.png",
+      "mineral": "steel"
+    },
+    {
+      "id": "silver_dalekanium_ingot",
+      "archetype": "ingot",
+      "template": "minecraft:item/iron_ingot.png",
+      "mineral": "silver_dalekanium"
+    },
+    {
+      "id": "bronze_dalekanium_ingot",
+      "archetype": "ingot",
+      "template": "minecraft:item/iron_ingot.png",
+      "mineral": "bronze_dalekanium"
+    },
+    {
+      "id": "silver_dalekanium_panel",
+      "archetype": "cube",
+      "template": "minecraft:block/quartz_block_bottom.png",
+      "mineral": "silver_dalekanium"
+    },
+    {
+      "id": "bronze_dalekanium_panel",
+      "archetype": "cube",
+      "template": "minecraft:block/quartz_block_bottom.png",
+      "mineral": "bronze_dalekanium"
+    },
+    {
+      "id": "steel_pickaxe",
+      "archetype": "pickaxe",
+      "template": "minecraft:item/iron_pickaxe.png",
+      "handle": "tool_handle",
+      "mineral": "steel"
+    },
+    {
+      "id": "steel_sword",
+      "archetype": "sword",
+      "template": "minecraft:item/iron_sword.png",
+      "handle": "tool_handle",
+      "mineral": "steel"
+    },
+    {
+      "id": "steel_shovel",
+      "archetype": "shovel",
+      "template": "minecraft:item/iron_shovel.png",
+      "handle": "tool_handle",
+      "mineral": "steel"
+    },
+    {
+      "id": "steel_axe",
+      "archetype": "axe",
+      "template": "minecraft:item/iron_axe.png",
+      "handle": "tool_handle",
+      "mineral": "steel"
+    },
+    {
+      "id": "steel_hoe",
+      "archetype": "hoe",
+      "template": "minecraft:item/iron_hoe.png",
+      "handle": "tool_handle",
+      "mineral": "steel"
+    },
+    {
+      "id": "silver_dalekanium_pickaxe",
+      "archetype": "pickaxe",
+      "template": "minecraft:item/iron_pickaxe.png",
+      "handle": "tool_handle",
+      "mineral": "silver_dalekanium"
+    },
+    {
+      "id": "silver_dalekanium_sword",
+      "archetype": "sword",
+      "template": "minecraft:item/iron_sword.png",
+      "handle": "tool_handle",
+      "mineral": "silver_dalekanium"
+    },
+    {
+      "id": "silver_dalekanium_shovel",
+      "archetype": "shovel",
+      "template": "minecraft:item/iron_shovel.png",
+      "handle": "tool_handle",
+      "mineral": "silver_dalekanium"
+    },
+    {
+      "id": "silver_dalekanium_axe",
+      "archetype": "axe",
+      "template": "minecraft:item/iron_axe.png",
+      "handle": "tool_handle",
+      "mineral": "silver_dalekanium"
+    },
+    {
+      "id": "silver_dalekanium_hoe",
+      "archetype": "hoe",
+      "template": "minecraft:item/iron_hoe.png",
+      "handle": "tool_handle",
+      "mineral": "silver_dalekanium"
+    },
+    {
+      "id": "bronze_dalekanium_pickaxe",
+      "archetype": "pickaxe",
+      "template": "minecraft:item/iron_pickaxe.png",
+      "handle": "tool_handle",
+      "mineral": "bronze_dalekanium"
+    },
+    {
+      "id": "bronze_dalekanium_sword",
+      "archetype": "sword",
+      "template": "minecraft:item/iron_sword.png",
+      "handle": "tool_handle",
+      "mineral": "bronze_dalekanium"
+    },
+    {
+      "id": "bronze_dalekanium_shovel",
+      "archetype": "shovel",
+      "template": "minecraft:item/iron_shovel.png",
+      "handle": "tool_handle",
+      "mineral": "bronze_dalekanium"
+    },
+    {
+      "id": "bronze_dalekanium_axe",
+      "archetype": "axe",
+      "template": "minecraft:item/iron_axe.png",
+      "handle": "tool_handle",
+      "mineral": "bronze_dalekanium"
+    },
+    {
+      "id": "bronze_dalekanium_hoe",
+      "archetype": "hoe",
+      "template": "minecraft:item/iron_hoe.png",
+      "handle": "tool_handle",
+      "mineral": "bronze_dalekanium"
+    }
+  ]
+}

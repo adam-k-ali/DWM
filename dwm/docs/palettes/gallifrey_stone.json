@@ -1,0 +1,8 @@
+{
+  "family_id": "gallifrey_stone",
+  "display_name": "Gallifrey Stone",
+  "map_color": "TERRACOTTA_ORANGE",
+  "notes": "Canonical Gallifrey stone host atlas from gallifrey_stone.png. Shared by Gallifrey vanilla ores (coal, iron, gold, diamond) and by Zeiton / Azbantium ore products as the host palette.",
+  "seed": "#853D20",
+  "profile": "stone"
+}

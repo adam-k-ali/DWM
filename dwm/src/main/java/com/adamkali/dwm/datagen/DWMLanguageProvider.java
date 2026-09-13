@@ -25,6 +25,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addCitadelFamily(translationBuilder);
         addGallifreyPlants(translationBuilder);
         addAzbantiumSet(translationBuilder);
+        addSteelSet(translationBuilder);
+        addDalekaniumSet(translationBuilder);
         addZeitonSet(translationBuilder);
         addGallifreyVanillaOres(translationBuilder);
         for (var family : DWMBlocks.WOOD_FAMILIES) {
@@ -459,6 +461,35 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItem(t, DWMItems.RADIATION_METER, "Radiation Meter");
     }
 
+    private static void addSteelSet(TranslationBuilder t) {
+        addItem(t, DWMItems.STEEL_INGOT, "Steel Ingot");
+        addItem(t, DWMItems.STEEL_SWORD, "Steel Sword");
+        addItem(t, DWMItems.STEEL_SHOVEL, "Steel Shovel");
+        addItem(t, DWMItems.STEEL_PICKAXE, "Steel Pickaxe");
+        addItem(t, DWMItems.STEEL_AXE, "Steel Axe");
+        addItem(t, DWMItems.STEEL_HOE, "Steel Hoe");
+    }
+
+    private static void addDalekaniumSet(TranslationBuilder t) {
+        addBlockAndItem(t, DWMBlocks.DALEKANIUM_ORE, "Dalekanium Ore");
+        addBlockAndItem(t, DWMBlocks.SILVER_DALEKANIUM_PANEL, "Silver Dalekanium Panel");
+        addBlockAndItem(t, DWMBlocks.SILVER_DALEKANIUM_RIVETED_WALL, "Silver Dalekanium Riveted Wall");
+        addBlockAndItem(t, DWMBlocks.BRONZE_DALEKANIUM_PANEL, "Bronze Dalekanium Panel");
+        addBlockAndItem(t, DWMBlocks.BRONZE_DALEKANIUM_RIVETED_WALL, "Bronze Dalekanium Riveted Wall");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_INGOT, "Silver Dalekanium Ingot");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_INGOT, "Bronze Dalekanium Ingot");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_SWORD, "Silver Dalekanium Sword");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_SHOVEL, "Silver Dalekanium Shovel");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_PICKAXE, "Silver Dalekanium Pickaxe");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_AXE, "Silver Dalekanium Axe");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_HOE, "Silver Dalekanium Hoe");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_SWORD, "Bronze Dalekanium Sword");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_SHOVEL, "Bronze Dalekanium Shovel");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_PICKAXE, "Bronze Dalekanium Pickaxe");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_AXE, "Bronze Dalekanium Axe");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_HOE, "Bronze Dalekanium Hoe");
+    }
+
     private static void addZeitonSet(TranslationBuilder t) {
         addBlockAndItem(t, DWMBlocks.ZEITON_ORE, "Zeiton Ore");
         addItem(t, DWMItems.ZEITON_CRYSTALS, "Zeiton Crystals");
@@ -494,7 +525,14 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("tag.item.dwm.gallifrey_plants", "Gallifrey Plants");
         t.add("tag.item.dwm.azbantium_ores", "Azbantium Ores");
         t.add("tag.item.dwm.zeiton_ores", "Zeiton Ores");
+        t.add("tag.item.dwm.dalekanium_ores", "Dalekanium Ores");
+        t.add("tag.item.dwm.dalekanium_architecture", "Dalekanium Architecture");
+        t.add("tag.item.dwm.silver_dalekanium_architecture", "Silver Dalekanium Architecture");
+        t.add("tag.item.dwm.bronze_dalekanium_architecture", "Bronze Dalekanium Architecture");
         t.add("tag.item.dwm.repairs_azbantium_equipment", "Azbantium Equipment Repair Materials");
+        t.add("tag.item.dwm.repairs_steel_equipment", "Steel Equipment Repair Materials");
+        t.add("tag.item.dwm.repairs_silver_dalekanium_equipment", "Silver Dalekanium Equipment Repair Materials");
+        t.add("tag.item.dwm.repairs_bronze_dalekanium_equipment", "Bronze Dalekanium Equipment Repair Materials");
         t.add("tag.item.dwm.repairs_protective_suit", "Protective Suit Repair Materials");
         t.add("tag.item.dwm.protective_suit", "Protective Suit");
         t.add("death.attack.radiation", "%1$s was irradiated");

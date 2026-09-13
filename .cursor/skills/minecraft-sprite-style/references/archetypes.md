@@ -30,13 +30,13 @@ nudge motif while keeping silhouette and value structure.
 | | |
 |--|--|
 | **Template** | [templates/ore_stone.png](templates/ore_stone.png) |
-| **Vanilla study** | `textures/block/coal_ore.png`, `iron_ore.png`, `gold_ore.png`, `diamond_ore.png` |
+| **Vanilla study** | `textures/block/emerald_ore.png` (primary), `diamond_ore.png`, `iron_ore.png`, `gold_ore.png` — avoid coal ore for high-contrast minerals |
 | **Size / alpha** | 16×16, fully opaque |
-| **Palette roles** | `host_*` + `vein_shadow`, `vein_mid`, `vein_hi` |
+| **Palette roles** | `host_*` + `vein_shadow`, `vein_dark`, `vein_mid`, `vein_hi` |
 
-**Do:** Sparse mineral **clusters** on a readable host; keep most pixels as host; vein blobs have a dark rim + mid fill + rare hi flecks.
+**Do:** Sparse mineral **clusters** on a readable host; keep most pixels as host; vein blobs have a dark rim + dark fill + mid + rare hi flecks (4 mineral steps).
 
-**Don’t:** Cover the face in mineral; soft glow around veins; transparent pixels.
+**Don’t:** Cover the face in mineral; soft glow around veins; transparent pixels; use crushed dark coal greys as the mineral value structure.
 
 **Recolor:** Greys → `host_*`; accent pixels → `vein_*`.
 
@@ -49,7 +49,7 @@ nudge motif while keeping silhouette and value structure.
 | **Template** | [templates/gem_item.png](templates/gem_item.png) |
 | **Vanilla study** | `textures/item/diamond.png`, `textures/item/emerald.png` |
 | **Size / alpha** | 16×16, transparent outside silhouette |
-| **Palette roles** | `gem_shadow`, `gem_mid`, `gem_hi` (optionally share hue with `vein_*`) |
+| **Palette roles** | `gem_shadow`, `gem_dark`, `gem_mid`, `gem_hi` (optionally share hue with `vein_*`) |
 
 **Do:** Faceted silhouette; strong center / upper highlight; clear outline; shared family hue with the ore.
 
@@ -106,7 +106,7 @@ nudge motif while keeping silhouette and value structure.
 
 **Don’t:** Symmetric centered icons; merging handle into head colour; thick AA outlines.
 
-**Recolor:** Brown/grey handle pixels → `handle_*`; accent head → `metal_*` (often same as `vein_*` / `gem_*`).
+**Recolor:** Brown/grey handle pixels → `handle_*`; accent head → `metal_*` (often same as `vein_*` / `gem_*`). The palette tool automates this via `products.json` archetype `pickaxe` (vanilla iron pickaxe + `stick.png` handle classifier).
 
 ---
 
@@ -115,7 +115,7 @@ nudge motif while keeping silhouette and value structure.
 | | |
 |--|--|
 | **Template** | [templates/tool_sword.png](templates/tool_sword.png) |
-| **Vanilla study** | `textures/item/diamond_sword.png` |
+| **Vanilla study** | `textures/item/diamond_sword.png` (study) / `iron_sword.png` (palette product template) |
 | **Size / alpha** | 16×16, transparent outside silhouette |
 | **Palette roles** | `handle_*` + `metal_*` (blade) |
 
@@ -123,4 +123,21 @@ nudge motif while keeping silhouette and value structure.
 
 **Don’t:** Soft glow blade; oversized guard; opaque canvas.
 
-**Recolor:** Handle → `handle_*`; blade/guard accent → `metal_*`.
+**Recolor:** Handle → `handle_*`; blade/guard accent → `metal_*`. The palette tool automates this via `products.json` archetype `sword`.
+
+---
+
+## Ingot item
+
+| | |
+|--|--|
+| **Template** | (palette product) `minecraft:item/iron_ingot.png` |
+| **Vanilla study** | `textures/item/iron_ingot.png`, `gold_ingot.png` |
+| **Size / alpha** | 16×16, transparent outside silhouette |
+| **Palette roles** | `metal_shadow`, `metal_dark`, `metal_mid`, `metal_hi` (mineral ramp) |
+
+**Do:** Bar silhouette; strong value steps; shared family hue with tool heads.
+
+**Don’t:** Soft airbrush; opaque full-canvas square.
+
+**Recolor:** Opaque greys → mineral/metal ramp (same remapper as gem/crystal). See `steel_ingot` in `products.json`.

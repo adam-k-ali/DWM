@@ -21,7 +21,7 @@ All files are **16×16** RGBA.
 |---------|--------------|----------|
 | Host greys | `#404040` … `#A0A0A0` | `host_shadow` / `host_mid` / `host_hi` |
 | Deep rim / outline | `#303030` | darkest outline or `host_shadow` |
-| Accent magenta | `#B428A0`, `#DC46C8`, `#FF8CE6` | `vein_*`, `gem_*`, `plant_leaf*`, `powder_*`, or `metal_*` |
+| Accent magenta | `#8C1878`, `#B428A0`, `#DC46C8`, `#FF8CE6` | `vein_*`, `gem_*`, `plant_leaf*`, `powder_*`, or `metal_*` |
 | Handle browns | `#48341C`, `#684C28` | `handle_shadow` / `handle_mid` |
 
 ## How to use

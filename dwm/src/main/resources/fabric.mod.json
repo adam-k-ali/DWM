@@ -40,6 +40,7 @@
       "com.adamkali.dwm.gametest.SkaroRadiationGameTests",
       "com.adamkali.dwm.gametest.PetrifiedTreeGameTests",
       "com.adamkali.dwm.gametest.ZeitonGameTests",
+      "com.adamkali.dwm.gametest.DalekaniumGameTests",
       "com.adamkali.dwm.gametest.SonicInteractionGameTests",
       "com.adamkali.dwm.gametest.SonicTardisGameTests",
       "com.adamkali.dwm.gametest.StattenheimRemoteGameTests",

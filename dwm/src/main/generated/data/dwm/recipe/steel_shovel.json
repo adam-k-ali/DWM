@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "#": "dwm:steel_ingot",
+    "S": "minecraft:stick"
+  },
+  "pattern": [
+    "#",
+    "S",
+    "S"
+  ],
+  "result": {
+    "id": "dwm:steel_shovel"
+  }
+}

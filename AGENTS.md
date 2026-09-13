@@ -17,7 +17,7 @@
 - `dwm/src/main/generated/`: Datagen output — commit intentional changes; delete `.cache/` before commit.
 - `dwm/src/client/resources`: Hand-maintained client assets (models, blockstates, textures, sounds).
 - `dwm/docs/`: Product-facing feature docs and release policy — read before changing player-visible behaviour.
-- `dwm/tools/`: Offline Python scripts (TARDIS SFX generation/analysis); not part of Gradle build.
+- `dwm/tools/`: Offline Poetry Python tooling — [`palette/`](dwm/tools/palette/) (family colour docs/GUI) and [`sfx/`](dwm/tools/sfx/) (TARDIS/entity SFX); not part of Gradle build.
 - `dwm/metadata/`: Modrinth listing for DWM (`modrinth.json`, `modrinth-body.md`).
 - `dwm/version.json`: DWM release changelog and Modrinth/CurseForge promos — synced via `./dwm/gradlew syncVersionJson`.
 - `screenplay/`: Fabric Screenplay mod root (`screenplay-fabric` artifact); `common/`, `gradle-plugin/`, `loaders/`, `docs/`, `metadata/`.
@@ -179,7 +179,7 @@ A single PR may carry more than one label if it touches multiple categories.
 ## Nested Context
 - `dwm/src/screenplayTests/AGENTS.md` — YAML client scenario framework (primitives, composite commands, Gradle properties).
 - `dwm/src/main/java/com/adamkali/dwm/tardis/AGENTS.md` — TARDIS domain layout (logic vs data vs interior vs portal rendering).
-- `dwm/tools/AGENTS.md` — offline Python audio tooling and fixture rules.
+- `dwm/tools/AGENTS.md` — index for offline Poetry tools; see also `dwm/tools/palette/AGENTS.md` and `dwm/tools/sfx/AGENTS.md`.
 - `.cursor/skills/fabric-gametest/SKILL.md` — authoring and registering Fabric GameTests.
 - `.cursor/skills/asset-import-pipeline/SKILL.md` — promoting archive textures and wiring datagen.
 - `.cursor/skills/refine/SKILL.md` — refine GitHub issues (`DWM-NNN` / `E-NNN`) into build-ready descriptions via `gh`; Project Status → `Ready` only when confirmed.

@@ -69,6 +69,11 @@ public class DWMItems {
 
     public static final Item AZBANTIUM = register(Item::new, "azbantium");
 
+    public static final Item STEEL_INGOT = register(Item::new, "steel_ingot");
+
+    public static final Item SILVER_DALEKANIUM_INGOT = register(Item::new, "silver_dalekanium_ingot");
+    public static final Item BRONZE_DALEKANIUM_INGOT = register(Item::new, "bronze_dalekanium_ingot");
+
     public static final Item ZEITON_CRYSTALS = register(Item::new, "zeiton_crystals");
     public static final Item ZEITON_POWDER = register(Item::new, "zeiton_powder");
     public static final Item FERRITE_POWDER = register(Item::new, "ferrite_powder");
@@ -83,6 +88,75 @@ public class DWMItems {
     public static final Item CIRCUIT_CHAMELEON = registerCircuit(TardisCircuit.CHAMELEON, "circuit_chameleon");
     public static final Item CIRCUIT_REMOTE_SUMMON = registerCircuit(TardisCircuit.REMOTE_SUMMON, "circuit_remote_summon");
     public static final Item CIRCUIT_PLAYER_LOCATOR = registerCircuit(TardisCircuit.PLAYER_LOCATOR, "circuit_player_locator");
+
+    public static final Item STEEL_SWORD = register(
+            Item::new,
+            new Item.Properties().sword(DWMToolMaterials.STEEL, 3.0F, -2.4F),
+            "steel_sword"
+    );
+    public static final Item STEEL_SHOVEL = register(
+            props -> new ShovelItem(DWMToolMaterials.STEEL, 1.5F, -3.0F, props),
+            "steel_shovel"
+    );
+    public static final Item STEEL_PICKAXE = register(
+            Item::new,
+            new Item.Properties().pickaxe(DWMToolMaterials.STEEL, 1.0F, -2.8F),
+            "steel_pickaxe"
+    );
+    public static final Item STEEL_AXE = register(
+            props -> new AxeItem(DWMToolMaterials.STEEL, 5.0F, -3.0F, props),
+            "steel_axe"
+    );
+    public static final Item STEEL_HOE = register(
+            props -> new HoeItem(DWMToolMaterials.STEEL, -3.0F, 0.0F, props),
+            "steel_hoe"
+    );
+
+    public static final Item SILVER_DALEKANIUM_SWORD = register(
+            Item::new,
+            new Item.Properties().sword(DWMToolMaterials.SILVER_DALEKANIUM, 3.0F, -2.4F),
+            "silver_dalekanium_sword"
+    );
+    public static final Item SILVER_DALEKANIUM_SHOVEL = register(
+            props -> new ShovelItem(DWMToolMaterials.SILVER_DALEKANIUM, 1.5F, -3.0F, props),
+            "silver_dalekanium_shovel"
+    );
+    public static final Item SILVER_DALEKANIUM_PICKAXE = register(
+            Item::new,
+            new Item.Properties().pickaxe(DWMToolMaterials.SILVER_DALEKANIUM, 1.0F, -2.8F),
+            "silver_dalekanium_pickaxe"
+    );
+    public static final Item SILVER_DALEKANIUM_AXE = register(
+            props -> new AxeItem(DWMToolMaterials.SILVER_DALEKANIUM, 5.0F, -3.0F, props),
+            "silver_dalekanium_axe"
+    );
+    public static final Item SILVER_DALEKANIUM_HOE = register(
+            props -> new HoeItem(DWMToolMaterials.SILVER_DALEKANIUM, -3.0F, 0.0F, props),
+            "silver_dalekanium_hoe"
+    );
+
+    public static final Item BRONZE_DALEKANIUM_SWORD = register(
+            Item::new,
+            new Item.Properties().sword(DWMToolMaterials.BRONZE_DALEKANIUM, 3.0F, -2.4F),
+            "bronze_dalekanium_sword"
+    );
+    public static final Item BRONZE_DALEKANIUM_SHOVEL = register(
+            props -> new ShovelItem(DWMToolMaterials.BRONZE_DALEKANIUM, 1.5F, -3.0F, props),
+            "bronze_dalekanium_shovel"
+    );
+    public static final Item BRONZE_DALEKANIUM_PICKAXE = register(
+            Item::new,
+            new Item.Properties().pickaxe(DWMToolMaterials.BRONZE_DALEKANIUM, 1.0F, -2.8F),
+            "bronze_dalekanium_pickaxe"
+    );
+    public static final Item BRONZE_DALEKANIUM_AXE = register(
+            props -> new AxeItem(DWMToolMaterials.BRONZE_DALEKANIUM, 5.0F, -3.0F, props),
+            "bronze_dalekanium_axe"
+    );
+    public static final Item BRONZE_DALEKANIUM_HOE = register(
+            props -> new HoeItem(DWMToolMaterials.BRONZE_DALEKANIUM, -3.0F, 0.0F, props),
+            "bronze_dalekanium_hoe"
+    );
 
     public static final Item AZBANTIUM_SWORD = register(
             Item::new,
@@ -212,6 +286,9 @@ public class DWMItems {
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.INGREDIENTS).register(content -> {
             content.accept(AZBANTIUM);
+            content.accept(STEEL_INGOT);
+            content.accept(SILVER_DALEKANIUM_INGOT);
+            content.accept(BRONZE_DALEKANIUM_INGOT);
             content.accept(ZEITON_CRYSTALS);
             content.accept(ZEITON_POWDER);
             content.accept(FERRITE_POWDER);
@@ -239,6 +316,18 @@ public class DWMItems {
             content.accept(CIRCUIT_CHAMELEON);
             content.accept(CIRCUIT_REMOTE_SUMMON);
             content.accept(CIRCUIT_PLAYER_LOCATOR);
+            content.accept(STEEL_SHOVEL);
+            content.accept(STEEL_PICKAXE);
+            content.accept(STEEL_AXE);
+            content.accept(STEEL_HOE);
+            content.accept(SILVER_DALEKANIUM_SHOVEL);
+            content.accept(SILVER_DALEKANIUM_PICKAXE);
+            content.accept(SILVER_DALEKANIUM_AXE);
+            content.accept(SILVER_DALEKANIUM_HOE);
+            content.accept(BRONZE_DALEKANIUM_SHOVEL);
+            content.accept(BRONZE_DALEKANIUM_PICKAXE);
+            content.accept(BRONZE_DALEKANIUM_AXE);
+            content.accept(BRONZE_DALEKANIUM_HOE);
             content.accept(AZBANTIUM_SHOVEL);
             content.accept(AZBANTIUM_PICKAXE);
             content.accept(AZBANTIUM_AXE);
@@ -249,6 +338,9 @@ public class DWMItems {
         });
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.COMBAT).register(content -> {
+            content.accept(STEEL_SWORD);
+            content.accept(SILVER_DALEKANIUM_SWORD);
+            content.accept(BRONZE_DALEKANIUM_SWORD);
             content.accept(AZBANTIUM_SWORD);
             content.accept(AZBANTIUM_HELMET);
             content.accept(AZBANTIUM_CHESTPLATE);

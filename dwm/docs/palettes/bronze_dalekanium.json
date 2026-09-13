@@ -1,0 +1,8 @@
+{
+  "family_id": "bronze_dalekanium",
+  "display_name": "Bronze Dalekanium",
+  "map_color": "COLOR_ORANGE",
+  "notes": "Warm copper-bronze Dalekanium alloy (dalekanium + copper) for Skaro architecture and ingots. Use as the mineral/metal slot on ingot and architecture sprites.",
+  "seed": "#945C30",
+  "profile": "mineral"
+}

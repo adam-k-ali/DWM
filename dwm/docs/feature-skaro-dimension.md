@@ -29,6 +29,7 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
   - Nonflammable and pickaxe-mineable; axe-strippable; survival craftable (log→planks, stairs/slab/wall, stonecutting).
   - Tags: `#dwm:petrified_blocks`, `#dwm:petrified_logs` (not `#minecraft:logs_that_burn`).
 - **Petrified Jungle flora** (DWM-068 slice): configured features `petrified_tree`, `petrified_snag`, and `fallen_petrified_tree` placed only in `skaro_petrified_jungle` (branching trunks, straight snags, fallen logs — all `petrified_log`, no saplings/leaves).
+- **Dalekanium** (materials + panel slice): Skaro-only ore that smelts to silver Dalekanium ingots; bronze alloy from silver + copper; silver and bronze tool sets slightly stronger than steel; silver/bronze panels and riveted walls craftable from matching ingots. See [Dalekanium](./feature-dalekanium.md).
 - **Vanilla terrain palette (intentional, not placeholder):** stone, tuff, deepslate, gravel, basalt, sand, red sand, terracotta, dirt, coarse dirt, rooted dirt, mud, and podzol. There is no custom Skaro stone, sand, sandstone, dust, or dirt family.
 - **Radiation hazards and survival equipment** (DWM-067):
   - Server-authoritative ambient exposure only on Skaro for survival players (creative/spectator ignored). No stored dose — leaving Skaro clears future exposure immediately.
@@ -39,7 +40,7 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
   - Crafting: yellow-wool protective suit (helmet uses a glass visor); meter from iron, glass, and redstone. Field Guide chapter **Skaro Survival** documents hazards, meter, and suit recipes.
 
 ## Planned (not yet in the jar)
-- Dalek architecture builder family (DWM-065).
+- Remaining Dalek architecture builder family (DWM-065): wall, floor, light, door, damaged variants.
 - Remaining Skaro flora (Varga, radiation fungus, mutated reeds, ash scrub, Thal crop) under DWM-068.
 - Structures, Daleks/Thals/fauna population, Kaalann, and related tickets (DWM-069–074).
 

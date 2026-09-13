@@ -1,6 +1,6 @@
 # Feature: Gallifrey Building
 
-See also: [Docs Index](./index.md), [Building Content System](./feature-building-content.md), [Gallifrey Dimension](./feature-gallifrey-dimension.md)
+See also: [Docs Index](./index.md), [Building Content System](./feature-building-content.md), [Gallifrey Dimension](./feature-gallifrey-dimension.md), [Colour palette](./palettes/gallifrey_stone.md)
 
 ## Product Intent
 Give players a Gallifrey-themed terrain and builder kit—stone, woods, and Citadel surfaces—so builds and the Gallifrey destination dimension share a coherent material language without custom texturing.
