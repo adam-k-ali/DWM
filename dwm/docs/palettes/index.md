@@ -45,6 +45,8 @@ Blocks and items pick palettes in [`products.json`](./products.json):
 | `steel_ingot` | ingot | — | `steel` | `minecraft:item/iron_ingot.png` |
 | `silver_dalekanium_ingot` | ingot | — | `silver_dalekanium` | `minecraft:item/iron_ingot.png` |
 | `bronze_dalekanium_ingot` | ingot | — | `bronze_dalekanium` | `minecraft:item/iron_ingot.png` |
+| `silver_dalekanium_panel` | cube | — | `silver_dalekanium` | `minecraft:block/quartz_block_bottom.png` (smooth quartz face) |
+| `bronze_dalekanium_panel` | cube | — | `bronze_dalekanium` | `minecraft:block/quartz_block_bottom.png` (smooth quartz face) |
 | `steel_pickaxe` | pickaxe | handle: `tool_handle` | `steel` | `minecraft:item/iron_pickaxe.png` |
 | `steel_sword` | sword | handle: `tool_handle` | `steel` | `minecraft:item/iron_sword.png` |
 | `steel_shovel` | shovel | handle: `tool_handle` | `steel` | `minecraft:item/iron_shovel.png` |

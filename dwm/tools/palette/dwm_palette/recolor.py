@@ -165,6 +165,40 @@ def apply_host_palette(template_rgb: np.ndarray, host_hex_list: list[str]) -> np
     return out
 
 
+def stamp_corner_rivets(
+    rgb: np.ndarray,
+    shadow: Rgb,
+    dark: Rgb,
+    hi: Rgb,
+    inset: int = 2,
+) -> np.ndarray:
+    """Stamp one 2×2 rivet in each corner, inset from the tile edge.
+
+    Pattern (top-left of each rivet)::
+
+        dark  hi
+        shadow dark
+    """
+    if rgb.ndim != 3 or rgb.shape[2] < 3:
+        raise ValueError("rgb must be HxWx3 (or HxWx4) array")
+    h, w = rgb.shape[0], rgb.shape[1]
+    if h < inset + 2 or w < inset + 2:
+        raise ValueError("image is too small for inset corner rivets")
+    out = rgb[:, :, :3].astype(np.uint8, copy=True)
+    pattern = ((dark, hi), (shadow, dark))
+    origins = (
+        (inset, inset),
+        (w - inset - 2, inset),
+        (inset, h - inset - 2),
+        (w - inset - 2, h - inset - 2),
+    )
+    for ox, oy in origins:
+        for dy in range(2):
+            for dx in range(2):
+                out[oy + dy, ox + dx] = pattern[dy][dx]
+    return out
+
+
 def apply_ore_palettes(
     ore_rgb: np.ndarray,
     host_hex_list: list[str],

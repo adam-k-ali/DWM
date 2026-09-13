@@ -37,6 +37,7 @@ from dwm_palette.recolor import (
     rgb_to_hex,
     split_ore_colours,
     split_tool_colours,
+    stamp_corner_rivets,
     unique_colours_by_luminance,
 )
 
@@ -220,6 +221,19 @@ class PaletteSchemaTests(unittest.TestCase):
         self.assertIn("bronze_dalekanium_ingot", by_id)
         self.assertEqual(by_id["bronze_dalekanium_ingot"]["mineral"], "bronze_dalekanium")
 
+        self.assertIn("silver_dalekanium_panel", by_id)
+        self.assertEqual(by_id["silver_dalekanium_panel"]["archetype"], "cube")
+        self.assertEqual(
+            by_id["silver_dalekanium_panel"]["template"],
+            "minecraft:block/quartz_block_bottom.png",
+        )
+        self.assertEqual(by_id["silver_dalekanium_panel"]["mineral"], "silver_dalekanium")
+        self.assertNotIn("host", by_id["silver_dalekanium_panel"])
+        self.assertNotIn("handle", by_id["silver_dalekanium_panel"])
+        self.assertIn("bronze_dalekanium_panel", by_id)
+        self.assertEqual(by_id["bronze_dalekanium_panel"]["archetype"], "cube")
+        self.assertEqual(by_id["bronze_dalekanium_panel"]["mineral"], "bronze_dalekanium")
+
         self.assertIn("dalekanium_ore", by_id)
         self.assertEqual(by_id["dalekanium_ore"]["archetype"], "ore")
         self.assertEqual(by_id["dalekanium_ore"]["host"], "vanilla_stone")
@@ -278,6 +292,24 @@ class ApplyHostPaletteTests(unittest.TestCase):
         self.assertEqual(src_hexes, set(hosts))
         self.assertEqual(out_hexes, set(hosts))
         np.testing.assert_array_equal(out, src)
+
+
+class StampCornerRivetsTests(unittest.TestCase):
+    def test_four_inset_2x2_rivets(self) -> None:
+        src = np.full((16, 16, 3), 0x80, dtype=np.uint8)
+        shadow = (1, 2, 3)
+        dark = (4, 5, 6)
+        hi = (7, 8, 9)
+        out = stamp_corner_rivets(src, shadow, dark, hi, inset=2)
+        self.assertEqual(tuple(out[2, 2]), dark)
+        self.assertEqual(tuple(out[2, 3]), hi)
+        self.assertEqual(tuple(out[3, 2]), shadow)
+        self.assertEqual(tuple(out[3, 3]), dark)
+        self.assertEqual(tuple(out[2, 12]), dark)
+        self.assertEqual(tuple(out[12, 2]), dark)
+        self.assertEqual(tuple(out[12, 12]), dark)
+        self.assertEqual(tuple(out[0, 0]), (0x80, 0x80, 0x80))
+        self.assertEqual(tuple(out[8, 8]), (0x80, 0x80, 0x80))
 
 
 class ApplyOrePalettesTests(unittest.TestCase):
