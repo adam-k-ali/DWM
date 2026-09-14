@@ -1,10 +1,13 @@
 package com.adamkali.dwm.world;
 
+import com.adamkali.dwm.entity.DWMEntityTypes;
+import com.adamkali.dwm.entity.DalekPatrolLogic;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.data.worldgen.BiomeDefaultFeatures;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.world.attribute.AmbientSounds;
 import net.minecraft.world.attribute.EnvironmentAttributes;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeGenerationSettings;
 import net.minecraft.world.level.biome.BiomeSpecialEffects;
@@ -40,7 +43,7 @@ public final class SkaroBiomeBootstrap {
                 false,
                 1.2F,
                 0.0F,
-                emptySpawns(),
+                dalekPatrolSpawns(true),
                 basicGeneration(features, carvers),
                 0x8B9A2A,
                 0x6A7A18,
@@ -63,7 +66,7 @@ public final class SkaroBiomeBootstrap {
                 true,
                 0.9F,
                 0.8F,
-                emptySpawns(),
+                dalekPatrolSpawns(false),
                 generation,
                 0x5A5040,
                 0x4A4030,
@@ -82,7 +85,7 @@ public final class SkaroBiomeBootstrap {
                 true,
                 0.8F,
                 0.9F,
-                emptySpawns(),
+                dalekPatrolSpawns(false),
                 basicGeneration(features, carvers),
                 0x3A4A28,
                 0x2A3A18,
@@ -101,7 +104,7 @@ public final class SkaroBiomeBootstrap {
                 false,
                 0.4F,
                 0.2F,
-                emptySpawns(),
+                dalekPatrolSpawns(false),
                 basicGeneration(features, carvers),
                 0x4A5558,
                 0x3A4548,
@@ -120,7 +123,7 @@ public final class SkaroBiomeBootstrap {
                 true,
                 0.7F,
                 0.4F,
-                emptySpawns(),
+                dalekPatrolSpawns(true),
                 basicGeneration(features, carvers),
                 0x4A6A7A,
                 0x3A5A6A,
@@ -131,8 +134,22 @@ public final class SkaroBiomeBootstrap {
         );
     }
 
-    private static MobSpawnSettings.Builder emptySpawns() {
-        return new MobSpawnSettings.Builder();
+    private static MobSpawnSettings.Builder dalekPatrolSpawns(boolean sparse) {
+        int weight = sparse ? DalekPatrolLogic.SPARSE_SPAWN_WEIGHT : DalekPatrolLogic.STANDARD_SPAWN_WEIGHT;
+        int minCount = sparse ? DalekPatrolLogic.SPARSE_MIN_COUNT : DalekPatrolLogic.STANDARD_MIN_COUNT;
+        int maxCount = sparse ? DalekPatrolLogic.SPARSE_MAX_COUNT : DalekPatrolLogic.STANDARD_MAX_COUNT;
+        double charge = sparse ? DalekPatrolLogic.SPARSE_SPAWN_CHARGE : DalekPatrolLogic.STANDARD_SPAWN_CHARGE;
+        double energyBudget = sparse
+                ? DalekPatrolLogic.SPARSE_SPAWN_ENERGY_BUDGET
+                : DalekPatrolLogic.STANDARD_SPAWN_ENERGY_BUDGET;
+        MobSpawnSettings.Builder spawns = new MobSpawnSettings.Builder();
+        spawns.addSpawn(
+                MobCategory.MONSTER,
+                weight,
+                new MobSpawnSettings.SpawnerData(DWMEntityTypes.DALEK, minCount, maxCount)
+        );
+        spawns.addMobCharge(DWMEntityTypes.DALEK, charge, energyBudget);
+        return spawns;
     }
 
     private static BiomeGenerationSettings.Builder basicGeneration(
