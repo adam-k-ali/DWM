@@ -1,0 +1,257 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "type": "object",
+  "description": "A blueprint of geometric shapes that can be placed in the world",
+  "$defs": {
+    "location": {
+      "type": "object",
+      "description": "A position relative to the blueprint placement origin",
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "z": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "z"
+      ],
+      "additionalProperties": false
+    },
+    "block": {
+      "type": "object",
+      "description": "A block definition",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_/.-]+$",
+          "description": "The block's registry ID"
+        },
+        "state": {
+          "type": "object",
+          "description": "Blockstate properties",
+          "properties": {
+            "facing": {
+              "type": "string",
+              "description": "The direction the block is facing",
+              "enum": [
+                "north",
+                "west",
+                "south",
+                "east",
+                "up",
+                "down"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "circle": {
+      "type": "object",
+      "description": "Circle shape in the XZ plane",
+      "properties": {
+        "type": {
+          "const": "circle"
+        },
+        "origin": {
+          "description": "Central point of the circle",
+          "$ref": "#/$defs/location"
+        },
+        "block": {
+          "$ref": "#/$defs/block"
+        },
+        "filled": {
+          "type": "boolean",
+          "description": "Whether to fill the circle with the block or not"
+        },
+        "radius": {
+          "type": "number",
+          "minimum": 0,
+          "description": "The radius of the circle"
+        }
+      },
+      "required": [
+        "type",
+        "origin",
+        "block",
+        "filled",
+        "radius"
+      ],
+      "additionalProperties": false
+    },
+    "rectangle": {
+      "type": "object",
+      "description": "Axis-aligned cuboid",
+      "properties": {
+        "type": {
+          "const": "rectangle"
+        },
+        "from": {
+          "$ref": "#/$defs/location",
+          "description": "The rectangle's first corner"
+        },
+        "to": {
+          "$ref": "#/$defs/location",
+          "description": "The rectangle's opposite corner"
+        },
+        "block": {
+          "$ref": "#/$defs/block"
+        },
+        "fill": {
+          "type": "boolean",
+          "description": "Whether to fill the rectangle with the block or not"
+        }
+      },
+      "required": [
+        "type",
+        "from",
+        "to",
+        "block",
+        "fill"
+      ],
+      "additionalProperties": false
+    },
+    "sphere": {
+      "type": "object",
+      "description": "Full sphere",
+      "properties": {
+        "type": {
+          "const": "sphere"
+        },
+        "radius": {
+          "type": "number",
+          "minimum": 0
+        },
+        "origin": {
+          "$ref": "#/$defs/location",
+          "description": "The central point of the sphere"
+        },
+        "block": {
+          "$ref": "#/$defs/block"
+        },
+        "fill": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "radius",
+        "origin",
+        "block",
+        "fill"
+      ],
+      "additionalProperties": false
+    },
+    "polygon": {
+      "type": "object",
+      "description": "Regular polygon in the XZ plane",
+      "properties": {
+        "type": {
+          "const": "polygon"
+        },
+        "n_sides": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 12,
+          "description": "Number of sides on the polygon"
+        },
+        "origin": {
+          "$ref": "#/$defs/location",
+          "description": "The central point of the polygon"
+        },
+        "block": {
+          "$ref": "#/$defs/block"
+        },
+        "fill": {
+          "type": "boolean"
+        },
+        "radius": {
+          "type": "number",
+          "minimum": 0,
+          "description": "The circumradius of the polygon"
+        }
+      },
+      "required": [
+        "type",
+        "n_sides",
+        "origin",
+        "block",
+        "fill",
+        "radius"
+      ],
+      "additionalProperties": false
+    },
+    "dome": {
+      "type": "object",
+      "description": "Upper hemisphere (half a sphere)",
+      "properties": {
+        "type": {
+          "const": "dome"
+        },
+        "origin": {
+          "$ref": "#/$defs/location",
+          "description": "Central point at the base of the dome"
+        },
+        "radius": {
+          "type": "number",
+          "minimum": 0
+        },
+        "block": {
+          "$ref": "#/$defs/block"
+        },
+        "fill": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "origin",
+        "radius",
+        "block",
+        "fill"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "shapes": {
+      "type": "array",
+      "description": "List of shapes in the blueprint (later shapes overwrite earlier ones at the same voxel)",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/circle"
+          },
+          {
+            "$ref": "#/$defs/rectangle"
+          },
+          {
+            "$ref": "#/$defs/sphere"
+          },
+          {
+            "$ref": "#/$defs/polygon"
+          },
+          {
+            "$ref": "#/$defs/dome"
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "shapes"
+  ],
+  "additionalProperties": false
+}
