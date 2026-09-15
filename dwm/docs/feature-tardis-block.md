@@ -36,7 +36,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Automatic surface landings stay below a dimensional bedrock ceiling (e.g. the Nether roof); exact coordinates on it (waypoint, player, summon, fast return) are unchanged.
 - Single config toggle `enableDoorPortals` (default on) via Mod Menu / Cloth Config; legacy `enableBoti` / `enableSoto` migrate on load.
 - Interior doors use an invisible block + dedicated BER (`TardisClassicInteriorDoorModel`) with swing animation.
-- Materialisation lever travel: first pull dematerialises the exterior; after a short hold the TARDIS enters `IN_FLIGHT`; a second pull materialises at the destination resolved from the active `DestinationMode`.
+- Materialisation lever travel: first pull dematerialises the exterior; after a short hold the TARDIS enters `IN_FLIGHT`; a second pull materialises at the destination resolved from the active `DestinationMode`. Landing search (biome locate and destination chunk load) is deferred off the lever click so the server does not hitch; the overlay shows “Locating landing site…” until a valid cell is ready.
 - Destination modes: `BIOME` (default — selected dimension/biome landing search), `WAYPOINT` (exact saved exterior coords), `PLAYER` (live online player position at materialise; fails with overlay if offline), `FAST_RETURN` (exact historically visited exterior from LIFO history), `TELEPATHIC` (using player's bed/respawn, else that dimension's world spawn).
 - First Doctor console hex faces have fixed purposes (`FirstDoctorConsoleControls.ConsolePanel`):
   - **Panel1 Environment (0°)** — exterior atmosphere instruments (oxygen / pressure / temperature readers on the middle row; radiation reader on the bottom row).
