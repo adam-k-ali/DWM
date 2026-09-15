@@ -21,7 +21,7 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
   - Drammankin Mire: mud over dirt; olive fog and murky water.
   - Drammankin Mountains: stone / tuff / gravel over tuff; cold ash-grey atmosphere.
   - Thal Plateau: dirt / coarse dirt / terracotta; muted blue-grey sky.
-- Baseline caves, lakes, and vanilla ores in every biome. Empty biome spawn tables (no Overworld hostiles, cave fauna, or farm animals). No Gallifrey plants, woods, ores, or fauna. Daleks, Thals, and Skaro fauna remain planned.
+- Baseline caves, lakes, and vanilla ores in every biome. No Overworld hostiles, cave fauna, or farm animals. No Gallifrey plants, woods, ores, or fauna. **Dalek patrols** spawn from biome monster tables: small groups (1–3) in petrified jungle, Drammankin mire, and Drammankin mountains; lower weight and 1–2 groups in irradiated wastes and the Thal plateau. Thals and Skaro fauna remain planned.
 - TARDIS planet locator discovers Skaro automatically as a loaded world. `BiomeSelectorLogic` maps `dwm:skaro` to `#dwm:is_skaro`.
 - **Petrified wood family** (DWM-064): mineralized Skaro trunks and builder variants.
   - Natural: `petrified_log`, `petrified_wood` (axis pillars).
@@ -36,7 +36,7 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
 - Remaining Dalek architecture builder family (DWM-065): wall, floor, light, door, damaged variants.
 - Radiation, protective suit, and meter (DWM-067).
 - Remaining Skaro flora (Varga, radiation fungus, mutated reeds, ash scrub, Thal crop) under DWM-068.
-- Structures, Daleks/Thals/fauna population, Kaalann, and related tickets (DWM-069–074).
+- Structures, Thal/fauna population, Kaalann, and related tickets (DWM-069, DWM-071–074). Dalek biome patrols shipped under DWM-070; structure-scoped population is still planned.
 
 ## How It Works In-Game
 1. Mine petrified logs with a pickaxe (or strip with an axe), then craft planks, stairs, slabs, and walls like other builder sets.
@@ -49,7 +49,7 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
 - Terrain identity comes from **vanilla composition**, atmosphere, petrified vegetation, and Dalek architecture — not a full custom stone, sand, and dirt palette. That composition choice is product intent for DWM-066, not temporary art.
 - Petrified material is mineralized wood: pickaxe-effective, nonflammable, no saplings or leaves.
 - Sky/fog use biome colors and overworld dimension effects; there is no custom Skaro sky renderer.
-- Dalek architecture, radiation, remaining flora, entities, and structures remain owned by their child tickets under E-007.
+- Dalek architecture, radiation, remaining flora, and structures remain owned by their child tickets under E-007. Biome Dalek patrols are owned by DWM-070; core combat remains DWM-051.
 
 ## Future Opportunities
 - Custom dimension effects for Skaro sky, fog, and clouds.

@@ -1,5 +1,6 @@
 package com.adamkali.dwm;
 
+import com.adamkali.dwm.entity.DalekPatrolLogic;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.jupiter.api.Test;
@@ -1141,12 +1142,18 @@ public class ResourceValidationTests {
             JSONObject biome = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
             var spawners = biome.getJSONObject("spawners");
             for (String category : spawnCategories) {
+                if ("monster".equals(category)) {
+                    continue;
+                }
                 assertEquals(
                         0,
                         spawners.getJSONArray(category).length(),
                         biomeFile + " must have empty spawners." + category
                 );
             }
+            boolean sparse = "skaro_irradiated_wastes.json".equals(biomeFile)
+                    || "skaro_thal_plateau.json".equals(biomeFile);
+            assertDalekMonsterPatrol(biome, biomeFile, sparse);
             String blob = Files.readString(path);
             for (String forbidden : forbiddenFeatureSubstrings) {
                 assertFalse(
@@ -1189,6 +1196,26 @@ public class ResourceValidationTests {
                 Files.isRegularFile(Path.of("src/main/resources/data/dwm/dimension_type/skaro.json")),
                 "Missing hand-maintained dimension_type/skaro.json"
         );
+    }
+
+    private static void assertDalekMonsterPatrol(JSONObject biome, String biomeFile, boolean sparse) {
+        var monsters = biome.getJSONObject("spawners").getJSONArray("monster");
+        assertEquals(1, monsters.length(), biomeFile + " must spawn only Dalek monsters");
+        var spawn = monsters.getJSONObject(0);
+        assertEquals("dwm:dalek", spawn.getString("type"), biomeFile + " monster spawn must be dwm:dalek");
+        int expectedWeight = sparse ? DalekPatrolLogic.SPARSE_SPAWN_WEIGHT : DalekPatrolLogic.STANDARD_SPAWN_WEIGHT;
+        int expectedMin = sparse ? DalekPatrolLogic.SPARSE_MIN_COUNT : DalekPatrolLogic.STANDARD_MIN_COUNT;
+        int expectedMax = sparse ? DalekPatrolLogic.SPARSE_MAX_COUNT : DalekPatrolLogic.STANDARD_MAX_COUNT;
+        double expectedCharge = sparse ? DalekPatrolLogic.SPARSE_SPAWN_CHARGE : DalekPatrolLogic.STANDARD_SPAWN_CHARGE;
+        double expectedBudget = sparse
+                ? DalekPatrolLogic.SPARSE_SPAWN_ENERGY_BUDGET
+                : DalekPatrolLogic.STANDARD_SPAWN_ENERGY_BUDGET;
+        assertEquals(expectedWeight, spawn.getInt("weight"), biomeFile + " Dalek weight");
+        assertEquals(expectedMin, spawn.getInt("minCount"), biomeFile + " Dalek minCount");
+        assertEquals(expectedMax, spawn.getInt("maxCount"), biomeFile + " Dalek maxCount");
+        var costs = biome.getJSONObject("spawn_costs").getJSONObject("dwm:dalek");
+        assertEquals(expectedCharge, costs.getDouble("charge"), 1e-9, biomeFile + " Dalek spawn charge");
+        assertEquals(expectedBudget, costs.getDouble("energy_budget"), 1e-9, biomeFile + " Dalek energy budget");
     }
 
     private static void assertPetrifiedTreeConfiguredFeaturesAreLogOnly() throws Exception {

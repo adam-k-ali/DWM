@@ -54,6 +54,7 @@
       "com.adamkali.dwm.gametest.MewingDogGameTests",
       "com.adamkali.dwm.gametest.TimeLordGameTests",
       "com.adamkali.dwm.gametest.DalekGameTests",
+      "com.adamkali.dwm.gametest.DalekPopulationGameTests",
       "com.adamkali.dwm.network.ChameleonGameTests"
     ]
   },

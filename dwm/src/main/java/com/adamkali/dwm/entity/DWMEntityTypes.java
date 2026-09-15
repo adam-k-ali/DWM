@@ -203,8 +203,7 @@ public final class DWMEntityTypes {
                                         .spawnPlacement(
                                                 SpawnPlacementTypes.ON_GROUND,
                                                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                                                (type, level, reason, pos, random) ->
-                                                        Mob.checkMobSpawnRules(type, level, reason, pos, random)
+                                                DalekPatrolLogic::canSpawn
                                         )
                                         .defaultAttributes(DalekEntity::createAttributes)
                         )
