@@ -37,8 +37,10 @@
       "com.adamkali.dwm.gametest.AzbantiumGameTests",
       "com.adamkali.dwm.gametest.GallifreyVanillaOresGameTests",
       "com.adamkali.dwm.gametest.SkaroDimensionGameTests",
+      "com.adamkali.dwm.gametest.SkaroRadiationGameTests",
       "com.adamkali.dwm.gametest.PetrifiedTreeGameTests",
       "com.adamkali.dwm.gametest.ZeitonGameTests",
+      "com.adamkali.dwm.gametest.DalekaniumGameTests",
       "com.adamkali.dwm.gametest.SonicInteractionGameTests",
       "com.adamkali.dwm.gametest.SonicTardisGameTests",
       "com.adamkali.dwm.gametest.StattenheimRemoteGameTests",
@@ -53,6 +55,7 @@
       "com.adamkali.dwm.gametest.MewingDogGameTests",
       "com.adamkali.dwm.gametest.TimeLordGameTests",
       "com.adamkali.dwm.gametest.DalekGameTests",
+      "com.adamkali.dwm.gametest.DalekPopulationGameTests",
       "com.adamkali.dwm.network.ChameleonGameTests"
     ]
   },

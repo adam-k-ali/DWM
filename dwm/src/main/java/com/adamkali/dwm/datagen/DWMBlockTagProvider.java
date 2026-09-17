@@ -59,6 +59,22 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
         builder(DWMBlockTags.ZEITON_ORES)
                 .add(key(DWMBlocks.ZEITON_ORE));
 
+        builder(DWMBlockTags.DALEKANIUM_ORES)
+                .add(key(DWMBlocks.DALEKANIUM_ORE));
+
+        var silverArchitecture = builder(DWMBlockTags.SILVER_DALEKANIUM_ARCHITECTURE);
+        for (Block block : DWMBlocks.SILVER_DALEKANIUM_ARCHITECTURE) {
+            silverArchitecture.add(key(block));
+        }
+        var bronzeArchitecture = builder(DWMBlockTags.BRONZE_DALEKANIUM_ARCHITECTURE);
+        for (Block block : DWMBlocks.BRONZE_DALEKANIUM_ARCHITECTURE) {
+            bronzeArchitecture.add(key(block));
+        }
+        var dalekaniumArchitecture = builder(DWMBlockTags.DALEKANIUM_ARCHITECTURE);
+        for (Block block : DWMBlocks.DALEKANIUM_ARCHITECTURE) {
+            dalekaniumArchitecture.add(key(block));
+        }
+
         var smallFlowers = builder(BlockTags.SMALL_FLOWERS);
         for (Block flower : DWMBlocks.GALLIFREY_CROSS_PLANTS) {
             smallFlowers.add(key(flower));
@@ -95,10 +111,14 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(key(DWMBlocks.AZBANTIUM_ORE))
                 .add(key(DWMBlocks.AZBANTIUM_BLOCK))
                 .add(key(DWMBlocks.ZEITON_ORE))
+                .add(key(DWMBlocks.DALEKANIUM_ORE))
                 .add(key(DWMBlocks.GALLIFREY_COAL_ORE))
                 .add(key(DWMBlocks.GALLIFREY_IRON_ORE))
                 .add(key(DWMBlocks.GALLIFREY_GOLD_ORE))
                 .add(key(DWMBlocks.GALLIFREY_DIAMOND_ORE));
+        for (Block block : DWMBlocks.DALEKANIUM_ARCHITECTURE) {
+            pickaxe.add(key(block));
+        }
         for (Block block : DWMBlocks.PETRIFIED_FAMILY) {
             pickaxe.add(key(block));
         }
@@ -106,10 +126,14 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
         builder(BlockTags.NEEDS_STONE_TOOL)
                 .add(key(DWMBlocks.GALLIFREY_IRON_ORE));
 
-        builder(BlockTags.NEEDS_IRON_TOOL)
+        var needsIron = builder(BlockTags.NEEDS_IRON_TOOL)
                 .add(key(DWMBlocks.GALLIFREY_GOLD_ORE))
                 .add(key(DWMBlocks.GALLIFREY_DIAMOND_ORE))
-                .add(key(DWMBlocks.ZEITON_ORE));
+                .add(key(DWMBlocks.ZEITON_ORE))
+                .add(key(DWMBlocks.DALEKANIUM_ORE));
+        for (Block block : DWMBlocks.DALEKANIUM_ARCHITECTURE) {
+            needsIron.add(key(block));
+        }
 
         builder(BlockTags.NEEDS_DIAMOND_TOOL)
                 .add(key(DWMBlocks.AZBANTIUM_ORE))

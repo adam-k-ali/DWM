@@ -1,5 +1,6 @@
 package com.adamkali.dwm;
 
+import com.adamkali.dwm.model.item.RadiationMeterModel;
 import com.adamkali.dwm.model.tileentity.*;
 import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
 
@@ -74,6 +75,9 @@ public class DWMRenderLayerManager {
         ModelLayerRegistry.registerModelLayer(
                 TardisFullScannerModel.LAYER_LOCATION,
                 TardisFullScannerModel::getTexturedModelData);
+        ModelLayerRegistry.registerModelLayer(
+                RadiationMeterModel.LAYER_LOCATION,
+                RadiationMeterModel::getTexturedModelData);
     }
 
     public static void initialize() {

@@ -15,6 +15,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 - [Gallifrey Dimension](./feature-gallifrey-dimension.md)
 - [Azbantium](./feature-azbantium.md)
 - [Steel](./feature-steel.md)
+- [Dalekanium](./feature-dalekanium.md)
 - [Zeiton](./feature-zeiton.md)
 - [Dalek](./feature-dalek.md)
 
@@ -22,7 +23,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 - [TARDIS Chameleon System](./feature-chameleon-system.md) (config-gated and disabled by default)
 
 ### Planned Features
-- [Skaro Dimension](./feature-skaro-dimension.md) (destination world; petrified wood, five biomes, and Petrified Jungle trees shipped; remaining flora/radiation/structures still planned)
+- [Skaro Dimension](./feature-skaro-dimension.md) (destination world; petrified wood, five biomes, Petrified Jungle trees, radiation/suit/meter, and Dalek patrols shipped; remaining flora/structures still planned)
 
 ## Brand and Differentiation
 - [Branding Guidelines](./branding-guidelines.md)

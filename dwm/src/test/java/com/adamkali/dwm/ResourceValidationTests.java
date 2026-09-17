@@ -1,5 +1,6 @@
 package com.adamkali.dwm;
 
+import com.adamkali.dwm.entity.DalekPatrolLogic;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.jupiter.api.Test;
@@ -411,6 +412,29 @@ public class ResourceValidationTests {
         );
     }
 
+    /**
+     * The handheld meter uses a component-aware special renderer for its live screen.
+     */
+    @Test
+    public void radiationMeterItemModelIsSpecialRenderer() throws Exception {
+        assertSpecialItemRenderer(
+                "radiation_meter",
+                "dwm:item/radiation_meter"
+        );
+
+        BufferedImage body = ImageIO.read(Path.of(
+                "src/client/resources/assets/dwm/textures/entity/radiation_meter.png"
+        ).toFile());
+        assertEquals(64, body.getWidth());
+        assertEquals(64, body.getHeight());
+
+        BufferedImage digits = ImageIO.read(Path.of(
+                "src/client/resources/assets/dwm/textures/entity/radiation_meter_digits.png"
+        ).toFile());
+        assertEquals(64, digits.getWidth());
+        assertEquals(8, digits.getHeight());
+    }
+
     private static void assertSpecialItemRenderer(String id, String expectedParticle) throws Exception {
         Path itemDef = Path.of("src/client/resources/assets/dwm/items/" + id + ".json");
         JSONObject def = readJson(itemDef);
@@ -515,6 +539,110 @@ public class ResourceValidationTests {
     }
 
     /**
+     * Guards against {@code pruneDatagenItemModels} dropping EVA-suit item defs.
+     */
+    @Test
+    public void generatedEvaSuitItemModelsExist() throws Exception {
+        Path itemsDir = Path.of("src/main/generated/assets/dwm/items");
+        assertTrue(Files.isDirectory(itemsDir), "Expected generated items dir at " + itemsDir);
+        String[] ids = {
+                "eva_suit_helmet",
+                "eva_suit_chestplate",
+                "eva_suit_leggings",
+                "eva_suit_boots",
+        };
+        for (String id : ids) {
+            Path item = itemsDir.resolve(id + ".json");
+            assertTrue(
+                    Files.isRegularFile(item) && Files.size(item) > 0,
+                    "Missing generated EVA-suit item model: " + item
+            );
+        }
+    }
+
+    /**
+     * EVA suit worn atlases are 128×64 fabric maps; inventory icons are 16×16 with
+     * transparent corners, fully opaque pixels, and a tight colour budget.
+     */
+    @Test
+    public void evaSuitTexturesMatchContract() throws Exception {
+        Path outer = Path.of(
+                "src/client/resources/assets/dwm/textures/entity/equipment/humanoid/eva_suit.png"
+        );
+        Path leggings = Path.of(
+                "src/client/resources/assets/dwm/textures/entity/equipment/humanoid_leggings/eva_suit.png"
+        );
+        assertAtlasSize(outer, 128, 64);
+        assertAtlasSize(leggings, 128, 64);
+
+        String[] itemIds = {
+                "eva_suit_helmet",
+                "eva_suit_chestplate",
+                "eva_suit_leggings",
+                "eva_suit_boots",
+        };
+        for (String id : itemIds) {
+            Path png = Path.of("src/client/resources/assets/dwm/textures/item/" + id + ".png");
+            assertTrue(Files.isRegularFile(png) && Files.size(png) > 0, "Missing item sprite: " + png);
+            BufferedImage image = ImageIO.read(png.toFile());
+            assertEquals(16, image.getWidth(), id + " width");
+            assertEquals(16, image.getHeight(), id + " height");
+            assertEquals(0, (image.getRGB(0, 0) >>> 24) & 0xFF, id + " top-left alpha");
+            assertEquals(0, (image.getRGB(15, 0) >>> 24) & 0xFF, id + " top-right alpha");
+            assertEquals(0, (image.getRGB(0, 15) >>> 24) & 0xFF, id + " bottom-left alpha");
+            assertEquals(0, (image.getRGB(15, 15) >>> 24) & 0xFF, id + " bottom-right alpha");
+
+            Set<Integer> opaqueRgb = new HashSet<>();
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    int argb = image.getRGB(x, y);
+                    int alpha = (argb >>> 24) & 0xFF;
+                    if (alpha == 0) {
+                        continue;
+                    }
+                    assertEquals(255, alpha, id + " semi-transparent pixel at " + x + "," + y);
+                    opaqueRgb.add(argb & 0xFFFFFF);
+                }
+            }
+            assertFalse(opaqueRgb.isEmpty(), id + " has no opaque pixels");
+            assertTrue(
+                    opaqueRgb.size() <= 12,
+                    id + " exceeds colour budget: " + opaqueRgb.size()
+            );
+        }
+    }
+
+    @Test
+    public void evaSuitOverlayTextureMatchesContract() throws Exception {
+        Path png = Path.of("src/client/resources/assets/dwm/textures/misc/eva_suit_overlay.png");
+        assertAtlasSize(png, 256, 256);
+        BufferedImage image = ImageIO.read(png.toFile());
+        assertEquals(0, (image.getRGB(128, 128) >>> 24) & 0xFF, "overlay center must be transparent");
+        boolean edgeHasAlpha = false;
+        int[][] edgePixels = {{0, 0}, {255, 0}, {0, 255}, {255, 255}, {128, 0}, {0, 128}};
+        for (int[] pixel : edgePixels) {
+            if (((image.getRGB(pixel[0], pixel[1]) >>> 24) & 0xFF) > 0) {
+                edgeHasAlpha = true;
+                break;
+            }
+        }
+        assertTrue(edgeHasAlpha, "overlay frame must have opaque edge pixels");
+    }
+
+    private static void assertAtlasSize(Path png, int width, int height) throws Exception {
+        assertTrue(Files.isRegularFile(png) && Files.size(png) > 0, "Missing atlas: " + png);
+        BufferedImage image = ImageIO.read(png.toFile());
+        assertEquals(width, image.getWidth(), png + " width");
+        assertEquals(height, image.getHeight(), png + " height");
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int alpha = (image.getRGB(x, y) >>> 24) & 0xFF;
+                assertTrue(alpha == 0 || alpha == 255, png + " soft alpha at " + x + "," + y);
+            }
+        }
+    }
+
+    /**
      * Guards against {@code pruneDatagenItemModels} dropping steel item defs
      * (allowlist must include {@code steel} substring).
      */
@@ -535,6 +663,42 @@ public class ResourceValidationTests {
             assertTrue(
                     Files.isRegularFile(item) && Files.size(item) > 0,
                     "Missing generated steel item model: " + item
+            );
+        }
+    }
+
+    /**
+     * Guards against {@code pruneDatagenItemModels} dropping dalekanium item defs
+     * (allowlist must include {@code dalek} substring).
+     */
+    @Test
+    public void generatedDalekaniumItemModelsExist() throws Exception {
+        Path itemsDir = Path.of("src/main/generated/assets/dwm/items");
+        assertTrue(Files.isDirectory(itemsDir), "Expected generated items dir at " + itemsDir);
+        String[] ids = {
+                "dalekanium_ore",
+                "silver_dalekanium_ingot",
+                "bronze_dalekanium_ingot",
+                "silver_dalekanium_sword",
+                "silver_dalekanium_shovel",
+                "silver_dalekanium_pickaxe",
+                "silver_dalekanium_axe",
+                "silver_dalekanium_hoe",
+                "bronze_dalekanium_sword",
+                "bronze_dalekanium_shovel",
+                "bronze_dalekanium_pickaxe",
+                "bronze_dalekanium_axe",
+                "bronze_dalekanium_hoe",
+                "silver_dalekanium_panel",
+                "silver_dalekanium_riveted_wall",
+                "bronze_dalekanium_panel",
+                "bronze_dalekanium_riveted_wall",
+        };
+        for (String id : ids) {
+            Path item = itemsDir.resolve(id + ".json");
+            assertTrue(
+                    Files.isRegularFile(item) && Files.size(item) > 0,
+                    "Missing generated dalekanium item model: " + item
             );
         }
     }
@@ -1105,12 +1269,18 @@ public class ResourceValidationTests {
             JSONObject biome = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
             var spawners = biome.getJSONObject("spawners");
             for (String category : spawnCategories) {
+                if ("monster".equals(category)) {
+                    continue;
+                }
                 assertEquals(
                         0,
                         spawners.getJSONArray(category).length(),
                         biomeFile + " must have empty spawners." + category
                 );
             }
+            boolean sparse = "skaro_irradiated_wastes.json".equals(biomeFile)
+                    || "skaro_thal_plateau.json".equals(biomeFile);
+            assertDalekMonsterPatrol(biome, biomeFile, sparse);
             String blob = Files.readString(path);
             for (String forbidden : forbiddenFeatureSubstrings) {
                 assertFalse(
@@ -1153,6 +1323,26 @@ public class ResourceValidationTests {
                 Files.isRegularFile(Path.of("src/main/resources/data/dwm/dimension_type/skaro.json")),
                 "Missing hand-maintained dimension_type/skaro.json"
         );
+    }
+
+    private static void assertDalekMonsterPatrol(JSONObject biome, String biomeFile, boolean sparse) {
+        var monsters = biome.getJSONObject("spawners").getJSONArray("monster");
+        assertEquals(1, monsters.length(), biomeFile + " must spawn only Dalek monsters");
+        var spawn = monsters.getJSONObject(0);
+        assertEquals("dwm:dalek", spawn.getString("type"), biomeFile + " monster spawn must be dwm:dalek");
+        int expectedWeight = sparse ? DalekPatrolLogic.SPARSE_SPAWN_WEIGHT : DalekPatrolLogic.STANDARD_SPAWN_WEIGHT;
+        int expectedMin = sparse ? DalekPatrolLogic.SPARSE_MIN_COUNT : DalekPatrolLogic.STANDARD_MIN_COUNT;
+        int expectedMax = sparse ? DalekPatrolLogic.SPARSE_MAX_COUNT : DalekPatrolLogic.STANDARD_MAX_COUNT;
+        double expectedCharge = sparse ? DalekPatrolLogic.SPARSE_SPAWN_CHARGE : DalekPatrolLogic.STANDARD_SPAWN_CHARGE;
+        double expectedBudget = sparse
+                ? DalekPatrolLogic.SPARSE_SPAWN_ENERGY_BUDGET
+                : DalekPatrolLogic.STANDARD_SPAWN_ENERGY_BUDGET;
+        assertEquals(expectedWeight, spawn.getInt("weight"), biomeFile + " Dalek weight");
+        assertEquals(expectedMin, spawn.getInt("minCount"), biomeFile + " Dalek minCount");
+        assertEquals(expectedMax, spawn.getInt("maxCount"), biomeFile + " Dalek maxCount");
+        var costs = biome.getJSONObject("spawn_costs").getJSONObject("dwm:dalek");
+        assertEquals(expectedCharge, costs.getDouble("charge"), 1e-9, biomeFile + " Dalek spawn charge");
+        assertEquals(expectedBudget, costs.getDouble("energy_budget"), 1e-9, biomeFile + " Dalek energy budget");
     }
 
     private static void assertPetrifiedTreeConfiguredFeaturesAreLogOnly() throws Exception {

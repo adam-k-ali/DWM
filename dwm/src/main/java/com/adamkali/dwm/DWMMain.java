@@ -19,6 +19,7 @@ import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
 import com.adamkali.dwm.tardis.worldgen.DWMStructureProcessors;
 import com.adamkali.dwm.world.DWMPlacedFeatures;
+import com.adamkali.dwm.world.radiation.RadiationExposureService;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
@@ -51,6 +52,7 @@ public class DWMMain implements ModInitializer {
         ServerPayloadTypeRegistry.initialize();
         PortalStreamSyncService.initialize();
         TardisTravelService.initialize();
+        RadiationExposureService.initialize();
         TardisCommands.initialize();
         BiomeModifications.addFeature(
                 BiomeSelectors.tag(BiomeTags.IS_OVERWORLD),

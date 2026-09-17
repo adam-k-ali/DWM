@@ -99,8 +99,8 @@ def save_palette_json(palette: dict[str, Any], path: Path) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-# Mineral-only item archetypes (no host / handle slot).
-MINERAL_ONLY_ARCHETYPES = frozenset({"gem", "crystal", "ingot"})
+# Mineral-only item/cube archetypes (no host / handle slot).
+MINERAL_ONLY_ARCHETYPES = frozenset({"gem", "crystal", "ingot", "cube"})
 # Tool archetypes: handle wood + mineral metal.
 TOOL_ARCHETYPES = frozenset({"pickaxe", "sword", "shovel", "axe", "hoe"})
 
@@ -108,8 +108,8 @@ TOOL_ARCHETYPES = frozenset({"pickaxe", "sword", "shovel", "axe", "hoe"})
 def load_products(path: Path) -> list[dict[str, Any]]:
     """Load products.json and return the products list.
 
-    Ore products require ``host`` + ``mineral``. Gem, crystal, and ingot products
-    require ``mineral`` only (no host/handle). Pickaxe and sword products require
+    Ore products require ``host`` + ``mineral``. Gem, crystal, ingot, and cube
+    products require ``mineral`` only (no host/handle). Pickaxe and sword products require
     ``handle`` + ``mineral`` (no host).
     """
     data = json.loads(path.read_text(encoding="utf-8"))
@@ -175,7 +175,7 @@ def load_products(path: Path) -> list[dict[str, Any]]:
         else:
             raise ValueError(
                 f"{path}: products[{i}].archetype {archetype!r} is unsupported "
-                "(expected ore, gem, crystal, ingot, pickaxe, sword, shovel, axe, or hoe)"
+                "(expected ore, gem, crystal, ingot, cube, pickaxe, sword, shovel, axe, or hoe)"
             )
         normalized.append(item)
     return normalized

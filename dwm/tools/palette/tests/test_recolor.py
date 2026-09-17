@@ -26,6 +26,7 @@ from dwm_palette.palette import (
 from dwm_palette.paths import find_dwm_root
 from dwm_palette.profiles import expand_ramp
 from dwm_palette.recolor import (
+    apply_cube_palette,
     apply_mineral_item_palette,
     apply_host_palette,
     apply_ore_palettes,
@@ -37,6 +38,7 @@ from dwm_palette.recolor import (
     rgb_to_hex,
     split_ore_colours,
     split_tool_colours,
+    stamp_corner_rivets,
     unique_colours_by_luminance,
 )
 
@@ -214,6 +216,50 @@ class PaletteSchemaTests(unittest.TestCase):
         self.assertEqual(by_id["steel_hoe"]["mineral"], "steel")
         self.assertNotIn("host", by_id["steel_hoe"])
 
+        self.assertIn("silver_dalekanium_ingot", by_id)
+        self.assertEqual(by_id["silver_dalekanium_ingot"]["archetype"], "ingot")
+        self.assertEqual(by_id["silver_dalekanium_ingot"]["mineral"], "silver_dalekanium")
+        self.assertIn("bronze_dalekanium_ingot", by_id)
+        self.assertEqual(by_id["bronze_dalekanium_ingot"]["mineral"], "bronze_dalekanium")
+
+        self.assertIn("silver_dalekanium_panel", by_id)
+        self.assertEqual(by_id["silver_dalekanium_panel"]["archetype"], "cube")
+        self.assertEqual(
+            by_id["silver_dalekanium_panel"]["template"],
+            "minecraft:block/quartz_block_bottom.png",
+        )
+        self.assertEqual(by_id["silver_dalekanium_panel"]["mineral"], "silver_dalekanium")
+        self.assertNotIn("host", by_id["silver_dalekanium_panel"])
+        self.assertNotIn("handle", by_id["silver_dalekanium_panel"])
+        self.assertIn("bronze_dalekanium_panel", by_id)
+        self.assertEqual(by_id["bronze_dalekanium_panel"]["archetype"], "cube")
+        self.assertEqual(by_id["bronze_dalekanium_panel"]["mineral"], "bronze_dalekanium")
+
+        self.assertIn("dalekanium_ore", by_id)
+        self.assertEqual(by_id["dalekanium_ore"]["archetype"], "ore")
+        self.assertEqual(by_id["dalekanium_ore"]["host"], "vanilla_stone")
+        self.assertEqual(by_id["dalekanium_ore"]["mineral"], "silver_dalekanium")
+        self.assertEqual(
+            by_id["dalekanium_ore"]["template"], "minecraft:block/emerald_ore.png"
+        )
+
+        for alloy in ("silver_dalekanium", "bronze_dalekanium"):
+            for tool, template in (
+                ("pickaxe", "iron_pickaxe"),
+                ("sword", "iron_sword"),
+                ("shovel", "iron_shovel"),
+                ("axe", "iron_axe"),
+                ("hoe", "iron_hoe"),
+            ):
+                product_id = f"{alloy}_{tool}"
+                self.assertIn(product_id, by_id)
+                self.assertEqual(by_id[product_id]["archetype"], tool)
+                self.assertEqual(by_id[product_id]["handle"], "tool_handle")
+                self.assertEqual(by_id[product_id]["mineral"], alloy)
+                self.assertEqual(
+                    by_id[product_id]["template"], f"minecraft:item/{template}.png"
+                )
+
 class ApplyHostPaletteTests(unittest.TestCase):
     def test_synthetic_greys_map_onto_four_host_hexes(self) -> None:
         template = np.array(
@@ -247,6 +293,69 @@ class ApplyHostPaletteTests(unittest.TestCase):
         self.assertEqual(src_hexes, set(hosts))
         self.assertEqual(out_hexes, set(hosts))
         np.testing.assert_array_equal(out, src)
+
+
+class ApplyCubePaletteTests(unittest.TestCase):
+    def test_synthetic_greys_keep_source_lightness_span(self) -> None:
+        src = np.zeros((8, 8, 3), dtype=np.uint8)
+        src[:3] = (190, 190, 190)
+        src[3:6] = (200, 200, 200)
+        src[6:] = (210, 210, 210)
+        mid = "#8C949C"
+        out = apply_cube_palette(src, mid)
+
+        def span(img: np.ndarray) -> float:
+            labs = [
+                rgb_to_oklab((c[0] / 255.0, c[1] / 255.0, c[2] / 255.0))[0]
+                for c in unique_colours_by_luminance(img)
+            ]
+            return max(labs) - min(labs)
+
+        self.assertAlmostEqual(span(out), span(src), delta=0.01)
+        out_hexes = {rgb_to_hex(c) for c in unique_colours_by_luminance(out)}
+        self.assertNotIn("#3F4449", out_hexes)
+        self.assertNotIn("#CACCCE", out_hexes)
+        mean = out.reshape(-1, 3).mean(axis=0)
+        mid_rgb = np.array([0x8C, 0x94, 0x9C], dtype=np.float64)
+        self.assertLess(np.linalg.norm(mean - mid_rgb), 12.0)
+
+    def test_quartz_cube_stays_subtle_on_silver_mid(self) -> None:
+        quartz = load_template_rgb(DWM, "minecraft:block/quartz_block_bottom.png")
+        palette = load_palette(PALETTES / "silver_dalekanium.json")
+        mid = next(r["hex"] for r in palette["roles"] if r["role"] == "mid")
+        out = apply_cube_palette(quartz, mid)
+        src_labs = [
+            rgb_to_oklab((c[0] / 255.0, c[1] / 255.0, c[2] / 255.0))[0]
+            for c in unique_colours_by_luminance(quartz)
+        ]
+        out_labs = [
+            rgb_to_oklab((c[0] / 255.0, c[1] / 255.0, c[2] / 255.0))[0]
+            for c in unique_colours_by_luminance(out)
+        ]
+        self.assertAlmostEqual(
+            max(out_labs) - min(out_labs), max(src_labs) - min(src_labs), delta=0.01
+        )
+        self.assertLess(max(out_labs) - min(out_labs), 0.05)
+        mineral_span = 0.46
+        self.assertLess(max(out_labs) - min(out_labs), mineral_span / 4)
+
+
+class StampCornerRivetsTests(unittest.TestCase):
+    def test_four_inset_2x2_rivets(self) -> None:
+        src = np.full((16, 16, 3), 0x80, dtype=np.uint8)
+        shadow = (1, 2, 3)
+        dark = (4, 5, 6)
+        hi = (7, 8, 9)
+        out = stamp_corner_rivets(src, shadow, dark, hi, inset=2)
+        self.assertEqual(tuple(out[2, 2]), dark)
+        self.assertEqual(tuple(out[2, 3]), hi)
+        self.assertEqual(tuple(out[3, 2]), shadow)
+        self.assertEqual(tuple(out[3, 3]), dark)
+        self.assertEqual(tuple(out[2, 12]), dark)
+        self.assertEqual(tuple(out[12, 2]), dark)
+        self.assertEqual(tuple(out[12, 12]), dark)
+        self.assertEqual(tuple(out[0, 0]), (0x80, 0x80, 0x80))
+        self.assertEqual(tuple(out[8, 8]), (0x80, 0x80, 0x80))
 
 
 class ApplyOrePalettesTests(unittest.TestCase):

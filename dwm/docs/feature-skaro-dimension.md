@@ -1,13 +1,13 @@
 # Feature: Skaro Dimension
 
-See also: [Docs Index](./index.md), [Gallifrey Dimension](./feature-gallifrey-dimension.md), [TARDIS Exterior Block](./feature-tardis-block.md), [Building Content System](./feature-building-content.md), [Differentiation Strategy](./differentiation-strategy.md)
+See also: [Docs Index](./index.md), [Gallifrey Dimension](./feature-gallifrey-dimension.md), [TARDIS Exterior Block](./feature-tardis-block.md), [Building Content System](./feature-building-content.md), [Differentiation Strategy](./differentiation-strategy.md), [Field Guide](./feature-field-guide.md)
 
 ## Product Intent
 Give TARDIS travel a hostile destination world that is not another recolored Overworld: post–Thousand Year War Skaro, where preparation matters, instruments warn before the doors open, and every new material family is useful to builders.
 
 ## Player Outcomes
 - Reach Skaro from the First Doctor console by cycling the planet locator, then land in a chosen region with the biome dial.
-- Read radiation on the console, sonic scan, and a handheld meter before stepping outside; survive ambient exposure with a full protective suit.
+- Read radiation on the console, sonic scan, and a handheld meter before stepping outside; survive ambient exposure with a full EVA suit.
 - Explore five distinct regions — irradiated wastes, a petrified jungle, the Drammankin mire and mountains, and a rare Thal plateau — built from vanilla terrain composition, petrified wood, and Dalek architecture.
 - Encounter Dalek patrols, mutant fauna, Thal settlements, war landmarks, a Kaled bunker, and the Dalek city of Kaalann.
 
@@ -21,7 +21,7 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
   - Drammankin Mire: mud over dirt; olive fog and murky water.
   - Drammankin Mountains: stone / tuff / gravel over tuff; cold ash-grey atmosphere.
   - Thal Plateau: dirt / coarse dirt / terracotta; muted blue-grey sky.
-- Baseline caves, lakes, and vanilla ores in every biome. Empty biome spawn tables (no Overworld hostiles, cave fauna, or farm animals). No Gallifrey plants, woods, ores, or fauna. Daleks, Thals, and Skaro fauna remain planned.
+- Baseline caves, lakes, and vanilla ores in every biome. No Overworld hostiles, cave fauna, or farm animals. No Gallifrey plants, woods, ores, or fauna. **Dalek patrols** spawn from biome monster tables: small groups (1–3) in petrified jungle, Drammankin mire, and Drammankin mountains; lower weight and 1–2 groups in irradiated wastes and the Thal plateau. Thals and Skaro fauna remain planned.
 - TARDIS planet locator discovers Skaro automatically as a loaded world. `BiomeSelectorLogic` maps `dwm:skaro` to `#dwm:is_skaro`.
 - **Petrified wood family** (DWM-064): mineralized Skaro trunks and builder variants.
   - Natural: `petrified_log`, `petrified_wood` (axis pillars).
@@ -29,29 +29,40 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
   - Nonflammable and pickaxe-mineable; axe-strippable; survival craftable (log→planks, stairs/slab/wall, stonecutting).
   - Tags: `#dwm:petrified_blocks`, `#dwm:petrified_logs` (not `#minecraft:logs_that_burn`).
 - **Petrified Jungle flora** (DWM-068 slice): configured features `petrified_tree`, `petrified_snag`, and `fallen_petrified_tree` placed only in `skaro_petrified_jungle` (branching trunks, straight snags, fallen logs — all `petrified_log`, no saplings/leaves).
+- **Dalekanium** (materials + panel slice): Skaro-only ore that smelts to silver Dalekanium ingots; bronze alloy from silver + copper; silver and bronze tool sets slightly stronger than steel; silver/bronze panels and riveted walls craftable from matching ingots. See [Dalekanium](./feature-dalekanium.md).
 - **Vanilla terrain palette (intentional, not placeholder):** stone, tuff, deepslate, gravel, basalt, sand, red sand, terracotta, dirt, coarse dirt, rooted dirt, mud, and podzol. There is no custom Skaro stone, sand, sandstone, dust, or dirt family.
+- **Radiation hazards and survival equipment** (DWM-067):
+  - Server-authoritative ambient exposure only on Skaro for survival players (creative/spectator ignored). No stored dose — leaving Skaro clears future exposure immediately.
+  - Biome ambient values (`0.0–1.0`): Thal Plateau `0.15`, Petrified Jungle `0.40`, Drammankin Mountains `0.55`, Drammankin Mire `0.80`, Irradiated Wastes `0.95`.
+  - Mitigation: each correctly equipped EVA-suit piece subtracts `0.25` from ambient (`effective = clamp01(ambient - 0.25 * pieces)`). A full set prevents ambient damage.
+  - Damage cadence: every **40** ticks; amount `1.0 × effective` via custom damage type `dwm:radiation` (bypasses vanilla armor; suit mitigation is the only reduction).
+  - Instruments agree on environmental (unmitigated) readings: console radiation reader, sonic Scan, and the handheld `radiation_meter` colour-coded percentage screen.
+  - Crafting: yellow-wool EVA suit (helmet uses a glass visor); meter from iron, glass, and redstone. Field Guide chapter **Skaro Survival** documents hazards, meter, and suit recipes.
+  - First-person visor overlay while wearing the EVA helmet (vanilla camera overlay; hidden in third person, F1, and spyglass).
 
 ## Planned (not yet in the jar)
-- Dalek architecture builder family (DWM-065).
-- Radiation, protective suit, and meter (DWM-067).
+- Remaining Dalek architecture builder family (DWM-065): wall, floor, light, door, damaged variants.
 - Remaining Skaro flora (Varga, radiation fungus, mutated reeds, ash scrub, Thal crop) under DWM-068.
-- Structures, Daleks/Thals/fauna population, Kaalann, and related tickets (DWM-069–074).
+- Structures, Thal/fauna population, Kaalann, and related tickets (DWM-069, DWM-071–074). Dalek biome patrols shipped under DWM-070; structure-scoped population is still planned.
 
 ## How It Works In-Game
 1. Mine petrified logs with a pickaxe (or strip with an axe), then craft planks, stairs, slabs, and walls like other builder sets.
 2. At the console, cycle the planet locator until **Skaro** is selected, then cycle the biome dial among the five tagged regions.
-3. Pull the materialisation lever to dematerialise, then again in flight to land on Skaro. Radiation readouts are not shipped yet (DWM-067).
-4. Debug without a TARDIS: `/execute in dwm:skaro run tp @s ~ 128 ~`.
+3. Check radiation on the console reader, sonic Scan, or hold a radiation meter and read its screen before opening the doors.
+4. Craft and wear the full EVA suit when exploring hazardous biomes.
+5. Pull the materialisation lever to dematerialise, then again in flight to land on Skaro.
+6. Debug without a TARDIS: `/execute in dwm:skaro run tp @s ~ 128 ~`.
 
 ## Known Constraints
 - Skaro is a TARDIS destination, not an alternate travel network or a campaign with bosses, quests, reputation, or a research GUI.
 - Terrain identity comes from **vanilla composition**, atmosphere, petrified vegetation, and Dalek architecture — not a full custom stone, sand, and dirt palette. That composition choice is product intent for DWM-066, not temporary art.
 - Petrified material is mineralized wood: pickaxe-effective, nonflammable, no saplings or leaves.
 - Sky/fog use biome colors and overworld dimension effects; there is no custom Skaro sky renderer.
-- Dalek architecture, radiation, remaining flora, entities, and structures remain owned by their child tickets under E-007.
+- Ambient radiation has no persistent dose, medicine, oxygen, suit degradation, block/entity weapon radiation, or structure hotspots (owned by later tickets).
+- Dalek architecture, remaining flora, entities, and structures remain owned by their child tickets under E-007. Biome Dalek patrols are owned by DWM-070; core combat remains DWM-051.
 
 ## Future Opportunities
 - Custom dimension effects for Skaro sky, fog, and clouds.
 - Thal trades or professions if a later settlement loop needs them.
 - Additional Dalek ranks, vehicles, or city-state mechanics beyond the baseline patrol and structure presence.
-- Protective-suit degradation, medicines, or structure-scale radiation hotspots.
+- EVA-suit degradation, medicines, or structure-scale radiation hotspots.

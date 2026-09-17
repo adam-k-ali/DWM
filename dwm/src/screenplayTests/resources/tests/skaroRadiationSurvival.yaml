@@ -1,0 +1,34 @@
+---
+name: Skaro Radiation Survival
+type: test
+---
+steps:
+  - launchGame
+  - createWorld:
+      worldType: superflat
+      gameMode: survival
+      difficulty: peaceful
+      allowCommands: true
+      name: Skaro Radiation
+  - closeScreen
+  - runCommand: "/item replace entity @s armor.head with dwm:eva_suit_helmet"
+  - runCommand: "/item replace entity @s armor.chest with dwm:eva_suit_chestplate"
+  - runCommand: "/item replace entity @s armor.legs with dwm:eva_suit_leggings"
+  - runCommand: "/item replace entity @s armor.feet with dwm:eva_suit_boots"
+  - runCommand: "/item replace entity @s weapon.mainhand with dwm:radiation_meter"
+  - waitUntil:
+      holding: dwm:radiation_meter
+  # Creative + a raised sand pad so chunk load cannot drop the player into a Skaro lake.
+  - runCommand: "/gamemode creative"
+  - runCommand: "/execute in dwm:skaro run tp @s 0 128 0"
+  - waitTicks: 80
+  - runCommand: "/fill -4 127 -4 4 127 4 minecraft:sand"
+  - runCommand: "/fill -4 128 -4 4 132 4 minecraft:air"
+  - runCommand: "/tp @s 0 128 0"
+  - lookAt:
+      yaw: 0
+      pitch: 12
+  - runCommand: "/gamemode survival"
+  - waitTicks: 40
+  - captureScreenshot:
+      name: skaro-radiation-suited
