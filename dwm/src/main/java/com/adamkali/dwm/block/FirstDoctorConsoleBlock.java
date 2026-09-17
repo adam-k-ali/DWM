@@ -303,19 +303,14 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             UUID tardisId
     ) {
         TardisTravelPhase phase = TardisLogic.getTravelPhase(tardisId);
-        if (phase == TardisTravelPhase.DEMATERIALISING) {
-            player.sendOverlayMessage(Component.translatable("dwm.console.travel_dematerialising"));
-            return InteractionResult.CONSUME;
-        }
-        if (phase == TardisTravelPhase.MATERIALISING) {
-            player.sendOverlayMessage(Component.translatable("dwm.console.travel_materialising"));
+        if (phase == TardisTravelPhase.DEMATERIALISING || phase == TardisTravelPhase.MATERIALISING) {
             return InteractionResult.CONSUME;
         }
 
         InteractionResult result;
-        String successKey;
         if (phase.awaitsMaterialise()) {
-            result = TardisTravelService.requestMaterialise(tardisId, serverWorld.getServer());
+            result = TardisTravelService.requestMaterialise(
+                    tardisId, serverWorld.getServer(), player.getUUID());
             if (result == InteractionResult.FAIL) {
                 String reason = TardisTravelService.peekLastMaterialiseFailureReason();
                 if (TardisTravelService.FAIL_INVALID_LANDING.equals(reason)) {
@@ -325,15 +320,12 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
                 }
                 return InteractionResult.CONSUME;
             }
-            successKey = "dwm.console.travel_materialising";
         } else {
             result = TardisTravelService.startTravel(
                     tardisId, serverWorld.getServer(), player.getAbilities().instabuild);
-            successKey = "dwm.console.travel_dematerialising";
         }
 
         if (result == InteractionResult.SUCCESS) {
-            player.sendOverlayMessage(Component.translatable(successKey));
             playClick(world, pos);
             return InteractionResult.SUCCESS;
         }

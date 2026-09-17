@@ -21,6 +21,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 
 /**
  * Landing-site helpers for exterior relocation into a selected biome.
+ * Column checks never force-generate chunks; callers ticket and wait until FULL.
  */
 public final class LandingSiteLogic {
     /** Default horizontal search radius for {@link ServerLevel#findClosestBiome3d}. */
@@ -28,6 +29,19 @@ public final class LandingSiteLogic {
 
     /** Sample interval passed to {@link ServerLevel#findClosestBiome3d}. */
     public static final int LOCATE_INTERVAL = 64;
+
+    /** Chebyshev radius of {@link #findNearbyValidLanding} (blocks). */
+    public static final int NEARBY_SPIRAL_MAX_RADIUS = 8;
+
+    /**
+     * Chunk-ticket radius covering {@link #NEARBY_SPIRAL_MAX_RADIUS} plus a door-column neighbour.
+     */
+    public static final int NEARBY_TICKET_CHUNK_RADIUS = 1;
+
+    /**
+     * Chunk-ticket radius covering unstabilised scatter ({@link StabiliserLogic#SCATTER_RADIUS}).
+     */
+    public static final int SCATTER_TICKET_CHUNK_RADIUS = 2;
 
     private LandingSiteLogic() {
     }
@@ -47,17 +61,16 @@ public final class LandingSiteLogic {
     }
 
     /**
-     * Locates a surface landing position in {@code biome} near {@code searchOrigin}.
-     * Empty when the biome cannot be found or no valid surface cell exists.
+     * Noise-only closest-biome search. Does not load or generate chunks.
+     * Empty when the biome cannot be found.
      */
-    public static Optional<BlockPos> findLanding(
+    public static Optional<BlockPos> locateClosestBiome(
             ServerLevel world,
             ResourceKey<Biome> biome,
             BlockPos searchOrigin,
-            int radius,
-            Direction doorFacing
+            int radius
     ) {
-        if (world == null || biome == null || searchOrigin == null || doorFacing == null) {
+        if (world == null || biome == null || searchOrigin == null) {
             return Optional.empty();
         }
         Pair<BlockPos, Holder<Biome>> located = world.findClosestBiome3d(
@@ -70,29 +83,51 @@ public final class LandingSiteLogic {
         if (located == null) {
             return Optional.empty();
         }
-        BlockPos biomePos = located.getFirst();
-        // locateBiome can return coordinates in unloaded chunks; heightmap then reports world bottom.
-        world.getChunk(biomePos);
-        Optional<BlockPos> landing = findSurfaceInColumn(world, biomePos.getX(), biomePos.getZ(), doorFacing);
-        if (landing.isEmpty()) {
-            return findNearbyValidLanding(world, biomePos.getX(), biomePos.getZ(), doorFacing);
+        return Optional.of(located.getFirst());
+    }
+
+    public static Optional<BlockPos> locateClosestBiome(
+            ServerLevel world,
+            ResourceKey<Biome> biome,
+            BlockPos searchOrigin
+    ) {
+        return locateClosestBiome(world, biome, searchOrigin, DEFAULT_SEARCH_RADIUS);
+    }
+
+    /**
+     * Locates a surface landing position in {@code biome} near {@code searchOrigin}.
+     * Empty when the biome cannot be found or no valid surface cell exists in currently
+     * readable columns (does not force-load).
+     */
+    public static Optional<BlockPos> findLanding(
+            ServerLevel world,
+            ResourceKey<Biome> biome,
+            BlockPos searchOrigin,
+            int radius,
+            Direction doorFacing
+    ) {
+        Optional<BlockPos> biomePos = locateClosestBiome(world, biome, searchOrigin, radius);
+        if (biomePos.isEmpty()) {
+            return Optional.empty();
         }
-        return landing;
+        return findSurfaceLanding(world, biomePos.get(), doorFacing);
     }
 
     /**
      * Tries {@code target} if valid; otherwise spirals nearby for a valid shell cell.
-     * Used for waypoint exact-coordinate landings.
+     * Used for waypoint exact-coordinate landings. Does not force-load chunks.
      */
     public static Optional<BlockPos> findLandingAtOrNearby(
-            ServerLevel world,
+            LevelReader world,
             BlockPos target,
             Direction doorFacing
     ) {
         if (world == null || target == null || doorFacing == null) {
             return Optional.empty();
         }
-        world.getChunk(target);
+        if (!isColumnReadable(world, target.getX(), target.getZ())) {
+            return Optional.empty();
+        }
         if (isValidLanding(world, target, doorFacing)) {
             return Optional.of(target);
         }
@@ -100,10 +135,10 @@ public final class LandingSiteLogic {
     }
 
     /**
-     * Tries a small spiral of columns around {@code originX/Z} after the chunk is loaded.
+     * Tries a small spiral of columns around {@code originX/Z} in already-readable chunks.
      */
     public static Optional<BlockPos> findNearbyValidLanding(
-            ServerLevel world,
+            LevelReader world,
             int originX,
             int originZ,
             Direction doorFacing
@@ -111,7 +146,7 @@ public final class LandingSiteLogic {
         if (world == null || doorFacing == null) {
             return Optional.empty();
         }
-        for (int radius = 1; radius <= 8; radius++) {
+        for (int radius = 1; radius <= NEARBY_SPIRAL_MAX_RADIUS; radius++) {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if (Math.abs(dx) != radius && Math.abs(dz) != radius) {
@@ -119,7 +154,9 @@ public final class LandingSiteLogic {
                     }
                     int x = originX + dx;
                     int z = originZ + dz;
-                    world.getChunk(x >> 4, z >> 4);
+                    if (!isColumnReadable(world, x, z)) {
+                        continue;
+                    }
                     Optional<BlockPos> candidate = findSurfaceInColumn(world, x, z, doorFacing);
                     if (candidate.isPresent()) {
                         return candidate;
@@ -143,14 +180,16 @@ public final class LandingSiteLogic {
      * Surface landing near {@code searchOrigin} without biome filtering (untagged / modded dims).
      */
     public static Optional<BlockPos> findSurfaceLanding(
-            ServerLevel world,
+            LevelReader world,
             BlockPos searchOrigin,
             Direction doorFacing
     ) {
         if (world == null || searchOrigin == null || doorFacing == null) {
             return Optional.empty();
         }
-        world.getChunk(searchOrigin);
+        if (!isColumnReadable(world, searchOrigin.getX(), searchOrigin.getZ())) {
+            return Optional.empty();
+        }
         Optional<BlockPos> landing = findSurfaceInColumn(
                 world, searchOrigin.getX(), searchOrigin.getZ(), doorFacing);
         if (landing.isPresent()) {
@@ -254,12 +293,53 @@ public final class LandingSiteLogic {
         if (world.isOutsideBuildHeight(door) || world.isOutsideBuildHeight(door.above())) {
             return false;
         }
-        if (world instanceof ServerLevel serverLevel) {
-            serverLevel.getChunk(door);
+        if (!isColumnReadable(world, door.getX(), door.getZ())) {
+            return false;
         }
         BlockState doorFeet = world.getBlockState(door);
         BlockState doorHead = world.getBlockState(door.above());
         return isReplaceable(doorFeet) && isReplaceable(doorHead);
+    }
+
+    /**
+     * True when {@code world} can read the column without generating (FULL chunk, or non-server reader).
+     */
+    public static boolean isColumnReadable(@Nullable LevelReader world, int blockX, int blockZ) {
+        if (!(world instanceof ServerLevel serverLevel)) {
+            return world != null;
+        }
+        return isChunkLoaded(serverLevel, blockX, blockZ);
+    }
+
+    public static boolean isChunkLoaded(@Nullable ServerLevel world, int blockX, int blockZ) {
+        if (world == null) {
+            return false;
+        }
+        return world.getChunkSource().getChunkNow(blockX >> 4, blockZ >> 4) != null;
+    }
+
+    /**
+     * True when every chunk in the Chebyshev {@code chunkRadius} around {@code center} is FULL.
+     */
+    public static boolean isRegionLoaded(@Nullable ServerLevel world, @Nullable BlockPos center, int chunkRadius) {
+        if (world == null || center == null) {
+            return false;
+        }
+        int originX = center.getX() >> 4;
+        int originZ = center.getZ() >> 4;
+        int radius = Math.max(0, chunkRadius);
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                if (world.getChunkSource().getChunkNow(originX + dx, originZ + dz) == null) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public static int ticketChunkRadius(boolean scatter) {
+        return scatter ? SCATTER_TICKET_CHUNK_RADIUS : NEARBY_TICKET_CHUNK_RADIUS;
     }
 
     private static boolean isDryValidLanding(LevelReader world, BlockPos pos, Direction doorFacing) {
