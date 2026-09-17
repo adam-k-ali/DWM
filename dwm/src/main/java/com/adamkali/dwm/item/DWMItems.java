@@ -9,6 +9,7 @@ import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.tardis.data.model.TardisCircuit;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -204,7 +205,9 @@ public class DWMItems {
 
     public static final Item EVA_SUIT_HELMET = register(
             Item::new,
-            new Item.Properties().humanoidArmor(DWMArmorMaterials.EVA_SUIT, ArmorType.HELMET),
+            new Item.Properties()
+                    .humanoidArmor(DWMArmorMaterials.EVA_SUIT, ArmorType.HELMET)
+                    .component(DataComponents.EQUIPPABLE, DWMArmorMaterials.evaSuitHelmet()),
             "eva_suit_helmet"
     );
     public static final Item EVA_SUIT_CHESTPLATE = register(

@@ -38,6 +38,7 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
   - Damage cadence: every **40** ticks; amount `1.0 × effective` via custom damage type `dwm:radiation` (bypasses vanilla armor; suit mitigation is the only reduction).
   - Instruments agree on environmental (unmitigated) readings: console radiation reader, sonic Scan, and the handheld `radiation_meter` colour-coded percentage screen.
   - Crafting: yellow-wool EVA suit (helmet uses a glass visor); meter from iron, glass, and redstone. Field Guide chapter **Skaro Survival** documents hazards, meter, and suit recipes.
+  - First-person visor overlay while wearing the EVA helmet (vanilla camera overlay; hidden in third person, F1, and spyglass).
 
 ## Planned (not yet in the jar)
 - Remaining Dalek architecture builder family (DWM-065): wall, floor, light, door, damaged variants.

@@ -6,8 +6,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.equipment.ArmorMaterials;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.equipment.EquipmentAsset;
 import net.minecraft.world.item.equipment.EquipmentAssets;
+import net.minecraft.world.item.equipment.Equippable;
 
 public final class DWMArmorMaterials {
     public static final int AZBANTIUM_BASE_DURABILITY = 33;
@@ -21,6 +23,12 @@ public final class DWMArmorMaterials {
     public static final ResourceKey<EquipmentAsset> EVA_SUIT_EQUIPMENT = ResourceKey.create(
             EquipmentAssets.ROOT_ID,
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "eva_suit")
+    );
+
+    /** First-person visor overlay; vanilla Hud prefixes this as {@code textures/<path>.png}. */
+    public static final Identifier EVA_SUIT_CAMERA_OVERLAY = Identifier.fromNamespaceAndPath(
+            DWMReference.MOD_ID,
+            "misc/eva_suit_overlay"
     );
 
     public static final ArmorMaterial AZBANTIUM = new ArmorMaterial(
@@ -45,6 +53,15 @@ public final class DWMArmorMaterials {
             DWMItemTags.REPAIRS_EVA_SUIT,
             EVA_SUIT_EQUIPMENT
     );
+
+    /** Helmet Equippable with first-person visor overlay; other pieces use {@code humanoidArmor} defaults. */
+    public static Equippable evaSuitHelmet() {
+        return Equippable.builder(ArmorType.HELMET.getSlot())
+                .setEquipSound(EVA_SUIT.equipSound())
+                .setAsset(EVA_SUIT.assetId())
+                .setCameraOverlay(EVA_SUIT_CAMERA_OVERLAY)
+                .build();
+    }
 
     private DWMArmorMaterials() {
     }

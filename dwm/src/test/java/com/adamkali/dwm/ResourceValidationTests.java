@@ -611,6 +611,23 @@ public class ResourceValidationTests {
         }
     }
 
+    @Test
+    public void evaSuitOverlayTextureMatchesContract() throws Exception {
+        Path png = Path.of("src/client/resources/assets/dwm/textures/misc/eva_suit_overlay.png");
+        assertAtlasSize(png, 256, 256);
+        BufferedImage image = ImageIO.read(png.toFile());
+        assertEquals(0, (image.getRGB(128, 128) >>> 24) & 0xFF, "overlay center must be transparent");
+        boolean edgeHasAlpha = false;
+        int[][] edgePixels = {{0, 0}, {255, 0}, {0, 255}, {255, 255}, {128, 0}, {0, 128}};
+        for (int[] pixel : edgePixels) {
+            if (((image.getRGB(pixel[0], pixel[1]) >>> 24) & 0xFF) > 0) {
+                edgeHasAlpha = true;
+                break;
+            }
+        }
+        assertTrue(edgeHasAlpha, "overlay frame must have opaque edge pixels");
+    }
+
     private static void assertAtlasSize(Path png, int width, int height) throws Exception {
         assertTrue(Files.isRegularFile(png) && Files.size(png) > 0, "Missing atlas: " + png);
         BufferedImage image = ImageIO.read(png.toFile());
