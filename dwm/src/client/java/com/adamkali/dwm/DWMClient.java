@@ -7,6 +7,7 @@ import com.adamkali.dwm.client.DWMEntityRenderers;
 import com.adamkali.dwm.render.ConsoleControlHud;
 import com.adamkali.dwm.render.ConsoleHitboxDebugRenderer;
 import com.adamkali.dwm.render.FirstDoctorConsoleSpecialRenderer;
+import com.adamkali.dwm.render.RadiationMeterSpecialRenderer;
 import com.adamkali.dwm.render.SonicFieldModeHud;
 import com.adamkali.dwm.render.SonicFieldModeHudController;
 import com.adamkali.dwm.render.SonicPingClientFx;
@@ -47,6 +48,9 @@ public class DWMClient implements ClientModInitializer {
         SpecialModelRenderers.ID_MAPPER.put(
                 Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "tardis_block"),
                 TardisBlockSpecialRenderer.Unbaked.MAP_CODEC);
+        SpecialModelRenderers.ID_MAPPER.put(
+                Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "radiation_meter"),
+                RadiationMeterSpecialRenderer.Unbaked.MAP_CODEC);
         DWMRenderLayerManager.initialize();
         DWMEntityRenderers.initialize();
         ClientAnalyticsManager.initialize();

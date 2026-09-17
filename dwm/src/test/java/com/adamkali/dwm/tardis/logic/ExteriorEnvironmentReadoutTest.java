@@ -3,6 +3,9 @@ package com.adamkali.dwm.tardis.logic;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout.DimensionKind;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout.Reading;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout.Sample;
+import com.adamkali.dwm.world.DWMBiomeKeys;
+import com.adamkali.dwm.world.radiation.RadiationExposureLogic;
+import net.minecraft.resources.Identifier;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -61,16 +64,33 @@ class ExteriorEnvironmentReadoutTest {
     }
 
     @Test
+    void radiation_usesSkaroBiomeTable() {
+        assertEquals(
+                RadiationExposureLogic.THAL_PLATEAU,
+                ExteriorEnvironmentReadout.radiation(skaro(DWMBiomeKeys.SKARO_THAL_PLATEAU.identifier()))
+        );
+        assertEquals(
+                RadiationExposureLogic.IRRADIATED_WASTES,
+                ExteriorEnvironmentReadout.radiation(skaro(DWMBiomeKeys.SKARO_IRRADIATED_WASTES.identifier()))
+        );
+        assertEquals(
+                RadiationExposureLogic.DRAMMANKIN_MIRE,
+                ExteriorEnvironmentReadout.radiation(skaro(DWMBiomeKeys.SKARO_DRAMMANKIN_MIRE.identifier()))
+        );
+    }
+
+    @Test
     void kindOf_parsesDimensionIds() {
         assertEquals(DimensionKind.OVERWORLD, ExteriorEnvironmentReadout.kindOf("minecraft:overworld"));
         assertEquals(DimensionKind.NETHER, ExteriorEnvironmentReadout.kindOf("minecraft:the_nether"));
         assertEquals(DimensionKind.END, ExteriorEnvironmentReadout.kindOf("minecraft:the_end"));
+        assertEquals(DimensionKind.SKARO, ExteriorEnvironmentReadout.kindOf("dwm:skaro"));
         assertEquals(DimensionKind.OTHER, ExteriorEnvironmentReadout.kindOf("dwm:gallifrey"));
         assertEquals(DimensionKind.OTHER, ExteriorEnvironmentReadout.kindOf((String) null));
     }
 
     private static Sample overworldAtY(int y) {
-        return new Sample(false, DimensionKind.OVERWORLD, y, 63, false, true, 0.8F, false);
+        return new Sample(false, DimensionKind.OVERWORLD, y, 63, false, true, 0.8F, false, null);
     }
 
     private static Sample overworld(
@@ -80,7 +100,7 @@ class ExteriorEnvironmentReadoutTest {
             float biomeTemperature,
             boolean thundering
     ) {
-        return new Sample(noSignal, DimensionKind.OVERWORLD, 64, 63, waterlogged, hasAir, biomeTemperature, thundering);
+        return new Sample(noSignal, DimensionKind.OVERWORLD, 64, 63, waterlogged, hasAir, biomeTemperature, thundering, null);
     }
 
     private static Sample nether(
@@ -90,7 +110,7 @@ class ExteriorEnvironmentReadoutTest {
             float biomeTemperature,
             boolean thundering
     ) {
-        return new Sample(noSignal, DimensionKind.NETHER, 64, 32, waterlogged, hasAir, biomeTemperature, thundering);
+        return new Sample(noSignal, DimensionKind.NETHER, 64, 32, waterlogged, hasAir, biomeTemperature, thundering, null);
     }
 
     private static Sample end(
@@ -100,6 +120,10 @@ class ExteriorEnvironmentReadoutTest {
             float biomeTemperature,
             boolean thundering
     ) {
-        return new Sample(noSignal, DimensionKind.END, 64, 63, waterlogged, hasAir, biomeTemperature, thundering);
+        return new Sample(noSignal, DimensionKind.END, 64, 63, waterlogged, hasAir, biomeTemperature, thundering, null);
+    }
+
+    private static Sample skaro(Identifier biomeId) {
+        return new Sample(false, DimensionKind.SKARO, 64, 63, false, true, 0.8F, false, biomeId);
     }
 }

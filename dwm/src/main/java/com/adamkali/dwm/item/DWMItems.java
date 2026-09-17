@@ -9,6 +9,7 @@ import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.tardis.data.model.TardisCircuit;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -202,6 +203,34 @@ public class DWMItems {
             "azbantium_boots"
     );
 
+    public static final Item EVA_SUIT_HELMET = register(
+            Item::new,
+            new Item.Properties()
+                    .humanoidArmor(DWMArmorMaterials.EVA_SUIT, ArmorType.HELMET)
+                    .component(DataComponents.EQUIPPABLE, DWMArmorMaterials.evaSuitHelmet()),
+            "eva_suit_helmet"
+    );
+    public static final Item EVA_SUIT_CHESTPLATE = register(
+            Item::new,
+            new Item.Properties().humanoidArmor(DWMArmorMaterials.EVA_SUIT, ArmorType.CHESTPLATE),
+            "eva_suit_chestplate"
+    );
+    public static final Item EVA_SUIT_LEGGINGS = register(
+            Item::new,
+            new Item.Properties().humanoidArmor(DWMArmorMaterials.EVA_SUIT, ArmorType.LEGGINGS),
+            "eva_suit_leggings"
+    );
+    public static final Item EVA_SUIT_BOOTS = register(
+            Item::new,
+            new Item.Properties().humanoidArmor(DWMArmorMaterials.EVA_SUIT, ArmorType.BOOTS),
+            "eva_suit_boots"
+    );
+    public static final Item RADIATION_METER = register(
+            RadiationMeterItem::new,
+            new Item.Properties().stacksTo(1),
+            "radiation_meter"
+    );
+
     public static Item ASH_SIGN;
     public static Item ASH_HANGING_SIGN;
     public static Item ASH_BOAT;
@@ -279,6 +308,7 @@ public class DWMItems {
             content.accept(SONIC_SETTING_SHEAR);
             content.accept(TARDIS_KEY);
             content.accept(STATTENHEIM_REMOTE);
+            content.accept(RADIATION_METER);
             content.accept(CIRCUIT_STABILISERS);
             content.accept(CIRCUIT_WAYPOINTS);
             content.accept(CIRCUIT_FAST_RETURN);
@@ -319,6 +349,10 @@ public class DWMItems {
             content.accept(AZBANTIUM_CHESTPLATE);
             content.accept(AZBANTIUM_LEGGINGS);
             content.accept(AZBANTIUM_BOOTS);
+            content.accept(EVA_SUIT_HELMET);
+            content.accept(EVA_SUIT_CHESTPLATE);
+            content.accept(EVA_SUIT_LEGGINGS);
+            content.accept(EVA_SUIT_BOOTS);
         });
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.FUNCTIONAL_BLOCKS).register(content -> {
