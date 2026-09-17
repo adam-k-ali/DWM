@@ -14,13 +14,13 @@ Find a TARDIS, open the doors, and step into a console room that is bigger on th
 
 ## Travel the universe
 
-Explore alien skies, experience new wildlife, and use new materials that belong there. All available through your TARDIS doors.
+Explore Gallifrey's red plains and wildlife, or land on Skaro — irradiated wastes, a petrified jungle, and Dalek patrols. Read radiation before you open the doors. All available through your TARDIS doors.
 
-<!-- IMAGE: Current non-overworld destination (today: Gallifrey — red grass or orange badlands) plus at least one living thing. Landscape 16:9, no HUD. Swap when a stronger destination shot exists. -->
+<!-- IMAGE: Gallifrey destination (red grass or orange badlands) plus at least one living thing. Landscape 16:9, no HUD. Skaro is the second destination; swap when a stronger Skaro shot exists. -->
 ![TARDIS on Gallifrey](https://cdn.modrinth.com/data/CY3ponKT/images/689af627d9bec9edc2d5ebdb9c18d3d019770ba6.png)
 
 ## A Time Lord toolkit
 
-Use sonic screwdrivers, and build your next invention with an array of new blocks and tools.
+Use sonic screwdrivers, steel and Dalekanium tools, an EVA suit, and a handheld radiation meter, and build with new block families.
 
-The Field Guide in-game covers recipes and first steps. Join our community on discord. Share your builds and discoveries, and stay up to date with all the latest releases: https://discord.gg/pGdRYBh
+The Field Guide in-game covers recipes and first steps, including Skaro Survival. Join our community on discord. Share your builds and discoveries, and stay up to date with all the latest releases: https://discord.gg/pGdRYBh
