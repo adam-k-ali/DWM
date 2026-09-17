@@ -21,7 +21,6 @@ import com.adamkali.dwm.tardis.logic.DoorLockLogic;
 import com.adamkali.dwm.tardis.logic.ExteriorEnvironmentReadout;
 import com.adamkali.dwm.tardis.logic.FastReturnLogic;
 import com.adamkali.dwm.tardis.logic.FirstDoctorConsoleSync;
-import com.adamkali.dwm.tardis.logic.LandingResolveService;
 import com.adamkali.dwm.tardis.logic.PlayerLocatorLogic;
 import com.adamkali.dwm.tardis.logic.StabiliserLogic;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
@@ -304,17 +303,11 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             UUID tardisId
     ) {
         TardisTravelPhase phase = TardisLogic.getTravelPhase(tardisId);
-        if (phase == TardisTravelPhase.DEMATERIALISING) {
-            player.sendOverlayMessage(Component.translatable("dwm.console.travel_dematerialising"));
-            return InteractionResult.CONSUME;
-        }
-        if (phase == TardisTravelPhase.MATERIALISING) {
-            player.sendOverlayMessage(Component.translatable("dwm.console.travel_materialising"));
+        if (phase == TardisTravelPhase.DEMATERIALISING || phase == TardisTravelPhase.MATERIALISING) {
             return InteractionResult.CONSUME;
         }
 
         InteractionResult result;
-        String successKey;
         if (phase.awaitsMaterialise()) {
             result = TardisTravelService.requestMaterialise(
                     tardisId, serverWorld.getServer(), player.getUUID());
@@ -327,17 +320,12 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
                 }
                 return InteractionResult.CONSUME;
             }
-            successKey = LandingResolveService.isWaitingForLanding(tardisId)
-                    ? "dwm.console.travel_locating_landing"
-                    : "dwm.console.travel_materialising";
         } else {
             result = TardisTravelService.startTravel(
                     tardisId, serverWorld.getServer(), player.getAbilities().instabuild);
-            successKey = "dwm.console.travel_dematerialising";
         }
 
         if (result == InteractionResult.SUCCESS) {
-            player.sendOverlayMessage(Component.translatable(successKey));
             playClick(world, pos);
             return InteractionResult.SUCCESS;
         }

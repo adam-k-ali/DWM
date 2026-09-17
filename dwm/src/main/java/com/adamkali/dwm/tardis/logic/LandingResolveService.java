@@ -150,7 +150,7 @@ public final class LandingResolveService {
     }
 
     /**
-     * True when a job is still searching or loading (lever should show locating overlay).
+     * True when a job is still searching or loading (a second lever pull should {@code PASS}).
      */
     public static boolean isWaitingForLanding(@Nullable UUID tardisId) {
         Job job = tardisId == null ? null : JOBS.get(tardisId);
