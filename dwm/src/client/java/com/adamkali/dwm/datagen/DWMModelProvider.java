@@ -83,6 +83,10 @@ public class DWMModelProvider extends FabricModelProvider {
         registerCubeAll(blockStateModelGenerator, DWMBlocks.AZBANTIUM_ORE);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.AZBANTIUM_BLOCK);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.ZEITON_ORE);
+        registerCubeAll(blockStateModelGenerator, DWMBlocks.DALEKANIUM_ORE);
+        for (Block block : DWMBlocks.DALEKANIUM_ARCHITECTURE) {
+            registerCubeAll(blockStateModelGenerator, block);
+        }
 
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_COAL_ORE);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.GALLIFREY_IRON_ORE);
@@ -98,6 +102,8 @@ public class DWMModelProvider extends FabricModelProvider {
 
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.STEEL_INGOT, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.SILVER_DALEKANIUM_INGOT, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.BRONZE_DALEKANIUM_INGOT, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.ZEITON_CRYSTALS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.ZEITON_POWDER, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.FERRITE_POWDER, ModelTemplates.FLAT_ITEM);
@@ -116,6 +122,16 @@ public class DWMModelProvider extends FabricModelProvider {
         itemModelGenerator.generateFlatItem(DWMItems.STEEL_PICKAXE, ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.STEEL_AXE, ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.STEEL_HOE, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.SILVER_DALEKANIUM_SWORD, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.SILVER_DALEKANIUM_SHOVEL, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.SILVER_DALEKANIUM_PICKAXE, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.SILVER_DALEKANIUM_AXE, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.SILVER_DALEKANIUM_HOE, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.BRONZE_DALEKANIUM_SWORD, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.BRONZE_DALEKANIUM_SHOVEL, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.BRONZE_DALEKANIUM_PICKAXE, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.BRONZE_DALEKANIUM_AXE, ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.BRONZE_DALEKANIUM_HOE, ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_SWORD, ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_SHOVEL, ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_PICKAXE, ModelTemplates.FLAT_HANDHELD_ITEM);
@@ -125,6 +141,10 @@ public class DWMModelProvider extends FabricModelProvider {
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_CHESTPLATE, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_LEGGINGS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.AZBANTIUM_BOOTS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.EVA_SUIT_HELMET, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.EVA_SUIT_CHESTPLATE, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.EVA_SUIT_LEGGINGS, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.EVA_SUIT_BOOTS, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.STATTENHEIM_REMOTE, ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.SONIC_SETTING_SHATTER, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.SONIC_SETTING_PRIME, ModelTemplates.FLAT_ITEM);

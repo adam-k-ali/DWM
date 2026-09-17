@@ -145,6 +145,62 @@ def build_rank_colour_map(
     return colour_map
 
 
+def apply_cube_palette(template_rgb: np.ndarray, mineral_mid_hex: str) -> np.ndarray:
+    """Tint an opaque cube face with mineral mid, keeping source lightness grain.
+
+    Mineral item ramps (gem/ingot) span ~0.46 OKLab L. Smooth-quartz cubes only
+    span ~0.02 — rank-mapping those greys onto shadow/mid/hi makes a striped
+    metal. Cubes instead keep each source colour's lightness offset from the
+    image mean and adopt the mineral mid's chroma/hue.
+
+    Returns a new HxWx3 uint8 array.
+    """
+    from dwm_palette.oklab import oklab_to_rgb, rgb_to_oklab
+
+    if template_rgb.ndim != 3 or template_rgb.shape[2] < 3:
+        raise ValueError("template_rgb must be HxWx3 (or HxWx4) array")
+    if not isinstance(mineral_mid_hex, str) or not HEX_RE.match(mineral_mid_hex):
+        raise ValueError(f"mineral mid must be #RRGGBB, got {mineral_mid_hex!r}")
+
+    src = template_rgb[:, :, :3].astype(np.uint8, copy=False)
+    colours = unique_colours_by_luminance(src)
+    if not colours:
+        raise ValueError("template has no colours")
+
+    h, w, _ = src.shape
+    counts: dict[Rgb, int] = {}
+    for y in range(h):
+        for x in range(w):
+            key = (int(src[y, x, 0]), int(src[y, x, 1]), int(src[y, x, 2]))
+            counts[key] = counts.get(key, 0) + 1
+
+    mid_lab = rgb_to_oklab(parse_hex(mineral_mid_hex))
+    labs: dict[Rgb, tuple[float, float, float]] = {}
+    mean_L = 0.0
+    for colour, n in counts.items():
+        lab = rgb_to_oklab((colour[0] / 255.0, colour[1] / 255.0, colour[2] / 255.0))
+        labs[colour] = lab
+        mean_L += lab[0] * n
+    mean_L /= float(h * w)
+
+    colour_map: dict[Rgb, Rgb] = {}
+    for colour, lab in labs.items():
+        L = max(0.0, min(1.0, mid_lab[0] + (lab[0] - mean_L)))
+        out_rgb = oklab_to_rgb((L, mid_lab[1], mid_lab[2]))
+        colour_map[colour] = (
+            int(round(out_rgb[0] * 255.0)),
+            int(round(out_rgb[1] * 255.0)),
+            int(round(out_rgb[2] * 255.0)),
+        )
+
+    out = np.empty((h, w, 3), dtype=np.uint8)
+    for y in range(h):
+        for x in range(w):
+            key = (int(src[y, x, 0]), int(src[y, x, 1]), int(src[y, x, 2]))
+            out[y, x] = colour_map[key]
+    return out
+
+
 def apply_host_palette(template_rgb: np.ndarray, host_hex_list: list[str]) -> np.ndarray:
     """Remap template pixels onto host palette hexes (no interpolation).
 
@@ -162,6 +218,40 @@ def apply_host_palette(template_rgb: np.ndarray, host_hex_list: list[str]) -> np
         for x in range(w):
             key = (int(src[y, x, 0]), int(src[y, x, 1]), int(src[y, x, 2]))
             out[y, x] = colour_map[key]
+    return out
+
+
+def stamp_corner_rivets(
+    rgb: np.ndarray,
+    shadow: Rgb,
+    dark: Rgb,
+    hi: Rgb,
+    inset: int = 2,
+) -> np.ndarray:
+    """Stamp one 2×2 rivet in each corner, inset from the tile edge.
+
+    Pattern (top-left of each rivet)::
+
+        dark  hi
+        shadow dark
+    """
+    if rgb.ndim != 3 or rgb.shape[2] < 3:
+        raise ValueError("rgb must be HxWx3 (or HxWx4) array")
+    h, w = rgb.shape[0], rgb.shape[1]
+    if h < inset + 2 or w < inset + 2:
+        raise ValueError("image is too small for inset corner rivets")
+    out = rgb[:, :, :3].astype(np.uint8, copy=True)
+    pattern = ((dark, hi), (shadow, dark))
+    origins = (
+        (inset, inset),
+        (w - inset - 2, inset),
+        (inset, h - inset - 2),
+        (w - inset - 2, h - inset - 2),
+    )
+    for ox, oy in origins:
+        for dy in range(2):
+            for dx in range(2):
+                out[oy + dy, ox + dx] = pattern[dy][dx]
     return out
 
 

@@ -9,6 +9,7 @@ import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.tardis.data.model.TardisCircuit;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -71,6 +72,9 @@ public class DWMItems {
 
     public static final Item STEEL_INGOT = register(Item::new, "steel_ingot");
 
+    public static final Item SILVER_DALEKANIUM_INGOT = register(Item::new, "silver_dalekanium_ingot");
+    public static final Item BRONZE_DALEKANIUM_INGOT = register(Item::new, "bronze_dalekanium_ingot");
+
     public static final Item ZEITON_CRYSTALS = register(Item::new, "zeiton_crystals");
     public static final Item ZEITON_POWDER = register(Item::new, "zeiton_powder");
     public static final Item FERRITE_POWDER = register(Item::new, "ferrite_powder");
@@ -107,6 +111,52 @@ public class DWMItems {
     public static final Item STEEL_HOE = register(
             props -> new HoeItem(DWMToolMaterials.STEEL, -3.0F, 0.0F, props),
             "steel_hoe"
+    );
+
+    public static final Item SILVER_DALEKANIUM_SWORD = register(
+            Item::new,
+            new Item.Properties().sword(DWMToolMaterials.SILVER_DALEKANIUM, 3.0F, -2.4F),
+            "silver_dalekanium_sword"
+    );
+    public static final Item SILVER_DALEKANIUM_SHOVEL = register(
+            props -> new ShovelItem(DWMToolMaterials.SILVER_DALEKANIUM, 1.5F, -3.0F, props),
+            "silver_dalekanium_shovel"
+    );
+    public static final Item SILVER_DALEKANIUM_PICKAXE = register(
+            Item::new,
+            new Item.Properties().pickaxe(DWMToolMaterials.SILVER_DALEKANIUM, 1.0F, -2.8F),
+            "silver_dalekanium_pickaxe"
+    );
+    public static final Item SILVER_DALEKANIUM_AXE = register(
+            props -> new AxeItem(DWMToolMaterials.SILVER_DALEKANIUM, 5.0F, -3.0F, props),
+            "silver_dalekanium_axe"
+    );
+    public static final Item SILVER_DALEKANIUM_HOE = register(
+            props -> new HoeItem(DWMToolMaterials.SILVER_DALEKANIUM, -3.0F, 0.0F, props),
+            "silver_dalekanium_hoe"
+    );
+
+    public static final Item BRONZE_DALEKANIUM_SWORD = register(
+            Item::new,
+            new Item.Properties().sword(DWMToolMaterials.BRONZE_DALEKANIUM, 3.0F, -2.4F),
+            "bronze_dalekanium_sword"
+    );
+    public static final Item BRONZE_DALEKANIUM_SHOVEL = register(
+            props -> new ShovelItem(DWMToolMaterials.BRONZE_DALEKANIUM, 1.5F, -3.0F, props),
+            "bronze_dalekanium_shovel"
+    );
+    public static final Item BRONZE_DALEKANIUM_PICKAXE = register(
+            Item::new,
+            new Item.Properties().pickaxe(DWMToolMaterials.BRONZE_DALEKANIUM, 1.0F, -2.8F),
+            "bronze_dalekanium_pickaxe"
+    );
+    public static final Item BRONZE_DALEKANIUM_AXE = register(
+            props -> new AxeItem(DWMToolMaterials.BRONZE_DALEKANIUM, 5.0F, -3.0F, props),
+            "bronze_dalekanium_axe"
+    );
+    public static final Item BRONZE_DALEKANIUM_HOE = register(
+            props -> new HoeItem(DWMToolMaterials.BRONZE_DALEKANIUM, -3.0F, 0.0F, props),
+            "bronze_dalekanium_hoe"
     );
 
     public static final Item AZBANTIUM_SWORD = register(
@@ -151,6 +201,34 @@ public class DWMItems {
             Item::new,
             new Item.Properties().humanoidArmor(DWMArmorMaterials.AZBANTIUM, ArmorType.BOOTS),
             "azbantium_boots"
+    );
+
+    public static final Item EVA_SUIT_HELMET = register(
+            Item::new,
+            new Item.Properties()
+                    .humanoidArmor(DWMArmorMaterials.EVA_SUIT, ArmorType.HELMET)
+                    .component(DataComponents.EQUIPPABLE, DWMArmorMaterials.evaSuitHelmet()),
+            "eva_suit_helmet"
+    );
+    public static final Item EVA_SUIT_CHESTPLATE = register(
+            Item::new,
+            new Item.Properties().humanoidArmor(DWMArmorMaterials.EVA_SUIT, ArmorType.CHESTPLATE),
+            "eva_suit_chestplate"
+    );
+    public static final Item EVA_SUIT_LEGGINGS = register(
+            Item::new,
+            new Item.Properties().humanoidArmor(DWMArmorMaterials.EVA_SUIT, ArmorType.LEGGINGS),
+            "eva_suit_leggings"
+    );
+    public static final Item EVA_SUIT_BOOTS = register(
+            Item::new,
+            new Item.Properties().humanoidArmor(DWMArmorMaterials.EVA_SUIT, ArmorType.BOOTS),
+            "eva_suit_boots"
+    );
+    public static final Item RADIATION_METER = register(
+            RadiationMeterItem::new,
+            new Item.Properties().stacksTo(1),
+            "radiation_meter"
     );
 
     public static Item ASH_SIGN;
@@ -212,6 +290,8 @@ public class DWMItems {
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.INGREDIENTS).register(content -> {
             content.accept(AZBANTIUM);
             content.accept(STEEL_INGOT);
+            content.accept(SILVER_DALEKANIUM_INGOT);
+            content.accept(BRONZE_DALEKANIUM_INGOT);
             content.accept(ZEITON_CRYSTALS);
             content.accept(ZEITON_POWDER);
             content.accept(FERRITE_POWDER);
@@ -228,6 +308,7 @@ public class DWMItems {
             content.accept(SONIC_SETTING_SHEAR);
             content.accept(TARDIS_KEY);
             content.accept(STATTENHEIM_REMOTE);
+            content.accept(RADIATION_METER);
             content.accept(CIRCUIT_STABILISERS);
             content.accept(CIRCUIT_WAYPOINTS);
             content.accept(CIRCUIT_FAST_RETURN);
@@ -242,6 +323,14 @@ public class DWMItems {
             content.accept(STEEL_PICKAXE);
             content.accept(STEEL_AXE);
             content.accept(STEEL_HOE);
+            content.accept(SILVER_DALEKANIUM_SHOVEL);
+            content.accept(SILVER_DALEKANIUM_PICKAXE);
+            content.accept(SILVER_DALEKANIUM_AXE);
+            content.accept(SILVER_DALEKANIUM_HOE);
+            content.accept(BRONZE_DALEKANIUM_SHOVEL);
+            content.accept(BRONZE_DALEKANIUM_PICKAXE);
+            content.accept(BRONZE_DALEKANIUM_AXE);
+            content.accept(BRONZE_DALEKANIUM_HOE);
             content.accept(AZBANTIUM_SHOVEL);
             content.accept(AZBANTIUM_PICKAXE);
             content.accept(AZBANTIUM_AXE);
@@ -253,11 +342,17 @@ public class DWMItems {
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.COMBAT).register(content -> {
             content.accept(STEEL_SWORD);
+            content.accept(SILVER_DALEKANIUM_SWORD);
+            content.accept(BRONZE_DALEKANIUM_SWORD);
             content.accept(AZBANTIUM_SWORD);
             content.accept(AZBANTIUM_HELMET);
             content.accept(AZBANTIUM_CHESTPLATE);
             content.accept(AZBANTIUM_LEGGINGS);
             content.accept(AZBANTIUM_BOOTS);
+            content.accept(EVA_SUIT_HELMET);
+            content.accept(EVA_SUIT_CHESTPLATE);
+            content.accept(EVA_SUIT_LEGGINGS);
+            content.accept(EVA_SUIT_BOOTS);
         });
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.FUNCTIONAL_BLOCKS).register(content -> {

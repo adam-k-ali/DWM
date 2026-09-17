@@ -26,6 +26,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addGallifreyPlants(translationBuilder);
         addAzbantiumSet(translationBuilder);
         addSteelSet(translationBuilder);
+        addDalekaniumSet(translationBuilder);
         addZeitonSet(translationBuilder);
         addGallifreyVanillaOres(translationBuilder);
         for (var family : DWMBlocks.WOOD_FAMILIES) {
@@ -133,6 +134,17 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.guide.page.interior_props.title", "Interior Props");
         t.add("dwm.guide.page.interior_props.body",
                 "Chairs, scanners, vents, and columns craft from white TARDIS wall. Small chairs are sittable with an empty-hand use.");
+
+        t.add("dwm.guide.chapter.skaro", "Skaro Survival");
+        t.add("dwm.guide.page.skaro_radiation.title", "Skaro Radiation");
+        t.add("dwm.guide.page.skaro_radiation.body",
+                "Skaro biomes expose ambient radiation from low on the Thal Plateau to extreme in the Irradiated Wastes and Drammankin Mire. Read it on the console radiation reader, sonic Scan, or a handheld meter before leaving the TARDIS. A full EVA suit blocks ambient damage; leaving Skaro clears exposure with no lingering dose.");
+        t.add("dwm.guide.page.radiation_meter.title", "Radiation Meter");
+        t.add("dwm.guide.page.radiation_meter.body",
+                "Craft a meter from iron, glass, and redstone, then hold it to read the local radiation percentage directly on its colour-coded screen. It reports the same environmental reading as the console and sonic.");
+        t.add("dwm.guide.page.eva_suit.title", "EVA Suit");
+        t.add("dwm.guide.page.eva_suit.body",
+                "Craft all four yellow-wool suit pieces (helmet uses a glass visor). Each correctly worn piece reduces ambient exposure; wearing the complete set prevents Skaro radiation damage.");
     }
 
     private static void addItems(TranslationBuilder t) {
@@ -442,6 +454,11 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItem(t, DWMItems.AZBANTIUM_CHESTPLATE, "Azbantium Chestplate");
         addItem(t, DWMItems.AZBANTIUM_LEGGINGS, "Azbantium Leggings");
         addItem(t, DWMItems.AZBANTIUM_BOOTS, "Azbantium Boots");
+        addItem(t, DWMItems.EVA_SUIT_HELMET, "EVA Suit Helmet");
+        addItem(t, DWMItems.EVA_SUIT_CHESTPLATE, "EVA Suit Chestplate");
+        addItem(t, DWMItems.EVA_SUIT_LEGGINGS, "EVA Suit Leggings");
+        addItem(t, DWMItems.EVA_SUIT_BOOTS, "EVA Suit Boots");
+        addItem(t, DWMItems.RADIATION_METER, "Radiation Meter");
     }
 
     private static void addSteelSet(TranslationBuilder t) {
@@ -451,6 +468,26 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItem(t, DWMItems.STEEL_PICKAXE, "Steel Pickaxe");
         addItem(t, DWMItems.STEEL_AXE, "Steel Axe");
         addItem(t, DWMItems.STEEL_HOE, "Steel Hoe");
+    }
+
+    private static void addDalekaniumSet(TranslationBuilder t) {
+        addBlockAndItem(t, DWMBlocks.DALEKANIUM_ORE, "Dalekanium Ore");
+        addBlockAndItem(t, DWMBlocks.SILVER_DALEKANIUM_PANEL, "Silver Dalekanium Panel");
+        addBlockAndItem(t, DWMBlocks.SILVER_DALEKANIUM_RIVETED_WALL, "Silver Dalekanium Riveted Wall");
+        addBlockAndItem(t, DWMBlocks.BRONZE_DALEKANIUM_PANEL, "Bronze Dalekanium Panel");
+        addBlockAndItem(t, DWMBlocks.BRONZE_DALEKANIUM_RIVETED_WALL, "Bronze Dalekanium Riveted Wall");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_INGOT, "Silver Dalekanium Ingot");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_INGOT, "Bronze Dalekanium Ingot");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_SWORD, "Silver Dalekanium Sword");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_SHOVEL, "Silver Dalekanium Shovel");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_PICKAXE, "Silver Dalekanium Pickaxe");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_AXE, "Silver Dalekanium Axe");
+        addItem(t, DWMItems.SILVER_DALEKANIUM_HOE, "Silver Dalekanium Hoe");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_SWORD, "Bronze Dalekanium Sword");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_SHOVEL, "Bronze Dalekanium Shovel");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_PICKAXE, "Bronze Dalekanium Pickaxe");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_AXE, "Bronze Dalekanium Axe");
+        addItem(t, DWMItems.BRONZE_DALEKANIUM_HOE, "Bronze Dalekanium Hoe");
     }
 
     private static void addZeitonSet(TranslationBuilder t) {
@@ -488,8 +525,18 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("tag.item.dwm.gallifrey_plants", "Gallifrey Plants");
         t.add("tag.item.dwm.azbantium_ores", "Azbantium Ores");
         t.add("tag.item.dwm.zeiton_ores", "Zeiton Ores");
+        t.add("tag.item.dwm.dalekanium_ores", "Dalekanium Ores");
+        t.add("tag.item.dwm.dalekanium_architecture", "Dalekanium Architecture");
+        t.add("tag.item.dwm.silver_dalekanium_architecture", "Silver Dalekanium Architecture");
+        t.add("tag.item.dwm.bronze_dalekanium_architecture", "Bronze Dalekanium Architecture");
         t.add("tag.item.dwm.repairs_azbantium_equipment", "Azbantium Equipment Repair Materials");
         t.add("tag.item.dwm.repairs_steel_equipment", "Steel Equipment Repair Materials");
+        t.add("tag.item.dwm.repairs_silver_dalekanium_equipment", "Silver Dalekanium Equipment Repair Materials");
+        t.add("tag.item.dwm.repairs_bronze_dalekanium_equipment", "Bronze Dalekanium Equipment Repair Materials");
+        t.add("tag.item.dwm.repairs_eva_suit", "EVA Suit Repair Materials");
+        t.add("tag.item.dwm.eva_suit", "EVA Suit");
+        t.add("death.attack.radiation", "%1$s was irradiated");
+        t.add("death.attack.radiation.player", "%1$s was irradiated whilst fighting %2$s");
         t.add("biome.dwm.gallifrey_wastes", "Gallifrey Wastes");
         t.add("biome.dwm.gallifrey_badlands", "Gallifrey Badlands");
         t.add("biome.dwm.skaro_irradiated_wastes", "Irradiated Wastes");

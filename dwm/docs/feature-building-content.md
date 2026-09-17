@@ -17,6 +17,7 @@ Enable players to quickly build coherent Doctor Who-inspired interiors and exter
   - TARDIS Wall
   - Chronoplasm Powder variants (multiple colors)
   - Skaro petrified builder variants: stripped log/wood, planks, stairs, slab, wall (natural log/wood live in the Natural Blocks tab)
+  - Silver / bronze Dalekanium panel and riveted wall (craft from matching ingots; stonecut between variants)
 - Interior decor props (placeable, craftable from white TARDIS wall):
   - Small / large TARDIS chairs (sittable: empty-hand use; sneak to stand)
   - Decorational column

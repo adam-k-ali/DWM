@@ -123,7 +123,9 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 generateOrangeSandRecipes();
                 generatePetrifiedRecipes();
                 generateAzbantiumRecipes();
+                generateEvaSuitRecipes();
                 generateSteelRecipes();
+                generateDalekaniumRecipes();
                 generateZeitonRecipes();
                 generateCircuitRecipes();
                 generateGallifreyVanillaOreRecipes();
@@ -440,6 +442,45 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         .save(output);
             }
 
+            private void generateEvaSuitRecipes() {
+                shaped(RecipeCategory.COMBAT, DWMItems.EVA_SUIT_HELMET)
+                        .define('Y', Items.WOOL.yellow())
+                        .define('G', Items.GLASS)
+                        .pattern("YYY")
+                        .pattern("YGY")
+                        .unlockedBy(getHasName(Items.WOOL.yellow()), has(Items.WOOL.yellow()))
+                        .save(output);
+                shaped(RecipeCategory.COMBAT, DWMItems.EVA_SUIT_CHESTPLATE)
+                        .define('Y', Items.WOOL.yellow())
+                        .pattern("Y Y")
+                        .pattern("YYY")
+                        .pattern("YYY")
+                        .unlockedBy(getHasName(Items.WOOL.yellow()), has(Items.WOOL.yellow()))
+                        .save(output);
+                shaped(RecipeCategory.COMBAT, DWMItems.EVA_SUIT_LEGGINGS)
+                        .define('Y', Items.WOOL.yellow())
+                        .pattern("YYY")
+                        .pattern("Y Y")
+                        .pattern("Y Y")
+                        .unlockedBy(getHasName(Items.WOOL.yellow()), has(Items.WOOL.yellow()))
+                        .save(output);
+                shaped(RecipeCategory.COMBAT, DWMItems.EVA_SUIT_BOOTS)
+                        .define('Y', Items.WOOL.yellow())
+                        .pattern("Y Y")
+                        .pattern("Y Y")
+                        .unlockedBy(getHasName(Items.WOOL.yellow()), has(Items.WOOL.yellow()))
+                        .save(output);
+                shaped(RecipeCategory.TOOLS, DWMItems.RADIATION_METER)
+                        .define('I', Items.IRON_INGOT)
+                        .define('G', Items.GLASS)
+                        .define('R', Items.REDSTONE)
+                        .pattern(" I ")
+                        .pattern("GRG")
+                        .pattern(" I ")
+                        .unlockedBy(getHasName(Items.REDSTONE), has(Items.REDSTONE))
+                        .save(output);
+            }
+
             private void generateSteelRecipes() {
                 shapeless(RecipeCategory.MISC, DWMItems.STEEL_INGOT)
                         .requires(Items.IRON_INGOT)
@@ -487,6 +528,126 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         .pattern(" S")
                         .unlockedBy(getHasName(DWMItems.STEEL_INGOT), has(DWMItems.STEEL_INGOT))
                         .save(output);
+            }
+
+            private void generateDalekaniumRecipes() {
+                oreSmelting(
+                        List.of(DWMBlocks.DALEKANIUM_ORE),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        DWMItems.SILVER_DALEKANIUM_INGOT,
+                        0.7F,
+                        200,
+                        "silver_dalekanium"
+                );
+                oreBlasting(
+                        List.of(DWMBlocks.DALEKANIUM_ORE),
+                        RecipeCategory.MISC,
+                        CookingBookCategory.MISC,
+                        DWMItems.SILVER_DALEKANIUM_INGOT,
+                        0.7F,
+                        100,
+                        "silver_dalekanium"
+                );
+
+                shapeless(RecipeCategory.MISC, DWMItems.BRONZE_DALEKANIUM_INGOT)
+                        .requires(DWMItems.SILVER_DALEKANIUM_INGOT)
+                        .requires(Items.COPPER_INGOT)
+                        .unlockedBy(getHasName(DWMItems.SILVER_DALEKANIUM_INGOT), has(DWMItems.SILVER_DALEKANIUM_INGOT))
+                        .save(output);
+
+                generateDalekaniumToolRecipes(
+                        DWMItems.SILVER_DALEKANIUM_INGOT,
+                        DWMItems.SILVER_DALEKANIUM_SWORD,
+                        DWMItems.SILVER_DALEKANIUM_SHOVEL,
+                        DWMItems.SILVER_DALEKANIUM_PICKAXE,
+                        DWMItems.SILVER_DALEKANIUM_AXE,
+                        DWMItems.SILVER_DALEKANIUM_HOE
+                );
+                generateDalekaniumToolRecipes(
+                        DWMItems.BRONZE_DALEKANIUM_INGOT,
+                        DWMItems.BRONZE_DALEKANIUM_SWORD,
+                        DWMItems.BRONZE_DALEKANIUM_SHOVEL,
+                        DWMItems.BRONZE_DALEKANIUM_PICKAXE,
+                        DWMItems.BRONZE_DALEKANIUM_AXE,
+                        DWMItems.BRONZE_DALEKANIUM_HOE
+                );
+
+                generateDalekaniumPanelRecipes(
+                        DWMItems.SILVER_DALEKANIUM_INGOT,
+                        DWMBlocks.SILVER_DALEKANIUM_PANEL,
+                        DWMBlocks.SILVER_DALEKANIUM_RIVETED_WALL
+                );
+                generateDalekaniumPanelRecipes(
+                        DWMItems.BRONZE_DALEKANIUM_INGOT,
+                        DWMBlocks.BRONZE_DALEKANIUM_PANEL,
+                        DWMBlocks.BRONZE_DALEKANIUM_RIVETED_WALL
+                );
+            }
+
+            private void generateDalekaniumToolRecipes(
+                    Item ingot,
+                    Item sword,
+                    Item shovel,
+                    Item pickaxe,
+                    Item axe,
+                    Item hoe
+            ) {
+                shaped(RecipeCategory.COMBAT, sword)
+                        .define('#', ingot)
+                        .define('S', Items.STICK)
+                        .pattern("#")
+                        .pattern("#")
+                        .pattern("S")
+                        .unlockedBy(getHasName(ingot), has(ingot))
+                        .save(output);
+                shaped(RecipeCategory.TOOLS, shovel)
+                        .define('#', ingot)
+                        .define('S', Items.STICK)
+                        .pattern("#")
+                        .pattern("S")
+                        .pattern("S")
+                        .unlockedBy(getHasName(ingot), has(ingot))
+                        .save(output);
+                shaped(RecipeCategory.TOOLS, pickaxe)
+                        .define('#', ingot)
+                        .define('S', Items.STICK)
+                        .pattern("###")
+                        .pattern(" S ")
+                        .pattern(" S ")
+                        .unlockedBy(getHasName(ingot), has(ingot))
+                        .save(output);
+                shaped(RecipeCategory.TOOLS, axe)
+                        .define('#', ingot)
+                        .define('S', Items.STICK)
+                        .pattern("##")
+                        .pattern("#S")
+                        .pattern(" S")
+                        .unlockedBy(getHasName(ingot), has(ingot))
+                        .save(output);
+                shaped(RecipeCategory.TOOLS, hoe)
+                        .define('#', ingot)
+                        .define('S', Items.STICK)
+                        .pattern("##")
+                        .pattern(" S")
+                        .pattern(" S")
+                        .unlockedBy(getHasName(ingot), has(ingot))
+                        .save(output);
+            }
+
+            private void generateDalekaniumPanelRecipes(
+                    Item ingot,
+                    net.minecraft.world.level.block.Block panel,
+                    net.minecraft.world.level.block.Block rivetedWall
+            ) {
+                shaped(RecipeCategory.BUILDING_BLOCKS, panel, 8)
+                        .define('#', ingot)
+                        .pattern("##")
+                        .pattern("##")
+                        .unlockedBy(getHasName(ingot), has(ingot))
+                        .save(output);
+                stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, rivetedWall, panel);
+                stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, panel, rivetedWall);
             }
 
             private void generateZeitonRecipes() {

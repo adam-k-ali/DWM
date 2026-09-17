@@ -14,7 +14,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Leave through the interior doors to return outside the exterior TARDIS.
 
 ## Implemented Now
-- Placeable `tardis_block` with block entity backing data.
+- Placeable `tardis_block` with block entity backing data; available in the Functional Blocks creative tab.
 - Persistent per-instance identity data (including UUID and variant metadata).
 - Interactive door state: exterior and interior share {@code TardisDataModel.doorState}; clicking either side opens/closes both.
 - Custom client rendering for TARDIS model presentation.

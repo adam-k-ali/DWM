@@ -19,6 +19,22 @@ public class DWMItemTags {
     public static final TagKey<Item> PETRIFIED_LOGS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "petrified_logs"));
     public static final TagKey<Item> AZBANTIUM_ORES = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "azbantium_ores"));
     public static final TagKey<Item> ZEITON_ORES = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "zeiton_ores"));
+    public static final TagKey<Item> DALEKANIUM_ORES = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "dalekanium_ores")
+    );
+    public static final TagKey<Item> DALEKANIUM_ARCHITECTURE = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "dalekanium_architecture")
+    );
+    public static final TagKey<Item> SILVER_DALEKANIUM_ARCHITECTURE = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "silver_dalekanium_architecture")
+    );
+    public static final TagKey<Item> BRONZE_DALEKANIUM_ARCHITECTURE = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "bronze_dalekanium_architecture")
+    );
     public static final TagKey<Item> REPAIRS_AZBANTIUM_EQUIPMENT = TagKey.create(
             Registries.ITEM,
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "repairs_azbantium_equipment")
@@ -26,6 +42,22 @@ public class DWMItemTags {
     public static final TagKey<Item> REPAIRS_STEEL_EQUIPMENT = TagKey.create(
             Registries.ITEM,
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "repairs_steel_equipment")
+    );
+    public static final TagKey<Item> REPAIRS_SILVER_DALEKANIUM_EQUIPMENT = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "repairs_silver_dalekanium_equipment")
+    );
+    public static final TagKey<Item> REPAIRS_BRONZE_DALEKANIUM_EQUIPMENT = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "repairs_bronze_dalekanium_equipment")
+    );
+    public static final TagKey<Item> REPAIRS_EVA_SUIT = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "repairs_eva_suit")
+    );
+    public static final TagKey<Item> EVA_SUIT = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "eva_suit")
     );
 
     /** Vanilla still ships item tag JSON; ItemTags no longer exposes constants in 26.2. */

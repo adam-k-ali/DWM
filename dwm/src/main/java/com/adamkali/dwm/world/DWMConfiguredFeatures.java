@@ -15,6 +15,7 @@ public final class DWMConfiguredFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> AZBANTIUM_ORE = key("azbantium_ore");
     public static final ResourceKey<ConfiguredFeature<?, ?>> ZEITON_ORE = key("zeiton_ore");
     public static final ResourceKey<ConfiguredFeature<?, ?>> ZEITON_ORE_OVERWORLD = key("zeiton_ore_overworld");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> DALEKANIUM_ORE = key("dalekanium_ore");
 
     public static final ResourceKey<ConfiguredFeature<?, ?>> GALLIFREY_COAL_ORE = key("gallifrey_coal_ore");
     public static final ResourceKey<ConfiguredFeature<?, ?>> GALLIFREY_COAL_ORE_BURIED = key("gallifrey_coal_ore_buried");
