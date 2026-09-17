@@ -68,6 +68,14 @@ class LandingResolveServiceTest {
     }
 
     @Test
+    void shouldRefreshTickets_keepsLoadValidateAndReadyAlive() {
+        assertFalse(LandingResolveService.shouldRefreshTickets(LandingResolveService.Phase.LOCATE));
+        assertTrue(LandingResolveService.shouldRefreshTickets(LandingResolveService.Phase.LOAD));
+        assertTrue(LandingResolveService.shouldRefreshTickets(LandingResolveService.Phase.VALIDATE));
+        assertTrue(LandingResolveService.shouldRefreshTickets(LandingResolveService.Phase.READY));
+    }
+
+    @Test
     void commit_marksExistingLoadJobCommittedWithoutTickingReady() {
         LandingResolveService.enqueueForTest(tardisId, false, LandingResolveService.Phase.LOAD);
         MinecraftServer server = mock(MinecraftServer.class);

@@ -116,6 +116,7 @@ public final class LandingResolveService {
         }
     }
 
+    /** Timeout is 40 ticks; callers must refresh every tick while the job is LOAD/VALIDATE/READY. */
     private static final TicketType LANDING_LOAD_TICKET = new TicketType(40L, TicketType.FLAG_LOADING);
     private static final AtomicLong SEQ = new AtomicLong();
     private static final Map<UUID, Job> JOBS = new ConcurrentHashMap<>();
@@ -373,6 +374,7 @@ public final class LandingResolveService {
             case LOAD -> tickLoad(world, job);
             case VALIDATE -> tickValidate(server, world, model, job);
             case READY -> {
+                refreshTickets(world, job);
                 if (job.committed()) {
                     tickValidate(server, world, model, job.withPhase(Phase.VALIDATE));
                 }
@@ -418,12 +420,10 @@ public final class LandingResolveService {
     }
 
     private static void tickLoad(ServerLevel world, Job job) {
-        BlockPos center = job.locateCenter() != null ? job.locateCenter() : job.searchOrigin();
-        addLandingTickets(world, center, job.ticketChunkRadius());
-        if (job.resolvedLanding() != null) {
-            addLandingTickets(world, job.resolvedLanding(), job.ticketChunkRadius());
-        }
-        BlockPos waitAt = job.resolvedLanding() != null ? job.resolvedLanding() : center;
+        refreshTickets(world, job);
+        BlockPos waitAt = job.resolvedLanding() != null
+                ? job.resolvedLanding()
+                : (job.locateCenter() != null ? job.locateCenter() : job.searchOrigin());
         if (!LandingSiteLogic.isRegionLoaded(world, waitAt, job.ticketChunkRadius())) {
             return;
         }
@@ -436,6 +436,7 @@ public final class LandingResolveService {
             TardisDataModel model,
             Job job
     ) {
+        refreshTickets(world, job);
         if (job.kind() == Kind.SUMMON) {
             Optional<BlockPos> landing = LandingSiteLogic.findLandingAtOrNearby(
                     world, job.searchOrigin(), job.doorFacing());
@@ -533,6 +534,21 @@ public final class LandingResolveService {
         ServerPlayer player = server.getPlayerList().getPlayer(requester);
         if (player != null) {
             player.sendOverlayMessage(Component.translatable(key));
+        }
+    }
+
+    static boolean shouldRefreshTickets(@Nullable Phase phase) {
+        return phase == Phase.LOAD || phase == Phase.VALIDATE || phase == Phase.READY;
+    }
+
+    private static void refreshTickets(ServerLevel world, Job job) {
+        if (world == null || job == null || !shouldRefreshTickets(job.phase())) {
+            return;
+        }
+        BlockPos center = job.locateCenter() != null ? job.locateCenter() : job.searchOrigin();
+        addLandingTickets(world, center, job.ticketChunkRadius());
+        if (job.resolvedLanding() != null) {
+            addLandingTickets(world, job.resolvedLanding(), job.ticketChunkRadius());
         }
     }
 
