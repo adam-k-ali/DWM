@@ -154,7 +154,9 @@ class ScreenplayPluginHarnessRepositoryTest {
 
     @Test
     void publishedGitHubAssetIsReachableAtEncodedUrl() throws IOException {
-        String version = ScreenplayPluginVersions.screenplayVersion();
+        // Probe a published tag, not the in-progress pin. Minecraft ports bump
+        // screenplay_version before a Screenplay GitHub Release exists.
+        String version = VERSION;
         URI uri = URI.create(ScreenplayHarnessRepository.artifactDownloadUrl("screenplay-fabric", version));
         HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
         connection.setInstanceFollowRedirects(true);
