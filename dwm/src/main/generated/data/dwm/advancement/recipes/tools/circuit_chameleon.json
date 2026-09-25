@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:circuit_chameleon"
+        "recipes": "dwm:circuit_chameleon"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

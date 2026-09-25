@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:ash_button"
+        "recipes": "dwm:ash_button"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,8 +13,10 @@ import net.minecraft.world.level.biome.BiomeGenerationSettings;
 import net.minecraft.world.level.biome.BiomeSpecialEffects;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.levelgen.GenerationStep;
-import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
+import net.minecraft.world.level.levelgen.carver.WorldCarver;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import net.minecraft.util.ARGB;
+import net.minecraft.util.valueproviders.UniformInt;
 
 /**
  * Skaro destination biomes — vanilla caves/ores, hostile atmosphere, no Gallifrey content.
@@ -26,7 +28,7 @@ public final class SkaroBiomeBootstrap {
     static void bootstrap(
             BootstrapContext<Biome> registerable,
             HolderGetter<PlacedFeature> features,
-            HolderGetter<ConfiguredWorldCarver<?>> carvers
+            HolderGetter<WorldCarver> carvers
     ) {
         registerable.register(DWMBiomeKeys.SKARO_IRRADIATED_WASTES, createIrradiatedWastes(features, carvers));
         registerable.register(DWMBiomeKeys.SKARO_PETRIFIED_JUNGLE, createPetrifiedJungle(features, carvers));
@@ -37,7 +39,7 @@ public final class SkaroBiomeBootstrap {
 
     private static Biome createIrradiatedWastes(
             HolderGetter<PlacedFeature> features,
-            HolderGetter<ConfiguredWorldCarver<?>> carvers
+            HolderGetter<WorldCarver> carvers
     ) {
         return buildBiome(
                 false,
@@ -56,7 +58,7 @@ public final class SkaroBiomeBootstrap {
 
     private static Biome createPetrifiedJungle(
             HolderGetter<PlacedFeature> features,
-            HolderGetter<ConfiguredWorldCarver<?>> carvers
+            HolderGetter<WorldCarver> carvers
     ) {
         BiomeGenerationSettings.Builder generation = basicGeneration(features, carvers);
         generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.PETRIFIED_JUNGLE_TREES);
@@ -79,7 +81,7 @@ public final class SkaroBiomeBootstrap {
 
     private static Biome createDrammankinMire(
             HolderGetter<PlacedFeature> features,
-            HolderGetter<ConfiguredWorldCarver<?>> carvers
+            HolderGetter<WorldCarver> carvers
     ) {
         return buildBiome(
                 true,
@@ -98,7 +100,7 @@ public final class SkaroBiomeBootstrap {
 
     private static Biome createDrammankinMountains(
             HolderGetter<PlacedFeature> features,
-            HolderGetter<ConfiguredWorldCarver<?>> carvers
+            HolderGetter<WorldCarver> carvers
     ) {
         return buildBiome(
                 false,
@@ -117,7 +119,7 @@ public final class SkaroBiomeBootstrap {
 
     private static Biome createThalPlateau(
             HolderGetter<PlacedFeature> features,
-            HolderGetter<ConfiguredWorldCarver<?>> carvers
+            HolderGetter<WorldCarver> carvers
     ) {
         return buildBiome(
                 true,
@@ -143,18 +145,14 @@ public final class SkaroBiomeBootstrap {
                 ? DalekPatrolLogic.SPARSE_SPAWN_ENERGY_BUDGET
                 : DalekPatrolLogic.STANDARD_SPAWN_ENERGY_BUDGET;
         MobSpawnSettings.Builder spawns = new MobSpawnSettings.Builder();
-        spawns.addSpawn(
-                MobCategory.MONSTER,
-                weight,
-                new MobSpawnSettings.SpawnerData(DWMEntityTypes.DALEK, minCount, maxCount)
-        );
-        spawns.addMobCharge(DWMEntityTypes.DALEK, charge, energyBudget);
+        spawns.addSpawn(DWMEntityTypes.DALEK, MobCategory.MONSTER, weight, UniformInt.of(minCount, maxCount));
+        spawns.addMobSpawnCost(DWMEntityTypes.DALEK, charge, energyBudget);
         return spawns;
     }
 
     private static BiomeGenerationSettings.Builder basicGeneration(
             HolderGetter<PlacedFeature> features,
-            HolderGetter<ConfiguredWorldCarver<?>> carvers
+            HolderGetter<WorldCarver> carvers
     ) {
         BiomeGenerationSettings.Builder generation = new BiomeGenerationSettings.Builder(features, carvers);
         BiomeDefaultFeatures.addDefaultCarversAndLakes(generation);
@@ -192,9 +190,9 @@ public final class SkaroBiomeBootstrap {
                 .hasPrecipitation(precipitation)
                 .temperature(temperature)
                 .downfall(downfall)
-                .setAttribute(EnvironmentAttributes.WATER_FOG_COLOR, waterFogColor)
-                .setAttribute(EnvironmentAttributes.FOG_COLOR, fogColor)
-                .setAttribute(EnvironmentAttributes.SKY_COLOR, skyColor)
+                .setAttribute(EnvironmentAttributes.WATER_FOG_COLOR, ARGB.vector3fFromRGB24(waterFogColor))
+                .setAttribute(EnvironmentAttributes.FOG_COLOR, ARGB.vector3fFromRGB24(fogColor))
+                .setAttribute(EnvironmentAttributes.SKY_COLOR, ARGB.vector3fFromRGB24(skyColor))
                 .setAttribute(EnvironmentAttributes.AMBIENT_SOUNDS, AmbientSounds.LEGACY_CAVE_SETTINGS)
                 .specialEffects(effects)
                 .mobSpawnSettings(spawns.build())

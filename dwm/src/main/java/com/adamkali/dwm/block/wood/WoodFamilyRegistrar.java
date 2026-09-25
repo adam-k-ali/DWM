@@ -6,15 +6,16 @@ import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.item.DWMItems;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
+import net.fabricmc.fabric.api.item.v1.BlockTransformerHelper;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
-import net.fabricmc.fabric.api.registry.StrippableBlockRegistry;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.vehicle.boat.Boat;
 import net.minecraft.world.item.BoatItem;
+import net.minecraft.core.Direction;
 import net.minecraft.world.item.HangingSignItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.SignItem;
+import net.minecraft.world.item.StandingAndWallBlockItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ButtonBlock;
 import net.minecraft.world.level.block.CeilingHangingSignBlock;
@@ -66,7 +67,12 @@ public final class WoodFamilyRegistrar {
                 "stripped_" + id + "_wood"
         );
         Block leaves = DWMBlocks.registerBlock(
-                props -> new UntintedParticleLeavesBlock(0.01F, ParticleTypes.CHERRY_LEAVES, props),
+                props -> new UntintedParticleLeavesBlock(
+                        0.01F,
+                        ParticleTypes.CHERRY_LEAVES,
+                        net.minecraft.world.level.block.sounds.AmbientLeavesBlockSoundPlayer.noAmbientSound(),
+                        props
+                ),
                 settings.leaves(),
                 id + "_leaves"
         );
@@ -164,8 +170,8 @@ public final class WoodFamilyRegistrar {
         String id = family.definition().id();
         WoodFamilyBlocks blocks = family.blocks();
         Item sign = DWMItems.register(
-                settings -> new SignItem(blocks.sign(), blocks.wallSign(), settings),
-                new Item.Properties().stacksTo(16),
+                settings -> new StandingAndWallBlockItem(blocks.sign(), blocks.wallSign(), Direction.DOWN, settings),
+                new Item.Properties().stacksTo(16).signText(),
                 id + "_sign"
         );
         Item hangingSign = DWMItems.register(
@@ -197,8 +203,8 @@ public final class WoodFamilyRegistrar {
     public static void wireRuntime(RegisteredWoodFamily family) {
         WoodFamilyBlocks blocks = family.blocks();
 
-        StrippableBlockRegistry.register(blocks.log(), blocks.strippedLog());
-        StrippableBlockRegistry.register(blocks.wood(), blocks.strippedWood());
+        BlockTransformerHelper.registerStripping(blocks.log(), blocks.strippedLog());
+        BlockTransformerHelper.registerStripping(blocks.wood(), blocks.strippedWood());
 
         FlammableBlockRegistry flammable = FlammableBlockRegistry.getDefaultInstance();
         flammable.add(blocks.planks(), 5, 20);

@@ -38,6 +38,7 @@ import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.entity.HangingSignBlockEntity;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.entity.SignText;
+import net.minecraft.world.level.block.entity.SignTextSlot;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.minecraft.world.level.block.state.properties.SlabType;
@@ -457,11 +458,9 @@ public class DarkAshWoodFamilyGameTests {
         if (!(context.getLevel().getBlockEntity(abs) instanceof SignBlockEntity sign)) {
             throw new AssertionError("Expected SignBlockEntity at " + relativePos);
         }
-        SignText text = new SignText().setMessage(0, Component.literal(message));
-        if (!sign.setText(text, true)) {
-            throw new AssertionError("Failed to set standing/wall sign text");
-        }
-        if (!message.equals(sign.getFrontText().getMessage(0, false).getString())) {
+        SignText text = SignText.EMPTY.asMutable().setLine(0, Component.literal(message)).asImmutable();
+        sign.setText(text, SignTextSlot.FRONT);
+        if (!message.equals(sign.getText(SignTextSlot.FRONT).getMessages(false).getFirst().getString())) {
             throw new AssertionError("Sign text mismatch at " + relativePos);
         }
     }
@@ -471,11 +470,9 @@ public class DarkAshWoodFamilyGameTests {
         if (!(context.getLevel().getBlockEntity(abs) instanceof HangingSignBlockEntity sign)) {
             throw new AssertionError("Expected HangingSignBlockEntity at " + relativePos);
         }
-        SignText text = new SignText().setMessage(0, Component.literal(message));
-        if (!sign.setText(text, true)) {
-            throw new AssertionError("Failed to set hanging sign text");
-        }
-        if (!message.equals(sign.getFrontText().getMessage(0, false).getString())) {
+        SignText text = SignText.EMPTY.asMutable().setLine(0, Component.literal(message)).asImmutable();
+        sign.setText(text, SignTextSlot.FRONT);
+        if (!message.equals(sign.getText(SignTextSlot.FRONT).getMessages(false).getFirst().getString())) {
             throw new AssertionError("Hanging sign text mismatch at " + relativePos);
         }
     }

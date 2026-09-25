@@ -46,6 +46,9 @@ public final class EvaSuitArmorRenderer implements ArmorRenderer {
         Identifier texture = slot == EquipmentSlot.LEGS
                 ? EvaSuitModel.LEGGINGS_TEXTURE
                 : EvaSuitModel.OUTER_TEXTURE;
+        var renderType = stack.hasFoil()
+                ? RenderTypes.armorCutoutNoCullGlint(texture)
+                : RenderTypes.armorCutoutNoCull(texture);
 
         ArmorRenderer.submitTransformCopyingModel(
                 contextModel,
@@ -55,33 +58,13 @@ public final class EvaSuitArmorRenderer implements ArmorRenderer {
                 false,
                 submitNodeCollector.order(0),
                 poseStack,
-                RenderTypes.armorCutoutNoCull(texture),
+                renderType,
                 light,
                 OverlayTexture.NO_OVERLAY,
                 -1,
                 null,
-                humanoidRenderState.outlineColor,
-                null
+                humanoidRenderState.outlineColor
         );
-
-        if (stack.hasFoil()) {
-            ArmorRenderer.submitTransformCopyingModel(
-                    contextModel,
-                    humanoidRenderState,
-                    model,
-                    humanoidRenderState,
-                    false,
-                    submitNodeCollector.order(1),
-                    poseStack,
-                    RenderTypes.armorEntityGlint(),
-                    light,
-                    OverlayTexture.NO_OVERLAY,
-                    -1,
-                    null,
-                    humanoidRenderState.outlineColor,
-                    null
-            );
-        }
     }
 
     @Override

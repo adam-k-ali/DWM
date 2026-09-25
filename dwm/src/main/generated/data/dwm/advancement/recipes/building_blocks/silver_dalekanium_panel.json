@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:silver_dalekanium_panel"
+        "recipes": "dwm:silver_dalekanium_panel"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

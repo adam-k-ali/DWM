@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:sonic_setting_shear"
+        "recipes": "dwm:sonic_setting_shear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

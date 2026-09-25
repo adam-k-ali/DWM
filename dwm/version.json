@@ -1,7 +1,7 @@
 {
   "26.2": {
     "1.7.0": {
-      "summary": "Land on Skaro \u2014 five hostile biomes, Dalek patrols, and ambient radiation \u2014 plus petrified wood, Dalekanium, steel tools, and an EVA suit.",
+      "summary": "Land on Skaro — five hostile biomes, Dalek patrols, and ambient radiation — plus petrified wood, Dalekanium, steel tools, and an EVA suit.",
       "added": [
         "Dimension: Skaro",
         "Biome: Irradiated Wastes",
@@ -64,7 +64,7 @@
       "removed": []
     },
     "1.6.0": {
-      "summary": "Repair a found Type 40 \u2014 craftable console circuits, a live artron tank, and Zeiton fuel \u2014 plus a Field Guide and a setting-based sonic.",
+      "summary": "Repair a found Type 40 — craftable console circuits, a live artron tank, and Zeiton fuel — plus a Field Guide and a setting-based sonic.",
       "added": [
         "Block: Zeiton Ore",
         "Block: Gallifrey Cobblestone Stairs",
@@ -98,7 +98,7 @@
         "Misc: Field Guide (G, first-join book, or Mod Menu) with Quick Start, Sonic, Circuits, and Console Room chapters",
         "Misc: Worldgen Type 40s start unfinished (broken circuits, 30 artron, same-world hops until repaired)",
         "Misc: Owner-only console piloting (readers and refueler stay public; bound key still unlocks doors)",
-        "Misc: Live artron tank (0\u2013500; Zeiton Crystals add 25; demat and summon spend 10 same-world or 30 to change dimension)",
+        "Misc: Live artron tank (0–500; Zeiton Crystals add 25; demat and summon spend 10 same-world or 30 to change dimension)",
         "Misc: Zeiton ore in Gallifrey stone and rare Overworld traces",
         "Misc: Sonic field-mode HUD carousel; pair with your TARDIS for Seal, Scan, and Ping",
         "Misc: Doctor Who first-hour and sonic teaching advancement trees"
@@ -113,12 +113,10 @@
         "Misc: Using a sonic on TARDIS doors no longer opens them",
         "Misc: Automatic surface landings stay below a dimensional bedrock ceiling"
       ],
-      "removed": [
-        
-      ]
+      "removed": []
     },
     "1.5.0": {
-      "summary": "Gallifrey comes alive \u2014 Time Lord wanderers, Broakir, Flutterwings, and tameable Mewing Dogs, plus smoother TARDIS doorway previews.",
+      "summary": "Gallifrey comes alive — Time Lord wanderers, Broakir, Flutterwings, and tameable Mewing Dogs, plus smoother TARDIS doorway previews.",
       "added": [
         "Entity: Broakir",
         "Entity: Flutterwing",
@@ -137,12 +135,10 @@
         "Misc: Bigger-on-the-inside doorway preview restored after a rendering regression",
         "Misc: Console room preloads near the exterior so the doorway look-in is ready when doors open"
       ],
-      "removed": [
-        
-      ]
+      "removed": []
     },
     "1.4.0": {
-      "summary": "Claim and summon your TARDIS \u2014 key, Stattenheim remote, and a fuller First Doctor console, plus interior decor, lighting, and shell fade.",
+      "summary": "Claim and summon your TARDIS — key, Stattenheim remote, and a fuller First Doctor console, plus interior decor, lighting, and shell fade.",
       "added": [
         "Block: Decorational Column",
         "Block: TARDIS Ceiling Vent",
@@ -179,12 +175,10 @@
         "Misc: Door leaves draw over bigger-on-the-inside / smaller-on-the-outside previews; BOTI stays aligned while strafing",
         "Misc: Portal aperture depth aligned for later Doctor chameleon boxes"
       ],
-      "removed": [
-        
-      ]
+      "removed": []
     },
     "1.3.0": {
-      "summary": "Gallifrey survival depth \u2014 Azbantium gear, Gallifrey ores and plants, orange sand and badlands, plus console waypoints, player locator, and chameleon hologram.",
+      "summary": "Gallifrey survival depth — Azbantium gear, Gallifrey ores and plants, orange sand and badlands, plus console waypoints, player locator, and chameleon hologram.",
       "added": [
         "Block: Azbantium Ore",
         "Block: Azbantium Block",
@@ -232,27 +226,33 @@
         "Misc: Avoid crash when remote clients lack a local TARDIS save directory",
         "Misc: Massive performance improvements to Bigger-on-the-Inside / Smaller-on-the-Outside door portal previews"
       ],
-      "removed": [
-        
-      ]
+      "removed": []
     },
     "1.2.0": {
-      "summary": "Port to Minecraft 26.2 (Java 25) \u2014 Fabric Loader 0.19 / Loom 1.17, with BOTI/SOTO rendering re-hooked for the new client APIs.",
-      "added": [
-        
-      ],
+      "summary": "Port to Minecraft 26.2 (Java 25) — Fabric Loader 0.19 / Loom 1.17, with BOTI/SOTO rendering re-hooked for the new client APIs.",
+      "added": [],
       "changed": [
         "Misc: Minecraft 26.2 / Java 25 runtime baseline",
         "Misc: Updated Fabric Loader, Loom, Fabric API, Cloth Config, and Mod Menu for 26.2"
       ],
-      "removed": [
-        
-      ]
+      "removed": []
+    }
+  },
+  "26.3": {
+    "1.7.0": {
+      "summary": "Port to Minecraft 26.3 (Wilderness Bound) — Fabric Loader 0.19.5 / Loom 1.17.21, with worldgen Feature/material-rule APIs, axe stripping via BlockTransformerHelper, and client RenderPearl/SDL input re-hooks.",
+      "added": [],
+      "changed": [
+        "Misc: Minecraft 26.3 runtime baseline",
+        "Misc: Updated Fabric Loader, Loom, Fabric API, Cloth Config, and Mod Menu for 26.3",
+        "Misc: Screenplay harness version 1.0.0+26.3 (Forge and NeoForge loaders gated on 26.3 userdev)"
+      ],
+      "removed": []
     }
   },
   "1.21.4": {
     "1.2.0": {
-      "summary": "Flyable TARDIS with First Doctor console and Gallifrey destination \u2014 plus Ash, Dark Ash, and Cardinal woods, Gallifrey stone, and Citadel building blocks.",
+      "summary": "Flyable TARDIS with First Doctor console and Gallifrey destination — plus Ash, Dark Ash, and Cardinal woods, Gallifrey stone, and Citadel building blocks.",
       "added": [
         "Block: Ash Log",
         "Block: Stripped Ash Log",
@@ -347,12 +347,10 @@
       "changed": [
         "Misc: Existing decorative blocks now drop themselves when broken"
       ],
-      "removed": [
-        
-      ]
+      "removed": []
     },
     "1.1.0": {
-      "summary": "Colored chronoplasm powder, TARDIS walls, and roundels \u2014 plus the sonic screwdriver advancement.",
+      "summary": "Colored chronoplasm powder, TARDIS walls, and roundels — plus the sonic screwdriver advancement.",
       "added": [
         "Block: Black Chronoplasm Powder",
         "Block: Blue Chronoplasm Powder",
@@ -461,9 +459,7 @@
       "changed": [
         "Misc: Updated Modmenu Description"
       ],
-      "removed": [
-        
-      ]
+      "removed": []
     },
     "1.0.0": {
       "summary": "Initial release with Doctor Who sonic screwdrivers.",
@@ -474,16 +470,12 @@
         "Item: Sonic Screwdriver (Fifth Doctor)",
         "Item: Sonic Screwdriver (Seventh Doctor)"
       ],
-      "changed": [
-        
-      ],
-      "removed": [
-        
-      ]
+      "changed": [],
+      "removed": []
     }
   },
   "promos": {
-    "latest": "26.2-1.7.0",
-    "recommended": "26.2-1.7.0"
+    "latest": "26.3-1.7.0",
+    "recommended": "26.3-1.7.0"
   }
 }

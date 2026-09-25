@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:eva_suit_helmet"
+        "recipes": "dwm:eva_suit_helmet"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

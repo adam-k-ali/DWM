@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:petrified_wall"
+        "recipes": "dwm:petrified_wall"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

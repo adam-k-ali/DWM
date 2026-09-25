@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:bronze_dalekanium_shovel"
+        "recipes": "dwm:bronze_dalekanium_shovel"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:dark_ash_fence"
+        "recipes": "dwm:dark_ash_fence"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

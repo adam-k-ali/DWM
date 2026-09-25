@@ -278,7 +278,7 @@ public final class WaitUntilPrimitive implements ScenarioPrimitive {
             }
             if (contains != null) {
                 String title = advancement.value().display()
-                        .map(display -> display.getTitle().getString())
+                        .map(display -> display.title().getString())
                         .orElse("");
                 if (!title.contains(contains)) {
                     continue;

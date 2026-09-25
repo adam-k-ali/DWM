@@ -189,8 +189,18 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
                     RenderTypes.entityCutout(texture),
                     state.lightCoords,
                     OverlayTexture.NO_OVERLAY,
-                    0,
-                    state.breakProgress);
+                    0);
+            if (state.breakProgress != null) {
+                submitNodeCollector.submitCrumblingOverlay(
+                        model,
+                        animState,
+                        poseStack,
+                        RenderTypes.entityCutout(texture),
+                        state.lightCoords,
+                        OverlayTexture.NO_OVERLAY,
+                        -1,
+                        state.breakProgress);
+            }
         }
         poseStack.popPose();
     }
@@ -253,9 +263,9 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
     /** Shared by the block BER and {@link TardisBlockSpecialRenderer} item path. */
     static void applyExteriorTransforms(PoseStack matrices, float rotationDegrees) {
         matrices.scale(2.0f, 2.0f, 2.0f);
-        matrices.mulPose(Axis.XP.rotationDegrees(180.0f));
+        matrices.rotateDegrees(Axis.XP, 180.0f);
         matrices.translate(0.25D, -1.5D, -0.25D);
-        matrices.mulPose(Axis.YP.rotationDegrees(rotationDegrees - 180.0f));
+        matrices.rotateDegrees(Axis.YP, rotationDegrees - 180.0f);
     }
 
     private static void submitTranslucentModel(

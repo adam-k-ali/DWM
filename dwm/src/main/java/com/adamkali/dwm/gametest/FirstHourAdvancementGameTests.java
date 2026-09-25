@@ -46,22 +46,22 @@ import net.minecraft.world.phys.Vec3;
 import java.util.UUID;
 
 public class FirstHourAdvancementGameTests {
-    private static final Identifier SONIC_IRON_DOOR = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/sonic_iron_door");
-    private static final Identifier SONIC_INSTALL_SHATTER = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/sonic_install_shatter");
-    private static final Identifier SONIC_INSTALL_PRIME = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/sonic_install_prime");
-    private static final Identifier SONIC_INSTALL_DISRUPT = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/sonic_install_disrupt");
-    private static final Identifier SONIC_INSTALL_SHEAR = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/sonic_install_shear");
-    private static final Identifier SONIC_CYCLE_SETTING = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/sonic_cycle_setting");
-    private static final Identifier SONIC_SHATTER = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/sonic_shatter");
-    private static final Identifier SONIC_ALL_SETTINGS = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/sonic_all_settings");
-    private static final Identifier FIND_TARDIS = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/find_tardis");
-    private static final Identifier CLAIM_TARDIS = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/claim_tardis");
-    private static final Identifier FIRST_HOP = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/first_hop");
-    private static final Identifier BIND_KEY = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/bind_key");
-    private static final Identifier FIRST_REFUEL = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/first_refuel");
-    private static final Identifier FIRST_CIRCUIT = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/first_circuit");
-    private static final Identifier FIRST_OTHER_WORLD = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/first_other_world");
-    private static final Identifier FIRST_GALLIFREY = Identifier.fromNamespaceAndPath("minecraft", DWMReference.MOD_ID + "/first_gallifrey");
+    private static final Identifier SONIC_IRON_DOOR = dwmAdvancement("sonic_iron_door");
+    private static final Identifier SONIC_INSTALL_SHATTER = dwmAdvancement("sonic_install_shatter");
+    private static final Identifier SONIC_INSTALL_PRIME = dwmAdvancement("sonic_install_prime");
+    private static final Identifier SONIC_INSTALL_DISRUPT = dwmAdvancement("sonic_install_disrupt");
+    private static final Identifier SONIC_INSTALL_SHEAR = dwmAdvancement("sonic_install_shear");
+    private static final Identifier SONIC_CYCLE_SETTING = dwmAdvancement("sonic_cycle_setting");
+    private static final Identifier SONIC_SHATTER = dwmAdvancement("sonic_shatter");
+    private static final Identifier SONIC_ALL_SETTINGS = dwmAdvancement("sonic_all_settings");
+    private static final Identifier FIND_TARDIS = dwmAdvancement("find_tardis");
+    private static final Identifier CLAIM_TARDIS = dwmAdvancement("claim_tardis");
+    private static final Identifier FIRST_HOP = dwmAdvancement("first_hop");
+    private static final Identifier BIND_KEY = dwmAdvancement("bind_key");
+    private static final Identifier FIRST_REFUEL = dwmAdvancement("first_refuel");
+    private static final Identifier FIRST_CIRCUIT = dwmAdvancement("first_circuit");
+    private static final Identifier FIRST_OTHER_WORLD = dwmAdvancement("first_other_world");
+    private static final Identifier FIRST_GALLIFREY = dwmAdvancement("first_gallifrey");
 
     @GameTest(structure = "fabric-gametest-api-v1:empty")
     public void sonicIronDoor_awardsAdvancement(GameTestHelper context) {
@@ -507,6 +507,10 @@ public class FirstHourAdvancementGameTests {
             context.setBlock(door, Blocks.AIR);
             context.setBlock(door.above(), Blocks.AIR);
         }
+    }
+
+    private static Identifier dwmAdvancement(String path) {
+        return Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, path);
     }
 
     private static void assertAdvancementDone(GameTestHelper context, ServerPlayer player, Identifier id) {

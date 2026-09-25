@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:silver_dalekanium_riveted_wall_from_silver_dalekanium_panel_stonecutting"
+        "recipes": "dwm:silver_dalekanium_riveted_wall_from_silver_dalekanium_panel_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

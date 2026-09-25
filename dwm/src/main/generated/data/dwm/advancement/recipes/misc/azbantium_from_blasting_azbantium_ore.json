@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:azbantium_from_blasting_azbantium_ore"
+        "recipes": "dwm:azbantium_from_blasting_azbantium_ore"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

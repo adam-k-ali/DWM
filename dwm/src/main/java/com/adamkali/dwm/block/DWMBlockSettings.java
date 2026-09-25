@@ -101,7 +101,7 @@ public class DWMBlockSettings {
             .isValidSpawn((state, world, pos, type) -> false)
             .isRedstoneConductor((state, world, pos) -> false)
             .isSuffocating((state, world, pos) -> false)
-            .isViewBlocking((state, world, pos) -> false);
+            .isViewBlocking((state, world, pos, box) -> false);
 
     public static final MapColor ASH_PLANKS_COLOR = MapColor.TERRACOTTA_WHITE;
     public static final MapColor ASH_BARK_COLOR = MapColor.TERRACOTTA_GRAY;
@@ -116,14 +116,14 @@ public class DWMBlockSettings {
                 .instabreak()
                 .sound(SoundType.GRASS)
                 .offsetType(BlockBehaviour.OffsetType.XZ)
-                .pushReaction(PushReaction.DESTROY);
+                .pushReaction(PushReaction.POPPED);
     }
 
     public static BlockBehaviour.Properties gallifreyPottedPlant() {
         return BlockBehaviour.Properties.of()
                 .instabreak()
                 .noOcclusion()
-                .pushReaction(PushReaction.DESTROY);
+                .pushReaction(PushReaction.POPPED);
     }
 
     public static BlockBehaviour.Properties saccharineCane() {
@@ -132,7 +132,7 @@ public class DWMBlockSettings {
                 .noCollision()
                 .instabreak()
                 .sound(SoundType.GRASS)
-                .pushReaction(PushReaction.DESTROY);
+                .pushReaction(PushReaction.POPPED);
     }
 
     /** Fresh properties for azbantium ore/block (harder than obsidian; avoids shared setId mutation). */

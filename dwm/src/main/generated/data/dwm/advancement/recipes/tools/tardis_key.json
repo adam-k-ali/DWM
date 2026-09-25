@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:tardis_key"
+        "recipes": "dwm:tardis_key"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

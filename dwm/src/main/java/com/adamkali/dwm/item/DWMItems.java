@@ -14,10 +14,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.AxeItem;
-import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ShovelItem;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.equipment.ArmorType;
 import java.util.function.Function;
@@ -96,7 +93,8 @@ public class DWMItems {
             "steel_sword"
     );
     public static final Item STEEL_SHOVEL = register(
-            props -> new ShovelItem(DWMToolMaterials.STEEL, 1.5F, -3.0F, props),
+            Item::new,
+            new Item.Properties().shovel(DWMToolMaterials.STEEL, 1.5F, -3.0F),
             "steel_shovel"
     );
     public static final Item STEEL_PICKAXE = register(
@@ -105,11 +103,13 @@ public class DWMItems {
             "steel_pickaxe"
     );
     public static final Item STEEL_AXE = register(
-            props -> new AxeItem(DWMToolMaterials.STEEL, 5.0F, -3.0F, props),
+            Item::new,
+            new Item.Properties().axe(DWMToolMaterials.STEEL, 5.0F, -3.0F),
             "steel_axe"
     );
     public static final Item STEEL_HOE = register(
-            props -> new HoeItem(DWMToolMaterials.STEEL, -3.0F, 0.0F, props),
+            Item::new,
+            new Item.Properties().hoe(DWMToolMaterials.STEEL, -3.0F, 0.0F),
             "steel_hoe"
     );
 
@@ -119,7 +119,8 @@ public class DWMItems {
             "silver_dalekanium_sword"
     );
     public static final Item SILVER_DALEKANIUM_SHOVEL = register(
-            props -> new ShovelItem(DWMToolMaterials.SILVER_DALEKANIUM, 1.5F, -3.0F, props),
+            Item::new,
+            new Item.Properties().shovel(DWMToolMaterials.SILVER_DALEKANIUM, 1.5F, -3.0F),
             "silver_dalekanium_shovel"
     );
     public static final Item SILVER_DALEKANIUM_PICKAXE = register(
@@ -128,11 +129,13 @@ public class DWMItems {
             "silver_dalekanium_pickaxe"
     );
     public static final Item SILVER_DALEKANIUM_AXE = register(
-            props -> new AxeItem(DWMToolMaterials.SILVER_DALEKANIUM, 5.0F, -3.0F, props),
+            Item::new,
+            new Item.Properties().axe(DWMToolMaterials.SILVER_DALEKANIUM, 5.0F, -3.0F),
             "silver_dalekanium_axe"
     );
     public static final Item SILVER_DALEKANIUM_HOE = register(
-            props -> new HoeItem(DWMToolMaterials.SILVER_DALEKANIUM, -3.0F, 0.0F, props),
+            Item::new,
+            new Item.Properties().hoe(DWMToolMaterials.SILVER_DALEKANIUM, -3.0F, 0.0F),
             "silver_dalekanium_hoe"
     );
 
@@ -142,7 +145,8 @@ public class DWMItems {
             "bronze_dalekanium_sword"
     );
     public static final Item BRONZE_DALEKANIUM_SHOVEL = register(
-            props -> new ShovelItem(DWMToolMaterials.BRONZE_DALEKANIUM, 1.5F, -3.0F, props),
+            Item::new,
+            new Item.Properties().shovel(DWMToolMaterials.BRONZE_DALEKANIUM, 1.5F, -3.0F),
             "bronze_dalekanium_shovel"
     );
     public static final Item BRONZE_DALEKANIUM_PICKAXE = register(
@@ -151,11 +155,13 @@ public class DWMItems {
             "bronze_dalekanium_pickaxe"
     );
     public static final Item BRONZE_DALEKANIUM_AXE = register(
-            props -> new AxeItem(DWMToolMaterials.BRONZE_DALEKANIUM, 5.0F, -3.0F, props),
+            Item::new,
+            new Item.Properties().axe(DWMToolMaterials.BRONZE_DALEKANIUM, 5.0F, -3.0F),
             "bronze_dalekanium_axe"
     );
     public static final Item BRONZE_DALEKANIUM_HOE = register(
-            props -> new HoeItem(DWMToolMaterials.BRONZE_DALEKANIUM, -3.0F, 0.0F, props),
+            Item::new,
+            new Item.Properties().hoe(DWMToolMaterials.BRONZE_DALEKANIUM, -3.0F, 0.0F),
             "bronze_dalekanium_hoe"
     );
 
@@ -165,7 +171,8 @@ public class DWMItems {
             "azbantium_sword"
     );
     public static final Item AZBANTIUM_SHOVEL = register(
-            props -> new ShovelItem(DWMToolMaterials.AZBANTIUM, 1.5F, -3.0F, props),
+            Item::new,
+            new Item.Properties().shovel(DWMToolMaterials.AZBANTIUM, 1.5F, -3.0F),
             "azbantium_shovel"
     );
     public static final Item AZBANTIUM_PICKAXE = register(
@@ -174,11 +181,13 @@ public class DWMItems {
             "azbantium_pickaxe"
     );
     public static final Item AZBANTIUM_AXE = register(
-            props -> new AxeItem(DWMToolMaterials.AZBANTIUM, 5.0F, -3.0F, props),
+            Item::new,
+            new Item.Properties().axe(DWMToolMaterials.AZBANTIUM, 5.0F, -3.0F),
             "azbantium_axe"
     );
     public static final Item AZBANTIUM_HOE = register(
-            props -> new HoeItem(DWMToolMaterials.AZBANTIUM, -3.0F, 0.0F, props),
+            Item::new,
+            new Item.Properties().hoe(DWMToolMaterials.AZBANTIUM, -3.0F, 0.0F),
             "azbantium_hoe"
     );
 

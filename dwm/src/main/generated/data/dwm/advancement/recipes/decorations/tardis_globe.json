@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:tardis_globe"
+        "recipes": "dwm:tardis_globe"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

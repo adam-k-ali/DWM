@@ -101,7 +101,7 @@ public class SkaroRadiationGameTests {
     }
 
     private static void clearHurtCooldown(Player player) {
-        player.invulnerableTime = 0;
+        player.setInvulnerableTime(0);
         player.hurtTime = 0;
     }
 }

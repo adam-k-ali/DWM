@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:iron_ingot_from_smelting_gallifrey_iron_ore"
+        "recipes": "dwm:iron_ingot_from_smelting_gallifrey_iron_ore"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

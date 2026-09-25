@@ -1,6 +1,5 @@
 package com.adamkali.dwm.block.plant;
 
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -20,16 +19,10 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * and orange sand via tags) or another cane below — no water adjacency and no random growth.
  */
 public class SaccharineCaneBlock extends Block {
-    public static final MapCodec<SaccharineCaneBlock> CODEC = simpleCodec(SaccharineCaneBlock::new);
     private static final VoxelShape SHAPE = Block.column(12.0, 0.0, 16.0);
 
     public SaccharineCaneBlock(BlockBehaviour.Properties properties) {
         super(properties);
-    }
-
-    @Override
-    public MapCodec<SaccharineCaneBlock> codec() {
-        return CODEC;
     }
 
     @Override

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:gallifrey_stone_brick_slab"
+        "recipes": "dwm:gallifrey_stone_brick_slab"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

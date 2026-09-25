@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:gallifrey_cobblestone_wall_from_gallifrey_cobblestone_stonecutting"
+        "recipes": "dwm:gallifrey_cobblestone_wall_from_gallifrey_cobblestone_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

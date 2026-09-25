@@ -1,7 +1,5 @@
 package com.adamkali.dwm.block;
 
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -21,7 +19,6 @@ import java.util.function.Function;
  * Horizontally facing interior decor with JSON block models (chairs, column, ceiling vent).
  */
 public class TardisDecorBlock extends HorizontalDirectionalBlock {
-    private final MapCodec<TardisDecorBlock> codec;
     private final Map<Direction, VoxelShape> shapesByFacing;
 
     public TardisDecorBlock(Properties settings, VoxelShape northShape) {
@@ -30,19 +27,12 @@ public class TardisDecorBlock extends HorizontalDirectionalBlock {
 
     public TardisDecorBlock(Properties settings, Function<Direction, VoxelShape> shapeFactory) {
         super(settings);
-        this.codec = RecordCodecBuilder.mapCodec(instance ->
-                instance.group(propertiesCodec()).apply(instance, props -> new TardisDecorBlock(props, shapeFactory)));
         EnumMap<Direction, VoxelShape> shapes = new EnumMap<>(Direction.class);
         for (Direction facing : Direction.Plane.HORIZONTAL) {
             shapes.put(facing, shapeFactory.apply(facing));
         }
         this.shapesByFacing = Map.copyOf(shapes);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
-    }
-
-    @Override
-    protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
-        return codec;
     }
 
     @Override

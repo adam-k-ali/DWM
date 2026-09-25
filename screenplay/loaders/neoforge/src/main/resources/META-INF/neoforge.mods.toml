@@ -13,13 +13,13 @@ description='''Real-client Minecraft scenario tests with CI screenshots.'''
 [[dependencies.screenplay]]
 modId="neoforge"
 type="required"
-versionRange="[26.2,)"
+versionRange="[26.3.0.21-beta,)"
 ordering="NONE"
 side="CLIENT"
 
 [[dependencies.screenplay]]
 modId="minecraft"
 type="required"
-versionRange="[26.2]"
+versionRange="[26.3]"
 ordering="NONE"
 side="CLIENT"

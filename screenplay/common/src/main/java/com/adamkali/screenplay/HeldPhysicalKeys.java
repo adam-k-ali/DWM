@@ -4,9 +4,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * GLFW key codes Screenplay is holding for at least one client tick.
+ * Physical key codes Screenplay is holding for at least one client tick.
  * {@code InputConstants.isKeyDown} is mixed in on Fabric so HUD code that polls
- * GLFW (rather than {@code KeyMapping}) observes the hold.
+ * {@code InputConstants} (rather than {@code KeyMapping}) observes the hold.
  */
 public final class HeldPhysicalKeys {
     private static final Set<Integer> HELD = ConcurrentHashMap.newKeySet();

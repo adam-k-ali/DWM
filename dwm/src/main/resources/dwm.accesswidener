@@ -1,7 +1,10 @@
 accessWidener	v2	official
-accessible	method	net/minecraft/world/level/levelgen/NoiseRouterData	overworld	(Lnet/minecraft/core/HolderGetter;Lnet/minecraft/core/HolderGetter;ZZ)Lnet/minecraft/world/level/levelgen/NoiseRouter;
+accessible	method	net/minecraft/world/level/levelgen/NoiseRouterData	overworld	(Lnet/minecraft/core/HolderGetter;Lnet/minecraft/world/level/levelgen/OverworldFunctionSet;)Lnet/minecraft/world/level/levelgen/NoiseRouter;
+accessible	method	net/minecraft/world/level/levelgen/NoiseRouterData	overworldAquifers	(Lnet/minecraft/core/HolderGetter;Lnet/minecraft/core/HolderGetter;Lnet/minecraft/world/level/levelgen/OverworldFunctionSet;)Lnet/minecraft/world/level/levelgen/Aquifer$Config;
 accessible	method	net/minecraft/client/Camera	setPosition	(DDD)V
 accessible	method	net/minecraft/client/Camera	setPosition	(Lnet/minecraft/world/phys/Vec3;)V
 accessible	method	net/minecraft/client/Camera	setRotation	(FF)V
 accessible	field	net/minecraft/client/renderer/GameRenderer	lightmap	Lnet/minecraft/client/renderer/Lightmap;
 accessible	field	net/minecraft/client/renderer/GameRenderer	gameRenderState	Lnet/minecraft/client/renderer/state/GameRenderState;
+accessible	method	net/minecraft/client/renderer/RenderPipelines	register	(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;)Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;
+accessible	field	net/minecraft/client/renderer/RenderPipelines	ENTITY_SNIPPET	Lcom/mojang/renderpearl/api/pipeline/RenderPipeline$Snippet;

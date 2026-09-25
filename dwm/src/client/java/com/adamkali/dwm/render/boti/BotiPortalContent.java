@@ -14,7 +14,7 @@ import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
 import com.adamkali.dwm.tardis.portal.PortalSampler;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix4fStack;

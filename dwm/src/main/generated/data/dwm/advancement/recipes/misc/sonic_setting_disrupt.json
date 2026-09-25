@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:sonic_setting_disrupt"
+        "recipes": "dwm:sonic_setting_disrupt"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

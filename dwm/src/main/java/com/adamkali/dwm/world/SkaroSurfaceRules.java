@@ -5,128 +5,135 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.Noises;
-import net.minecraft.world.level.levelgen.SurfaceRules;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
+import net.minecraft.world.level.levelgen.material.MaterialRules;
+import net.minecraft.world.level.levelgen.material.condition.MaterialCondition;
+import net.minecraft.world.level.levelgen.material.rule.MaterialRule;
+import net.minecraft.world.level.levelgen.placement.CaveSurface;
 
 /**
- * Skaro surface rules: vanilla-only DWM-064 palette, distinct per biome.
+ * Skaro material rules: vanilla-only DWM-064 palette, distinct per biome.
  * Petrified wood is reserved for flora placement (DWM-068).
  */
 public final class SkaroSurfaceRules {
-    private static final SurfaceRules.RuleSource BEDROCK = block(Blocks.BEDROCK);
-    private static final SurfaceRules.RuleSource STONE = block(Blocks.STONE);
-    private static final SurfaceRules.RuleSource TUFF = block(Blocks.TUFF);
-    private static final SurfaceRules.RuleSource GRAVEL = block(Blocks.GRAVEL);
-    private static final SurfaceRules.RuleSource SAND = block(Blocks.SAND);
-    private static final SurfaceRules.RuleSource RED_SAND = block(Blocks.RED_SAND);
-    private static final SurfaceRules.RuleSource TERRACOTTA = block(Blocks.TERRACOTTA);
-    private static final SurfaceRules.RuleSource DIRT = block(Blocks.DIRT);
-    private static final SurfaceRules.RuleSource COARSE_DIRT = block(Blocks.COARSE_DIRT);
-    private static final SurfaceRules.RuleSource ROOTED_DIRT = block(Blocks.ROOTED_DIRT);
-    private static final SurfaceRules.RuleSource MUD = block(Blocks.MUD);
-    private static final SurfaceRules.RuleSource PODZOL = block(Blocks.PODZOL);
+    private static final MaterialCondition ON_FLOOR = MaterialRules.stoneDepthCheck(0, false, 0, CaveSurface.FLOOR);
+    private static final MaterialCondition UNDER_FLOOR = MaterialRules.stoneDepthCheck(0, true, 0, CaveSurface.FLOOR);
+    private static final MaterialCondition ON_CEILING = MaterialRules.stoneDepthCheck(0, false, 0, CaveSurface.CEILING);
+
+    private static final MaterialRule BEDROCK = block(Blocks.BEDROCK);
+    private static final MaterialRule STONE = block(Blocks.STONE);
+    private static final MaterialRule TUFF = block(Blocks.TUFF);
+    private static final MaterialRule GRAVEL = block(Blocks.GRAVEL);
+    private static final MaterialRule SAND = block(Blocks.SAND);
+    private static final MaterialRule RED_SAND = block(Blocks.RED_SAND);
+    private static final MaterialRule TERRACOTTA = block(Blocks.TERRACOTTA);
+    private static final MaterialRule DIRT = block(Blocks.DIRT);
+    private static final MaterialRule COARSE_DIRT = block(Blocks.COARSE_DIRT);
+    private static final MaterialRule ROOTED_DIRT = block(Blocks.ROOTED_DIRT);
+    private static final MaterialRule MUD = block(Blocks.MUD);
+    private static final MaterialRule PODZOL = block(Blocks.PODZOL);
 
     private SkaroSurfaceRules() {
     }
 
-    public static SurfaceRules.RuleSource create(HolderGetter<Biome> biomes) {
-        SurfaceRules.ConditionSource isWastes = SurfaceRules.isBiome(biomes, DWMBiomeKeys.SKARO_IRRADIATED_WASTES);
-        SurfaceRules.ConditionSource isJungle = SurfaceRules.isBiome(biomes, DWMBiomeKeys.SKARO_PETRIFIED_JUNGLE);
-        SurfaceRules.ConditionSource isMire = SurfaceRules.isBiome(biomes, DWMBiomeKeys.SKARO_DRAMMANKIN_MIRE);
-        SurfaceRules.ConditionSource isMountains = SurfaceRules.isBiome(biomes, DWMBiomeKeys.SKARO_DRAMMANKIN_MOUNTAINS);
-        SurfaceRules.ConditionSource isPlateau = SurfaceRules.isBiome(biomes, DWMBiomeKeys.SKARO_THAL_PLATEAU);
-        SurfaceRules.ConditionSource atOrAboveWater = SurfaceRules.waterBlockCheck(-1, 0);
-        SurfaceRules.ConditionSource aboveWater = SurfaceRules.waterBlockCheck(0, 0);
+    public static MaterialRule create(HolderGetter<Biome> biomes) {
+        MaterialCondition isWastes = MaterialRules.isBiome(biomes, DWMBiomeKeys.SKARO_IRRADIATED_WASTES);
+        MaterialCondition isJungle = MaterialRules.isBiome(biomes, DWMBiomeKeys.SKARO_PETRIFIED_JUNGLE);
+        MaterialCondition isMire = MaterialRules.isBiome(biomes, DWMBiomeKeys.SKARO_DRAMMANKIN_MIRE);
+        MaterialCondition isMountains = MaterialRules.isBiome(biomes, DWMBiomeKeys.SKARO_DRAMMANKIN_MOUNTAINS);
+        MaterialCondition isPlateau = MaterialRules.isBiome(biomes, DWMBiomeKeys.SKARO_THAL_PLATEAU);
+        MaterialCondition atOrAboveWater = MaterialRules.waterBlockCheck(-1, 0);
+        MaterialCondition aboveWater = MaterialRules.waterBlockCheck(0, 0);
 
-        SurfaceRules.RuleSource wastesTop = SurfaceRules.sequence(
-                SurfaceRules.ifTrue(SurfaceRules.ON_CEILING, TERRACOTTA),
-                SurfaceRules.ifTrue(
-                        SurfaceRules.noiseCondition2d(Noises.SURFACE, -0.95, -0.35),
+        MaterialRule wastesTop = MaterialRules.sequence(
+                MaterialRules.ifTrue(ON_CEILING, TERRACOTTA),
+                MaterialRules.ifTrue(
+                        MaterialRules.noiseCondition2d(Noises.SURFACE, -0.95, -0.35),
                         TERRACOTTA
                 ),
-                SurfaceRules.ifTrue(
-                        SurfaceRules.noiseCondition2d(Noises.SURFACE, 0.35, 1.0),
+                MaterialRules.ifTrue(
+                        MaterialRules.noiseCondition2d(Noises.SURFACE, 0.35, 1.0),
                         RED_SAND
                 ),
                 SAND
         );
 
-        SurfaceRules.RuleSource jungleTop = SurfaceRules.sequence(
-                SurfaceRules.ifTrue(
-                        SurfaceRules.noiseCondition2d(Noises.SURFACE, -0.95, -0.4),
+        MaterialRule jungleTop = MaterialRules.sequence(
+                MaterialRules.ifTrue(
+                        MaterialRules.noiseCondition2d(Noises.SURFACE, -0.95, -0.4),
                         ROOTED_DIRT
                 ),
-                SurfaceRules.ifTrue(
-                        SurfaceRules.noiseCondition2d(Noises.SURFACE, 0.45, 1.0),
+                MaterialRules.ifTrue(
+                        MaterialRules.noiseCondition2d(Noises.SURFACE, 0.45, 1.0),
                         COARSE_DIRT
                 ),
                 PODZOL
         );
 
-        SurfaceRules.RuleSource mireTop = MUD;
+        MaterialRule mireTop = MUD;
 
-        SurfaceRules.RuleSource mountainsTop = SurfaceRules.sequence(
-                SurfaceRules.ifTrue(
-                        SurfaceRules.noiseCondition2d(Noises.SURFACE, -0.95, -0.35),
+        MaterialRule mountainsTop = MaterialRules.sequence(
+                MaterialRules.ifTrue(
+                        MaterialRules.noiseCondition2d(Noises.SURFACE, -0.95, -0.35),
                         GRAVEL
                 ),
-                SurfaceRules.ifTrue(
-                        SurfaceRules.noiseCondition2d(Noises.SURFACE, 0.4, 1.0),
+                MaterialRules.ifTrue(
+                        MaterialRules.noiseCondition2d(Noises.SURFACE, 0.4, 1.0),
                         TUFF
                 ),
                 STONE
         );
 
-        SurfaceRules.RuleSource plateauTop = SurfaceRules.sequence(
-                SurfaceRules.ifTrue(
-                        SurfaceRules.noiseCondition2d(Noises.SURFACE, -0.95, -0.4),
+        MaterialRule plateauTop = MaterialRules.sequence(
+                MaterialRules.ifTrue(
+                        MaterialRules.noiseCondition2d(Noises.SURFACE, -0.95, -0.4),
                         TERRACOTTA
                 ),
-                SurfaceRules.ifTrue(
-                        SurfaceRules.noiseCondition2d(Noises.SURFACE, 0.4, 1.0),
+                MaterialRules.ifTrue(
+                        MaterialRules.noiseCondition2d(Noises.SURFACE, 0.4, 1.0),
                         COARSE_DIRT
                 ),
                 DIRT
         );
 
-        SurfaceRules.RuleSource floorSurface = SurfaceRules.sequence(
-                SurfaceRules.ifTrue(isWastes, wastesTop),
-                SurfaceRules.ifTrue(isJungle, jungleTop),
-                SurfaceRules.ifTrue(isMire, mireTop),
-                SurfaceRules.ifTrue(isMountains, mountainsTop),
-                SurfaceRules.ifTrue(isPlateau, plateauTop),
+        MaterialRule floorSurface = MaterialRules.sequence(
+                MaterialRules.ifTrue(isWastes, wastesTop),
+                MaterialRules.ifTrue(isJungle, jungleTop),
+                MaterialRules.ifTrue(isMire, mireTop),
+                MaterialRules.ifTrue(isMountains, mountainsTop),
+                MaterialRules.ifTrue(isPlateau, plateauTop),
                 DIRT
         );
 
-        SurfaceRules.RuleSource underSurface = SurfaceRules.sequence(
-                SurfaceRules.ifTrue(isWastes, SurfaceRules.sequence(
-                        SurfaceRules.ifTrue(SurfaceRules.ON_CEILING, TERRACOTTA),
+        MaterialRule underSurface = MaterialRules.sequence(
+                MaterialRules.ifTrue(isWastes, MaterialRules.sequence(
+                        MaterialRules.ifTrue(ON_CEILING, TERRACOTTA),
                         SAND
                 )),
-                SurfaceRules.ifTrue(isJungle, DIRT),
-                SurfaceRules.ifTrue(isMire, DIRT),
-                SurfaceRules.ifTrue(isMountains, TUFF),
-                SurfaceRules.ifTrue(isPlateau, DIRT),
+                MaterialRules.ifTrue(isJungle, DIRT),
+                MaterialRules.ifTrue(isMire, DIRT),
+                MaterialRules.ifTrue(isMountains, TUFF),
+                MaterialRules.ifTrue(isPlateau, DIRT),
                 DIRT
         );
 
-        SurfaceRules.RuleSource surfaceBlock = SurfaceRules.ifTrue(
-                SurfaceRules.abovePreliminarySurface(),
-                SurfaceRules.sequence(
-                        SurfaceRules.ifTrue(
-                                SurfaceRules.ON_FLOOR,
-                                SurfaceRules.ifTrue(atOrAboveWater, floorSurface)
+        MaterialRule surfaceBlock = MaterialRules.ifTrue(
+                MaterialRules.abovePreliminarySurface(),
+                MaterialRules.sequence(
+                        MaterialRules.ifTrue(
+                                ON_FLOOR,
+                                MaterialRules.ifTrue(atOrAboveWater, floorSurface)
                         ),
-                        SurfaceRules.ifTrue(
-                                SurfaceRules.UNDER_FLOOR,
-                                SurfaceRules.ifTrue(aboveWater, underSurface)
+                        MaterialRules.ifTrue(
+                                UNDER_FLOOR,
+                                MaterialRules.ifTrue(aboveWater, underSurface)
                         )
                 )
         );
 
-        return SurfaceRules.sequence(
-                SurfaceRules.ifTrue(
-                        SurfaceRules.verticalGradient("dwm:bedrock_floor", VerticalAnchor.bottom(), VerticalAnchor.aboveBottom(5)),
+        return MaterialRules.sequence(
+                MaterialRules.ifTrue(
+                        MaterialRules.verticalGradient("dwm:bedrock_floor", VerticalAnchor.bottom(), VerticalAnchor.aboveBottom(5)),
                         BEDROCK
                 ),
                 surfaceBlock,
@@ -134,7 +141,7 @@ public final class SkaroSurfaceRules {
         );
     }
 
-    private static SurfaceRules.RuleSource block(Block block) {
-        return SurfaceRules.state(block.defaultBlockState());
+    private static MaterialRule block(Block block) {
+        return MaterialRules.state(block.defaultBlockState());
     }
 }

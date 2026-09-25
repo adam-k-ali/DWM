@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:circuit_telepathic"
+        "recipes": "dwm:circuit_telepathic"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -106,7 +106,7 @@ Ship a patch immediately for:
 
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
-| [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | `pull_request`, push to `main` | `./dwm/gradlew build` and `./screenplay/gradlew build` (compile + unit tests + version sync check) |
+| [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | `pull_request`, push to `main` | `./dwm/gradlew build` and `./screenplay/gradlew build` (compile + unit tests + version sync check). Screenplay loaders: Forge and NeoForge gated on Minecraft 26.3 (no Forge artifact; NeoForge userdev fails `neoFormRecompile`). |
 | [`.github/workflows/create-release-tag.yml`](../../.github/workflows/create-release-tag.yml) | `workflow_dispatch` | Create and push `v*` tag from `version.json` `promos.latest` if missing; then dispatch Release |
 | [`.github/workflows/release.yml`](../../.github/workflows/release.yml) | push of tags `v*`, or `workflow_dispatch` | Build; publish GitHub Release, Modrinth version, CurseForge file, and Discord announcement from `version.json` |
 | [`.github/workflows/sync-modrinth-project.yml`](../../.github/workflows/sync-modrinth-project.yml) | `workflow_dispatch` | PATCH Modrinth project listing from [`metadata/`](../metadata/) (Modrinth only; CurseForge listing stays manual) |
@@ -123,7 +123,7 @@ Public release id and git tag:
 screenplay-v{screenplay_version}
 ```
 
-Example: `screenplay-v1.0.0+26.2` → Gradle `screenplay_version` `1.0.0+26.2` (Minecraft from `minecraft_version` / the `+26.2` suffix).
+Example: `screenplay-v1.0.0+26.3` → Gradle `screenplay_version` `1.0.0+26.3` (Minecraft from `minecraft_version` / the `+26.3` suffix).
 
 | Field | Source |
 | --- | --- |
@@ -135,7 +135,7 @@ Example: `screenplay-v1.0.0+26.2` → Gradle `screenplay_version` `1.0.0+26.2` (
 
 1. On `main`, bump `screenplay_version` in `screenplay/gradle.properties` (and `screenplay/loaders/gradle.properties` when needed). Keep [`gradle/libs.versions.toml`](../../gradle/libs.versions.toml) aligned.
 2. Fill `summary` and `added` / `changed` / `removed` for the new version in `screenplay/metadata/version.json`, and set `promos.latest` / `promos.recommended`.
-3. Confirm `./screenplay/gradlew build` and `./screenplay/gradlew -p loaders :forge:build :neoforge:build` are green.
+3. Confirm `./screenplay/gradlew build` is green. Forge has no 26.3 artifact yet (`-PscreenplayForge=true`). NeoForge 26.3 userdev currently fails `neoFormRecompile` (`HolderSet.contents` access transformer) — do not enable `:neoforge:build` until a 26.3 NeoForge userdev artifact compiles Minecraft.
 4. Commit, merge to `main`, then create and push tag `screenplay-v{screenplay_version}` (manually, or via **Create Screenplay Release Tag**).
 5. Confirm **Release Screenplay** succeeds:
    - GitHub Release with Fabric, Forge, and NeoForge jars and notes from `screenplay/metadata/version.json`

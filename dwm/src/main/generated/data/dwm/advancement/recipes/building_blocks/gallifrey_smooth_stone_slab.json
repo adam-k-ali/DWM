@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:gallifrey_smooth_stone_slab"
+        "recipes": "dwm:gallifrey_smooth_stone_slab"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

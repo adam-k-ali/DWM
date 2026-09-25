@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:circuit_player_locator_from_zeiton"
+        "recipes": "dwm:circuit_player_locator_from_zeiton"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

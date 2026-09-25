@@ -44,25 +44,24 @@ public class TardisBlockSpecialRenderer implements NoDataSpecialModelRenderer {
         poseStack.pushPose();
         // BER exterior pose for rotation segment 0 (doors closed via empty anim state).
         TardisBlockEntityRenderer.applyExteriorTransforms(poseStack, 0.0f);
-        submitNodeCollector.order(0).submitModel(
-                this.model,
-                this.animState,
-                poseStack,
-                FirstDoctorTardisModel.TEXTURE_LOCATION,
-                lightCoords,
-                overlayCoords,
-                outlineColor,
-                null);
         if (hasFoil) {
-            submitNodeCollector.order(1).submitModel(
+            submitNodeCollector.order(0).submitModel(
                     this.model,
                     this.animState,
                     poseStack,
-                    RenderTypes.entityGlint(),
+                    RenderTypes.entitySolidGlint(FirstDoctorTardisModel.TEXTURE_LOCATION),
                     lightCoords,
                     overlayCoords,
-                    outlineColor,
-                    null);
+                    outlineColor);
+        } else {
+            submitNodeCollector.order(0).submitModel(
+                    this.model,
+                    this.animState,
+                    poseStack,
+                    FirstDoctorTardisModel.TEXTURE_LOCATION,
+                    lightCoords,
+                    overlayCoords,
+                    outlineColor);
         }
         poseStack.popPose();
     }

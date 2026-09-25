@@ -40,9 +40,9 @@ public record WoodFamilySettings(
                         .noOcclusion()
                         .isValidSpawn(WoodFamilySettings::canSpawnOnLeaves)
                         .isSuffocating(WoodFamilySettings::never)
-                        .isViewBlocking(WoodFamilySettings::never)
+                        .isViewBlocking(WoodFamilySettings::neverViewBlocking)
                         .ignitedByLava()
-                        .pushReaction(PushReaction.DESTROY)
+                        .pushReaction(PushReaction.POPPED)
                         .isRedstoneConductor(WoodFamilySettings::never),
                 BlockBehaviour.Properties.of()
                         .mapColor(MapColor.PLANT)
@@ -50,7 +50,7 @@ public record WoodFamilySettings(
                         .randomTicks()
                         .instabreak()
                         .sound(SoundType.GRASS)
-                        .pushReaction(PushReaction.DESTROY),
+                        .pushReaction(PushReaction.POPPED),
                 BlockBehaviour.Properties.of()
                         .mapColor(planksColor)
                         .forceSolidOn()
@@ -68,7 +68,7 @@ public record WoodFamilySettings(
                 BlockBehaviour.Properties.of()
                         .noCollision()
                         .strength(0.5F)
-                        .pushReaction(PushReaction.DESTROY),
+                        .pushReaction(PushReaction.POPPED),
                 BlockBehaviour.Properties.of()
                         .mapColor(planksColor)
                         .forceSolidOn()
@@ -76,18 +76,18 @@ public record WoodFamilySettings(
                         .noCollision()
                         .strength(0.5F)
                         .ignitedByLava()
-                        .pushReaction(PushReaction.DESTROY),
+                        .pushReaction(PushReaction.POPPED),
                 BlockBehaviour.Properties.of()
                         .instabreak()
                         .noOcclusion()
-                        .pushReaction(PushReaction.DESTROY),
+                        .pushReaction(PushReaction.POPPED),
                 BlockBehaviour.Properties.of()
                         .mapColor(planksColor)
                         .instrument(NoteBlockInstrument.BASS)
                         .strength(3.0F)
                         .noOcclusion()
                         .ignitedByLava()
-                        .pushReaction(PushReaction.DESTROY),
+                        .pushReaction(PushReaction.POPPED),
                 BlockBehaviour.Properties.of()
                         .mapColor(planksColor)
                         .instrument(NoteBlockInstrument.BASS)
@@ -115,6 +115,15 @@ public record WoodFamilySettings(
     }
 
     private static boolean never(BlockState state, BlockGetter world, BlockPos pos) {
+        return false;
+    }
+
+    private static boolean neverViewBlocking(
+            BlockState state,
+            BlockGetter world,
+            BlockPos pos,
+            net.minecraft.world.phys.AABB box
+    ) {
         return false;
     }
 

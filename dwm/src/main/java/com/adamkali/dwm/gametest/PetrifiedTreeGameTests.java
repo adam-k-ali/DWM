@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.SaplingBlock;
-import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.level.levelgen.feature.Feature;
 
 public class PetrifiedTreeGameTests {
     @GameTest(structure = "fabric-gametest-api-v1:empty")
@@ -27,10 +27,10 @@ public class PetrifiedTreeGameTests {
 
         ServerLevel world = context.getLevel();
         BlockPos trunkOriginAbs = context.absolutePos(trunkOriginRel);
-        ConfiguredFeature<?, ?> snag = world.registryAccess()
-                .lookupOrThrow(Registries.CONFIGURED_FEATURE)
+        Feature snag = world.registryAccess()
+                .lookupOrThrow(Registries.FEATURE)
                 .get(DWMConfiguredFeatures.PETRIFIED_SNAG)
-                .orElseThrow(() -> new AssertionError("Expected configured feature dwm:petrified_snag"))
+                .orElseThrow(() -> new AssertionError("Expected feature dwm:petrified_snag"))
                 .value();
 
         boolean placed = false;

@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:tardis_ceiling_vent"
+        "recipes": "dwm:tardis_ceiling_vent"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

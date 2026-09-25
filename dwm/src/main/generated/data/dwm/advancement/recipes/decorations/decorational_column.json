@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:decorational_column"
+        "recipes": "dwm:decorational_column"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

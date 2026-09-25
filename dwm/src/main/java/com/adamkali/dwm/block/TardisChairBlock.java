@@ -3,8 +3,6 @@ package com.adamkali.dwm.block;
 import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.entity.TardisSeatEntity;
 import com.adamkali.dwm.entity.TardisSeatPoses;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
@@ -23,7 +21,6 @@ import java.util.function.Function;
  * Horizontally facing TARDIS chair that spawns an invisible {@link TardisSeatEntity} on empty-hand use.
  */
 public class TardisChairBlock extends TardisDecorBlock {
-    private final MapCodec<TardisChairBlock> codec;
     private final double seatHeight;
 
     public TardisChairBlock(Properties settings, VoxelShape northShape, double seatHeight) {
@@ -33,17 +30,10 @@ public class TardisChairBlock extends TardisDecorBlock {
     public TardisChairBlock(Properties settings, Function<Direction, VoxelShape> shapeFactory, double seatHeight) {
         super(settings, shapeFactory);
         this.seatHeight = seatHeight;
-        this.codec = RecordCodecBuilder.mapCodec(instance ->
-                instance.group(propertiesCodec()).apply(instance, props -> new TardisChairBlock(props, shapeFactory, seatHeight)));
     }
 
     public double seatHeight() {
         return seatHeight;
-    }
-
-    @Override
-    protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
-        return codec;
     }
 
     @Override

@@ -50,26 +50,25 @@ public class FirstDoctorConsoleSpecialRenderer implements NoDataSpecialModelRend
         // Match BER placement for a north-facing console, then 180° Y so the hex
         // presents to vanilla GUI [30, 225, 0] like the compact scanner.
         FirstDoctorConsoleBlockEntityRenderer.applyTransforms(poseStack, Direction.NORTH);
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-        submitNodeCollector.order(0).submitModel(
-                this.model,
-                this.animState,
-                poseStack,
-                FirstDoctorConsoleModel.TEXTURE_LOCATION,
-                lightCoords,
-                overlayCoords,
-                outlineColor,
-                null);
+        poseStack.rotateDegrees(Axis.YP, 180.0F);
         if (hasFoil) {
-            submitNodeCollector.order(1).submitModel(
+            submitNodeCollector.order(0).submitModel(
                     this.model,
                     this.animState,
                     poseStack,
-                    RenderTypes.entityGlint(),
+                    RenderTypes.entitySolidGlint(FirstDoctorConsoleModel.TEXTURE_LOCATION),
                     lightCoords,
                     overlayCoords,
-                    outlineColor,
-                    null);
+                    outlineColor);
+        } else {
+            submitNodeCollector.order(0).submitModel(
+                    this.model,
+                    this.animState,
+                    poseStack,
+                    FirstDoctorConsoleModel.TEXTURE_LOCATION,
+                    lightCoords,
+                    overlayCoords,
+                    outlineColor);
         }
         poseStack.popPose();
     }

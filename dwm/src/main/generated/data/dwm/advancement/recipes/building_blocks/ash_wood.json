@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:ash_wood"
+        "recipes": "dwm:ash_wood"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

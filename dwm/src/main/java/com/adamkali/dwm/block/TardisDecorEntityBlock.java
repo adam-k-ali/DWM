@@ -1,7 +1,6 @@
 package com.adamkali.dwm.block;
 
 import com.adamkali.dwm.block.entities.TardisDecorBlockEntity;
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -30,7 +29,6 @@ import java.util.function.Function;
 public class TardisDecorEntityBlock extends BaseEntityBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
-    private final MapCodec<TardisDecorEntityBlock> codec;
     private final Map<Direction, VoxelShape> shapesByFacing;
 
     public TardisDecorEntityBlock(Properties settings, VoxelShape northShape) {
@@ -39,18 +37,12 @@ public class TardisDecorEntityBlock extends BaseEntityBlock {
 
     public TardisDecorEntityBlock(Properties settings, Function<Direction, VoxelShape> shapeFactory) {
         super(settings);
-        this.codec = simpleCodec(props -> new TardisDecorEntityBlock(props, shapeFactory));
         EnumMap<Direction, VoxelShape> shapes = new EnumMap<>(Direction.class);
         for (Direction facing : Direction.Plane.HORIZONTAL) {
             shapes.put(facing, shapeFactory.apply(facing));
         }
         this.shapesByFacing = Map.copyOf(shapes);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
-    }
-
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return codec;
     }
 
     @Override

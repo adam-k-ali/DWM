@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:smooth_orange_sandstone_from_smelting_orange_sandstone"
+        "recipes": "dwm:smooth_orange_sandstone_from_smelting_orange_sandstone"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

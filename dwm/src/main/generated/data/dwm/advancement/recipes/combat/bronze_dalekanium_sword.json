@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:bronze_dalekanium_sword"
+        "recipes": "dwm:bronze_dalekanium_sword"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

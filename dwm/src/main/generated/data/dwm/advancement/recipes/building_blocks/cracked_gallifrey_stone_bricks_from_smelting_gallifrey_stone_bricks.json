@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:cracked_gallifrey_stone_bricks_from_smelting_gallifrey_stone_bricks"
+        "recipes": "dwm:cracked_gallifrey_stone_bricks_from_smelting_gallifrey_stone_bricks"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

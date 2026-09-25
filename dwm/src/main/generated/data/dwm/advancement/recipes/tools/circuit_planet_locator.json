@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:circuit_planet_locator"
+        "recipes": "dwm:circuit_planet_locator"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

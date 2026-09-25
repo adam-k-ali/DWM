@@ -19,5 +19,11 @@ plugins {
 
 rootProject.name = 'screenplay-loaders'
 
-include 'forge'
 include 'neoforge'
+// Minecraft Forge has not published a 26.3 artifact (latest is 26.2 / 65.1.x).
+// Keep the Forge sources in-tree but do not configure the subproject, otherwise
+// DWM's includeBuild(screenplay) fails resolving 26.3-65.1.2. Re-enable with
+// -PscreenplayForge=true once files.minecraftforge.net lists a 26.3 build.
+if (providers.gradleProperty('screenplayForge').orElse('false').get() == 'true') {
+	include 'forge'
+}

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:diamond_from_smelting_gallifrey_diamond_ore"
+        "recipes": "dwm:diamond_from_smelting_gallifrey_diamond_ore"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

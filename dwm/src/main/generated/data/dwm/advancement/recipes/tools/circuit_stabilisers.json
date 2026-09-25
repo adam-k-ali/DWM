@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:circuit_stabilisers"
+        "recipes": "dwm:circuit_stabilisers"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

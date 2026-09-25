@@ -109,8 +109,18 @@ public class TardisInteriorDoorBlockEntityRenderer
                 RenderTypes.entityCutout(TardisClassicInteriorDoorModel.TEXTURE_LOCATION),
                 state.lightCoords,
                 OverlayTexture.NO_OVERLAY,
-                0,
-                state.breakProgress);
+                0);
+        if (state.breakProgress != null) {
+            submitNodeCollector.submitCrumblingOverlay(
+                    model,
+                    animState,
+                    poseStack,
+                    RenderTypes.entityCutout(TardisClassicInteriorDoorModel.TEXTURE_LOCATION),
+                    state.lightCoords,
+                    OverlayTexture.NO_OVERLAY,
+                    -1,
+                    state.breakProgress);
+        }
     }
 
     /**
@@ -162,10 +172,10 @@ public class TardisInteriorDoorBlockEntityRenderer
      */
     static void applyTransforms(PoseStack matrices, Direction facing) {
         matrices.translate(0.5, TardisInteriorDoorShapes.MODEL_HEIGHT_BLOCKS, 0.5);
-        matrices.mulPose(Axis.YP.rotationDegrees(-Direction.getYRot(facing)));
+        matrices.rotateDegrees(Axis.YP, -Direction.getYRot(facing));
         // Center the ~3-block-wide mesh on the 3-wide bank (origin is bank start cell).
         matrices.translate(TardisInteriorDoorShapes.BANK_CENTER_OFFSET_BLOCKS, 0.0, 0.0);
-        matrices.mulPose(Axis.XP.rotationDegrees(180.0f));
+        matrices.rotateDegrees(Axis.XP, 180.0f);
         matrices.translate(-TardisInteriorDoorShapes.MODEL_CENTER_X_PX / 16.0F, 0.0F, 0.0F);
     }
 }

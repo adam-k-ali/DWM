@@ -42,7 +42,7 @@ public class DWMClientDataGenerator implements DataGeneratorEntrypoint {
 
     @Override
     public void buildRegistry(RegistrySetBuilder registryBuilder) {
-        registryBuilder.add(Registries.CONFIGURED_FEATURE, DWMConfiguredFeatureBootstrap::bootstrap);
+        registryBuilder.add(Registries.FEATURE, DWMConfiguredFeatureBootstrap::bootstrap);
         registryBuilder.add(Registries.PLACED_FEATURE, DWMPlacedFeatureBootstrap::bootstrap);
         registryBuilder.add(Registries.BIOME, DWMBiomeBootstrap::bootstrap);
         registryBuilder.add(Registries.NOISE_SETTINGS, DWMChunkGeneratorSettingsBootstrap::bootstrap);

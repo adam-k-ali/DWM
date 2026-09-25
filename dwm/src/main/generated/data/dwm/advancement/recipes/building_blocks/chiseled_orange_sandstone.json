@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:chiseled_orange_sandstone"
+        "recipes": "dwm:chiseled_orange_sandstone"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

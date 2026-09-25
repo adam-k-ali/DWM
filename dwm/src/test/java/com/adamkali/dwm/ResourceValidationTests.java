@@ -889,13 +889,13 @@ public class ResourceValidationTests {
     }
 
     /**
-     * Minecraft 26.2 prepends {@code textures/} and appends {@code .png} to advancement
+     * Minecraft 26.2+ prepends {@code textures/} and appends {@code .png} to advancement
      * background IDs. The Doctor Who root must use {@code dwm:block/gallifrey_stone}, not
      * the pre-26.2 {@code textures/...png} form that resolves to a doubled path.
      */
     @Test
     public void doctorWhoAdvancementBackgroundUsesModernTextureId() throws Exception {
-        Path rootAdvancement = Path.of("src/main/generated/data/minecraft/advancement/dwm/root.json");
+        Path rootAdvancement = Path.of("src/main/generated/data/dwm/advancement/root.json");
         assertTrue(Files.isRegularFile(rootAdvancement), "Missing generated root advancement: " + rootAdvancement);
         JSONObject root = new JSONObject(new JSONTokener(Files.newBufferedReader(rootAdvancement)));
         String background = root.getJSONObject("display").getString("background");
@@ -916,8 +916,8 @@ public class ResourceValidationTests {
      */
     @Test
     public void sonicAdvancementIconsAreDistinct() throws Exception {
-        Path obtainSonic = Path.of("src/main/generated/data/minecraft/advancement/dwm/sonic_screwdriver.json");
-        Path knockKnock = Path.of("src/main/generated/data/minecraft/advancement/dwm/sonic_iron_door.json");
+        Path obtainSonic = Path.of("src/main/generated/data/dwm/advancement/sonic_screwdriver.json");
+        Path knockKnock = Path.of("src/main/generated/data/dwm/advancement/sonic_iron_door.json");
         assertTrue(Files.isRegularFile(obtainSonic), "Missing generated advancement: " + obtainSonic);
         assertTrue(Files.isRegularFile(knockKnock), "Missing generated advancement: " + knockKnock);
 
@@ -929,6 +929,29 @@ public class ResourceValidationTests {
         assertEquals("dwm:sonic_third_doctor", obtainIcon);
         assertEquals("minecraft:iron_door", knockIcon);
         assertNotEquals(obtainIcon, knockIcon);
+    }
+
+    /**
+     * Minecraft 26.3 cooking recipe codecs require {@code cookingtime} (no underscore).
+     * Hand-authored TARDIS wall smelting recipes must match generated ore recipes.
+     */
+    @Test
+    public void cookingRecipesUseCookingtimeKey() throws Exception {
+        for (Path root : List.of(
+                Path.of("src/main/resources/data/dwm/recipe"),
+                Path.of("src/main/generated/data/dwm/recipe")
+        )) {
+            assertTrue(Files.isDirectory(root), "Missing recipe dir: " + root);
+            try (var stream = Files.walk(root)) {
+                for (Path path : stream.filter(p -> p.toString().endsWith(".json")).toList()) {
+                    String blob = Files.readString(path);
+                    assertFalse(
+                            blob.contains("\"cooking_time\""),
+                            path + " must use cookingtime, not cooking_time"
+                    );
+                }
+            }
+        }
     }
 
     @Test
@@ -1267,14 +1290,13 @@ public class ResourceValidationTests {
             Path path = biomeDir.resolve(biomeFile);
             assertTrue(Files.isRegularFile(path), "Missing generated Skaro biome: " + path);
             JSONObject biome = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
-            var spawners = biome.getJSONObject("spawners");
             for (String category : spawnCategories) {
                 if ("monster".equals(category)) {
                     continue;
                 }
                 assertEquals(
                         0,
-                        spawners.getJSONArray(category).length(),
+                        biomeSpawns(biome, category).length(),
                         biomeFile + " must have empty spawners." + category
                 );
             }
@@ -1326,7 +1348,7 @@ public class ResourceValidationTests {
     }
 
     private static void assertDalekMonsterPatrol(JSONObject biome, String biomeFile, boolean sparse) {
-        var monsters = biome.getJSONObject("spawners").getJSONArray("monster");
+        var monsters = biomeSpawns(biome, "monster");
         assertEquals(1, monsters.length(), biomeFile + " must spawn only Dalek monsters");
         var spawn = monsters.getJSONObject(0);
         assertEquals("dwm:dalek", spawn.getString("type"), biomeFile + " monster spawn must be dwm:dalek");
@@ -1338,15 +1360,16 @@ public class ResourceValidationTests {
                 ? DalekPatrolLogic.SPARSE_SPAWN_ENERGY_BUDGET
                 : DalekPatrolLogic.STANDARD_SPAWN_ENERGY_BUDGET;
         assertEquals(expectedWeight, spawn.getInt("weight"), biomeFile + " Dalek weight");
-        assertEquals(expectedMin, spawn.getInt("minCount"), biomeFile + " Dalek minCount");
-        assertEquals(expectedMax, spawn.getInt("maxCount"), biomeFile + " Dalek maxCount");
-        var costs = biome.getJSONObject("spawn_costs").getJSONObject("dwm:dalek");
+        int[] count = spawnCountRange(spawn);
+        assertEquals(expectedMin, count[0], biomeFile + " Dalek minCount");
+        assertEquals(expectedMax, count[1], biomeFile + " Dalek maxCount");
+        var costs = biomeSpawnArgument(biome).getJSONObject("spawn_costs").getJSONObject("dwm:dalek");
         assertEquals(expectedCharge, costs.getDouble("charge"), 1e-9, biomeFile + " Dalek spawn charge");
         assertEquals(expectedBudget, costs.getDouble("energy_budget"), 1e-9, biomeFile + " Dalek energy budget");
     }
 
     private static void assertPetrifiedTreeConfiguredFeaturesAreLogOnly() throws Exception {
-        Path configuredDir = Path.of("src/main/generated/data/dwm/worldgen/configured_feature");
+        Path configuredDir = Path.of("src/main/generated/data/dwm/worldgen/feature");
         String[] petrifiedFeatures = {
                 "petrified_tree.json",
                 "petrified_snag.json",
@@ -1354,7 +1377,7 @@ public class ResourceValidationTests {
         };
         for (String featureFile : petrifiedFeatures) {
             Path path = configuredDir.resolve(featureFile);
-            assertTrue(Files.isRegularFile(path), "Missing generated configured feature: " + path);
+            assertTrue(Files.isRegularFile(path), "Missing generated feature: " + path);
             String blob = Files.readString(path);
             assertTrue(blob.contains("dwm:petrified_log"), featureFile + " must use petrified_log");
             assertFalse(blob.contains("leaves"), featureFile + " must not reference leaves");
@@ -1363,28 +1386,48 @@ public class ResourceValidationTests {
     }
 
     private static boolean biomeHasCreatureSpawn(String biomeFile, String entityId) throws Exception {
+        return biomeHasSpawn(biomeFile, "creature", entityId);
+    }
+
+    private static boolean biomeHasMonsterSpawn(String biomeFile, String entityId) throws Exception {
+        return biomeHasSpawn(biomeFile, "monster", entityId);
+    }
+
+    private static boolean biomeHasSpawn(String biomeFile, String category, String entityId) throws Exception {
         Path path = Path.of("src/main/generated/data/dwm/worldgen/biome").resolve(biomeFile);
         assertTrue(Files.isRegularFile(path), "Missing generated biome: " + path);
         JSONObject biome = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
-        var creatures = biome.getJSONObject("spawners").getJSONArray("creature");
-        for (int i = 0; i < creatures.length(); i++) {
-            if (entityId.equals(creatures.getJSONObject(i).getString("type"))) {
+        var spawns = biomeSpawns(biome, category);
+        for (int i = 0; i < spawns.length(); i++) {
+            if (entityId.equals(spawns.getJSONObject(i).getString("type"))) {
                 return true;
             }
         }
         return false;
     }
 
-    private static boolean biomeHasMonsterSpawn(String biomeFile, String entityId) throws Exception {
-        Path path = Path.of("src/main/generated/data/dwm/worldgen/biome").resolve(biomeFile);
-        assertTrue(Files.isRegularFile(path), "Missing generated biome: " + path);
-        JSONObject biome = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
-        var monsters = biome.getJSONObject("spawners").getJSONArray("monster");
-        for (int i = 0; i < monsters.length(); i++) {
-            if (entityId.equals(monsters.getJSONObject(i).getString("type"))) {
-                return true;
-            }
+    /** 26.3 biomes nest spawn tables under {@code attributes.minecraft:gameplay/natural_mob_spawns}. */
+    private static JSONObject biomeSpawnArgument(JSONObject biome) {
+        return biome.getJSONObject("attributes")
+                .getJSONObject("minecraft:gameplay/natural_mob_spawns")
+                .getJSONObject("argument");
+    }
+
+    private static org.json.JSONArray biomeSpawns(JSONObject biome, String category) {
+        var byCategory = biomeSpawnArgument(biome).getJSONObject("spawns_by_category");
+        if (!byCategory.has(category)) {
+            return new org.json.JSONArray();
         }
-        return false;
+        return byCategory.getJSONArray(category);
+    }
+
+    private static int[] spawnCountRange(JSONObject spawn) {
+        Object count = spawn.get("count");
+        if (count instanceof Number value) {
+            int n = value.intValue();
+            return new int[]{n, n};
+        }
+        JSONObject range = spawn.getJSONObject("count");
+        return new int[]{range.getInt("min_inclusive"), range.getInt("max_inclusive")};
     }
 }

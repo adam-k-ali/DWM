@@ -43,8 +43,8 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
         HolderGetter<Item> items = registries.lookupOrThrow(Registries.ITEM);
 
         AdvancementHolder root = Advancement.Builder.advancement()
-                .display(
-                        DWMBlocks.GALLIFREY_GRASS_BLOCK,
+                .rootDisplay(
+                        DWMBlocks.GALLIFREY_GRASS_BLOCK.asItem(),
                         Component.translatable("advancements.dwm.root"),
                         Component.translatable("advancements.dwm.root.description"),
                         GALLIFREY_STONE_BACKGROUND,
@@ -54,7 +54,7 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                         false
                 )
                 .addCriterion("tick", emptyPlayerCriterion(CriteriaTriggers.TICK))
-                .save(consumer, DWMReference.MOD_ID + "/root");
+                .save(consumer, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "root"));
 
         AdvancementHolder obtainSonic = Advancement.Builder.advancement()
                 .parent(root)
@@ -62,7 +62,6 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                         DWMItems.SONIC_THIRD_DOCTOR,
                         Component.translatable("advancements.dwm.sonic_screwdriver"),
                         Component.translatable("advancements.dwm.sonic_screwdriver.description"),
-                        null,
                         AdvancementType.TASK,
                         true,
                         true,
@@ -74,7 +73,7 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                                 ItemPredicate.Builder.item().of(items, DWMItemTags.SONIC_SCREWDRIVERS)
                         )
                 )
-                .save(consumer, DWMReference.MOD_ID + "/sonic_screwdriver");
+                .save(consumer, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sonic_screwdriver"));
 
         Advancement.Builder.advancement()
                 .parent(obtainSonic)
@@ -82,14 +81,13 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                         Items.IRON_DOOR,
                         Component.translatable("advancements.dwm.sonic_iron_door"),
                         Component.translatable("advancements.dwm.sonic_iron_door.description"),
-                        null,
                         AdvancementType.TASK,
                         true,
                         true,
                         false
                 )
                 .addCriterion("sonic_iron_door", emptyPlayerCriterion(DWMCriteria.SONIC_IRON_DOOR))
-                .save(consumer, DWMReference.MOD_ID + "/sonic_iron_door");
+                .save(consumer, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sonic_iron_door"));
 
         Advancement.Builder.advancement()
                 .parent(obtainSonic)
@@ -97,14 +95,13 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                         DWMItems.SONIC_THIRD_DOCTOR,
                         Component.translatable("advancements.dwm.sonic_cycle_setting"),
                         Component.translatable("advancements.dwm.sonic_cycle_setting.description"),
-                        null,
                         AdvancementType.TASK,
                         true,
                         true,
                         false
                 )
                 .addCriterion("sonic_cycle_setting", emptyPlayerCriterion(DWMCriteria.SONIC_CYCLE_SETTING))
-                .save(consumer, DWMReference.MOD_ID + "/sonic_cycle_setting");
+                .save(consumer, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sonic_cycle_setting"));
 
         Advancement.Builder.advancement()
                 .parent(obtainSonic)
@@ -112,14 +109,13 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                         Items.ENDER_EYE,
                         Component.translatable("advancements.dwm.sonic_ping"),
                         Component.translatable("advancements.dwm.sonic_ping.description"),
-                        null,
                         AdvancementType.TASK,
                         true,
                         true,
                         false
                 )
                 .addCriterion("sonic_ping", emptyPlayerCriterion(DWMCriteria.SONIC_PING))
-                .save(consumer, DWMReference.MOD_ID + "/sonic_ping");
+                .save(consumer, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sonic_ping"));
 
         AdvancementHolder installShatter = installSettingAdvancement(
                 consumer, obtainSonic, DWMItems.SONIC_SETTING_SHATTER,
@@ -149,7 +145,6 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                         DWMItems.SONIC_FIFTH_DOCTOR,
                         Component.translatable("advancements.dwm.sonic_all_settings"),
                         Component.translatable("advancements.dwm.sonic_all_settings.description"),
-                        null,
                         AdvancementType.GOAL,
                         true,
                         true,
@@ -159,52 +154,49 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                 .addCriterion("sonic_install_prime", emptyPlayerCriterion(DWMCriteria.SONIC_INSTALL_PRIME))
                 .addCriterion("sonic_install_disrupt", emptyPlayerCriterion(DWMCriteria.SONIC_INSTALL_DISRUPT))
                 .addCriterion("sonic_install_shear", emptyPlayerCriterion(DWMCriteria.SONIC_INSTALL_SHEAR))
-                .save(consumer, DWMReference.MOD_ID + "/sonic_all_settings");
+                .save(consumer, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sonic_all_settings"));
 
         AdvancementHolder findTardis = Advancement.Builder.advancement()
                 .parent(root)
                 .display(
-                        DWMBlocks.TARDIS_BLOCK,
+                        DWMBlocks.TARDIS_BLOCK.asItem(),
                         Component.translatable("advancements.dwm.find_tardis"),
                         Component.translatable("advancements.dwm.find_tardis.description"),
-                        null,
                         AdvancementType.TASK,
                         true,
                         true,
                         false
                 )
                 .addCriterion("find_tardis", emptyPlayerCriterion(DWMCriteria.FIND_TARDIS))
-                .save(consumer, DWMReference.MOD_ID + "/find_tardis");
+                .save(consumer, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "find_tardis"));
 
         AdvancementHolder claimTardis = Advancement.Builder.advancement()
                 .parent(findTardis)
                 .display(
-                        DWMBlocks.FIRST_DOCTOR_CONSOLE,
+                        DWMBlocks.FIRST_DOCTOR_CONSOLE.asItem(),
                         Component.translatable("advancements.dwm.claim_tardis"),
                         Component.translatable("advancements.dwm.claim_tardis.description"),
-                        null,
                         AdvancementType.TASK,
                         true,
                         true,
                         false
                 )
                 .addCriterion("claim_tardis", emptyPlayerCriterion(DWMCriteria.CLAIM_TARDIS))
-                .save(consumer, DWMReference.MOD_ID + "/claim_tardis");
+                .save(consumer, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "claim_tardis"));
 
         Advancement.Builder.advancement()
                 .parent(claimTardis)
                 .display(
-                        DWMBlocks.TARDIS_BLOCK,
+                        DWMBlocks.TARDIS_BLOCK.asItem(),
                         Component.translatable("advancements.dwm.first_hop"),
                         Component.translatable("advancements.dwm.first_hop.description"),
-                        null,
                         AdvancementType.TASK,
                         true,
                         true,
                         false
                 )
                 .addCriterion("first_hop", emptyPlayerCriterion(DWMCriteria.FIRST_HOP))
-                .save(consumer, DWMReference.MOD_ID + "/first_hop");
+                .save(consumer, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "first_hop"));
 
         Advancement.Builder.advancement()
                 .parent(claimTardis)
@@ -212,14 +204,13 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                         DWMItems.TARDIS_KEY,
                         Component.translatable("advancements.dwm.bind_key"),
                         Component.translatable("advancements.dwm.bind_key.description"),
-                        null,
                         AdvancementType.TASK,
                         true,
                         true,
                         false
                 )
                 .addCriterion("bind_key", emptyPlayerCriterion(DWMCriteria.BIND_KEY))
-                .save(consumer, DWMReference.MOD_ID + "/bind_key");
+                .save(consumer, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "bind_key"));
 
         Advancement.Builder.advancement()
                 .parent(claimTardis)
@@ -227,14 +218,13 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                         DWMItems.ZEITON_CRYSTALS,
                         Component.translatable("advancements.dwm.first_refuel"),
                         Component.translatable("advancements.dwm.first_refuel.description"),
-                        null,
                         AdvancementType.TASK,
                         true,
                         true,
                         false
                 )
                 .addCriterion("first_refuel", emptyPlayerCriterion(DWMCriteria.TARDIS_REFUEL))
-                .save(consumer, DWMReference.MOD_ID + "/first_refuel");
+                .save(consumer, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "first_refuel"));
 
         AdvancementHolder firstCircuit = Advancement.Builder.advancement()
                 .parent(claimTardis)
@@ -242,14 +232,13 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                         DWMItems.CIRCUIT_STABILISERS,
                         Component.translatable("advancements.dwm.first_circuit"),
                         Component.translatable("advancements.dwm.first_circuit.description"),
-                        null,
                         AdvancementType.TASK,
                         true,
                         true,
                         false
                 )
                 .addCriterion("first_circuit", emptyPlayerCriterion(DWMCriteria.FIRST_CIRCUIT))
-                .save(consumer, DWMReference.MOD_ID + "/first_circuit");
+                .save(consumer, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "first_circuit"));
 
         AdvancementHolder firstOtherWorld = Advancement.Builder.advancement()
                 .parent(firstCircuit)
@@ -257,29 +246,27 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                         Items.ENDER_PEARL,
                         Component.translatable("advancements.dwm.first_other_world"),
                         Component.translatable("advancements.dwm.first_other_world.description"),
-                        null,
                         AdvancementType.TASK,
                         true,
                         true,
                         false
                 )
                 .addCriterion("first_other_world", emptyPlayerCriterion(DWMCriteria.FIRST_OTHER_WORLD))
-                .save(consumer, DWMReference.MOD_ID + "/first_other_world");
+                .save(consumer, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "first_other_world"));
 
         Advancement.Builder.advancement()
                 .parent(firstOtherWorld)
                 .display(
-                        DWMBlocks.GALLIFREY_GRASS_BLOCK,
+                        DWMBlocks.GALLIFREY_GRASS_BLOCK.asItem(),
                         Component.translatable("advancements.dwm.first_gallifrey"),
                         Component.translatable("advancements.dwm.first_gallifrey.description"),
-                        null,
                         AdvancementType.GOAL,
                         true,
                         true,
                         false
                 )
                 .addCriterion("first_gallifrey", emptyPlayerCriterion(DWMCriteria.FIRST_GALLIFREY))
-                .save(consumer, DWMReference.MOD_ID + "/first_gallifrey");
+                .save(consumer, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "first_gallifrey"));
     }
 
     private static AdvancementHolder installSettingAdvancement(
@@ -295,14 +282,13 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                         icon,
                         Component.translatable("advancements.dwm." + id),
                         Component.translatable("advancements.dwm." + id + ".description"),
-                        null,
                         AdvancementType.TASK,
                         true,
                         true,
                         false
                 )
                 .addCriterion(id, emptyPlayerCriterion(trigger))
-                .save(consumer, DWMReference.MOD_ID + "/" + id);
+                .save(consumer, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, id));
     }
 
     private static void useSettingAdvancement(
@@ -318,14 +304,13 @@ public class DWMAdvancementProvider extends FabricAdvancementProvider {
                         icon,
                         Component.translatable("advancements.dwm." + id),
                         Component.translatable("advancements.dwm." + id + ".description"),
-                        null,
                         AdvancementType.TASK,
                         true,
                         true,
                         false
                 )
                 .addCriterion(id, emptyPlayerCriterion(trigger))
-                .save(consumer, DWMReference.MOD_ID + "/" + id);
+                .save(consumer, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, id));
     }
 
     private static Criterion<PlayerTrigger.TriggerInstance> emptyPlayerCriterion(PlayerTrigger trigger) {

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:cardinal_slab"
+        "recipes": "dwm:cardinal_slab"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

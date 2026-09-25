@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:azbantium_sword"
+        "recipes": "dwm:azbantium_sword"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

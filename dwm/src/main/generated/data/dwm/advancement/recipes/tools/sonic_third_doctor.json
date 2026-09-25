@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:sonic_third_doctor"
+        "recipes": "dwm:sonic_third_doctor"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

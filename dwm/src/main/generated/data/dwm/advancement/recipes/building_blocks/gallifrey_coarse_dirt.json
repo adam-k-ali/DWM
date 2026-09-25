@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:gallifrey_coarse_dirt"
+        "recipes": "dwm:gallifrey_coarse_dirt"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

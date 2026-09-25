@@ -15,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -41,6 +42,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.HangingSignBlockEntity;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.entity.SignText;
+import net.minecraft.world.level.block.entity.SignTextSlot;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.minecraft.world.level.block.state.properties.DoorHingeSide;
@@ -284,19 +286,19 @@ public class CardinalWoodFamilyGameTests {
 
         for (TallDoorSegment breakSegment : TallDoorSegment.values()) {
             BlockPos origin = placeTallDoorColumn(context, 1 + breakSegment.index() * 3, 1, 1);
-            Player creative = context.makeMockPlayer(GameType.CREATIVE);
+            ServerPlayer creative = mockServerPlayer(context, GameType.CREATIVE);
             breakAsPlayer(context, creative, origin.above(breakSegment.index()));
             expectTallDoorColumnGone(context, origin);
             context.assertItemEntityCountIs(doorItem, origin, 1.5, 0);
         }
 
         BlockPos survivalBottomOrigin = placeTallDoorColumn(context, 1, 1, 5);
-        breakAsPlayer(context, context.makeMockPlayer(GameType.SURVIVAL), survivalBottomOrigin);
+        breakAsPlayer(context, mockServerPlayer(context, GameType.SURVIVAL), survivalBottomOrigin);
         expectTallDoorColumnGone(context, survivalBottomOrigin);
         context.assertItemEntityCountIs(doorItem, survivalBottomOrigin, 1.5, 1);
 
         BlockPos survivalTopOrigin = placeTallDoorColumn(context, 5, 1, 5);
-        breakAsPlayer(context, context.makeMockPlayer(GameType.SURVIVAL), survivalTopOrigin.above(2));
+        breakAsPlayer(context, mockServerPlayer(context, GameType.SURVIVAL), survivalTopOrigin.above(2));
         expectTallDoorColumnGone(context, survivalTopOrigin);
         context.assertItemEntityCountIs(doorItem, survivalTopOrigin, 1.5, 1);
 
@@ -492,10 +494,15 @@ public class CardinalWoodFamilyGameTests {
     }
 
     /**
-     * Mirrors {@code ServerPlayerInteractionManager#tryBreakBlock} for mock players
-     * (which have no interaction manager).
+     * Mirrors {@code ServerPlayerGameMode#destroyBlock} for mock players
+     * (which have no interaction manager). 26.3 {@code Block.playerDestroy} requires a
+     * {@link ServerPlayer}, so GameTest {@code makeMockPlayer} is not enough.
      */
-    private static void breakAsPlayer(GameTestHelper context, Player player, BlockPos relativePos) {
+    private static ServerPlayer mockServerPlayer(GameTestHelper context, GameType gameType) {
+        return (ServerPlayer) context.makeMockServerPlayer(gameType);
+    }
+
+    private static void breakAsPlayer(GameTestHelper context, ServerPlayer player, BlockPos relativePos) {
         BlockPos abs = context.absolutePos(relativePos);
         ServerLevel world = context.getLevel();
         BlockState state = world.getBlockState(abs);
@@ -509,8 +516,17 @@ public class CardinalWoodFamilyGameTests {
         if (removed) {
             block.destroy(world, abs, brokenState);
         }
-        if (!player.isCreative() && removed && player.hasCorrectToolForDrops(brokenState)) {
-            block.playerDestroy(world, player, abs, brokenState, blockEntity, player.getMainHandItem().copy());
+        if (!player.isCreative()
+                && removed
+                && player.hasCorrectToolForDrops(brokenState)) {
+            block.playerDestroy(
+                    world,
+                    player,
+                    abs,
+                    brokenState,
+                    blockEntity,
+                    player.getMainHandItem().copy()
+            );
         }
     }
 
@@ -578,11 +594,9 @@ public class CardinalWoodFamilyGameTests {
         if (!(context.getLevel().getBlockEntity(abs) instanceof SignBlockEntity sign)) {
             throw new AssertionError("Expected SignBlockEntity at " + relativePos);
         }
-        SignText text = new SignText().setMessage(0, Component.literal(message));
-        if (!sign.setText(text, true)) {
-            throw new AssertionError("Failed to set standing/wall sign text");
-        }
-        if (!message.equals(sign.getFrontText().getMessage(0, false).getString())) {
+        SignText text = SignText.EMPTY.asMutable().setLine(0, Component.literal(message)).asImmutable();
+        sign.setText(text, SignTextSlot.FRONT);
+        if (!message.equals(sign.getText(SignTextSlot.FRONT).getMessages(false).getFirst().getString())) {
             throw new AssertionError("Sign text mismatch at " + relativePos);
         }
     }
@@ -592,11 +606,9 @@ public class CardinalWoodFamilyGameTests {
         if (!(context.getLevel().getBlockEntity(abs) instanceof HangingSignBlockEntity sign)) {
             throw new AssertionError("Expected HangingSignBlockEntity at " + relativePos);
         }
-        SignText text = new SignText().setMessage(0, Component.literal(message));
-        if (!sign.setText(text, true)) {
-            throw new AssertionError("Failed to set hanging sign text");
-        }
-        if (!message.equals(sign.getFrontText().getMessage(0, false).getString())) {
+        SignText text = SignText.EMPTY.asMutable().setLine(0, Component.literal(message)).asImmutable();
+        sign.setText(text, SignTextSlot.FRONT);
+        if (!message.equals(sign.getText(SignTextSlot.FRONT).getMessages(false).getFirst().getString())) {
             throw new AssertionError("Hanging sign text mismatch at " + relativePos);
         }
     }
