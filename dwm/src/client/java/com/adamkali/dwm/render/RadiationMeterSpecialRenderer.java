@@ -72,32 +72,30 @@ public class RadiationMeterSpecialRenderer
     ) {
         poseStack.pushPose();
         poseStack.translate(0.5, 0.0, 0.5);
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-
-        submitNodeCollector.order(0).submitModel(
-                this.model,
-                this.modelState,
-                poseStack,
-                RadiationMeterModel.TEXTURE_LOCATION,
-                lightCoords,
-                overlayCoords,
-                outlineColor,
-                null);
-
-        Display resolved = display == null ? new Display(UNKNOWN) : display;
-        submitDisplay(poseStack, submitNodeCollector, screenText(resolved.percent()), colorForPercent(resolved.percent()));
+        poseStack.rotateDegrees(Axis.YP, 180.0F);
 
         if (hasFoil) {
-            submitNodeCollector.order(2).submitModel(
+            submitNodeCollector.order(0).submitModel(
                     this.model,
                     this.modelState,
                     poseStack,
-                    RenderTypes.entityGlint(),
+                    RenderTypes.entitySolidGlint(RadiationMeterModel.TEXTURE_LOCATION),
                     lightCoords,
                     overlayCoords,
-                    outlineColor,
-                    null);
+                    outlineColor);
+        } else {
+            submitNodeCollector.order(0).submitModel(
+                    this.model,
+                    this.modelState,
+                    poseStack,
+                    RadiationMeterModel.TEXTURE_LOCATION,
+                    lightCoords,
+                    overlayCoords,
+                    outlineColor);
         }
+
+        Display resolved = display == null ? new Display(UNKNOWN) : display;
+        submitDisplay(poseStack, submitNodeCollector, screenText(resolved.percent()), colorForPercent(resolved.percent()));
         poseStack.popPose();
     }
 

@@ -1,27 +1,30 @@
 package com.adamkali.dwm.render.portal;
 
-import com.mojang.blaze3d.GpuFormat;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
-import com.mojang.blaze3d.opengl.GlTexture;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
-import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
-import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.renderpearl.api.GpuFormat;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.api.commands.CommandEncoder;
+import com.mojang.renderpearl.api.commands.RenderPass;
+import com.mojang.renderpearl.api.textures.GpuTexture;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
+import com.mojang.renderpearl.backend.opengl.GlTexture;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalDouble;
 import net.minecraft.client.Minecraft;
 
 /**
  * Owns the full-window color/depth target used by the portal pass.
  * <p>
- * Minecraft 26.2 removed {@code RenderTarget.bindWrite}/{@code clear}/{@code getColorTextureId}.
- * Portal writes are routed by setting {@link RenderSystem#outputColorTextureOverride} and
- * {@link RenderSystem#outputDepthTextureOverride} for the duration of the offscreen pass.
+ * Minecraft 26.3 routes GPU draws through an explicit {@link RenderPass}; there is no
+ * global output-texture override. Portal terrain and feature flushes open a pass against
+ * {@link #colorTextureView()} / {@link #depthTextureView()} via {@link #openRenderPass}.
  * Shared single FBO: last END_MAIN writer wins when multiple portal keys render in one frame.
  */
 public final class PortalRenderTarget implements AutoCloseable {
@@ -55,12 +58,11 @@ public final class PortalRenderTarget implements AutoCloseable {
     public static void endPortalPass() {
         portalPassActive = false;
         redirectingMainWrite = false;
-        clearOutputOverrides();
     }
 
     /**
-     * Re-applies portal output overrides when vanilla code would otherwise bind the main target.
-     * Kept for mixin/call-site compatibility; 26.2 no longer has {@code bindWrite}.
+     * Re-applies the portal viewport when vanilla code would otherwise bind the main target.
+     * Kept for mixin/call-site compatibility; 26.3 draws go through {@link #openRenderPass}.
      */
     public static void redirectMainBeginWrite(boolean setViewport) {
         if (!INSTANCE.isReady() || INSTANCE.framebuffer == null) {
@@ -108,8 +110,8 @@ public final class PortalRenderTarget implements AutoCloseable {
                         LABEL,
                         requiredWidth,
                         requiredHeight,
-                        true,
-                        GpuFormat.RGBA8_UNORM
+                        GpuFormat.RGBA8_UNORM,
+                        GpuFormat.D32_FLOAT
                 );
                 width = requiredWidth;
                 height = requiredHeight;
@@ -152,7 +154,7 @@ public final class PortalRenderTarget implements AutoCloseable {
     }
 
     /**
-     * Clears the portal target to {@code rgba} then leaves output overrides pointing at it.
+     * Clears the portal target to {@code rgba} then leaves the GL viewport pointing at it.
      * <p>
      * Prefer {@link #clearViaRenderPass} at END_MAIN — vanilla
      * {@link CommandEncoder#clearColorAndDepthTextures} ends by binding GL framebuffer 0.
@@ -165,7 +167,7 @@ public final class PortalRenderTarget implements AutoCloseable {
 
     /**
      * Clears portal color/depth via a dedicated RenderPass load-op (no FBO-0 rebind from
-     * {@code clearColorAndDepthTextures}). Leaves output overrides pointing at the portal.
+     * {@code clearColorAndDepthTextures}). Leaves the portal viewport set for subsequent passes.
      */
     public void clearViaRenderPass(float r, float g, float b, float a) {
         if (!isReady()) {
@@ -175,14 +177,33 @@ public final class PortalRenderTarget implements AutoCloseable {
         try (var ignored = encoder.createRenderPass(
                 () -> "dwm_portal_clear",
                 framebuffer.getColorTextureView(),
-                java.util.Optional.of(new Vector4f(r, g, b, a)),
+                Optional.of(new Vector4f(r, g, b, a)),
                 framebuffer.getDepthTextureView(),
-                java.util.OptionalDouble.of(RenderSystem.DEFAULT_DEPTH_CLEAR_VALUE)
+                OptionalDouble.of(RenderSystem.DEFAULT_DEPTH_CLEAR_VALUE)
         )) {
             // Load-op clear only.
         }
         bindForWrite();
         GL11.glViewport(0, 0, width, height);
+    }
+
+    /**
+     * Opens a draw pass targeting this portal color/depth. Caller must close the pass.
+     */
+    public RenderPass openRenderPass(String label) {
+        if (!isReady()) {
+            throw new IllegalStateException("portal framebuffer is not ready");
+        }
+        CommandEncoder encoder = RenderSystem.getDevice().createCommandEncoder();
+        RenderPass pass = encoder.createRenderPass(
+                () -> label,
+                framebuffer.getColorTextureView(),
+                Optional.empty(),
+                framebuffer.getDepthTextureView(),
+                OptionalDouble.empty()
+        );
+        RenderSystem.bindDefaultUniforms(pass);
+        return pass;
     }
 
     /**
@@ -203,14 +224,14 @@ public final class PortalRenderTarget implements AutoCloseable {
     }
 
     /**
-     * Point subsequent GPU draws at the portal color/depth attachments.
+     * Sets the GL viewport to the portal size. 26.3 draws must still open a
+     * {@link #openRenderPass} against this target.
      */
     public void bindForWrite() {
         if (!isReady()) {
             throw new IllegalStateException("portal framebuffer is not ready");
         }
-        RenderSystem.outputColorTextureOverride = framebuffer.getColorTextureView();
-        RenderSystem.outputDepthTextureOverride = framebuffer.getDepthTextureView();
+        GL11.glViewport(0, 0, width, height);
     }
 
     public int colorTextureId() {
@@ -248,7 +269,6 @@ public final class PortalRenderTarget implements AutoCloseable {
     @Override
     public void close() {
         renderedFrameByKey.clear();
-        clearOutputOverrides();
         if (framebuffer != null) {
             framebuffer.destroyBuffers();
             framebuffer = null;
@@ -262,20 +282,12 @@ public final class PortalRenderTarget implements AutoCloseable {
         return clientFrame;
     }
 
-    private static void clearOutputOverrides() {
-        RenderSystem.outputColorTextureOverride = null;
-        RenderSystem.outputDepthTextureOverride = null;
-    }
-
     /**
      * Captures mutable render and GL state around the offscreen pass.
      * <p>
-     * Slimmed for 26.2: projection/modelview/shader fog are GpuBufferSlice-based and no longer
-     * expose the old matrix/fog parameter APIs used by the 1.21.4 guard.
+     * 26.3 has no global output-texture override; this guard restores fog and GL enable bits.
      */
     public static final class RenderStateGuard implements AutoCloseable {
-        private final GpuTextureView previousColorOverride;
-        private final GpuTextureView previousDepthOverride;
         private final GpuBufferSlice previousFog;
         private final boolean depthEnabled;
         private final boolean cullEnabled;
@@ -286,8 +298,6 @@ public final class PortalRenderTarget implements AutoCloseable {
         private boolean closed;
 
         private RenderStateGuard() {
-            previousColorOverride = RenderSystem.outputColorTextureOverride;
-            previousDepthOverride = RenderSystem.outputDepthTextureOverride;
             previousFog = RenderSystem.getShaderFog();
             depthEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
             cullEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
@@ -308,8 +318,6 @@ public final class PortalRenderTarget implements AutoCloseable {
                 return;
             }
             closed = true;
-            RenderSystem.outputColorTextureOverride = previousColorOverride;
-            RenderSystem.outputDepthTextureOverride = previousDepthOverride;
             if (previousFog != null) {
                 RenderSystem.setShaderFog(previousFog);
             }

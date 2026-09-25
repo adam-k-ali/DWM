@@ -27,7 +27,6 @@ import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.adamkali.dwm.tardis.logic.TelepathicCircuitLogic;
 import com.adamkali.dwm.text.DimensionNames;
-import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,8 +69,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * First Doctor TARDIS console. Mesh is drawn by {@code FirstDoctorConsoleBlockEntityRenderer}.
  */
 public class FirstDoctorConsoleBlock extends BaseEntityBlock {
-    private static final MapCodec<FirstDoctorConsoleBlock> CODEC = simpleCodec(FirstDoctorConsoleBlock::new);
-
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     /** Approximate hexagonal pedestal: ~1.6×1.6 footprint, ~1.25 blocks tall. */
@@ -91,11 +88,6 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
     /** True when players must not break this block (survival or creative left-click). */
     public static boolean isPlayerBreakDenied(BlockState state) {
         return state.is(DWMBlocks.FIRST_DOCTOR_CONSOLE);
-    }
-
-    @Override
-    protected MapCodec<FirstDoctorConsoleBlock> codec() {
-        return CODEC;
     }
 
     @Override

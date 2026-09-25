@@ -2,11 +2,13 @@ package com.adamkali.dwm.render.soto.ghost;
 
 import com.adamkali.dwm.render.portal.PortalCameraTransform;
 import com.adamkali.dwm.render.portal.PortalPerfStats;
+import com.adamkali.dwm.render.portal.PortalRenderTarget;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
-import com.mojang.blaze3d.IndexType;
-import com.mojang.blaze3d.PrimitiveTopology;
-import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.commands.RenderPass;
+import com.mojang.renderpearl.api.pipeline.IndexType;
+import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
@@ -15,6 +17,7 @@ import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.QuadInstance;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
+import net.minecraft.client.renderer.StagedVertexBuffer;
 import net.minecraft.client.renderer.block.BlockStateModelSet;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
@@ -229,7 +232,13 @@ public final class SotoGhostMeshCache {
         modelViewStack.pushMatrix();
         modelViewStack.set(viewMatrix);
         try {
-            batch.draw();
+            PortalRenderTarget target = PortalRenderTarget.getInstance();
+            if (!target.isReady()) {
+                return;
+            }
+            try (RenderPass renderPass = target.openRenderPass("dwm_portal_terrain_" + pass.name().toLowerCase())) {
+                batch.draw(renderPass);
+            }
         } finally {
             modelViewStack.popMatrix();
         }
@@ -650,19 +659,30 @@ public final class SotoGhostMeshCache {
             IndexType indexType,
             int indexCount
     ) implements AutoCloseable {
-        void draw() {
-            if (vertexBuffer == null || vertexBuffer.isClosed() || indexCount <= 0) {
+        void draw(RenderPass renderPass) {
+            if (vertexBuffer == null || vertexBuffer.isClosed() || indexCount <= 0 || renderPass == null) {
                 return;
             }
             PreparedRenderType prepared = renderTypeFor(sectionLayer).prepare();
-            GpuBuffer ib = indexBuffer;
+            GpuBuffer customIndex = indexBuffer != null && !indexBuffer.isClosed() ? indexBuffer : null;
             IndexType type = indexType;
-            if (ib == null || ib.isClosed()) {
+            if (customIndex == null) {
                 var sequential = RenderSystem.getSequentialBuffer(PrimitiveTopology.QUADS);
-                ib = sequential.getBuffer(indexCount);
+                sequential.getBuffer(indexCount);
                 type = sequential.type();
             }
-            prepared.drawFromBuffer(vertexBuffer, ib, type, 0, 0, indexCount);
+            prepared.drawFromBuffer(
+                    new StagedVertexBuffer.ExecuteInfo(
+                            vertexBuffer,
+                            customIndex,
+                            type,
+                            0,
+                            0,
+                            indexCount,
+                            PrimitiveTopology.QUADS
+                    ),
+                    renderPass
+            );
         }
 
         private static net.minecraft.client.renderer.rendertype.RenderType renderTypeFor(ChunkSectionLayer layer) {

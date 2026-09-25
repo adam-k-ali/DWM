@@ -137,8 +137,7 @@ public final class SonicFieldModeHudController {
             return;
         }
 
-        var window = client.getWindow();
-        boolean escDown = InputConstants.isKeyDown(window, InputConstants.KEY_ESCAPE);
+        boolean escDown = InputConstants.isKeyDown(InputConstants.KEY_ESCAPE);
         if (escDown && !escWasDown) {
             finish(client, SonicCarouselMotion.CloseReason.ESCAPE);
         }
@@ -147,13 +146,13 @@ public final class SonicFieldModeHudController {
             return;
         }
 
-        boolean leftDown = InputConstants.isKeyDown(window, InputConstants.KEY_LEFT);
+        boolean leftDown = InputConstants.isKeyDown(InputConstants.KEY_LEFT);
         if (leftDown && !leftWasDown) {
             navigate(-1);
         }
         leftWasDown = leftDown;
 
-        boolean rightDown = InputConstants.isKeyDown(window, InputConstants.KEY_RIGHT);
+        boolean rightDown = InputConstants.isKeyDown(InputConstants.KEY_RIGHT);
         if (rightDown && !rightWasDown) {
             navigate(1);
         }

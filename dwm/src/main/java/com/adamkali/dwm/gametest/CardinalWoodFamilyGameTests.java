@@ -41,6 +41,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.HangingSignBlockEntity;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.entity.SignText;
+import net.minecraft.world.level.block.entity.SignTextSlot;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.minecraft.world.level.block.state.properties.DoorHingeSide;
@@ -509,8 +510,18 @@ public class CardinalWoodFamilyGameTests {
         if (removed) {
             block.destroy(world, abs, brokenState);
         }
-        if (!player.isCreative() && removed && player.hasCorrectToolForDrops(brokenState)) {
-            block.playerDestroy(world, player, abs, brokenState, blockEntity, player.getMainHandItem().copy());
+        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer
+                && !serverPlayer.isCreative()
+                && removed
+                && serverPlayer.hasCorrectToolForDrops(brokenState)) {
+            block.playerDestroy(
+                    world,
+                    serverPlayer,
+                    abs,
+                    brokenState,
+                    blockEntity,
+                    serverPlayer.getMainHandItem().copy()
+            );
         }
     }
 
@@ -578,11 +589,9 @@ public class CardinalWoodFamilyGameTests {
         if (!(context.getLevel().getBlockEntity(abs) instanceof SignBlockEntity sign)) {
             throw new AssertionError("Expected SignBlockEntity at " + relativePos);
         }
-        SignText text = new SignText().setMessage(0, Component.literal(message));
-        if (!sign.setText(text, true)) {
-            throw new AssertionError("Failed to set standing/wall sign text");
-        }
-        if (!message.equals(sign.getFrontText().getMessage(0, false).getString())) {
+        SignText text = SignText.EMPTY.asMutable().setLine(0, Component.literal(message)).asImmutable();
+        sign.setText(text, SignTextSlot.FRONT);
+        if (!message.equals(sign.getText(SignTextSlot.FRONT).getMessages(false).getFirst().getString())) {
             throw new AssertionError("Sign text mismatch at " + relativePos);
         }
     }
@@ -592,11 +601,9 @@ public class CardinalWoodFamilyGameTests {
         if (!(context.getLevel().getBlockEntity(abs) instanceof HangingSignBlockEntity sign)) {
             throw new AssertionError("Expected HangingSignBlockEntity at " + relativePos);
         }
-        SignText text = new SignText().setMessage(0, Component.literal(message));
-        if (!sign.setText(text, true)) {
-            throw new AssertionError("Failed to set hanging sign text");
-        }
-        if (!message.equals(sign.getFrontText().getMessage(0, false).getString())) {
+        SignText text = SignText.EMPTY.asMutable().setLine(0, Component.literal(message)).asImmutable();
+        sign.setText(text, SignTextSlot.FRONT);
+        if (!message.equals(sign.getText(SignTextSlot.FRONT).getMessages(false).getFirst().getString())) {
             throw new AssertionError("Hanging sign text mismatch at " + relativePos);
         }
     }

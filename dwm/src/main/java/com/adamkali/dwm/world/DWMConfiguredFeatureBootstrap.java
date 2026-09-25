@@ -3,22 +3,23 @@ package com.adamkali.dwm.world;
 import com.adamkali.dwm.block.DWMBlockTags;
 import com.adamkali.dwm.block.DWMBlocks;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.data.worldgen.BlockStateProviders;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.random.WeightedList;
 import net.minecraft.util.valueproviders.BiasedToBottomInt;
 import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.util.valueproviders.UniformInt;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.level.levelgen.feature.BlockColumnFeature;
+import net.minecraft.world.level.levelgen.feature.BlockReplacement;
+import net.minecraft.world.level.levelgen.feature.FallenTreeFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
-import net.minecraft.world.level.levelgen.feature.configurations.BlockColumnConfiguration;
-import net.minecraft.world.level.levelgen.feature.configurations.FallenTreeConfiguration;
-import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
-import net.minecraft.world.level.levelgen.feature.configurations.SimpleBlockConfiguration;
-import net.minecraft.world.level.levelgen.feature.configurations.TreeConfiguration;
+import net.minecraft.world.level.levelgen.feature.OreFeature;
+import net.minecraft.world.level.levelgen.feature.SimpleBlockFeature;
+import net.minecraft.world.level.levelgen.feature.TreeFeature;
 import net.minecraft.world.level.levelgen.feature.featuresize.TwoLayersFeatureSize;
 import net.minecraft.world.level.levelgen.feature.foliageplacers.BlobFoliagePlacer;
 import net.minecraft.world.level.levelgen.feature.foliageplacers.FoliagePlacer;
@@ -35,7 +36,7 @@ public final class DWMConfiguredFeatureBootstrap {
     private DWMConfiguredFeatureBootstrap() {
     }
 
-    public static void bootstrap(BootstrapContext<ConfiguredFeature<?, ?>> registerable) {
+    public static void bootstrap(BootstrapContext<Feature> registerable) {
         registerTree(registerable, DWMConfiguredFeatures.ASH, DWMBlocks.ASH_LOG, DWMBlocks.ASH_LEAVES);
         registerTree(registerable, DWMConfiguredFeatures.DARK_ASH, DWMBlocks.DARK_ASH_LOG, DWMBlocks.DARK_ASH_LEAVES);
         registerTree(registerable, DWMConfiguredFeatures.CARDINAL, DWMBlocks.CARDINAL_LOG, DWMBlocks.CARDINAL_LEAVES);
@@ -45,33 +46,26 @@ public final class DWMConfiguredFeatureBootstrap {
         flowers.add(DWMBlocks.MOONLIGHT_BLOOM.defaultBlockState(), 1);
         registerable.register(
                 DWMConfiguredFeatures.GALLIFREY_FLOWERS,
-                new ConfiguredFeature<>(
-                        Feature.SIMPLE_BLOCK,
-                        new SimpleBlockConfiguration(new WeightedStateProvider(flowers))
-                )
+                new SimpleBlockFeature(new WeightedStateProvider(flowers))
         );
 
         registerable.register(
                 DWMConfiguredFeatures.SACCHARINE_CANE,
-                new ConfiguredFeature<>(
-                        Feature.BLOCK_COLUMN,
-                        BlockColumnConfiguration.simple(
-                                BiasedToBottomInt.of(2, 4),
-                                BlockStateProvider.simple(DWMBlocks.SACCHARINE_CANE)
-                        )
+                BlockColumnFeature.simple(
+                        BiasedToBottomInt.of(2, 4),
+                        BlockStateProvider.of(DWMBlocks.SACCHARINE_CANE)
                 )
         );
 
         registerable.register(
                 DWMConfiguredFeatures.AZBANTIUM_ORE,
-                new ConfiguredFeature<>(
-                        Feature.ORE,
-                        new OreConfiguration(
+                new OreFeature(
+                        java.util.List.of(BlockReplacement.replace(
                                 new TagMatchTest(DWMBlockTags.GALLIFREY_ORE_REPLACEABLES),
-                                DWMBlocks.AZBANTIUM_ORE.defaultBlockState(),
-                                9,
-                                0.5F
-                        )
+                                DWMBlocks.AZBANTIUM_ORE.defaultBlockState()
+                        )),
+                        9,
+                        0.5F
                 )
         );
 
@@ -120,19 +114,16 @@ public final class DWMConfiguredFeatureBootstrap {
         );
         registerable.register(
                 DWMConfiguredFeatures.FALLEN_PETRIFIED_TREE,
-                new ConfiguredFeature<>(
-                        Feature.FALLEN_TREE,
-                        new FallenTreeConfiguration.FallenTreeConfigurationBuilder(
-                                BlockStateProvider.simple(DWMBlocks.PETRIFIED_LOG),
-                                UniformInt.of(4, 11)
-                        ).build()
-                )
+                FallenTreeFeature.builder(
+                        BlockStateProvider.of(DWMBlocks.PETRIFIED_LOG),
+                        UniformInt.of(4, 11)
+                ).build()
         );
     }
 
     private static void registerOre(
-            BootstrapContext<ConfiguredFeature<?, ?>> registerable,
-            ResourceKey<ConfiguredFeature<?, ?>> key,
+            BootstrapContext<Feature> registerable,
+            ResourceKey<Feature> key,
             Block oreBlock,
             int size,
             float discardChanceOnAirExposure
@@ -141,8 +132,8 @@ public final class DWMConfiguredFeatureBootstrap {
     }
 
     private static void registerOre(
-            BootstrapContext<ConfiguredFeature<?, ?>> registerable,
-            ResourceKey<ConfiguredFeature<?, ?>> key,
+            BootstrapContext<Feature> registerable,
+            ResourceKey<Feature> key,
             Block oreBlock,
             TagKey<Block> replaceable,
             int size,
@@ -150,41 +141,30 @@ public final class DWMConfiguredFeatureBootstrap {
     ) {
         registerable.register(
                 key,
-                new ConfiguredFeature<>(
-                        Feature.ORE,
-                        new OreConfiguration(
-                                new TagMatchTest(replaceable),
-                                oreBlock.defaultBlockState(),
-                                size,
-                                discardChanceOnAirExposure
-                        )
+                new OreFeature(
+                        java.util.List.of(BlockReplacement.replace(new TagMatchTest(replaceable), oreBlock.defaultBlockState())),
+                        size,
+                        discardChanceOnAirExposure
                 )
         );
     }
 
     private static void registerTree(
-            BootstrapContext<ConfiguredFeature<?, ?>> registerable,
-            ResourceKey<ConfiguredFeature<?, ?>> key,
+            BootstrapContext<Feature> registerable,
+            ResourceKey<Feature> key,
             Block logBlock,
             Block leavesBlock
     ) {
-        BlockState log = logBlock.defaultBlockState();
-        BlockState leaves = leavesBlock.defaultBlockState();
         registerable.register(
                 key,
-                new ConfiguredFeature<>(
-                        Feature.TREE,
-                        new TreeConfiguration.TreeConfigurationBuilder(
-                                BlockStateProvider.simple(log),
-                                new StraightTrunkPlacer(4, 2, 0),
-                                BlockStateProvider.simple(leaves),
-                                new BlobFoliagePlacer(ConstantInt.of(2), ConstantInt.of(0), 3),
-                                new TwoLayersFeatureSize(1, 0, 1),
-                                TreeConfiguration.defaultPlaceBelowTreeTrunkProvider(
-                                        registerable.lookup(Registries.BIOME)
-                                )
-                        ).ignoreVines().build()
-                )
+                new TreeFeature.Builder(
+                        BlockStateProvider.of(logBlock.defaultBlockState()),
+                        new StraightTrunkPlacer(4, 2, 0),
+                        BlockStateProvider.of(leavesBlock.defaultBlockState()),
+                        new BlobFoliagePlacer(ConstantInt.of(2), ConstantInt.of(0), 3),
+                        new TwoLayersFeatureSize(1, 0, 1),
+                        registerable.lookup(Registries.BLOCK_STATE_PROVIDER).getOrThrow(BlockStateProviders.SOIL_BENEATH_TREE)
+                ).ignoreVines().build()
         );
     }
 
@@ -192,8 +172,8 @@ public final class DWMConfiguredFeatureBootstrap {
      * Dead mineralized trunks: trunk and "foliage" are both petrified log (no leaves/saplings).
      */
     private static void registerPetrifiedTree(
-            BootstrapContext<ConfiguredFeature<?, ?>> registerable,
-            ResourceKey<ConfiguredFeature<?, ?>> key,
+            BootstrapContext<Feature> registerable,
+            ResourceKey<Feature> key,
             TrunkPlacer trunkPlacer,
             FoliagePlacer foliagePlacer,
             TwoLayersFeatureSize minimumSize
@@ -201,19 +181,14 @@ public final class DWMConfiguredFeatureBootstrap {
         BlockState log = DWMBlocks.PETRIFIED_LOG.defaultBlockState();
         registerable.register(
                 key,
-                new ConfiguredFeature<>(
-                        Feature.TREE,
-                        new TreeConfiguration.TreeConfigurationBuilder(
-                                BlockStateProvider.simple(log),
-                                trunkPlacer,
-                                BlockStateProvider.simple(log),
-                                foliagePlacer,
-                                minimumSize,
-                                TreeConfiguration.defaultPlaceBelowTreeTrunkProvider(
-                                        registerable.lookup(Registries.BIOME)
-                                )
-                        ).ignoreVines().build()
-                )
+                new TreeFeature.Builder(
+                        BlockStateProvider.of(log),
+                        trunkPlacer,
+                        BlockStateProvider.of(log),
+                        foliagePlacer,
+                        minimumSize,
+                        registerable.lookup(Registries.BLOCK_STATE_PROVIDER).getOrThrow(BlockStateProviders.SOIL_BENEATH_TREE)
+                ).ignoreVines().build()
         );
     }
 }

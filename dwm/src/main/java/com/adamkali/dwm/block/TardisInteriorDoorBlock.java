@@ -9,7 +9,6 @@ import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.interior.TardisInteriorDoorShapes;
 import com.adamkali.dwm.tardis.interior.TardisInteriorService;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -51,8 +50,6 @@ import java.util.UUID;
  * block entity on the origin cell ({@code half=lower}, {@code slot=0}).
  */
 public class TardisInteriorDoorBlock extends Block implements EntityBlock {
-    private static final MapCodec<TardisInteriorDoorBlock> CODEC = simpleCodec(TardisInteriorDoorBlock::new);
-
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
     public static final IntegerProperty SLOT = IntegerProperty.create("slot", 0, 2);
@@ -68,11 +65,6 @@ public class TardisInteriorDoorBlock extends Block implements EntityBlock {
                 .setValue(HALF, DoubleBlockHalf.LOWER)
                 .setValue(SLOT, 0)
                 .setValue(OPEN, true));
-    }
-
-    @Override
-    protected MapCodec<TardisInteriorDoorBlock> codec() {
-        return CODEC;
     }
 
     public static boolean isOrigin(BlockState state) {

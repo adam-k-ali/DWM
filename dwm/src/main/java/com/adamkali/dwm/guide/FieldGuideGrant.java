@@ -39,7 +39,7 @@ public final class FieldGuideGrant {
         if (slot >= 0) {
             inventory.setItem(slot, stack);
         } else if (!inventory.add(stack)) {
-            player.drop(stack, false);
+            player.drop(stack, false, net.minecraft.util.Prediction.SERVER_ONLY);
         }
         player.setAttached(RECEIVED, true);
         return true;

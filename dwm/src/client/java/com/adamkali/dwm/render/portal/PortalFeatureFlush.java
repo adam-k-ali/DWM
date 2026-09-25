@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render.portal;
 
+import com.mojang.renderpearl.api.commands.RenderPass;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.SubmitNodeStorage;
@@ -9,7 +10,7 @@ import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
  * Owns a private {@link FeatureRenderDispatcher} for portal entity/BE flushes.
  * <p>
  * The game renderer dispatcher still has its main-pass {@code PreparedFrame} open during
- * {@code LevelRenderEvents.END_MAIN}, so calling {@code renderAllFeatures} on it throws
+ * {@code LevelRenderEvents.END_MAIN}, so preparing on it throws
  * {@code PreparedFrame already in use}. Portal features must use a separate dispatcher
  * (and staged vertex buffer) that is not mid-frame.
  */
@@ -52,7 +53,18 @@ public final class PortalFeatureFlush implements AutoCloseable {
         if (closed || submitNodeStorage == null) {
             return;
         }
-        dispatcher.renderAllFeatures(submitNodeStorage);
+        PortalRenderTarget target = PortalRenderTarget.getInstance();
+        if (!target.isReady()) {
+            return;
+        }
+        try (FeatureRenderDispatcher.PreparedFrame frame = dispatcher.prepareFrame(submitNodeStorage)) {
+            if (frame.isEmpty()) {
+                return;
+            }
+            try (RenderPass renderPass = target.openRenderPass("dwm_portal_features")) {
+                FeatureRenderDispatcher.renderAllFeatures(renderPass, frame);
+            }
+        }
         renderBuffers.endFrame();
     }
 

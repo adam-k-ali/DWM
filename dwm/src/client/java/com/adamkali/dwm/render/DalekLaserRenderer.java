@@ -29,8 +29,8 @@ public class DalekLaserRenderer extends EntityRenderer<DalekLaserEntity, DalekLa
     ) {
         poseStack.pushPose();
         poseStack.translate(0.0F, 0.08F, 0.0F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(state.yRot - 90.0F));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(state.xRot));
+        poseStack.rotateDegrees(Axis.YP, state.yRot - 90.0F);
+        poseStack.rotateDegrees(Axis.ZP, state.xRot);
         poseStack.scale(0.55F, 0.55F, 0.55F);
         submitNodeCollector.submitModel(
                 this.model,
@@ -39,8 +39,7 @@ public class DalekLaserRenderer extends EntityRenderer<DalekLaserEntity, DalekLa
                 DalekLaserModel.TEXTURE_LOCATION,
                 state.lightCoords,
                 OverlayTexture.NO_OVERLAY,
-                state.outlineColor,
-                null
+                state.outlineColor
         );
         poseStack.popPose();
         super.submit(state, poseStack, submitNodeCollector, camera);

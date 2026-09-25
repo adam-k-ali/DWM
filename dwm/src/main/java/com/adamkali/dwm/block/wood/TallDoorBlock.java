@@ -44,14 +44,6 @@ import org.jetbrains.annotations.Nullable;
  * Open/powered state is synced across the column, matching vanilla {@code DoorBlock} semantics.
  */
 public class TallDoorBlock extends Block {
-    public static final MapCodec<TallDoorBlock> CODEC = RecordCodecBuilder.mapCodec(
-            instance -> instance.group(
-                            BlockSetType.CODEC.fieldOf("block_set_type").forGetter(TallDoorBlock::getBlockSetType),
-                            propertiesCodec()
-                    )
-                    .apply(instance, TallDoorBlock::new)
-    );
-
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
     public static final EnumProperty<DoorHingeSide> HINGE = BlockStateProperties.DOOR_HINGE;
@@ -79,11 +71,6 @@ public class TallDoorBlock extends Block {
                         .setValue(POWERED, false)
                         .setValue(SEGMENT, TallDoorSegment.BOTTOM)
         );
-    }
-
-    @Override
-    public MapCodec<? extends TallDoorBlock> codec() {
-        return CODEC;
     }
 
     public BlockSetType getBlockSetType() {

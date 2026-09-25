@@ -14,7 +14,6 @@ import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
 import com.adamkali.dwm.tardis.logic.ConsolePilotLogic;
 import com.adamkali.dwm.item.SonicTardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
-import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -48,17 +47,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 public class TardisBlock extends BaseEntityBlock {
-    private static final MapCodec<TardisBlock> CODEC = simpleCodec(TardisBlock::new);
     public static final IntegerProperty FACING_ROTATION = BlockStateProperties.ROTATION_16;
 
     public TardisBlock(Properties settings) {
         super(settings);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING_ROTATION, 0));
-    }
-
-    @Override
-    protected MapCodec<TardisBlock> codec() {
-        return CODEC;
     }
 
     @Override

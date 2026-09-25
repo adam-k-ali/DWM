@@ -3,7 +3,8 @@ package com.adamkali.dwm.render.portal;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
-import com.mojang.blaze3d.opengl.GlStateManager;
+import com.mojang.renderpearl.api.pipeline.ColorTargetState;
+import com.mojang.renderpearl.backend.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix4fStack;
@@ -155,7 +156,7 @@ public final class PortalRenderer {
             GlStateManager._enableDepthTest();
             GlStateManager._depthFunc(GL11.GL_LEQUAL);
             GlStateManager._depthMask(true);
-            GlStateManager._colorMask(0xF);
+            GlStateManager._colorMask(ColorTargetState.WRITE_ALL);
             GlStateManager._enableCull();
             GlStateManager._disableBlend(0);
             GL11.glDisable(GL11.GL_STENCIL_TEST);

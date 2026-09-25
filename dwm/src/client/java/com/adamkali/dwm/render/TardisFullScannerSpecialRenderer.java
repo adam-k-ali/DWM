@@ -35,25 +35,24 @@ public class TardisFullScannerSpecialRenderer implements NoDataSpecialModelRende
             boolean hasFoil,
             int outlineColor
     ) {
-        submitNodeCollector.order(0).submitModel(
-                this.model,
-                this.animState,
-                poseStack,
-                TardisFullScannerModel.TEXTURE_LOCATION,
-                lightCoords,
-                overlayCoords,
-                outlineColor,
-                null);
         if (hasFoil) {
-            submitNodeCollector.order(1).submitModel(
+            submitNodeCollector.order(0).submitModel(
                     this.model,
                     this.animState,
                     poseStack,
-                    RenderTypes.entityGlint(),
+                    RenderTypes.entitySolidGlint(TardisFullScannerModel.TEXTURE_LOCATION),
                     lightCoords,
                     overlayCoords,
-                    outlineColor,
-                    null);
+                    outlineColor);
+        } else {
+            submitNodeCollector.order(0).submitModel(
+                    this.model,
+                    this.animState,
+                    poseStack,
+                    TardisFullScannerModel.TEXTURE_LOCATION,
+                    lightCoords,
+                    overlayCoords,
+                    outlineColor);
         }
     }
 

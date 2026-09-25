@@ -9,7 +9,6 @@ import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
-import org.lwjgl.glfw.GLFW;
 
 @Environment(EnvType.CLIENT)
 public final class FieldGuideKeybinds {
@@ -24,8 +23,8 @@ public final class FieldGuideKeybinds {
     public static void initialize() {
         openGuideKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 "key.dwm.field_guide",
-                InputConstants.Type.KEYSYM,
-                GLFW.GLFW_KEY_G,
+                InputConstants.Type.KEYBOARD,
+                InputConstants.KEY_G,
                 DWM_CATEGORY
         ));
 

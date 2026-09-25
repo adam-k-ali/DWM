@@ -87,8 +87,18 @@ public class TardisDecorBlockEntityRenderer
                 RenderTypes.entityCutout(texture),
                 state.lightCoords,
                 OverlayTexture.NO_OVERLAY,
-                0,
-                state.breakProgress);
+                0);
+        if (state.breakProgress != null) {
+            submitNodeCollector.submitCrumblingOverlay(
+                    model,
+                    animState,
+                    poseStack,
+                    RenderTypes.entityCutout(texture),
+                    state.lightCoords,
+                    OverlayTexture.NO_OVERLAY,
+                    -1,
+                    state.breakProgress);
+        }
         poseStack.popPose();
     }
 
@@ -99,7 +109,7 @@ public class TardisDecorBlockEntityRenderer
      */
     public static void applyTransforms(PoseStack matrices, Direction facing) {
         matrices.translate(0.5, 0.0, 0.5);
-        matrices.mulPose(Axis.YP.rotationDegrees(-Direction.getYRot(facing)));
+        matrices.rotateDegrees(Axis.YP, -Direction.getYRot(facing));
     }
 
     @Override

@@ -71,7 +71,7 @@ public class DWMClient implements ClientModInitializer {
         ConsoleHitboxDebugRenderer.initialize();
         PortalPerfDebugHud.initialize();
         PortalPerfDebugLog.resetForSession();
-        // ShaderManager compiles RenderPipelines.getStaticPipelines() during the first
+        // ShaderManager compiles RenderPipelines.requiredPipelines() during the first
         // resource reload, which is after client init. Register before that snapshot.
         PortalDoorRenderer.ensurePipelineRegistered();
         PortalSupport.initialize();

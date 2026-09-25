@@ -32,7 +32,7 @@ class BotiRelativePosCodecTest {
     @BeforeAll
     static void bootstrap() {
         MinecraftTestBootstrap.ensure();
-        registries = VanillaRegistries.createLookup();
+        registries = VanillaRegistries.createWorldLookup();
     }
 
     @Test

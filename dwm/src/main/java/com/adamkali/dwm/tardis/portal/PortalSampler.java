@@ -226,8 +226,8 @@ public abstract class PortalSampler {
                 timeOfDay,
                 rain,
                 thunder,
-                attrs.getValue(EnvironmentAttributes.SKY_COLOR, samplePos),
-                attrs.getValue(EnvironmentAttributes.FOG_COLOR, samplePos)
+                net.minecraft.util.ARGB.colorFromVector3f(attrs.getValue(EnvironmentAttributes.SKY_COLOR, samplePos)),
+                net.minecraft.util.ARGB.colorFromVector3f(attrs.getValue(EnvironmentAttributes.FOG_COLOR, samplePos))
         );
     }
 

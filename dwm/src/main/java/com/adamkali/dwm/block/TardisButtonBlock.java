@@ -1,6 +1,5 @@
 package com.adamkali.dwm.block;
 
-import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,17 +30,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 public class TardisButtonBlock extends HorizontalDirectionalBlock {
-    public static final MapCodec<TardisButtonBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(propertiesCodec()).apply(instance, TardisButtonBlock::new));
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     public static final VoxelShape NORTH_SOUTH_SHAPE_A = Block.box(5.0, 0, 1.0, 11.0, 2, 7.0);
     public static final VoxelShape NORTH_SOUTH_SHAPE_B = Block.box(5.0, 0, 9.0, 11.0, 2, 15.0);
     public static final VoxelShape EAST_WEST_SHAPE_A = Block.box(9.0, 0, 5.0, 15.0, 2, 11.0);
     public static final VoxelShape EAST_WEST_SHAPE_B = Block.box(1.0, 0, 5.0, 7.0, 2, 11.0);
-
-    @Override
-    protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
-        return CODEC;
-    }
 
     public TardisButtonBlock(Properties settings) {
         super(settings);

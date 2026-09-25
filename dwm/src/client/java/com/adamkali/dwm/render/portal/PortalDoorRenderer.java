@@ -5,12 +5,12 @@ import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.tardis.data.model.PortalAperture;
 import com.adamkali.dwm.tardis.data.model.TardisDoorState;
 import com.adamkali.dwm.tardis.interior.TardisPortalGate;
-import com.mojang.blaze3d.pipeline.BlendFunction;
-import com.mojang.blaze3d.pipeline.ColorTargetState;
-import com.mojang.blaze3d.pipeline.DepthStencilState;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.BlendFactor;
-import com.mojang.blaze3d.platform.CompareOp;
+import com.mojang.renderpearl.api.pipeline.BlendFactor;
+import com.mojang.renderpearl.api.pipeline.BlendFunction;
+import com.mojang.renderpearl.api.pipeline.ColorTargetState;
+import com.mojang.renderpearl.api.pipeline.CompareOp;
+import com.mojang.renderpearl.api.pipeline.DepthStencilState;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import java.util.function.Function;
@@ -47,7 +47,7 @@ public final class PortalDoorRenderer {
      * depth-reject inward-swinging leaves.
      * <p>
      * Uses vanilla {@code core/entity} shaders from {@link RenderPipelines#ENTITY_SNIPPET}.
-     * Must be {@link RenderPipelines#register}ed before {@link RenderPipelines#getStaticPipelines()}
+     * Must be {@link RenderPipelines#register}ed before {@link RenderPipelines#requiredPipelines()}
      * compiles GPU programs — see client mixin and {@link com.adamkali.dwm.DWMClient}.
      */
     public static final RenderPipeline PORTAL_COMPOSITE_PIPELINE = RenderPipelines.register(

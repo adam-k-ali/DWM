@@ -271,8 +271,18 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 RenderTypes.entityTranslucent(FirstDoctorConsoleModel.TEXTURE_LOCATION),
                 state.lightCoords,
                 OverlayTexture.NO_OVERLAY,
-                0,
-                state.breakProgress);
+                0);
+        if (state.breakProgress != null) {
+            submitNodeCollector.submitCrumblingOverlay(
+                    model,
+                    animState,
+                    poseStack,
+                    RenderTypes.entityTranslucent(FirstDoctorConsoleModel.TEXTURE_LOCATION),
+                    state.lightCoords,
+                    OverlayTexture.NO_OVERLAY,
+                    -1,
+                    state.breakProgress);
+        }
 
         for (MountedWidget widget : widgets) {
             submitMounted(poseStack, submitNodeCollector, state, animState, widget);
@@ -317,8 +327,18 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 RenderTypes.entityCutout(widget.texture()),
                 state.lightCoords,
                 OverlayTexture.NO_OVERLAY,
-                0,
-                state.breakProgress);
+                0);
+        if (state.breakProgress != null) {
+            submitNodeCollector.submitCrumblingOverlay(
+                    widget.model(),
+                    animState,
+                    poseStack,
+                    RenderTypes.entityCutout(widget.texture()),
+                    state.lightCoords,
+                    OverlayTexture.NO_OVERLAY,
+                    -1,
+                    state.breakProgress);
+        }
         poseStack.popPose();
     }
 
@@ -361,7 +381,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
     static void applyTransforms(PoseStack matrices, Direction facing) {
         matrices.translate(0.5, 0.0, 0.5);
         matrices.scale(1.0f, 0.8f, 1.0f);
-        matrices.mulPose(Axis.YP.rotationDegrees(-Direction.getYRot(facing)));
+        matrices.rotateDegrees(Axis.YP, -Direction.getYRot(facing));
     }
 
     /**
@@ -387,11 +407,11 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 chameleon.mountZ()
         );
         matrices.translate(0.0, HOLOGRAM_Y_OFFSET_PX * PX + bobOffset, 0.0);
-        matrices.mulPose(Axis.XP.rotation(-FirstDoctorConsoleControls.DECK_PITCH_RAD));
+        matrices.rotate(Axis.XP, -FirstDoctorConsoleControls.DECK_PITCH_RAD);
         matrices.scale(HOLOGRAM_SCALE, HOLOGRAM_SCALE, HOLOGRAM_SCALE);
-        matrices.mulPose(Axis.XP.rotationDegrees(180.0f));
+        matrices.rotateDegrees(Axis.XP, 180.0f);
         matrices.translate(0.0, -1.5, 0.0);
-        matrices.mulPose(Axis.YP.rotationDegrees(yawDegrees));
+        matrices.rotateDegrees(Axis.YP, yawDegrees);
     }
 
     private static void applyPanelControlTransforms(PoseStack matrices, ConsoleControlSpec layout) {
@@ -414,14 +434,14 @@ public class FirstDoctorConsoleBlockEntityRenderer
             float mountZPx
     ) {
         matrices.translate(0.0, FirstDoctorConsoleControls.PANEL_PIVOT_Y_PX * PX, 0.0);
-        matrices.mulPose(Axis.YP.rotation(panelYawRad));
+        matrices.rotate(Axis.YP, panelYawRad);
 
         matrices.translate(
                 0.0,
                 FirstDoctorConsoleControls.DECK_PIVOT_Y_PX * PX,
                 FirstDoctorConsoleControls.DECK_PIVOT_Z_PX * PX
         );
-        matrices.mulPose(Axis.XP.rotation(FirstDoctorConsoleControls.DECK_PITCH_RAD));
+        matrices.rotate(Axis.XP, FirstDoctorConsoleControls.DECK_PITCH_RAD);
 
         matrices.translate(
                 mountXPx * PX,

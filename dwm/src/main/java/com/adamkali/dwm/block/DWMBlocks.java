@@ -11,8 +11,11 @@ import com.adamkali.dwm.item.DWMItemTags;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
-import net.fabricmc.fabric.api.registry.CompostableRegistry;
-import net.fabricmc.fabric.api.registry.StrippableBlockRegistry;
+import net.fabricmc.fabric.api.item.v1.BlockTransformerHelper;
+import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.Compostable;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -674,9 +677,16 @@ public class DWMBlocks {
     public static void initialize() {
         DWMWoodTypes.initialize();
 
-        CompostableRegistry.INSTANCE.add(FLOWER_OF_REMEMBRANCE.asItem(), 0.65F);
-        CompostableRegistry.INSTANCE.add(MOONLIGHT_BLOOM.asItem(), 0.65F);
-        CompostableRegistry.INSTANCE.add(SACCHARINE_CANE.asItem(), 0.50F);
+        DefaultItemComponentEvents.MODIFY.register(modifyContext -> {
+            Compostable flowerCompost = new Compostable(ContextIntProviders.COMPOSTABLE_MEDIUM_HIGH);
+            Compostable caneCompost = new Compostable(ContextIntProviders.COMPOSTABLE_MEDIUM);
+            modifyContext.modify(FLOWER_OF_REMEMBRANCE.asItem(), builder ->
+                    builder.set(DataComponents.COMPOSTABLE, flowerCompost));
+            modifyContext.modify(MOONLIGHT_BLOOM.asItem(), builder ->
+                    builder.set(DataComponents.COMPOSTABLE, flowerCompost));
+            modifyContext.modify(SACCHARINE_CANE.asItem(), builder ->
+                    builder.set(DataComponents.COMPOSTABLE, caneCompost));
+        });
 
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) ->
                 !FirstDoctorConsoleBlock.isPlayerBreakDenied(state));
@@ -692,8 +702,8 @@ public class DWMBlocks {
             WoodFamilyRegistrar.wireRuntime(family);
         }
 
-        StrippableBlockRegistry.register(PETRIFIED_LOG, STRIPPED_PETRIFIED_LOG);
-        StrippableBlockRegistry.register(PETRIFIED_WOOD, STRIPPED_PETRIFIED_WOOD);
+        BlockTransformerHelper.registerStripping(PETRIFIED_LOG, STRIPPED_PETRIFIED_LOG);
+        BlockTransformerHelper.registerStripping(PETRIFIED_WOOD, STRIPPED_PETRIFIED_WOOD);
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.BUILDING_BLOCKS).register(content -> {
             content.accept(BLACK_ROUNDEL_A);

@@ -13,8 +13,10 @@ import net.minecraft.world.level.biome.BiomeGenerationSettings;
 import net.minecraft.world.level.biome.BiomeSpecialEffects;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.levelgen.GenerationStep;
-import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
+import net.minecraft.world.level.levelgen.carver.WorldCarver;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import net.minecraft.util.ARGB;
+import net.minecraft.util.valueproviders.UniformInt;
 
 /**
  * Gallifrey destination biomes — orange-red atmosphere, Phase 1 terrain/wood features.
@@ -34,7 +36,7 @@ public final class DWMBiomeBootstrap {
 
     public static void bootstrap(BootstrapContext<Biome> registerable) {
         HolderGetter<PlacedFeature> features = registerable.lookup(Registries.PLACED_FEATURE);
-        HolderGetter<ConfiguredWorldCarver<?>> carvers = registerable.lookup(Registries.CONFIGURED_CARVER);
+        HolderGetter<WorldCarver> carvers = registerable.lookup(Registries.CARVER);
 
         registerable.register(DWMBiomeKeys.GALLIFREY_PLAINS, createPlains(features, carvers));
         registerable.register(DWMBiomeKeys.GALLIFREY_FOREST, createForest(features, carvers));
@@ -45,7 +47,7 @@ public final class DWMBiomeBootstrap {
 
     private static Biome createPlains(
             HolderGetter<PlacedFeature> features,
-            HolderGetter<ConfiguredWorldCarver<?>> carvers
+            HolderGetter<WorldCarver> carvers
     ) {
         MobSpawnSettings.Builder spawns = new MobSpawnSettings.Builder();
         BiomeDefaultFeatures.commonSpawns(spawns);
@@ -63,7 +65,7 @@ public final class DWMBiomeBootstrap {
 
     private static Biome createForest(
             HolderGetter<PlacedFeature> features,
-            HolderGetter<ConfiguredWorldCarver<?>> carvers
+            HolderGetter<WorldCarver> carvers
     ) {
         MobSpawnSettings.Builder spawns = new MobSpawnSettings.Builder();
         BiomeDefaultFeatures.commonSpawns(spawns);
@@ -84,7 +86,7 @@ public final class DWMBiomeBootstrap {
 
     private static Biome createWastes(
             HolderGetter<PlacedFeature> features,
-            HolderGetter<ConfiguredWorldCarver<?>> carvers
+            HolderGetter<WorldCarver> carvers
     ) {
         MobSpawnSettings.Builder spawns = new MobSpawnSettings.Builder();
         BiomeDefaultFeatures.commonSpawns(spawns);
@@ -98,7 +100,7 @@ public final class DWMBiomeBootstrap {
 
     private static Biome createBadlands(
             HolderGetter<PlacedFeature> features,
-            HolderGetter<ConfiguredWorldCarver<?>> carvers
+            HolderGetter<WorldCarver> carvers
     ) {
         MobSpawnSettings.Builder spawns = new MobSpawnSettings.Builder();
         BiomeDefaultFeatures.commonSpawns(spawns);
@@ -135,35 +137,19 @@ public final class DWMBiomeBootstrap {
     }
 
     private static void addBroakirSpawns(MobSpawnSettings.Builder spawns) {
-        spawns.addSpawn(
-                MobCategory.CREATURE,
-                10,
-                new MobSpawnSettings.SpawnerData(DWMEntityTypes.BROAKIR, 2, 4)
-        );
+        spawns.addSpawn(DWMEntityTypes.BROAKIR, MobCategory.CREATURE, 10, UniformInt.of(2, 4));
     }
 
     private static void addFlutterwingSpawns(MobSpawnSettings.Builder spawns) {
-        spawns.addSpawn(
-                MobCategory.CREATURE,
-                10,
-                new MobSpawnSettings.SpawnerData(DWMEntityTypes.FLUTTERWING, 2, 4)
-        );
+        spawns.addSpawn(DWMEntityTypes.FLUTTERWING, MobCategory.CREATURE, 10, UniformInt.of(2, 4));
     }
 
     private static void addMewingDogSpawns(MobSpawnSettings.Builder spawns) {
-        spawns.addSpawn(
-                MobCategory.CREATURE,
-                8,
-                new MobSpawnSettings.SpawnerData(DWMEntityTypes.MEWING_DOG, 2, 4)
-        );
+        spawns.addSpawn(DWMEntityTypes.MEWING_DOG, MobCategory.CREATURE, 8, UniformInt.of(2, 4));
     }
 
     private static void addTimeLordSpawns(MobSpawnSettings.Builder spawns) {
-        spawns.addSpawn(
-                MobCategory.CREATURE,
-                8,
-                new MobSpawnSettings.SpawnerData(DWMEntityTypes.TIME_LORD, 1, 3)
-        );
+        spawns.addSpawn(DWMEntityTypes.TIME_LORD, MobCategory.CREATURE, 8, UniformInt.of(1, 3));
     }
 
     private static Biome buildBiome(
@@ -183,9 +169,9 @@ public final class DWMBiomeBootstrap {
                 .hasPrecipitation(precipitation)
                 .temperature(temperature)
                 .downfall(downfall)
-                .setAttribute(EnvironmentAttributes.WATER_FOG_COLOR, WATER_FOG_COLOR)
-                .setAttribute(EnvironmentAttributes.FOG_COLOR, FOG_COLOR)
-                .setAttribute(EnvironmentAttributes.SKY_COLOR, SKY_COLOR)
+                .setAttribute(EnvironmentAttributes.WATER_FOG_COLOR, ARGB.vector3fFromRGB24(WATER_FOG_COLOR))
+                .setAttribute(EnvironmentAttributes.FOG_COLOR, ARGB.vector3fFromRGB24(FOG_COLOR))
+                .setAttribute(EnvironmentAttributes.SKY_COLOR, ARGB.vector3fFromRGB24(SKY_COLOR))
                 .setAttribute(EnvironmentAttributes.AMBIENT_SOUNDS, AmbientSounds.LEGACY_CAVE_SETTINGS)
                 .specialEffects(effects)
                 .mobSpawnSettings(spawns.build())

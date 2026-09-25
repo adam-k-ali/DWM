@@ -40,26 +40,25 @@ public class TardisCompactScannerSpecialRenderer implements NoDataSpecialModelRe
         // JSON item space: corner origin with XZ centered via +0.5; 180° Y so the
         // north-facing screen faces south for vanilla GUI [30, 225, 0].
         poseStack.translate(0.5, 0.0, 0.5);
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-        submitNodeCollector.order(0).submitModel(
-                this.model,
-                this.animState,
-                poseStack,
-                TardisCompactScannerModel.TEXTURE_LOCATION,
-                lightCoords,
-                overlayCoords,
-                outlineColor,
-                null);
+        poseStack.rotateDegrees(Axis.YP, 180.0F);
         if (hasFoil) {
-            submitNodeCollector.order(1).submitModel(
+            submitNodeCollector.order(0).submitModel(
                     this.model,
                     this.animState,
                     poseStack,
-                    RenderTypes.entityGlint(),
+                    RenderTypes.entitySolidGlint(TardisCompactScannerModel.TEXTURE_LOCATION),
                     lightCoords,
                     overlayCoords,
-                    outlineColor,
-                    null);
+                    outlineColor);
+        } else {
+            submitNodeCollector.order(0).submitModel(
+                    this.model,
+                    this.animState,
+                    poseStack,
+                    TardisCompactScannerModel.TEXTURE_LOCATION,
+                    lightCoords,
+                    overlayCoords,
+                    outlineColor);
         }
         poseStack.popPose();
     }

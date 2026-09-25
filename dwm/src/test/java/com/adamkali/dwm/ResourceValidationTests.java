@@ -1346,7 +1346,7 @@ public class ResourceValidationTests {
     }
 
     private static void assertPetrifiedTreeConfiguredFeaturesAreLogOnly() throws Exception {
-        Path configuredDir = Path.of("src/main/generated/data/dwm/worldgen/configured_feature");
+        Path configuredDir = Path.of("src/main/generated/data/dwm/worldgen/feature");
         String[] petrifiedFeatures = {
                 "petrified_tree.json",
                 "petrified_snag.json",
@@ -1354,7 +1354,7 @@ public class ResourceValidationTests {
         };
         for (String featureFile : petrifiedFeatures) {
             Path path = configuredDir.resolve(featureFile);
-            assertTrue(Files.isRegularFile(path), "Missing generated configured feature: " + path);
+            assertTrue(Files.isRegularFile(path), "Missing generated feature: " + path);
             String blob = Files.readString(path);
             assertTrue(blob.contains("dwm:petrified_log"), featureFile + " must use petrified_log");
             assertFalse(blob.contains("leaves"), featureFile + " must not reference leaves");

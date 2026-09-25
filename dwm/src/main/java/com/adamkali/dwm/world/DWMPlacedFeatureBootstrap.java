@@ -13,7 +13,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
-import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.placement.BiomeFilter;
 import net.minecraft.world.level.levelgen.placement.BlockPredicateFilter;
 import net.minecraft.world.level.levelgen.placement.CountPlacement;
@@ -21,7 +21,7 @@ import net.minecraft.world.level.levelgen.placement.HeightRangePlacement;
 import net.minecraft.world.level.levelgen.placement.InSquarePlacement;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.placement.PlacementModifier;
-import net.minecraft.world.level.levelgen.placement.RandomOffsetPlacement;
+import net.minecraft.world.level.levelgen.placement.OffsetPlacement;
 import net.minecraft.world.level.levelgen.placement.RarityFilter;
 
 public final class DWMPlacedFeatureBootstrap {
@@ -29,8 +29,8 @@ public final class DWMPlacedFeatureBootstrap {
     }
 
     public static void bootstrap(BootstrapContext<PlacedFeature> registerable) {
-        HolderGetter<ConfiguredFeature<?, ?>> configured =
-                registerable.lookup(Registries.CONFIGURED_FEATURE);
+        HolderGetter<Feature> configured =
+                registerable.lookup(Registries.FEATURE);
 
         registerTree(
                 registerable,
@@ -61,11 +61,11 @@ public final class DWMPlacedFeatureBootstrap {
                 DWMBlocks.CARDINAL_SAPLING
         );
 
-        Holder<ConfiguredFeature<?, ?>> flowers = configured.getOrThrow(DWMConfiguredFeatures.GALLIFREY_FLOWERS);
+        Holder<Feature> flowers = configured.getOrThrow(DWMConfiguredFeatures.GALLIFREY_FLOWERS);
         registerFlowerPatch(registerable, DWMPlacedFeatures.GALLIFREY_FLOWERS_PLAINS, flowers, 16);
         registerFlowerPatch(registerable, DWMPlacedFeatures.GALLIFREY_FLOWERS_FOREST, flowers, 32);
 
-        Holder<ConfiguredFeature<?, ?>> cane = configured.getOrThrow(DWMConfiguredFeatures.SACCHARINE_CANE);
+        Holder<Feature> cane = configured.getOrThrow(DWMConfiguredFeatures.SACCHARINE_CANE);
         registerSaccharineCane(registerable, DWMPlacedFeatures.SACCHARINE_CANE_WASTES, cane, 4);
         registerSaccharineCane(registerable, DWMPlacedFeatures.SACCHARINE_CANE_BADLANDS, cane, 5);
 
@@ -236,7 +236,7 @@ public final class DWMPlacedFeatureBootstrap {
     private static void registerTree(
             BootstrapContext<PlacedFeature> registerable,
             ResourceKey<PlacedFeature> key,
-            Holder<ConfiguredFeature<?, ?>> feature,
+            Holder<Feature> feature,
             PlacementModifier countModifier,
             net.minecraft.world.level.block.Block sapling
     ) {
@@ -252,7 +252,7 @@ public final class DWMPlacedFeatureBootstrap {
     private static void registerSaplingFreeTree(
             BootstrapContext<PlacedFeature> registerable,
             ResourceKey<PlacedFeature> key,
-            Holder<ConfiguredFeature<?, ?>> feature,
+            Holder<Feature> feature,
             PlacementModifier countModifier
     ) {
         PlacementUtils.register(
@@ -266,7 +266,7 @@ public final class DWMPlacedFeatureBootstrap {
     private static void registerFlowerPatch(
             BootstrapContext<PlacedFeature> registerable,
             ResourceKey<PlacedFeature> key,
-            Holder<ConfiguredFeature<?, ?>> feature,
+            Holder<Feature> feature,
             int rarity
     ) {
         PlacementUtils.register(
@@ -278,7 +278,7 @@ public final class DWMPlacedFeatureBootstrap {
                 PlacementUtils.HEIGHTMAP,
                 BiomeFilter.biome(),
                 CountPlacement.of(64),
-                RandomOffsetPlacement.ofTriangle(7, 3),
+                OffsetPlacement.ofTriangle(7, 3),
                 BlockPredicateFilter.forPredicate(BlockPredicate.ONLY_IN_AIR_PREDICATE)
         );
     }
@@ -286,7 +286,7 @@ public final class DWMPlacedFeatureBootstrap {
     private static void registerSaccharineCane(
             BootstrapContext<PlacedFeature> registerable,
             ResourceKey<PlacedFeature> key,
-            Holder<ConfiguredFeature<?, ?>> feature,
+            Holder<Feature> feature,
             int rarity
     ) {
         PlacementUtils.register(
@@ -298,7 +298,7 @@ public final class DWMPlacedFeatureBootstrap {
                 PlacementUtils.HEIGHTMAP,
                 BiomeFilter.biome(),
                 CountPlacement.of(20),
-                RandomOffsetPlacement.ofTriangle(4, 0),
+                OffsetPlacement.ofTriangle(4, 0),
                 BlockPredicateFilter.forPredicate(
                         BlockPredicate.allOf(
                                 BlockPredicate.ONLY_IN_AIR_PREDICATE,

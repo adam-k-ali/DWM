@@ -40,26 +40,25 @@ public class TardisGlobeSpecialRenderer implements NoDataSpecialModelRenderer {
         // JSON item space: corner origin with XZ centered via +0.5; 180° Y so the
         // ring face (thin Z profile) presents to vanilla GUI [30, 225, 0].
         poseStack.translate(0.5, 0.0, 0.5);
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-        submitNodeCollector.order(0).submitModel(
-                this.model,
-                this.animState,
-                poseStack,
-                TardisGlobeModel.TEXTURE_LOCATION,
-                lightCoords,
-                overlayCoords,
-                outlineColor,
-                null);
+        poseStack.rotateDegrees(Axis.YP, 180.0F);
         if (hasFoil) {
-            submitNodeCollector.order(1).submitModel(
+            submitNodeCollector.order(0).submitModel(
                     this.model,
                     this.animState,
                     poseStack,
-                    RenderTypes.entityGlint(),
+                    RenderTypes.entitySolidGlint(TardisGlobeModel.TEXTURE_LOCATION),
                     lightCoords,
                     overlayCoords,
-                    outlineColor,
-                    null);
+                    outlineColor);
+        } else {
+            submitNodeCollector.order(0).submitModel(
+                    this.model,
+                    this.animState,
+                    poseStack,
+                    TardisGlobeModel.TEXTURE_LOCATION,
+                    lightCoords,
+                    overlayCoords,
+                    outlineColor);
         }
         poseStack.popPose();
     }

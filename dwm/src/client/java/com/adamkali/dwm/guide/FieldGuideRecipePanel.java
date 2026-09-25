@@ -317,7 +317,7 @@ public final class FieldGuideRecipePanel {
         if (client.getSingleplayerServer() != null) {
             return SlotDisplayContext.fromLevel(client.getSingleplayerServer().overworld());
         }
-        return new ContextMap.Builder().create(SlotDisplayContext.CONTEXT);
+        return ContextMap.builder().buildAndValidate(SlotDisplayContext.CONTEXT);
     }
 
     private static Optional<RecipeHolder<?>> recipeHolder(Minecraft client, Identifier recipeId) {

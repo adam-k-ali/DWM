@@ -10,8 +10,8 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.EnchantedCountIncreaseFunction;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
-import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
-import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
+import net.minecraft.world.level.storage.loot.providers.number.floats.ContextFloatProviders;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
 import java.util.concurrent.CompletableFuture;
 
 public class DWMEntityLootTableProvider extends FabricEntityLootSubProvider {
@@ -25,12 +25,12 @@ public class DWMEntityLootTableProvider extends FabricEntityLootSubProvider {
                 DWMEntityTypes.BROAKIR,
                 LootTable.lootTable().withPool(
                         LootPool.lootPool()
-                                .setRolls(ConstantValue.exactly(1.0F))
+                                .setRolls(ContextIntProviders.exactly(1))
                                 .add(LootItem.lootTableItem(Items.LEATHER)
-                                        .apply(SetItemCountFunction.setCount(UniformGenerator.between(0.0F, 2.0F)))
+                                        .apply(SetItemCountFunction.setCount(ContextIntProviders.between(0, 2)))
                                         .apply(EnchantedCountIncreaseFunction.lootingMultiplier(
-                                                this.registries,
-                                                UniformGenerator.between(0.0F, 1.0F)
+                                                this.enchantments,
+                                                ContextFloatProviders.between(0.0F, 1.0F)
                                         )))
                 )
         );
@@ -41,12 +41,12 @@ public class DWMEntityLootTableProvider extends FabricEntityLootSubProvider {
                 DWMEntityTypes.MEWING_DOG,
                 LootTable.lootTable().withPool(
                         LootPool.lootPool()
-                                .setRolls(ConstantValue.exactly(1.0F))
+                                .setRolls(ContextIntProviders.exactly(1))
                                 .add(LootItem.lootTableItem(Items.LEATHER)
-                                        .apply(SetItemCountFunction.setCount(UniformGenerator.between(0.0F, 2.0F)))
+                                        .apply(SetItemCountFunction.setCount(ContextIntProviders.between(0, 2)))
                                         .apply(EnchantedCountIncreaseFunction.lootingMultiplier(
-                                                this.registries,
-                                                UniformGenerator.between(0.0F, 1.0F)
+                                                this.enchantments,
+                                                ContextFloatProviders.between(0.0F, 1.0F)
                                         )))
                 )
         );

@@ -6,7 +6,7 @@ import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors.EffectsKind;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;

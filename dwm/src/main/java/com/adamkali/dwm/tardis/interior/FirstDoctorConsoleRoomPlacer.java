@@ -147,7 +147,7 @@ public final class FirstDoctorConsoleRoomPlacer {
 
     private static boolean tryPlaceFromTemplate(ServerLevel world, BlockPos origin) {
         Optional<StructureTemplate> structure = world.getServer()
-                .getStructureManager()
+                .getStructureTemplateManager()
                 .get(TardisDimensions.CONSOLE_ROOM_STRUCTURE_ID);
         if (structure.isEmpty()) {
             return false;

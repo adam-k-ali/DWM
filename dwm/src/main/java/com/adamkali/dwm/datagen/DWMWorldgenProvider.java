@@ -17,7 +17,7 @@ public class DWMWorldgenProvider extends FabricDynamicRegistryProvider {
 
     @Override
     protected void configure(HolderLookup.Provider registries, Entries entries) {
-        addModEntries(registries, entries, Registries.CONFIGURED_FEATURE);
+        addModEntries(registries, entries, Registries.FEATURE);
         addModEntries(registries, entries, Registries.PLACED_FEATURE);
         addModEntries(registries, entries, Registries.BIOME);
         addModEntries(registries, entries, Registries.NOISE_SETTINGS);
