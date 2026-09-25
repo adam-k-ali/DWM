@@ -20,8 +20,8 @@ pluginManagement {
 
 ```groovy
 plugins {
-    id 'net.fabricmc.fabric-loom' version '1.17-SNAPSHOT'
-    id 'com.adamkali.screenplay' version '1.0.0+26.2'
+    id 'net.fabricmc.fabric-loom' version '1.17.21'
+    id 'com.adamkali.screenplay' version '1.0.0+26.3'
 }
 
 java {
@@ -41,7 +41,7 @@ That is the whole Gradle install. The plugin:
 
 No `runtimeOnly` line and no `screenplay { }` block are required. See the [Gradle plugin reference](reference/gradle-plugin.md) for optional extension fields.
 
-Use a Screenplay version whose `+` suffix matches your Minecraft version (this example is Minecraft `26.2`).
+Use a Screenplay version whose `+` suffix matches your Minecraft version (this example is Minecraft `26.3`).
 
 ## 2. Add a scenario
 

@@ -85,10 +85,10 @@ jobs:
           _JAVA_OPTIONS: -Xmx3200m
           GRADLE_OPTS: -Dorg.gradle.daemon=false
 
-      - name: Build Screenplay Forge / NeoForge
+      - name: Build Screenplay NeoForge
         working-directory: screenplay
         run: |
-          ./gradlew -p loaders :forge:build :neoforge:build
+          ./gradlew -p loaders :neoforge:build
         env:
           _JAVA_OPTIONS: -Xmx3200m
           GRADLE_OPTS: -Dorg.gradle.daemon=false

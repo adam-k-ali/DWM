@@ -38,7 +38,7 @@ jobs:
           if not re.fullmatch(r"\d+\.\d+\.\d+\+\d+\.\d+(?:\.\d+)?", latest):
               raise SystemExit(
                   f"promos.latest {latest!r} does not match "
-                  "screenplay_version (e.g. 1.0.0+26.2)"
+                  "screenplay_version (e.g. 1.0.0+26.3)"
               )
 
           tag = f"screenplay-v{latest}"

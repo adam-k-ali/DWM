@@ -3,7 +3,7 @@
 Plugin ID: `com.adamkali.screenplay`
 
 Published to the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/com.adamkali.screenplay).
-The plugin version matches the loader jars (for example `1.0.0+26.2`). Applying it is enough
+The plugin version matches the loader jars (for example `1.0.0+26.3`). Applying it is enough
 for a Fabric, Forge, or NeoForge project:
 
 - Detects the loader plugin

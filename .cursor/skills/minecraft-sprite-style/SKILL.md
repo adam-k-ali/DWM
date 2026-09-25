@@ -51,7 +51,7 @@ Mojang assets. Vanilla files are for **study only** (Mojang EULA).
 
 ## Study vanilla (runtime)
 
-Resolve the jar from `minecraft_version` in `dwm/gradle.properties` (e.g. `26.2`):
+Resolve the jar from `minecraft_version` in `dwm/gradle.properties` (e.g. `26.3`):
 
 ```bash
 MC_VER=$(grep -E '^minecraft_version=' dwm/gradle.properties | cut -d= -f2)
