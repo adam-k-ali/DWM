@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:mossy_gallifrey_stone_bricks"
+        "recipes": "dwm:mossy_gallifrey_stone_bricks"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

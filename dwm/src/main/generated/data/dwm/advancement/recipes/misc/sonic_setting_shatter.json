@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:sonic_setting_shatter"
+        "recipes": "dwm:sonic_setting_shatter"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

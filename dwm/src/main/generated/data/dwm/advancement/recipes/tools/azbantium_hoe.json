@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:azbantium_hoe"
+        "recipes": "dwm:azbantium_hoe"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

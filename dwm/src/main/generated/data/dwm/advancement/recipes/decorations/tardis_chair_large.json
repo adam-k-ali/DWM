@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:tardis_chair_large"
+        "recipes": "dwm:tardis_chair_large"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

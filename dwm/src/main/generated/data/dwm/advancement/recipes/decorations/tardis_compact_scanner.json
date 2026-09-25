@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:tardis_compact_scanner"
+        "recipes": "dwm:tardis_compact_scanner"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

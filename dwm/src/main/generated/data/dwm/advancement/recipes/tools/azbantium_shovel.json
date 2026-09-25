@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:azbantium_shovel"
+        "recipes": "dwm:azbantium_shovel"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

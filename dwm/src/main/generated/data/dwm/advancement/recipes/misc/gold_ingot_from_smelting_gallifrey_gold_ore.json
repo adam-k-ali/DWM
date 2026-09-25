@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:gold_ingot_from_smelting_gallifrey_gold_ore"
+        "recipes": "dwm:gold_ingot_from_smelting_gallifrey_gold_ore"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

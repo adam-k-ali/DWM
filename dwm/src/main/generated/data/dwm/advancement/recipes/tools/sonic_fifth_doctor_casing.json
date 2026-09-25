@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:sonic_fifth_doctor_casing"
+        "recipes": "dwm:sonic_fifth_doctor_casing"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

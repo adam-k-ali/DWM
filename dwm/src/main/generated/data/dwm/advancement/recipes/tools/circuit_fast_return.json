@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:circuit_fast_return"
+        "recipes": "dwm:circuit_fast_return"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

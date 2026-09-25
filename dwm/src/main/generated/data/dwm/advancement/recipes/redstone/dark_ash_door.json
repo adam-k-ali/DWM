@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:dark_ash_door"
+        "recipes": "dwm:dark_ash_door"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

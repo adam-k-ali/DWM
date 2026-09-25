@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:petrified_planks"
+        "recipes": "dwm:petrified_planks"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

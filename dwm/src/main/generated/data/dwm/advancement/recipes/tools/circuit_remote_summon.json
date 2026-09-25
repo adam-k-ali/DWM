@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:circuit_remote_summon"
+        "recipes": "dwm:circuit_remote_summon"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

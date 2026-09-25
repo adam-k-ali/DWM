@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:ash_stairs"
+        "recipes": "dwm:ash_stairs"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

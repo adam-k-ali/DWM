@@ -2,27 +2,23 @@
   "type": "minecraft:block",
   "pools": [
     {
-      "conditions": [
-        {
-          "condition": "minecraft:survives_explosion"
-        }
-      ],
+      "condition": {
+        "type": "minecraft:survives_explosion"
+      },
       "entries": [
         {
           "type": "minecraft:item",
-          "conditions": [
-            {
-              "block": "dwm:cardinal_door",
-              "condition": "minecraft:block_state_property",
-              "properties": {
-                "segment": "bottom"
-              }
+          "condition": {
+            "type": "minecraft:match_block",
+            "blocks": "dwm:cardinal_door",
+            "state": {
+              "segment": "bottom"
             }
-          ],
+          },
           "name": "dwm:cardinal_door"
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     }
   ]
 }

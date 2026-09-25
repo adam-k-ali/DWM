@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:stattenheim_remote"
+        "recipes": "dwm:stattenheim_remote"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

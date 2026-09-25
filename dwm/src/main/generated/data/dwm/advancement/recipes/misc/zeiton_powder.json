@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:zeiton_powder"
+        "recipes": "dwm:zeiton_powder"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

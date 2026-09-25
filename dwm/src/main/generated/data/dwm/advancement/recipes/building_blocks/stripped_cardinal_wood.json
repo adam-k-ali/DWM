@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:stripped_cardinal_wood"
+        "recipes": "dwm:stripped_cardinal_wood"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

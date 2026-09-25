@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:gallifrey_mossy_cobblestone_stairs"
+        "recipes": "dwm:gallifrey_mossy_cobblestone_stairs"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

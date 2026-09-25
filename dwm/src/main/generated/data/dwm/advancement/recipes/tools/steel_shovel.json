@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:steel_shovel"
+        "recipes": "dwm:steel_shovel"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

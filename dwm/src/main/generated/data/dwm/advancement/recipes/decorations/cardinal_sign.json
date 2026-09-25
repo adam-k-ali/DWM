@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:cardinal_sign"
+        "recipes": "dwm:cardinal_sign"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

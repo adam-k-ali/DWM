@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:dark_ash_planks"
+        "recipes": "dwm:dark_ash_planks"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

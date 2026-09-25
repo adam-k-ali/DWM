@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:circuit_cloak"
+        "recipes": "dwm:circuit_cloak"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

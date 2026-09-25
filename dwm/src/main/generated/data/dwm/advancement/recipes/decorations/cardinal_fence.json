@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:cardinal_fence"
+        "recipes": "dwm:cardinal_fence"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

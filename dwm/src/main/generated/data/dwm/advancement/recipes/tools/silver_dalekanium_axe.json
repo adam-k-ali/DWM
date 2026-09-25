@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:silver_dalekanium_axe"
+        "recipes": "dwm:silver_dalekanium_axe"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

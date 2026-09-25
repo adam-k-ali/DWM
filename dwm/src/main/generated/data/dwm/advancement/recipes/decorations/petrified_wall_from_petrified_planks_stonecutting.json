@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:petrified_wall_from_petrified_planks_stonecutting"
+        "recipes": "dwm:petrified_wall_from_petrified_planks_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

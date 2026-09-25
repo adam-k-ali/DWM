@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:citadel_tile_from_citadel_wall_stonecutting"
+        "recipes": "dwm:citadel_tile_from_citadel_wall_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

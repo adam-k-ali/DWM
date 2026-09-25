@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:cardinal_wood"
+        "recipes": "dwm:cardinal_wood"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "dwm:ash_trapdoor"
+        "recipes": "dwm:ash_trapdoor"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
