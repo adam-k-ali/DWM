@@ -8,7 +8,7 @@
     "added": [],
     "changed": [
       "Minecraft 26.3 / Fabric Loader 0.19.5 / Loom 1.17.21",
-      "NeoForge 26.3.0.16-beta",
+      "NeoForge 26.3.0.21-beta",
       "InputConstants.isKeyDown(int) mixin for SDL"
     ],
     "removed": [
