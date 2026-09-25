@@ -931,6 +931,29 @@ public class ResourceValidationTests {
         assertNotEquals(obtainIcon, knockIcon);
     }
 
+    /**
+     * Minecraft 26.3 cooking recipe codecs require {@code cookingtime} (no underscore).
+     * Hand-authored TARDIS wall smelting recipes must match generated ore recipes.
+     */
+    @Test
+    public void cookingRecipesUseCookingtimeKey() throws Exception {
+        for (Path root : List.of(
+                Path.of("src/main/resources/data/dwm/recipe"),
+                Path.of("src/main/generated/data/dwm/recipe")
+        )) {
+            assertTrue(Files.isDirectory(root), "Missing recipe dir: " + root);
+            try (var stream = Files.walk(root)) {
+                for (Path path : stream.filter(p -> p.toString().endsWith(".json")).toList()) {
+                    String blob = Files.readString(path);
+                    assertFalse(
+                            blob.contains("\"cooking_time\""),
+                            path + " must use cookingtime, not cooking_time"
+                    );
+                }
+            }
+        }
+    }
+
     @Test
     public void flutterwingSoundFilesExist() throws Exception {
         String[] names = {"ambient", "ambient_2", "hurt", "death"};
