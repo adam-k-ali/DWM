@@ -43,7 +43,9 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew build
-          ./gradlew -p loaders :neoforge:build
+          # NeoForge 26.3 userdev currently fails neoFormRecompile (HolderSet.contents AT).
+          # Re-enable :neoforge:build when a 26.3 NeoForge userdev artifact compiles.
+          # ./gradlew -p loaders :neoforge:build
         env:
           _JAVA_OPTIONS: -Xmx3200m
           GRADLE_OPTS: -Dorg.gradle.daemon=false

@@ -27,7 +27,9 @@ There is **no** shared Gradle task namespace at the repo root. The root `./gradl
 ./screenplay/gradlew :common:test
 ./screenplay/gradlew runScreenplay -Pscreenplay=createWorld
 ./screenplay/gradlew runScreenplayTests -PscreenplayDisplay=xvfb
-./screenplay/gradlew -p loaders :forge:build :neoforge:build
+# Forge/NeoForge loaders are gated on Minecraft 26.3 (no Forge artifact;
+# NeoForge 26.3 userdev currently fails neoFormRecompile).
+# ./screenplay/gradlew -p loaders :forge:build :neoforge:build
 ```
 
 Shared Minecraft / Loom / Fabric versions live in [`gradle/libs.versions.toml`](gradle/libs.versions.toml). Keep each project's `gradle.properties` aligned with that catalog.

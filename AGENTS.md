@@ -117,7 +117,7 @@ DWM and Screenplay Fabric use **Mojang official mappings** for the Minecraft ver
   - `./screenplay/gradlew :common:test` — Screenplay compiler/primitives
   - `./screenplay/gradlew -p gradle-plugin test` — Gradle plugin unit tests
   - `./screenplay/gradlew build` — Screenplay Fabric artifact
-  - `./screenplay/gradlew -p loaders :forge:build :neoforge:build` — Forge/NeoForge artifacts
+  - `./screenplay/gradlew -p loaders :forge:build :neoforge:build` — Forge/NeoForge artifacts (gated on Minecraft 26.3: no Forge artifact; NeoForge userdev currently fails `neoFormRecompile`)
   - `./dwm/gradlew runDatagen` — regenerate `dwm/src/main/generated/` (only when datagen providers or promoted assets change); finalized by `pruneDatagenItemModels`
   - `./dwm/gradlew runGametest` — headless GameTests → `dwm/build/gametest/report.xml`
   - `./dwm/gradlew runScreenplay -Pscreenplay=<yaml-stem>` — DWM client YAML scenarios → `dwm/build/screenplay/report.xml`

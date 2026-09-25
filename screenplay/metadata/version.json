@@ -4,15 +4,15 @@
     "recommended": "1.0.0+26.3"
   },
   "1.0.0+26.3": {
-    "summary": "Port Screenplay to Minecraft 26.3 — Fabric Loader 0.19.5, NeoForge 26.3 beta, SDL InputConstants; Forge gated until a 26.3 artifact exists.",
+    "summary": "Port Screenplay to Minecraft 26.3 — Fabric Loader 0.19.5, SDL InputConstants; Forge and NeoForge loaders gated until their 26.3 userdev toolchains compile.",
     "added": [],
     "changed": [
       "Minecraft 26.3 / Fabric Loader 0.19.5 / Loom 1.17.21",
-      "NeoForge 26.3.0.21-beta",
       "InputConstants.isKeyDown(int) mixin for SDL"
     ],
     "removed": [
-      "Forge loader jar is not published for 26.3 (no Forge 26.3 artifact yet)"
+      "Forge loader jar is not published for 26.3 (no Forge 26.3 artifact yet)",
+      "NeoForge loader jar is gated: 26.3.0.21-beta userdev fails neoFormRecompile (HolderSet.contents access transformer)"
     ]
   },
   "1.0.0+26.2": {

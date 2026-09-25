@@ -245,7 +245,7 @@
       "changed": [
         "Misc: Minecraft 26.3 runtime baseline",
         "Misc: Updated Fabric Loader, Loom, Fabric API, Cloth Config, and Mod Menu for 26.3",
-        "Misc: Screenplay harness version 1.0.0+26.3 (NeoForge 26.3 beta; Forge gated until a 26.3 artifact exists)"
+        "Misc: Screenplay harness version 1.0.0+26.3 (Forge and NeoForge loaders gated on 26.3 userdev)"
       ],
       "removed": []
     }
