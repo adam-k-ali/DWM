@@ -510,17 +510,16 @@ public class CardinalWoodFamilyGameTests {
         if (removed) {
             block.destroy(world, abs, brokenState);
         }
-        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer
-                && !serverPlayer.isCreative()
+        if (!player.isCreative()
                 && removed
-                && serverPlayer.hasCorrectToolForDrops(brokenState)) {
+                && player.hasCorrectToolForDrops(brokenState)) {
             block.playerDestroy(
                     world,
-                    serverPlayer,
+                    player,
                     abs,
                     brokenState,
                     blockEntity,
-                    serverPlayer.getMainHandItem().copy()
+                    player.getMainHandItem().copy()
             );
         }
     }
