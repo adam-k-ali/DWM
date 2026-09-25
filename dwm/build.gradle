@@ -221,7 +221,7 @@ java {
     withSourcesJar()
 
     // Require/provision JDK 25 so Gradle does not silently compile/run against an older JVM
-    // (Minecraft 26.2 is Java 25 bytecode / class file major version 69).
+    // (Minecraft 26.3 is Java 25 bytecode / class file major version 69).
     toolchain {
         languageVersion = JavaLanguageVersion.of(25)
     }
