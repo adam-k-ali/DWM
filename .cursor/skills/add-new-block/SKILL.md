@@ -104,6 +104,6 @@ instead of expanding this skill.
 ## Out of scope
 
 - Drawing sprites (use [minecraft-sprite-style](../minecraft-sprite-style/SKILL.md))
-- Non-block items (remain in `DWMItems`)
+- Non-block items (use [add-new-item](../add-new-item/SKILL.md); they remain in `DWMItems`)
 - TARDIS travel, interiors, portals, chameleon (tardis `AGENTS.md`)
 - Blockbench mesh authoring (this skill only says where JSON lands)

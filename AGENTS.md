@@ -184,6 +184,7 @@ A single PR may carry more than one label if it touches multiple categories.
 - `.cursor/skills/asset-import-pipeline/SKILL.md` — promoting archive textures and wiring datagen.
 - `.cursor/skills/refine/SKILL.md` — refine GitHub issues (`DWM-NNN` / `E-NNN`) into build-ready descriptions via `gh`; Project Status → `Ready` only when confirmed.
 - `.cursor/skills/add-new-block/SKILL.md` — register and datagen-wire a new DWM block (cube, family, hand-modeled, or block entity).
+- `.cursor/skills/add-new-item/SKILL.md` — register and datagen-wire a new DWM item (flat ingredient, tool/armor/spawn egg, hand-modeled, or gameplay subclass).
 
 ## Cursor Cloud specific instructions
 
