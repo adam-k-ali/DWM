@@ -88,7 +88,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
                 "Use the console to pick a destination and take a short same-world flight. Watch the scanner and wait for landing before leaving.");
         t.add("dwm.guide.page.bind_key.title", "Bind a Key");
         t.add("dwm.guide.page.bind_key.body",
-                "Craft a TARDIS key and use it on your ship to bind it. Bound keys recall that TARDIS from the Stattenheim remote.");
+                "Craft a TARDIS key from gold nuggets and iron. After you claim the ship, hold the key and right-click the closed exterior or interior doors. The first use binds it. Later uses lock or unlock those doors. Anyone holding that bound key can toggle the lock from the doors or the console door lock.");
 
         t.add("dwm.guide.chapter.sonic", "Sonic Toolkit");
         t.add("dwm.guide.page.craft_sonic.title", "Craft a Sonic");
