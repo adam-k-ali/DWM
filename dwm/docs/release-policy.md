@@ -106,53 +106,9 @@ Ship a patch immediately for:
 
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
-| [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | `pull_request`, push to `main` | `./dwm/gradlew build` and `./screenplay/gradlew build` (compile + unit tests + version sync check) |
+| [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | `pull_request`, push to `main` | `./dwm/gradlew build` (compile + unit tests + version sync check) |
 | [`.github/workflows/create-release-tag.yml`](../../.github/workflows/create-release-tag.yml) | `workflow_dispatch` | Create and push `v*` tag from `version.json` `promos.latest` if missing; then dispatch Release |
 | [`.github/workflows/release.yml`](../../.github/workflows/release.yml) | push of tags `v*`, or `workflow_dispatch` | Build; publish GitHub Release, Modrinth version, CurseForge file, and Discord announcement from `version.json` |
 | [`.github/workflows/sync-modrinth-project.yml`](../../.github/workflows/sync-modrinth-project.yml) | `workflow_dispatch` | PATCH Modrinth project listing from [`metadata/`](../metadata/) (Modrinth only; CurseForge listing stays manual) |
 
 CircleCI is retired; do not add draft GitHub releases on every `main` merge.
-
-## Screenplay releases
-
-Screenplay (Modrinth project `RdazTKdM`, slug `screenplay`) is published separately from DWM. Do not use DWM `v*` tags for Screenplay.
-
-Public release id and git tag:
-
-```text
-screenplay-v{screenplay_version}
-```
-
-Example: `screenplay-v1.0.0+26.2` → Gradle `screenplay_version` `1.0.0+26.2` (Minecraft from `minecraft_version` / the `+26.2` suffix).
-
-| Field | Source |
-| --- | --- |
-| `screenplay_version` | [`screenplay/gradle.properties`](../../screenplay/gradle.properties) |
-| Changelog + promos | [`screenplay/metadata/version.json`](../../screenplay/metadata/version.json) |
-| Listing drafts | [`screenplay/metadata/`](../../screenplay/metadata/) (`modrinth.json` + `modrinth-body.md`; no `discord_url`) |
-
-### Screenplay distribution checklist
-
-1. On `main`, bump `screenplay_version` in `screenplay/gradle.properties` (and `screenplay/loaders/gradle.properties` when needed). Keep [`gradle/libs.versions.toml`](../../gradle/libs.versions.toml) aligned.
-2. Fill `summary` and `added` / `changed` / `removed` for the new version in `screenplay/metadata/version.json`, and set `promos.latest` / `promos.recommended`.
-3. Confirm `./screenplay/gradlew build` and `./screenplay/gradlew -p loaders :forge:build :neoforge:build` are green.
-4. Commit, merge to `main`, then create and push tag `screenplay-v{screenplay_version}` (manually, or via **Create Screenplay Release Tag**).
-5. Confirm **Release Screenplay** succeeds:
-   - GitHub Release with Fabric, Forge, and NeoForge jars and notes from `screenplay/metadata/version.json`
-   - Gradle plugin `com.adamkali.screenplay` published to the Plugin Portal at the same `screenplay_version`
-   - Modrinth multi-loader version upload to project `RdazTKdM` (Fabric API optional dependency)
-6. Optionally run **Sync Modrinth Screenplay** to PATCH the listing from `screenplay/metadata/` (Discord stays blank).
-
-Uses the same `MODRINTH_TOKEN` secret as DWM (`VERSION_CREATE` for releases, `PROJECT_WRITE` for listing sync). No CurseForge or Discord announce for Screenplay.
-
-| Secret | Purpose |
-| --- | --- |
-| `MODRINTH_TOKEN` | Shared with DWM |
-| `GRADLE_PUBLISH_KEY` | Gradle Plugin Portal publish key for `com.adamkali.screenplay` |
-| `GRADLE_PUBLISH_SECRET` | Gradle Plugin Portal publish secret |
-
-| Workflow | Trigger | Purpose |
-| --- | --- | --- |
-| [`.github/workflows/create-screenplay-release-tag.yml`](../../.github/workflows/create-screenplay-release-tag.yml) | `workflow_dispatch` | Create and push `screenplay-v*` from `screenplay/metadata/version.json` `promos.latest` if missing; then dispatch Release Screenplay |
-| [`.github/workflows/release-screenplay.yml`](../../.github/workflows/release-screenplay.yml) | push of tags `screenplay-v*`, or `workflow_dispatch` | Build loader jars; publish GitHub Release, Plugin Portal plugin, and Modrinth version |
-| [`.github/workflows/sync-modrinth-screenplay.yml`](../../.github/workflows/sync-modrinth-screenplay.yml) | `workflow_dispatch` | PATCH Modrinth Screenplay listing from [`screenplay/metadata/`](../../screenplay/metadata/) |

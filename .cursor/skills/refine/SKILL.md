@@ -1,12 +1,12 @@
 ---
 name: refine-github-issue
 description: >-
-  Refine under-planned GitHub issues for DWM (and Screenplay in this repo) into
+  Refine under-planned GitHub issues for DWM into
   build-ready tickets. Use when asked to flesh out, refine, or plan a GitHub
   issue (DWM-NNN, E-NNN, #123, or issue URL): update the description via gh, list
   files to create or change, reconcile related issues and comments, and
   optionally set Project Status to Ready after confirmation. Documentation-only
-  — no mod/harness code changes unless the user explicitly asks.
+  — no mod code changes unless the user explicitly asks.
 ---
 
 # Refine GitHub Issue (DWM)
@@ -17,9 +17,9 @@ refine issue, flesh out ticket, under-planned, build-ready, DWM-, E-, GitHub iss
 
 ## Overview
 
-Transform an under-refined GitHub issue into a **build-ready** ticket for this monorepo: reconcile comments and related issues, explore the codebase read-only, present a plan for approval, then update the issue **body** via `gh`.
+Transform an under-refined GitHub issue into a **build-ready** ticket for DWM: reconcile comments and related issues, explore the codebase read-only, present a plan for approval, then update the issue **body** via `gh`.
 
-**Output:** updated GitHub issue description (and Project Status only if that run’s confirmation includes it). Not Java, assets, or YAML implementation.
+**Output:** updated GitHub issue description (and Project Status only if that run’s confirmation includes it). Not Java or asset implementation.
 
 **Read references on demand:**
 
@@ -28,7 +28,7 @@ Transform an under-refined GitHub issue into a **build-ready** ticket for this m
 | [description-template.md](references/description-template.md) | Writing the final issue markdown |
 | [github.md](references/github.md) | Fetching, resolving IDs, saving bodies, project fields |
 
-**Do not duplicate live repo knowledge in this skill.** Link to [AGENTS.md](../../../AGENTS.md) and read the codebase at refinement time. For test-layer choices, link (do not copy) [fabric-gametest](../fabric-gametest/SKILL.md), [minecraft-mcp-verify](../minecraft-mcp-verify/SKILL.md), and [dwm/src/screenplayTests/AGENTS.md](../../../dwm/src/screenplayTests/AGENTS.md).
+**Do not duplicate live repo knowledge in this skill.** Link to [AGENTS.md](../../../AGENTS.md) and read the codebase at refinement time. For test-layer choices, link (do not copy) [fabric-gametest](../fabric-gametest/SKILL.md) and [minecraft-mcp-verify](../minecraft-mcp-verify/SKILL.md).
 
 Gold-standard ticket body: [DWM-061](https://github.com/adam-k-ali/DWM/issues/202). Gold-standard epic: [E-006](https://github.com/adam-k-ali/DWM/issues/195).
 
@@ -49,7 +49,7 @@ If the identifier is missing, ask once before proceeding.
 | Allowed | Forbidden |
 |---------|-----------|
 | Read-only repo exploration (`Read`, `Grep`, `Glob`, readonly subagents) | Branch, commit, push, or PR **for refinement** |
-| `gh issue` / `gh project` per [github.md](references/github.md) | Edit mod/harness source, datagen, installs |
+| `gh issue` / `gh project` per [github.md](references/github.md) | Edit mod source, datagen, installs |
 | Temp files under `/tmp/` for `--body-file` | Paste secrets, `.env` values, or credentials into issues |
 
 **Default writes:** **description (body) only.** Do not change `title`, labels, assignees, milestone, Size, or Priority unless the user explicitly asks.
@@ -76,11 +76,11 @@ Follow these phases in order. **Present the refinement plan (Phase 3) and wait f
 
 ### Phase 2 — Codebase reconnaissance (read-only)
 
-1. Read [AGENTS.md](../../../AGENTS.md). Identify DWM vs Screenplay vs client-only vs data-driven vs test-only.
+1. Read [AGENTS.md](../../../AGENTS.md). Identify common vs client-only vs data-driven vs test-only.
 2. Read `dwm/docs/feature-*.md` (and [differentiation-strategy.md](../../../dwm/docs/differentiation-strategy.md)) when the ticket names a player-facing system.
-3. Search the **live codebase** using the issue title, item IDs, overlay strings, and feature names. Find analogous items, blocks, payloads, GameTests, and Screenplay YAML. Let findings drive the file list — **no hardcoded path checklist**.
+3. Search the **live codebase** using the issue title, item IDs, overlay strings, and feature names. Find analogous items, blocks, payloads, and GameTests. Let findings drive the file list — **no hardcoded path checklist**.
 4. In the ticket, label findings **Verified in codebase** vs **Inferred**.
-5. Pick the Gradle wrapper (`./dwm/gradlew` vs `./screenplay/gradlew`) and test layers (JUnit / GameTest / Screenplay / MCP) from live evidence.
+5. Use `./dwm/gradlew` and pick test layers (JUnit / GameTest / MCP) from live evidence.
 
 ### Phase 3 — Present refinement plan (approval gate)
 
