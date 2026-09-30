@@ -1,0 +1,57 @@
+{
+  "entity": "dwm:mewing_dog",
+  "attribute_base": "animal",
+  "attributes": {
+    "minecraft:movement_speed": 0.3,
+    "minecraft:max_health": 8.0,
+    "minecraft:attack_damage": 2.0
+  },
+  "attribute_overrides": {
+    "tamed": {
+      "minecraft:max_health": 40.0
+    }
+  },
+  "goals": [
+    { "type": "minecraft:float", "priority": 1 },
+    {
+      "type": "dwm:tamable_panic",
+      "priority": 1,
+      "speed": 1.5,
+      "damage_types": "minecraft:panic_environmental_causes"
+    },
+    { "type": "minecraft:sit_when_ordered", "priority": 2 },
+    { "type": "minecraft:leap_at_target", "priority": 4, "ydelta": 0.4 },
+    {
+      "type": "minecraft:melee_attack",
+      "priority": 5,
+      "speed": 1.0,
+      "following_if_not_seen": true
+    },
+    {
+      "type": "minecraft:follow_owner",
+      "priority": 6,
+      "speed": 1.0,
+      "start_distance": 10.0,
+      "stop_distance": 2.0
+    },
+    { "type": "minecraft:breed", "priority": 7, "speed": 1.0 },
+    { "type": "minecraft:water_avoiding_random_stroll", "priority": 8, "speed": 1.0 },
+    { "type": "minecraft:look_at", "priority": 10, "target": "minecraft:player", "look_distance": 8.0 },
+    { "type": "minecraft:random_look_around", "priority": 10 }
+  ],
+  "targets": [
+    { "type": "minecraft:owner_hurt_by_target", "priority": 1 },
+    { "type": "minecraft:owner_hurt_target", "priority": 2 },
+    { "type": "minecraft:hurt_by_target", "priority": 3, "alert_others": true },
+    {
+      "type": "minecraft:nearest_attackable_target",
+      "priority": 4,
+      "target": "minecraft:player",
+      "interval": 10,
+      "must_see": true,
+      "must_reach": false,
+      "filter": { "type": "dwm:is_angry_at" }
+    },
+    { "type": "minecraft:reset_universal_anger", "priority": 8, "alert_others": true }
+  ]
+}

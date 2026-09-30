@@ -1,11 +1,14 @@
 package com.adamkali.dwm.entity;
 
+import com.adamkali.dwm.DWMReference;
+import com.adamkali.dwm.entity.definition.EntityDefinitions;
 import com.adamkali.dwm.sound.DWMSounds;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.DifficultyInstance;
@@ -15,22 +18,13 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.FlyingMoveControl;
 import net.minecraft.world.entity.ai.control.MoveControl;
-import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
-import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.RangedAttackGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.RangedAttackMob;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.pathfinder.Path;
@@ -45,6 +39,8 @@ import net.minecraft.world.phys.Vec3;
  * otherwise unreachable on the ground.
  */
 public class DalekEntity extends Monster implements RangedAttackMob {
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "dalek");
+
     private static final EntityDataAccessor<Integer> DATA_VARIANT =
             SynchedEntityData.defineId(DalekEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> DATA_FLYING =
@@ -81,14 +77,7 @@ public class DalekEntity extends Monster implements RangedAttackMob {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Monster.createMonsterAttributes()
-                .add(Attributes.MAX_HEALTH, 30.0)
-                .add(Attributes.MOVEMENT_SPEED, 0.23)
-                .add(Attributes.FLYING_SPEED, 0.4)
-                .add(Attributes.FOLLOW_RANGE, 24.0)
-                .add(Attributes.ATTACK_DAMAGE, 4.0)
-                .add(Attributes.KNOCKBACK_RESISTANCE, 0.9)
-                .add(Attributes.ARMOR, 6.0);
+        return EntityDefinitions.createAttributes(ID);
     }
 
     @Override
@@ -98,20 +87,7 @@ public class DalekEntity extends Monster implements RangedAttackMob {
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(1, new DalekFlightGoal(this, 2.5, 4.0));
-        this.goalSelector.addGoal(2, new RangedAttackGoal(this, 1.0, 40, 16.0F));
-        this.goalSelector.addGoal(3, new WaterAvoidingRandomStrollGoal(this, 1.0) {
-            @Override
-            public boolean canUse() {
-                return !DalekEntity.this.isFlying() && super.canUse();
-            }
-        });
-        this.goalSelector.addGoal(4, new LookAtPlayerGoal(this, Player.class, 8.0F));
-        this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
-        this.targetSelector.addGoal(1, new HurtByTargetGoal(this).setAlertOthers());
-        this.targetSelector.addGoal(2, new DalekShareTargetGoal(this));
-        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        EntityDefinitions.registerGoals(this, this.goalSelector, this.targetSelector);
     }
 
     @Override

@@ -54,6 +54,14 @@ public class ResourceValidationTests {
         ));
     }
 
+    @Test
+    public void validateEntityDefinitions() {
+        assertTrue(JsonValidationHelpers.validateJsonFiles(
+                "src/test/resources/schemas/entity_definition.schema.json",
+                "src/main/resources/data/dwm/entity/definition"
+        ));
+    }
+
     /**
      * Every concrete {@code dwm:} texture in block/item model {@code textures} maps must
      * resolve to a non-empty PNG under client assets. Scans hand-maintained and datagen models.

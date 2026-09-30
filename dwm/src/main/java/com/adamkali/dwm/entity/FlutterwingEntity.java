@@ -1,9 +1,12 @@
 package com.adamkali.dwm.entity;
 
+import com.adamkali.dwm.DWMReference;
+import com.adamkali.dwm.entity.definition.EntityDefinitions;
 import com.adamkali.dwm.sound.DWMSounds;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.DifficultyInstance;
@@ -13,17 +16,10 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.FlyingMoveControl;
-import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
-import net.minecraft.world.entity.ai.goal.PanicGoal;
-import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomFlyingGoal;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -35,6 +31,8 @@ import net.minecraft.world.level.storage.ValueOutput;
  * Gallifrey flying insect. Passive wanderer with four species variants; not rideable or breedable.
  */
 public class FlutterwingEntity extends Animal {
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "flutterwing");
+
     /** Collision and render scale relative to the Blockbench mesh (20% smaller). */
     public static final float SCALE = 0.8F;
 
@@ -49,10 +47,7 @@ public class FlutterwingEntity extends Animal {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createAnimalAttributes()
-                .add(Attributes.MAX_HEALTH, 10.0)
-                .add(Attributes.FLYING_SPEED, 0.6)
-                .add(Attributes.MOVEMENT_SPEED, 0.3);
+        return EntityDefinitions.createAttributes(ID);
     }
 
     @Override
@@ -66,11 +61,7 @@ public class FlutterwingEntity extends Animal {
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(1, new PanicGoal(this, 1.25));
-        this.goalSelector.addGoal(2, new WaterAvoidingRandomFlyingGoal(this, 1.0));
-        this.goalSelector.addGoal(3, new LookAtPlayerGoal(this, Player.class, 8.0F));
-        this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
+        EntityDefinitions.registerGoals(this, this.goalSelector, this.targetSelector);
     }
 
     @Override
