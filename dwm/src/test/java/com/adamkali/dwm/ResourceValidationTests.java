@@ -62,6 +62,48 @@ public class ResourceValidationTests {
         ));
     }
 
+
+    public void validateEntityModels() {
+        assertTrue(JsonValidationHelpers.validateJsonFiles(
+                "src/test/resources/schemas/entity_model.schema.json",
+                "src/client/resources/assets/dwm/models/entity"
+        ));
+    }
+
+    /**
+     * JSON entity meshes name their atlas with {@code texture} (Java Identifier form,
+     * including {@code textures/} and {@code .png}), not a vanilla {@code textures} map.
+     */
+    @Test
+    public void entityModelTexturesExist() throws Exception {
+        Path models = Path.of("src/client/resources/assets/dwm/models/entity");
+        Path assetsRoot = Path.of("src/client/resources/assets");
+        if (!Files.isDirectory(models)) {
+            return;
+        }
+        try (var paths = Files.walk(models).filter(Files::isRegularFile)
+                .filter(path -> path.toString().endsWith(".json"))) {
+            for (Path modelPath : (Iterable<Path>) paths::iterator) {
+                JSONObject json = new JSONObject(new JSONTokener(Files.readString(modelPath)));
+                if (!json.has("texture") || !(json.get("texture") instanceof String textureId)) {
+                    continue;
+                }
+                int colon = textureId.indexOf(':');
+                if (colon < 0) {
+                    fail("Entity model texture is not namespaced: " + textureId + " in " + modelPath);
+                }
+                String namespace = textureId.substring(0, colon);
+                String path = textureId.substring(colon + 1);
+                Path expected = assetsRoot.resolve(namespace).resolve(path);
+                assertTrue(
+                        Files.isRegularFile(expected) && Files.size(expected) > 0,
+                        "Missing entity model texture " + textureId + " -> " + expected
+                                + " referenced by " + modelPath
+                );
+            }
+        }
+    }
+
     /**
      * Every concrete {@code dwm:} texture in block/item model {@code textures} maps must
      * resolve to a non-empty PNG under client assets. Scans hand-maintained and datagen models.
