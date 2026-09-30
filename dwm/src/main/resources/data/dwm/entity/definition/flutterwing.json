@@ -1,0 +1,16 @@
+{
+  "entity": "dwm:flutterwing",
+  "attribute_base": "animal",
+  "attributes": {
+    "minecraft:max_health": 10.0,
+    "minecraft:flying_speed": 0.6,
+    "minecraft:movement_speed": 0.3
+  },
+  "goals": [
+    { "type": "minecraft:float", "priority": 0 },
+    { "type": "minecraft:panic", "priority": 1, "speed": 1.25 },
+    { "type": "minecraft:water_avoiding_random_flying", "priority": 2, "speed": 1.0 },
+    { "type": "minecraft:look_at", "priority": 3, "target": "minecraft:player", "look_distance": 8.0 },
+    { "type": "minecraft:random_look_around", "priority": 4 }
+  ]
+}

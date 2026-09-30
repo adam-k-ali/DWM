@@ -1,0 +1,47 @@
+{
+  "entity": "dwm:dalek",
+  "attribute_base": "monster",
+  "attributes": {
+    "minecraft:max_health": 30.0,
+    "minecraft:movement_speed": 0.23,
+    "minecraft:flying_speed": 0.4,
+    "minecraft:follow_range": 24.0,
+    "minecraft:attack_damage": 4.0,
+    "minecraft:knockback_resistance": 0.9,
+    "minecraft:armor": 6.0
+  },
+  "goals": [
+    { "type": "minecraft:float", "priority": 0 },
+    {
+      "type": "dwm:dalek_flight",
+      "priority": 1,
+      "fly_y_delta": 2.5,
+      "min_distance_for_missing_path": 4.0
+    },
+    {
+      "type": "minecraft:ranged_attack",
+      "priority": 2,
+      "speed": 1.0,
+      "interval": 40,
+      "attack_range": 16.0
+    },
+    {
+      "type": "minecraft:water_avoiding_random_stroll",
+      "priority": 3,
+      "speed": 1.0,
+      "can_use": { "type": "dwm:not_flying" }
+    },
+    { "type": "minecraft:look_at", "priority": 4, "target": "minecraft:player", "look_distance": 8.0 },
+    { "type": "minecraft:random_look_around", "priority": 5 }
+  ],
+  "targets": [
+    { "type": "minecraft:hurt_by_target", "priority": 1, "alert_others": true },
+    { "type": "dwm:dalek_share_target", "priority": 2 },
+    {
+      "type": "minecraft:nearest_attackable_target",
+      "priority": 3,
+      "target": "minecraft:player",
+      "must_see": true
+    }
+  ]
+}

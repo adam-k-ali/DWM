@@ -153,6 +153,7 @@ A single PR may carry more than one label if it touches multiple categories.
 
 ## Nested Context
 - `dwm/src/main/java/com/adamkali/dwm/tardis/AGENTS.md` — TARDIS domain layout (logic vs data vs interior vs portal rendering).
+- `dwm/src/main/java/com/adamkali/dwm/entity/AGENTS.md` — living mob classes vs JSON attribute/AI definitions.
 - `dwm/tools/AGENTS.md` — index for offline Poetry tools; see also `dwm/tools/palette/AGENTS.md` and `dwm/tools/sfx/AGENTS.md`.
 - `.cursor/skills/fabric-gametest/SKILL.md` — authoring and registering Fabric GameTests.
 - `.cursor/skills/asset-import-pipeline/SKILL.md` — promoting archive textures and wiring datagen.
