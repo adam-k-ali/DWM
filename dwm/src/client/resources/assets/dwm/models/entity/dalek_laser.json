@@ -1,0 +1,17 @@
+{
+  "texture_width": 8,
+  "texture_height": 8,
+  "texture": "dwm:textures/entity/dalek/laser.png",
+  "parts": [
+    {
+      "name": "bolt",
+      "cubes": [
+        {
+          "uv": [0, 0],
+          "origin": [-4.0, -0.5, -0.5],
+          "size": [8.0, 1.0, 1.0]
+        }
+      ]
+    }
+  ]
+}

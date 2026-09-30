@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://adam-k-ali.github.io/DWM/schemas/entity_model.schema.json",
+  "type": "object",
+  "title": "DWM Entity Model Schema",
+  "description": "JSON entity/block-entity mesh that compiles to a vanilla LayerDefinition. Cubes use texOffs UV unwrap, not vanilla block-model per-face UV.",
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$"
+    },
+    "vector2i": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "vector3": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "cube": {
+      "type": "object",
+      "properties": {
+        "uv": {
+          "$ref": "#/definitions/vector2i",
+          "description": "texOffs(u, v) atlas origin; faces unwrap from cube size"
+        },
+        "origin": {
+          "$ref": "#/definitions/vector3",
+          "description": "addBox origin (x, y, z)"
+        },
+        "size": {
+          "$ref": "#/definitions/vector3",
+          "description": "addBox size (width, height, depth)"
+        },
+        "inflate": {
+          "type": "number",
+          "description": "CubeDeformation expand; negative shrinks"
+        },
+        "mirror": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "uv",
+        "origin",
+        "size"
+      ]
+    },
+    "part": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "addOrReplaceChild name; must be unique among siblings"
+        },
+        "pivot": {
+          "$ref": "#/definitions/vector3",
+          "description": "PartPose translation"
+        },
+        "rotation": {
+          "$ref": "#/definitions/vector3",
+          "description": "Rest pose rotation in degrees (x, y, z), converted to radians at bake"
+        },
+        "cubes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cube"
+          }
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/part"
+          }
+        }
+      },
+      "required": [
+        "name"
+      ]
+    }
+  },
+  "properties": {
+    "parent": {
+      "$ref": "#/definitions/identifier",
+      "description": "Copy this model then overlay texture/layer (and parts when present). dwm:console_selector or dwm:entity/console_selector both resolve to models/entity/console_selector.json."
+    },
+    "layer": {
+      "type": "string",
+      "minLength": 1,
+      "description": "ModelLayerLocation layer suffix; default main"
+    },
+    "texture_width": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "texture_height": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "texture": {
+      "$ref": "#/definitions/identifier",
+      "description": "Default atlas Identifier, e.g. dwm:textures/entity/tardis_globe.png"
+    },
+    "credit": {
+      "type": "string"
+    },
+    "parts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/part"
+      }
+    }
+  },
+  "anyOf": [
+    {
+      "required": [
+        "parent"
+      ]
+    },
+    {
+      "required": [
+        "texture_width",
+        "texture_height",
+        "parts"
+      ]
+    }
+  ]
+}
