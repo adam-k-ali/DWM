@@ -9,15 +9,3 @@ updates:
     directory: "/dwm"
     schedule:
       interval: "weekly"
-  - package-ecosystem: "gradle"
-    directory: "/screenplay"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "gradle"
-    directory: "/screenplay/gradle-plugin"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "gradle"
-    directory: "/screenplay/loaders"
-    schedule:
-      interval: "weekly"

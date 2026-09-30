@@ -71,13 +71,6 @@ tickets/
 dwm/minecraft-sources/**
 !dwm/minecraft-sources/README.md
 
-# MkDocs local build output
-screenplay/docs/site/
-
-# scenario harness local perf metrics (CI uploads artifacts; never commit run output)
-dwm/build/screenplay/metrics.json
-screenplay/build/screenplay/metrics.json
-
 # local tool venvs
 dwm/tools/*/.venv/
 dwm/tools/**/__pycache__/
