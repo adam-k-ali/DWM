@@ -10,6 +10,7 @@ import com.adamkali.dwm.model.entity.DalekLaserModel;
 import com.adamkali.dwm.model.entity.DalekModel;
 import com.adamkali.dwm.model.entity.FlutterwingModel;
 import com.adamkali.dwm.model.entity.TimeLordModel;
+import com.adamkali.dwm.model.json.JsonEntityModelLayers;
 import com.adamkali.dwm.render.BroakirRenderer;
 import com.adamkali.dwm.render.DalekLaserRenderer;
 import com.adamkali.dwm.render.DalekRenderer;
@@ -58,7 +59,7 @@ public final class DWMEntityRenderers {
         EntityRendererRegistry.register(DWMEntityTypes.TIME_LORD, TimeLordRenderer::new);
         ModelLayerRegistry.registerModelLayer(DalekModel.LAYER_LOCATION, DalekModel::createBodyLayer);
         EntityRendererRegistry.register(DWMEntityTypes.DALEK, DalekRenderer::new);
-        ModelLayerRegistry.registerModelLayer(DalekLaserModel.LAYER_LOCATION, DalekLaserModel::createBodyLayer);
+        JsonEntityModelLayers.register(DalekLaserModel.LAYER_LOCATION);
         EntityRendererRegistry.register(DWMEntityTypes.DALEK_LASER, DalekLaserRenderer::new);
     }
 }

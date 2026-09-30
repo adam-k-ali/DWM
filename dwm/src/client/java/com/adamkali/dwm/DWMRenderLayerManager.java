@@ -1,6 +1,7 @@
 package com.adamkali.dwm;
 
 import com.adamkali.dwm.model.item.RadiationMeterModel;
+import com.adamkali.dwm.model.json.JsonEntityModelLayers;
 import com.adamkali.dwm.model.tileentity.*;
 import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
 
@@ -45,9 +46,7 @@ public class DWMRenderLayerManager {
         ModelLayerRegistry.registerModelLayer(
                 FastReturnModel.LAYER_LOCATION,
                 FastReturnModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
-                StabilisersModel.LAYER_LOCATION,
-                StabilisersModel::getTexturedModelData);
+        JsonEntityModelLayers.register(StabilisersModel.LAYER_LOCATION);
         ModelLayerRegistry.registerModelLayer(
                 ReaderModel.LAYER_LOCATION,
                 ReaderModel::getTexturedModelData);
@@ -66,9 +65,7 @@ public class DWMRenderLayerManager {
         ModelLayerRegistry.registerModelLayer(
                 CoordinateLockModel.LAYER_LOCATION,
                 CoordinateLockModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
-                TardisGlobeModel.LAYER_LOCATION,
-                TardisGlobeModel::getTexturedModelData);
+        JsonEntityModelLayers.register(TardisGlobeModel.LAYER_LOCATION);
         ModelLayerRegistry.registerModelLayer(
                 TardisCompactScannerModel.LAYER_LOCATION,
                 TardisCompactScannerModel::getTexturedModelData);
