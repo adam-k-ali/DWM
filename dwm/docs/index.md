@@ -34,6 +34,9 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 ## Releases
 - [Release Policy](./release-policy.md) (cadence, versioning, Modrinth + CurseForge + Discord checklist, CI)
 
+## Development
+- [JSON entity models](./entity-model-json.md) (client mesh format that replaces Java `CubeListBuilder` trees)
+
 ## Scope Notes
 - These docs describe behavior currently implemented in this repository.
 - Experimental and partially implemented surfaces are explicitly labeled.
