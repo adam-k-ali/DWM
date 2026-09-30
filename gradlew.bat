@@ -1,9 +1,8 @@
 @echo off
-REM Repo-root Gradle shim — this monorepo has two sibling Gradle builds.
-echo This repository is a monorepo with separate Gradle wrappers:
+REM Repo-root Gradle shim — the DWM Gradle wrapper lives under dwm/.
+echo Use the DWM Gradle wrapper:
 echo.
-echo   dwm\gradlew ^<task^>          # The Doctor Who Mod (Fabric)
-echo   screenplay\gradlew ^<task^>   # Screenplay harness (Fabric)
+echo   dwm\gradlew ^<task^>
 echo.
 echo See README.md and AGENTS.md.
 exit /b 1
