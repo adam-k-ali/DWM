@@ -217,6 +217,11 @@ public class FirstHourAdvancementGameTests {
         ItemStack key = new ItemStack(DWMItems.TARDIS_KEY);
         player.setItemInHand(InteractionHand.MAIN_HAND, key);
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(tardisAbs), Direction.UP, tardisAbs, false);
+        InteractionResult yielded = context.getLevel().getBlockState(tardisAbs)
+                .useWithoutItem(context.getLevel(), player, hit);
+        if (yielded.consumesAction()) {
+            throw new AssertionError("Exterior doors must PASS when a TARDIS key is in the main hand");
+        }
         DWMItems.TARDIS_KEY.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
 
         if (!tardisId.equals(key.get(DWMDataComponents.BOUND_TARDIS_ID))) {

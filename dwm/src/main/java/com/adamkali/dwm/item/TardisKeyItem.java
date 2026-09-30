@@ -33,6 +33,15 @@ public class TardisKeyItem extends Item {
         super(properties);
     }
 
+    /**
+     * 26.2 {@code ServerPlayerGameMode.useItemOn} runs {@code Block.useWithoutItem} before
+     * {@code Item.useOn}. Door blocks that consume that call would swallow bind / lock.
+     * GameMode only reaches {@code useWithoutItem} for the main hand.
+     */
+    public static boolean shouldYieldToKey(@Nullable Player player) {
+        return player != null && player.getMainHandItem().getItem() instanceof TardisKeyItem;
+    }
+
     @Override
     public @NonNull InteractionResult useOn(@NonNull UseOnContext context) {
         Level level = context.getLevel();

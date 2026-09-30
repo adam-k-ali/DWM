@@ -363,7 +363,7 @@
   "dwm.guide.item.tooltip": "Use to open the DWM Field Guide. Press G if you lose this book.",
   "dwm.guide.modmenu.needs_world": "Load a world to open the Field Guide",
   "dwm.guide.open_button": "Open Field Guide",
-  "dwm.guide.page.bind_key.body": "Craft a TARDIS key and use it on your ship to bind it. Bound keys recall that TARDIS from the Stattenheim remote.",
+  "dwm.guide.page.bind_key.body": "Craft a TARDIS key from gold nuggets and iron. After you claim the ship, hold the key and right-click the closed exterior or interior doors. The first use binds it. Later uses lock or unlock those doors. Anyone holding that bound key can toggle the lock from the doors or the console door lock.",
   "dwm.guide.page.bind_key.title": "Bind a Key",
   "dwm.guide.page.chronoplasm.body": "Chronoplasm powder is the base interior material. Craft white powder first, then dye copies for coloured panels.",
   "dwm.guide.page.chronoplasm.title": "Chronoplasm Powder",
