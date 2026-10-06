@@ -26,4 +26,14 @@ public class FlutterwingGameTests {
         context.assertEntityPresent(DWMEntityTypes.FLUTTERWING);
         context.succeed();
     }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void flutterwingMatchesDefinition(GameTestHelper context) {
+        FlutterwingEntity mob = EntityDefinitionGameTestSupport.spawnOnGrass(context, DWMEntityTypes.FLUTTERWING);
+        var definition = EntityDefinitionGameTestSupport.definitionOf(mob);
+        EntityDefinitionGameTestSupport.assertAttributesMatch(mob, definition);
+        EntityDefinitionGameTestSupport.assertGoalsMatch(mob, definition);
+        context.succeed();
+    }
+
 }

@@ -83,4 +83,4 @@ Missing JSON, id mismatch, unknown attribute ids, and unknown `type` values fail
 ## Testing
 
 - Unit: `EntityDefinitionCatalogTest`, `ResourceValidationTests.validateEntityDefinitions`, existing `*EntityTest` DefaultAttributes checks.
-- GameTests: existing entity GameTests still cover in-world AI.
+- GameTests: existing entity GameTests still cover in-world AI. `<entity>MatchesDefinition` asserts live attribute base values and goal/target selectors (priority + goal class) equal the JSON; further tests cover the Mewing Dog `tamed` health override, sit-when-ordered, panic when hurt (Broakir, Time Lord), and Dalek hurt-by-target retaliation. Not behaviourally covered: breed, open_door, leap_at_target, look_at, random_look_around, Flutterwing panic (flying navigation), follow_owner.
