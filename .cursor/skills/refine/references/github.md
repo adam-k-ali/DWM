@@ -117,9 +117,3 @@ gh auth status
 ```
 
 Do not run `gh auth refresh` unless the user can complete the browser/device flow.
-
----
-
-## Screenplay-only issues
-
-If the issue lives in another repo under the same owner, pass that `--repo`. Still use project 7 only when the issue is (or should be) on the DWM board.

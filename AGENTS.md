@@ -1,18 +1,15 @@
 # AGENTS.md
 
 ## Project Snapshot
-- Monorepo with **two sibling Gradle builds** (separate wrappers — task names never collide):
-  - [`dwm/`](dwm/) — Minecraft Fabric mod *The Doctor Who Mod* (`./dwm/gradlew`)
-  - [`screenplay/`](screenplay/) — Screenplay real-client scenario library (`./screenplay/gradlew`)
+- Minecraft Fabric mod *The Doctor Who Mod*. The Gradle project lives under [`dwm/`](dwm/) (`./dwm/gradlew`).
 - Language/runtime baseline: Java 25.
-- Shared version catalog: [`gradle/libs.versions.toml`](gradle/libs.versions.toml) (keep each build's `gradle.properties` aligned).
+- Version catalog: [`gradle/libs.versions.toml`](gradle/libs.versions.toml) (keep [`dwm/gradle.properties`](dwm/gradle.properties) aligned).
 - Objective: maximize safe, repeatable AI-agent-driven development with strong automated verification.
 
 ## Repository Map
 - `dwm/src/main/java`: Common logic safe on both logical client and logical server (`com.adamkali.dwm.*`).
 - `dwm/src/client/java`: Client-only logic (rendering, HUD, client integration).
-- `dwm/src/test/java`: JUnit 5 unit tests and scenario compiler/primitive tests for DWM.
-- `dwm/src/screenplayTests/`: Mod-owned Screenplay YAML scenarios (loaded from disk; not shipped in the mod jar).
+- `dwm/src/test/java`: JUnit 5 unit tests.
 - `dwm/src/main/resources`: Common resources (`fabric.mod.json`, data, tags, recipes, lang, worldgen).
 - `dwm/src/main/generated/`: Datagen output — commit intentional changes; delete `.cache/` before commit.
 - `dwm/src/client/resources`: Hand-maintained client assets (models, blockstates, textures, sounds).
@@ -20,12 +17,6 @@
 - `dwm/tools/`: Offline Poetry Python tooling — [`palette/`](dwm/tools/palette/) (family colour docs/GUI) and [`sfx/`](dwm/tools/sfx/) (TARDIS/entity SFX); not part of Gradle build.
 - `dwm/metadata/`: Modrinth listing for DWM (`modrinth.json`, `modrinth-body.md`).
 - `dwm/version.json`: DWM release changelog and Modrinth/CurseForge promos — synced via `./dwm/gradlew syncVersionJson`.
-- `screenplay/`: Fabric Screenplay mod root (`screenplay-fabric` artifact); `common/`, `gradle-plugin/`, `loaders/`, `docs/`, `metadata/`.
-- `screenplay/common`: Shared YAML compiler, runner, primitives (unit-tested here).
-- `screenplay/gradle-plugin`: Gradle plugin `com.adamkali.screenplay` (`runScreenplay`, `runScreenplayTests`).
-- `screenplay/loaders/`: Included build for Forge and NeoForge (isolated from Loom).
-- `screenplay/docs/`: Screenplay GitHub Pages site (MkDocs Material) — https://adam-k-ali.github.io/DWM/
-- `screenplay/metadata/`: Screenplay Modrinth listing drafts + `version.json`.
 - `.cursor/skills/`: Agent skills for GameTests, asset import, Blockbench models, MCP verify, etc.
 - `dwm/minecraft-sources/`: Generated Fabric Loom named Minecraft sources (gitignored `.java`; run `./dwm/gradlew unpackMinecraftSources`). See **Reading Minecraft sources**.
 
@@ -34,12 +25,7 @@
 | Intent | Command |
 | --- | --- |
 | DWM client | `./dwm/gradlew runClient` |
-| Screenplay client (no DWM) | `./screenplay/gradlew runClient` |
-| DWM YAML scenario | `./dwm/gradlew runScreenplay -Pscreenplay=<id>` |
-| Screenplay library demos | `./screenplay/gradlew runScreenplay -Pscreenplay=createWorld` |
 | Minecraft named sources (Grep) | `./dwm/gradlew unpackMinecraftSources` |
-
-DWM consumes Screenplay via composite `includeBuild('../screenplay')` (Maven coords + dependency substitution), not as a Gradle subproject.
 
 ## Agent-First Engineering Principles
 - Prefer small, focused, reviewable diffs over broad rewrites.
@@ -50,7 +36,7 @@ DWM consumes Screenplay via composite `includeBuild('../screenplay')` (Maven coo
 - Do not make speculative refactors outside the requested scope.
 
 ## Working Rules For Agents
-- Before coding, identify whether change is DWM, Screenplay, common, client-only, data-driven, or test-only.
+- Before coding, identify whether change is common, client-only, data-driven, or test-only.
 - Preserve `main`/`client` source-set separation inside DWM.
 - Avoid touching large generated/resource surfaces unless the task requires it.
 - When fixing bugs, prefer the smallest change that addresses root cause and add regression coverage.
@@ -64,7 +50,7 @@ DWM consumes Screenplay via composite `includeBuild('../screenplay')` (Maven coo
 - Maintain compatibility-minded behavior (avoid fragile assumptions about execution order or side effects).
 
 ## Reading Minecraft sources
-DWM and Screenplay Fabric use **Mojang official mappings** for the Minecraft version in [`dwm/gradle.properties`](dwm/gradle.properties) / [`gradle/libs.versions.toml`](gradle/libs.versions.toml). There is no `yarn_mappings` line — do not guess Yarn 1.20/1.21 names.
+DWM uses **Mojang official mappings** for the Minecraft version in [`dwm/gradle.properties`](dwm/gradle.properties) / [`gradle/libs.versions.toml`](gradle/libs.versions.toml). There is no `yarn_mappings` line — do not guess Yarn 1.20/1.21 names.
 
 - Path: [`dwm/minecraft-sources/net/minecraft/...`](dwm/minecraft-sources/) (Grep/Read with that path; the repo index will not contain it).
 - If the tree is missing or [`dwm/minecraft-sources/.version`](dwm/minecraft-sources/.version) does not match `minecraft_version`, run `./dwm/gradlew unpackMinecraftSources`. First run may take several minutes (`genSources`); later unpacks are cheap.
@@ -95,32 +81,24 @@ DWM and Screenplay Fabric use **Mojang official mappings** for the Minecraft ver
 
 ## Testing Expectations
 - **DWM unit tests** (`./dwm/gradlew test`): JUnit 5 via `fabric-loader-junit`. Included in `./dwm/gradlew build` and CI.
-- **Screenplay unit tests** (`./screenplay/gradlew :common:test`): harness compiler/primitives.
 - **GameTests** (`./dwm/gradlew runGametest`): Headless dedicated-server in-world tests in `dwm/src/main/java/.../gametest/`. Not run by CI today — run locally when GameTest code changes. See `.cursor/skills/fabric-gametest/SKILL.md`.
-- **DWM Screenplay tests** (`./dwm/gradlew runScreenplay -Pscreenplay=<id>`): Real Minecraft client + DWM YAML under `dwm/src/screenplayTests/`. Requires a display; CI uses xvfb.
-- **Screenplay library demos** (`./screenplay/gradlew runScreenplayTests`): Bundled demos under `screenplay/common/src/main/resources/tests/`.
 - Keep test runs reproducible and suitable for unattended agent execution.
 
 ## Automation Pipeline For Agents
 - During development:
   - Run targeted tests for changed scope when available.
 - Before handoff/PR:
-  - Run `./dwm/gradlew test` (and/or `./screenplay/gradlew :common:test` when Screenplay changed).
-  - Run `./dwm/gradlew build` / `./screenplay/gradlew build` for full compile/package confidence on larger changes.
+  - Run `./dwm/gradlew test`.
+  - Run `./dwm/gradlew build` for full compile/package confidence on larger changes.
   - Run `./dwm/gradlew runDatagen` when DWM data-driven content changed.
 - Prefer fast feedback loops, but do not skip required quality gates.
 
 ## Build/Test/Validation
 - Main automated commands:
   - `./dwm/gradlew test` — DWM JUnit suite
-  - `./dwm/gradlew build` — compile DWM + JUnit (CI gate; also builds Screenplay via includeBuild)
-  - `./screenplay/gradlew :common:test` — Screenplay compiler/primitives
-  - `./screenplay/gradlew -p gradle-plugin test` — Gradle plugin unit tests
-  - `./screenplay/gradlew build` — Screenplay Fabric artifact
-  - `./screenplay/gradlew -p loaders :forge:build :neoforge:build` — Forge/NeoForge artifacts
+  - `./dwm/gradlew build` — compile DWM + JUnit (CI gate)
   - `./dwm/gradlew runDatagen` — regenerate `dwm/src/main/generated/` (only when datagen providers or promoted assets change); finalized by `pruneDatagenItemModels`
   - `./dwm/gradlew runGametest` — headless GameTests → `dwm/build/gametest/report.xml`
-  - `./dwm/gradlew runScreenplay -Pscreenplay=<yaml-stem>` — DWM client YAML scenarios → `dwm/build/screenplay/report.xml`
   - `./dwm/gradlew syncVersionJson` / `checkVersionSync` — keep `dwm/version.json` aligned with `dwm/gradle.properties`
   - `./dwm/gradlew unpackMinecraftSources` — explode Fabric named Minecraft sources into `dwm/minecraft-sources/` (local/agent; not CI)
 - If a command fails, surface the failure clearly and fix root causes before handoff where possible.
@@ -128,12 +106,9 @@ DWM and Screenplay Fabric use **Mojang official mappings** for the Minecraft ver
 ## Releases / CI
 - CI runs on GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)); CircleCI is retired.
 - DWM releases are intentional git tags `v{minecraft}-{mod}` — see [dwm/docs/release-policy.md](dwm/docs/release-policy.md).
-- Screenplay releases use tags `screenplay-v{screenplay_version}`. The release workflow publishes loader jars to GitHub Releases and Modrinth, then `publishPlugins` to the Gradle Plugin Portal (`com.adamkali.screenplay`, same version). Requires `MODRINTH_TOKEN`, `GRADLE_PUBLISH_KEY`, and `GRADLE_PUBLISH_SECRET`.
-- Outsiders apply the Portal plugin (no `includeBuild`). The plugin resolves `screenplay-fabric` / `-forge` / `-neoforge` from the matching GitHub Release. DWM still consumes Screenplay via composite `includeBuild`.
-- Consumer CI: [`adam-k-ali/screenplay-action`](https://github.com/adam-k-ali/screenplay-action) (`@v1`).
 - Do not bump `mod_version` or `version.json` promos except when cutting a release; use `./dwm/gradlew syncVersionJson` at cut time.
 - The release workflow publishes the GitHub Release, Modrinth version, CurseForge file, and Discord `#releases` announcement from `dwm/version.json` (`summary` + changelog lists). Requires `MODRINTH_TOKEN`, `CURSEFORGE_TOKEN`, and `DISCORD_WEBHOOK_URL` secrets.
-- Modrinth project listing fields live in `dwm/metadata/` and `screenplay/metadata/`; sync with the manual Sync Modrinth workflows.
+- Modrinth project listing fields live in `dwm/metadata/`; sync with the manual **Sync Modrinth Project** workflow.
 
 ## Change Scope & Safety
 - Keep unrelated files untouched.
@@ -177,7 +152,6 @@ After creating or updating a pull request, apply the appropriate label(s) using 
 A single PR may carry more than one label if it touches multiple categories.
 
 ## Nested Context
-- `dwm/src/screenplayTests/AGENTS.md` — YAML client scenario framework (primitives, composite commands, Gradle properties).
 - `dwm/src/main/java/com/adamkali/dwm/tardis/AGENTS.md` — TARDIS domain layout (logic vs data vs interior vs portal rendering).
 - `dwm/src/main/java/com/adamkali/dwm/entity/AGENTS.md` — living mob classes vs JSON attribute/AI definitions.
 - `dwm/tools/AGENTS.md` — index for offline Poetry tools; see also `dwm/tools/palette/AGENTS.md` and `dwm/tools/sfx/AGENTS.md`.
@@ -189,12 +163,11 @@ A single PR may carry more than one label if it touches multiple categories.
 
 These notes are for agents running in the Cursor Cloud VM. The standard build/test/datagen commands are already documented above; this section only captures non-obvious environment caveats.
 
-- Java 25 is what Gradle targets (`./dwm/gradlew` / `./screenplay/gradlew` pick up the system JDK; no `JAVA_HOME` tweaking needed). Local agents may need `JAVA_HOME` pointed at a JDK 25 install.
-- The startup update script should resolve dependencies via `./dwm/gradlew dependencies -q` (and/or `./screenplay/gradlew dependencies -q`). The very first Loom configuration on a cold cache is slow and network-heavy; once cached, subsequent Gradle invocations are fast.
+- Java 25 is what Gradle targets (`./dwm/gradlew` picks up the system JDK; no `JAVA_HOME` tweaking needed). Local agents may need `JAVA_HOME` pointed at a JDK 25 install.
+- The startup update script should resolve dependencies via `./dwm/gradlew dependencies -q`. The very first Loom configuration on a cold cache is slow and network-heavy; once cached, subsequent Gradle invocations are fast.
 - Running the mod end-to-end without a display: use `./dwm/gradlew runGametest`.
-- YAML client scenario tests (`./dwm/gradlew runScreenplay`) boot a real Fabric client. In this headless VM use `-PscreenplayDisplay=xvfb` (requires `xvfb` / Mesa). Prefer `runGametest` for server-side gameplay smoke tests.
 - `./dwm/gradlew runClient` and `./dwm/gradlew runServer` start the actual game; `runClient` needs a GUI/display and will not work in the headless VM.
 - `./dwm/gradlew build` also compiles the `client` source set and runs the full JUnit suite.
 - `./dwm/gradlew runDatagen` writes generated resources under `dwm/src/main/generated/` and also leaves an untracked `.cache/` directory — delete that `.cache` dir before committing to avoid stray churn.
-- IDE: open `dwm/` as the Gradle project for mod work (composite pulls Screenplay). Open `screenplay/` when working on the harness alone.
+- IDE: open `dwm/` as the Gradle project.
 - `./dwm/gradlew unpackMinecraftSources` is local/agent (not CI); first `genSources` on a cold cache is slow.

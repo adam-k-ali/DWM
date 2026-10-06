@@ -110,11 +110,6 @@ The catalog is three synced dynamic registries. Registry keys use the vanilla `m
 
 ## Testing
 
-- Unit: `FieldGuideCatalogTest`, `FieldGuideRecipeGridBuilderTest`, `FieldGuideBodyPaginatorTest`, `FieldGuideVariantGroupsTest`.
-- Screenplay: `fieldGuide.yaml` uses mod-agnostic `pressKey` and widget clicks only; `fieldGuideCircuits.yaml` turns **Next Page** on Late Circuits to capture the continuation spread. PNGs land in CI artifacts (no committed baselines).
-
-```bash
-./gradlew runScreenplay -Pscreenplay=fieldGuide -PscreenplayDisplay=xvfb
-./gradlew runScreenplay -Pscreenplay=fieldGuideCircuits -PscreenplayDisplay=xvfb
-```
+- Unit: `FieldGuideCatalogTest`, `FieldGuideRecipeGridBuilderTest`, `FieldGuideBodyPaginatorTest`, `FieldGuideVariantGroupsTest`, `FieldGuideGrantLogicTest`.
+- GameTest: `FieldGuideGrantGameTests` covers first-join grant slotting.
 

@@ -28,7 +28,7 @@ Gold standard: [DWM-061](https://github.com/adam-k-ali/DWM/issues/202). Epic gol
 | Ticket table | Epics |
 | Dependencies | Blocked by, related, or superseded issues |
 
-Optional: mermaid, overlay tables, Screenplay file tables — only when they reduce ambiguity.
+Optional: mermaid and overlay tables — only when they reduce ambiguity.
 
 Do **not** include Expo routes, GraphQL, Apollo containers, or Storybook.
 
@@ -86,10 +86,7 @@ Mark uncertain paths **Inferred**; verified paths need no label.
 
 * **JUnit** (`./dwm/gradlew test`): <!-- -->
 * **GameTest** (`./dwm/gradlew runGametest`): <!-- or N/A -->
-* **Screenplay** (`./dwm/gradlew runScreenplay -Pscreenplay=<stem>`): <!-- or N/A -->
 * **Datagen** (`./dwm/gradlew runDatagen`): <!-- or N/A -->
-
-Use `./screenplay/gradlew` when the ticket is harness-only.
 
 ## Docs
 
@@ -156,4 +153,4 @@ Use `./screenplay/gradlew` when the ticket is harness-only.
 - Mark **Verified in codebase** vs **Inferred** when uncertain.
 - Acceptance criteria must be **testable** — avoid "works correctly" or "looks good".
 - Visual tickets: cite existing client HUD/docs/asset paths. Do not attach HTML mockups unless the user asked for screenshots.
-- For iOS-first / Expo notes: this is a Minecraft Fabric monorepo — do not carry those sections over.
+- For iOS-first / Expo notes: this is a Minecraft Fabric mod — do not carry those sections over.

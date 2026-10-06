@@ -1,7 +1,6 @@
 plugins {
     id 'net.fabricmc.fabric-loom' version "${loom_version}"
     id 'maven-publish'
-    id 'com.adamkali.screenplay'
 }
 
 version = project.mod_version
