@@ -11,6 +11,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 - [Stattenheim Remote](./feature-stattenheim-remote.md)
 - [TARDIS Door Button](./feature-tardis-door-button.md)
 - [Building Content System](./feature-building-content.md)
+- [Blueprints](./feature-blueprints.md)
 - [Gallifrey Building](./feature-gallifrey-building.md)
 - [Gallifrey Dimension](./feature-gallifrey-dimension.md)
 - [Azbantium](./feature-azbantium.md)

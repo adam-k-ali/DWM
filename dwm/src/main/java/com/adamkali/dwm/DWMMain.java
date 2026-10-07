@@ -5,6 +5,8 @@ import com.adamkali.dwm.analytics.DWMStatistics;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.DWMWoodTypes;
 import com.adamkali.dwm.block.entities.DWMBlockEntities;
+import com.adamkali.dwm.blueprint.BlueprintLoader;
+import com.adamkali.dwm.command.BlueprintCommands;
 import com.adamkali.dwm.command.TardisCommands;
 import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.entity.DWMEntityTypes;
@@ -54,6 +56,7 @@ public class DWMMain implements ModInitializer {
         TardisTravelService.initialize();
         RadiationExposureService.initialize();
         TardisCommands.initialize();
+        BlueprintCommands.initialize();
         BiomeModifications.addFeature(
                 BiomeSelectors.tag(BiomeTags.IS_OVERWORLD),
                 GenerationStep.Decoration.UNDERGROUND_ORES,
@@ -61,6 +64,8 @@ public class DWMMain implements ModInitializer {
         );
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             TardisDataLoader.tardisSaveDirectory = server.getWorldPath(LevelResource.ROOT).resolve("tardis_data");
+            BlueprintLoader.blueprintsDirectory = server.getWorldPath(LevelResource.ROOT).resolve("blueprints");
+            BlueprintLoader.ensureDirectory();
         });
         ServerLifecycleEvents.AFTER_SAVE.register((server, flush, force) -> {
             TardisDataLoader.save();

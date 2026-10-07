@@ -1,0 +1,11 @@
+{
+  "shapes": [
+    {
+      "type": "rectangle",
+      "from": { "x": 0, "y": 0, "z": 0 },
+      "to": { "x": 2, "y": 0, "z": 2 },
+      "block": { "id": "minecraft:stone" },
+      "fill": true
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "shapes": [
+    {
+      "type": "circle",
+      "origin": { "x": 0, "y": 0, "z": 0 },
+      "block": { "id": "minecraft:oak_planks" },
+      "filled": true,
+      "radius": 3
+    },
+    {
+      "type": "sphere",
+      "origin": { "x": 10, "y": 5, "z": 0 },
+      "block": { "id": "minecraft:glass" },
+      "fill": false,
+      "radius": 4
+    },
+    {
+      "type": "dome",
+      "origin": { "x": 20, "y": 0, "z": 0 },
+      "block": { "id": "minecraft:white_concrete" },
+      "fill": true,
+      "radius": 5
+    },
+    {
+      "type": "polygon",
+      "n_sides": 6,
+      "origin": { "x": 30, "y": 0, "z": 0 },
+      "block": { "id": "minecraft:cobblestone" },
+      "fill": false,
+      "radius": 4
+    },
+    {
+      "type": "rectangle",
+      "from": { "x": 40, "y": 0, "z": 0 },
+      "to": { "x": 42, "y": 2, "z": 2 },
+      "block": {
+        "id": "minecraft:oak_log",
+        "state": { "facing": "north" }
+      },
+      "fill": true
+    }
+  ]
+}
