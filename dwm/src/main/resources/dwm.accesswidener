@@ -5,3 +5,5 @@ accessible	method	net/minecraft/client/Camera	setPosition	(Lnet/minecraft/world/
 accessible	method	net/minecraft/client/Camera	setRotation	(FF)V
 accessible	field	net/minecraft/client/renderer/GameRenderer	lightmap	Lnet/minecraft/client/renderer/Lightmap;
 accessible	field	net/minecraft/client/renderer/GameRenderer	gameRenderState	Lnet/minecraft/client/renderer/state/GameRenderState;
+accessible	field	net/minecraft/world/entity/Mob	goalSelector	Lnet/minecraft/world/entity/ai/goal/GoalSelector;
+accessible	field	net/minecraft/world/entity/Mob	targetSelector	Lnet/minecraft/world/entity/ai/goal/GoalSelector;

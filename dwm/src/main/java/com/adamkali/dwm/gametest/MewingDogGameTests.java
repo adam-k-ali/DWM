@@ -4,7 +4,9 @@ import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.entity.MewingDogEntity;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.world.entity.ai.goal.SitWhenOrderedToGoal;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -51,5 +53,40 @@ public class MewingDogGameTests {
             throw new AssertionError("Expected tamed Mewing Dog to be owned by the interacting player");
         }
         context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void mewingDogMatchesDefinition(GameTestHelper context) {
+        MewingDogEntity mob = EntityDefinitionGameTestSupport.spawnOnGrass(context, DWMEntityTypes.MEWING_DOG);
+        var definition = EntityDefinitionGameTestSupport.definitionOf(mob);
+        EntityDefinitionGameTestSupport.assertAttributesMatch(mob, definition);
+        EntityDefinitionGameTestSupport.assertGoalsMatch(mob, definition);
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void tamingAppliesTamedHealthOverride(GameTestHelper context) {
+        MewingDogEntity dog = EntityDefinitionGameTestSupport.spawnOnGrass(context, DWMEntityTypes.MEWING_DOG);
+        var definition = EntityDefinitionGameTestSupport.definitionOf(dog);
+        double tamedHealth = definition.attributeOverrides().get("tamed")
+                .get(Identifier.withDefaultNamespace("max_health"));
+        Player player = context.makeMockPlayer(GameType.SURVIVAL);
+        dog.tame(player);
+        if (Math.abs(dog.getMaxHealth() - tamedHealth) > 1.0E-6 || dog.getHealth() != dog.getMaxHealth()) {
+            throw new AssertionError("Expected tamed max health " + tamedHealth + " at full health, got "
+                    + dog.getHealth() + "/" + dog.getMaxHealth());
+        }
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void tamedDogSitsWhenOrdered(GameTestHelper context) {
+        MewingDogEntity dog = EntityDefinitionGameTestSupport.spawnOnGrass(context, DWMEntityTypes.MEWING_DOG);
+        dog.tame(context.makeMockPlayer(GameType.SURVIVAL));
+        dog.setOrderedToSit(true);
+        context.succeedWhen(() -> {
+            context.assertTrue(dog.isInSittingPose() && EntityDefinitionGameTestSupport.isRunning(dog.goalSelector, SitWhenOrderedToGoal.class),
+                    "Expected ordered dog to sit via SitWhenOrderedToGoal");
+        });
     }
 }

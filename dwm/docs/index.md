@@ -18,6 +18,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 - [Dalekanium](./feature-dalekanium.md)
 - [Zeiton](./feature-zeiton.md)
 - [Dalek](./feature-dalek.md)
+- [Entity Definitions](./feature-entity-definitions.md)
 
 ### Experimental Features
 - [TARDIS Chameleon System](./feature-chameleon-system.md) (config-gated and disabled by default)

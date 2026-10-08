@@ -1,0 +1,340 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://adamkali.com/schemas/entity_definition.json",
+  "title": "DWM Entity Definition",
+  "type": "object",
+  "required": ["entity", "attribute_base", "attributes", "goals"],
+  "additionalProperties": false,
+  "properties": {
+    "entity": {
+      "$ref": "#/definitions/identifier"
+    },
+    "attribute_base": {
+      "type": "string",
+      "enum": ["animal", "mob", "monster"]
+    },
+    "attributes": {
+      "$ref": "#/definitions/attributeMap"
+    },
+    "attribute_overrides": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/attributeMap"
+      }
+    },
+    "goals": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/goalEntry"
+      }
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/targetEntry"
+      }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$"
+    },
+    "attributeMap": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "number"
+      },
+      "propertyNames": {
+        "$ref": "#/definitions/identifier"
+      }
+    },
+    "canUse": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "dwm:not_flying"
+        }
+      }
+    },
+    "targetFilter": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "dwm:is_angry_at"
+        }
+      }
+    },
+    "goalEntry": {
+      "oneOf": [
+        { "$ref": "#/definitions/goalFloat" },
+        { "$ref": "#/definitions/goalPanic" },
+        { "$ref": "#/definitions/goalWaterAvoidingRandomStroll" },
+        { "$ref": "#/definitions/goalWaterAvoidingRandomFlying" },
+        { "$ref": "#/definitions/goalLookAt" },
+        { "$ref": "#/definitions/goalRandomLookAround" },
+        { "$ref": "#/definitions/goalOpenDoor" },
+        { "$ref": "#/definitions/goalRangedAttack" },
+        { "$ref": "#/definitions/goalMeleeAttack" },
+        { "$ref": "#/definitions/goalLeapAtTarget" },
+        { "$ref": "#/definitions/goalBreed" },
+        { "$ref": "#/definitions/goalFollowOwner" },
+        { "$ref": "#/definitions/goalSitWhenOrdered" },
+        { "$ref": "#/definitions/goalDalekFlight" },
+        { "$ref": "#/definitions/goalTamablePanic" }
+      ]
+    },
+    "targetEntry": {
+      "oneOf": [
+        { "$ref": "#/definitions/goalHurtByTarget" },
+        { "$ref": "#/definitions/goalNearestAttackableTarget" },
+        { "$ref": "#/definitions/goalOwnerHurtByTarget" },
+        { "$ref": "#/definitions/goalOwnerHurtTarget" },
+        { "$ref": "#/definitions/goalResetUniversalAnger" },
+        { "$ref": "#/definitions/goalDalekShareTarget" }
+      ]
+    },
+    "goalFloat": {
+      "type": "object",
+      "required": ["type", "priority"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:float" },
+        "priority": { "type": "integer" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalPanic": {
+      "type": "object",
+      "required": ["type", "priority", "speed"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:panic" },
+        "priority": { "type": "integer" },
+        "speed": { "type": "number" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalWaterAvoidingRandomStroll": {
+      "type": "object",
+      "required": ["type", "priority", "speed"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:water_avoiding_random_stroll" },
+        "priority": { "type": "integer" },
+        "speed": { "type": "number" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalWaterAvoidingRandomFlying": {
+      "type": "object",
+      "required": ["type", "priority", "speed"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:water_avoiding_random_flying" },
+        "priority": { "type": "integer" },
+        "speed": { "type": "number" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalLookAt": {
+      "type": "object",
+      "required": ["type", "priority", "target", "look_distance"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:look_at" },
+        "priority": { "type": "integer" },
+        "target": { "$ref": "#/definitions/identifier" },
+        "look_distance": { "type": "number" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalRandomLookAround": {
+      "type": "object",
+      "required": ["type", "priority"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:random_look_around" },
+        "priority": { "type": "integer" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalOpenDoor": {
+      "type": "object",
+      "required": ["type", "priority", "close_door"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:open_door" },
+        "priority": { "type": "integer" },
+        "close_door": { "type": "boolean" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalRangedAttack": {
+      "type": "object",
+      "required": ["type", "priority", "speed", "interval", "attack_range"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:ranged_attack" },
+        "priority": { "type": "integer" },
+        "speed": { "type": "number" },
+        "interval": { "type": "integer" },
+        "attack_range": { "type": "number" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalMeleeAttack": {
+      "type": "object",
+      "required": ["type", "priority", "speed", "following_if_not_seen"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:melee_attack" },
+        "priority": { "type": "integer" },
+        "speed": { "type": "number" },
+        "following_if_not_seen": { "type": "boolean" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalLeapAtTarget": {
+      "type": "object",
+      "required": ["type", "priority", "ydelta"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:leap_at_target" },
+        "priority": { "type": "integer" },
+        "ydelta": { "type": "number" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalBreed": {
+      "type": "object",
+      "required": ["type", "priority", "speed"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:breed" },
+        "priority": { "type": "integer" },
+        "speed": { "type": "number" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalFollowOwner": {
+      "type": "object",
+      "required": ["type", "priority", "speed", "start_distance", "stop_distance"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:follow_owner" },
+        "priority": { "type": "integer" },
+        "speed": { "type": "number" },
+        "start_distance": { "type": "number" },
+        "stop_distance": { "type": "number" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalSitWhenOrdered": {
+      "type": "object",
+      "required": ["type", "priority"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:sit_when_ordered" },
+        "priority": { "type": "integer" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalDalekFlight": {
+      "type": "object",
+      "required": ["type", "priority", "fly_y_delta", "min_distance_for_missing_path"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "dwm:dalek_flight" },
+        "priority": { "type": "integer" },
+        "fly_y_delta": { "type": "number" },
+        "min_distance_for_missing_path": { "type": "number" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalTamablePanic": {
+      "type": "object",
+      "required": ["type", "priority", "speed", "damage_types"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "dwm:tamable_panic" },
+        "priority": { "type": "integer" },
+        "speed": { "type": "number" },
+        "damage_types": { "$ref": "#/definitions/identifier" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalHurtByTarget": {
+      "type": "object",
+      "required": ["type", "priority"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:hurt_by_target" },
+        "priority": { "type": "integer" },
+        "alert_others": { "type": "boolean" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalNearestAttackableTarget": {
+      "type": "object",
+      "required": ["type", "priority", "target", "must_see"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:nearest_attackable_target" },
+        "priority": { "type": "integer" },
+        "target": { "$ref": "#/definitions/identifier" },
+        "must_see": { "type": "boolean" },
+        "must_reach": { "type": "boolean" },
+        "interval": { "type": "integer" },
+        "filter": { "$ref": "#/definitions/targetFilter" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalOwnerHurtByTarget": {
+      "type": "object",
+      "required": ["type", "priority"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:owner_hurt_by_target" },
+        "priority": { "type": "integer" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalOwnerHurtTarget": {
+      "type": "object",
+      "required": ["type", "priority"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:owner_hurt_target" },
+        "priority": { "type": "integer" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalResetUniversalAnger": {
+      "type": "object",
+      "required": ["type", "priority", "alert_others"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "minecraft:reset_universal_anger" },
+        "priority": { "type": "integer" },
+        "alert_others": { "type": "boolean" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalDalekShareTarget": {
+      "type": "object",
+      "required": ["type", "priority"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "dwm:dalek_share_target" },
+        "priority": { "type": "integer" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    }
+  }
+}

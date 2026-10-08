@@ -4,6 +4,7 @@ import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.block.wood.WoodFamilyRegistrar;
+import com.adamkali.dwm.entity.definition.EntityDefinitions;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityType;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -36,7 +37,8 @@ public final class DWMEntityTypes {
     }
 
     public static void initialize() {
-        
+        EntityDefinitions.initialize();
+
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
             WoodFamilyRegistrar.registerBoatEntity(family);
         }

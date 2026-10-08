@@ -1,14 +1,16 @@
 package com.adamkali.dwm.entity;
 
+import com.adamkali.dwm.DWMReference;
+import com.adamkali.dwm.entity.definition.EntityDefinitions;
 import com.adamkali.dwm.sound.DWMSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
@@ -27,21 +29,6 @@ import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.BreedGoal;
-import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
-import net.minecraft.world.entity.ai.goal.LeapAtTargetGoal;
-import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.SitWhenOrderedToGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.OwnerHurtTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.ResetUniversalAngerTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.equine.AbstractHorse;
 import net.minecraft.world.entity.decoration.ArmorStand;
@@ -64,6 +51,8 @@ import org.jspecify.annotations.Nullable;
  * ambient sound is a mew. No armour, begging, or sheep hunting in this pass.
  */
 public class MewingDogEntity extends TamableAnimal implements NeutralMob {
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "mewing_dog");
+
     private static final EntityDataAccessor<Integer> DATA_COLLAR_COLOR =
             SynchedEntityData.defineId(MewingDogEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Long> DATA_ANGER_END_TIME =
@@ -73,8 +62,6 @@ public class MewingDogEntity extends TamableAnimal implements NeutralMob {
             .withEyeHeight(0.34375F)
             .withAttachments(EntityAttachments.builder().attach(EntityAttachment.PASSENGER, 0.0F, 0.4375F, 0.0F));
 
-    private static final float START_HEALTH = 8.0F;
-    private static final float TAME_HEALTH = 40.0F;
     public static final float DEFAULT_TAIL_ANGLE = (float) (Math.PI / 5);
     private static final DyeColor DEFAULT_COLLAR_COLOR = DyeColor.RED;
     private static final UniformInt PERSISTENT_ANGER_TIME = TimeUtil.rangeOfSeconds(20, 39);
@@ -89,29 +76,12 @@ public class MewingDogEntity extends TamableAnimal implements NeutralMob {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createAnimalAttributes()
-                .add(Attributes.MOVEMENT_SPEED, 0.3F)
-                .add(Attributes.MAX_HEALTH, START_HEALTH)
-                .add(Attributes.ATTACK_DAMAGE, 2.0);
+        return EntityDefinitions.createAttributes(ID);
     }
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(1, new FloatGoal(this));
-        this.goalSelector.addGoal(1, new TamableAnimal.TamableAnimalPanicGoal(1.5, DamageTypeTags.PANIC_ENVIRONMENTAL_CAUSES));
-        this.goalSelector.addGoal(2, new SitWhenOrderedToGoal(this));
-        this.goalSelector.addGoal(4, new LeapAtTargetGoal(this, 0.4F));
-        this.goalSelector.addGoal(5, new MeleeAttackGoal(this, 1.0, true));
-        this.goalSelector.addGoal(6, new FollowOwnerGoal(this, 1.0, 10.0F, 2.0F));
-        this.goalSelector.addGoal(7, new BreedGoal(this, 1.0));
-        this.goalSelector.addGoal(8, new WaterAvoidingRandomStrollGoal(this, 1.0));
-        this.goalSelector.addGoal(10, new LookAtPlayerGoal(this, Player.class, 8.0F));
-        this.goalSelector.addGoal(10, new RandomLookAroundGoal(this));
-        this.targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this));
-        this.targetSelector.addGoal(2, new OwnerHurtTargetGoal(this));
-        this.targetSelector.addGoal(3, new HurtByTargetGoal(this).setAlertOthers());
-        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false, this::isAngryAt));
-        this.targetSelector.addGoal(8, new ResetUniversalAngerTargetGoal<>(this, true));
+        EntityDefinitions.registerGoals(this, this.goalSelector, this.targetSelector);
     }
 
     @Override
@@ -155,10 +125,10 @@ public class MewingDogEntity extends TamableAnimal implements NeutralMob {
     @Override
     protected void applyTamingSideEffects() {
         if (this.isTame()) {
-            this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(TAME_HEALTH);
-            this.setHealth(TAME_HEALTH);
+            EntityDefinitions.applyAttributeOverride(this, "tamed");
+            this.setHealth(this.getMaxHealth());
         } else {
-            this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(START_HEALTH);
+            EntityDefinitions.applyAttributeOverride(this, EntityDefinitions.DEFAULT_OVERRIDE);
         }
     }
 

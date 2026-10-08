@@ -8,6 +8,7 @@ import com.adamkali.dwm.block.entities.DWMBlockEntities;
 import com.adamkali.dwm.command.TardisCommands;
 import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.entity.DWMEntityTypes;
+import com.adamkali.dwm.entity.definition.EntityDefinitions;
 import com.adamkali.dwm.guide.FieldGuideGrant;
 import com.adamkali.dwm.guide.FieldGuideRegistries;
 import com.adamkali.dwm.item.DWMDataComponents;
@@ -41,6 +42,7 @@ public class DWMMain implements ModInitializer {
         DWMStatistics.initialize();
         DWMWoodTypes.initialize();
         DWMBlocks.initialize();
+        EntityDefinitions.initialize();
         DWMEntityTypes.initialize();
         DWMDataComponents.initialize();
         DWMItems.initialize();

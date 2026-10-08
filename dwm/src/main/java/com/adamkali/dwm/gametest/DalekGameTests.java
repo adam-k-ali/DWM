@@ -64,4 +64,26 @@ public class DalekGameTests {
             context.succeed();
         });
     }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void dalekMatchesDefinition(GameTestHelper context) {
+        DalekEntity mob = EntityDefinitionGameTestSupport.spawnOnGrass(context, DWMEntityTypes.DALEK);
+        var definition = EntityDefinitionGameTestSupport.definitionOf(mob);
+        EntityDefinitionGameTestSupport.assertAttributesMatch(mob, definition);
+        EntityDefinitionGameTestSupport.assertGoalsMatch(mob, definition);
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void dalekRetaliatesWhenHurt(GameTestHelper context) {
+        DalekEntity dalek = EntityDefinitionGameTestSupport.spawnOnGrass(context, DWMEntityTypes.DALEK);
+        Player attacker = context.makeMockPlayer(GameType.SURVIVAL);
+        attacker.snapTo(dalek.getX() + 2.0, dalek.getY(), dalek.getZ());
+        // HurtByTargetGoal ignores a hit stamped on the spawn tick (timestamp 0), so let the Dalek age first.
+        context.runAfterDelay(5, () -> {
+            dalek.hurtServer(context.getLevel(), dalek.damageSources().playerAttack(attacker), 1.0F);
+            context.succeedWhen(() -> context.assertTrue(dalek.getTarget() == attacker,
+                    "Expected Dalek to target its attacker"));
+        });
+    }
 }
