@@ -11,17 +11,15 @@ import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
  */
 public class DWMRenderLayerManager {
     private static void registerEntityRenderLayers() {
-        ModelLayerRegistry.registerModelLayer(TTCapsuleModel.LAYER_LOCATION, TTCapsuleModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(FirstDoctorTardisModel.LAYER_LOCATION, FirstDoctorTardisModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(SecondDoctorTardisModel.LAYER_LOCATION, SecondDoctorTardisModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(ThirdDoctorTardisModel.LAYER_LOCATION, ThirdDoctorTardisModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(FourthDoctorTardisModel.LAYER_LOCATION, FourthDoctorTardisModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(FifthDoctorTardisModel.LAYER_LOCATION, FifthDoctorTardisModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(SixthDoctorTardisModel.LAYER_LOCATION, SixthDoctorTardisModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(SeventhDoctorTardisModel.LAYER_LOCATION, SeventhDoctorTardisModel::getTexturedModelData);
-        ModelLayerRegistry.registerModelLayer(
-                TardisClassicInteriorDoorModel.LAYER_LOCATION,
-                TardisClassicInteriorDoorModel::getTexturedModelData);
+        JsonEntityModelLayers.register(TTCapsuleModel.LAYER_LOCATION);
+        JsonEntityModelLayers.register(FirstDoctorTardisModel.LAYER_LOCATION);
+        JsonEntityModelLayers.register(SecondDoctorTardisModel.LAYER_LOCATION);
+        JsonEntityModelLayers.register(ThirdDoctorTardisModel.LAYER_LOCATION);
+        JsonEntityModelLayers.register(FourthDoctorTardisModel.LAYER_LOCATION);
+        JsonEntityModelLayers.register(FifthDoctorTardisModel.LAYER_LOCATION);
+        JsonEntityModelLayers.register(SixthDoctorTardisModel.LAYER_LOCATION);
+        JsonEntityModelLayers.register(SeventhDoctorTardisModel.LAYER_LOCATION);
+        JsonEntityModelLayers.register(TardisClassicInteriorDoorModel.LAYER_LOCATION);
         ModelLayerRegistry.registerModelLayer(
                 FirstDoctorConsoleModel.LAYER_LOCATION,
                 FirstDoctorConsoleModel::getTexturedModelData);

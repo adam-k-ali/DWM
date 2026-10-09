@@ -1,5 +1,6 @@
 package com.adamkali.dwm.model.tileentity;
 
+import com.adamkali.dwm.model.json.EntityModelJson;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -12,7 +13,7 @@ class TardisModelDoorPartsTest {
 
     @Test
     void firstDoctor_resolvesRootLeftAndRightDoors() {
-        ModelPart root = FirstDoctorTardisModel.getTexturedModelData().bakeRoot();
+        ModelPart root = EntityModelJson.loadClasspath(FirstDoctorTardisModel.LAYER_LOCATION.model()).bakeRoot();
         FirstDoctorTardisModel model = new FirstDoctorTardisModel(root);
 
         List<ModelPart> doors = model.getDoorParts();
@@ -24,7 +25,7 @@ class TardisModelDoorPartsTest {
 
     @Test
     void ttCapsule_resolvesBoneDoor() {
-        ModelPart root = TTCapsuleModel.getTexturedModelData().bakeRoot();
+        ModelPart root = EntityModelJson.loadClasspath(TTCapsuleModel.LAYER_LOCATION.model()).bakeRoot();
         TTCapsuleModel model = new TTCapsuleModel(root);
 
         List<ModelPart> doors = model.getDoorParts();
@@ -35,7 +36,7 @@ class TardisModelDoorPartsTest {
 
     @Test
     void secondDoctor_resolvesMainNestedDoors() {
-        ModelPart root = SecondDoctorTardisModel.getTexturedModelData().bakeRoot();
+        ModelPart root = EntityModelJson.loadClasspath(SecondDoctorTardisModel.LAYER_LOCATION.model()).bakeRoot();
         SecondDoctorTardisModel model = new SecondDoctorTardisModel(root);
 
         List<ModelPart> doors = model.getDoorParts();

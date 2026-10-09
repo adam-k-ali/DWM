@@ -10,12 +10,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.*;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.model.geom.PartPose;
-import net.minecraft.client.model.geom.builders.CubeDeformation;
-import net.minecraft.client.model.geom.builders.CubeListBuilder;
-import net.minecraft.client.model.geom.builders.LayerDefinition;
-import net.minecraft.client.model.geom.builders.MeshDefinition;
-import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.resources.Identifier;
 import java.util.List;
 
@@ -78,35 +72,6 @@ public class TardisClassicInteriorDoorModel extends EntityModel<TardisRenderStat
         } finally {
             matrices.popPose();
         }
-    }
-
-    public static LayerDefinition getTexturedModelData() {
-        MeshDefinition modelData = new MeshDefinition();
-        PartDefinition modelPartData = modelData.getRoot();
-        PartDefinition frame = modelPartData.addOrReplaceChild("frame", CubeListBuilder.create().texOffs(10, 0).addBox(8.0F, -29.0F, 0.0F, 2.0F, 3.0F, 2.0F, new CubeDeformation(0.0F)).texOffs(10, 0).addBox(10.0F, -29.0F, 0.0F, 1.0F, 32.0F, 2.0F, new CubeDeformation(0.0F)).texOffs(10, 0).addBox(8.0F, -21.0F, 0.0F, 2.0F, 6.0F, 2.0F, new CubeDeformation(0.0F)).texOffs(10, 0).addBox(8.0F, -10.0F, 0.0F, 2.0F, 5.0F, 2.0F, new CubeDeformation(0.0F)).texOffs(10, 0).addBox(8.0F, 0.0F, 0.0F, 2.0F, 3.0F, 2.0F, new CubeDeformation(0.0F)),
-                PartPose.offset(13.0F, 29.0F, -8.0F));
-
-        PartDefinition Door1 = frame.addOrReplaceChild("Door1", CubeListBuilder.create().texOffs(0, 22).addBox(-12.0F, 11.5F, 0.2F, 9.0F, 9.0F, 1.0F, new CubeDeformation(0.0F)).texOffs(26, 16).addBox(-1.0F, 14.0F, -0.8F, 2.0F, 5.0F, 1.0F, new CubeDeformation(0.0F)).texOffs(19, 0).addBox(-1.0F, 3.0F, -0.8F, 2.0F, 5.0F, 1.0F, new CubeDeformation(0.0F)).texOffs(26, 26).addBox(-1.0F, 24.0F, -0.8F, 2.0F, 5.0F, 1.0F, new CubeDeformation(0.0F)).texOffs(0, 22).addBox(-12.0F, 1.0F, 0.2F, 9.0F, 9.0F, 1.0F, new CubeDeformation(0.0F)).texOffs(20, 25).addBox(-10.0F, 3.0F, -0.8F, 5.0F, 5.0F, 1.0F, new CubeDeformation(0.0F)).texOffs(20, 25).addBox(-10.0F, 24.0F, -0.8F, 5.0F, 5.0F, 1.0F, new CubeDeformation(0.0F)).texOffs(20, 25).addBox(-10.0F, 13.5F, -0.8F, 5.0F, 5.0F, 1.0F, new CubeDeformation(0.0F)).texOffs(0, 22).addBox(-12.0F, 22.0F, 0.2F, 9.0F, 9.0F, 1.0F, new CubeDeformation(0.0F)).texOffs(0, 0).addBox(-12.0F, 0.0F, -0.8F, 9.0F, 1.0F, 9.0F, new CubeDeformation(0.0F)).texOffs(0, 0).addBox(-12.0F, 10.0F, -0.8F, 9.0F, 2.0F, 9.0F, new CubeDeformation(0.0F)).texOffs(0, 0).addBox(-12.0F, 20.0F, -0.8F, 9.0F, 2.0F, 9.0F, new CubeDeformation(0.0F)).texOffs(0, 0).addBox(-12.0F, 31.0F, -0.8F, 9.0F, 1.0F, 9.0F, new CubeDeformation(0.0F)).texOffs(10, 0).addBox(-14.0F, 0.0F, -0.8F, 2.0F, 32.0F, 9.0F, new CubeDeformation(0.0F)).texOffs(10, 0).addBox(-3.0F, 0.0F, -0.8F, 2.0F, 32.0F, 9.0F, new CubeDeformation(0.0F)),
-                PartPose.offset(9.0F, -29.0F, 1.0F));
-
-        PartDefinition frame2 = modelPartData.addOrReplaceChild("frame2", CubeListBuilder.create().texOffs(10, 0).addBox(8.0F, -29.0F, 0.0F, 2.0F, 3.0F, 2.0F, new CubeDeformation(0.0F)).texOffs(10, 0).addBox(10.0F, -29.0F, 0.0F, 1.0F, 32.0F, 2.0F, new CubeDeformation(0.0F)).texOffs(10, 0).addBox(8.0F, -21.0F, 0.0F, 2.0F, 6.0F, 2.0F, new CubeDeformation(0.0F)).texOffs(10, 0).addBox(8.0F, -10.0F, 0.0F, 2.0F, 5.0F, 2.0F, new CubeDeformation(0.0F)).texOffs(10, 0).addBox(8.0F, 0.0F, 0.0F, 2.0F, 3.0F, 2.0F, new CubeDeformation(0.0F)),
-                PartPose.offsetAndRotation(3.0F, 3.0F, -8.0F, 0.0F, 0.0F, -3.1416F));
-
-        PartDefinition Door2 = frame2.addOrReplaceChild("Door2", CubeListBuilder.create().texOffs(24, 14).addBox(-1.0F, 14.0F, -0.8F, 2.0F, 5.0F, 1.0F, new CubeDeformation(0.0F)).texOffs(19, 0).addBox(-1.0F, 3.0F, -0.8F, 2.0F, 5.0F, 1.0F, new CubeDeformation(0.0F)).texOffs(26, 25).addBox(-1.0F, 24.0F, -0.8F, 2.0F, 5.0F, 1.0F, new CubeDeformation(0.0F)).texOffs(0, 0).addBox(-12.0F, 0.0F, -0.8F, 9.0F, 1.0F, 9.0F, new CubeDeformation(0.0F)).texOffs(0, 0).addBox(-12.0F, 10.0F, -0.8F, 9.0F, 2.0F, 9.0F, new CubeDeformation(0.0F)).texOffs(0, 0).addBox(-12.0F, 20.0F, -0.8F, 9.0F, 2.0F, 9.0F, new CubeDeformation(0.0F)).texOffs(0, 0).addBox(-12.0F, 31.0F, -0.8F, 9.0F, 1.0F, 9.0F, new CubeDeformation(0.0F)).texOffs(10, 0).addBox(-14.0F, 0.0F, -0.8F, 2.0F, 32.0F, 9.0F, new CubeDeformation(0.0F)).texOffs(10, 0).addBox(-3.0F, 0.0F, -0.8F, 2.0F, 32.0F, 9.0F, new CubeDeformation(0.0F)).texOffs(20, 25).addBox(-10.0F, 3.0F, -0.8F, 5.0F, 5.0F, 1.0F, new CubeDeformation(0.0F)).texOffs(20, 25).addBox(-10.0F, 13.5F, -0.8F, 5.0F, 5.0F, 1.0F, new CubeDeformation(0.0F)).texOffs(20, 25).addBox(-10.0F, 24.0F, -0.8F, 5.0F, 5.0F, 1.0F, new CubeDeformation(0.0F)),
-                PartPose.offset(9.0F, -29.0F, 1.0F));
-
-        PartDefinition bone = Door2.addOrReplaceChild("bone", CubeListBuilder.create().texOffs(0, 22).addBox(-4.5F, -4.5F, -0.3F, 9.0F, 9.0F, 1.0F, new CubeDeformation(0.0F)).texOffs(0, 22).addBox(-4.5F, 6.0F, -0.3F, 9.0F, 9.0F, 1.0F, new CubeDeformation(0.0F)).texOffs(0, 22).addBox(-4.5F, -15.0F, -0.3F, 9.0F, 9.0F, 1.0F, new CubeDeformation(0.0F)),
-                PartPose.offsetAndRotation(-7.5F, 16.0F, 0.5F, 0.0F, 0.0F, -3.1416F));
-
-        // Side jambs: extend closed mesh from 2 to 3 blocks wide (8px each side), keeping center at X=8.
-        modelPartData.addOrReplaceChild(
-                "jambs",
-                CubeListBuilder.create()
-                        .texOffs(10, 0).addBox(-16.0F, 0.0F, -8.0F, 8.0F, 32.0F, 9.2F, new CubeDeformation(0.0F))
-                        .texOffs(10, 0).addBox(24.0F, 0.0F, -8.0F, 8.0F, 32.0F, 9.2F, new CubeDeformation(0.0F)),
-                PartPose.ZERO);
-
-        return LayerDefinition.create(modelData, 32, 32);
     }
 
     /** Fully open yaw: 135°. */
