@@ -18,10 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -31,11 +28,6 @@ import java.util.function.Function;
  */
 public final class EntityModelJson {
     public static final Codec<EntityModelFile> CODEC = EntityModelFile.CODEC;
-
-    private static final List<Path> CLASSPATH_FALLBACK_ROOTS = List.of(
-            Path.of("src/client/resources"),
-            Path.of("dwm/src/client/resources")
-    );
 
     private EntityModelJson() {
     }
@@ -76,8 +68,8 @@ public final class EntityModelJson {
     }
 
     /**
-     * Loads {@code assets/<ns>/models/entity/<path>.json} from the classpath (mod jar or
-     * {@code src/client/resources} when running unit tests).
+     * Loads {@code assets/<ns>/models/entity/<path>.json} from the classpath (mod jar; unit tests add
+     * {@code src/client/resources} to the test classpath).
      */
     public static LayerDefinition loadClasspath(Identifier modelId) {
         return toLayerDefinition(loadFile(modelId, EntityModelJson::readClasspath, new LinkedHashSet<>()));
@@ -151,8 +143,7 @@ public final class EntityModelJson {
     private static EntityModelFile readClasspath(Identifier modelId) {
         Identifier resourceId = toResourceId(modelId);
         String classpath = "assets/" + resourceId.getNamespace() + "/" + resourceId.getPath();
-        InputStream fromClasspath = EntityModelJson.class.getClassLoader().getResourceAsStream(classpath);
-        try (InputStream stream = fromClasspath != null ? fromClasspath : openFallbackFile(classpath)) {
+        try (InputStream stream = EntityModelJson.class.getClassLoader().getResourceAsStream(classpath)) {
             if (stream == null) {
                 throw new IllegalArgumentException("Missing entity model: " + resourceId);
             }
@@ -160,20 +151,6 @@ public final class EntityModelJson {
         } catch (IOException e) {
             throw new IllegalArgumentException("Failed to read entity model: " + resourceId, e);
         }
-    }
-
-    private static InputStream openFallbackFile(String classpath) {
-        for (Path root : CLASSPATH_FALLBACK_ROOTS) {
-            Path file = root.resolve(classpath);
-            if (Files.isRegularFile(file)) {
-                try {
-                    return Files.newInputStream(file);
-                } catch (IOException e) {
-                    throw new IllegalArgumentException("Failed to read entity model: " + file, e);
-                }
-            }
-        }
-        return null;
     }
 
     private static EntityModelFile readResource(ResourceManager resources, Identifier resourceId) {
