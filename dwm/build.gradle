@@ -358,6 +358,13 @@ tasks.register("unpackMinecraftSources") {
     }
 }
 
+sourceSets {
+    test {
+        // Client assets (e.g. JSON entity models) are loaded via the classloader in unit tests.
+        resources.srcDir "src/client/resources"
+    }
+}
+
 test {
     useJUnitPlatform()
 }
