@@ -13,8 +13,6 @@ import net.minecraft.resources.Identifier;
 public class StabilisersModel extends EntityModel<TardisRenderState> {
     public static final ModelLayerLocation LAYER_LOCATION =
             new ModelLayerLocation(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "stabilisers"), "main");
-    public static final Identifier TEXTURE_LOCATION =
-            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "textures/entity/stabilisers.png");
 
     /** Bbmodel rest pose (enabled). */
     public static final float LEVER_PITCH_ON = 1.047198F;

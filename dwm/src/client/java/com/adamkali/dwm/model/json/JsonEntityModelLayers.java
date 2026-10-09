@@ -8,8 +8,9 @@ import net.minecraft.resources.Identifier;
 
 /**
  * Registers a {@link ModelLayerLocation} whose mesh is loaded from
- * {@code assets/<ns>/models/entity/<path>.json}. A missing or malformed file fails the
- * model reload with an error naming the model; there is no built-in fallback.
+ * {@code assets/<ns>/models/entity/<path>.json}. A missing or malformed file, or one that declares
+ * no {@code texture}, fails the model reload with an error naming the model; there is no built-in
+ * fallback. The file's {@code texture} is recorded in {@link EntityModelTextures}.
  */
 public final class JsonEntityModelLayers {
     private JsonEntityModelLayers() {
@@ -24,6 +25,14 @@ public final class JsonEntityModelLayers {
         if (minecraft == null || minecraft.getResourceManager() == null) {
             throw new IllegalStateException("Cannot load entity model " + modelId + ": no resource manager");
         }
-        return EntityModelJson.load(minecraft.getResourceManager(), modelId);
+        EntityModelFile file = EntityModelJson.loadResolved(minecraft.getResourceManager(), modelId);
+        try {
+            Identifier texture = EntityModelTextures.requireTexture(modelId, file);
+            LayerDefinition definition = EntityModelJson.toLayerDefinition(file);
+            EntityModelTextures.put(modelId, texture);
+            return definition;
+        } catch (RuntimeException e) {
+            throw EntityModelJson.loadFailure(modelId, e);
+        }
     }
 }

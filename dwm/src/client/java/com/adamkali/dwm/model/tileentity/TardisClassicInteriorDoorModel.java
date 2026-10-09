@@ -15,7 +15,6 @@ import java.util.List;
 
 public class TardisClassicInteriorDoorModel extends EntityModel<TardisRenderState> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "tardis_classic_interior_door"), "main");
-    public static final Identifier TEXTURE_LOCATION = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "textures/entity/tardis_classic_doors.png");
 
     private final ModelPart door1;
     private final ModelPart door2;

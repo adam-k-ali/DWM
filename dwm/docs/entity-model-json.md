@@ -41,7 +41,7 @@ The layer id (`ModelLayerLocation`) is defined in Java. New meshes still need on
 | Field | Maps to |
 |-------|---------|
 | `texture_width` / `texture_height` | `LayerDefinition.create(mesh, w, h)` |
-| `texture` | Atlas (`Identifier` form, including `textures/` and `.png`). Documentation only: renderers use the Java `TEXTURE_LOCATION`, and a unit test asserts the two match. Pack overrides do not retarget it. |
+| `texture` | Atlas (`Identifier` form, including `textures/` and `.png`). Authoritative: required on the resolved (parent-merged) model, recorded in `EntityModelTextures` when the layer loads, and read by renderers via `EntityModelTextures.get(LAYER_LOCATION)`. A resource pack that overrides the JSON retargets the texture. |
 | `parts[].name` | `addOrReplaceChild` (keep names used by animation and tests); must be unique among siblings, otherwise the file fails to parse |
 | `pivot` | `PartPose` translation |
 | `rotation` | Rest pose in **degrees**; converted to radians at bake |
@@ -61,6 +61,7 @@ Package `com.adamkali.dwm.model.json`:
 - `EntityModelJson.loadClasspath(id)` — unit tests (mod jar copy)
 - `EntityModelJson.load(ResourceManager, id)` — pack-overridable bake
 - `JsonEntityModel` — mesh-only `EntityModel`
-- `JsonEntityModelLayers.register(ModelLayerLocation)` — Fabric layer whose supplier loads the JSON
+- `JsonEntityModelLayers.register(ModelLayerLocation)` — Fabric layer whose supplier loads the JSON and records its `texture`
+- `EntityModelTextures.get(ModelLayerLocation)` — texture declared by the layer's JSON
 
-`setupAnim`, TARDIS `renderShell` / `renderDoors`, and renderer texture selection stay in Java. Armor/humanoid templates are not in this format yet.
+`setupAnim` and TARDIS `renderShell` / `renderDoors` stay in Java; renderer texture variants (e.g. per-variant skins) also stay in Java. Armor/humanoid templates are not in this format yet.

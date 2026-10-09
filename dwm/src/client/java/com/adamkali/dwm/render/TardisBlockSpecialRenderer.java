@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render;
 
+import com.adamkali.dwm.model.json.EntityModelTextures;
 import com.adamkali.dwm.model.tileentity.FirstDoctorTardisModel;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -48,7 +49,7 @@ public class TardisBlockSpecialRenderer implements NoDataSpecialModelRenderer {
                 this.model,
                 this.animState,
                 poseStack,
-                FirstDoctorTardisModel.TEXTURE_LOCATION,
+                EntityModelTextures.get(FirstDoctorTardisModel.LAYER_LOCATION),
                 lightCoords,
                 overlayCoords,
                 outlineColor,

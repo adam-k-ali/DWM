@@ -105,7 +105,7 @@
     },
     "texture": {
       "$ref": "#/definitions/identifier",
-      "description": "Atlas Identifier, e.g. dwm:textures/entity/tardis_globe.png. Documentation only: renderers use the Java TEXTURE_LOCATION, and a unit test asserts they match."
+      "description": "Atlas Identifier, e.g. dwm:textures/entity/tardis_globe.png. Authoritative: renderers read it through EntityModelTextures; required on the resolved (parent-merged) model, and a resource pack override retargets it."
     },
     "credit": {
       "type": "string"

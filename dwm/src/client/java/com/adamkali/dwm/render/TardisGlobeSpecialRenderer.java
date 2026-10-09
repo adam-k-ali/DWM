@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render;
 
+import com.adamkali.dwm.model.json.EntityModelTextures;
 import com.adamkali.dwm.block.TardisDecorShapes;
 import com.adamkali.dwm.model.tileentity.TardisGlobeModel;
 import com.adamkali.dwm.render.state.TardisRenderState;
@@ -45,7 +46,7 @@ public class TardisGlobeSpecialRenderer implements NoDataSpecialModelRenderer {
                 this.model,
                 this.animState,
                 poseStack,
-                TardisGlobeModel.TEXTURE_LOCATION,
+                EntityModelTextures.get(TardisGlobeModel.LAYER_LOCATION),
                 lightCoords,
                 overlayCoords,
                 outlineColor,
