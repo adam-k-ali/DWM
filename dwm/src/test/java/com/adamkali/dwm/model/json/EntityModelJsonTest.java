@@ -7,9 +7,18 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.resources.Identifier;
 import org.junit.jupiter.api.BeforeAll;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Optional;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -197,6 +206,37 @@ class EntityModelJsonTest {
                 IllegalArgumentException.class,
                 () -> EntityModelJson.loadClasspath(Identifier.fromNamespaceAndPath("dwm", "does_not_exist"))
         );
+    }
+
+    @Test
+    void loadFromResourcesFailsClearlyOnMalformedJson() throws IOException {
+        Identifier modelId = Identifier.fromNamespaceAndPath("dwm", "dalek_laser");
+        ResourceManager resources = mock(ResourceManager.class);
+        Resource resource = mock(Resource.class);
+        when(resource.open()).thenReturn(
+                new ByteArrayInputStream("{\"texture_width\": \"wide\"}".getBytes(StandardCharsets.UTF_8)));
+        when(resources.getResource(EntityModelJson.toResourceId(modelId))).thenReturn(Optional.of(resource));
+
+        IllegalStateException thrown = assertThrows(
+                IllegalStateException.class,
+                () -> EntityModelJson.load(resources, modelId)
+        );
+        assertTrue(thrown.getMessage().contains("dwm:dalek_laser"), thrown.getMessage());
+        assertTrue(thrown.getMessage().contains("models/entity/dalek_laser.json"), thrown.getMessage());
+    }
+
+    @Test
+    void loadFromResourcesFailsClearlyWhenMissing() {
+        Identifier modelId = Identifier.fromNamespaceAndPath("dwm", "dalek_laser");
+        ResourceManager resources = mock(ResourceManager.class);
+        when(resources.getResource(EntityModelJson.toResourceId(modelId))).thenReturn(Optional.empty());
+
+        IllegalStateException thrown = assertThrows(
+                IllegalStateException.class,
+                () -> EntityModelJson.load(resources, modelId)
+        );
+        assertTrue(thrown.getMessage().contains("dwm:dalek_laser"), thrown.getMessage());
+        assertTrue(thrown.getMessage().contains("Missing entity model"), thrown.getMessage());
     }
 
     private static ModelPart globeRoot() {

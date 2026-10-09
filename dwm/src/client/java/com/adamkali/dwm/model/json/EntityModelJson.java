@@ -87,11 +87,18 @@ public final class EntityModelJson {
      * Loads from a resource pack tree so packs can override registered meshes.
      */
     public static LayerDefinition load(ResourceManager resources, Identifier modelId) {
-        return toLayerDefinition(loadFile(
-                modelId,
-                id -> readResource(resources, toResourceId(id)),
-                new LinkedHashSet<>()
-        ));
+        try {
+            return toLayerDefinition(loadFile(
+                    modelId,
+                    id -> readResource(resources, toResourceId(id)),
+                    new LinkedHashSet<>()
+            ));
+        } catch (RuntimeException e) {
+            throw new IllegalStateException(
+                    "Failed to load entity model " + modelId + " (" + toResourceId(modelId) + "): " + e.getMessage(),
+                    e
+            );
+        }
     }
 
     public static Identifier toResourceId(Identifier modelId) {
@@ -149,7 +156,7 @@ public final class EntityModelJson {
             if (stream == null) {
                 throw new IllegalArgumentException("Missing entity model: " + resourceId);
             }
-            return parse(JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8)));
+            return parseStream(stream, resourceId);
         } catch (IOException e) {
             throw new IllegalArgumentException("Failed to read entity model: " + resourceId, e);
         }
@@ -175,9 +182,17 @@ public final class EntityModelJson {
             throw new IllegalArgumentException("Missing entity model: " + resourceId);
         }
         try (InputStream stream = resource.get().open()) {
-            return parse(JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8)));
+            return parseStream(stream, resourceId);
         } catch (IOException e) {
             throw new IllegalArgumentException("Failed to read entity model: " + resourceId, e);
+        }
+    }
+
+    private static EntityModelFile parseStream(InputStream stream, Identifier resourceId) {
+        try {
+            return parse(JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8)));
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException("Invalid entity model " + resourceId + ": " + e.getMessage(), e);
         }
     }
 

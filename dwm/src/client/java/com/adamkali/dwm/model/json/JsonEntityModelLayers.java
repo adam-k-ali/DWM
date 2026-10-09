@@ -5,11 +5,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.packs.resources.ResourceManager;
 
 /**
  * Registers a {@link ModelLayerLocation} whose mesh is loaded from
- * {@code assets/<ns>/models/entity/<path>.json}.
+ * {@code assets/<ns>/models/entity/<path>.json}. A missing or malformed file fails the
+ * model reload with an error naming the model; there is no built-in fallback.
  */
 public final class JsonEntityModelLayers {
     private JsonEntityModelLayers() {
@@ -21,12 +21,9 @@ public final class JsonEntityModelLayers {
 
     static LayerDefinition load(Identifier modelId) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft != null) {
-            ResourceManager resources = minecraft.getResourceManager();
-            if (resources != null) {
-                return EntityModelJson.load(resources, modelId);
-            }
+        if (minecraft == null || minecraft.getResourceManager() == null) {
+            throw new IllegalStateException("Cannot load entity model " + modelId + ": no resource manager");
         }
-        return EntityModelJson.loadClasspath(modelId);
+        return EntityModelJson.load(minecraft.getResourceManager(), modelId);
     }
 }
