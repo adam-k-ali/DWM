@@ -1,5 +1,6 @@
 package com.adamkali.dwm.model.tileentity;
 
+import com.adamkali.dwm.model.json.EntityModelJson;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -30,7 +31,7 @@ class TardisClassicInteriorDoorModelTest {
 
     @Test
     void texturedModelData_hasDoorHierarchy() {
-        ModelPart root = TardisClassicInteriorDoorModel.getTexturedModelData().bakeRoot();
+        ModelPart root = EntityModelJson.loadClasspath(TardisClassicInteriorDoorModel.LAYER_LOCATION.model()).bakeRoot();
         assertTrue(root.hasChild("frame"));
         assertTrue(root.getChild("frame").hasChild("Door1"));
         assertTrue(root.hasChild("frame2"));
@@ -41,7 +42,7 @@ class TardisClassicInteriorDoorModelTest {
 
     @Test
     void renderShell_hidesDoorsDuringRenderThenRestoresVisibility() {
-        ModelPart root = TardisClassicInteriorDoorModel.getTexturedModelData().bakeRoot();
+        ModelPart root = EntityModelJson.loadClasspath(TardisClassicInteriorDoorModel.LAYER_LOCATION.model()).bakeRoot();
         TardisClassicInteriorDoorModel model = new TardisClassicInteriorDoorModel(root);
         List<ModelPart> doors = model.getDoorParts();
         assertEquals(2, doors.size());
@@ -69,7 +70,7 @@ class TardisClassicInteriorDoorModelTest {
 
     @Test
     void getDoorParts_areNestedUnderFrames() {
-        ModelPart root = TardisClassicInteriorDoorModel.getTexturedModelData().bakeRoot();
+        ModelPart root = EntityModelJson.loadClasspath(TardisClassicInteriorDoorModel.LAYER_LOCATION.model()).bakeRoot();
         TardisClassicInteriorDoorModel model = new TardisClassicInteriorDoorModel(root);
         List<ModelPart> doors = model.getDoorParts();
         assertEquals(root.getChild("frame").getChild("Door1"), doors.get(0));
