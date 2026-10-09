@@ -89,5 +89,11 @@
         { "uv": [10, 0], "origin": [24.0, 0.0, -8.0], "size": [8.0, 32.0, 9.2] }
       ]
     }
-  ]
+  ],
+  "animation": {
+    "bindings": [
+      { "part": "frame/Door1", "channel": "rot_y", "value": "-door_progress * 135" },
+      { "part": "frame2/Door2", "channel": "rot_y", "value": "-door_progress * 135" }
+    ]
+  }
 }

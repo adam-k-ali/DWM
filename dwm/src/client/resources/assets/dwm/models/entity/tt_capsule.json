@@ -67,5 +67,10 @@
         }
       ]
     }
-  ]
+  ],
+  "animation": {
+    "bindings": [
+      { "part": "bone/door", "channel": "rot_y", "value": "door_progress * 90" }
+    ]
+  }
 }

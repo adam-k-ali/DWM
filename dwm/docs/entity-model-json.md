@@ -78,7 +78,7 @@ Each frame vanilla resets every part to its rest pose, then each binding **adds*
 
 Expressions support `+ - * /`, unary `-`, parentheses, numbers, variables, the constants `pi` and `deg` (`180/pi`, to turn a radian result into degrees), and `sin cos` (radians, Minecraft's `Mth` tables, so ports from Java match), `abs`, `min`, `max`, `clamp(x, lo, hi)`, `lerp(a, b, t)`. Evaluation is in `float`.
 
-Variables come from the Java model type (`AnimationVariables`). Living entities get `age`, `walk_pos`, `walk_speed`, and `head_pitch` / `head_yaw` (degrees). Dalek adds `lean_pitch`, `lean_roll` (degrees) and `flight_bob` (model units, 0 when grounded). An unknown variable fails when the model is built and lists the available names.
+Variables come from the Java model type (`AnimationVariables`). Living entities get `age`, `walk_pos`, `walk_speed`, and `head_pitch` / `head_yaw` (degrees). TARDIS exteriors and the interior door expose `door_progress` (0-1) and swing their door parts from it. Dalek adds `lean_pitch`, `lean_roll` (degrees) and `flight_bob` (model units, 0 when grounded). An unknown variable fails when the model is built and lists the available names.
 
 A child file's bindings replace the parent's with the same part + channel and append the rest.
 
@@ -95,4 +95,4 @@ Package `com.adamkali.dwm.model.json`:
 - `JsonEntityModelLayers.register(ModelLayerLocation)` — Fabric layer whose supplier loads the JSON and records its `texture`
 - `EntityModelTextures.get(ModelLayerLocation)` — texture declared by the layer's JSON
 
-TARDIS `renderShell` / `renderDoors` stay in Java; renderer texture variants (e.g. per-variant skins) also stay in Java. Armor/humanoid templates are not in this format yet.
+TARDIS `renderShell` / `renderDoors` and door-part lookup stay in Java; renderer texture variants (e.g. per-variant skins) also stay in Java. Armor/humanoid templates are not in this format yet.

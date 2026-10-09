@@ -586,5 +586,10 @@
         }
       ]
     }
-  ]
+  ],
+  "animation": {
+    "bindings": [
+      { "part": "Main/LeftDoor", "channel": "rot_y", "value": "door_progress * 60" }
+    ]
+  }
 }
