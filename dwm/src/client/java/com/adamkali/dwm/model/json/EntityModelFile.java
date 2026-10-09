@@ -12,7 +12,6 @@ import java.util.Optional;
  */
 public record EntityModelFile(
         Optional<Identifier> parent,
-        Optional<String> layer,
         Optional<Integer> textureWidth,
         Optional<Integer> textureHeight,
         Optional<Identifier> texture,
@@ -20,7 +19,6 @@ public record EntityModelFile(
 ) {
     public static final Codec<EntityModelFile> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Identifier.CODEC.optionalFieldOf("parent").forGetter(EntityModelFile::parent),
-            Codec.STRING.optionalFieldOf("layer").forGetter(EntityModelFile::layer),
             Codec.INT.optionalFieldOf("texture_width").forGetter(EntityModelFile::textureWidth),
             Codec.INT.optionalFieldOf("texture_height").forGetter(EntityModelFile::textureHeight),
             Identifier.CODEC.optionalFieldOf("texture").forGetter(EntityModelFile::texture),
@@ -29,11 +27,6 @@ public record EntityModelFile(
 
     public EntityModelFile {
         parts = List.copyOf(parts);
-        layer.ifPresent(value -> {
-            if (value.isBlank()) {
-                throw new IllegalArgumentException("layer must be non-blank");
-            }
-        });
         textureWidth.ifPresent(value -> {
             if (value < 1) {
                 throw new IllegalArgumentException("texture_width must be at least 1");
@@ -44,9 +37,5 @@ public record EntityModelFile(
                 throw new IllegalArgumentException("texture_height must be at least 1");
             }
         });
-    }
-
-    public String layerOrDefault() {
-        return layer.orElse("main");
     }
 }

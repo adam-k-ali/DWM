@@ -13,14 +13,13 @@ This is **not** vanilla block/item JSON (no bone tree, per-face UV) and **not** 
 | `dwm:dalek_laser` | `assets/dwm/models/entity/dalek_laser.json` |
 | `dwm:entity/console_selector` (parent form) | `assets/dwm/models/entity/console_selector.json` |
 
-`layer` (default `main`) is the `ModelLayerLocation` suffix. New meshes still need one Java registration line; resource packs can override the JSON of registered ids.
+The layer id (`ModelLayerLocation`) is defined in Java. New meshes still need one Java registration line; resource packs can override the JSON of registered ids. A missing or malformed file fails the model reload with an error naming the model and resource; there is no built-in fallback.
 
 ## File shape
 
 ```json
 {
   "parent": "dwm:entity/console_selector",
-  "layer": "main",
   "texture_width": 16,
   "texture_height": 16,
   "texture": "dwm:textures/entity/tardis_globe.png",
@@ -41,7 +40,7 @@ This is **not** vanilla block/item JSON (no bone tree, per-face UV) and **not** 
 | Field | Maps to |
 |-------|---------|
 | `texture_width` / `texture_height` | `LayerDefinition.create(mesh, w, h)` |
-| `texture` | Optional default atlas (`Identifier` form, including `textures/` and `.png`) |
+| `texture` | Atlas (`Identifier` form, including `textures/` and `.png`). Documentation only: renderers use the Java `TEXTURE_LOCATION`, and a unit test asserts the two match. Pack overrides do not retarget it. |
 | `parts[].name` | `addOrReplaceChild` (keep names used by animation and tests) |
 | `pivot` | `PartPose` translation |
 | `rotation` | Rest pose in **degrees**; converted to radians at bake |
@@ -49,7 +48,7 @@ This is **not** vanilla block/item JSON (no bone tree, per-face UV) and **not** 
 | `origin` + `size` | `addBox(x, y, z, w, h, d)` |
 | `inflate` | `CubeDeformation` (negative allowed) |
 | `mirror` | `CubeListBuilder.mirror()` |
-| `parent` | Copy parent, then overlay `texture` / `layer` / texture size; non-empty `parts` replace the parent tree |
+| `parent` | Copy parent, then overlay `texture` / texture size; non-empty `parts` replace the parent tree |
 
 A file must have either `parent` or `texture_width` + `texture_height` + `parts`. Schema: `src/test/resources/schemas/entity_model.schema.json`.
 

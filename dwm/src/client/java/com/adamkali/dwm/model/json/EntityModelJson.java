@@ -41,7 +41,7 @@ public final class EntityModelJson {
     }
 
     /**
-     * Walks {@code parent} references. Child {@code texture}, {@code layer}, and texture size
+     * Walks {@code parent} references. Child {@code texture} and texture size
      * overlay the parent; non-empty {@code parts} replace the parent tree.
      */
     public static EntityModelFile resolveParents(
@@ -72,7 +72,14 @@ public final class EntityModelJson {
      * {@code src/client/resources} to the test classpath).
      */
     public static LayerDefinition loadClasspath(Identifier modelId) {
-        return toLayerDefinition(loadFile(modelId, EntityModelJson::readClasspath, new LinkedHashSet<>()));
+        return toLayerDefinition(loadClasspathFile(modelId));
+    }
+
+    /**
+     * Resolved (parent-free) file from the classpath; used to check metadata such as {@code texture}.
+     */
+    public static EntityModelFile loadClasspathFile(Identifier modelId) {
+        return loadFile(modelId, EntityModelJson::readClasspath, new LinkedHashSet<>());
     }
 
     /**
@@ -132,7 +139,6 @@ public final class EntityModelJson {
     static EntityModelFile overlay(EntityModelFile parent, EntityModelFile child) {
         return new EntityModelFile(
                 Optional.empty(),
-                child.layer().or(parent::layer),
                 child.textureWidth().or(parent::textureWidth),
                 child.textureHeight().or(parent::textureHeight),
                 child.texture().or(parent::texture),
