@@ -70,16 +70,21 @@ public class ResourceValidationTests {
     public void entityModelTexturesExist() throws Exception {
         Path models = Path.of("src/client/resources/assets/dwm/models/entity");
         Path assetsRoot = Path.of("src/client/resources/assets");
-        if (!Files.isDirectory(models)) {
-            return;
-        }
+        assertTrue(Files.isDirectory(models), "Missing entity models directory: " + models);
+        int checked = 0;
         try (var paths = Files.walk(models).filter(Files::isRegularFile)
                 .filter(path -> path.toString().endsWith(".json"))) {
             for (Path modelPath : (Iterable<Path>) paths::iterator) {
                 JSONObject json = new JSONObject(new JSONTokener(Files.readString(modelPath)));
-                if (!json.has("texture") || !(json.get("texture") instanceof String textureId)) {
+                if (!json.has("texture")) {
+                    assertTrue(json.has("parent"), "Entity model needs texture or parent: " + modelPath);
                     continue;
                 }
+                if (!(json.get("texture") instanceof String textureId)) {
+                    fail("Entity model texture must be a string in " + modelPath);
+                    continue;
+                }
+                checked++;
                 int colon = textureId.indexOf(':');
                 if (colon < 0) {
                     fail("Entity model texture is not namespaced: " + textureId + " in " + modelPath);
@@ -94,6 +99,7 @@ public class ResourceValidationTests {
                 );
             }
         }
+        assertTrue(checked > 0, "No entity model declared a texture under " + models);
     }
 
     /**

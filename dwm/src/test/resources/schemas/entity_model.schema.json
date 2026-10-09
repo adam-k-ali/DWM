@@ -7,7 +7,7 @@
   "definitions": {
     "identifier": {
       "type": "string",
-      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$"
+      "pattern": "^([a-z0-9_.-]+:)?[a-z0-9_./-]+$"
     },
     "vector2i": {
       "type": "array",
@@ -52,7 +52,8 @@
         "uv",
         "origin",
         "size"
-      ]
+      ],
+      "additionalProperties": false
     },
     "part": {
       "type": "object",
@@ -85,7 +86,8 @@
       },
       "required": [
         "name"
-      ]
+      ],
+      "additionalProperties": false
     }
   },
   "properties": {
@@ -128,5 +130,6 @@
         "parts"
       ]
     }
-  ]
+  ],
+  "additionalProperties": false
 }
