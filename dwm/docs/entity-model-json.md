@@ -41,16 +41,16 @@ The layer id (`ModelLayerLocation`) is defined in Java. New meshes still need on
 |-------|---------|
 | `texture_width` / `texture_height` | `LayerDefinition.create(mesh, w, h)` |
 | `texture` | Atlas (`Identifier` form, including `textures/` and `.png`). Documentation only: renderers use the Java `TEXTURE_LOCATION`, and a unit test asserts the two match. Pack overrides do not retarget it. |
-| `parts[].name` | `addOrReplaceChild` (keep names used by animation and tests) |
+| `parts[].name` | `addOrReplaceChild` (keep names used by animation and tests); must be unique among siblings, otherwise the file fails to parse |
 | `pivot` | `PartPose` translation |
 | `rotation` | Rest pose in **degrees**; converted to radians at bake |
 | `cubes[].uv` | `texOffs(u, v)` |
 | `origin` + `size` | `addBox(x, y, z, w, h, d)` |
 | `inflate` | `CubeDeformation` (negative allowed) |
 | `mirror` | `CubeListBuilder.mirror()` |
-| `parent` | Copy parent, then overlay `texture` / texture size; non-empty `parts` replace the parent tree |
+| `parent` | Copy parent, then overlay `texture` / texture size; child `parts` replace same-named parent parts and append new names (an empty or absent `parts` inherits the parent tree) |
 
-A file must have either `parent` or `texture_width` + `texture_height` + `parts`. Schema: `src/test/resources/schemas/entity_model.schema.json`.
+A resolved model must have at least one part. A file must have either `parent` or `texture_width` + `texture_height` + `parts`. Schema: `src/test/resources/schemas/entity_model.schema.json`.
 
 ## Java API
 

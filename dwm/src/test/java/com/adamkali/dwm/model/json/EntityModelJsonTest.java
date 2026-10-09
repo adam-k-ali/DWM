@@ -112,6 +112,77 @@ class EntityModelJsonTest {
     }
 
     @Test
+    void invalidFieldsReturnDataResultErrors() {
+        for (String json : new String[] {
+                "{\"texture_width\": 0, \"texture_height\": 8, \"parts\": [{\"name\": \"a\"}]}",
+                "{\"texture_width\": 8, \"texture_height\": -1, \"parts\": [{\"name\": \"a\"}]}",
+                "{\"texture_width\": 8, \"texture_height\": 8, \"parts\": [{\"name\": \"\"}]}",
+                "{\"texture_width\": 8, \"texture_height\": 8, \"parts\": [{\"name\": \"  \"}]}",
+                "{\"texture_width\": 8, \"texture_height\": 8, \"parts\": [{\"name\": \"a\"}, {\"name\": \"a\"}]}",
+                "{\"texture_width\": 8, \"texture_height\": 8, \"parts\": [{\"name\": \"a\","
+                        + " \"children\": [{\"name\": \"b\"}, {\"name\": \"b\"}]}]}"
+        }) {
+            assertTrue(
+                    EntityModelFile.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseString(json)).isError(),
+                    json
+            );
+        }
+    }
+
+    @Test
+    void sameNameInDifferentBranchesIsAllowed() {
+        EntityModelFile file = EntityModelJson.parse("""
+                {
+                  "texture_width": 8,
+                  "texture_height": 8,
+                  "parts": [
+                    {"name": "a", "children": [{"name": "lever"}]},
+                    {"name": "b", "children": [{"name": "lever"}]}
+                  ]
+                }
+                """);
+        ModelPart root = EntityModelJson.toLayerDefinition(file).bakeRoot();
+        assertTrue(root.getChild("a").hasChild("lever"));
+        assertTrue(root.getChild("b").hasChild("lever"));
+    }
+
+    @Test
+    void childPartsMergeByNameOverParent() {
+        EntityModelFile parent = EntityModelJson.parse("""
+                {
+                  "texture_width": 8,
+                  "texture_height": 8,
+                  "parts": [
+                    {"name": "base", "pivot": [0, 1, 0]},
+                    {"name": "lever", "pivot": [0, 2, 0]}
+                  ]
+                }
+                """);
+        EntityModelFile child = EntityModelJson.parse("""
+                {
+                  "parent": "dwm:base_model",
+                  "parts": [
+                    {"name": "lever", "pivot": [0, 9, 0]},
+                    {"name": "extra"}
+                  ]
+                }
+                """);
+        EntityModelFile resolved = EntityModelJson.resolveParents(id -> parent, child);
+        assertEquals(
+                java.util.List.of("base", "lever", "extra"),
+                resolved.parts().stream().map(EntityModelPart::name).toList()
+        );
+        assertEquals(9.0F, resolved.parts().get(1).pivot().y());
+        assertEquals(1.0F, resolved.parts().get(0).pivot().y());
+    }
+
+    @Test
+    void emptyMeshCannotBake() {
+        EntityModelFile file = EntityModelJson.parse("{\"texture_width\": 8, \"texture_height\": 8}");
+        assertThrows(IllegalArgumentException.class, () -> EntityModelJson.toLayerDefinition(file));
+    }
+
+    @Test
     void cyclicParentFails() {
         Identifier a = Identifier.fromNamespaceAndPath("dwm", "a");
         Identifier b = Identifier.fromNamespaceAndPath("dwm", "b");

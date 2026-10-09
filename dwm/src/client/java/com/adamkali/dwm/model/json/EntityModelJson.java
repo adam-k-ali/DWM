@@ -18,7 +18,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -42,7 +46,7 @@ public final class EntityModelJson {
 
     /**
      * Walks {@code parent} references. Child {@code texture} and texture size
-     * overlay the parent; non-empty {@code parts} replace the parent tree.
+     * overlay the parent; child {@code parts} replace same-named parent parts and append new ones.
      */
     public static EntityModelFile resolveParents(
             Function<Identifier, EntityModelFile> loader,
@@ -59,6 +63,9 @@ public final class EntityModelJson {
                 () -> new IllegalArgumentException("texture_width is required"));
         int height = file.textureHeight().orElseThrow(
                 () -> new IllegalArgumentException("texture_height is required"));
+        if (file.parts().isEmpty()) {
+            throw new IllegalArgumentException("entity model has no parts");
+        }
         MeshDefinition mesh = new MeshDefinition();
         PartDefinition root = mesh.getRoot();
         for (EntityModelPart part : file.parts()) {
@@ -142,8 +149,24 @@ public final class EntityModelJson {
                 child.textureWidth().or(parent::textureWidth),
                 child.textureHeight().or(parent::textureHeight),
                 child.texture().or(parent::texture),
-                child.parts().isEmpty() ? parent.parts() : child.parts()
+                mergeParts(parent.parts(), child.parts())
         );
+    }
+
+    /** Child parts replace same-named parent parts in place; new names are appended. */
+    private static List<EntityModelPart> mergeParts(List<EntityModelPart> parent, List<EntityModelPart> child) {
+        if (child.isEmpty()) {
+            return parent;
+        }
+        Map<String, EntityModelPart> overrides = new LinkedHashMap<>();
+        child.forEach(part -> overrides.put(part.name(), part));
+        List<EntityModelPart> merged = new ArrayList<>();
+        for (EntityModelPart part : parent) {
+            EntityModelPart override = overrides.remove(part.name());
+            merged.add(override != null ? override : part);
+        }
+        merged.addAll(overrides.values());
+        return merged;
     }
 
     private static EntityModelFile readClasspath(Identifier modelId) {
@@ -200,6 +223,9 @@ public final class EntityModelJson {
             if (cube.mirror()) {
                 cubes.mirror(false);
             }
+        }
+        if (parent.getChild(part.name()) != null) {
+            throw new IllegalArgumentException("duplicate part name among siblings: " + part.name());
         }
         PartDefinition child = parent.addOrReplaceChild(part.name(), cubes, toPartPose(part));
         for (EntityModelPart nested : part.children()) {
