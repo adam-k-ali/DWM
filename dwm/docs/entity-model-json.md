@@ -51,7 +51,35 @@ The layer id (`ModelLayerLocation`) is defined in Java. New meshes still need on
 | `mirror` | `CubeListBuilder.mirror()` |
 | `parent` | Copy parent, then overlay `texture` / texture size; child `parts` replace same-named parent parts and append new names (an empty or absent `parts` inherits the parent tree) |
 
+| `animation.bindings` | Per-frame pose changes, see [Animation](#animation). Merged through `parent` by part + channel |
+
 A resolved model must have at least one part. A file must have either `parent` or `texture_width` + `texture_height` + `parts`. Schema: `src/test/resources/schemas/entity_model.schema.json`.
+
+## Animation
+
+```json
+"animation": {
+  "bindings": [
+    { "part": "neck/head", "channel": "rot_x", "value": "head_pitch" },
+    { "part": "leg1", "channel": "rot_x", "value": "cos(walk_pos * 0.6662) * 1.4 * walk_speed * deg" },
+    { "part": "tail", "channel": "rot_x", "value": "cos(age * 0.05) * 0.1 * deg" }
+  ]
+}
+```
+
+Each frame vanilla resets every part to its rest pose, then each binding **adds** its value to one channel. Several bindings on the same part and channel sum.
+
+| Field | Meaning |
+|-------|---------|
+| `part` | Slash path from the root (`neck/head`). Omit to drive the root part. An unknown path fails when the model is built. |
+| `channel` | `rot_x` `rot_y` `rot_z` (**degrees**, like rest `rotation`) or `pos_x` `pos_y` `pos_z` (model units) |
+| `value` | Expression over the model's variables |
+
+Expressions support `+ - * /`, unary `-`, parentheses, numbers, variables, the constants `pi` and `deg` (`180/pi`, to turn a radian result into degrees), and `sin cos` (radians, Minecraft's `Mth` tables, so ports from Java match), `abs`, `min`, `max`, `clamp(x, lo, hi)`, `lerp(a, b, t)`. Evaluation is in `float`.
+
+Variables come from the Java model type (`AnimationVariables`). Living entities get `age`, `walk_pos`, `walk_speed`, and `head_pitch` / `head_yaw` (degrees). An unknown variable fails when the model is built and lists the available names.
+
+A child file's bindings replace the parent's with the same part + channel and append the rest.
 
 ## Java API
 
@@ -60,8 +88,10 @@ Package `com.adamkali.dwm.model.json`:
 - `EntityModelJson.parse` / `resolveParents` / `toLayerDefinition`
 - `EntityModelJson.loadClasspath(id)` — unit tests (mod jar copy)
 - `EntityModelJson.load(ResourceManager, id)` — pack-overridable bake
-- `JsonEntityModel` — mesh-only `EntityModel`
+- `JsonEntityModel` — `EntityModel` for a baked mesh; given an `EntityAnimation` and `AnimationVariables` it applies the bindings in `setupAnim`
+- `EntityModelAnimations.get(ModelLayerLocation)` — animation recorded when the layer loads
+- `com.adamkali.dwm.model.json.anim` — `Expression`, `EntityAnimation`, `AnimationVariables`, `AnimationRunner`
 - `JsonEntityModelLayers.register(ModelLayerLocation)` — Fabric layer whose supplier loads the JSON and records its `texture`
 - `EntityModelTextures.get(ModelLayerLocation)` — texture declared by the layer's JSON
 
-`setupAnim` and TARDIS `renderShell` / `renderDoors` stay in Java; renderer texture variants (e.g. per-variant skins) also stay in Java. Armor/humanoid templates are not in this format yet.
+TARDIS `renderShell` / `renderDoors` stay in Java; renderer texture variants (e.g. per-variant skins) also stay in Java. Armor/humanoid templates are not in this format yet.
