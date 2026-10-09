@@ -1,12 +1,10 @@
 package com.adamkali.dwm.model.tileentity;
 
 import com.adamkali.dwm.DWMReference;
-import com.adamkali.dwm.model.json.EntityModelJson;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.resources.Identifier;
 
 /**
@@ -28,10 +26,6 @@ public class StabilisersModel extends EntityModel<TardisRenderState> {
     public StabilisersModel(ModelPart root) {
         super(root);
         this.lever = root.getChild("stable_adjust").getChild("lever");
-    }
-
-    public static LayerDefinition getTexturedModelData() {
-        return EntityModelJson.loadClasspath(LAYER_LOCATION.model());
     }
 
     @Override

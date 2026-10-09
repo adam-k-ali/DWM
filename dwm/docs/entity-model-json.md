@@ -57,7 +57,7 @@ A resolved model must have at least one part. A file must have either `parent` o
 Package `com.adamkali.dwm.model.json`:
 
 - `EntityModelJson.parse` / `resolveParents` / `toLayerDefinition`
-- `EntityModelJson.loadClasspath(id)` — unit tests and model factory methods
+- `EntityModelJson.loadClasspath(id)` — unit tests (mod jar copy)
 - `EntityModelJson.load(ResourceManager, id)` — pack-overridable bake
 - `JsonEntityModel` — mesh-only `EntityModel`
 - `JsonEntityModelLayers.register(ModelLayerLocation)` — Fabric layer whose supplier loads the JSON

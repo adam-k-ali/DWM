@@ -1,5 +1,6 @@
 package com.adamkali.dwm.model.entity;
 
+import com.adamkali.dwm.model.json.EntityModelJson;
 import net.minecraft.client.model.geom.ModelPart;
 import org.junit.jupiter.api.Test;
 
@@ -9,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class DalekLaserModelTest {
     @Test
     void bodyLayerHasBolt() {
-        ModelPart root = DalekLaserModel.createBodyLayer().bakeRoot();
+        ModelPart root = EntityModelJson.loadClasspath(DalekLaserModel.LAYER_LOCATION.model()).bakeRoot();
         assertTrue(root.hasChild("bolt"));
     }
 

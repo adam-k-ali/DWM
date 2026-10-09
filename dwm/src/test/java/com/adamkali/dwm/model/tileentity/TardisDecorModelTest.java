@@ -1,5 +1,6 @@
 package com.adamkali.dwm.model.tileentity;
 
+import com.adamkali.dwm.model.json.EntityModelJson;
 import net.minecraft.client.model.geom.ModelPart;
 import org.junit.jupiter.api.Test;
 
@@ -8,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class TardisDecorModelTest {
     @Test
     void globeModel_bakesWithStandAndGlobeGroups() {
-        ModelPart root = assertDoesNotThrow(() -> TardisGlobeModel.getTexturedModelData().bakeRoot());
+        ModelPart root = assertDoesNotThrow(() -> EntityModelJson.loadClasspath(TardisGlobeModel.LAYER_LOCATION.model()).bakeRoot());
         assertTrue(root.hasChild("mesh"));
         assertTrue(root.hasChild("Globe"));
         assertTrue(root.hasChild("Globe2"));
