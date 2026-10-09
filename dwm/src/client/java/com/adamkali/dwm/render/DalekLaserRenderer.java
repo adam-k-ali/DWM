@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render;
 
+import com.adamkali.dwm.model.json.EntityModelTextures;
 import com.adamkali.dwm.entity.DalekLaserEntity;
 import com.adamkali.dwm.model.entity.DalekLaserModel;
 import com.adamkali.dwm.render.state.DalekLaserRenderState;
@@ -36,7 +37,7 @@ public class DalekLaserRenderer extends EntityRenderer<DalekLaserEntity, DalekLa
                 this.model,
                 state,
                 poseStack,
-                DalekLaserModel.TEXTURE_LOCATION,
+                EntityModelTextures.get(DalekLaserModel.LAYER_LOCATION),
                 state.lightCoords,
                 OverlayTexture.NO_OVERLAY,
                 state.outlineColor,

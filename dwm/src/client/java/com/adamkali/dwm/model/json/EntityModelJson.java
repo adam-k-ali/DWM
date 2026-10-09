@@ -94,17 +94,32 @@ public final class EntityModelJson {
      */
     public static LayerDefinition load(ResourceManager resources, Identifier modelId) {
         try {
-            return toLayerDefinition(loadFile(
-                    modelId,
-                    id -> readResource(resources, toResourceId(id)),
-                    new LinkedHashSet<>()
-            ));
+            return toLayerDefinition(resolve(resources, modelId));
         } catch (RuntimeException e) {
-            throw new IllegalStateException(
-                    "Failed to load entity model " + modelId + " (" + toResourceId(modelId) + "): " + e.getMessage(),
-                    e
-            );
+            throw loadFailure(modelId, e);
         }
+    }
+
+    /**
+     * Resolved (parent-free) file from a resource pack tree; errors name the model and resource.
+     */
+    public static EntityModelFile loadResolved(ResourceManager resources, Identifier modelId) {
+        try {
+            return resolve(resources, modelId);
+        } catch (RuntimeException e) {
+            throw loadFailure(modelId, e);
+        }
+    }
+
+    static IllegalStateException loadFailure(Identifier modelId, RuntimeException cause) {
+        return new IllegalStateException(
+                "Failed to load entity model " + modelId + " (" + toResourceId(modelId) + "): " + cause.getMessage(),
+                cause
+        );
+    }
+
+    private static EntityModelFile resolve(ResourceManager resources, Identifier modelId) {
+        return loadFile(modelId, id -> readResource(resources, toResourceId(id)), new LinkedHashSet<>());
     }
 
     public static Identifier toResourceId(Identifier modelId) {

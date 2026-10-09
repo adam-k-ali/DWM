@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render;
 
+import com.adamkali.dwm.model.json.EntityModelTextures;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.TardisDecorEntityBlock;
 import com.adamkali.dwm.block.entities.TardisDecorBlockEntity;
@@ -74,7 +75,7 @@ public class TardisDecorBlockEntityRenderer
             texture = TardisFullScannerModel.TEXTURE_LOCATION;
         } else {
             model = globeModel;
-            texture = TardisGlobeModel.TEXTURE_LOCATION;
+            texture = EntityModelTextures.get(TardisGlobeModel.LAYER_LOCATION);
         }
 
         TardisRenderState animState = new TardisRenderState();
