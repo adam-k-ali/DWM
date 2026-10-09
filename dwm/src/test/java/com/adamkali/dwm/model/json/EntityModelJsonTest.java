@@ -79,11 +79,10 @@ class EntityModelJsonTest {
     }
 
     @Test
-    void parentOverlaysTextureAndLayer() {
+    void parentOverlaysTexture() {
         Identifier parentId = Identifier.fromNamespaceAndPath("dwm", "console_selector");
         EntityModelFile parent = EntityModelJson.parse("""
                 {
-                  "layer": "main",
                   "texture_width": 64,
                   "texture_height": 64,
                   "texture": "dwm:textures/entity/console_selector.png",
@@ -93,7 +92,6 @@ class EntityModelJsonTest {
         EntityModelFile child = EntityModelJson.parse("""
                 {
                   "parent": "dwm:console_selector",
-                  "layer": "panel",
                   "texture": "dwm:textures/entity/waypoint_selector.png"
                 }
                 """);
@@ -105,7 +103,6 @@ class EntityModelJsonTest {
                 child
         );
         assertTrue(resolved.parent().isEmpty());
-        assertEquals("panel", resolved.layerOrDefault());
         assertEquals(64, resolved.textureWidth().orElseThrow());
         assertEquals(
                 Identifier.fromNamespaceAndPath("dwm", "textures/entity/waypoint_selector.png"),

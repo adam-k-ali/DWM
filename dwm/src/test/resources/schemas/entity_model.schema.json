@@ -91,12 +91,7 @@
   "properties": {
     "parent": {
       "$ref": "#/definitions/identifier",
-      "description": "Copy this model then overlay texture/layer (and parts when present). dwm:console_selector or dwm:entity/console_selector both resolve to models/entity/console_selector.json."
-    },
-    "layer": {
-      "type": "string",
-      "minLength": 1,
-      "description": "ModelLayerLocation layer suffix; default main"
+      "description": "Copy this model then overlay texture and texture size (and parts when present). dwm:console_selector or dwm:entity/console_selector both resolve to models/entity/console_selector.json."
     },
     "texture_width": {
       "type": "integer",
@@ -108,7 +103,7 @@
     },
     "texture": {
       "$ref": "#/definitions/identifier",
-      "description": "Default atlas Identifier, e.g. dwm:textures/entity/tardis_globe.png"
+      "description": "Atlas Identifier, e.g. dwm:textures/entity/tardis_globe.png. Documentation only: renderers use the Java TEXTURE_LOCATION, and a unit test asserts they match."
     },
     "credit": {
       "type": "string"
