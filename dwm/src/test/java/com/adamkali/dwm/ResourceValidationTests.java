@@ -62,7 +62,7 @@ public class ResourceValidationTests {
         ));
     }
 
-
+    @Test
     public void validateEntityModels() {
         assertTrue(JsonValidationHelpers.validateJsonFiles(
                 "src/test/resources/schemas/entity_model.schema.json",
