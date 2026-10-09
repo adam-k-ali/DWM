@@ -164,7 +164,8 @@ public final class EntityModelJson {
                 child.textureWidth().or(parent::textureWidth),
                 child.textureHeight().or(parent::textureHeight),
                 child.texture().or(parent::texture),
-                mergeParts(parent.parts(), child.parts())
+                mergeParts(parent.parts(), child.parts()),
+                parent.animation().overlay(child.animation())
         );
     }
 
