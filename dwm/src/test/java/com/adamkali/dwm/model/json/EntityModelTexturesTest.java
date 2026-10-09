@@ -6,22 +6,17 @@ import com.adamkali.dwm.model.entity.DalekLaserModel;
 import com.adamkali.dwm.model.entity.DalekModel;
 import com.adamkali.dwm.model.entity.FlutterwingModel;
 import com.adamkali.dwm.model.entity.TimeLordModel;
-import com.adamkali.dwm.model.tileentity.FifthDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.FirstDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.FourthDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.SecondDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.SeventhDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.SixthDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.StabilisersModel;
-import com.adamkali.dwm.model.tileentity.TTCapsuleModel;
 import com.adamkali.dwm.model.tileentity.TardisClassicInteriorDoorModel;
 import com.adamkali.dwm.model.tileentity.TardisGlobeModel;
-import com.adamkali.dwm.model.tileentity.ThirdDoctorTardisModel;
+import com.adamkali.dwm.model.tileentity.TardisModels;
+import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.resources.Identifier;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,7 +27,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * The JSON {@code texture} field is the only source of a model's atlas texture.
  */
 class EntityModelTexturesTest {
-    private static final List<ModelLayerLocation> JSON_LAYERS = List.of(
+    private static final List<ModelLayerLocation> JSON_LAYERS = jsonLayers();
+
+    private static List<ModelLayerLocation> jsonLayers() {
+        List<ModelLayerLocation> layers = new ArrayList<>(List.of(
             DalekLaserModel.LAYER_LOCATION,
             BroakirModel.LAYER_LOCATION,
             DalekModel.LAYER_LOCATION,
@@ -40,16 +38,13 @@ class EntityModelTexturesTest {
             TimeLordModel.LAYER_LOCATION,
             TardisGlobeModel.LAYER_LOCATION,
             StabilisersModel.LAYER_LOCATION,
-            FirstDoctorTardisModel.LAYER_LOCATION,
-            SecondDoctorTardisModel.LAYER_LOCATION,
-            ThirdDoctorTardisModel.LAYER_LOCATION,
-            FourthDoctorTardisModel.LAYER_LOCATION,
-            FifthDoctorTardisModel.LAYER_LOCATION,
-            SixthDoctorTardisModel.LAYER_LOCATION,
-            SeventhDoctorTardisModel.LAYER_LOCATION,
-            TTCapsuleModel.LAYER_LOCATION,
             TardisClassicInteriorDoorModel.LAYER_LOCATION
-    );
+        ));
+        for (TardisChameleonVariant variant : TardisChameleonVariant.values()) {
+            layers.add(TardisModels.layer(variant));
+        }
+        return layers;
+    }
 
     @BeforeAll
     static void bootstrap() {
