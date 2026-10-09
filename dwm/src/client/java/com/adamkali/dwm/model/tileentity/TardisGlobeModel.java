@@ -1,12 +1,10 @@
 package com.adamkali.dwm.model.tileentity;
 
 import com.adamkali.dwm.DWMReference;
-import com.adamkali.dwm.model.json.EntityModelJson;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.resources.Identifier;
 
 public class TardisGlobeModel extends EntityModel<TardisRenderState> {
@@ -17,10 +15,6 @@ public class TardisGlobeModel extends EntityModel<TardisRenderState> {
 
     public TardisGlobeModel(ModelPart root) {
         super(root);
-    }
-
-    public static LayerDefinition getTexturedModelData() {
-        return EntityModelJson.loadClasspath(LAYER_LOCATION.model());
     }
 
     @Override
