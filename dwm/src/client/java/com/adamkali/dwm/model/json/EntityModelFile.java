@@ -17,16 +17,19 @@ public record EntityModelFile(
         Optional<Identifier> texture,
         List<EntityModelPart> parts
 ) {
+    private static final Codec<Integer> TEXTURE_SIZE_CODEC = Codec.intRange(1, Integer.MAX_VALUE);
+
     public static final Codec<EntityModelFile> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Identifier.CODEC.optionalFieldOf("parent").forGetter(EntityModelFile::parent),
-            Codec.INT.optionalFieldOf("texture_width").forGetter(EntityModelFile::textureWidth),
-            Codec.INT.optionalFieldOf("texture_height").forGetter(EntityModelFile::textureHeight),
+            TEXTURE_SIZE_CODEC.optionalFieldOf("texture_width").forGetter(EntityModelFile::textureWidth),
+            TEXTURE_SIZE_CODEC.optionalFieldOf("texture_height").forGetter(EntityModelFile::textureHeight),
             Identifier.CODEC.optionalFieldOf("texture").forGetter(EntityModelFile::texture),
-            EntityModelPart.CODEC.listOf().optionalFieldOf("parts", List.of()).forGetter(EntityModelFile::parts)
+            EntityModelPart.uniqueNames(EntityModelPart.CODEC.listOf()).optionalFieldOf("parts", List.of()).forGetter(EntityModelFile::parts)
     ).apply(instance, EntityModelFile::new));
 
     public EntityModelFile {
         parts = List.copyOf(parts);
+        EntityModelPart.requireUniqueNames(parts).getOrThrow(IllegalArgumentException::new);
         textureWidth.ifPresent(value -> {
             if (value < 1) {
                 throw new IllegalArgumentException("texture_width must be at least 1");
