@@ -4,23 +4,29 @@
 package com.adamkali.dwm.model.tileentity;
 
 import com.adamkali.dwm.DWMReference;
+import com.adamkali.dwm.model.json.JsonEntityModel;
+import com.adamkali.dwm.model.json.anim.AnimationVariables;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.model.*;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.resources.Identifier;
 import java.util.List;
 
-public class TardisClassicInteriorDoorModel extends EntityModel<TardisRenderState> {
+public class TardisClassicInteriorDoorModel extends JsonEntityModel<TardisRenderState> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "tardis_classic_interior_door"), "main");
 
     private final ModelPart door1;
     private final ModelPart door2;
 
+    private static final AnimationVariables<TardisRenderState> VARIABLES = AnimationVariables.<TardisRenderState>builder()
+            .add("door_progress", TardisRenderState::getDoorSwingProgress)
+            .build();
+
+    /** Door swing comes from the JSON {@code animation} ({@code door_progress}, 0-1). */
     public TardisClassicInteriorDoorModel(ModelPart root) {
-        super(root);
+        super(root, LAYER_LOCATION, VARIABLES);
         this.door1 = root.getChild("frame").getChild("Door1");
         this.door2 = root.getChild("frame2").getChild("Door2");
     }
@@ -71,27 +77,5 @@ public class TardisClassicInteriorDoorModel extends EntityModel<TardisRenderStat
         } finally {
             matrices.popPose();
         }
-    }
-
-    /** Fully open yaw: 135°. */
-    private static final float MAX_DOOR_YAW = (float) (3.0 * Math.PI / 4.0);
-
-    /**
-     * Door1 (right leaf when closed) and Door2 (left leaf; parent frame2 is Z-flipped)
-     * both swing negative Y so they open outward in world space.
-     */
-    public static float door1Yaw(float doorSwingProgress) {
-        return -doorSwingProgress * MAX_DOOR_YAW;
-    }
-
-    public static float door2Yaw(float doorSwingProgress) {
-        return -doorSwingProgress * MAX_DOOR_YAW;
-    }
-
-    @Override
-    public void setupAnim(TardisRenderState state) {
-        float doorSwingProgress = state.getDoorSwingProgress();
-        this.door1.setRotation(0.0F, door1Yaw(doorSwingProgress), 0.0F);
-        this.door2.setRotation(0.0F, door2Yaw(doorSwingProgress), 0.0F);
     }
 }

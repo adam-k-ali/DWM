@@ -1,35 +1,24 @@
 package com.adamkali.dwm.model.tileentity;
 
+import com.adamkali.dwm.model.json.JsonEntityModel;
+import com.adamkali.dwm.model.json.anim.AnimationVariables;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 
-public abstract class TardisModel extends EntityModel<TardisRenderState> {
+public class TardisModel extends JsonEntityModel<TardisRenderState> {
+    private static final AnimationVariables<TardisRenderState> VARIABLES = AnimationVariables.<TardisRenderState>builder()
+            .add("door_progress", TardisRenderState::getDoorSwingProgress)
+            .build();
     private static final List<String> DOOR_PART_NAMES = List.of("LeftDoor", "rightDoor", "Door2", "door");
 
-    protected TardisModel(ModelPart root) {
-        super(root);
-    }
-
-    @Override
-    public void setupAnim(TardisRenderState state) {
-        super.setupAnim(state);
-        float doorSwingProgress = state.getDoorSwingProgress();
-        ModelPart leftDoor = null;
-
-        if (root.hasChild("LeftDoor")) {
-            leftDoor = root.getChild("LeftDoor");
-        } else if (root.hasChild("Main") && root.getChild("Main").hasChild("LeftDoor")) {
-            leftDoor = root.getChild("Main").getChild("LeftDoor");
-        }
-
-        if (leftDoor != null) {
-            leftDoor.setRotation(0.0F, doorSwingProgress * (float) Math.PI / 3, 0.0F);
-        }
+    /** Door swing comes from the layer's JSON {@code animation} ({@code door_progress}, 0-1). */
+    public TardisModel(ModelPart root, ModelLayerLocation layer) {
+        super(root, layer, VARIABLES);
     }
 
     /**

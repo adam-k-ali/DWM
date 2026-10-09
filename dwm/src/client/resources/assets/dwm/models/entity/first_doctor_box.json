@@ -602,5 +602,10 @@
         { "uv": [81, 25], "origin": [-0.5, -28.5, -0.5], "size": [1.0, 2.0, 1.0] }
       ]
     }
-  ]
+  ],
+  "animation": {
+    "bindings": [
+      { "part": "LeftDoor", "channel": "rot_y", "value": "door_progress * 60" }
+    ]
+  }
 }
