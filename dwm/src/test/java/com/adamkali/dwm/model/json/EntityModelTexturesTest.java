@@ -1,7 +1,11 @@
 package com.adamkali.dwm.model.json;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
+import com.adamkali.dwm.model.entity.BroakirModel;
 import com.adamkali.dwm.model.entity.DalekLaserModel;
+import com.adamkali.dwm.model.entity.DalekModel;
+import com.adamkali.dwm.model.entity.FlutterwingModel;
+import com.adamkali.dwm.model.entity.TimeLordModel;
 import com.adamkali.dwm.model.tileentity.FifthDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.FirstDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.FourthDoctorTardisModel;
@@ -30,6 +34,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class EntityModelTexturesTest {
     private static final List<ModelLayerLocation> JSON_LAYERS = List.of(
             DalekLaserModel.LAYER_LOCATION,
+            BroakirModel.LAYER_LOCATION,
+            DalekModel.LAYER_LOCATION,
+            FlutterwingModel.LAYER_LOCATION,
+            TimeLordModel.LAYER_LOCATION,
             TardisGlobeModel.LAYER_LOCATION,
             StabilisersModel.LAYER_LOCATION,
             FirstDoctorTardisModel.LAYER_LOCATION,

@@ -1,16 +1,24 @@
 package com.adamkali.dwm.model.entity;
 
+import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.entity.DalekFlightFx;
+import com.adamkali.dwm.model.json.EntityModelJson;
 import net.minecraft.client.model.geom.ModelPart;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DalekModelTest {
+    @BeforeAll
+    static void bootstrap() {
+        MinecraftTestBootstrap.ensure();
+    }
+
     @Test
     void bodyLayerHasChassisHierarchy() {
-        ModelPart root = DalekModel.createBodyLayer().bakeRoot();
+        ModelPart root = EntityModelJson.loadClasspath(DalekModel.LAYER_LOCATION.model()).bakeRoot();
         assertTrue(root.hasChild("skirt"));
         assertTrue(root.hasChild("shoulders"));
         assertTrue(root.getChild("shoulders").hasChild("gun"));
