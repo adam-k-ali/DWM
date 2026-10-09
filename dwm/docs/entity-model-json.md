@@ -12,6 +12,7 @@ This is **not** vanilla block/item JSON (no bone tree, per-face UV) and **not** 
 |----------|------|
 | `dwm:dalek_laser` | `assets/dwm/models/entity/dalek_laser.json` |
 | `dwm:first_doctor_box` … `dwm:seventh_doctor_box`, `dwm:tt_capsule`, `dwm:tardis_classic_interior_door` (TARDIS exteriors and interior door) | `assets/dwm/models/entity/<id>.json` |
+| `dwm:broakir`, `dwm:dalek`, `dwm:flutterwing`, `dwm:time_lord` (mobs, with `animation`; `texture` is the default variant skin, the renderer picks the real one from the entity variant) | `assets/dwm/models/entity/<id>.json` |
 | `dwm:entity/console_selector` (parent form) | `assets/dwm/models/entity/console_selector.json` |
 
 The layer id (`ModelLayerLocation`) is defined in Java. New meshes still need one Java registration line; resource packs can override the JSON of registered ids. A missing or malformed file fails the model reload with an error naming the model and resource; there is no built-in fallback.
@@ -77,7 +78,7 @@ Each frame vanilla resets every part to its rest pose, then each binding **adds*
 
 Expressions support `+ - * /`, unary `-`, parentheses, numbers, variables, the constants `pi` and `deg` (`180/pi`, to turn a radian result into degrees), and `sin cos` (radians, Minecraft's `Mth` tables, so ports from Java match), `abs`, `min`, `max`, `clamp(x, lo, hi)`, `lerp(a, b, t)`. Evaluation is in `float`.
 
-Variables come from the Java model type (`AnimationVariables`). Living entities get `age`, `walk_pos`, `walk_speed`, and `head_pitch` / `head_yaw` (degrees). An unknown variable fails when the model is built and lists the available names.
+Variables come from the Java model type (`AnimationVariables`). Living entities get `age`, `walk_pos`, `walk_speed`, and `head_pitch` / `head_yaw` (degrees). Dalek adds `lean_pitch`, `lean_roll` (degrees) and `flight_bob` (model units, 0 when grounded). An unknown variable fails when the model is built and lists the available names.
 
 A child file's bindings replace the parent's with the same part + channel and append the rest.
 

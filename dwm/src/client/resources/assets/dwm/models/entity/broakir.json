@@ -1,0 +1,155 @@
+{
+  "credit": "Made with Blockbench (converted from BroakirModel.java)",
+  "texture_width": 128,
+  "texture_height": 128,
+  "texture": "dwm:textures/entity/broakir.png",
+  "parts": [
+    {
+      "name": "body",
+      "pivot": [0.0, 11.0, 9.0],
+      "children": [
+        {
+          "name": "mesh_0",
+          "cubes": [
+            { "uv": [0, 26], "origin": [-5.0, -11.0, -9.0], "size": [10.0, 10.0, 11.0] },
+            { "uv": [28, 33], "origin": [-4.0, -12.0, -10.0], "size": [8.0, 3.0, 14.0] },
+            { "uv": [0, 0], "origin": [-6.0, -14.0, -21.0], "size": [12.0, 14.0, 12.0] },
+            { "uv": [36, 14], "origin": [-4.0, -15.0, -20.5], "size": [8.0, 3.0, 12.0] },
+            { "uv": [24, 64], "origin": [-1.0, -13.0, 0.6], "size": [2.0, 1.0, 2.0] },
+            { "uv": [24, 64], "origin": [-1.0, -13.0, -3.4], "size": [2.0, 1.0, 2.0] },
+            { "uv": [24, 64], "origin": [-1.0, -13.0, -7.4], "size": [2.0, 1.0, 2.0] },
+            { "uv": [24, 64], "origin": [-1.0, -16.0, -12.0], "size": [2.0, 1.0, 2.0] },
+            { "uv": [24, 64], "origin": [-1.0, -16.0, -16.0], "size": [2.0, 1.0, 2.0] },
+            { "uv": [24, 64], "origin": [-1.0, -16.0, -20.0], "size": [2.0, 1.0, 2.0] }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "tail",
+      "pivot": [0.0, 3.0, 11.0],
+      "rotation": [30.00001, 0.0, 0.0],
+      "children": [
+        {
+          "name": "mesh_1",
+          "cubes": [
+            { "uv": [22, 50], "origin": [-1.5, -1.732051, -1.0], "size": [3.0, 20.0, 4.0] }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "leg1",
+      "pivot": [-3.0, 10.0, 9.0],
+      "children": [
+        {
+          "name": "mesh_2",
+          "cubes": [
+            { "uv": [64, 0], "origin": [-2.0, 0.0, -2.0], "size": [4.0, 14.0, 4.0] }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "leg2",
+      "pivot": [3.0, 10.0, 9.0],
+      "children": [
+        {
+          "name": "mesh_3",
+          "cubes": [
+            { "uv": [64, 0], "origin": [-2.0, 0.0, -2.0], "size": [4.0, 14.0, 4.0] }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "leg3",
+      "pivot": [-3.0, 11.0, -9.0],
+      "children": [
+        {
+          "name": "mesh_4",
+          "cubes": [
+            { "uv": [64, 0], "origin": [-2.0, -1.0, -2.0], "size": [4.0, 14.0, 4.0] }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "leg4",
+      "pivot": [3.0, 11.0, -9.0],
+      "children": [
+        {
+          "name": "mesh_5",
+          "cubes": [
+            { "uv": [64, 0], "origin": [-2.0, -1.0, -2.0], "size": [4.0, 14.0, 4.0] }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "neck",
+      "pivot": [0.0, 6.2, -10.0],
+      "rotation": [60.00003, 0.0, 0.0],
+      "children": [
+        {
+          "name": "mesh_6",
+          "cubes": [
+            { "uv": [0, 47], "origin": [-2.0, -12.5, -0.401924], "size": [4.0, 12.0, 7.0] },
+            { "uv": [0, 66], "origin": [-1.0, -16.5, -4.401924], "size": [2.0, 17.0, 4.0] }
+          ]
+        },
+        {
+          "name": "head",
+          "pivot": [0.0, -10.633975, 0.962178],
+          "rotation": [-30.00001, 0.0, 0.0],
+          "children": [
+            {
+              "name": "mesh_7",
+              "cubes": [
+                { "uv": [36, 0], "origin": [-3.0, -5.964102, -3.133975], "size": [6.0, 5.0, 7.0] },
+                { "uv": [63, 65], "origin": [-2.0, -5.964102, -8.133975], "size": [4.0, 4.0, 5.0] }
+              ]
+            },
+            {
+              "name": "ear1",
+              "pivot": [0.0, 13.0, 3.0],
+              "rotation": [0.0, 0.0, 4.99997],
+              "children": [
+                {
+                  "name": "mesh_8",
+                  "cubes": [
+                    { "uv": [33, 31], "origin": [-1.154964, -21.943781, -0.266922], "size": [2.0, 3.0, 1.0] }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "ear2",
+              "pivot": [0.0, 13.0, 3.0],
+              "rotation": [0.0, 0.0, -4.99997],
+              "children": [
+                {
+                  "name": "mesh_9",
+                  "cubes": [
+                    { "uv": [33, 31], "origin": [-0.845036, -21.943781, -0.266922], "size": [2.0, 3.0, 1.0] }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "animation": {
+    "bindings": [
+      { "part": "neck/head", "channel": "rot_x", "value": "head_pitch" },
+      { "part": "neck/head", "channel": "rot_y", "value": "head_yaw" },
+      { "part": "leg1", "channel": "rot_x", "value": "cos(walk_pos * 0.6662) * 1.4 * walk_speed * deg" },
+      { "part": "leg2", "channel": "rot_x", "value": "cos(walk_pos * 0.6662 + pi) * 1.4 * walk_speed * deg" },
+      { "part": "leg3", "channel": "rot_x", "value": "cos(walk_pos * 0.6662 + pi) * 1.4 * walk_speed * deg" },
+      { "part": "leg4", "channel": "rot_x", "value": "cos(walk_pos * 0.6662) * 1.4 * walk_speed * deg" },
+      { "part": "tail", "channel": "rot_x", "value": "cos(age * 0.05) * 0.1 * deg" }
+    ]
+  }
+}

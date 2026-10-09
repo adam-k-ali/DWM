@@ -50,14 +50,14 @@ public final class DWMEntityRenderers {
         }
         EntityRendererRegistry.register(DWMEntityTypes.TARDIS_SEAT, NoopRenderer::new);
         EntityRendererRegistry.register(DWMEntityTypes.CONSOLE_CONTROL, NoopRenderer::new);
-        ModelLayerRegistry.registerModelLayer(BroakirModel.LAYER_LOCATION, BroakirModel::createBodyLayer);
+        JsonEntityModelLayers.register(BroakirModel.LAYER_LOCATION);
         EntityRendererRegistry.register(DWMEntityTypes.BROAKIR, BroakirRenderer::new);
-        ModelLayerRegistry.registerModelLayer(FlutterwingModel.LAYER_LOCATION, FlutterwingModel::createBodyLayer);
+        JsonEntityModelLayers.register(FlutterwingModel.LAYER_LOCATION);
         EntityRendererRegistry.register(DWMEntityTypes.FLUTTERWING, FlutterwingRenderer::new);
         EntityRendererRegistry.register(DWMEntityTypes.MEWING_DOG, MewingDogRenderer::new);
-        ModelLayerRegistry.registerModelLayer(TimeLordModel.LAYER_LOCATION, TimeLordModel::createBodyLayer);
+        JsonEntityModelLayers.register(TimeLordModel.LAYER_LOCATION);
         EntityRendererRegistry.register(DWMEntityTypes.TIME_LORD, TimeLordRenderer::new);
-        ModelLayerRegistry.registerModelLayer(DalekModel.LAYER_LOCATION, DalekModel::createBodyLayer);
+        JsonEntityModelLayers.register(DalekModel.LAYER_LOCATION);
         EntityRendererRegistry.register(DWMEntityTypes.DALEK, DalekRenderer::new);
         JsonEntityModelLayers.register(DalekLaserModel.LAYER_LOCATION);
         EntityRendererRegistry.register(DWMEntityTypes.DALEK_LASER, DalekLaserRenderer::new);
