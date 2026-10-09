@@ -10,8 +10,6 @@ import net.minecraft.resources.Identifier;
 public class DalekLaserModel extends EntityModel<DalekLaserRenderState> {
     public static final ModelLayerLocation LAYER_LOCATION =
             new ModelLayerLocation(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "dalek_laser"), "main");
-    public static final Identifier TEXTURE_LOCATION =
-            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "textures/entity/dalek/laser.png");
 
     public DalekLaserModel(ModelPart root) {
         super(root);

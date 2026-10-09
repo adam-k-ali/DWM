@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render;
 
+import com.adamkali.dwm.model.json.EntityModelTextures;
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.model.tileentity.TardisClassicInteriorDoorModel;
@@ -106,7 +107,7 @@ public class TardisInteriorDoorBlockEntityRenderer
                 model,
                 animState,
                 poseStack,
-                RenderTypes.entityCutout(TardisClassicInteriorDoorModel.TEXTURE_LOCATION),
+                RenderTypes.entityCutout(EntityModelTextures.get(TardisClassicInteriorDoorModel.LAYER_LOCATION)),
                 state.lightCoords,
                 OverlayTexture.NO_OVERLAY,
                 0,
@@ -126,7 +127,7 @@ public class TardisInteriorDoorBlockEntityRenderer
         int light = state.lightCoords;
         submitNodeCollector.submitCustomGeometry(
                 poseStack,
-                RenderTypes.entityCutout(TardisClassicInteriorDoorModel.TEXTURE_LOCATION),
+                RenderTypes.entityCutout(EntityModelTextures.get(TardisClassicInteriorDoorModel.LAYER_LOCATION)),
                 (pose, consumer) -> {
                     PoseStack local = new PoseStack();
                     local.last().set(pose);
@@ -147,7 +148,7 @@ public class TardisInteriorDoorBlockEntityRenderer
         int light = state.lightCoords;
         submitNodeCollector.order(PortalDoorRenderer.DOOR_OVERLAY_ORDER).submitCustomGeometry(
                 poseStack,
-                PortalDoorRenderer.doorOverlayRenderType(TardisClassicInteriorDoorModel.TEXTURE_LOCATION),
+                PortalDoorRenderer.doorOverlayRenderType(EntityModelTextures.get(TardisClassicInteriorDoorModel.LAYER_LOCATION)),
                 (pose, consumer) -> {
                     PoseStack local = new PoseStack();
                     local.last().set(pose);

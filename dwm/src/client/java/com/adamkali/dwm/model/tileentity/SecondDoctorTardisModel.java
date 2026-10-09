@@ -12,7 +12,6 @@ import net.minecraft.resources.Identifier;
 
 public class SecondDoctorTardisModel extends TardisModel {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "second_doctor_box"), "second_doctor_box");
-    public static final Identifier TEXTURE_LOCATION = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "textures/entity/second_doctor_box.png");
 
     public SecondDoctorTardisModel(ModelPart root) {
         super(root);
