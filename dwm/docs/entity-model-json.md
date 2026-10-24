@@ -59,7 +59,8 @@ Package `com.adamkali.dwm.model.json`:
 
 - `EntityModelJson.parse` / `resolveParents` / `toLayerDefinition`
 - `EntityModelJson.loadClasspath(id)` — unit tests (mod jar copy)
-- `EntityModelJson.load(ResourceManager, id)` — pack-overridable bake
+- `EntityModelJson.load(ResourceManager, id)` — pack-overridable mesh bake (does not record `texture`)
+- `EntityModelJson.loadWithTexture(ResourceManager, id)` — pack-overridable bake plus the required `texture`
 - `JsonEntityModel` — mesh-only `EntityModel`
 - `JsonEntityModelLayers.register(ModelLayerLocation)` — Fabric layer whose supplier loads the JSON and records its `texture`
 - `EntityModelTextures.get(ModelLayerLocation)` — texture declared by the layer's JSON

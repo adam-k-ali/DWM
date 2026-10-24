@@ -90,7 +90,8 @@ public final class EntityModelJson {
     }
 
     /**
-     * Loads from a resource pack tree so packs can override registered meshes.
+     * Loads the mesh only from a resource pack tree so packs can override registered meshes; does not
+     * check or record {@code texture} (see {@link #loadWithTexture}).
      */
     public static LayerDefinition load(ResourceManager resources, Identifier modelId) {
         try {
@@ -101,14 +102,21 @@ public final class EntityModelJson {
     }
 
     /**
-     * Resolved (parent-free) file from a resource pack tree; errors name the model and resource.
+     * Pack-overridable bake that also resolves the required {@code texture}; errors name the model
+     * and resource. Prefer this over {@link #load} when the texture must be recorded.
      */
-    public static EntityModelFile loadResolved(ResourceManager resources, Identifier modelId) {
+    public static LoadedModel loadWithTexture(ResourceManager resources, Identifier modelId) {
         try {
-            return resolve(resources, modelId);
+            EntityModelFile file = resolve(resources, modelId);
+            Identifier texture = EntityModelTextures.requireTexture(modelId, file);
+            return new LoadedModel(toLayerDefinition(file), texture);
         } catch (RuntimeException e) {
             throw loadFailure(modelId, e);
         }
+    }
+
+    /** A baked layer plus the atlas texture its JSON declares. */
+    public record LoadedModel(LayerDefinition definition, Identifier texture) {
     }
 
     static IllegalStateException loadFailure(Identifier modelId, RuntimeException cause) {
