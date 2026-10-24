@@ -90,21 +90,44 @@ public final class EntityModelJson {
     }
 
     /**
-     * Loads from a resource pack tree so packs can override registered meshes.
+     * Loads the mesh only from a resource pack tree so packs can override registered meshes; does not
+     * check or record {@code texture} (see {@link #loadWithTexture}).
      */
     public static LayerDefinition load(ResourceManager resources, Identifier modelId) {
         try {
-            return toLayerDefinition(loadFile(
-                    modelId,
-                    id -> readResource(resources, toResourceId(id)),
-                    new LinkedHashSet<>()
-            ));
+            return toLayerDefinition(resolve(resources, modelId));
         } catch (RuntimeException e) {
-            throw new IllegalStateException(
-                    "Failed to load entity model " + modelId + " (" + toResourceId(modelId) + "): " + e.getMessage(),
-                    e
-            );
+            throw loadFailure(modelId, e);
         }
+    }
+
+    /**
+     * Pack-overridable bake that also resolves the required {@code texture}; errors name the model
+     * and resource. Prefer this over {@link #load} when the texture must be recorded.
+     */
+    public static LoadedModel loadWithTexture(ResourceManager resources, Identifier modelId) {
+        try {
+            EntityModelFile file = resolve(resources, modelId);
+            Identifier texture = EntityModelTextures.requireTexture(modelId, file);
+            return new LoadedModel(toLayerDefinition(file), texture);
+        } catch (RuntimeException e) {
+            throw loadFailure(modelId, e);
+        }
+    }
+
+    /** A baked layer plus the atlas texture its JSON declares. */
+    public record LoadedModel(LayerDefinition definition, Identifier texture) {
+    }
+
+    static IllegalStateException loadFailure(Identifier modelId, RuntimeException cause) {
+        return new IllegalStateException(
+                "Failed to load entity model " + modelId + " (" + toResourceId(modelId) + "): " + cause.getMessage(),
+                cause
+        );
+    }
+
+    private static EntityModelFile resolve(ResourceManager resources, Identifier modelId) {
+        return loadFile(modelId, id -> readResource(resources, toResourceId(id)), new LinkedHashSet<>());
     }
 
     public static Identifier toResourceId(Identifier modelId) {

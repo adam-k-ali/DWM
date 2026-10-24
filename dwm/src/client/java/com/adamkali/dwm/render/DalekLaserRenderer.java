@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render;
 
+import com.adamkali.dwm.model.json.EntityModelTextures;
 import com.adamkali.dwm.entity.DalekLaserEntity;
 import com.adamkali.dwm.model.entity.DalekLaserModel;
 import com.adamkali.dwm.render.state.DalekLaserRenderState;
@@ -10,11 +11,14 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.Identifier;
 
 public class DalekLaserRenderer extends EntityRenderer<DalekLaserEntity, DalekLaserRenderState> {
     private final DalekLaserModel model;
+    private final Identifier texture;
 
     public DalekLaserRenderer(EntityRendererProvider.Context context) {
+        this.texture = EntityModelTextures.get(DalekLaserModel.LAYER_LOCATION);
         super(context);
         this.model = new DalekLaserModel(context.bakeLayer(DalekLaserModel.LAYER_LOCATION));
         this.shadowRadius = 0.0F;
@@ -36,7 +40,7 @@ public class DalekLaserRenderer extends EntityRenderer<DalekLaserEntity, DalekLa
                 this.model,
                 state,
                 poseStack,
-                DalekLaserModel.TEXTURE_LOCATION,
+                texture,
                 state.lightCoords,
                 OverlayTexture.NO_OVERLAY,
                 state.outlineColor,

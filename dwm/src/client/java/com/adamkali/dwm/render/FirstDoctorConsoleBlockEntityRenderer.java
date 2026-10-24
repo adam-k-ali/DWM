@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render;
 
+import com.adamkali.dwm.model.json.EntityModelTextures;
 import com.adamkali.dwm.block.ConsoleControlSpec;
 import com.adamkali.dwm.block.FirstDoctorConsoleBlock;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls;
@@ -108,7 +109,7 @@ public class FirstDoctorConsoleBlockEntityRenderer
                         FastReturnModel.TEXTURE_LOCATION, null),
                 widget(LookTarget.STABILISERS,
                         new StabilisersModel(context.bakeLayer(StabilisersModel.LAYER_LOCATION)),
-                        StabilisersModel.TEXTURE_LOCATION, null),
+                        EntityModelTextures.get(StabilisersModel.LAYER_LOCATION), null),
                 widget(LookTarget.OXYGEN_READER, readerModel, ReaderModel.OXYGEN_TEXTURE,
                         display -> needle(display.reading(), ExteriorEnvironmentReadout.Reading::oxygen)),
                 widget(LookTarget.PRESSURE_READER, readerModel, ReaderModel.PRESSURE_TEXTURE,
@@ -138,28 +139,28 @@ public class FirstDoctorConsoleBlockEntityRenderer
 
         cacheShell(TardisChameleonVariant.TT_CAPSULE,
                 new TTCapsuleModel(context.bakeLayer(TTCapsuleModel.LAYER_LOCATION)),
-                TTCapsuleModel.TEXTURE_LOCATION);
+                EntityModelTextures.get(TTCapsuleModel.LAYER_LOCATION));
         cacheShell(TardisChameleonVariant.FIRST_DOCTOR_BOX,
                 new FirstDoctorTardisModel(context.bakeLayer(FirstDoctorTardisModel.LAYER_LOCATION)),
-                FirstDoctorTardisModel.TEXTURE_LOCATION);
+                EntityModelTextures.get(FirstDoctorTardisModel.LAYER_LOCATION));
         cacheShell(TardisChameleonVariant.SECOND_DOCTOR_BOX,
                 new SecondDoctorTardisModel(context.bakeLayer(SecondDoctorTardisModel.LAYER_LOCATION)),
-                SecondDoctorTardisModel.TEXTURE_LOCATION);
+                EntityModelTextures.get(SecondDoctorTardisModel.LAYER_LOCATION));
         cacheShell(TardisChameleonVariant.THIRD_DOCTOR_BOX,
                 new ThirdDoctorTardisModel(context.bakeLayer(ThirdDoctorTardisModel.LAYER_LOCATION)),
-                ThirdDoctorTardisModel.TEXTURE_LOCATION);
+                EntityModelTextures.get(ThirdDoctorTardisModel.LAYER_LOCATION));
         cacheShell(TardisChameleonVariant.FOURTH_DOCTOR_BOX,
                 new FourthDoctorTardisModel(context.bakeLayer(FourthDoctorTardisModel.LAYER_LOCATION)),
-                FourthDoctorTardisModel.TEXTURE_LOCATION);
+                EntityModelTextures.get(FourthDoctorTardisModel.LAYER_LOCATION));
         cacheShell(TardisChameleonVariant.FIFTH_DOCTOR_BOX,
                 new FifthDoctorTardisModel(context.bakeLayer(FifthDoctorTardisModel.LAYER_LOCATION)),
-                FifthDoctorTardisModel.TEXTURE_LOCATION);
+                EntityModelTextures.get(FifthDoctorTardisModel.LAYER_LOCATION));
         cacheShell(TardisChameleonVariant.SIXTH_DOCTOR_BOX,
                 new SixthDoctorTardisModel(context.bakeLayer(SixthDoctorTardisModel.LAYER_LOCATION)),
-                SixthDoctorTardisModel.TEXTURE_LOCATION);
+                EntityModelTextures.get(SixthDoctorTardisModel.LAYER_LOCATION));
         cacheShell(TardisChameleonVariant.SEVENTH_DOCTOR_BOX,
                 new SeventhDoctorTardisModel(context.bakeLayer(SeventhDoctorTardisModel.LAYER_LOCATION)),
-                SeventhDoctorTardisModel.TEXTURE_LOCATION);
+                EntityModelTextures.get(SeventhDoctorTardisModel.LAYER_LOCATION));
     }
 
     private static MountedWidget widget(

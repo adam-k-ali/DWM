@@ -14,7 +14,6 @@ import net.minecraft.resources.Identifier;
 public class TTCapsuleModel extends TardisModel {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "tt_capsule"), "tt_capsule");
 
-    public static final Identifier TEXTURE_LOCATION = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "textures/entity/tt_capsule.png");
 
     private final ModelPart door;
 
