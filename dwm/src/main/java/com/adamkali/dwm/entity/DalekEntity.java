@@ -34,9 +34,9 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Hostile 1963 Dalek. Ground-glides by default, shoots a laser bolt at nearby
- * players, and switches to flying navigation when the target is above or
- * otherwise unreachable on the ground.
+ * Hostile Dalek on the 1963 chassis; subclasses swap the casing via {@link #chassis()}.
+ * Ground-glides by default, shoots a laser bolt at nearby players, and switches to
+ * flying navigation when the target is above or otherwise unreachable on the ground.
  */
 public class DalekEntity extends Monster implements RangedAttackMob {
     public static final Identifier ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "dalek");
@@ -47,9 +47,6 @@ public class DalekEntity extends Monster implements RangedAttackMob {
             SynchedEntityData.defineId(DalekEntity.class, EntityDataSerializers.BOOLEAN);
 
     private static final float LASER_SPEED = 1.6F;
-    private static final float GUN_HEIGHT = 18.0F / 16.0F;
-    private static final float GUN_FORWARD = 10.0F / 16.0F;
-    private static final float GUN_SIDE = -2.5F / 16.0F;
 
     private final MoveControl groundMoveControl;
     private final FlyingMoveControl<DalekEntity> flyingMoveControl;
@@ -80,6 +77,14 @@ public class DalekEntity extends Monster implements RangedAttackMob {
         return EntityDefinitions.createAttributes(ID);
     }
 
+    /**
+     * Casing this entity type is built on. Called while the superclass constructor defines synched
+     * data, so overrides must return a constant.
+     */
+    public DalekChassis chassis() {
+        return DalekChassis.CLASSIC;
+    }
+
     @Override
     protected PathNavigation createNavigation(Level level) {
         return new GroundPathNavigation(this, level);
@@ -93,16 +98,16 @@ public class DalekEntity extends Monster implements RangedAttackMob {
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
-        builder.define(DATA_VARIANT, DalekVariant.CLASSIC_1963.ordinal());
+        builder.define(DATA_VARIANT, chassis().defaultVariant().ordinal());
         builder.define(DATA_FLYING, false);
     }
 
     public DalekVariant getVariant() {
-        return DalekVariant.byOrdinal(this.entityData.get(DATA_VARIANT));
+        return DalekVariant.byOrdinal(this.entityData.get(DATA_VARIANT), chassis());
     }
 
     public void setVariant(DalekVariant variant) {
-        this.entityData.set(DATA_VARIANT, variant.ordinal());
+        this.entityData.set(DATA_VARIANT, DalekVariant.fitting(variant, chassis()).ordinal());
     }
 
     public boolean isFlying() {
@@ -199,10 +204,11 @@ public class DalekEntity extends Monster implements RangedAttackMob {
         } else {
             right = right.normalize();
         }
+        DalekChassis chassis = chassis();
         return this.position()
-                .add(0.0, GUN_HEIGHT, 0.0)
-                .add(right.scale(GUN_SIDE))
-                .add(look.scale(GUN_FORWARD));
+                .add(0.0, chassis.gunHeight(), 0.0)
+                .add(right.scale(chassis.gunSide()))
+                .add(look.scale(chassis.gunForward()));
     }
 
     @Override
@@ -212,7 +218,7 @@ public class DalekEntity extends Monster implements RangedAttackMob {
             EntitySpawnReason reason,
             SpawnGroupData spawnData
     ) {
-        this.setVariant(DalekVariant.pick(this.random));
+        this.setVariant(DalekVariant.pick(this.random, chassis()));
         return super.finalizeSpawn(level, difficulty, reason, spawnData);
     }
 
@@ -226,7 +232,7 @@ public class DalekEntity extends Monster implements RangedAttackMob {
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
         super.readAdditionalSaveData(input);
-        setVariant(DalekVariant.byId(input.getStringOr("Variant", DalekVariant.CLASSIC_1963.getSerializedName())));
+        setVariant(DalekVariant.byId(input.getStringOr("Variant", ""), chassis()));
         setFlying(input.getBooleanOr("Flying", false));
     }
 

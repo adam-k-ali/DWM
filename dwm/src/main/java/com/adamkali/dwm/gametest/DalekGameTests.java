@@ -1,17 +1,17 @@
 package com.adamkali.dwm.gametest;
 
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.entity.DalekChassis;
 import com.adamkali.dwm.entity.DalekEntity;
 import com.adamkali.dwm.entity.DalekVariant;
 import com.adamkali.dwm.entity.DWMEntityTypes;
+import com.adamkali.dwm.entity.ParadigmDalekEntity;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
-
-import java.util.Arrays;
 
 public class DalekGameTests {
     @GameTest(structure = "fabric-gametest-api-v1:empty")
@@ -29,17 +29,73 @@ public class DalekGameTests {
                 EntitySpawnReason.NATURAL,
                 null
         );
-        if (!Arrays.asList(DalekVariant.values()).contains(dalek.getVariant())) {
-            throw new AssertionError("finalizeSpawn set an invalid Dalek variant: " + dalek.getVariant());
+        assertVariantsFitChassis(dalek, DalekChassis.CLASSIC);
+        context.assertEntityPresent(DWMEntityTypes.DALEK);
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void spawnParadigmDalekOnGrass(GameTestHelper context) {
+        BlockPos grassRel = new BlockPos(2, 1, 2);
+        context.setBlock(grassRel, DWMBlocks.GALLIFREY_GRASS_BLOCK.defaultBlockState());
+
+        ParadigmDalekEntity dalek = context.spawn(DWMEntityTypes.PARADIGM_DALEK, grassRel.above());
+        if (dalek == null || !dalek.isAlive()) {
+            throw new AssertionError("Expected a living Paradigm Dalek after spawn");
+        }
+        // Spawned without finalizeSpawn (like /summon with NBT): must already wear a Paradigm skin.
+        if (dalek.getVariant() != DalekVariant.PARADIGM_DRONE) {
+            throw new AssertionError("Fresh Paradigm Dalek should default to the Drone caste, got " + dalek.getVariant());
+        }
+        dalek.finalizeSpawn(
+                context.getLevel(),
+                context.getLevel().getCurrentDifficultyAt(dalek.blockPosition()),
+                EntitySpawnReason.NATURAL,
+                null
+        );
+        assertVariantsFitChassis(dalek, DalekChassis.PARADIGM);
+        context.assertEntityPresent(DWMEntityTypes.PARADIGM_DALEK);
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void paradigmRangedAttackFiresFromHigherGun(GameTestHelper context) {
+        BlockPos grassRel = new BlockPos(2, 1, 2);
+        context.setBlock(grassRel, DWMBlocks.GALLIFREY_GRASS_BLOCK.defaultBlockState());
+
+        ParadigmDalekEntity dalek = context.spawn(DWMEntityTypes.PARADIGM_DALEK, grassRel.above());
+        double muzzleHeight = dalek.gunMuzzleWorldPos().y - dalek.getY();
+        if (Math.abs(muzzleHeight - DalekChassis.PARADIGM.gunHeight()) > 1.0e-4) {
+            throw new AssertionError("Paradigm muzzle height " + muzzleHeight + " does not match its chassis");
+        }
+        Player player = context.makeMockPlayer(GameType.SURVIVAL);
+        player.snapTo(dalek.getX() + 4.0, dalek.getY(), dalek.getZ());
+        dalek.performRangedAttack(player, 1.0F);
+        context.assertEntityPresent(DWMEntityTypes.DALEK_LASER);
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void paradigmDalekMatchesDefinition(GameTestHelper context) {
+        ParadigmDalekEntity mob = EntityDefinitionGameTestSupport.spawnOnGrass(context, DWMEntityTypes.PARADIGM_DALEK);
+        var definition = EntityDefinitionGameTestSupport.definitionOf(mob);
+        EntityDefinitionGameTestSupport.assertAttributesMatch(mob, definition);
+        EntityDefinitionGameTestSupport.assertGoalsMatch(mob, definition);
+        context.succeed();
+    }
+
+    /** finalizeSpawn picked a variant of {@code chassis}; own variants stick, foreign ones fall back. */
+    private static void assertVariantsFitChassis(DalekEntity dalek, DalekChassis chassis) {
+        if (dalek.getVariant().chassis() != chassis) {
+            throw new AssertionError("finalizeSpawn set a variant from the wrong chassis: " + dalek.getVariant());
         }
         for (DalekVariant variant : DalekVariant.values()) {
             dalek.setVariant(variant);
-            if (dalek.getVariant() != variant) {
-                throw new AssertionError("Dalek variant did not round-trip: " + variant);
+            DalekVariant expected = variant.chassis() == chassis ? variant : chassis.defaultVariant();
+            if (dalek.getVariant() != expected) {
+                throw new AssertionError("Setting " + variant + " on a " + chassis + " Dalek gave " + dalek.getVariant());
             }
         }
-        context.assertEntityPresent(DWMEntityTypes.DALEK);
-        context.succeed();
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty")

@@ -31,6 +31,7 @@ public final class DWMEntityTypes {
     public static EntityType<MewingDogEntity> MEWING_DOG;
     public static EntityType<TimeLordEntity> TIME_LORD;
     public static EntityType<DalekEntity> DALEK;
+    public static EntityType<ParadigmDalekEntity> PARADIGM_DALEK;
     public static EntityType<DalekLaserEntity> DALEK_LASER;
 
     private DWMEntityTypes() {
@@ -52,6 +53,7 @@ public final class DWMEntityTypes {
         MEWING_DOG = registerMewingDog();
         TIME_LORD = registerTimeLord();
         DALEK = registerDalek();
+        PARADIGM_DALEK = registerParadigmDalek();
         DALEK_LASER = registerDalekLaser();
     }
 
@@ -211,6 +213,29 @@ public final class DWMEntityTypes {
                         )
                         .sized(0.8F, 1.95F)
                         .eyeHeight(1.7F)
+                        .clientTrackingRange(10)
+                        .build(key)
+        );
+    }
+
+    private static EntityType<ParadigmDalekEntity> registerParadigmDalek() {
+        ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, ParadigmDalekEntity.ID);
+        return Registry.register(
+                BuiltInRegistries.ENTITY_TYPE,
+                key,
+                FabricEntityType.Builder.createMob(
+                                ParadigmDalekEntity::new,
+                                MobCategory.MONSTER,
+                                mob -> mob
+                                        .spawnPlacement(
+                                                SpawnPlacementTypes.ON_GROUND,
+                                                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                                                DalekPatrolLogic::canSpawn
+                                        )
+                                        .defaultAttributes(ParadigmDalekEntity::createAttributes)
+                        )
+                        .sized(1.0F, 2.4F)
+                        .eyeHeight(2.1F)
                         .clientTrackingRange(10)
                         .build(key)
         );
