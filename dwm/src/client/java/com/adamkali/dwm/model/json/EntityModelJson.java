@@ -1,5 +1,6 @@
 package com.adamkali.dwm.model.json;
 
+import com.adamkali.dwm.model.json.anim.EntityAnimation;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
@@ -109,14 +110,14 @@ public final class EntityModelJson {
         try {
             EntityModelFile file = resolve(resources, modelId);
             Identifier texture = EntityModelTextures.requireTexture(modelId, file);
-            return new LoadedModel(toLayerDefinition(file), texture);
+            return new LoadedModel(toLayerDefinition(file), texture, file.animation());
         } catch (RuntimeException e) {
             throw loadFailure(modelId, e);
         }
     }
 
-    /** A baked layer plus the atlas texture its JSON declares. */
-    public record LoadedModel(LayerDefinition definition, Identifier texture) {
+    /** A baked layer plus the atlas texture and animation its JSON declares. */
+    public record LoadedModel(LayerDefinition definition, Identifier texture, EntityAnimation animation) {
     }
 
     static IllegalStateException loadFailure(Identifier modelId, RuntimeException cause) {
@@ -172,7 +173,8 @@ public final class EntityModelJson {
                 child.textureWidth().or(parent::textureWidth),
                 child.textureHeight().or(parent::textureHeight),
                 child.texture().or(parent::texture),
-                mergeParts(parent.parts(), child.parts())
+                mergeParts(parent.parts(), child.parts()),
+                parent.animation().overlay(child.animation())
         );
     }
 

@@ -55,6 +55,25 @@
       ],
       "additionalProperties": false
     },
+    "binding": {
+      "type": "object",
+      "properties": {
+        "part": {
+          "type": "string",
+          "description": "Slash path from the model root, e.g. neck/head. Omit to target the root part."
+        },
+        "channel": {
+          "enum": ["rot_x", "rot_y", "rot_z", "pos_x", "pos_y", "pos_z"],
+          "description": "Pose component added to the rest pose. rot_* in degrees, pos_* in model units."
+        },
+        "value": {
+          "type": "string",
+          "description": "Expression: + - * /, unary -, parentheses, numbers, model variables, constants pi and deg (180/pi), functions sin cos abs min max clamp(x,lo,hi) lerp(a,b,t). sin/cos take radians."
+        }
+      },
+      "required": ["channel", "value"],
+      "additionalProperties": false
+    },
     "part": {
       "type": "object",
       "properties": {
@@ -115,6 +134,19 @@
       "items": {
         "$ref": "#/definitions/part"
       }
+    },
+    "animation": {
+      "type": "object",
+      "properties": {
+        "bindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/binding"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "Applied each frame after the pose reset. Child files replace parent bindings with the same part+channel and append new ones."
     }
   },
   "anyOf": [

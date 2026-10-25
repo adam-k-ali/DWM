@@ -1,5 +1,6 @@
 package com.adamkali.dwm.model.json;
 
+import com.adamkali.dwm.model.json.anim.EntityAnimation;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.resources.Identifier;
@@ -15,7 +16,8 @@ public record EntityModelFile(
         Optional<Integer> textureWidth,
         Optional<Integer> textureHeight,
         Optional<Identifier> texture,
-        List<EntityModelPart> parts
+        List<EntityModelPart> parts,
+        EntityAnimation animation
 ) {
     private static final Codec<Integer> TEXTURE_SIZE_CODEC = Codec.intRange(1, Integer.MAX_VALUE);
 
@@ -24,11 +26,13 @@ public record EntityModelFile(
             TEXTURE_SIZE_CODEC.optionalFieldOf("texture_width").forGetter(EntityModelFile::textureWidth),
             TEXTURE_SIZE_CODEC.optionalFieldOf("texture_height").forGetter(EntityModelFile::textureHeight),
             Identifier.CODEC.optionalFieldOf("texture").forGetter(EntityModelFile::texture),
-            EntityModelPart.uniqueNames(EntityModelPart.CODEC.listOf()).optionalFieldOf("parts", List.of()).forGetter(EntityModelFile::parts)
+            EntityModelPart.uniqueNames(EntityModelPart.CODEC.listOf()).optionalFieldOf("parts", List.of()).forGetter(EntityModelFile::parts),
+            EntityAnimation.CODEC.optionalFieldOf("animation", EntityAnimation.EMPTY).forGetter(EntityModelFile::animation)
     ).apply(instance, EntityModelFile::new));
 
     public EntityModelFile {
         parts = List.copyOf(parts);
+        animation = animation == null ? EntityAnimation.EMPTY : animation;
         EntityModelPart.requireUniqueNames(parts).getOrThrow(IllegalArgumentException::new);
         textureWidth.ifPresent(value -> {
             if (value < 1) {
