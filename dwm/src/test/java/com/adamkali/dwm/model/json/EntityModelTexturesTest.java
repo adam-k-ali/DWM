@@ -4,6 +4,7 @@ import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.model.entity.BroakirModel;
 import com.adamkali.dwm.model.entity.DalekLaserModel;
 import com.adamkali.dwm.model.entity.DalekModel;
+import com.adamkali.dwm.model.entity.DalekMutantModel;
 import com.adamkali.dwm.model.entity.ParadigmDalekModel;
 import com.adamkali.dwm.model.entity.FlutterwingModel;
 import com.adamkali.dwm.model.entity.TimeLordModel;
@@ -49,6 +50,7 @@ class EntityModelTexturesTest {
             Map.entry("BroakirModel", BroakirModel.LAYER_LOCATION),
             Map.entry("DalekModel", DalekModel.LAYER_LOCATION),
             Map.entry("ParadigmDalekModel", ParadigmDalekModel.LAYER_LOCATION),
+            Map.entry("DalekMutantModel", DalekMutantModel.LAYER_LOCATION),
             Map.entry("FlutterwingModel", FlutterwingModel.LAYER_LOCATION),
             Map.entry("TimeLordModel", TimeLordModel.LAYER_LOCATION),
             Map.entry("DalekLaserModel", DalekLaserModel.LAYER_LOCATION),
