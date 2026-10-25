@@ -25,9 +25,10 @@ public class JsonEntityModel<S extends EntityRenderState> extends EntityModel<S>
         this.animation = new AnimationRunner<>(root, animation, variables);
     }
 
-    /** Animation as recorded for {@code layer} when its JSON loaded. */
-    public JsonEntityModel(ModelPart root, ModelLayerLocation layer, AnimationVariables<S> variables) {
-        this(root, EntityModelAnimations.get(layer), variables);
+    /** Animation as recorded for {@code layer} when its JSON loaded (none if it declares no animation). */
+    public static <S extends EntityRenderState> JsonEntityModel<S> forLayer(
+            ModelPart root, ModelLayerLocation layer, AnimationVariables<S> variables) {
+        return new JsonEntityModel<>(root, EntityModelAnimations.get(layer), variables);
     }
 
     @Override

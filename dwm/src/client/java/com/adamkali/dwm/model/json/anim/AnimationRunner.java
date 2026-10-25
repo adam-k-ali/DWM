@@ -51,14 +51,17 @@ public final class AnimationRunner<S extends EntityRenderState> {
         return part;
     }
 
-    /** Adds every binding to the (already reset) pose. */
+    /** Adds every binding to the (already reset) pose; non-finite results (e.g. divide by zero) are skipped. */
     public void apply(S state) {
         if (bound.isEmpty()) {
             return;
         }
         variables.read(state, values);
         for (Bound b : bound) {
-            b.channel().add(b.part(), b.value().eval(values));
+            float result = b.value().eval(values);
+            if (Float.isFinite(result)) {
+                b.channel().add(b.part(), result);
+            }
         }
     }
 }

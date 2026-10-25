@@ -50,7 +50,6 @@ The layer id (`ModelLayerLocation`) is defined in Java. New meshes still need on
 | `inflate` | `CubeDeformation` (negative allowed) |
 | `mirror` | `CubeListBuilder.mirror()` |
 | `parent` | Copy parent, then overlay `texture` / texture size; child `parts` replace same-named parent parts and append new names (an empty or absent `parts` inherits the parent tree) |
-
 | `animation.bindings` | Per-frame pose changes, see [Animation](#animation). Merged through `parent` by part + channel |
 
 A resolved model must have at least one part. A file must have either `parent` or `texture_width` + `texture_height` + `parts`. Schema: `src/test/resources/schemas/entity_model.schema.json`.

@@ -75,6 +75,19 @@ class ExpressionTest {
     }
 
     @Test
+    void rejectsPathologicallyDeepNesting() {
+        assertThrows(IllegalArgumentException.class, () -> Expression.parse("(".repeat(10_000) + "1" + ")".repeat(10_000)));
+        assertThrows(IllegalArgumentException.class, () -> Expression.parse("-".repeat(10_000) + "1"));
+    }
+
+    @Test
+    void parsesScientificNotation() {
+        assertEquals(0.01F, eval("1e-2"), 1.0e-9F);
+        assertEquals(200.0F, eval("2E+2"));
+        assertEquals(6.0F, eval("2 * 3"));
+    }
+
+    @Test
     void unknownVariableNamesAvailableOnes() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
                 () -> Expression.parse("nope + 1").compile(List.of("a", "b")));
