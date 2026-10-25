@@ -4,11 +4,15 @@ import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.item.DWMItems;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.util.EnumMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -83,12 +87,15 @@ class DalekEntityTest {
 
     @Test
     void pickCoversAllVariants() {
-        java.util.Set<DalekVariant> seen = java.util.EnumSet.noneOf(DalekVariant.class);
-        net.minecraft.util.RandomSource random = net.minecraft.util.RandomSource.create(42L);
+        Map<DalekVariant, Integer> counts = new EnumMap<>(DalekVariant.class);
+        RandomSource random = RandomSource.create(42L);
         for (int i = 0; i < 500; i++) {
-            seen.add(DalekVariant.pick(random));
+            counts.merge(DalekVariant.pick(random), 1, Integer::sum);
         }
-        assertEquals(DalekVariant.values().length, seen.size());
+        assertEquals(DalekVariant.values().length, counts.size());
+        int classic = counts.get(DalekVariant.CLASSIC_1963);
+        assertTrue(classic > counts.get(DalekVariant.BRONZE_TIME_WAR));
+        assertTrue(classic > counts.get(DalekVariant.BRONZE_TIME_WAR_DARK));
     }
 
     @Test

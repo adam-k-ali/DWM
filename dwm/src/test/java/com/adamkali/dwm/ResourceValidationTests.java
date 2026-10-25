@@ -1,6 +1,7 @@
 package com.adamkali.dwm;
 
 import com.adamkali.dwm.entity.DalekPatrolLogic;
+import com.adamkali.dwm.entity.DalekVariant;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.jupiter.api.Test;
@@ -1109,7 +1110,7 @@ public class ResourceValidationTests {
 
     @Test
     public void dalekVariantTexturesExist() throws Exception {
-        for (com.adamkali.dwm.entity.DalekVariant variant : com.adamkali.dwm.entity.DalekVariant.values()) {
+        for (DalekVariant variant : DalekVariant.values()) {
             Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/dalek/"
                     + variant.getSerializedName() + ".png");
             assertTrue(Files.isRegularFile(texture) && Files.size(texture) > 0, "Missing " + texture);
