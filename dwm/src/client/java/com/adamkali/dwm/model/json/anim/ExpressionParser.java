@@ -17,8 +17,11 @@ final class ExpressionParser {
             "sin", 1, "cos", 1, "abs", 1, "min", 2, "max", 2, "clamp", 3, "lerp", 3
     );
 
+    private static final int MAX_DEPTH = 64;
+
     private final String source;
     private int pos;
+    private int depth;
 
     ExpressionParser(String source) {
         this.source = source;
@@ -63,10 +66,17 @@ final class ExpressionParser {
 
     private Expression.Node unary() {
         skipSpaces();
-        if (accept('-')) {
-            return new Expression.Neg(unary());
+        if (++depth > MAX_DEPTH) {
+            throw error("expression nested deeper than " + MAX_DEPTH);
         }
-        return primary();
+        try {
+            if (accept('-')) {
+                return new Expression.Neg(unary());
+            }
+            return primary();
+        } finally {
+            depth--;
+        }
     }
 
     private Expression.Node primary() {
@@ -93,6 +103,18 @@ final class ExpressionParser {
         int start = pos;
         while (pos < source.length() && (Character.isDigit(source.charAt(pos)) || source.charAt(pos) == '.')) {
             pos++;
+        }
+        if (pos < source.length() && (source.charAt(pos) == 'e' || source.charAt(pos) == 'E')) {
+            int exponent = pos + 1;
+            if (exponent < source.length() && (source.charAt(exponent) == '+' || source.charAt(exponent) == '-')) {
+                exponent++;
+            }
+            if (exponent < source.length() && Character.isDigit(source.charAt(exponent))) {
+                pos = exponent;
+                while (pos < source.length() && Character.isDigit(source.charAt(pos))) {
+                    pos++;
+                }
+            }
         }
         String text = source.substring(start, pos);
         try {

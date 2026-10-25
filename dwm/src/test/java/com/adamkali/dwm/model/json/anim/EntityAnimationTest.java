@@ -152,6 +152,35 @@ class EntityAnimationTest {
     }
 
     @Test
+    void overlayKeepsAllChildBindingsAndDropsAllParentBindingsOnSameKey() {
+        EntityAnimation parent = file("""
+                {"bindings": [
+                  {"part": "leg", "channel": "rot_x", "value": "1"},
+                  {"part": "leg", "channel": "rot_x", "value": "2"},
+                  {"part": "neck", "channel": "rot_y", "value": "3"}
+                ]}""").animation();
+        EntityAnimation child = file("""
+                {"bindings": [
+                  {"part": "leg", "channel": "rot_x", "value": "8"},
+                  {"part": "leg", "channel": "rot_x", "value": "9"}
+                ]}""").animation();
+        EntityAnimation merged = parent.overlay(child);
+        assertEquals(3, merged.bindings().size());
+        assertEquals("8", merged.bindings().get(0).value().source());
+        assertEquals("9", merged.bindings().get(1).value().source());
+        assertEquals("3", merged.bindings().get(2).value().source());
+    }
+
+    @Test
+    void nonFiniteResultsLeavePoseUntouched() {
+        EntityModelFile file = file("""
+                {"bindings": [{"part": "leg", "channel": "rot_x", "value": "1 / walk_speed"}]}""");
+        ModelPart root = bake(file);
+        model(file, root).setupAnim(state(0, 0, 0, 0, 0));
+        assertEquals(0.0F, root.getChild("leg").xRot);
+    }
+
+    @Test
     void parentResolutionMergesAnimation() {
         EntityModelFile parent = file("""
                 {"bindings": [{"part": "leg", "channel": "rot_x", "value": "1"}]}""");

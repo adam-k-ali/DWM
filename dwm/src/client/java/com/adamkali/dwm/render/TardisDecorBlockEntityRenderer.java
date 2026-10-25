@@ -32,11 +32,13 @@ public class TardisDecorBlockEntityRenderer
     private final TardisGlobeModel globeModel;
     private final TardisCompactScannerModel compactScannerModel;
     private final TardisFullScannerModel fullScannerModel;
+    private final Identifier globeTexture;
 
     public TardisDecorBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         this.globeModel = new TardisGlobeModel(context.bakeLayer(TardisGlobeModel.LAYER_LOCATION));
         this.compactScannerModel = new TardisCompactScannerModel(context.bakeLayer(TardisCompactScannerModel.LAYER_LOCATION));
         this.fullScannerModel = new TardisFullScannerModel(context.bakeLayer(TardisFullScannerModel.LAYER_LOCATION));
+        this.globeTexture = EntityModelTextures.get(TardisGlobeModel.LAYER_LOCATION);
     }
 
     @Override
@@ -75,7 +77,7 @@ public class TardisDecorBlockEntityRenderer
             texture = TardisFullScannerModel.TEXTURE_LOCATION;
         } else {
             model = globeModel;
-            texture = EntityModelTextures.get(TardisGlobeModel.LAYER_LOCATION);
+            texture = globeTexture;
         }
 
         TardisRenderState animState = new TardisRenderState();

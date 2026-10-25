@@ -28,19 +28,34 @@ public record EntityAnimation(List<AnimationBinding> bindings) {
         return bindings.isEmpty();
     }
 
-    /** Child bindings replace same part+channel bindings of the parent in place; new ones append. */
+    private boolean hasKey(String key) {
+        return bindings.stream().anyMatch(binding -> binding.mergeKey().equals(key));
+    }
+
+    /**
+     * Child bindings replace all parent bindings on the same part+channel (in place, at the first
+     * parent occurrence); new ones append. Several child bindings on one key all apply.
+     */
     public EntityAnimation overlay(EntityAnimation child) {
         if (child.isEmpty()) {
             return this;
         }
-        Map<String, AnimationBinding> overrides = new LinkedHashMap<>();
-        child.bindings.forEach(binding -> overrides.put(binding.mergeKey(), binding));
+        Map<String, List<AnimationBinding>> overrides = new LinkedHashMap<>();
+        child.bindings.forEach(binding ->
+                overrides.computeIfAbsent(binding.mergeKey(), key -> new ArrayList<>()).add(binding));
         List<AnimationBinding> merged = new ArrayList<>();
         for (AnimationBinding binding : bindings) {
-            AnimationBinding override = overrides.remove(binding.mergeKey());
-            merged.add(override != null ? override : binding);
+            String key = binding.mergeKey();
+            if (!child.hasKey(key)) {
+                merged.add(binding);
+                continue;
+            }
+            List<AnimationBinding> replacement = overrides.remove(key);
+            if (replacement != null) {
+                merged.addAll(replacement);
+            }
         }
-        merged.addAll(overrides.values());
+        overrides.values().forEach(merged::addAll);
         return new EntityAnimation(merged);
     }
 }

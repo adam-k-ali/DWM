@@ -13,33 +13,52 @@ import com.adamkali.dwm.model.tileentity.TardisModels;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * The JSON {@code texture} field is the only source of a model's atlas texture.
  */
 class EntityModelTexturesTest {
+    private static final Map<String, ModelLayerLocation> JSON_LAYERS_BY_CLASS = Map.ofEntries(
+            Map.entry("BroakirModel", BroakirModel.LAYER_LOCATION),
+            Map.entry("DalekModel", DalekModel.LAYER_LOCATION),
+            Map.entry("FlutterwingModel", FlutterwingModel.LAYER_LOCATION),
+            Map.entry("TimeLordModel", TimeLordModel.LAYER_LOCATION),
+            Map.entry("DalekLaserModel", DalekLaserModel.LAYER_LOCATION),
+            Map.entry("TardisGlobeModel", TardisGlobeModel.LAYER_LOCATION),
+            Map.entry("StabilisersModel", StabilisersModel.LAYER_LOCATION),
+            Map.entry("TardisClassicInteriorDoorModel", TardisClassicInteriorDoorModel.LAYER_LOCATION)
+    );
     private static final List<ModelLayerLocation> JSON_LAYERS = jsonLayers();
 
+    /** Per-class layers plus the per-variant TARDIS layers registered in a loop via {@link TardisModels}. */
     private static List<ModelLayerLocation> jsonLayers() {
-        List<ModelLayerLocation> layers = new ArrayList<>(List.of(
-            DalekLaserModel.LAYER_LOCATION,
-            BroakirModel.LAYER_LOCATION,
-            DalekModel.LAYER_LOCATION,
-            FlutterwingModel.LAYER_LOCATION,
-            TimeLordModel.LAYER_LOCATION,
-            TardisGlobeModel.LAYER_LOCATION,
-            StabilisersModel.LAYER_LOCATION,
-            TardisClassicInteriorDoorModel.LAYER_LOCATION
-        ));
+        List<ModelLayerLocation> layers = new ArrayList<>(JSON_LAYERS_BY_CLASS.values());
         for (TardisChameleonVariant variant : TardisChameleonVariant.values()) {
             layers.add(TardisModels.layer(variant));
         }
@@ -49,6 +68,64 @@ class EntityModelTexturesTest {
     @BeforeAll
     static void bootstrap() {
         MinecraftTestBootstrap.ensure();
+    }
+
+    @AfterEach
+    void clearRecorded() {
+        EntityModelTextures.remove(Identifier.parse("dwm:recorded_test"));
+    }
+
+    @Test
+    void jsonLayersMatchClientRegistrations() throws IOException {
+        Pattern register = Pattern.compile("JsonEntityModelLayers\\.register\\((\\w+)\\.LAYER_LOCATION\\)");
+        Set<String> registered = new HashSet<>();
+        try (Stream<Path> files = Files.walk(Path.of("src/client/java"))) {
+            for (Path file : files.filter(f -> f.toString().endsWith(".java")).toList()) {
+                Matcher m = register.matcher(Files.readString(file));
+                while (m.find()) {
+                    registered.add(m.group(1));
+                }
+            }
+        }
+        assertEquals(registered, JSON_LAYERS_BY_CLASS.keySet(), "JSON_LAYERS must list every layer registered via JsonEntityModelLayers");
+    }
+
+    @Test
+    void loadWithTextureReturnsDefinitionAndTexture() throws IOException {
+        Identifier modelId = Identifier.parse("dwm:pack_model");
+        ResourceManager resources = resourcesFor(modelId, """
+                {"texture_width":16,"texture_height":16,"texture":"dwm:textures/entity/pack.png",
+                 "parts":[{"name":"a"}]}""");
+        EntityModelJson.LoadedModel loaded = EntityModelJson.loadWithTexture(resources, modelId);
+        assertEquals(Identifier.parse("dwm:textures/entity/pack.png"), loaded.texture());
+        assertTrue(loaded.definition() != null);
+    }
+
+    @Test
+    void loadWithTextureFailsNamingModelWhenTextureMissing() throws IOException {
+        Identifier modelId = Identifier.parse("dwm:pack_model");
+        ResourceManager resources = resourcesFor(modelId, """
+                {"texture_width":16,"texture_height":16,"parts":[{"name":"a"}]}""");
+        IllegalStateException error = assertThrows(IllegalStateException.class,
+                () -> EntityModelJson.loadWithTexture(resources, modelId));
+        assertTrue(error.getMessage().contains("dwm:pack_model"), error.getMessage());
+        assertTrue(error.getMessage().contains("must declare texture"), error.getMessage());
+    }
+
+    @Test
+    void removeDropsRecordedTexture() {
+        ModelLayerLocation layer = new ModelLayerLocation(Identifier.parse("dwm:recorded_test"), "main");
+        EntityModelTextures.put(layer.model(), Identifier.parse("dwm:textures/entity/recorded.png"));
+        EntityModelTextures.remove(layer.model());
+        assertThrows(IllegalStateException.class, () -> EntityModelTextures.get(layer));
+    }
+
+    private static ResourceManager resourcesFor(Identifier modelId, String json) throws IOException {
+        ResourceManager resources = mock(ResourceManager.class);
+        Resource resource = mock(Resource.class);
+        when(resource.open()).thenReturn(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
+        when(resources.getResource(EntityModelJson.toResourceId(modelId))).thenReturn(Optional.of(resource));
+        return resources;
     }
 
     @Test

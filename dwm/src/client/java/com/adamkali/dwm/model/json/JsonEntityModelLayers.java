@@ -26,15 +26,15 @@ public final class JsonEntityModelLayers {
         if (minecraft == null || minecraft.getResourceManager() == null) {
             throw new IllegalStateException("Cannot load entity model " + modelId + ": no resource manager");
         }
-        EntityModelFile file = EntityModelJson.loadResolved(minecraft.getResourceManager(), modelId);
         try {
-            Identifier texture = EntityModelTextures.requireTexture(modelId, file);
-            LayerDefinition definition = EntityModelJson.toLayerDefinition(file);
-            EntityModelTextures.put(modelId, texture);
-            EntityModelAnimations.put(modelId, file.animation());
-            return definition;
+            EntityModelJson.LoadedModel loaded = EntityModelJson.loadWithTexture(minecraft.getResourceManager(), modelId);
+            EntityModelTextures.put(modelId, loaded.texture());
+            EntityModelAnimations.put(modelId, loaded.animation());
+            return loaded.definition();
         } catch (RuntimeException e) {
-            throw EntityModelJson.loadFailure(modelId, e);
+            EntityModelTextures.remove(modelId);
+            EntityModelAnimations.remove(modelId);
+            throw e;
         }
     }
 }

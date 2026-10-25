@@ -18,6 +18,7 @@ import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -26,11 +27,13 @@ public class TardisInteriorDoorBlockEntityRenderer
         implements BlockEntityRenderer<TardisInteriorDoorBlockEntity, TardisInteriorDoorBlockEntityRenderState> {
     private final TardisClassicInteriorDoorModel model;
     private final TardisSotoRenderer sotoRenderer;
+    private final Identifier texture;
 
     public TardisInteriorDoorBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         this.model = new TardisClassicInteriorDoorModel(
                 context.bakeLayer(TardisClassicInteriorDoorModel.LAYER_LOCATION));
         this.sotoRenderer = new TardisSotoRenderer();
+        this.texture = EntityModelTextures.get(TardisClassicInteriorDoorModel.LAYER_LOCATION);
     }
 
     @Override
@@ -107,7 +110,7 @@ public class TardisInteriorDoorBlockEntityRenderer
                 model,
                 animState,
                 poseStack,
-                RenderTypes.entityCutout(EntityModelTextures.get(TardisClassicInteriorDoorModel.LAYER_LOCATION)),
+                RenderTypes.entityCutout(texture),
                 state.lightCoords,
                 OverlayTexture.NO_OVERLAY,
                 0,
@@ -127,7 +130,7 @@ public class TardisInteriorDoorBlockEntityRenderer
         int light = state.lightCoords;
         submitNodeCollector.submitCustomGeometry(
                 poseStack,
-                RenderTypes.entityCutout(EntityModelTextures.get(TardisClassicInteriorDoorModel.LAYER_LOCATION)),
+                RenderTypes.entityCutout(texture),
                 (pose, consumer) -> {
                     PoseStack local = new PoseStack();
                     local.last().set(pose);
@@ -148,7 +151,7 @@ public class TardisInteriorDoorBlockEntityRenderer
         int light = state.lightCoords;
         submitNodeCollector.order(PortalDoorRenderer.DOOR_OVERLAY_ORDER).submitCustomGeometry(
                 poseStack,
-                PortalDoorRenderer.doorOverlayRenderType(EntityModelTextures.get(TardisClassicInteriorDoorModel.LAYER_LOCATION)),
+                PortalDoorRenderer.doorOverlayRenderType(texture),
                 (pose, consumer) -> {
                     PoseStack local = new PoseStack();
                     local.last().set(pose);
