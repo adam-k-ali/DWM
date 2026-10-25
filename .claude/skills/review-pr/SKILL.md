@@ -1,8 +1,8 @@
 ---
 name: review-pr
 description: >-
-  Review a DWM pull request against AGENTS.md, nested AGENTS.md files, the PR
-  template, feature docs and release policy, then deliver one verdict:
+  Review a DWM pull request against AGENTS.md, nested AGENTS.md files,
+  feature docs and release policy, then deliver one verdict:
   APPROVE, REQUEST_CHANGES or NEEDS_DISCUSSION. Use when asked to review,
   check or sign off on a PR (#NNN, URL or branch).
 ---
@@ -123,20 +123,6 @@ on these alone. **QUESTION** = needs an answer from the author or maintainer.
   output.
 - Tooling (`dwm/tools/`) stays outside the Gradle build and CI.
 
-### F. PR hygiene (MINOR unless noted; MAJOR when the description misleads)
-- Title and commits follow Conventional Commits
-  `<type>(<scope>): <description>` with a type from
-  feat|fix|docs|style|refactor|test|chore, and commits are atomic.
-- Body uses the three template sections (Why this matters / Proposed
-  Implementation / Problems Encountered / Decisions Made), none empty
-  (`None` is allowed). The description must match the diff; a description that
-  claims tests, validation or behaviour the diff does not show is MAJOR.
-- Links its issue (`DWM-NNN`). Labels: documentation / enhancement / bug as
-  appropriate.
-- The PR states which validation commands ran (`test`, `build`, `runDatagen`,
-  `runGametest`) or says they were not run. Do not take this on trust when
-  you can verify it from CI or the diff.
-
 ## 3. Verification
 Prefer evidence over opinion. When a command is available and cheap, run
 the targeted check (`./dwm/gradlew test --tests "<pkg>.*"`, `checkVersionSync`)
@@ -226,7 +212,6 @@ review's own body is just the one-line verdict, to avoid duplication.
     | Data-driven & datagen | … |
     | Scope & size | … |
     | Docs & release hygiene | … |
-    | PR hygiene | … |
 
 Omit empty sections except Review header, Risk, Summary, Verdict and
 Checklist. Be concise, specific, and courteous. Say what is good in one line
