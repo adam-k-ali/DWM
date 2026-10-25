@@ -10,6 +10,7 @@
 - `dwm/src/main/java`: Common logic safe on both logical client and logical server (`com.adamkali.dwm.*`).
 - `dwm/src/client/java`: Client-only logic (rendering, HUD, client integration).
 - `dwm/src/test/java`: JUnit 5 unit tests.
+- `dwm/src/gametest/java`: Fabric **client** GameTests (real client + screenshots); separate source set, not shipped in the jar.
 - `dwm/src/main/resources`: Common resources (`fabric.mod.json`, data, tags, recipes, lang, worldgen).
 - `dwm/src/main/generated/`: Datagen output — commit intentional changes; delete `.cache/` before commit.
 - `dwm/src/client/resources`: Hand-maintained client assets (models, blockstates, textures, sounds).
@@ -25,6 +26,7 @@
 | Intent | Command |
 | --- | --- |
 | DWM client | `./dwm/gradlew runClient` |
+| Client GameTests + screenshots (headless) | `./dwm/scripts/run-client-gametest.sh` |
 | Minecraft named sources (Grep) | `./dwm/gradlew unpackMinecraftSources` |
 
 ## Agent-First Engineering Principles
@@ -82,6 +84,7 @@ DWM uses **Mojang official mappings** for the Minecraft version in [`dwm/gradle.
 ## Testing Expectations
 - **DWM unit tests** (`./dwm/gradlew test`): JUnit 5 via `fabric-loader-junit`. Included in `./dwm/gradlew build` and CI.
 - **GameTests** (`./dwm/gradlew runGametest`): Headless dedicated-server in-world tests in `dwm/src/main/java/.../gametest/`. Not run by CI today — run locally when GameTest code changes.
+- **Client GameTests** (`./dwm/scripts/run-client-gametest.sh`): launch a real client under `xvfb-run` with software GL, load a singleplayer world and save screenshots to `dwm/build/run/clientGameTest/screenshots/` (open the PNGs to check client-side/rendering changes). Tests live in `dwm/src/gametest/java/.../gametest/client/` and are registered in `dwm/src/gametest/resources/fabric.mod.json`. Scenarios: TARDIS exterior + every chameleon variant, DWM entities, Field Guide screen, sonic HUD (shared staging in `ClientGameTestSupport`; keep screenshots deterministic — no random particles, no chat/toast clutter). Output is byte-identical between runs on the same VM. Not run by CI; about a minute for all scenarios on a warm cache, a few minutes on a cold one.
 - Keep test runs reproducible and suitable for unattended agent execution.
 
 ## Automation Pipeline For Agents
@@ -99,6 +102,7 @@ DWM uses **Mojang official mappings** for the Minecraft version in [`dwm/gradle.
   - `./dwm/gradlew build` — compile DWM + JUnit (CI gate)
   - `./dwm/gradlew runDatagen` — regenerate `dwm/src/main/generated/` (only when datagen providers or promoted assets change); finalized by `pruneDatagenItemModels`
   - `./dwm/gradlew runGametest` — headless GameTests → `dwm/build/gametest/report.xml`
+  - `./dwm/scripts/run-client-gametest.sh` — client GameTests + screenshots (needs `xvfb-run`)
   - `./dwm/gradlew syncVersionJson` / `checkVersionSync` — keep `dwm/version.json` aligned with `dwm/gradle.properties`
   - `./dwm/gradlew unpackMinecraftSources` — explode Fabric named Minecraft sources into `dwm/minecraft-sources/` (local/agent; not CI)
 - If a command fails, surface the failure clearly and fix root causes before handoff where possible.
@@ -164,8 +168,8 @@ These notes are for agents running in a cloud VM. The standard build/test/datage
 
 - Java 25 is what Gradle targets (`./dwm/gradlew` picks up the system JDK; no `JAVA_HOME` tweaking needed). Local agents may need `JAVA_HOME` pointed at a JDK 25 install.
 - The startup update script should resolve dependencies via `./dwm/gradlew dependencies -q`. The very first Loom configuration on a cold cache is slow and network-heavy; once cached, subsequent Gradle invocations are fast.
-- Running the mod end-to-end without a display: use `./dwm/gradlew runGametest`.
-- `./dwm/gradlew runClient` and `./dwm/gradlew runServer` start the actual game; `runClient` needs a GUI/display and will not work in the headless VM.
+- Running the mod end-to-end without a display: use `./dwm/gradlew runGametest` (server) or `./dwm/scripts/run-client-gametest.sh` (client, via Xvfb).
+- `./dwm/gradlew runClient` and `./dwm/gradlew runServer` start the actual game; `runClient` needs a GUI/display and will not work in the headless VM (use the client GameTest script, which wraps `runClientGameTest` in `xvfb-run`).
 - `./dwm/gradlew build` also compiles the `client` source set and runs the full JUnit suite.
 - `./dwm/gradlew runDatagen` writes generated resources under `dwm/src/main/generated/` and also leaves an untracked `.cache/` directory — delete that `.cache` dir before committing to avoid stray churn.
 - IDE: open `dwm/` as the Gradle project.
