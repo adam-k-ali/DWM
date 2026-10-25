@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "dwm-gametest",
+  "version": "1.0.0",
+  "name": "DWM Client GameTests",
+  "environment": "client",
+  "license": "MIT",
+  "depends": {
+    "dwm": "*",
+    "fabric-client-gametest-api-v1": "*"
+  },
+  "entrypoints": {
+    "fabric-client-gametest": [
+      "com.adamkali.dwm.gametest.client.TardisExteriorClientGameTest"
+    ]
+  }
+}

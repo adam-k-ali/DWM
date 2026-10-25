@@ -255,6 +255,17 @@ fabricApi {
     configureDataGeneration() {
         client = true
     }
+
+    // Client GameTests (src/gametest): real client on a virtual display, screenshots for agents.
+    // Run via scripts/run-client-gametest.sh (xvfb); not part of `build` or CI.
+    configureTests {
+        createSourceSet = true
+        modId = "dwm-gametest"
+        enableGameTests = false
+        enableClientGameTests = true
+        eula = true
+        clearRunDirectory = true
+    }
 }
 
 // Fabric ModelProvider auto-emits item models for every BlockItem; hand-maintained items
