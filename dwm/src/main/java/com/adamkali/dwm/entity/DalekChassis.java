@@ -1,21 +1,29 @@
 package com.adamkali.dwm.entity;
 
 /**
- * Physical Dalek casing. Each entity type has one chassis; it decides which {@link DalekVariant}
- * skins fit its mesh and where the gunstick muzzle sits (blocks, relative to the entity origin).
+ * Physical Dalek casing: one mesh per chassis. Each {@link DalekVariant} is painted for one chassis;
+ * the chassis decides which {@link DalekFamily} it belongs to and where the gunstick muzzle sits
+ * (blocks, relative to the entity origin).
  */
 public enum DalekChassis {
-    CLASSIC(18.0F / 16.0F, 10.0F / 16.0F, -2.5F / 16.0F),
-    PARADIGM(23.0F / 16.0F, 15.0F / 16.0F, -3.5F / 16.0F);
+    CLASSIC_1963(DalekFamily.CLASSIC, 16.5F / 16.0F, 12.0F / 16.0F, -2.0F / 16.0F),
+    TIME_WAR(DalekFamily.CLASSIC, 16.5F / 16.0F, 13.0F / 16.0F, -2.0F / 16.0F),
+    PARADIGM(DalekFamily.PARADIGM, 23.0F / 16.0F, 15.0F / 16.0F, -3.5F / 16.0F);
 
+    private final DalekFamily family;
     private final float gunHeight;
     private final float gunForward;
     private final float gunSide;
 
-    DalekChassis(float gunHeight, float gunForward, float gunSide) {
+    DalekChassis(DalekFamily family, float gunHeight, float gunForward, float gunSide) {
+        this.family = family;
         this.gunHeight = gunHeight;
         this.gunForward = gunForward;
         this.gunSide = gunSide;
+    }
+
+    public DalekFamily family() {
+        return family;
     }
 
     public float gunHeight() {
@@ -28,15 +36,5 @@ public enum DalekChassis {
 
     public float gunSide() {
         return gunSide;
-    }
-
-    /** First declared variant of this chassis; used when no variant was picked or the saved one does not fit. */
-    public DalekVariant defaultVariant() {
-        for (DalekVariant variant : DalekVariant.values()) {
-            if (variant.chassis() == this) {
-                return variant;
-            }
-        }
-        throw new IllegalStateException("No Dalek variant for chassis " + this);
     }
 }

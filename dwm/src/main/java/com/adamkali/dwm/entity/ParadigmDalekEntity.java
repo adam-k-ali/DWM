@@ -26,8 +26,8 @@ public class ParadigmDalekEntity extends DalekEntity {
     }
 
     @Override
-    public DalekChassis chassis() {
-        return DalekChassis.PARADIGM;
+    public DalekFamily family() {
+        return DalekFamily.PARADIGM;
     }
 
     @Override

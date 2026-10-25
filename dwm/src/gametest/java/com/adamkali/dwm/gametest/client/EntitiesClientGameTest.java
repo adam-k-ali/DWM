@@ -10,12 +10,16 @@ import java.util.List;
 /**
  * Screenshots of DWM mobs lined up facing the camera (AI off, so poses are stable):
  * {@code entities_time_lords}, {@code entities_flutterwings}, {@code entities_misc},
+ * {@code entities_classic_daleks} (1963 and Time War casings, close up, plus
+ * {@code entities_classic_daleks_night}: only the Time War eye and lights glow),
  * {@code entities_paradigm_daleks}, and the same Paradigm group at midnight
  * ({@code entities_paradigm_daleks_night}) to show the glowing eye and dome lights.
  */
 public class EntitiesClientGameTest implements FabricClientGameTest {
     private static final int GROUP_SPACING = 48;
     private static final String FACING_CAMERA = "Rotation:[180f,0f]";
+    private static final Framing DEFAULT = new Framing(7, 2.5);
+    private static final Framing CLOSE_UP = new Framing(4, 1.6);
 
     @Override
     public void runTest(ClientGameTestContext context) {
@@ -34,26 +38,34 @@ public class EntitiesClientGameTest implements FabricClientGameTest {
                     new Mob("flutterwing", "Variant:\"silverband\""),
                     new Mob("flutterwing", "Variant:\"wild_endeavour\"")));
             lineUp(context, world, 2, "entities_misc", List.of(
-                    new Mob("dalek", "Variant:\"1963\""),
-                    new Mob("dalek", "Variant:\"time_war_bronze\""),
-                    new Mob("dalek", "Variant:\"time_war_bronze_dark\""),
                     new Mob("mewing_dog", ""),
                     new Mob("broakir", "")));
-            // A 1963 Dalek at the end for scale against the larger Paradigm casing.
+            lineUp(context, world, 4, "entities_classic_daleks", CLOSE_UP, List.of(
+                    new Mob("dalek", "Variant:\"1963\""),
+                    new Mob("dalek", "Variant:\"time_war_bronze\""),
+                    new Mob("dalek", "Variant:\"time_war_bronze_dark\"")));
+            nightShot(context, world, "entities_classic_daleks_night");
+            // A 1963 and a Time War Dalek at the end for scale against the larger Paradigm casing.
             lineUp(context, world, 3, "entities_paradigm_daleks", List.of(
                     new Mob("paradigm_dalek", "Variant:\"paradigm_drone\""),
                     new Mob("paradigm_dalek", "Variant:\"paradigm_strategist\""),
                     new Mob("paradigm_dalek", "Variant:\"paradigm_scientist\""),
                     new Mob("paradigm_dalek", "Variant:\"paradigm_eternal\""),
                     new Mob("paradigm_dalek", "Variant:\"paradigm_supreme\""),
-                    new Mob("dalek", "Variant:\"1963\"")));
-            world.getServer().runCommand("time set midnight");
-            context.waitTicks(20);
-            ClientGameTestSupport.screenshot(context, "entities_paradigm_daleks_night");
-            world.getServer().runCommand("time set noon");
+                    new Mob("dalek", "Variant:\"1963\""),
+                    new Mob("dalek", "Variant:\"time_war_bronze\"")));
+            nightShot(context, world, "entities_paradigm_daleks_night");
 
             ClientGameTestSupport.toggleHud(context);
         }
+    }
+
+    /** Re-shoots the current group at midnight, then restores noon. */
+    private static void nightShot(ClientGameTestContext context, TestSingleplayerContext world, String screenshotName) {
+        world.getServer().runCommand("time set midnight");
+        context.waitTicks(20);
+        ClientGameTestSupport.screenshot(context, screenshotName);
+        world.getServer().runCommand("time set noon");
     }
 
     private static void lineUp(
@@ -63,22 +75,37 @@ public class EntitiesClientGameTest implements FabricClientGameTest {
             String screenshotName,
             List<Mob> entities
     ) {
+        lineUp(context, world, group, screenshotName, DEFAULT, entities);
+    }
+
+    private static void lineUp(
+            ClientGameTestContext context,
+            TestSingleplayerContext world,
+            int group,
+            String screenshotName,
+            Framing framing,
+            List<Mob> entities
+    ) {
         // Each group gets its own pad far from the others, so nothing has to be killed between
         // screenshots (death "poof" particles are random and would make the images non-deterministic).
         int centerX = group * GROUP_SPACING;
         ClientGameTestSupport.buildPad(world.getServer(), centerX);
         world.getServer().runCommand(String.format("tp @a %d %d 0 0 0", centerX, ClientGameTestSupport.CAMERA_Y));
-        context.getInput().lookAt(new BlockPos(centerX, ClientGameTestSupport.CAMERA_Y, 8));
-        double spacing = 2.5;
+        context.getInput().lookAt(new BlockPos(centerX, ClientGameTestSupport.CAMERA_Y, framing.distance() + 1));
+        double spacing = framing.spacing();
         double startX = centerX - spacing * (entities.size() - 1) / 2.0;
         for (int i = 0; i < entities.size(); i++) {
             Mob mob = entities.get(i);
             world.getServer().runCommand(String.format(
-                    "summon dwm:%s %.1f %d 7 %s",
-                    mob.type(), startX + i * spacing, ClientGameTestSupport.PAD_Y, mob.summonNbt()));
+                    "summon dwm:%s %.1f %d %d %s",
+                    mob.type(), startX + i * spacing, ClientGameTestSupport.PAD_Y, framing.distance(), mob.summonNbt()));
         }
         context.waitTicks(40);
         ClientGameTestSupport.screenshot(context, screenshotName);
+    }
+
+    /** How far in front of the camera a group stands (blocks) and how far apart its mobs are. */
+    private record Framing(int distance, double spacing) {
     }
 
     /** A DWM entity to summon: registry path under {@code dwm:} plus any extra NBT entries (no braces). */
