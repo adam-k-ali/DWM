@@ -3,15 +3,9 @@ package com.adamkali.dwm.render;
 import com.adamkali.dwm.model.json.EntityModelTextures;
 import com.adamkali.dwm.block.TardisBlock;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
-import com.adamkali.dwm.model.tileentity.FifthDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.FirstDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.FourthDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.SecondDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.SeventhDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.SixthDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.TTCapsuleModel;
+import com.adamkali.dwm.model.tileentity.TardisModels;
+import net.minecraft.client.model.geom.ModelLayerLocation;
 import com.adamkali.dwm.model.tileentity.TardisModel;
-import com.adamkali.dwm.model.tileentity.ThirdDoctorTardisModel;
 import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.render.boti.TardisBotiRenderer;
 import com.adamkali.dwm.render.portal.PortalApertureComposite;
@@ -56,14 +50,10 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
     }
 
     public TardisBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
-        saveChameleonVariant(TardisChameleonVariant.TT_CAPSULE, new TTCapsuleModel(context.bakeLayer(TTCapsuleModel.LAYER_LOCATION)), EntityModelTextures.get(TTCapsuleModel.LAYER_LOCATION));
-        saveChameleonVariant(TardisChameleonVariant.FIRST_DOCTOR_BOX, new FirstDoctorTardisModel(context.bakeLayer(FirstDoctorTardisModel.LAYER_LOCATION)), EntityModelTextures.get(FirstDoctorTardisModel.LAYER_LOCATION));
-        saveChameleonVariant(TardisChameleonVariant.SECOND_DOCTOR_BOX, new SecondDoctorTardisModel(context.bakeLayer(SecondDoctorTardisModel.LAYER_LOCATION)), EntityModelTextures.get(SecondDoctorTardisModel.LAYER_LOCATION));
-        saveChameleonVariant(TardisChameleonVariant.THIRD_DOCTOR_BOX, new ThirdDoctorTardisModel(context.bakeLayer(ThirdDoctorTardisModel.LAYER_LOCATION)), EntityModelTextures.get(ThirdDoctorTardisModel.LAYER_LOCATION));
-        saveChameleonVariant(TardisChameleonVariant.FOURTH_DOCTOR_BOX, new FourthDoctorTardisModel(context.bakeLayer(FourthDoctorTardisModel.LAYER_LOCATION)), EntityModelTextures.get(FourthDoctorTardisModel.LAYER_LOCATION));
-        saveChameleonVariant(TardisChameleonVariant.FIFTH_DOCTOR_BOX, new FifthDoctorTardisModel(context.bakeLayer(FifthDoctorTardisModel.LAYER_LOCATION)), EntityModelTextures.get(FifthDoctorTardisModel.LAYER_LOCATION));
-        saveChameleonVariant(TardisChameleonVariant.SIXTH_DOCTOR_BOX, new SixthDoctorTardisModel(context.bakeLayer(SixthDoctorTardisModel.LAYER_LOCATION)), EntityModelTextures.get(SixthDoctorTardisModel.LAYER_LOCATION));
-        saveChameleonVariant(TardisChameleonVariant.SEVENTH_DOCTOR_BOX, new SeventhDoctorTardisModel(context.bakeLayer(SeventhDoctorTardisModel.LAYER_LOCATION)), EntityModelTextures.get(SeventhDoctorTardisModel.LAYER_LOCATION));
+        for (TardisChameleonVariant variant : TardisChameleonVariant.values()) {
+            ModelLayerLocation layer = TardisModels.layer(variant);
+            saveChameleonVariant(variant, new TardisModel(context.bakeLayer(layer), layer), EntityModelTextures.get(layer));
+        }
     }
 
     @Override

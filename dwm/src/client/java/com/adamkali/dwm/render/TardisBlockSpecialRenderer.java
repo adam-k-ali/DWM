@@ -1,7 +1,10 @@
 package com.adamkali.dwm.render;
 
 import com.adamkali.dwm.model.json.EntityModelTextures;
-import com.adamkali.dwm.model.tileentity.FirstDoctorTardisModel;
+import com.adamkali.dwm.model.tileentity.TardisModel;
+import com.adamkali.dwm.model.tileentity.TardisModels;
+import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
+import net.minecraft.client.model.geom.ModelLayerLocation;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.serialization.MapCodec;
@@ -26,10 +29,12 @@ public class TardisBlockSpecialRenderer implements NoDataSpecialModelRenderer {
     private static final float EXTENT_MAX_Y = 2.0f;
     private static final float EXTENT_MAX_Z = 1.0f;
 
-    private final FirstDoctorTardisModel model;
+    private static final ModelLayerLocation LAYER = TardisModels.layer(TardisChameleonVariant.FIRST_DOCTOR_BOX);
+
+    private final TardisModel model;
     private final TardisRenderState animState = new TardisRenderState();
 
-    public TardisBlockSpecialRenderer(FirstDoctorTardisModel model) {
+    public TardisBlockSpecialRenderer(TardisModel model) {
         this.model = model;
     }
 
@@ -49,7 +54,7 @@ public class TardisBlockSpecialRenderer implements NoDataSpecialModelRenderer {
                 this.model,
                 this.animState,
                 poseStack,
-                EntityModelTextures.get(FirstDoctorTardisModel.LAYER_LOCATION),
+                EntityModelTextures.get(LAYER),
                 lightCoords,
                 overlayCoords,
                 outlineColor,
@@ -100,8 +105,7 @@ public class TardisBlockSpecialRenderer implements NoDataSpecialModelRenderer {
         @Override
         public TardisBlockSpecialRenderer bake(SpecialModelRenderer.BakingContext context) {
             return new TardisBlockSpecialRenderer(
-                    new FirstDoctorTardisModel(
-                            context.entityModelSet().bakeLayer(FirstDoctorTardisModel.LAYER_LOCATION)));
+                    new TardisModel(context.entityModelSet().bakeLayer(LAYER), LAYER));
         }
     }
 }

@@ -1,6 +1,8 @@
 package com.adamkali.dwm.model.tileentity;
 
 import com.adamkali.dwm.model.json.EntityModelJson;
+import com.adamkali.dwm.model.json.TestModelLoading;
+import com.adamkali.dwm.render.state.TardisRenderState;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -19,14 +21,29 @@ class TardisClassicInteriorDoorModelTest {
 
     @Test
     void swingAngles_sameLocalSignAndMatchExteriorMagnitude() {
-        assertEquals(0.0f, TardisClassicInteriorDoorModel.door1Yaw(0.0f), EPSILON);
-        assertEquals(0.0f, TardisClassicInteriorDoorModel.door2Yaw(0.0f), EPSILON);
+        ModelPart root = TestModelLoading.bake(TardisClassicInteriorDoorModel.LAYER_LOCATION);
+        TardisClassicInteriorDoorModel model = new TardisClassicInteriorDoorModel(root);
+        ModelPart door1 = root.getChild("frame").getChild("Door1");
+        ModelPart door2 = root.getChild("frame2").getChild("Door2");
+
+        model.setupAnim(stateAt(0.0f));
+        assertEquals(0.0f, door1.yRot, EPSILON);
+        assertEquals(0.0f, door2.yRot, EPSILON);
 
         float expected = (float) (3.0 * Math.PI / 4.0);
-        assertEquals(-expected, TardisClassicInteriorDoorModel.door1Yaw(1.0f), EPSILON);
-        assertEquals(-expected, TardisClassicInteriorDoorModel.door2Yaw(1.0f), EPSILON);
-        assertTrue(TardisClassicInteriorDoorModel.door1Yaw(0.5f) < 0.0f);
-        assertTrue(TardisClassicInteriorDoorModel.door2Yaw(0.5f) < 0.0f);
+        model.setupAnim(stateAt(1.0f));
+        assertEquals(-expected, door1.yRot, EPSILON);
+        assertEquals(-expected, door2.yRot, EPSILON);
+
+        model.setupAnim(stateAt(0.5f));
+        assertTrue(door1.yRot < 0.0f);
+        assertTrue(door2.yRot < 0.0f);
+    }
+
+    private static TardisRenderState stateAt(float progress) {
+        TardisRenderState state = new TardisRenderState();
+        state.setDoorSwingProgress(progress);
+        return state;
     }
 
     @Test

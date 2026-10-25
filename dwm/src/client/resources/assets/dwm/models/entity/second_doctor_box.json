@@ -592,5 +592,10 @@
         { "uv": [0, 0], "origin": [-1.5, -26.975, -1.5], "size": [3.0, 3.0, 3.0] }
       ]
     }
-  ]
+  ],
+  "animation": {
+    "bindings": [
+      { "part": "Main/LeftDoor", "channel": "rot_y", "value": "door_progress * 60" }
+    ]
+  }
 }

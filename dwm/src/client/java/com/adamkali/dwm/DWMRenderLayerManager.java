@@ -3,6 +3,7 @@ package com.adamkali.dwm;
 import com.adamkali.dwm.model.item.RadiationMeterModel;
 import com.adamkali.dwm.model.json.JsonEntityModelLayers;
 import com.adamkali.dwm.model.tileentity.*;
+import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
 
 /**
@@ -11,14 +12,9 @@ import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
  */
 public class DWMRenderLayerManager {
     private static void registerEntityRenderLayers() {
-        JsonEntityModelLayers.register(TTCapsuleModel.LAYER_LOCATION);
-        JsonEntityModelLayers.register(FirstDoctorTardisModel.LAYER_LOCATION);
-        JsonEntityModelLayers.register(SecondDoctorTardisModel.LAYER_LOCATION);
-        JsonEntityModelLayers.register(ThirdDoctorTardisModel.LAYER_LOCATION);
-        JsonEntityModelLayers.register(FourthDoctorTardisModel.LAYER_LOCATION);
-        JsonEntityModelLayers.register(FifthDoctorTardisModel.LAYER_LOCATION);
-        JsonEntityModelLayers.register(SixthDoctorTardisModel.LAYER_LOCATION);
-        JsonEntityModelLayers.register(SeventhDoctorTardisModel.LAYER_LOCATION);
+        for (TardisChameleonVariant variant : TardisChameleonVariant.values()) {
+            JsonEntityModelLayers.register(TardisModels.layer(variant));
+        }
         JsonEntityModelLayers.register(TardisClassicInteriorDoorModel.LAYER_LOCATION);
         ModelLayerRegistry.registerModelLayer(
                 FirstDoctorConsoleModel.LAYER_LOCATION,

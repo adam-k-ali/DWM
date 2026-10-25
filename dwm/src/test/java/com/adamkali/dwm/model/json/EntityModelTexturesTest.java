@@ -6,17 +6,11 @@ import com.adamkali.dwm.model.entity.DalekLaserModel;
 import com.adamkali.dwm.model.entity.DalekModel;
 import com.adamkali.dwm.model.entity.FlutterwingModel;
 import com.adamkali.dwm.model.entity.TimeLordModel;
-import com.adamkali.dwm.model.tileentity.FifthDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.FirstDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.FourthDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.SecondDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.SeventhDoctorTardisModel;
-import com.adamkali.dwm.model.tileentity.SixthDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.StabilisersModel;
-import com.adamkali.dwm.model.tileentity.TTCapsuleModel;
 import com.adamkali.dwm.model.tileentity.TardisClassicInteriorDoorModel;
 import com.adamkali.dwm.model.tileentity.TardisGlobeModel;
-import com.adamkali.dwm.model.tileentity.ThirdDoctorTardisModel;
+import com.adamkali.dwm.model.tileentity.TardisModels;
+import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
@@ -25,6 +19,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -57,17 +52,18 @@ class EntityModelTexturesTest {
             Map.entry("DalekLaserModel", DalekLaserModel.LAYER_LOCATION),
             Map.entry("TardisGlobeModel", TardisGlobeModel.LAYER_LOCATION),
             Map.entry("StabilisersModel", StabilisersModel.LAYER_LOCATION),
-            Map.entry("FirstDoctorTardisModel", FirstDoctorTardisModel.LAYER_LOCATION),
-            Map.entry("SecondDoctorTardisModel", SecondDoctorTardisModel.LAYER_LOCATION),
-            Map.entry("ThirdDoctorTardisModel", ThirdDoctorTardisModel.LAYER_LOCATION),
-            Map.entry("FourthDoctorTardisModel", FourthDoctorTardisModel.LAYER_LOCATION),
-            Map.entry("FifthDoctorTardisModel", FifthDoctorTardisModel.LAYER_LOCATION),
-            Map.entry("SixthDoctorTardisModel", SixthDoctorTardisModel.LAYER_LOCATION),
-            Map.entry("SeventhDoctorTardisModel", SeventhDoctorTardisModel.LAYER_LOCATION),
-            Map.entry("TTCapsuleModel", TTCapsuleModel.LAYER_LOCATION),
             Map.entry("TardisClassicInteriorDoorModel", TardisClassicInteriorDoorModel.LAYER_LOCATION)
     );
-    private static final List<ModelLayerLocation> JSON_LAYERS = List.copyOf(JSON_LAYERS_BY_CLASS.values());
+    private static final List<ModelLayerLocation> JSON_LAYERS = jsonLayers();
+
+    /** Per-class layers plus the per-variant TARDIS layers registered in a loop via {@link TardisModels}. */
+    private static List<ModelLayerLocation> jsonLayers() {
+        List<ModelLayerLocation> layers = new ArrayList<>(JSON_LAYERS_BY_CLASS.values());
+        for (TardisChameleonVariant variant : TardisChameleonVariant.values()) {
+            layers.add(TardisModels.layer(variant));
+        }
+        return layers;
+    }
 
     @BeforeAll
     static void bootstrap() {
