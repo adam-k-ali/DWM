@@ -49,7 +49,7 @@ class EntityDefinitionCatalogTest {
 
     @Test
     void fileStemMatchesEntityId() {
-        assertEquals(6, definitions.size());
+        assertEquals(7, definitions.size());
         for (Map.Entry<Identifier, EntityDefinition> entry : definitions.entrySet()) {
             assertEquals(entry.getKey(), entry.getValue().entity());
         }

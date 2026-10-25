@@ -1,0 +1,32 @@
+{
+  "entity": "dwm:dalek_mutant",
+  "attribute_base": "monster",
+  "attributes": {
+    "minecraft:max_health": 10.0,
+    "minecraft:movement_speed": 0.2,
+    "minecraft:follow_range": 16.0,
+    "minecraft:attack_damage": 3.0
+  },
+  "goals": [
+    { "type": "minecraft:float", "priority": 0 },
+    { "type": "minecraft:leap_at_target", "priority": 2, "ydelta": 0.3 },
+    {
+      "type": "minecraft:melee_attack",
+      "priority": 3,
+      "speed": 1.2,
+      "following_if_not_seen": false
+    },
+    { "type": "minecraft:water_avoiding_random_stroll", "priority": 5, "speed": 0.8 },
+    { "type": "minecraft:look_at", "priority": 6, "target": "minecraft:player", "look_distance": 8.0 },
+    { "type": "minecraft:random_look_around", "priority": 7 }
+  ],
+  "targets": [
+    { "type": "minecraft:hurt_by_target", "priority": 1 },
+    {
+      "type": "minecraft:nearest_attackable_target",
+      "priority": 2,
+      "target": "minecraft:player",
+      "must_see": true
+    }
+  ]
+}
