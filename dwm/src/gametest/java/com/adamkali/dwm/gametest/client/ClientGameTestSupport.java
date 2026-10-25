@@ -1,5 +1,6 @@
 package com.adamkali.dwm.gametest.client;
 
+import com.adamkali.dwm.config.DWMConfig;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext;
 import net.minecraft.core.BlockPos;
@@ -21,8 +22,11 @@ final class ClientGameTestSupport {
     private ClientGameTestSupport() {
     }
 
-    /** Clear weather, noon, spectator player at (0, {@link #CAMERA_Y}, 0) facing +Z, and a pad ahead of it. */
+    /** Door portals off, clear weather, noon, spectator player at (0, {@link #CAMERA_Y}, 0) facing +Z, and a pad ahead of it. */
     static void stage(TestServerContext server, String gameMode) {
+        // Door portals allocate extra FBOs/pipelines; none of the scenarios cover them yet, and the
+        // toggle is process-wide, so set it here instead of relying on which test ran first.
+        DWMConfig.setBoolean(DWMConfig.ENABLE_DOOR_PORTALS, false);
         // Keep chat clean for screenshots (advancement chat lines, "game mode updated", ...).
         server.runCommand("gamerule send_command_feedback false");
         server.runCommand("gamerule show_advancement_messages false");

@@ -2,7 +2,6 @@ package com.adamkali.dwm.gametest.client;
 
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
-import com.adamkali.dwm.config.DWMConfig;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
@@ -15,9 +14,6 @@ import net.minecraft.core.BlockPos;
 public class TardisExteriorClientGameTest implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {
-        // Door portals allocate extra FBOs/pipelines; keep this first scenario to the plain exterior.
-        DWMConfig.setBoolean(DWMConfig.ENABLE_DOOR_PORTALS, false);
-
         try (TestSingleplayerContext world = context.worldBuilder().create()) {
             BlockPos tardisPos = new BlockPos(0, ClientGameTestSupport.PAD_Y, 4);
 

@@ -2,7 +2,6 @@ package com.adamkali.dwm.gametest.client;
 
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.entities.TardisBlockEntity;
-import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
@@ -16,8 +15,6 @@ import java.util.UUID;
 public class TardisVariantsClientGameTest implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {
-        DWMConfig.setBoolean(DWMConfig.ENABLE_DOOR_PORTALS, false);
-
         try (TestSingleplayerContext world = context.worldBuilder().create()) {
             BlockPos tardisPos = new BlockPos(0, ClientGameTestSupport.PAD_Y, 4);
 
