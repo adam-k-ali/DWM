@@ -22,8 +22,9 @@ public final class DalekMutantEmergence {
     }
 
     /**
-     * Spawns a mutant where {@code casing} stood, turned the same way, and sets it on the player
-     * who destroyed the casing (unless that player is in creative or spectator).
+     * Spawns a mutant where {@code casing} stood, turned the same way and as persistent as the
+     * casing, and sets it on the player who destroyed the casing (unless that player is in creative
+     * or spectator).
      */
     public static @Nullable DalekMutantEntity release(ServerLevel level, DalekEntity casing) {
         DalekMutantEntity mutant = DWMEntityTypes.DALEK_MUTANT.create(level, EntitySpawnReason.TRIGGERED);
@@ -33,6 +34,10 @@ public final class DalekMutantEmergence {
         mutant.snapTo(casing.getX(), casing.getY(), casing.getZ(), casing.getYRot(), 0.0F);
         mutant.setYHeadRot(casing.getYHeadRot());
         mutant.finalizeSpawn(level, level.getCurrentDifficultyAt(mutant.blockPosition()), EntitySpawnReason.TRIGGERED, null);
+        if (casing.isPersistenceRequired()) {
+            // As in vanilla mob conversion: a named or otherwise persistent casing keeps its mutant.
+            mutant.setPersistenceRequired();
+        }
         LivingEntity killer = casing.getLastHurtByMob();
         if (killer instanceof Player player && !player.isCreative() && !player.isSpectator() && player.isAlive()) {
             mutant.setTarget(player);

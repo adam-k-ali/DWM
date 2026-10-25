@@ -184,6 +184,9 @@ public class DalekGameTests {
             if (mutant.position().distanceTo(dalek.position()) > 1.0e-6) {
                 throw new AssertionError("Mutant should crawl out where the casing stood");
             }
+            if (!mutant.isPersistenceRequired()) {
+                throw new AssertionError("Mutant from a persistent casing should be persistent too");
+            }
             if (mutant.getTarget() != attacker) {
                 throw new AssertionError("Mutant should go for the player who destroyed its casing");
             }
