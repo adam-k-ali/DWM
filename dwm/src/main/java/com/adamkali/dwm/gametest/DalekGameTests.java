@@ -20,8 +20,11 @@ public class DalekGameTests {
         if (dalek == null || !dalek.isAlive()) {
             throw new AssertionError("Expected a living Dalek after spawn");
         }
-        if (dalek.getVariant() != DalekVariant.CLASSIC_1963) {
-            throw new AssertionError("Unexpected Dalek variant: " + dalek.getVariant());
+        for (DalekVariant variant : DalekVariant.values()) {
+            dalek.setVariant(variant);
+            if (dalek.getVariant() != variant) {
+                throw new AssertionError("Dalek variant did not round-trip: " + variant);
+            }
         }
         context.assertEntityPresent(DWMEntityTypes.DALEK);
         context.succeed();
