@@ -77,6 +77,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - Uses the shared deferred portal FBO pipeline (`render.portal`) with a hitch-fixed look-in camera at the interior door plane; composite UV crop uses each chameleon's `PortalAperture`. No stencil framebuffer required.
 - Applies atmosphere-colored distance fog across the streamed view-distance depth. Newly placed/rebuilt console rooms stamp and propagate their intended full-strength invisible console light before BOTI chunk sync.
 - May not work with Fabulous graphics / order-independent transparency; disable via `enableDoorPortals` if needed.
+- Until the portal composite is first rendered the doorway shows a flat dark blue-grey placeholder; automated checks should wait for the composite rather than trust a screenshot (see the client GameTests `TardisBotiPortalClientGameTest` / `TardisSotoPortalClientGameTest`).
 
 ## SOTO Notes
 - Uses the same deferred portal FBO pipeline and the same portal stream packet family as BOTI (shared `enableDoorPortals`, default on).
