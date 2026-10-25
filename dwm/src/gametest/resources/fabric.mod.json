@@ -11,7 +11,11 @@
   },
   "entrypoints": {
     "fabric-client-gametest": [
-      "com.adamkali.dwm.gametest.client.TardisExteriorClientGameTest"
+      "com.adamkali.dwm.gametest.client.TardisExteriorClientGameTest",
+      "com.adamkali.dwm.gametest.client.TardisVariantsClientGameTest",
+      "com.adamkali.dwm.gametest.client.EntitiesClientGameTest",
+      "com.adamkali.dwm.gametest.client.FieldGuideClientGameTest",
+      "com.adamkali.dwm.gametest.client.SonicHudClientGameTest"
     ]
   }
 }
