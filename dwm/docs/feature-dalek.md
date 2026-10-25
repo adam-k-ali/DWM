@@ -12,7 +12,7 @@ Give survival and creative worlds a hostile Doctor Who enemy: a 1963 Dalek that 
 - Watch the Dalek take off when standing on a high ledge or otherwise out of ground pathing, then resume gliding when the player is reachable again.
 
 ## Implemented Now
-- Hostile `dwm:dalek` (`MONSTER`) with a single **1963** variant (silver / black / cyan atlas). Core combat, model, and sounds are owned by this feature (DWM-051).
+- Hostile `dwm:dalek` (`MONSTER`) with three variants on one chassis: **1963** (silver / black / cyan), **Bronze Time War** (`time_war_bronze`) and a darker weathered **Bronze Time War Dark** (`time_war_bronze_dark`). Spawn eggs and natural spawns pick one at random (1963 most common); `/summon dwm:dalek ~ ~ ~ {Variant:"time_war_bronze"}` forces one. Core combat, model, and sounds are owned by this feature (DWM-051).
 - Ground pathfinding by default; flying navigation + no-gravity when the target is more than 2.5 blocks above or has no ground path beyond 4 blocks.
 - Ranged laser projectile `dwm:dalek_laser` spawned from the gunstick (~2 second cadence, 16-block range, 4 damage).
 - Spawn egg, empty loot table, original mechanical SFX (ambient / hurt / death / shoot). No BBC voice.
@@ -29,11 +29,11 @@ Give survival and creative worlds a hostile Doctor Who enemy: a 1963 Dalek that 
 ## Known Constraints
 - Daleks do not naturally spawn on Gallifrey or other non-Skaro worlds.
 - Checkpoint, bunker, and Kaalann structure population is not shipped yet (DWM-069).
-- One visual variant; later casings can reuse `DalekVariant`.
+- Variants are visual only; later casings can reuse `DalekVariant`.
 - Does not target Time Lords or Thals in this pass.
 - No unique drops yet.
 
 ## Future Opportunities (Planned)
-- Additional era variants (skins on the same chassis).
+- More era variants (skins on the same chassis).
 - Structure-scoped patrols at checkpoints, the Kaled bunker, and Kaalann.
 - Unique loot / advancement hooks.
