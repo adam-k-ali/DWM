@@ -49,7 +49,7 @@ class EntityDefinitionCatalogTest {
 
     @Test
     void fileStemMatchesEntityId() {
-        assertEquals(5, definitions.size());
+        assertEquals(6, definitions.size());
         for (Map.Entry<Identifier, EntityDefinition> entry : definitions.entrySet()) {
             assertEquals(entry.getKey(), entry.getValue().entity());
         }
@@ -151,6 +151,27 @@ class EntityDefinitionCatalogTest {
         EntityGoal.DalekFlight flight = assertInstanceOf(EntityGoal.DalekFlight.class, definition.goals().get(1).goal());
         assertEquals(2.5, flight.flyYDelta());
         assertEquals(4.0, flight.minDistanceForMissingPath());
+    }
+
+    @Test
+    void paradigmDalekIsTougherThanTheClassicDalek() {
+        EntityDefinition definition = definition("paradigm_dalek");
+        assertEquals(EntityAttributeBase.MONSTER, definition.attributeBase());
+        assertEquals(50.0, attribute(definition, "max_health"));
+        assertEquals(0.21, attribute(definition, "movement_speed"));
+        assertEquals(0.4, attribute(definition, "flying_speed"));
+        assertEquals(32.0, attribute(definition, "follow_range"));
+        assertEquals(6.0, attribute(definition, "attack_damage"));
+        assertEquals(1.0, attribute(definition, "knockback_resistance"));
+        assertEquals(8.0, attribute(definition, "armor"));
+        EntityDefinition classic = definition("dalek");
+        for (String path : List.of("max_health", "attack_damage", "armor")) {
+            assertTrue(attribute(definition, path) > attribute(classic, path), path);
+        }
+        assertEquals(EntityGoal.Kind.DALEK_FLIGHT, definition.goals().get(1).goal().kind());
+        EntityGoal.RangedAttack ranged = assertInstanceOf(EntityGoal.RangedAttack.class, definition.goals().get(2).goal());
+        assertEquals(20.0, ranged.attackRange());
+        assertEquals(EntityGoal.Kind.DALEK_SHARE_TARGET, definition.targets().get(1).goal().kind());
     }
 
     @Test

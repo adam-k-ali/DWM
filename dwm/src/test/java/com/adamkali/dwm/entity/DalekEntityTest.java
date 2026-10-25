@@ -70,15 +70,16 @@ class DalekEntityTest {
 
     @Test
     void variantsAreDefined() {
-        assertEquals(3, DalekVariant.values().length);
+        assertEquals(8, DalekVariant.values().length);
         assertEquals("1963", DalekVariant.CLASSIC_1963.getSerializedName());
         assertEquals("time_war_bronze", DalekVariant.BRONZE_TIME_WAR.getSerializedName());
         assertEquals("time_war_bronze_dark", DalekVariant.BRONZE_TIME_WAR_DARK.getSerializedName());
         for (DalekVariant variant : DalekVariant.values()) {
-            assertEquals(variant, DalekVariant.byId(variant.getSerializedName()));
-            assertEquals(variant, DalekVariant.byOrdinal(variant.ordinal()));
+            assertEquals(variant, DalekVariant.byId(variant.getSerializedName(), variant.chassis()));
+            assertEquals(variant, DalekVariant.byOrdinal(variant.ordinal(), variant.chassis()));
         }
-        assertEquals(DalekVariant.CLASSIC_1963, DalekVariant.byId("unknown"));
+        assertEquals(DalekVariant.CLASSIC_1963, DalekVariant.byId("unknown", DalekChassis.CLASSIC));
+        assertEquals(DalekVariant.CLASSIC_1963, DalekChassis.CLASSIC.defaultVariant());
         assertEquals(
                 Identifier.fromNamespaceAndPath("dwm", "textures/entity/dalek/time_war_bronze.png"),
                 DalekVariant.BRONZE_TIME_WAR.textureLocation()
@@ -86,13 +87,33 @@ class DalekEntityTest {
     }
 
     @Test
-    void pickCoversAllVariants() {
+    void variantsFromAnotherChassisFallBackToTheDefault() {
+        assertEquals(
+                DalekVariant.CLASSIC_1963,
+                DalekVariant.byId(DalekVariant.PARADIGM_SUPREME.getSerializedName(), DalekChassis.CLASSIC)
+        );
+        assertEquals(
+                DalekVariant.CLASSIC_1963,
+                DalekVariant.byOrdinal(DalekVariant.PARADIGM_DRONE.ordinal(), DalekChassis.CLASSIC)
+        );
+        assertEquals(DalekVariant.CLASSIC_1963, DalekVariant.byOrdinal(-1, DalekChassis.CLASSIC));
+        assertEquals(
+                DalekVariant.BRONZE_TIME_WAR,
+                DalekVariant.fitting(DalekVariant.BRONZE_TIME_WAR, DalekChassis.CLASSIC)
+        );
+    }
+
+    @Test
+    void pickCoversAllClassicVariants() {
         Map<DalekVariant, Integer> counts = new EnumMap<>(DalekVariant.class);
         RandomSource random = RandomSource.create(42L);
         for (int i = 0; i < 500; i++) {
-            counts.merge(DalekVariant.pick(random), 1, Integer::sum);
+            counts.merge(DalekVariant.pick(random, DalekChassis.CLASSIC), 1, Integer::sum);
         }
-        assertEquals(DalekVariant.values().length, counts.size());
+        assertEquals(3, counts.size());
+        for (DalekVariant variant : counts.keySet()) {
+            assertEquals(DalekChassis.CLASSIC, variant.chassis());
+        }
         int classic = counts.get(DalekVariant.CLASSIC_1963);
         assertTrue(classic > counts.get(DalekVariant.BRONZE_TIME_WAR));
         assertTrue(classic > counts.get(DalekVariant.BRONZE_TIME_WAR_DARK));

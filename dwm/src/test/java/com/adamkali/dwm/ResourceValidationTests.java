@@ -1,6 +1,7 @@
 package com.adamkali.dwm;
 
 import com.adamkali.dwm.entity.DalekPatrolLogic;
+import com.adamkali.dwm.entity.DalekChassis;
 import com.adamkali.dwm.entity.DalekVariant;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -1108,6 +1109,71 @@ public class ResourceValidationTests {
         assertFalse(biomeHasCreatureSpawn("gallifrey_badlands.json", "dwm:time_lord"));
     }
 
+    /**
+     * The Paradigm glow overlay renders full-bright, so it may only light the eye and dome-light
+     * cubes (UV swatches {@code [104, 8]} and {@code [112, 8]} in {@code paradigm_dalek.json}).
+     */
+    @Test
+    public void paradigmGlowTextureCoversOnlyEyeAndLights() throws Exception {
+        Path model = Path.of("src/client/resources/assets/dwm/models/entity/paradigm_dalek.json");
+        List<int[]> glowRects = new java.util.ArrayList<>();
+        var parts = new JSONObject(new JSONTokener(Files.newBufferedReader(model))).getJSONArray("parts");
+        for (int i = 0; i < parts.length(); i++) {
+            collectGlowRects(parts.getJSONObject(i), glowRects);
+        }
+        assertEquals(3, glowRects.size(), "expected one eye cube and two dome-light cubes");
+
+        Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/dalek/paradigm_glow.png");
+        assertTrue(Files.isRegularFile(texture), "Missing " + texture);
+        BufferedImage image = ImageIO.read(texture.toFile());
+        assertEquals(128, image.getWidth(), texture + " width");
+        assertEquals(64, image.getHeight(), texture + " height");
+        for (int y = 0; y < image.getHeight(); y++) {
+            for (int x = 0; x < image.getWidth(); x++) {
+                if ((image.getRGB(x, y) >>> 24) == 0) {
+                    continue;
+                }
+                int px = x;
+                int py = y;
+                assertTrue(
+                        glowRects.stream().anyMatch(r -> px >= r[0] && px < r[2] && py >= r[1] && py < r[3]),
+                        "Glow texel outside the eye/light UVs at " + x + "," + y
+                );
+            }
+        }
+        for (int[] rect : glowRects) {
+            boolean lit = false;
+            for (int y = rect[1]; y < rect[3] && !lit; y++) {
+                for (int x = rect[0]; x < rect[2] && !lit; x++) {
+                    lit = (image.getRGB(x, y) >>> 24) != 0;
+                }
+            }
+            assertTrue(lit, "Glow texture leaves the cube at uv " + rect[0] + "," + rect[1] + " dark");
+        }
+    }
+
+    private static void collectGlowRects(JSONObject part, List<int[]> out) {
+        var cubes = part.optJSONArray("cubes");
+        for (int i = 0; cubes != null && i < cubes.length(); i++) {
+            JSONObject cube = cubes.getJSONObject(i);
+            var uv = cube.getJSONArray("uv");
+            int u = uv.getInt(0);
+            int v = uv.getInt(1);
+            if (v != 8 || (u != 104 && u != 112)) {
+                continue;
+            }
+            var size = cube.getJSONArray("size");
+            int w = (int) Math.ceil(size.getDouble(0));
+            int h = (int) Math.ceil(size.getDouble(1));
+            int d = (int) Math.ceil(size.getDouble(2));
+            out.add(new int[]{u, v, u + 2 * (d + w), v + d + h});
+        }
+        var children = part.optJSONArray("children");
+        for (int i = 0; children != null && i < children.length(); i++) {
+            collectGlowRects(children.getJSONObject(i), out);
+        }
+    }
+
     @Test
     public void dalekVariantTexturesExist() throws Exception {
         for (DalekVariant variant : DalekVariant.values()) {
@@ -1115,7 +1181,8 @@ public class ResourceValidationTests {
                     + variant.getSerializedName() + ".png");
             assertTrue(Files.isRegularFile(texture) && Files.size(texture) > 0, "Missing " + texture);
             BufferedImage image = ImageIO.read(texture.toFile());
-            assertEquals(64, image.getWidth(), texture + " width");
+            int expectedWidth = variant.chassis() == DalekChassis.PARADIGM ? 128 : 64;
+            assertEquals(expectedWidth, image.getWidth(), texture + " width");
             assertEquals(64, image.getHeight(), texture + " height");
         }
     }
@@ -1161,11 +1228,13 @@ public class ResourceValidationTests {
 
     @Test
     public void dalekSpawnEggTextureExists() throws Exception {
-        Path texture = Path.of("src/client/resources/assets/dwm/textures/item/dalek_spawn_egg.png");
-        assertTrue(
-                Files.isRegularFile(texture) && Files.size(texture) > 0,
-                "Spawn egg item model expects assets/dwm/textures/item/dalek_spawn_egg.png"
-        );
+        for (String egg : new String[]{"dalek_spawn_egg", "paradigm_dalek_spawn_egg"}) {
+            Path texture = Path.of("src/client/resources/assets/dwm/textures/item/" + egg + ".png");
+            assertTrue(
+                    Files.isRegularFile(texture) && Files.size(texture) > 0,
+                    "Spawn egg item model expects assets/dwm/textures/item/" + egg + ".png"
+            );
+        }
     }
 
     /**
@@ -1174,11 +1243,13 @@ public class ResourceValidationTests {
      */
     @Test
     public void generatedDalekSpawnEggItemModelExists() throws Exception {
-        Path item = Path.of("src/main/generated/assets/dwm/items/dalek_spawn_egg.json");
-        assertTrue(
-                Files.isRegularFile(item) && Files.size(item) > 0,
-                "Missing generated Dalek spawn egg item model: " + item
-        );
+        for (String egg : new String[]{"dalek_spawn_egg", "paradigm_dalek_spawn_egg"}) {
+            Path item = Path.of("src/main/generated/assets/dwm/items/" + egg + ".json");
+            assertTrue(
+                    Files.isRegularFile(item) && Files.size(item) > 0,
+                    "Missing generated Dalek spawn egg item model: " + item
+            );
+        }
     }
 
     @Test
@@ -1189,8 +1260,10 @@ public class ResourceValidationTests {
                 "gallifrey_wastes.json",
                 "gallifrey_badlands.json"
         }) {
-            assertFalse(biomeHasCreatureSpawn(biome, "dwm:dalek"));
-            assertFalse(biomeHasMonsterSpawn(biome, "dwm:dalek"));
+            for (String dalek : new String[]{"dwm:dalek", "dwm:paradigm_dalek"}) {
+                assertFalse(biomeHasCreatureSpawn(biome, dalek));
+                assertFalse(biomeHasMonsterSpawn(biome, dalek));
+            }
         }
     }
 
@@ -1199,15 +1272,9 @@ public class ResourceValidationTests {
         Path path = Path.of("src/main/generated/data/minecraft/tags/entity_type/fall_damage_immune.json");
         assertTrue(Files.isRegularFile(path), "Missing generated fall_damage_immune entity tag: " + path);
         JSONObject tag = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
-        var values = tag.getJSONArray("values");
-        boolean found = false;
-        for (int i = 0; i < values.length(); i++) {
-            if ("dwm:dalek".equals(values.getString(i))) {
-                found = true;
-                break;
-            }
-        }
-        assertTrue(found, "fall_damage_immune should include dwm:dalek");
+        var values = tag.getJSONArray("values").toList();
+        assertTrue(values.contains("dwm:dalek"), "fall_damage_immune should include dwm:dalek");
+        assertTrue(values.contains("dwm:paradigm_dalek"), "fall_damage_immune should include dwm:paradigm_dalek");
     }
 
     @Test
@@ -1396,7 +1463,7 @@ public class ResourceValidationTests {
 
     private static void assertDalekMonsterPatrol(JSONObject biome, String biomeFile, boolean sparse) {
         var monsters = biome.getJSONObject("spawners").getJSONArray("monster");
-        assertEquals(1, monsters.length(), biomeFile + " must spawn only Dalek monsters");
+        assertEquals(2, monsters.length(), biomeFile + " must spawn only Dalek and Paradigm Dalek monsters");
         var spawn = monsters.getJSONObject(0);
         assertEquals("dwm:dalek", spawn.getString("type"), biomeFile + " monster spawn must be dwm:dalek");
         int expectedWeight = sparse ? DalekPatrolLogic.SPARSE_SPAWN_WEIGHT : DalekPatrolLogic.STANDARD_SPAWN_WEIGHT;
@@ -1412,6 +1479,21 @@ public class ResourceValidationTests {
         var costs = biome.getJSONObject("spawn_costs").getJSONObject("dwm:dalek");
         assertEquals(expectedCharge, costs.getDouble("charge"), 1e-9, biomeFile + " Dalek spawn charge");
         assertEquals(expectedBudget, costs.getDouble("energy_budget"), 1e-9, biomeFile + " Dalek energy budget");
+
+        var paradigm = monsters.getJSONObject(1);
+        assertEquals("dwm:paradigm_dalek", paradigm.getString("type"), biomeFile + " second monster spawn");
+        int expectedParadigmWeight = sparse
+                ? DalekPatrolLogic.PARADIGM_SPARSE_SPAWN_WEIGHT
+                : DalekPatrolLogic.PARADIGM_STANDARD_SPAWN_WEIGHT;
+        assertEquals(expectedParadigmWeight, paradigm.getInt("weight"), biomeFile + " Paradigm weight");
+        assertTrue(expectedParadigmWeight < expectedWeight, biomeFile + " Paradigm Daleks must be rarer than Daleks");
+        assertEquals(DalekPatrolLogic.PARADIGM_MIN_COUNT, paradigm.getInt("minCount"), biomeFile + " Paradigm minCount");
+        assertEquals(DalekPatrolLogic.PARADIGM_MAX_COUNT, paradigm.getInt("maxCount"), biomeFile + " Paradigm maxCount");
+        var paradigmCosts = biome.getJSONObject("spawn_costs").getJSONObject("dwm:paradigm_dalek");
+        assertEquals(DalekPatrolLogic.PARADIGM_SPAWN_CHARGE, paradigmCosts.getDouble("charge"), 1e-9,
+                biomeFile + " Paradigm spawn charge");
+        assertEquals(DalekPatrolLogic.PARADIGM_SPAWN_ENERGY_BUDGET, paradigmCosts.getDouble("energy_budget"), 1e-9,
+                biomeFile + " Paradigm energy budget");
     }
 
     private static void assertPetrifiedTreeConfiguredFeaturesAreLogOnly() throws Exception {

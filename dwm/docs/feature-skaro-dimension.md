@@ -21,7 +21,7 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
   - Drammankin Mire: mud over dirt; olive fog and murky water.
   - Drammankin Mountains: stone / tuff / gravel over tuff; cold ash-grey atmosphere.
   - Thal Plateau: dirt / coarse dirt / terracotta; muted blue-grey sky.
-- Baseline caves, lakes, and vanilla ores in every biome. No Overworld hostiles, cave fauna, or farm animals. No Gallifrey plants, woods, ores, or fauna. **Dalek patrols** spawn from biome monster tables: small groups (1–3) in petrified jungle, Drammankin mire, and Drammankin mountains; lower weight and 1–2 groups in irradiated wastes and the Thal plateau. Thals and Skaro fauna remain planned.
+- Baseline caves, lakes, and vanilla ores in every biome. No Overworld hostiles, cave fauna, or farm animals. No Gallifrey plants, woods, ores, or fauna. **Dalek patrols** spawn from biome monster tables: small groups (1–3) in petrified jungle, Drammankin mire, and Drammankin mountains; lower weight and 1–2 groups in irradiated wastes and the Thal plateau. Rare, solo **Paradigm Daleks** share every Skaro monster table at a much lower weight. Thals and Skaro fauna remain planned.
 - TARDIS planet locator discovers Skaro automatically as a loaded world. `BiomeSelectorLogic` maps `dwm:skaro` to `#dwm:is_skaro`.
 - **Petrified wood family** (DWM-064): mineralized Skaro trunks and builder variants.
   - Natural: `petrified_log`, `petrified_wood` (axis pillars).

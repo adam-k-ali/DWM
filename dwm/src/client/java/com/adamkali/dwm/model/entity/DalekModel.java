@@ -25,7 +25,12 @@ public class DalekModel extends JsonEntityModel<DalekRenderState> {
             .build();
 
     public DalekModel(ModelPart root) {
-        super(root, EntityModelAnimations.get(LAYER_LOCATION), VARIABLES);
+        this(root, LAYER_LOCATION);
+    }
+
+    /** For other Dalek casings: same animation variables, mesh and bindings from {@code layer}'s JSON. */
+    protected DalekModel(ModelPart root, ModelLayerLocation layer) {
+        super(root, EntityModelAnimations.get(layer), VARIABLES);
     }
 
     public static float bobOffset(float ageInTicks, boolean flying) {

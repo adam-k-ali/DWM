@@ -87,6 +87,10 @@
     "dwm:dalek": {
       "charge": 1.0,
       "energy_budget": 0.12
+    },
+    "dwm:paradigm_dalek": {
+      "charge": 1.2,
+      "energy_budget": 0.12
     }
   },
   "spawners": {
@@ -100,6 +104,12 @@
         "maxCount": 2,
         "minCount": 1,
         "weight": 25
+      },
+      {
+        "type": "dwm:paradigm_dalek",
+        "maxCount": 1,
+        "minCount": 1,
+        "weight": 3
       }
     ],
     "underground_water_creature": [],

@@ -517,6 +517,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItem(t, DWMItems.TIME_LORD_SPAWN_EGG, "Time Lord Spawn Egg");
         t.add(DWMEntityTypes.DALEK, "Dalek");
         addItem(t, DWMItems.DALEK_SPAWN_EGG, "Dalek Spawn Egg");
+        t.add(DWMEntityTypes.PARADIGM_DALEK, "Paradigm Dalek");
+        addItem(t, DWMItems.PARADIGM_DALEK_SPAWN_EGG, "Paradigm Dalek Spawn Egg");
         t.add(DWMEntityTypes.DALEK_LASER, "Dalek Laser");
         t.add("dimension.dwm.gallifrey", "Gallifrey");
         t.add("dimension.dwm.skaro", "Skaro");

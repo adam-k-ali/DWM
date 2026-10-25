@@ -149,6 +149,20 @@ public final class SkaroBiomeBootstrap {
                 new MobSpawnSettings.SpawnerData(DWMEntityTypes.DALEK, minCount, maxCount)
         );
         spawns.addMobCharge(DWMEntityTypes.DALEK, charge, energyBudget);
+        spawns.addSpawn(
+                MobCategory.MONSTER,
+                sparse ? DalekPatrolLogic.PARADIGM_SPARSE_SPAWN_WEIGHT : DalekPatrolLogic.PARADIGM_STANDARD_SPAWN_WEIGHT,
+                new MobSpawnSettings.SpawnerData(
+                        DWMEntityTypes.PARADIGM_DALEK,
+                        DalekPatrolLogic.PARADIGM_MIN_COUNT,
+                        DalekPatrolLogic.PARADIGM_MAX_COUNT
+                )
+        );
+        spawns.addMobCharge(
+                DWMEntityTypes.PARADIGM_DALEK,
+                DalekPatrolLogic.PARADIGM_SPAWN_CHARGE,
+                DalekPatrolLogic.PARADIGM_SPAWN_ENERGY_BUDGET
+        );
         return spawns;
     }
 
