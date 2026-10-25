@@ -1,7 +1,6 @@
 package com.adamkali.dwm;
 
 import com.adamkali.dwm.entity.DalekPatrolLogic;
-import com.adamkali.dwm.entity.DalekChassis;
 import com.adamkali.dwm.entity.DalekVariant;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -1181,49 +1180,70 @@ public class ResourceValidationTests {
                     + variant.getSerializedName() + ".png");
             assertTrue(Files.isRegularFile(texture) && Files.size(texture) > 0, "Missing " + texture);
             BufferedImage image = ImageIO.read(texture.toFile());
-            int expectedWidth = variant.chassis() == DalekChassis.PARADIGM ? 128 : 64;
-            assertEquals(expectedWidth, image.getWidth(), texture + " width");
+            assertEquals(128, image.getWidth(), texture + " width");
             assertEquals(64, image.getHeight(), texture + " height");
         }
     }
 
+    /**
+     * Classic skins are painted per cube rather than as flat swatches. Samples the 1963 layout in
+     * {@code dalek.json} and the Time War layout in {@code time_war_dalek.json}.
+     */
     @Test
-    public void dalekEntityTextureExists() throws Exception {
-        Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/dalek/1963.png");
-        assertTrue(
-                Files.isRegularFile(texture) && Files.size(texture) > 0,
-                "DalekRenderer expects assets/dwm/textures/entity/dalek/1963.png"
-        );
-        BufferedImage image = ImageIO.read(texture.toFile());
-        assertEquals(64, image.getWidth(), "Dalek atlas width");
-        assertEquals(64, image.getHeight(), "Dalek atlas height");
-        // New UV slots from DalekModel texOffs / fix_dalek_less.py SWATCHES.
-        assertRgb(image, 1, 1, 158, 160, 156, "casing (0,0)");
-        assertRgb(image, 1, 17, 22, 22, 22, "band (0,16)");
-        assertRgb(image, 37, 17, 48, 50, 54, "gun (36,16)");
-        assertRgb(image, 1, 33, 28, 28, 30, "plunger (0,32)");
-        assertRgb(image, 17, 33, 18, 18, 20, "eyestalk (16,32)");
-        assertRgb(image, 32, 32, 232, 236, 240, "lens (32,32)");
-        assertRgb(image, 41, 33, 214, 214, 210, "stud (40,32)");
-        assertRgb(image, 49, 33, 36, 176, 196, "light (48,32)");
-        // Old layout put the black band at (32,0); that cell is now casing silver.
-        assertRgb(image, 40, 8, 158, 160, 156, "former band cell is now casing");
+    public void classicDalekSkinsArePaintedPerCube() throws Exception {
+        BufferedImage sixties = readDalekSkin("1963");
+        // Bottom skirt tier front (island [56, 0], 11x3x13): silver casing.
+        int casing = sixties.getRGB(69, 13);
+        assertTrue(isGrey(casing) && channel(casing, 16) > 100, "1963 casing should be silver");
+        // Hemisphere front (island [112, 42]): the Shawcraft blue.
+        int hemisphere = sixties.getRGB(113, 43);
+        assertTrue(channel(hemisphere, 0) > channel(hemisphere, 16) + 40, "1963 hemispheres should be blue");
+        // Neck rings are casing-coloured over a dark mesh core.
+        assertTrue(luma(sixties.getRGB(105, 38)) > luma(sixties.getRGB(109, 5)) + 60, "1963 neck ring vs mesh");
+
+        for (String bronze : List.of("time_war_bronze", "time_war_bronze_dark")) {
+            BufferedImage skin = readDalekSkin(bronze);
+            // Hemisphere front (island [40, 55]): gold, warmer than the casing.
+            int gold = skin.getRGB(41, 56);
+            assertTrue(channel(gold, 16) > channel(gold, 0) + 60, bronze + " hemispheres should be gold");
+            // Shoulder slats (island [22, 55]) stand out against the dark shoulder mesh (island [0, 33]).
+            assertTrue(luma(skin.getRGB(23, 56)) > luma(skin.getRGB(9, 42)) + 40, bronze + " slats vs mesh");
+        }
+
+        for (String skin : List.of("1963", "time_war_bronze", "time_war_bronze_dark")) {
+            BufferedImage image = readDalekSkin(skin);
+            java.util.Set<Integer> colours = new java.util.HashSet<>();
+            for (int y = 0; y < image.getHeight(); y++) {
+                for (int x = 0; x < image.getWidth(); x++) {
+                    int argb = image.getRGB(x, y);
+                    if ((argb >>> 24) != 0) {
+                        colours.add(argb);
+                    }
+                }
+            }
+            assertTrue(colours.size() >= 20, skin + " looks flat: only " + colours.size() + " colours");
+        }
     }
 
-    private static void assertRgb(
-            BufferedImage image,
-            int x,
-            int y,
-            int red,
-            int green,
-            int blue,
-            String slot
-    ) {
-        int argb = image.getRGB(x, y);
-        assertEquals(255, (argb >>> 24) & 0xFF, slot + " alpha");
-        assertEquals(red, (argb >> 16) & 0xFF, slot + " red");
-        assertEquals(green, (argb >> 8) & 0xFF, slot + " green");
-        assertEquals(blue, argb & 0xFF, slot + " blue");
+    private static BufferedImage readDalekSkin(String name) throws Exception {
+        Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/dalek/" + name + ".png");
+        assertTrue(Files.isRegularFile(texture) && Files.size(texture) > 0, "Missing " + texture);
+        return ImageIO.read(texture.toFile());
+    }
+
+    private static int channel(int argb, int shift) {
+        return (argb >> shift) & 0xFF;
+    }
+
+    private static int luma(int argb) {
+        return (channel(argb, 16) * 299 + channel(argb, 8) * 587 + channel(argb, 0) * 114) / 1000;
+    }
+
+    private static boolean isGrey(int argb) {
+        int r = channel(argb, 16);
+        int g = channel(argb, 8);
+        int b = channel(argb, 0);
+        return Math.abs(r - g) < 16 && Math.abs(g - b) < 16;
     }
 
     @Test

@@ -22,8 +22,12 @@ class DalekModelTest {
         assertTrue(root.hasChild("skirt"));
         assertTrue(root.hasChild("shoulders"));
         assertTrue(root.getChild("shoulders").hasChild("gun"));
+        assertTrue(root.getChild("shoulders").hasChild("plunger"));
+        assertTrue(root.hasChild("neck"));
         assertTrue(root.hasChild("head"));
         assertTrue(root.getChild("head").hasChild("eyestalk"));
+        assertTrue(root.getChild("head").hasChild("light_left"));
+        assertTrue(root.getChild("head").hasChild("light_right"));
     }
 
     @Test
