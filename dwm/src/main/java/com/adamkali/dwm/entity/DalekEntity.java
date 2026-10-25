@@ -212,7 +212,7 @@ public class DalekEntity extends Monster implements RangedAttackMob {
             EntitySpawnReason reason,
             SpawnGroupData spawnData
     ) {
-        this.setVariant(DalekVariant.CLASSIC_1963);
+        this.setVariant(DalekVariant.pick(this.random));
         return super.finalizeSpawn(level, difficulty, reason, spawnData);
     }
 

@@ -4,11 +4,15 @@ import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.item.DWMItems;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.util.EnumMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -65,15 +69,33 @@ class DalekEntityTest {
     }
 
     @Test
-    void singleVariantIsDefined() {
-        assertEquals(1, DalekVariant.values().length);
+    void variantsAreDefined() {
+        assertEquals(3, DalekVariant.values().length);
         assertEquals("1963", DalekVariant.CLASSIC_1963.getSerializedName());
-        assertEquals(DalekVariant.CLASSIC_1963, DalekVariant.byId("1963"));
+        assertEquals("time_war_bronze", DalekVariant.BRONZE_TIME_WAR.getSerializedName());
+        assertEquals("time_war_bronze_dark", DalekVariant.BRONZE_TIME_WAR_DARK.getSerializedName());
+        for (DalekVariant variant : DalekVariant.values()) {
+            assertEquals(variant, DalekVariant.byId(variant.getSerializedName()));
+            assertEquals(variant, DalekVariant.byOrdinal(variant.ordinal()));
+        }
         assertEquals(DalekVariant.CLASSIC_1963, DalekVariant.byId("unknown"));
         assertEquals(
-                Identifier.fromNamespaceAndPath("dwm", "textures/entity/dalek/1963.png"),
-                DalekVariant.CLASSIC_1963.textureLocation()
+                Identifier.fromNamespaceAndPath("dwm", "textures/entity/dalek/time_war_bronze.png"),
+                DalekVariant.BRONZE_TIME_WAR.textureLocation()
         );
+    }
+
+    @Test
+    void pickCoversAllVariants() {
+        Map<DalekVariant, Integer> counts = new EnumMap<>(DalekVariant.class);
+        RandomSource random = RandomSource.create(42L);
+        for (int i = 0; i < 500; i++) {
+            counts.merge(DalekVariant.pick(random), 1, Integer::sum);
+        }
+        assertEquals(DalekVariant.values().length, counts.size());
+        int classic = counts.get(DalekVariant.CLASSIC_1963);
+        assertTrue(classic > counts.get(DalekVariant.BRONZE_TIME_WAR));
+        assertTrue(classic > counts.get(DalekVariant.BRONZE_TIME_WAR_DARK));
     }
 
     @Test

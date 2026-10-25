@@ -7,8 +7,11 @@ import com.adamkali.dwm.entity.DWMEntityTypes;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
+
+import java.util.Arrays;
 
 public class DalekGameTests {
     @GameTest(structure = "fabric-gametest-api-v1:empty")
@@ -20,8 +23,20 @@ public class DalekGameTests {
         if (dalek == null || !dalek.isAlive()) {
             throw new AssertionError("Expected a living Dalek after spawn");
         }
-        if (dalek.getVariant() != DalekVariant.CLASSIC_1963) {
-            throw new AssertionError("Unexpected Dalek variant: " + dalek.getVariant());
+        dalek.finalizeSpawn(
+                context.getLevel(),
+                context.getLevel().getCurrentDifficultyAt(dalek.blockPosition()),
+                EntitySpawnReason.NATURAL,
+                null
+        );
+        if (!Arrays.asList(DalekVariant.values()).contains(dalek.getVariant())) {
+            throw new AssertionError("finalizeSpawn set an invalid Dalek variant: " + dalek.getVariant());
+        }
+        for (DalekVariant variant : DalekVariant.values()) {
+            dalek.setVariant(variant);
+            if (dalek.getVariant() != variant) {
+                throw new AssertionError("Dalek variant did not round-trip: " + variant);
+            }
         }
         context.assertEntityPresent(DWMEntityTypes.DALEK);
         context.succeed();
