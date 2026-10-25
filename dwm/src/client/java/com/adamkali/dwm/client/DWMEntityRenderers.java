@@ -9,6 +9,7 @@ import com.adamkali.dwm.model.entity.BroakirModel;
 import com.adamkali.dwm.model.entity.DalekLaserModel;
 import com.adamkali.dwm.model.entity.DalekModel;
 import com.adamkali.dwm.model.entity.FlutterwingModel;
+import com.adamkali.dwm.model.entity.ParadigmDalekModel;
 import com.adamkali.dwm.model.entity.TimeLordModel;
 import com.adamkali.dwm.model.json.JsonEntityModelLayers;
 import com.adamkali.dwm.render.BroakirRenderer;
@@ -16,6 +17,7 @@ import com.adamkali.dwm.render.DalekLaserRenderer;
 import com.adamkali.dwm.render.DalekRenderer;
 import com.adamkali.dwm.render.FlutterwingRenderer;
 import com.adamkali.dwm.render.MewingDogRenderer;
+import com.adamkali.dwm.render.ParadigmDalekRenderer;
 import com.adamkali.dwm.render.EvaSuitArmorRenderer;
 import com.adamkali.dwm.render.TimeLordRenderer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -59,6 +61,8 @@ public final class DWMEntityRenderers {
         EntityRendererRegistry.register(DWMEntityTypes.TIME_LORD, TimeLordRenderer::new);
         JsonEntityModelLayers.register(DalekModel.LAYER_LOCATION);
         EntityRendererRegistry.register(DWMEntityTypes.DALEK, DalekRenderer::new);
+        JsonEntityModelLayers.register(ParadigmDalekModel.LAYER_LOCATION);
+        EntityRendererRegistry.register(DWMEntityTypes.PARADIGM_DALEK, ParadigmDalekRenderer::new);
         JsonEntityModelLayers.register(DalekLaserModel.LAYER_LOCATION);
         EntityRendererRegistry.register(DWMEntityTypes.DALEK_LASER, DalekLaserRenderer::new);
     }

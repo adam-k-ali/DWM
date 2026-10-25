@@ -13,8 +13,15 @@ public class DalekRenderer extends MobRenderer<DalekEntity, DalekRenderState, Da
     private static final float GROUND_SHADOW_RADIUS = 0.55F;
     private static final float FLIGHT_SHADOW_RADIUS = 0.2F;
 
+    private final float groundShadowRadius;
+
     public DalekRenderer(EntityRendererProvider.Context context) {
-        super(context, new DalekModel(context.bakeLayer(DalekModel.LAYER_LOCATION)), GROUND_SHADOW_RADIUS);
+        this(context, new DalekModel(context.bakeLayer(DalekModel.LAYER_LOCATION)), GROUND_SHADOW_RADIUS);
+    }
+
+    protected DalekRenderer(EntityRendererProvider.Context context, DalekModel model, float groundShadowRadius) {
+        super(context, model, groundShadowRadius);
+        this.groundShadowRadius = groundShadowRadius;
     }
 
     @Override
@@ -34,7 +41,7 @@ public class DalekRenderer extends MobRenderer<DalekEntity, DalekRenderState, Da
 
     @Override
     protected float getShadowRadius(DalekRenderState state) {
-        return state.flying ? FLIGHT_SHADOW_RADIUS : GROUND_SHADOW_RADIUS;
+        return state.flying ? FLIGHT_SHADOW_RADIUS : groundShadowRadius;
     }
 
     @Override
