@@ -4,6 +4,7 @@ import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.entity.DalekFlightFx;
 import com.adamkali.dwm.model.entity.BroakirModel;
 import com.adamkali.dwm.model.entity.DalekModel;
+import com.adamkali.dwm.model.entity.DalekMutantModel;
 import com.adamkali.dwm.model.entity.FlutterwingModel;
 import com.adamkali.dwm.model.entity.ParadigmDalekModel;
 import com.adamkali.dwm.model.entity.TimeLordModel;
@@ -69,6 +70,28 @@ class ConvertedEntityModelsTest {
         assertEquals(-0.523599F + 20.0F * Mth.DEG_TO_RAD, head.xRot, 1.0e-5F);
         assertEquals(-30.0F * Mth.DEG_TO_RAD, head.yRot, 1.0e-5F);
         assertEquals(0.523599F + Mth.cos(age * 0.05F) * 0.1F, root.getChild("tail").xRot, 1.0e-5F);
+    }
+
+    @Test
+    void dalekMutantTentaclesWaveAndEyeFollowsLook() {
+        ModelHolder<DalekMutantModel> holder = new ModelHolder<>();
+        ModelPart root = bake(DalekMutantModel.LAYER_LOCATION, DalekMutantModel::new, holder);
+        float pos = 1.5F;
+        float speed = 0.6F;
+        float age = 9.0F;
+        holder.model.setupAnim(living(new LivingEntityRenderState(), pos, speed, age, 50.0F, -20.0F));
+
+        float phase = 1.047F;
+        float wave = Mth.sin(age * 0.15F + phase) * 8.0F + Mth.cos(pos * 0.9F + phase) * 25.0F * speed;
+        ModelPart tentacle = root.getChild("tentacle_1");
+        assertEquals((20.0F + wave) * Mth.DEG_TO_RAD, tentacle.xRot, 1.0e-4F);
+        float tipWave = Mth.sin(age * 0.15F + phase + 1.0F) * 12.0F + Mth.cos(pos * 0.9F + phase + 1.0F) * 30.0F * speed;
+        assertEquals((-15.0F + tipWave) * Mth.DEG_TO_RAD, tentacle.getChild("tip").xRot, 1.0e-4F);
+
+        ModelPart eye = root.getChild("body").getChild("eye");
+        assertEquals(30.0F * Mth.DEG_TO_RAD, eye.xRot, 1.0e-5F, "pitch is clamped to 30 degrees");
+        assertEquals(-20.0F * Mth.DEG_TO_RAD, eye.yRot, 1.0e-5F);
+        assertEquals(21.0F + Mth.sin(age * 0.1F) * 0.3F, root.getChild("body").y, 1.0e-5F);
     }
 
     @Test

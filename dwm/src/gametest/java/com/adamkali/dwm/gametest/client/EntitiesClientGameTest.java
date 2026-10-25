@@ -38,7 +38,8 @@ public class EntitiesClientGameTest implements FabricClientGameTest {
                     new Mob("dalek", "Variant:\"time_war_bronze\""),
                     new Mob("dalek", "Variant:\"time_war_bronze_dark\""),
                     new Mob("mewing_dog", ""),
-                    new Mob("broakir", "")));
+                    new Mob("broakir", ""),
+                    new Mob("dalek_mutant", "")));
             // A 1963 Dalek at the end for scale against the larger Paradigm casing.
             lineUp(context, world, 3, "entities_paradigm_daleks", List.of(
                     new Mob("paradigm_dalek", "Variant:\"paradigm_drone\""),
