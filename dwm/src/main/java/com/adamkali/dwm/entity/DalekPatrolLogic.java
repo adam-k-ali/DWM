@@ -23,6 +23,12 @@ public final class DalekPatrolLogic {
     public static final double STANDARD_SPAWN_ENERGY_BUDGET = 0.15;
     public static final double SPARSE_SPAWN_CHARGE = 1.0;
     public static final double SPARSE_SPAWN_ENERGY_BUDGET = 0.12;
+    public static final int PARADIGM_STANDARD_SPAWN_WEIGHT = 8;
+    public static final int PARADIGM_SPARSE_SPAWN_WEIGHT = 3;
+    public static final int PARADIGM_MIN_COUNT = 1;
+    public static final int PARADIGM_MAX_COUNT = 1;
+    public static final double PARADIGM_SPAWN_CHARGE = 1.2;
+    public static final double PARADIGM_SPAWN_ENERGY_BUDGET = 0.12;
     public static final double TARGET_SHARE_RADIUS = 16.0;
 
     private DalekPatrolLogic() {
