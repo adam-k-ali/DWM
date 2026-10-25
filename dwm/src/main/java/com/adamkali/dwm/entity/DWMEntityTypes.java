@@ -211,8 +211,8 @@ public final class DWMEntityTypes {
                                         )
                                         .defaultAttributes(DalekEntity::createAttributes)
                         )
-                        .sized(0.8F, 1.95F)
-                        .eyeHeight(1.7F)
+                        .sized(0.8F, 1.7F)
+                        .eyeHeight(1.5F)
                         .clientTrackingRange(10)
                         .build(key)
         );

@@ -65,7 +65,7 @@ class DalekEntityTest {
     @Test
     void dimensionsMatchChassis() {
         assertEquals(0.8F, DWMEntityTypes.DALEK.getWidth(), 0.001F);
-        assertEquals(1.95F, DWMEntityTypes.DALEK.getHeight(), 0.001F);
+        assertEquals(1.7F, DWMEntityTypes.DALEK.getHeight(), 0.001F);
     }
 
     @Test
