@@ -35,7 +35,7 @@ Entry orchestration for doors/travel generally flows: block/BE interaction → `
 ## Common Pitfalls
 - Do not reference client render classes from `tardis.logic` or `tardis.data`.
 - Door swing/travel phase timing — use GameTest waits; unit-test phase transitions in logic tests.
-- Chameleon/SOTO paths are config-gated and off by default — do not assume enabled in tests without setting config.
+- Chameleon GUI is config-gated and off by default. Door portals (BOTI/SOTO, `enableDoorPortals`) default **on**; client GameTests set the toggle explicitly in `ClientGameTestSupport.stage(...)` (off for most scenarios, on for the portal scenarios) — do not assume either state in tests without setting config.
 - Interior rebuild/plot allocation is order-sensitive — check `TardisInteriorGameTests` before changing placement rules.
 - Travel audio assets may be regenerated via `tools/` scripts — commit resulting OGGs under client resources, not fixture WAVs.
 - Do not glob `~/.gradle/caches` for vanilla sources; portal/chunk/light work must read `dwm/minecraft-sources` (not NeoForge `ng_execute` trees).
