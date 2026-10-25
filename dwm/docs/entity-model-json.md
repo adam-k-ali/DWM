@@ -86,7 +86,8 @@ Package `com.adamkali.dwm.model.json`:
 
 - `EntityModelJson.parse` / `resolveParents` / `toLayerDefinition`
 - `EntityModelJson.loadClasspath(id)` — unit tests (mod jar copy)
-- `EntityModelJson.load(ResourceManager, id)` — pack-overridable bake
+- `EntityModelJson.load(ResourceManager, id)` — pack-overridable mesh bake (does not record `texture`)
+- `EntityModelJson.loadWithTexture(ResourceManager, id)` — pack-overridable bake plus the required `texture` and the `animation`
 - `JsonEntityModel` — `EntityModel` for a baked mesh; given an `EntityAnimation` and `AnimationVariables` it applies the bindings in `setupAnim`
 - `EntityModelAnimations.get(ModelLayerLocation)` — animation recorded when the layer loads
 - `com.adamkali.dwm.model.json.anim` — `Expression`, `EntityAnimation`, `AnimationVariables`, `AnimationRunner`
