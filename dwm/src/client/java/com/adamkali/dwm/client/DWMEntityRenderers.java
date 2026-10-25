@@ -11,6 +11,7 @@ import com.adamkali.dwm.model.entity.DalekMutantModel;
 import com.adamkali.dwm.model.entity.DalekModel;
 import com.adamkali.dwm.model.entity.FlutterwingModel;
 import com.adamkali.dwm.model.entity.ParadigmDalekModel;
+import com.adamkali.dwm.model.entity.TimeWarDalekModel;
 import com.adamkali.dwm.model.entity.TimeLordModel;
 import com.adamkali.dwm.model.json.JsonEntityModelLayers;
 import com.adamkali.dwm.render.BroakirRenderer;
@@ -62,6 +63,7 @@ public final class DWMEntityRenderers {
         JsonEntityModelLayers.register(TimeLordModel.LAYER_LOCATION);
         EntityRendererRegistry.register(DWMEntityTypes.TIME_LORD, TimeLordRenderer::new);
         JsonEntityModelLayers.register(DalekModel.LAYER_LOCATION);
+        JsonEntityModelLayers.register(TimeWarDalekModel.LAYER_LOCATION);
         EntityRendererRegistry.register(DWMEntityTypes.DALEK, DalekRenderer::new);
         JsonEntityModelLayers.register(ParadigmDalekModel.LAYER_LOCATION);
         EntityRendererRegistry.register(DWMEntityTypes.PARADIGM_DALEK, ParadigmDalekRenderer::new);

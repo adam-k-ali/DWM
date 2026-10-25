@@ -65,7 +65,7 @@ class DalekEntityTest {
     @Test
     void dimensionsMatchChassis() {
         assertEquals(0.8F, DWMEntityTypes.DALEK.getWidth(), 0.001F);
-        assertEquals(1.95F, DWMEntityTypes.DALEK.getHeight(), 0.001F);
+        assertEquals(1.7F, DWMEntityTypes.DALEK.getHeight(), 0.001F);
     }
 
     @Test
@@ -75,11 +75,11 @@ class DalekEntityTest {
         assertEquals("time_war_bronze", DalekVariant.BRONZE_TIME_WAR.getSerializedName());
         assertEquals("time_war_bronze_dark", DalekVariant.BRONZE_TIME_WAR_DARK.getSerializedName());
         for (DalekVariant variant : DalekVariant.values()) {
-            assertEquals(variant, DalekVariant.byId(variant.getSerializedName(), variant.chassis()));
-            assertEquals(variant, DalekVariant.byOrdinal(variant.ordinal(), variant.chassis()));
+            assertEquals(variant, DalekVariant.byId(variant.getSerializedName(), variant.family()));
+            assertEquals(variant, DalekVariant.byOrdinal(variant.ordinal(), variant.family()));
         }
-        assertEquals(DalekVariant.CLASSIC_1963, DalekVariant.byId("unknown", DalekChassis.CLASSIC));
-        assertEquals(DalekVariant.CLASSIC_1963, DalekChassis.CLASSIC.defaultVariant());
+        assertEquals(DalekVariant.CLASSIC_1963, DalekVariant.byId("unknown", DalekFamily.CLASSIC));
+        assertEquals(DalekVariant.CLASSIC_1963, DalekFamily.CLASSIC.defaultVariant());
         assertEquals(
                 Identifier.fromNamespaceAndPath("dwm", "textures/entity/dalek/time_war_bronze.png"),
                 DalekVariant.BRONZE_TIME_WAR.textureLocation()
@@ -87,20 +87,30 @@ class DalekEntityTest {
     }
 
     @Test
-    void variantsFromAnotherChassisFallBackToTheDefault() {
+    void variantsFromAnotherFamilyFallBackToTheDefault() {
         assertEquals(
                 DalekVariant.CLASSIC_1963,
-                DalekVariant.byId(DalekVariant.PARADIGM_SUPREME.getSerializedName(), DalekChassis.CLASSIC)
+                DalekVariant.byId(DalekVariant.PARADIGM_SUPREME.getSerializedName(), DalekFamily.CLASSIC)
         );
         assertEquals(
                 DalekVariant.CLASSIC_1963,
-                DalekVariant.byOrdinal(DalekVariant.PARADIGM_DRONE.ordinal(), DalekChassis.CLASSIC)
+                DalekVariant.byOrdinal(DalekVariant.PARADIGM_DRONE.ordinal(), DalekFamily.CLASSIC)
         );
-        assertEquals(DalekVariant.CLASSIC_1963, DalekVariant.byOrdinal(-1, DalekChassis.CLASSIC));
+        assertEquals(DalekVariant.CLASSIC_1963, DalekVariant.byOrdinal(-1, DalekFamily.CLASSIC));
         assertEquals(
                 DalekVariant.BRONZE_TIME_WAR,
-                DalekVariant.fitting(DalekVariant.BRONZE_TIME_WAR, DalekChassis.CLASSIC)
+                DalekVariant.fitting(DalekVariant.BRONZE_TIME_WAR, DalekFamily.CLASSIC)
         );
+    }
+
+    @Test
+    void classicFamilySpansThe1963AndTimeWarChassis() {
+        assertEquals(DalekChassis.CLASSIC_1963, DalekVariant.CLASSIC_1963.chassis());
+        assertEquals(DalekChassis.TIME_WAR, DalekVariant.BRONZE_TIME_WAR.chassis());
+        assertEquals(DalekChassis.TIME_WAR, DalekVariant.BRONZE_TIME_WAR_DARK.chassis());
+        assertEquals(DalekFamily.CLASSIC, DalekChassis.CLASSIC_1963.family());
+        assertEquals(DalekFamily.CLASSIC, DalekChassis.TIME_WAR.family());
+        assertEquals(DalekFamily.PARADIGM, DalekChassis.PARADIGM.family());
     }
 
     @Test
@@ -108,11 +118,11 @@ class DalekEntityTest {
         Map<DalekVariant, Integer> counts = new EnumMap<>(DalekVariant.class);
         RandomSource random = RandomSource.create(42L);
         for (int i = 0; i < 500; i++) {
-            counts.merge(DalekVariant.pick(random, DalekChassis.CLASSIC), 1, Integer::sum);
+            counts.merge(DalekVariant.pick(random, DalekFamily.CLASSIC), 1, Integer::sum);
         }
         assertEquals(3, counts.size());
         for (DalekVariant variant : counts.keySet()) {
-            assertEquals(DalekChassis.CLASSIC, variant.chassis());
+            assertEquals(DalekFamily.CLASSIC, variant.family());
         }
         int classic = counts.get(DalekVariant.CLASSIC_1963);
         assertTrue(classic > counts.get(DalekVariant.BRONZE_TIME_WAR));

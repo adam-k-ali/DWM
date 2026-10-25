@@ -64,17 +64,18 @@ class ParadigmDalekEntityTest {
         assertEquals(2.4F, DWMEntityTypes.PARADIGM_DALEK.getHeight(), 0.001F);
         assertTrue(DWMEntityTypes.PARADIGM_DALEK.getWidth() > DWMEntityTypes.DALEK.getWidth());
         assertTrue(DWMEntityTypes.PARADIGM_DALEK.getHeight() > DWMEntityTypes.DALEK.getHeight());
-        assertTrue(DalekChassis.PARADIGM.gunHeight() > DalekChassis.CLASSIC.gunHeight());
+        assertTrue(DalekChassis.PARADIGM.gunHeight() > DalekChassis.CLASSIC_1963.gunHeight());
+        assertTrue(DalekChassis.PARADIGM.gunHeight() > DalekChassis.TIME_WAR.gunHeight());
     }
 
     @Test
     void castesUseTheParadigmChassis() {
-        assertEquals(DalekVariant.PARADIGM_DRONE, DalekChassis.PARADIGM.defaultVariant());
+        assertEquals(DalekVariant.PARADIGM_DRONE, DalekFamily.PARADIGM.defaultVariant());
         assertEquals(
                 DalekVariant.PARADIGM_DRONE,
-                DalekVariant.byId(DalekVariant.CLASSIC_1963.getSerializedName(), DalekChassis.PARADIGM)
+                DalekVariant.byId(DalekVariant.CLASSIC_1963.getSerializedName(), DalekFamily.PARADIGM)
         );
-        assertEquals(DalekVariant.PARADIGM_SUPREME, DalekVariant.byId("paradigm_supreme", DalekChassis.PARADIGM));
+        assertEquals(DalekVariant.PARADIGM_SUPREME, DalekVariant.byId("paradigm_supreme", DalekFamily.PARADIGM));
         assertEquals(
                 Identifier.fromNamespaceAndPath("dwm", "textures/entity/dalek/paradigm_eternal.png"),
                 DalekVariant.PARADIGM_ETERNAL.textureLocation()
@@ -86,7 +87,7 @@ class ParadigmDalekEntityTest {
         Map<DalekVariant, Integer> counts = new EnumMap<>(DalekVariant.class);
         RandomSource random = RandomSource.create(42L);
         for (int i = 0; i < 2000; i++) {
-            counts.merge(DalekVariant.pick(random, DalekChassis.PARADIGM), 1, Integer::sum);
+            counts.merge(DalekVariant.pick(random, DalekFamily.PARADIGM), 1, Integer::sum);
         }
         assertEquals(5, counts.size());
         for (DalekVariant variant : counts.keySet()) {
