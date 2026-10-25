@@ -51,7 +51,6 @@ The layer id (`ModelLayerLocation`) is defined in Java. New meshes still need on
 | `inflate` | `CubeDeformation` (negative allowed) |
 | `mirror` | `CubeListBuilder.mirror()` |
 | `parent` | Copy parent, then overlay `texture` / texture size; child `parts` replace same-named parent parts and append new names (an empty or absent `parts` inherits the parent tree) |
-
 | `animation.bindings` | Per-frame pose changes, see [Animation](#animation). Merged through `parent` by part + channel |
 
 A resolved model must have at least one part. A file must have either `parent` or `texture_width` + `texture_height` + `parts`. Schema: `src/test/resources/schemas/entity_model.schema.json`.
@@ -88,7 +87,8 @@ Package `com.adamkali.dwm.model.json`:
 
 - `EntityModelJson.parse` / `resolveParents` / `toLayerDefinition`
 - `EntityModelJson.loadClasspath(id)` — unit tests (mod jar copy)
-- `EntityModelJson.load(ResourceManager, id)` — pack-overridable bake
+- `EntityModelJson.load(ResourceManager, id)` — pack-overridable mesh bake (does not record `texture`)
+- `EntityModelJson.loadWithTexture(ResourceManager, id)` — pack-overridable bake plus the required `texture` and the `animation`
 - `JsonEntityModel` — `EntityModel` for a baked mesh; given an `EntityAnimation` and `AnimationVariables` it applies the bindings in `setupAnim`
 - `EntityModelAnimations.get(ModelLayerLocation)` — animation recorded when the layer loads
 - `com.adamkali.dwm.model.json.anim` — `Expression`, `EntityAnimation`, `AnimationVariables`, `AnimationRunner`

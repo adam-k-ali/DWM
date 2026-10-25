@@ -17,6 +17,11 @@ public final class EntityModelAnimations {
     private EntityModelAnimations() {
     }
 
+    /** Drops a layer's animation when its reload failed, so a previous pack's bindings are never served. */
+    static void remove(Identifier modelId) {
+        ANIMATIONS.remove(modelId);
+    }
+
     static void put(Identifier modelId, EntityAnimation animation) {
         ANIMATIONS.put(modelId, animation);
     }
