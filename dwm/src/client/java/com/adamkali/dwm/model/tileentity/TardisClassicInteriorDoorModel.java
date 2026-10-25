@@ -4,6 +4,7 @@
 package com.adamkali.dwm.model.tileentity;
 
 import com.adamkali.dwm.DWMReference;
+import com.adamkali.dwm.model.json.EntityModelAnimations;
 import com.adamkali.dwm.model.json.JsonEntityModel;
 import com.adamkali.dwm.model.json.anim.AnimationVariables;
 import com.adamkali.dwm.render.state.TardisRenderState;
@@ -26,7 +27,7 @@ public class TardisClassicInteriorDoorModel extends JsonEntityModel<TardisRender
 
     /** Door swing comes from the JSON {@code animation} ({@code door_progress}, 0-1). */
     public TardisClassicInteriorDoorModel(ModelPart root) {
-        super(root, LAYER_LOCATION, VARIABLES);
+        super(root, EntityModelAnimations.get(LAYER_LOCATION), VARIABLES);
         this.door1 = root.getChild("frame").getChild("Door1");
         this.door2 = root.getChild("frame2").getChild("Door2");
     }
