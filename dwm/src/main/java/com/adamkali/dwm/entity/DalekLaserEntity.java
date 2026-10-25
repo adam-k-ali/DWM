@@ -58,7 +58,7 @@ public class DalekLaserEntity extends Projectile {
 
     @Override
     protected boolean canHitEntity(Entity entity) {
-        if (entity instanceof DalekEntity) {
+        if (entity instanceof DalekEntity || entity instanceof DalekMutantEntity) {
             return false;
         }
         return super.canHitEntity(entity);
