@@ -5,9 +5,9 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 
 public enum DalekVariant {
-    CLASSIC_1963("1963", DalekChassis.CLASSIC, 6),
-    BRONZE_TIME_WAR("time_war_bronze", DalekChassis.CLASSIC, 3),
-    BRONZE_TIME_WAR_DARK("time_war_bronze_dark", DalekChassis.CLASSIC, 2),
+    CLASSIC_1963("1963", DalekChassis.CLASSIC_1963, 6),
+    BRONZE_TIME_WAR("time_war_bronze", DalekChassis.TIME_WAR, 3),
+    BRONZE_TIME_WAR_DARK("time_war_bronze_dark", DalekChassis.TIME_WAR, 2),
     PARADIGM_DRONE("paradigm_drone", DalekChassis.PARADIGM, 8),
     PARADIGM_STRATEGIST("paradigm_strategist", DalekChassis.PARADIGM, 4),
     PARADIGM_SCIENTIST("paradigm_scientist", DalekChassis.PARADIGM, 4),
@@ -37,21 +37,25 @@ public enum DalekVariant {
         return chassis;
     }
 
+    public DalekFamily family() {
+        return chassis.family();
+    }
+
     public Identifier textureLocation() {
         return textureLocation;
     }
 
-    /** Weighted random pick among the variants that fit {@code chassis}. */
-    public static DalekVariant pick(RandomSource random, DalekChassis chassis) {
+    /** Weighted random pick among the variants of {@code family}. */
+    public static DalekVariant pick(RandomSource random, DalekFamily family) {
         int total = 0;
         for (DalekVariant variant : values()) {
-            if (variant.chassis == chassis) {
+            if (variant.family() == family) {
                 total += variant.spawnWeight;
             }
         }
         int roll = random.nextInt(total);
         for (DalekVariant variant : values()) {
-            if (variant.chassis != chassis) {
+            if (variant.family() != family) {
                 continue;
             }
             roll -= variant.spawnWeight;
@@ -59,28 +63,28 @@ public enum DalekVariant {
                 return variant;
             }
         }
-        return chassis.defaultVariant();
+        return family.defaultVariant();
     }
 
-    /** Variant with this id, or the chassis default when the id is unknown or belongs to another chassis. */
-    public static DalekVariant byId(String id, DalekChassis chassis) {
+    /** Variant with this id, or the family default when the id is unknown or belongs to another family. */
+    public static DalekVariant byId(String id, DalekFamily family) {
         for (DalekVariant variant : values()) {
             if (variant.id.equals(id)) {
-                return fitting(variant, chassis);
+                return fitting(variant, family);
             }
         }
-        return chassis.defaultVariant();
+        return family.defaultVariant();
     }
 
-    public static DalekVariant byOrdinal(int ordinal, DalekChassis chassis) {
+    public static DalekVariant byOrdinal(int ordinal, DalekFamily family) {
         DalekVariant[] values = values();
         if (ordinal < 0 || ordinal >= values.length) {
-            return chassis.defaultVariant();
+            return family.defaultVariant();
         }
-        return fitting(values[ordinal], chassis);
+        return fitting(values[ordinal], family);
     }
 
-    public static DalekVariant fitting(DalekVariant variant, DalekChassis chassis) {
-        return variant.chassis == chassis ? variant : chassis.defaultVariant();
+    public static DalekVariant fitting(DalekVariant variant, DalekFamily family) {
+        return variant.family() == family ? variant : family.defaultVariant();
     }
 }

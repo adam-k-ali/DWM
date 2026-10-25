@@ -34,7 +34,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Hostile Dalek on the 1963 chassis; subclasses swap the casing via {@link #chassis()}.
+ * Hostile classic Dalek (1963 and Time War casings); subclasses swap the line via {@link #family()}.
  * Ground-glides by default, shoots a laser bolt at nearby players, and switches to
  * flying navigation when the target is above or otherwise unreachable on the ground.
  */
@@ -78,11 +78,16 @@ public class DalekEntity extends Monster implements RangedAttackMob {
     }
 
     /**
-     * Casing this entity type is built on. Called while the superclass constructor defines synched
-     * data, so overrides must return a constant.
+     * Dalek line this entity type spawns from. Called while the superclass constructor defines
+     * synched data, so overrides must return a constant.
      */
+    public DalekFamily family() {
+        return DalekFamily.CLASSIC;
+    }
+
+    /** Casing the current variant is painted for; decides the mesh and the gunstick muzzle. */
     public DalekChassis chassis() {
-        return DalekChassis.CLASSIC;
+        return getVariant().chassis();
     }
 
     @Override
@@ -98,16 +103,16 @@ public class DalekEntity extends Monster implements RangedAttackMob {
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
-        builder.define(DATA_VARIANT, chassis().defaultVariant().ordinal());
+        builder.define(DATA_VARIANT, family().defaultVariant().ordinal());
         builder.define(DATA_FLYING, false);
     }
 
     public DalekVariant getVariant() {
-        return DalekVariant.byOrdinal(this.entityData.get(DATA_VARIANT), chassis());
+        return DalekVariant.byOrdinal(this.entityData.get(DATA_VARIANT), family());
     }
 
     public void setVariant(DalekVariant variant) {
-        this.entityData.set(DATA_VARIANT, DalekVariant.fitting(variant, chassis()).ordinal());
+        this.entityData.set(DATA_VARIANT, DalekVariant.fitting(variant, family()).ordinal());
     }
 
     public boolean isFlying() {
@@ -218,7 +223,7 @@ public class DalekEntity extends Monster implements RangedAttackMob {
             EntitySpawnReason reason,
             SpawnGroupData spawnData
     ) {
-        this.setVariant(DalekVariant.pick(this.random, chassis()));
+        this.setVariant(DalekVariant.pick(this.random, family()));
         return super.finalizeSpawn(level, difficulty, reason, spawnData);
     }
 
@@ -232,7 +237,7 @@ public class DalekEntity extends Monster implements RangedAttackMob {
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
         super.readAdditionalSaveData(input);
-        setVariant(DalekVariant.byId(input.getStringOr("Variant", ""), chassis()));
+        setVariant(DalekVariant.byId(input.getStringOr("Variant", ""), family()));
         setFlying(input.getBooleanOr("Flying", false));
     }
 

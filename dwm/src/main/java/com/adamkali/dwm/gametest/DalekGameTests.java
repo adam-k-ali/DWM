@@ -3,6 +3,7 @@ package com.adamkali.dwm.gametest;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.entity.DalekChassis;
 import com.adamkali.dwm.entity.DalekEntity;
+import com.adamkali.dwm.entity.DalekFamily;
 import com.adamkali.dwm.entity.DalekVariant;
 import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.entity.ParadigmDalekEntity;
@@ -29,7 +30,7 @@ public class DalekGameTests {
                 EntitySpawnReason.NATURAL,
                 null
         );
-        assertVariantsFitChassis(dalek, DalekChassis.CLASSIC);
+        assertVariantsFitFamily(dalek, DalekFamily.CLASSIC);
         context.assertEntityPresent(DWMEntityTypes.DALEK);
         context.succeed();
     }
@@ -53,7 +54,7 @@ public class DalekGameTests {
                 EntitySpawnReason.NATURAL,
                 null
         );
-        assertVariantsFitChassis(dalek, DalekChassis.PARADIGM);
+        assertVariantsFitFamily(dalek, DalekFamily.PARADIGM);
         context.assertEntityPresent(DWMEntityTypes.PARADIGM_DALEK);
         context.succeed();
     }
@@ -76,6 +77,22 @@ public class DalekGameTests {
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void classicMuzzleFollowsTheVariantChassis(GameTestHelper context) {
+        BlockPos grassRel = new BlockPos(2, 1, 2);
+        context.setBlock(grassRel, DWMBlocks.GALLIFREY_GRASS_BLOCK.defaultBlockState());
+
+        DalekEntity dalek = context.spawn(DWMEntityTypes.DALEK, grassRel.above());
+        for (DalekVariant variant : new DalekVariant[]{DalekVariant.CLASSIC_1963, DalekVariant.BRONZE_TIME_WAR}) {
+            dalek.setVariant(variant);
+            double muzzleHeight = dalek.gunMuzzleWorldPos().y - dalek.getY();
+            if (Math.abs(muzzleHeight - variant.chassis().gunHeight()) > 1.0e-4) {
+                throw new AssertionError(variant + " muzzle height " + muzzleHeight + " does not match its chassis");
+            }
+        }
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
     public void paradigmDalekMatchesDefinition(GameTestHelper context) {
         ParadigmDalekEntity mob = EntityDefinitionGameTestSupport.spawnOnGrass(context, DWMEntityTypes.PARADIGM_DALEK);
         var definition = EntityDefinitionGameTestSupport.definitionOf(mob);
@@ -84,16 +101,22 @@ public class DalekGameTests {
         context.succeed();
     }
 
-    /** finalizeSpawn picked a variant of {@code chassis}; own variants stick, foreign ones fall back. */
-    private static void assertVariantsFitChassis(DalekEntity dalek, DalekChassis chassis) {
-        if (dalek.getVariant().chassis() != chassis) {
-            throw new AssertionError("finalizeSpawn set a variant from the wrong chassis: " + dalek.getVariant());
+    /**
+     * finalizeSpawn picked a variant of {@code family}; own variants stick (and switch the chassis
+     * with them), foreign ones fall back.
+     */
+    private static void assertVariantsFitFamily(DalekEntity dalek, DalekFamily family) {
+        if (dalek.getVariant().family() != family) {
+            throw new AssertionError("finalizeSpawn set a variant from the wrong family: " + dalek.getVariant());
         }
         for (DalekVariant variant : DalekVariant.values()) {
             dalek.setVariant(variant);
-            DalekVariant expected = variant.chassis() == chassis ? variant : chassis.defaultVariant();
+            DalekVariant expected = variant.family() == family ? variant : family.defaultVariant();
             if (dalek.getVariant() != expected) {
-                throw new AssertionError("Setting " + variant + " on a " + chassis + " Dalek gave " + dalek.getVariant());
+                throw new AssertionError("Setting " + variant + " on a " + family + " Dalek gave " + dalek.getVariant());
+            }
+            if (dalek.chassis() != expected.chassis()) {
+                throw new AssertionError(variant + " should put the Dalek on the " + expected.chassis() + " chassis");
             }
         }
     }
