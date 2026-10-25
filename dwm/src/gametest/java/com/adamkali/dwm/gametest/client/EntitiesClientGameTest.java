@@ -9,7 +9,8 @@ import java.util.List;
 
 /**
  * Screenshots of DWM mobs lined up facing the camera (AI off, so poses are stable):
- * {@code entities_time_lords}, {@code entities_flutterwings}, {@code entities_misc}.
+ * {@code entities_time_lords}, {@code entities_flutterwings}, {@code entities_misc},
+ * {@code entities_paradigm_daleks}.
  */
 public class EntitiesClientGameTest implements FabricClientGameTest {
     private static final int GROUP_SPACING = 48;
@@ -37,6 +38,14 @@ public class EntitiesClientGameTest implements FabricClientGameTest {
                     new Mob("dalek", "Variant:\"time_war_bronze_dark\""),
                     new Mob("mewing_dog", ""),
                     new Mob("broakir", "")));
+            // A 1963 Dalek at the end for scale against the larger Paradigm casing.
+            lineUp(context, world, 3, "entities_paradigm_daleks", List.of(
+                    new Mob("paradigm_dalek", "Variant:\"paradigm_drone\""),
+                    new Mob("paradigm_dalek", "Variant:\"paradigm_strategist\""),
+                    new Mob("paradigm_dalek", "Variant:\"paradigm_scientist\""),
+                    new Mob("paradigm_dalek", "Variant:\"paradigm_eternal\""),
+                    new Mob("paradigm_dalek", "Variant:\"paradigm_supreme\""),
+                    new Mob("dalek", "Variant:\"1963\"")));
 
             ClientGameTestSupport.toggleHud(context);
         }

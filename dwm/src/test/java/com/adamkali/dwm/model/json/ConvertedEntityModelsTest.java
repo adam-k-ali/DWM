@@ -5,6 +5,7 @@ import com.adamkali.dwm.entity.DalekFlightFx;
 import com.adamkali.dwm.model.entity.BroakirModel;
 import com.adamkali.dwm.model.entity.DalekModel;
 import com.adamkali.dwm.model.entity.FlutterwingModel;
+import com.adamkali.dwm.model.entity.ParadigmDalekModel;
 import com.adamkali.dwm.model.entity.TimeLordModel;
 import com.adamkali.dwm.render.state.DalekRenderState;
 import net.minecraft.client.model.EntityModel;
@@ -99,13 +100,24 @@ class ConvertedEntityModelsTest {
     void dalekLooksLeansAndBobsOnlyWhenFlying() {
         ModelHolder<DalekModel> holder = new ModelHolder<>();
         ModelPart root = bake(DalekModel.LAYER_LOCATION, DalekModel::new, holder);
+        assertLooksLeansAndBobs(holder.model, root);
+    }
+
+    @Test
+    void paradigmDalekLooksLeansAndBobsOnlyWhenFlying() {
+        ModelHolder<DalekModel> holder = new ModelHolder<>();
+        ModelPart root = bake(ParadigmDalekModel.LAYER_LOCATION, ParadigmDalekModel::new, holder);
+        assertLooksLeansAndBobs(holder.model, root);
+    }
+
+    private static void assertLooksLeansAndBobs(DalekModel model, ModelPart root) {
         DalekRenderState state = new DalekRenderState();
         living(state, 0, 0, 9.0F, 40.0F, 20.0F);
         state.leanPitch = 6.0F;
         state.leanRoll = -4.0F;
 
         state.flying = false;
-        holder.model.setupAnim(state);
+        model.setupAnim(state);
         assertEquals(0.0F, root.y, 1.0e-6F);
         assertEquals(6.0F * Mth.DEG_TO_RAD, root.xRot, 1.0e-5F);
         assertEquals(-4.0F * Mth.DEG_TO_RAD, root.zRot, 1.0e-5F);
@@ -115,7 +127,7 @@ class ConvertedEntityModelsTest {
         assertEquals(40.0F * Mth.DEG_TO_RAD * 0.65F, head.getChild("eyestalk").xRot, 1.0e-5F);
 
         state.flying = true;
-        holder.model.setupAnim(state);
+        model.setupAnim(state);
         assertEquals(DalekFlightFx.bobOffset(9.0F, true), root.y, 1.0e-5F);
         assertTrue(Math.abs(root.y) > 0.0F);
     }
