@@ -84,7 +84,7 @@ DWM uses **Mojang official mappings** for the Minecraft version in [`dwm/gradle.
 ## Testing Expectations
 - **DWM unit tests** (`./dwm/gradlew test`): JUnit 5 via `fabric-loader-junit`. Included in `./dwm/gradlew build` and CI.
 - **GameTests** (`./dwm/gradlew runGametest`): Headless dedicated-server in-world tests in `dwm/src/main/java/.../gametest/`. Not run by CI today — run locally when GameTest code changes.
-- **Client GameTests** (`./dwm/scripts/run-client-gametest.sh`): launch a real client under `xvfb-run` with software GL, load a singleplayer world and save screenshots to `dwm/build/run/clientGameTest/screenshots/` (open the PNGs to check client-side/rendering changes). Tests live in `dwm/src/gametest/java/.../gametest/client/` and are registered in `dwm/src/gametest/resources/fabric.mod.json`. Not run by CI; ~30s warm, a few minutes on a cold cache.
+- **Client GameTests** (`./dwm/scripts/run-client-gametest.sh`): launch a real client under `xvfb-run` with software GL, load a singleplayer world and save screenshots to `dwm/build/run/clientGameTest/screenshots/` (open the PNGs to check client-side/rendering changes). Tests live in `dwm/src/gametest/java/.../gametest/client/` and are registered in `dwm/src/gametest/resources/fabric.mod.json`. Scenarios: TARDIS exterior + every chameleon variant, DWM entities, Field Guide screen, sonic HUD (shared staging in `ClientGameTestSupport`; keep screenshots deterministic — no random particles, no chat/toast clutter). Output is byte-identical between runs on the same VM. Not run by CI; ~30s warm, a few minutes on a cold cache.
 - Keep test runs reproducible and suitable for unattended agent execution.
 
 ## Automation Pipeline For Agents
