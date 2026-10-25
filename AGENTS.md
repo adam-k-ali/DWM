@@ -17,7 +17,7 @@
 - `dwm/tools/`: Offline Poetry Python tooling — [`palette/`](dwm/tools/palette/) (family colour docs/GUI) and [`sfx/`](dwm/tools/sfx/) (TARDIS/entity SFX); not part of Gradle build.
 - `dwm/metadata/`: Modrinth listing for DWM (`modrinth.json`, `modrinth-body.md`).
 - `dwm/version.json`: DWM release changelog and Modrinth/CurseForge promos — synced via `./dwm/gradlew syncVersionJson`.
-- `.cursor/skills/`: Agent skills for GameTests, asset import, Blockbench models, MCP verify, etc.
+- `.claude/skills/`: Agent skills (`review-pr`, `refine`, `minecraft-sprite-style`).
 - `dwm/minecraft-sources/`: Generated Fabric Loom named Minecraft sources (gitignored `.java`; run `./dwm/gradlew unpackMinecraftSources`). See **Reading Minecraft sources**.
 
 ## Gradle wrappers (do not use root `./gradlew` for builds)
@@ -81,7 +81,7 @@ DWM uses **Mojang official mappings** for the Minecraft version in [`dwm/gradle.
 
 ## Testing Expectations
 - **DWM unit tests** (`./dwm/gradlew test`): JUnit 5 via `fabric-loader-junit`. Included in `./dwm/gradlew build` and CI.
-- **GameTests** (`./dwm/gradlew runGametest`): Headless dedicated-server in-world tests in `dwm/src/main/java/.../gametest/`. Not run by CI today — run locally when GameTest code changes. See `.cursor/skills/fabric-gametest/SKILL.md`.
+- **GameTests** (`./dwm/gradlew runGametest`): Headless dedicated-server in-world tests in `dwm/src/main/java/.../gametest/`. Not run by CI today — run locally when GameTest code changes.
 - Keep test runs reproducible and suitable for unattended agent execution.
 
 ## Automation Pipeline For Agents
@@ -155,13 +155,12 @@ A single PR may carry more than one label if it touches multiple categories.
 - `dwm/src/main/java/com/adamkali/dwm/tardis/AGENTS.md` — TARDIS domain layout (logic vs data vs interior vs portal rendering).
 - `dwm/src/main/java/com/adamkali/dwm/entity/AGENTS.md` — living mob classes vs JSON attribute/AI definitions.
 - `dwm/tools/AGENTS.md` — index for offline Poetry tools; see also `dwm/tools/palette/AGENTS.md` and `dwm/tools/sfx/AGENTS.md`.
-- `.cursor/skills/fabric-gametest/SKILL.md` — authoring and registering Fabric GameTests.
-- `.cursor/skills/asset-import-pipeline/SKILL.md` — promoting archive textures and wiring datagen.
-- `.cursor/skills/refine/SKILL.md` — refine GitHub issues (`DWM-NNN` / `E-NNN`) into build-ready descriptions via `gh`; Project Status → `Ready` only when confirmed.
+- `.claude/skills/refine/SKILL.md` — refine GitHub issues (`DWM-NNN` / `E-NNN`) into build-ready descriptions via `gh`; Project Status → `Ready` only when confirmed.
+- `.claude/skills/minecraft-sprite-style/SKILL.md` — Minecraft-readable sprite style guidance and templates.
 
-## Cursor Cloud specific instructions
+## Cloud VM specific instructions
 
-These notes are for agents running in the Cursor Cloud VM. The standard build/test/datagen commands are already documented above; this section only captures non-obvious environment caveats.
+These notes are for agents running in a cloud VM. The standard build/test/datagen commands are already documented above; this section only captures non-obvious environment caveats.
 
 - Java 25 is what Gradle targets (`./dwm/gradlew` picks up the system JDK; no `JAVA_HOME` tweaking needed). Local agents may need `JAVA_HOME` pointed at a JDK 25 install.
 - The startup update script should resolve dependencies via `./dwm/gradlew dependencies -q`. The very first Loom configuration on a cold cache is slow and network-heavy; once cached, subsequent Gradle invocations are fast.
