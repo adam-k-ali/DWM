@@ -1108,6 +1108,18 @@ public class ResourceValidationTests {
     }
 
     @Test
+    public void dalekVariantTexturesExist() throws Exception {
+        for (com.adamkali.dwm.entity.DalekVariant variant : com.adamkali.dwm.entity.DalekVariant.values()) {
+            Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/dalek/"
+                    + variant.getSerializedName() + ".png");
+            assertTrue(Files.isRegularFile(texture) && Files.size(texture) > 0, "Missing " + texture);
+            BufferedImage image = ImageIO.read(texture.toFile());
+            assertEquals(64, image.getWidth(), texture + " width");
+            assertEquals(64, image.getHeight(), texture + " height");
+        }
+    }
+
+    @Test
     public void dalekEntityTextureExists() throws Exception {
         Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/dalek/1963.png");
         assertTrue(

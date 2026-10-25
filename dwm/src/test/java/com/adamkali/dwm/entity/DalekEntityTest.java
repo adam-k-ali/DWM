@@ -65,15 +65,30 @@ class DalekEntityTest {
     }
 
     @Test
-    void singleVariantIsDefined() {
-        assertEquals(1, DalekVariant.values().length);
+    void variantsAreDefined() {
+        assertEquals(3, DalekVariant.values().length);
         assertEquals("1963", DalekVariant.CLASSIC_1963.getSerializedName());
-        assertEquals(DalekVariant.CLASSIC_1963, DalekVariant.byId("1963"));
+        assertEquals("time_war_bronze", DalekVariant.BRONZE_TIME_WAR.getSerializedName());
+        assertEquals("time_war_bronze_dark", DalekVariant.BRONZE_TIME_WAR_DARK.getSerializedName());
+        for (DalekVariant variant : DalekVariant.values()) {
+            assertEquals(variant, DalekVariant.byId(variant.getSerializedName()));
+            assertEquals(variant, DalekVariant.byOrdinal(variant.ordinal()));
+        }
         assertEquals(DalekVariant.CLASSIC_1963, DalekVariant.byId("unknown"));
         assertEquals(
-                Identifier.fromNamespaceAndPath("dwm", "textures/entity/dalek/1963.png"),
-                DalekVariant.CLASSIC_1963.textureLocation()
+                Identifier.fromNamespaceAndPath("dwm", "textures/entity/dalek/time_war_bronze.png"),
+                DalekVariant.BRONZE_TIME_WAR.textureLocation()
         );
+    }
+
+    @Test
+    void pickCoversAllVariants() {
+        java.util.Set<DalekVariant> seen = java.util.EnumSet.noneOf(DalekVariant.class);
+        net.minecraft.util.RandomSource random = net.minecraft.util.RandomSource.create(42L);
+        for (int i = 0; i < 500; i++) {
+            seen.add(DalekVariant.pick(random));
+        }
+        assertEquals(DalekVariant.values().length, seen.size());
     }
 
     @Test
