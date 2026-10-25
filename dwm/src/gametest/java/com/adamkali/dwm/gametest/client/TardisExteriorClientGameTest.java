@@ -45,6 +45,8 @@ public class TardisExteriorClientGameTest implements FabricClientGameTest {
             });
 
             context.getInput().lookAt(tardisPos.above());
+            // F1: hide the HUD so command feedback in chat doesn't cover the scene.
+            context.getInput().pressKey(options -> options.keyToggleGui);
             context.waitTicks(40);
 
             Path screenshot = context.takeScreenshot("tardis_exterior");
