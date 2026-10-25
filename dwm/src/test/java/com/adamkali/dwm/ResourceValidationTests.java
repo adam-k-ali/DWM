@@ -1109,6 +1109,71 @@ public class ResourceValidationTests {
         assertFalse(biomeHasCreatureSpawn("gallifrey_badlands.json", "dwm:time_lord"));
     }
 
+    /**
+     * The Paradigm glow overlay renders full-bright, so it may only light the eye and dome-light
+     * cubes (UV swatches {@code [104, 8]} and {@code [112, 8]} in {@code paradigm_dalek.json}).
+     */
+    @Test
+    public void paradigmGlowTextureCoversOnlyEyeAndLights() throws Exception {
+        Path model = Path.of("src/client/resources/assets/dwm/models/entity/paradigm_dalek.json");
+        List<int[]> glowRects = new java.util.ArrayList<>();
+        var parts = new JSONObject(new JSONTokener(Files.newBufferedReader(model))).getJSONArray("parts");
+        for (int i = 0; i < parts.length(); i++) {
+            collectGlowRects(parts.getJSONObject(i), glowRects);
+        }
+        assertEquals(3, glowRects.size(), "expected one eye cube and two dome-light cubes");
+
+        Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/dalek/paradigm_glow.png");
+        assertTrue(Files.isRegularFile(texture), "Missing " + texture);
+        BufferedImage image = ImageIO.read(texture.toFile());
+        assertEquals(128, image.getWidth(), texture + " width");
+        assertEquals(64, image.getHeight(), texture + " height");
+        for (int y = 0; y < image.getHeight(); y++) {
+            for (int x = 0; x < image.getWidth(); x++) {
+                if ((image.getRGB(x, y) >>> 24) == 0) {
+                    continue;
+                }
+                int px = x;
+                int py = y;
+                assertTrue(
+                        glowRects.stream().anyMatch(r -> px >= r[0] && px < r[2] && py >= r[1] && py < r[3]),
+                        "Glow texel outside the eye/light UVs at " + x + "," + y
+                );
+            }
+        }
+        for (int[] rect : glowRects) {
+            boolean lit = false;
+            for (int y = rect[1]; y < rect[3] && !lit; y++) {
+                for (int x = rect[0]; x < rect[2] && !lit; x++) {
+                    lit = (image.getRGB(x, y) >>> 24) != 0;
+                }
+            }
+            assertTrue(lit, "Glow texture leaves the cube at uv " + rect[0] + "," + rect[1] + " dark");
+        }
+    }
+
+    private static void collectGlowRects(JSONObject part, List<int[]> out) {
+        var cubes = part.optJSONArray("cubes");
+        for (int i = 0; cubes != null && i < cubes.length(); i++) {
+            JSONObject cube = cubes.getJSONObject(i);
+            var uv = cube.getJSONArray("uv");
+            int u = uv.getInt(0);
+            int v = uv.getInt(1);
+            if (v != 8 || (u != 104 && u != 112)) {
+                continue;
+            }
+            var size = cube.getJSONArray("size");
+            int w = (int) Math.ceil(size.getDouble(0));
+            int h = (int) Math.ceil(size.getDouble(1));
+            int d = (int) Math.ceil(size.getDouble(2));
+            out.add(new int[]{u, v, u + 2 * (d + w), v + d + h});
+        }
+        var children = part.optJSONArray("children");
+        for (int i = 0; children != null && i < children.length(); i++) {
+            collectGlowRects(children.getJSONObject(i), out);
+        }
+    }
+
     @Test
     public void dalekVariantTexturesExist() throws Exception {
         for (DalekVariant variant : DalekVariant.values()) {

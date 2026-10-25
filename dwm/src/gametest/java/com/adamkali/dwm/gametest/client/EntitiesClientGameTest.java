@@ -10,7 +10,8 @@ import java.util.List;
 /**
  * Screenshots of DWM mobs lined up facing the camera (AI off, so poses are stable):
  * {@code entities_time_lords}, {@code entities_flutterwings}, {@code entities_misc},
- * {@code entities_paradigm_daleks}.
+ * {@code entities_paradigm_daleks}, and the same Paradigm group at midnight
+ * ({@code entities_paradigm_daleks_night}) to show the glowing eye and dome lights.
  */
 public class EntitiesClientGameTest implements FabricClientGameTest {
     private static final int GROUP_SPACING = 48;
@@ -46,6 +47,10 @@ public class EntitiesClientGameTest implements FabricClientGameTest {
                     new Mob("paradigm_dalek", "Variant:\"paradigm_eternal\""),
                     new Mob("paradigm_dalek", "Variant:\"paradigm_supreme\""),
                     new Mob("dalek", "Variant:\"1963\"")));
+            world.getServer().runCommand("time set midnight");
+            context.waitTicks(20);
+            ClientGameTestSupport.screenshot(context, "entities_paradigm_daleks_night");
+            world.getServer().runCommand("time set noon");
 
             ClientGameTestSupport.toggleHud(context);
         }
