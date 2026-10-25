@@ -16,6 +16,5 @@ public class ParadigmDalekRenderer extends DalekRenderer {
                 DalekChassis.PARADIGM,
                 GROUND_SHADOW_RADIUS
         );
-        this.addLayer(new ParadigmDalekGlowLayer(this));
     }
 }

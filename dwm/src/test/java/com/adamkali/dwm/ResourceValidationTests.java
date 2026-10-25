@@ -1114,15 +1114,29 @@ public class ResourceValidationTests {
      */
     @Test
     public void paradigmGlowTextureCoversOnlyEyeAndLights() throws Exception {
-        Path model = Path.of("src/client/resources/assets/dwm/models/entity/paradigm_dalek.json");
+        assertGlowCoversOnly("paradigm_dalek", "paradigm_glow", List.of(List.of(104, 8), List.of(112, 8)));
+    }
+
+    /**
+     * Same rule for the Time War casing: only the lens ({@code [58, 55]}) and the dome lights
+     * ({@code [64, 55]}) of {@code time_war_dalek.json} may glow.
+     */
+    @Test
+    public void timeWarGlowTextureCoversOnlyLensAndLights() throws Exception {
+        assertGlowCoversOnly("time_war_dalek", "time_war_glow", List.of(List.of(58, 55), List.of(64, 55)));
+    }
+
+    private static void assertGlowCoversOnly(String modelName, String textureName, List<List<Integer>> glowUvs)
+            throws Exception {
+        Path model = Path.of("src/client/resources/assets/dwm/models/entity/" + modelName + ".json");
         List<int[]> glowRects = new java.util.ArrayList<>();
         var parts = new JSONObject(new JSONTokener(Files.newBufferedReader(model))).getJSONArray("parts");
         for (int i = 0; i < parts.length(); i++) {
-            collectGlowRects(parts.getJSONObject(i), glowRects);
+            collectGlowRects(parts.getJSONObject(i), glowUvs, glowRects);
         }
-        assertEquals(3, glowRects.size(), "expected one eye cube and two dome-light cubes");
+        assertEquals(3, glowRects.size(), "expected one eye cube and two dome-light cubes in " + model);
 
-        Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/dalek/paradigm_glow.png");
+        Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/dalek/" + textureName + ".png");
         assertTrue(Files.isRegularFile(texture), "Missing " + texture);
         BufferedImage image = ImageIO.read(texture.toFile());
         assertEquals(128, image.getWidth(), texture + " width");
@@ -1136,7 +1150,7 @@ public class ResourceValidationTests {
                 int py = y;
                 assertTrue(
                         glowRects.stream().anyMatch(r -> px >= r[0] && px < r[2] && py >= r[1] && py < r[3]),
-                        "Glow texel outside the eye/light UVs at " + x + "," + y
+                        "Glow texel outside the eye/light UVs at " + x + "," + y + " in " + texture
                 );
             }
         }
@@ -1151,14 +1165,14 @@ public class ResourceValidationTests {
         }
     }
 
-    private static void collectGlowRects(JSONObject part, List<int[]> out) {
+    private static void collectGlowRects(JSONObject part, List<List<Integer>> glowUvs, List<int[]> out) {
         var cubes = part.optJSONArray("cubes");
         for (int i = 0; cubes != null && i < cubes.length(); i++) {
             JSONObject cube = cubes.getJSONObject(i);
             var uv = cube.getJSONArray("uv");
             int u = uv.getInt(0);
             int v = uv.getInt(1);
-            if (v != 8 || (u != 104 && u != 112)) {
+            if (!glowUvs.contains(List.of(u, v))) {
                 continue;
             }
             var size = cube.getJSONArray("size");
@@ -1169,7 +1183,7 @@ public class ResourceValidationTests {
         }
         var children = part.optJSONArray("children");
         for (int i = 0; children != null && i < children.length(); i++) {
-            collectGlowRects(children.getJSONObject(i), out);
+            collectGlowRects(children.getJSONObject(i), glowUvs, out);
         }
     }
 

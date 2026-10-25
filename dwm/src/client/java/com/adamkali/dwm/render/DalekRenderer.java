@@ -51,6 +51,7 @@ public class DalekRenderer extends MobRenderer<DalekEntity, DalekRenderState, Da
         this.models = new EnumMap<>(models);
         this.defaultModel = models.get(defaultChassis);
         this.groundShadowRadius = groundShadowRadius;
+        this.addLayer(new DalekGlowLayer(this));
     }
 
     @Override
