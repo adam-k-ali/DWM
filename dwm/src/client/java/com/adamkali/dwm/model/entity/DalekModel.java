@@ -1,6 +1,7 @@
 package com.adamkali.dwm.model.entity;
 
 import com.adamkali.dwm.DWMReference;
+import com.adamkali.dwm.model.json.EntityModelAnimations;
 import com.adamkali.dwm.model.json.JsonEntityModel;
 import com.adamkali.dwm.model.json.anim.AnimationVariables;
 import com.adamkali.dwm.entity.DalekFlightFx;
@@ -24,7 +25,7 @@ public class DalekModel extends JsonEntityModel<DalekRenderState> {
             .build();
 
     public DalekModel(ModelPart root) {
-        super(root, LAYER_LOCATION, VARIABLES);
+        super(root, EntityModelAnimations.get(LAYER_LOCATION), VARIABLES);
     }
 
     public static float bobOffset(float ageInTicks, boolean flying) {
