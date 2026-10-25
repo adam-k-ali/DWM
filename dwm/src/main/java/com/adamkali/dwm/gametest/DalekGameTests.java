@@ -225,6 +225,26 @@ public class DalekGameTests {
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void dyingDalekDiscardedMidAnimationDoesNotReleaseMutant(GameTestHelper context) {
+        // Killed but discarded before the 20-tick death animation ends (as a command or chunk unload would).
+        BlockPos grassRel = new BlockPos(2, 1, 2);
+        context.setBlock(grassRel, DWMBlocks.GALLIFREY_GRASS_BLOCK.defaultBlockState());
+        for (int i = 0; i < 48; i++) {
+            DalekEntity dalek = context.spawn(DWMEntityTypes.DALEK, grassRel.above());
+            dalek.setNoAi(true);
+            dalek.kill(context.getLevel());
+            if (!dalek.isDeadOrDying()) {
+                throw new AssertionError("Killed Dalek should be dying before it is discarded");
+            }
+            dalek.discard();
+        }
+        context.runAfterDelay(2, () -> {
+            context.assertEntityNotPresent(DWMEntityTypes.DALEK_MUTANT);
+            context.succeed();
+        });
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
     public void dalekLaserPassesThroughMutant(GameTestHelper context) {
         DalekEntity dalek = context.spawn(DWMEntityTypes.DALEK, new BlockPos(0, 2, 2));
         dalek.setNoAi(true);

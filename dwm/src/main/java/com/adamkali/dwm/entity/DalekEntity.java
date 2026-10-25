@@ -212,10 +212,15 @@ public class DalekEntity extends Monster implements RangedAttackMob {
                 .add(look.scale(chassis.gunForward()));
     }
 
-    /** Like a slime splitting, a destroyed casing may release its mutant once the death animation ends. */
+    /**
+     * Like a slime splitting, a destroyed casing may release its mutant once the death animation ends.
+     * Only the death-animation removal ({@code KILLED}) counts: a dying Dalek that is unloaded or
+     * discarded mid-animation releases nothing.
+     */
     @Override
     public void remove(Entity.RemovalReason reason) {
-        if (this.level() instanceof ServerLevel serverLevel
+        if (reason == Entity.RemovalReason.KILLED
+                && this.level() instanceof ServerLevel serverLevel
                 && this.isDeadOrDying()
                 && DalekMutantEmergence.shouldEmerge(this.random.nextFloat())) {
             DalekMutantEmergence.release(serverLevel, this);
