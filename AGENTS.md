@@ -17,6 +17,7 @@
 - `dwm/tools/`: Offline Poetry Python tooling — [`palette/`](dwm/tools/palette/) (family colour docs/GUI) and [`sfx/`](dwm/tools/sfx/) (TARDIS/entity SFX); not part of Gradle build.
 - `dwm/metadata/`: Modrinth listing for DWM (`modrinth.json`, `modrinth-body.md`).
 - `dwm/version.json`: DWM release changelog and Modrinth/CurseForge promos — synced via `./dwm/gradlew syncVersionJson`.
+- `.claude/skills/`: Agent skills (`review-pr`, `refine`, `minecraft-sprite-style`).
 - `dwm/minecraft-sources/`: Generated Fabric Loom named Minecraft sources (gitignored `.java`; run `./dwm/gradlew unpackMinecraftSources`). See **Reading Minecraft sources**.
 
 ## Gradle wrappers (do not use root `./gradlew` for builds)
@@ -154,6 +155,8 @@ A single PR may carry more than one label if it touches multiple categories.
 - `dwm/src/main/java/com/adamkali/dwm/tardis/AGENTS.md` — TARDIS domain layout (logic vs data vs interior vs portal rendering).
 - `dwm/src/main/java/com/adamkali/dwm/entity/AGENTS.md` — living mob classes vs JSON attribute/AI definitions.
 - `dwm/tools/AGENTS.md` — index for offline Poetry tools; see also `dwm/tools/palette/AGENTS.md` and `dwm/tools/sfx/AGENTS.md`.
+- `.claude/skills/refine/SKILL.md` — refine GitHub issues (`DWM-NNN` / `E-NNN`) into build-ready descriptions via `gh`; Project Status → `Ready` only when confirmed.
+- `.claude/skills/minecraft-sprite-style/SKILL.md` — Minecraft-readable sprite style guidance and templates.
 
 ## Cloud VM specific instructions
 
