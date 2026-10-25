@@ -2,6 +2,7 @@ package com.adamkali.dwm.render;
 
 import com.adamkali.dwm.entity.BroakirEntity;
 import com.adamkali.dwm.model.entity.BroakirModel;
+import com.adamkali.dwm.model.json.EntityModelTextures;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
@@ -19,6 +20,6 @@ public class BroakirRenderer extends MobRenderer<BroakirEntity, LivingEntityRend
 
     @Override
     public Identifier getTextureLocation(LivingEntityRenderState state) {
-        return BroakirModel.TEXTURE_LOCATION;
+        return EntityModelTextures.get(BroakirModel.LAYER_LOCATION);
     }
 }

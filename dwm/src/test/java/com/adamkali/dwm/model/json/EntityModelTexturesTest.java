@@ -1,7 +1,11 @@
 package com.adamkali.dwm.model.json;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
+import com.adamkali.dwm.model.entity.BroakirModel;
 import com.adamkali.dwm.model.entity.DalekLaserModel;
+import com.adamkali.dwm.model.entity.DalekModel;
+import com.adamkali.dwm.model.entity.FlutterwingModel;
+import com.adamkali.dwm.model.entity.TimeLordModel;
 import com.adamkali.dwm.model.tileentity.FifthDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.FirstDoctorTardisModel;
 import com.adamkali.dwm.model.tileentity.FourthDoctorTardisModel;
@@ -46,6 +50,10 @@ import static org.mockito.Mockito.when;
  */
 class EntityModelTexturesTest {
     private static final Map<String, ModelLayerLocation> JSON_LAYERS_BY_CLASS = Map.ofEntries(
+            Map.entry("BroakirModel", BroakirModel.LAYER_LOCATION),
+            Map.entry("DalekModel", DalekModel.LAYER_LOCATION),
+            Map.entry("FlutterwingModel", FlutterwingModel.LAYER_LOCATION),
+            Map.entry("TimeLordModel", TimeLordModel.LAYER_LOCATION),
             Map.entry("DalekLaserModel", DalekLaserModel.LAYER_LOCATION),
             Map.entry("TardisGlobeModel", TardisGlobeModel.LAYER_LOCATION),
             Map.entry("StabilisersModel", StabilisersModel.LAYER_LOCATION),
