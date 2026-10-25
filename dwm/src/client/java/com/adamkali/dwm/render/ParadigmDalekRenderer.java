@@ -8,5 +8,6 @@ public class ParadigmDalekRenderer extends DalekRenderer {
 
     public ParadigmDalekRenderer(EntityRendererProvider.Context context) {
         super(context, new ParadigmDalekModel(context.bakeLayer(ParadigmDalekModel.LAYER_LOCATION)), GROUND_SHADOW_RADIUS);
+        this.addLayer(new ParadigmDalekGlowLayer(this));
     }
 }
