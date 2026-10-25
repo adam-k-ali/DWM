@@ -49,7 +49,7 @@ class EntityDefinitionCatalogTest {
 
     @Test
     void fileStemMatchesEntityId() {
-        assertEquals(6, definitions.size());
+        assertEquals(7, definitions.size());
         for (Map.Entry<Identifier, EntityDefinition> entry : definitions.entrySet()) {
             assertEquals(entry.getKey(), entry.getValue().entity());
         }
@@ -172,6 +172,32 @@ class EntityDefinitionCatalogTest {
         EntityGoal.RangedAttack ranged = assertInstanceOf(EntityGoal.RangedAttack.class, definition.goals().get(2).goal());
         assertEquals(20.0, ranged.attackRange());
         assertEquals(EntityGoal.Kind.DALEK_SHARE_TARGET, definition.targets().get(1).goal().kind());
+    }
+
+    @Test
+    void dalekMutantIsASmallMeleeCrawler() {
+        EntityDefinition definition = definition("dalek_mutant");
+        assertEquals(EntityAttributeBase.MONSTER, definition.attributeBase());
+        assertEquals(10.0, attribute(definition, "max_health"));
+        assertEquals(0.2, attribute(definition, "movement_speed"));
+        assertEquals(16.0, attribute(definition, "follow_range"));
+        assertEquals(3.0, attribute(definition, "attack_damage"));
+        assertTrue(attribute(definition, "max_health") < attribute(definition("dalek"), "max_health"));
+        assertEquals(
+                List.of(
+                        EntityGoal.Kind.FLOAT,
+                        EntityGoal.Kind.LEAP_AT_TARGET,
+                        EntityGoal.Kind.MELEE_ATTACK,
+                        EntityGoal.Kind.WATER_AVOIDING_RANDOM_STROLL,
+                        EntityGoal.Kind.LOOK_AT,
+                        EntityGoal.Kind.RANDOM_LOOK_AROUND
+                ),
+                kinds(definition.goals())
+        );
+        assertEquals(
+                List.of(EntityGoal.Kind.HURT_BY_TARGET, EntityGoal.Kind.NEAREST_ATTACKABLE_TARGET),
+                kinds(definition.targets())
+        );
     }
 
     @Test

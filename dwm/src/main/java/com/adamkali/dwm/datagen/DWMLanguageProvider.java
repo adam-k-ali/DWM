@@ -519,6 +519,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItem(t, DWMItems.DALEK_SPAWN_EGG, "Dalek Spawn Egg");
         t.add(DWMEntityTypes.PARADIGM_DALEK, "Paradigm Dalek");
         addItem(t, DWMItems.PARADIGM_DALEK_SPAWN_EGG, "Paradigm Dalek Spawn Egg");
+        t.add(DWMEntityTypes.DALEK_MUTANT, "Dalek Mutant");
+        addItem(t, DWMItems.DALEK_MUTANT_SPAWN_EGG, "Dalek Mutant Spawn Egg");
         t.add(DWMEntityTypes.DALEK_LASER, "Dalek Laser");
         t.add("dimension.dwm.gallifrey", "Gallifrey");
         t.add("dimension.dwm.skaro", "Skaro");
@@ -693,6 +695,9 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.entity.dalek.hurt.subtitle", "Dalek hurts");
         t.add("dwm.entity.dalek.death.subtitle", "Dalek dies");
         t.add("dwm.entity.dalek.shoot.subtitle", "Dalek laser fires");
+        t.add("dwm.entity.dalek_mutant.ambient.subtitle", "Dalek mutant squelches");
+        t.add("dwm.entity.dalek_mutant.hurt.subtitle", "Dalek mutant hurts");
+        t.add("dwm.entity.dalek_mutant.death.subtitle", "Dalek mutant dies");
         t.add("config.dwm.title", "Doctor Who Mod");
         t.add("stat.dwm.sonic_screwdriver_use", "Uses of Sonic Screwdriver");
         t.add("advancements.dwm.root", "Doctor Who");

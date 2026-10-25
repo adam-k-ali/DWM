@@ -39,7 +39,8 @@ public class EntitiesClientGameTest implements FabricClientGameTest {
                     new Mob("flutterwing", "Variant:\"wild_endeavour\"")));
             lineUp(context, world, 2, "entities_misc", List.of(
                     new Mob("mewing_dog", ""),
-                    new Mob("broakir", "")));
+                    new Mob("broakir", ""),
+                    new Mob("dalek_mutant", "")));
             lineUp(context, world, 4, "entities_classic_daleks", CLOSE_UP, List.of(
                     new Mob("dalek", "Variant:\"1963\""),
                     new Mob("dalek", "Variant:\"time_war_bronze\""),

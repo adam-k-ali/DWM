@@ -13,6 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -214,6 +215,22 @@ public class DalekEntity extends Monster implements RangedAttackMob {
                 .add(0.0, chassis.gunHeight(), 0.0)
                 .add(right.scale(chassis.gunSide()))
                 .add(look.scale(chassis.gunForward()));
+    }
+
+    /**
+     * Like a slime splitting, a destroyed casing may release its mutant once the death animation ends.
+     * Only the death-animation removal ({@code KILLED}) counts: a dying Dalek that is unloaded or
+     * discarded mid-animation releases nothing.
+     */
+    @Override
+    public void remove(Entity.RemovalReason reason) {
+        if (reason == Entity.RemovalReason.KILLED
+                && this.level() instanceof ServerLevel serverLevel
+                && this.isDeadOrDying()
+                && DalekMutantEmergence.shouldEmerge(this.random.nextFloat())) {
+            DalekMutantEmergence.release(serverLevel, this);
+        }
+        super.remove(reason);
     }
 
     @Override

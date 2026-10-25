@@ -246,6 +246,7 @@ public class DWMItems {
     public static Item TIME_LORD_SPAWN_EGG;
     public static Item DALEK_SPAWN_EGG;
     public static Item PARADIGM_DALEK_SPAWN_EGG;
+    public static Item DALEK_MUTANT_SPAWN_EGG;
 
     public static void initialize() {
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {
@@ -291,6 +292,11 @@ public class DWMItems {
                 SpawnEggItem::new,
                 new Item.Properties().spawnEgg(DWMEntityTypes.PARADIGM_DALEK),
                 "paradigm_dalek_spawn_egg"
+        );
+        DALEK_MUTANT_SPAWN_EGG = register(
+                SpawnEggItem::new,
+                new Item.Properties().spawnEgg(DWMEntityTypes.DALEK_MUTANT),
+                "dalek_mutant_spawn_egg"
         );
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.INGREDIENTS).register(content -> {
@@ -375,6 +381,7 @@ public class DWMItems {
             content.accept(TIME_LORD_SPAWN_EGG);
             content.accept(DALEK_SPAWN_EGG);
             content.accept(PARADIGM_DALEK_SPAWN_EGG);
+            content.accept(DALEK_MUTANT_SPAWN_EGG);
         });
     }
 

@@ -33,6 +33,9 @@ public class DWMSounds {
     public static final SoundEvent DALEK_HURT = register("entity.dalek.hurt");
     public static final SoundEvent DALEK_DEATH = register("entity.dalek.death");
     public static final SoundEvent DALEK_SHOOT = register("entity.dalek.shoot");
+    public static final SoundEvent DALEK_MUTANT_AMBIENT = register("entity.dalek_mutant.ambient");
+    public static final SoundEvent DALEK_MUTANT_HURT = register("entity.dalek_mutant.hurt");
+    public static final SoundEvent DALEK_MUTANT_DEATH = register("entity.dalek_mutant.death");
 
     public static void initialize() {
     }
