@@ -9,11 +9,9 @@ import com.adamkali.dwm.world.structure.ThalSettlementLayout;
 import com.adamkali.dwm.world.structure.ThalSettlementLayout.Cell;
 import com.adamkali.dwm.world.structure.ThalSettlementLayout.Kind;
 import com.adamkali.dwm.world.structure.ThalSettlementLayout.PlannedPiece;
-import com.adamkali.dwm.world.structure.ThalSettlementStructure;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -21,24 +19,16 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.SpawnPlacements;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
-import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.levelgen.structure.BoundingBox;
-import net.minecraft.world.level.levelgen.structure.Structure;
-import net.minecraft.world.level.levelgen.structure.StructurePiece;
-import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraft.world.level.levelgen.structure.pieces.PiecesContainer;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSerializationContext;
-import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
 import net.minecraft.world.phys.AABB;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -279,10 +269,7 @@ public class ThalSettlementGameTests {
         final int centreZ;
         final int floorY;
         final ThalSettlementLayout.Layout layout = ThalSettlementLayout.plan(SEED);
-        final Structure structure;
         final PiecesContainer container;
-        final ChunkPos startChunk;
-        final List<ChunkPos> chunks = new ArrayList<>();
         BlockPos pit = BlockPos.ZERO;
         BlockPos fieldBump = BlockPos.ZERO;
         BlockPos pathBump = BlockPos.ZERO;
@@ -293,19 +280,7 @@ public class ThalSettlementGameTests {
             this.centreX = origin.getX() + offset;
             this.centreZ = origin.getZ() + offset;
             this.floorY = origin.getY() + FLOOR_Y_OFFSET;
-            this.structure = level.registryAccess().lookupOrThrow(Registries.STRUCTURE)
-                    .getValueOrThrow(ThalSettlementStructure.KEY);
-            StructurePiecesBuilder builder = new StructurePiecesBuilder();
-            ThalSettlementStructure.buildPieces(builder, layout, centreX, centreZ, floorY);
-            this.container = builder.build();
-            this.startChunk = ChunkPos.containing(new BlockPos(centreX, floorY, centreZ));
-
-            BoundingBox box = container.calculateBoundingBox();
-            for (int cx = box.minX() >> 4; cx <= box.maxX() >> 4; cx++) {
-                for (int cz = box.minZ() >> 4; cz <= box.maxZ() >> 4; cz++) {
-                    chunks.add(new ChunkPos(cx, cz));
-                }
-            }
+            this.container = StructureGameTestSupport.buildThalPieces(layout, centreX, centreZ, floorY);
         }
 
         static Site prepare(GameTestHelper context, int offset, boolean withDefects) {
@@ -388,21 +363,7 @@ public class ThalSettlementGameTests {
         }
 
         void placeAll(PiecesContainer pieces) {
-            StructureStart start = new StructureStart(structure, startChunk, 0, pieces);
-            for (ChunkPos chunkPos : chunks) {
-                ChunkAccess chunk = level.getChunk(chunkPos.x(), chunkPos.z());
-                if (chunkPos.equals(startChunk)) {
-                    chunk.setStartForStructure(structure, start);
-                }
-                chunk.addReferenceForStructure(structure, startChunk.pack());
-            }
-            for (ChunkPos chunkPos : chunks) {
-                start.placeInChunk(
-                        level, level.structureManager(), level.getChunkSource().getGenerator(), level.getRandom(),
-                        new BoundingBox(chunkPos.getMinBlockX(), level.getMinY(), chunkPos.getMinBlockZ(),
-                                chunkPos.getMaxBlockX(), level.getMaxY(), chunkPos.getMaxBlockZ()),
-                        chunkPos);
-            }
+            StructureGameTestSupport.placeThalPieces(level, pieces, centreX, centreZ, floorY);
         }
 
         List<ThalEntity> allThals() {
