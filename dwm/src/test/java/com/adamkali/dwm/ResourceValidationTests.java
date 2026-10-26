@@ -1553,6 +1553,52 @@ public class ResourceValidationTests {
         );
     }
 
+    private static JSONObject readJson(String path) throws Exception {
+        return new JSONObject(new JSONTokener(Files.newBufferedReader(Path.of(path))));
+    }
+
+    @Test
+    public void thalSettlementStructureIsPlateauOnlyAndSuppressesMonsterSpawns() throws Exception {
+        JSONObject structure = readJson("src/main/resources/data/dwm/worldgen/structure/thal_settlement.json");
+        assertEquals("dwm:thal_settlement", structure.getString("type"));
+        assertEquals("#dwm:has_structure/thal_settlement", structure.getString("biomes"));
+        assertEquals("surface_structures", structure.getString("step"));
+        JSONObject monster = structure.getJSONObject("spawn_overrides").getJSONObject("monster");
+        assertEquals("full", monster.getString("bounding_box"));
+        assertEquals(0, monster.getJSONArray("spawns").length(), "Dalek patrols must be suppressed inside settlements");
+
+        JSONObject tag = readJson("src/main/resources/data/dwm/tags/worldgen/biome/has_structure/thal_settlement.json");
+        assertFalse(tag.optBoolean("replace", false), "settlement biome tag must not replace");
+        assertEquals(
+                List.of("dwm:skaro_thal_plateau"),
+                tag.getJSONArray("values").toList().stream().map(Object::toString).toList(),
+                "only the Thal Plateau may host a settlement"
+        );
+    }
+
+    @Test
+    public void thalSettlementStructureSetIsRareAndUsesAUniqueSalt() throws Exception {
+        JSONObject set = readJson("src/main/resources/data/dwm/worldgen/structure_set/thal_settlement.json");
+        var structures = set.getJSONArray("structures");
+        assertEquals(1, structures.length());
+        assertEquals("dwm:thal_settlement", structures.getJSONObject(0).getString("structure"));
+        JSONObject placement = set.getJSONObject("placement");
+        assertEquals("minecraft:random_spread", placement.getString("type"));
+        assertTrue(placement.getInt("spacing") >= 32, "settlements must stay rare");
+        assertTrue(placement.getInt("separation") < placement.getInt("spacing"));
+
+        Set<Integer> salts = new HashSet<>();
+        try (var sets = Files.list(Path.of("src/main/resources/data/dwm/worldgen/structure_set"))) {
+            for (Path file : sets.filter(f -> f.toString().endsWith(".json")).toList()) {
+                JSONObject other = readJson(file.toString());
+                assertTrue(
+                        salts.add(other.getJSONObject("placement").getInt("salt")),
+                        "duplicate structure set salt in " + file.getFileName()
+                );
+            }
+        }
+    }
+
     private static void assertDalekMonsterPatrol(JSONObject biome, String biomeFile, boolean sparse) {
         var monsters = biome.getJSONObject("spawners").getJSONArray("monster");
         assertEquals(2, monsters.length(), biomeFile + " must spawn only Dalek and Paradigm Dalek monsters");
