@@ -10,6 +10,7 @@ import java.util.List;
 /**
  * Screenshots of DWM mobs lined up facing the camera (AI off, so poses are stable):
  * {@code entities_time_lords}, {@code entities_flutterwings}, {@code entities_misc},
+ * {@code entities_thals} (the four Thal variants),
  * {@code entities_classic_daleks} (1963 and Time War casings, close up, plus
  * {@code entities_classic_daleks_night}: only the Time War eye and lights glow),
  * {@code entities_paradigm_daleks}, and the same Paradigm group at midnight
@@ -56,6 +57,11 @@ public class EntitiesClientGameTest implements FabricClientGameTest {
                     new Mob("dalek", "Variant:\"1963\""),
                     new Mob("dalek", "Variant:\"time_war_bronze\"")));
             nightShot(context, world, "entities_paradigm_daleks_night");
+            lineUp(context, world, 5, "entities_thals", List.of(
+                    new Mob("thal", "Variant:\"thal_1\""),
+                    new Mob("thal", "Variant:\"thal_2\""),
+                    new Mob("thal", "Variant:\"thal_3\""),
+                    new Mob("thal", "Variant:\"thal_4\"")));
 
             ClientGameTestSupport.toggleHud(context);
         }
