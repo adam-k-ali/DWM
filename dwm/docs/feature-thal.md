@@ -3,7 +3,7 @@
 See also: [Docs Index](./index.md), [Skaro Dimension](./feature-skaro-dimension.md), [Dalek](./feature-dalek.md), [Entity Definitions](./feature-entity-definitions.md)
 
 ## Product Intent
-Give Skaro a peaceful, living population to contrast with the Dalek patrols: a neutral Thal who wanders, greets players with a glance, and runs from Daleks. This pass ships the mob itself (DWM-071, entity slice); Thals reach the world through plateau settlements added separately, not through biome spawning.
+Give Skaro a peaceful, living population to contrast with the Dalek patrols: a neutral Thal who wanders, greets players with a glance, and runs from Daleks. This pass ships the mob itself (DWM-071, entity slice); Thals reach the world through the rare plateau settlements (see [Skaro Dimension](./feature-skaro-dimension.md#thal-plateau-settlement)), not through biome spawning.
 
 ## Player Outcomes
 - Spawn a Thal from the **Thal Spawn Egg** (Spawn Eggs tab, right after the Time Lord) or with `/summon dwm:thal`.
@@ -45,7 +45,8 @@ To make Thals flee something else (for example a future Slyther), add its entity
 ## Spawning
 - **No natural or biome spawning.** No biome lists `dwm:thal` as a spawner (guarded by `ResourceValidationTests.noBiomeSpawnsThals`). Residents come only from plateau settlements.
 - The spawn placement predicate delegates to `ThalSpawnRules`: `NATURAL` and `CHUNK_GENERATION` spawns are rejected unless the position is inside a Thal settlement; every other reason (spawn egg, `/summon`, structure, triggered, ...) is allowed when the vanilla mob spawn rules pass.
-- `ThalSpawnRules.isInsideSettlement` currently always returns `false`. The settlement structure lookup is plugged in there when the plateau settlement ships.
+- `ThalSpawnRules.isInsideSettlement` asks the level's structure manager whether the position lies in a piece of a `dwm:thal_settlement` structure, so ambient `NATURAL` / `CHUNK_GENERATION` spawns succeed only inside a settlement.
+- Residents are placed by the settlement itself: 2 to 3 in the communal shelter and 1 to 2 in each hut, created with the `STRUCTURE` spawn reason and marked persistent so they never despawn. Each building remembers that it has spawned its residents, so they are not duplicated when the chunk is processed again.
 
 ## Not Included
 - No trades, professions, or merchant screen.
@@ -56,9 +57,10 @@ To make Thals flee something else (for example a future Slyther), add its entity
 
 ## Known Constraints
 - Stats and AI are JSON-authored; edits need a game restart, not `/reload` (see [Entity Definitions](./feature-entity-definitions.md)).
-- Thals have no settlement to live in yet, so outside spawn eggs and commands they do not appear in the world.
+- Thals live only in plateau settlements; outside them they appear only from spawn eggs and commands. Settlement residents are homed to the settlement centre (vanilla mob home, radius 36, saved with the entity), so their wandering stays inside the settlement; egg- or command-spawned Thals have no home.
 
 ## Testing
 - Unit: `ThalEntityTest`, `ThalSpawnRulesTest`, `EntityDefinitionCatalogTest` (shipped stats, `dwm:avoid_entity` parsing), and resource checks in `ResourceValidationTests` (textures, spawn egg model, `thal_fears` tag, no biome spawns).
+- Settlement: `ThalSettlementLayoutTest` (layout invariants over 500 seeds), resource checks in `ResourceValidationTests`, and `ThalSettlementGameTests` (every piece placed chunk by chunk, connected paths, persistent residents spawned once and not respawned after a save and reload, natural spawns only inside the settlement).
 - GameTests (`ThalGameTests`): matches its definition, variant survives save and load, flees a Dalek, panics rather than targets when hit by a player, and natural spawns are rejected while spawn egg and command spawns are allowed.
 - Client GameTest: `entities_thals` screenshot of the four variants.

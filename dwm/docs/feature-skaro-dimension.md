@@ -21,7 +21,7 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
   - Drammankin Mire: mud over dirt; olive fog and murky water.
   - Drammankin Mountains: stone / tuff / gravel over tuff; cold ash-grey atmosphere.
   - Thal Plateau: dirt / coarse dirt / terracotta; muted blue-grey sky.
-- Baseline caves, lakes, and vanilla ores in every biome. No Overworld hostiles, cave fauna, or farm animals. No Gallifrey plants, woods, ores, or fauna. **Dalek patrols** spawn from biome monster tables: small groups (1–3) in petrified jungle, Drammankin mire, and Drammankin mountains; lower weight and 1–2 groups in irradiated wastes and the Thal plateau. Rare, solo **Paradigm Daleks** share every Skaro monster table at a much lower weight. The peaceful [Thal](./feature-thal.md) NPC and its spawn egg are shipped, but Thals never spawn from biome tables; Thal settlements and Skaro fauna remain planned.
+- Baseline caves, lakes, and vanilla ores in every biome. No Overworld hostiles, cave fauna, or farm animals. No Gallifrey plants, woods, ores, or fauna. **Dalek patrols** spawn from biome monster tables: small groups (1–3) in petrified jungle, Drammankin mire, and Drammankin mountains; lower weight and 1–2 groups in irradiated wastes and the Thal plateau. Rare, solo **Paradigm Daleks** share every Skaro monster table at a much lower weight. The peaceful [Thal](./feature-thal.md) NPC and its spawn egg are shipped, and Thals live only in the plateau settlements below (never in biome tables); Skaro fauna remains planned.
 - TARDIS planet locator discovers Skaro automatically as a loaded world. `BiomeSelectorLogic` maps `dwm:skaro` to `#dwm:is_skaro`.
 - **Petrified wood family** (DWM-064): mineralized Skaro trunks and builder variants.
   - Natural: `petrified_log`, `petrified_wood` (axis pillars).
@@ -31,6 +31,7 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
 - **Petrified Jungle flora** (DWM-068 slice): configured features `petrified_tree`, `petrified_snag`, and `fallen_petrified_tree` placed only in `skaro_petrified_jungle` (branching trunks, straight snags, fallen logs — all `petrified_log`, no saplings/leaves).
 - **Dalekanium** (materials + panel slice): Skaro-only ore that smelts to silver Dalekanium ingots; bronze alloy from silver + copper; silver and bronze tool sets slightly stronger than steel; silver/bronze panels and riveted walls craftable from matching ingots. See [Dalekanium](./feature-dalekanium.md).
 - **Vanilla terrain palette (intentional, not placeholder):** stone, tuff, deepslate, gravel, basalt, sand, red sand, terracotta, dirt, coarse dirt, rooted dirt, mud, and podzol. There is no custom Skaro stone, sand, sandstone, dust, or dirt family.
+- **Thal plateau settlement** (`dwm:thal_settlement`, DWM-071 settlement slice): a rare, code-built village of the peaceful Thals. See [Thal settlement](#thal-plateau-settlement) below.
 - **Radiation hazards and survival equipment** (DWM-067):
   - Server-authoritative ambient exposure only on Skaro for survival players (creative/spectator ignored). No stored dose — leaving Skaro clears future exposure immediately.
   - Biome ambient values (`0.0–1.0`): Thal Plateau `0.15`, Petrified Jungle `0.40`, Drammankin Mountains `0.55`, Drammankin Mire `0.80`, Irradiated Wastes `0.95`.
@@ -43,7 +44,30 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
 ## Planned (not yet in the jar)
 - Remaining Dalek architecture builder family (DWM-065): wall, floor, light, door, damaged variants.
 - Remaining Skaro flora (Varga, radiation fungus, mutated reeds, ash scrub, Thal crop) under DWM-068.
-- Structures, Thal/fauna population, Kaalann, and related tickets (DWM-069, DWM-071–074). Dalek biome patrols shipped under DWM-070; structure-scoped population is still planned.
+- Hostile structures (war landmarks, Kaled bunker; DWM-069), Skaro fauna, Kaalann, and related tickets (DWM-072–074). Dalek biome patrols shipped under DWM-070 and the Thal settlement shipped under DWM-071; structure-scoped Dalek population is still planned.
+- **Future hostile structure sets must add an `exclusion_zone` against `dwm:thal_settlement`** in their structure-set placement (for example `{"other_set": "dwm:thal_settlement", "chunk_count": 4}`) so war landmarks, bunkers, and cities never generate on top of or beside a settlement. No hostile Skaro structure exists yet, so nothing is excluded today; DWM-069 owns adding it.
+- The settlement fields plant vanilla wheat as a stand-in. When the Thal crop of DWM-068 exists, swap the single constant `ThalSettlementPalette.FIELD_CROP`.
+
+## Thal Plateau Settlement
+A hand-placed-looking village that is generated entirely from code (no NBT templates), deterministic for a given world seed and location.
+
+| Aspect | Value |
+| --- | --- |
+| Structure / set | `dwm:thal_settlement` (type `dwm:thal_settlement`), structure set `dwm:thal_settlement` |
+| Where | Only where the centre of the settlement is in `dwm:skaro_thal_plateau` (biome tag `#dwm:has_structure/thal_settlement`, which lists only that biome) and every building stands in that tag; never in other biomes or dimensions |
+| Rarity | `random_spread`, spacing 40 / separation 14 chunks. The plateau itself is already rare, so settlements are rare on top of that; a site is also rejected when its surface varies by more than 6 blocks across the settlement, its centre is in water, or more than a quarter of the sampled building columns lie under more than 2 blocks of water or lava. In a seed-12345 test world the nearest settlement was roughly 1 to 2.7 km from each sampled point |
+| Contents | 1 communal shelter (larger hall with table, seats and beds), 3 to 5 huts, 2 fields, 1 watch post, and a path network |
+| Materials | Petrified planks, stripped petrified logs, stairs, slabs and walls for walls, frames and roofs; oak doors (Thals open doors); dirt paths; lanterns, beds, crafting tables and barrels as furnishings |
+| Fields | Farmland either side of a central water channel, planted with wheat at mixed growth stages. Wheat is a placeholder until the Thal crop of DWM-068 exists (one constant, `ThalSettlementPalette.FIELD_CROP`) |
+| Watch post | A 3x3 petrified-log tower with a door, an inside ladder and a railed platform. Nobody guards it (guards are out of scope) |
+| Paths | Every building's doorstep is joined to the shelter's by 4-connected dirt-path tiles at one shared floor level that never cross a building; the whole network is walkable with no steps, and two blocks of headroom are cleared above it |
+| Residents | 2 to 3 Thals in the shelter and 1 to 2 in each hut, spawned persistent when the building is generated and homed to the settlement centre (radius 36) so they stay resident. A once-only flag stored in the piece prevents duplicates when a chunk is regenerated or re-processed |
+| Spawn policy | `ThalSpawnRules.isInsideSettlement` finds the settlement through the structure lookup, so `NATURAL` and `CHUNK_GENERATION` spawns succeed only inside a settlement; biome membership alone never spawns a Thal |
+| Monsters | The structure overrides the `monster` spawn category with an empty list over its full bounding box, so Dalek patrols from the biome table do not spawn inside a settlement |
+
+Build order is height-driven: the common floor level is the median sampled surface, buildings sit on a filled foundation and clear the air above them, and terrain beards (`beard_thin`) blend the surroundings.
+
+Not included: trades, dialogue, quests, guards, raids, or a Thal crop with new progression. Debug: `/execute in dwm:skaro run locate structure dwm:thal_settlement`, then teleport nearby.
 
 ## How It Works In-Game
 1. Mine petrified logs with a pickaxe (or strip with an axe), then craft planks, stairs, slabs, and walls like other builder sets.
@@ -63,6 +87,6 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
 
 ## Future Opportunities
 - Custom dimension effects for Skaro sky, fog, and clouds.
-- Thal trades or professions if a later settlement loop needs them.
+- Thal trades or professions if a later settlement loop needs them; guards for the watch post; settlement variants (walled, larger) and Thal-crop fields once DWM-068 lands.
 - Additional Dalek ranks, vehicles, or city-state mechanics beyond the baseline patrol and structure presence.
 - EVA-suit degradation, medicines, or structure-scale radiation hotspots.
