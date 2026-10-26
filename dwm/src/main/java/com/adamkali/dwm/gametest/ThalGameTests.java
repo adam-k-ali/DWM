@@ -14,13 +14,21 @@ import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.ai.goal.PanicGoal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
 
 import java.util.EnumSet;
 
 public class ThalGameTests {
-    private static final int FLOOR_SIZE = 16;
+    /** The fabric empty test structure is 8x8x8; floors that stay at y = 1 must fit inside it. */
+    private static final int AREA_SIZE = 8;
+    /**
+     * Fleeing needs more room than the 8x8 test area, so the scenario runs on a private pad this far (in blocks)
+     * from the test's own origin, clear of every neighbouring test in the batch.
+     */
+    private static final int FLEE_PAD_OFFSET = 10_000;
+    private static final int FLEE_PAD_RADIUS = 16;
 
     @GameTest(structure = "fabric-gametest-api-v1:empty")
     public void spawnThalOnGrass(GameTestHelper context) {
@@ -75,14 +83,28 @@ public class ThalGameTests {
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 200)
     public void thalFleesDalek(GameTestHelper context) {
-        layFloor(context);
-        ThalEntity thal = context.spawn(DWMEntityTypes.THAL, new BlockPos(8, 2, 8));
-        DalekEntity dalek = context.spawn(DWMEntityTypes.DALEK, new BlockPos(8, 2, 13));
+        BlockPos pad = new BlockPos(FLEE_PAD_OFFSET, 1, 0);
+        forcePadChunks(context, pad, true);
+        for (int x = -FLEE_PAD_RADIUS; x <= FLEE_PAD_RADIUS; x++) {
+            for (int z = -FLEE_PAD_RADIUS; z <= FLEE_PAD_RADIUS; z++) {
+                context.setBlock(pad.offset(x, 0, z), DWMBlocks.GALLIFREY_GRASS_BLOCK.defaultBlockState());
+                for (int y = 1; y <= 3; y++) {
+                    context.setBlock(pad.offset(x, y, z), Blocks.AIR.defaultBlockState());
+                }
+            }
+        }
+        ThalEntity thal = context.spawn(DWMEntityTypes.THAL, pad.offset(0, 1, -2));
+        DalekEntity dalek = context.spawn(DWMEntityTypes.DALEK, pad.offset(0, 1, 3));
         dalek.setNoAi(true);
         double start = thal.distanceTo(dalek);
-        context.succeedWhen(() -> context.assertTrue(
-                thal.distanceTo(dalek) > start + 3.0,
-                "Thal should flee the Dalek: started " + start + " blocks away, now " + thal.distanceTo(dalek)));
+        context.succeedWhen(() -> {
+            context.assertTrue(
+                    thal.distanceTo(dalek) > start + 3.0,
+                    "Thal should flee the Dalek: started " + start + " blocks away, now " + thal.distanceTo(dalek));
+            thal.discard();
+            dalek.discard();
+            forcePadChunks(context, pad, false);
+        });
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 100)
@@ -102,8 +124,8 @@ public class ThalGameTests {
 
     @GameTest(structure = "fabric-gametest-api-v1:empty")
     public void thalSpawnPlacementRejectsNaturalSpawns(GameTestHelper context) {
-        layFloor(context);
-        BlockPos pos = context.absolutePos(new BlockPos(8, 2, 8));
+        layFloor(context, 0, AREA_SIZE - 1, 1);
+        BlockPos pos = context.absolutePos(new BlockPos(4, 2, 4));
         var level = context.getLevel();
         var random = level.getRandom();
         for (EntitySpawnReason reason : new EntitySpawnReason[]{EntitySpawnReason.NATURAL, EntitySpawnReason.CHUNK_GENERATION}) {
@@ -120,10 +142,19 @@ public class ThalGameTests {
         context.succeed();
     }
 
-    private static void layFloor(GameTestHelper context) {
-        for (int x = 0; x <= FLOOR_SIZE; x++) {
-            for (int z = 0; z <= FLOOR_SIZE; z++) {
-                context.setBlock(new BlockPos(x, 1, z), DWMBlocks.GALLIFREY_GRASS_BLOCK.defaultBlockState());
+    private static void forcePadChunks(GameTestHelper context, BlockPos pad, boolean forced) {
+        BlockPos centre = context.absolutePos(pad);
+        for (int cx = (centre.getX() - FLEE_PAD_RADIUS) >> 4; cx <= (centre.getX() + FLEE_PAD_RADIUS) >> 4; cx++) {
+            for (int cz = (centre.getZ() - FLEE_PAD_RADIUS) >> 4; cz <= (centre.getZ() + FLEE_PAD_RADIUS) >> 4; cz++) {
+                context.getLevel().setChunkForced(cx, cz, forced);
+            }
+        }
+    }
+
+    private static void layFloor(GameTestHelper context, int min, int max, int y) {
+        for (int x = min; x <= max; x++) {
+            for (int z = min; z <= max; z++) {
+                context.setBlock(new BlockPos(x, y, z), DWMBlocks.GALLIFREY_GRASS_BLOCK.defaultBlockState());
             }
         }
     }
