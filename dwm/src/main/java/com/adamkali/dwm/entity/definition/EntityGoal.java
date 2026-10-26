@@ -11,10 +11,14 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.ai.goal.BreedGoal;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
@@ -73,6 +77,7 @@ public sealed interface EntityGoal {
         SIT_WHEN_ORDERED("minecraft:sit_when_ordered", Selector.GOAL),
         DALEK_FLIGHT("dwm:dalek_flight", Selector.GOAL),
         TAMABLE_PANIC("dwm:tamable_panic", Selector.GOAL),
+        AVOID_ENTITY("dwm:avoid_entity", Selector.GOAL),
         HURT_BY_TARGET("minecraft:hurt_by_target", Selector.TARGET),
         NEAREST_ATTACKABLE_TARGET("minecraft:nearest_attackable_target", Selector.TARGET),
         OWNER_HURT_BY_TARGET("minecraft:owner_hurt_by_target", Selector.TARGET),
@@ -116,6 +121,7 @@ public sealed interface EntityGoal {
                 case SIT_WHEN_ORDERED -> SitWhenOrdered.MAP_CODEC;
                 case DALEK_FLIGHT -> DalekFlight.MAP_CODEC;
                 case TAMABLE_PANIC -> TamablePanic.MAP_CODEC;
+                case AVOID_ENTITY -> AvoidEntity.MAP_CODEC;
                 case HURT_BY_TARGET -> HurtByTarget.MAP_CODEC;
                 case NEAREST_ATTACKABLE_TARGET -> NearestAttackableTarget.MAP_CODEC;
                 case OWNER_HURT_BY_TARGET -> OwnerHurtByTarget.MAP_CODEC;
@@ -371,6 +377,39 @@ public sealed interface EntityGoal {
             TamableAnimal tamable = require(mob, TamableAnimal.class, kind());
             TagKey<DamageType> tag = TagKey.create(Registries.DAMAGE_TYPE, damageTypes);
             return tamable.new TamableAnimalPanicGoal(speed, tag);
+        }
+    }
+
+    /**
+     * Flee from living entities whose type is in an entity-type tag (JSON {@code "#namespace:path"}).
+     * Wraps vanilla {@link AvoidEntityGoal}.
+     */
+    record AvoidEntity(TagKey<EntityType<?>> entities, float maxDistance, double walkSpeed, double sprintSpeed)
+            implements EntityGoal {
+        static final MapCodec<AvoidEntity> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+                TagKey.hashedCodec(Registries.ENTITY_TYPE).fieldOf("entities").forGetter(AvoidEntity::entities),
+                Codec.FLOAT.fieldOf("max_distance").forGetter(AvoidEntity::maxDistance),
+                Codec.DOUBLE.fieldOf("walk_speed").forGetter(AvoidEntity::walkSpeed),
+                Codec.DOUBLE.fieldOf("sprint_speed").forGetter(AvoidEntity::sprintSpeed)
+        ).apply(instance, AvoidEntity::new));
+
+        @Override
+        public Kind kind() {
+            return Kind.AVOID_ENTITY;
+        }
+
+        @Override
+        public Goal create(Mob mob) {
+            TagKey<EntityType<?>> tag = entities;
+            return new AvoidEntityGoal<>(
+                    require(mob, PathfinderMob.class, kind()),
+                    LivingEntity.class,
+                    entity -> entity.getType().builtInRegistryHolder().is(tag),
+                    maxDistance,
+                    walkSpeed,
+                    sprintSpeed,
+                    EntitySelector.NO_CREATIVE_OR_SPECTATOR
+            );
         }
     }
 

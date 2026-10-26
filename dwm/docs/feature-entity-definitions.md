@@ -8,7 +8,7 @@ Author living-mob combat stats and AI goal lists as JSON instead of Java `create
 
 ## Player Outcomes
 
-Unchanged from the current Broakir, Flutterwing, Mewing Dog, Time Lord, and Dalek behaviour. This is an authoring API, not a new in-game screen.
+Unchanged from the current Broakir, Flutterwing, Mewing Dog, Time Lord, Thal, and Dalek behaviour. This is an authoring API, not a new in-game screen.
 
 ## Layout
 
@@ -50,7 +50,7 @@ Every goal/target object has `type`, `priority`, and optional `can_use`. Extra f
 
 `minecraft:` here means “vanilla `Goal` class”, not a vanilla registry.
 
-**Goals:** `minecraft:float`, `panic`, `water_avoiding_random_stroll`, `water_avoiding_random_flying`, `look_at`, `random_look_around`, `open_door`, `ranged_attack`, `melee_attack`, `leap_at_target`, `breed`, `follow_owner`, `sit_when_ordered`, `dwm:dalek_flight`, `dwm:tamable_panic`.
+**Goals:** `minecraft:float`, `panic`, `water_avoiding_random_stroll`, `water_avoiding_random_flying`, `look_at`, `random_look_around`, `open_door`, `ranged_attack`, `melee_attack`, `leap_at_target`, `breed`, `follow_owner`, `sit_when_ordered`, `dwm:dalek_flight`, `dwm:tamable_panic`, `dwm:avoid_entity`.
 
 **Targets:** `minecraft:hurt_by_target`, `nearest_attackable_target`, `owner_hurt_by_target`, `owner_hurt_target`, `reset_universal_anger`, `dwm:dalek_share_target`.
 
@@ -60,6 +60,15 @@ Every goal/target object has `type`, `priority`, and optional `can_use`. Extra f
 - `filter` on nearest-attackable: `{ "type": "dwm:is_angry_at" }` — Mewing Dog persistent anger
 
 `look_at` and `nearest_attackable_target` currently resolve `minecraft:player` only.
+
+`dwm:avoid_entity` wraps vanilla `AvoidEntityGoal` so a mob flees living entities in an **entity-type tag**:
+
+```json
+{ "type": "dwm:avoid_entity", "priority": 1, "entities": "#dwm:thal_fears",
+  "max_distance": 12.0, "walk_speed": 1.0, "sprint_speed": 1.3 }
+```
+
+`entities` must be a `#namespace:path` tag reference (a bare entity id is rejected); `max_distance` is in blocks; `walk_speed` applies while the threat is far, `sprint_speed` once it is close. Creative and spectator players are never avoided. Requires a `PathfinderMob`.
 
 Adding a type means a Java codec + factory on `EntityGoal` **and** a matching branch in `src/test/resources/schemas/entity_definition.schema.json`.
 
