@@ -38,7 +38,7 @@ Give survival and creative worlds a hostile Doctor Who enemy: a 1963 Dalek that 
 - Daleks do not naturally spawn on Gallifrey or other non-Skaro worlds.
 - Checkpoint, bunker, and Kaalann structure population is not shipped yet (DWM-069).
 - Variants and castes are visual only; Paradigm castes do not have rank-specific behaviour (e.g. a Supreme commanding Drones) yet.
-- Does not target Time Lords or Thals in this pass.
+- Does not target Time Lords or Thals in this pass. Thals flee Daleks on sight (`#dwm:thal_fears`, see [Thal](./feature-thal.md)); the Daleks never hunt them.
 - No unique drops yet.
 - The Dalek mutant has no natural spawns and does not climb back into a casing.
 

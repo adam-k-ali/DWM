@@ -26,13 +26,15 @@ JSON is loaded from the jar at init (`EntityDefinitions.initialize()`). `/reload
 
 ## Commands
 - Unit tests: `./dwm/gradlew test --tests "com.adamkali.dwm.entity.*"`
-- GameTests: `./dwm/gradlew runGametest` (Broakir, Flutterwing, MewingDog, TimeLord, Dalek incl. Paradigm and mutant)
+- GameTests: `./dwm/gradlew runGametest` (Broakir, Flutterwing, MewingDog, TimeLord, Thal, Dalek incl. Paradigm and mutant)
 - Schema: `ResourceValidationTests.validateEntityDefinitions`
 
 ## Conventions
 - New living mobs: register the type in `DWMEntityTypes`, add `data/dwm/entity/definition/<id>.json`, keep Java for class-specific behaviour.
 - Custom `Goal` subclasses stay in Java; JSON only supplies constructor parameters and optional `can_use` / `filter`.
 - `look_at` / `nearest_attackable_target` currently support `minecraft:player` only.
+- `dwm:avoid_entity` takes an entity-type **tag** (`#dwm:thal_fears`); extend the tag in `DWMEntityTagProvider` rather than editing the goal.
+- `ThalSpawnRules` is the pure spawn policy for Thals (no natural/chunk-generation spawns outside settlements); do not add Thals to biome spawner lists.
 
 ## Common Pitfalls
 - Changing JSON requires a process restart, not `/reload`.
