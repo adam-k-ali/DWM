@@ -1587,6 +1587,14 @@ public class ResourceValidationTests {
         assertTrue(placement.getInt("spacing") >= 32, "settlements must stay rare");
         assertTrue(placement.getInt("separation") < placement.getInt("spacing"));
 
+        // Settlements keep clear of hostile Dalek military landmarks (outposts and later trenches/wreckage).
+        JSONObject exclusion = placement.getJSONObject("exclusion_zone");
+        assertEquals("dwm:skaro_military_landmarks", exclusion.getString("other_set"));
+        assertTrue(Files.exists(Path.of("src/main/resources/data/dwm/worldgen/structure_set/skaro_military_landmarks.json")),
+                "excluded structure set must exist");
+        int chunkCount = exclusion.getInt("chunk_count");
+        assertTrue(chunkCount >= 1 && chunkCount <= 16, "vanilla exclusion_zone chunk_count must be 1..16, got " + chunkCount);
+
         Set<Integer> salts = new HashSet<>();
         try (var sets = Files.list(Path.of("src/main/resources/data/dwm/worldgen/structure_set"))) {
             for (Path file : sets.filter(f -> f.toString().endsWith(".json")).toList()) {
