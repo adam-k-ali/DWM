@@ -31,6 +31,7 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
 - **Petrified Jungle flora** (DWM-068 slice): configured features `petrified_tree`, `petrified_snag`, and `fallen_petrified_tree` placed only in `skaro_petrified_jungle` (branching trunks, straight snags, fallen logs — all `petrified_log`, no saplings/leaves).
 - **Dalekanium** (materials + panel slice): Skaro-only ore that smelts to silver Dalekanium ingots; bronze alloy from silver + copper; silver and bronze tool sets slightly stronger than steel; silver/bronze panels and riveted walls craftable from matching ingots. See [Dalekanium](./feature-dalekanium.md).
 - **Vanilla terrain palette (intentional, not placeholder):** stone, tuff, deepslate, gravel, basalt, sand, red sand, terracotta, dirt, coarse dirt, rooted dirt, mud, and podzol. There is no custom Skaro stone, sand, sandstone, dust, or dirt family.
+- **Dalek outpost** (DWM-069 slice): a modular jigsaw landmark built from bronze and silver Dalekanium plus a few vanilla accents (iron bars, sea lanterns, iron chain, a waxed lightning rod). See [Landmarks](#landmarks).
 - **Radiation hazards and survival equipment** (DWM-067):
   - Server-authoritative ambient exposure only on Skaro for survival players (creative/spectator ignored). No stored dose — leaving Skaro clears future exposure immediately.
   - Biome ambient values (`0.0–1.0`): Thal Plateau `0.15`, Petrified Jungle `0.40`, Drammankin Mountains `0.55`, Drammankin Mire `0.80`, Irradiated Wastes `0.95`.
@@ -40,10 +41,38 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
   - Crafting: yellow-wool EVA suit (helmet uses a glass visor); meter from iron, glass, and redstone. Field Guide chapter **Skaro Survival** documents hazards, meter, and suit recipes.
   - First-person visor overlay while wearing the EVA helmet (vanilla camera overlay; hidden in third person, F1, and spyglass).
 
+## Landmarks
+Small, frequent discoveries that tell Skaro's war history. They are distinct from the planned major structures: the Kaled bunker (DWM-073) and the Dalek city of Kaalann (DWM-074) are larger, rarer destinations. Landmarks never embed Daleks, Thals, or mutants; any population belongs to later tickets.
+
+### Dalek outpost
+- **Structures:** `dwm:dalek_outpost` (intact checkpoint) and `dwm:dalek_outpost_ruined` (same templates, decayed).
+- **Eligible biomes:**
+  - Intact: Irradiated Wastes and Drammankin Mountains (`#dwm:has_structure/dalek_outpost`).
+  - Ruined: Petrified Jungle (`#dwm:has_structure/dalek_outpost_ruined`).
+  - Never on the Thal Plateau or in the Drammankin Mire.
+- **Rarity:** both share the structure set `dwm:skaro_military_landmarks` (random spread, spacing 32 chunks, separation 12, weight 1 each). Later military landmarks (trenches, wreckage) join this set, so they never cluster on top of an outpost.
+- **Pieces** (jigsaw depth 1, `max_distance_from_center` 32). Each wing has one connector facing the core:
+
+  | Piece | Size cap (X×Y×Z) | Projection | Notes |
+  |---|---|---|---|
+  | Core checkpoint | 11×7×11 | rigid | Riveted room on a one-block apron; 3-wide, 2-high doorway at floor level; grille windows; lit roof with railings; the only loot chest; connectors on three sides. |
+  | Watchtower | 5×12×5 | rigid | Open legs, ladder up a bronze pillar through a hatch, railed platform, lit roof. |
+  | Barricade | 7×3×3 | terrain_matching | Low riveted wall and grille that follows uneven ground. |
+  | Sensor mast | 3×8×3 | rigid | Pad, plinth, chain mast with crossbar, lamp and lightning rod. |
+
+  Wing pool weights: watchtower 3, barricade 4, sensor mast 3, nothing 2.
+- **Terrain adaptation:** `beard_thin` packs terrain under rigid pieces and clears it above them. Together with the carved apron in front of the doorway, this keeps the approach walkable on uneven ground.
+- **Ruined variant:** a `pool_aliases` entry maps the wing pool to a ruined copy. The processor list `dwm:skaro/dalek_outpost_ruined` rots about 30% of silver walls (`#dwm:silver_dalekanium_architecture`) and turns about 15% of bronze floor panels to gravel. Floors, the chest, and the doorway survive.
+- **Loot boundary:** exactly one chest, in the core, with loot table `dwm:chests/skaro/dalek_outpost`. It holds existing items only: silver and bronze Dalekanium ingots, iron and copper ingots, redstone, gunpowder, and a rare radiation meter. Wings never hold containers.
+- **Authoring:** templates are Java layouts in `src/test/java/com/adamkali/dwm/world/structure/DalekOutpostTemplates.java`. `./gradlew generateStructureTemplates` writes `data/dwm/structure/skaro/dalek_outpost/*.nbt`, and `StructureTemplateGeneratorTest` fails the build if the committed files drift from the layouts.
+- **Debug:**
+  - `/execute in dwm:skaro run locate structure dwm:dalek_outpost`
+  - `/place structure dwm:dalek_outpost` (or `dwm:dalek_outpost_ruined`)
+
 ## Planned (not yet in the jar)
 - Remaining Dalek architecture builder family (DWM-065): wall, floor, light, door, damaged variants.
 - Remaining Skaro flora (Varga, radiation fungus, mutated reeds, ash scrub, Thal crop) under DWM-068.
-- Structures, Thal/fauna population, Kaalann, and related tickets (DWM-069, DWM-071–074). Dalek biome patrols shipped under DWM-070; structure-scoped population is still planned.
+- Remaining DWM-069 landmarks (battlefield trench/ruin, wreckage/crater, mutation nest, petrified carcass/copse, dry channel), Thal/fauna population, Kaalann, and related tickets (DWM-071–074). Dalek biome patrols shipped under DWM-070; structure-scoped population (e.g. Daleks guarding outposts) is still planned.
 
 ## How It Works In-Game
 1. Mine petrified logs with a pickaxe (or strip with an axe), then craft planks, stairs, slabs, and walls like other builder sets.
