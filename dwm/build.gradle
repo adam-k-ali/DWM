@@ -379,3 +379,18 @@ sourceSets {
 test {
     useJUnitPlatform()
 }
+
+// Structure templates (e.g. the Skaro Dalek outpost) are authored as Java layouts in src/test.
+// This writes their .nbt files; StructureTemplateGeneratorTest fails `test` if they drift.
+tasks.register("generateStructureTemplates", Test) {
+    group = "fabric"
+    description = "Write structure template .nbt files from their Java layouts"
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform()
+    systemProperty "dwm.writeStructureTemplates", "true"
+    filter {
+        includeTestsMatching "com.adamkali.dwm.world.structure.StructureTemplateGeneratorTest.writeTemplates"
+    }
+    outputs.upToDateWhen { false }
+}

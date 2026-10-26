@@ -1,0 +1,27 @@
+{
+  "processors": [
+    {
+      "processor_type": "minecraft:block_rot",
+      "rottable_blocks": "#dwm:silver_dalekanium_architecture",
+      "integrity": 0.7
+    },
+    {
+      "processor_type": "minecraft:rule",
+      "rules": [
+        {
+          "input_predicate": {
+            "predicate_type": "minecraft:random_block_match",
+            "block": "dwm:bronze_dalekanium_panel",
+            "probability": 0.15
+          },
+          "location_predicate": {
+            "predicate_type": "minecraft:always_true"
+          },
+          "output_state": {
+            "Name": "minecraft:gravel"
+          }
+        }
+      ]
+    }
+  ]
+}
