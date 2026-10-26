@@ -1101,6 +1101,64 @@ public class ResourceValidationTests {
     }
 
     @Test
+    public void thalEntityTexturesExist() throws Exception {
+        for (int i = 1; i <= 4; i++) {
+            Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/thal/thal_" + i + ".png");
+            assertTrue(
+                    Files.isRegularFile(texture) && Files.size(texture) > 0,
+                    "ThalRenderer expects assets/dwm/textures/entity/thal/thal_" + i + ".png"
+            );
+        }
+    }
+
+    @Test
+    public void thalSpawnEggTextureExists() throws Exception {
+        Path texture = Path.of("src/client/resources/assets/dwm/textures/item/thal_spawn_egg.png");
+        assertTrue(
+                Files.isRegularFile(texture) && Files.size(texture) > 0,
+                "Spawn egg item model expects assets/dwm/textures/item/thal_spawn_egg.png"
+        );
+    }
+
+    /**
+     * Guards against {@code pruneDatagenItemModels} dropping the Thal spawn egg item def
+     * (allowlist must include {@code thal} substring).
+     */
+    @Test
+    public void generatedThalSpawnEggItemModelExists() throws Exception {
+        Path item = Path.of("src/main/generated/assets/dwm/items/thal_spawn_egg.json");
+        assertTrue(
+                Files.isRegularFile(item) && Files.size(item) > 0,
+                "Missing generated Thal spawn egg item model: " + item
+        );
+    }
+
+    @Test
+    public void thalFearsTagListsTheDaleks() throws Exception {
+        Path path = Path.of("src/main/generated/data/dwm/tags/entity_type/thal_fears.json");
+        assertTrue(Files.isRegularFile(path), "Missing generated thal_fears entity tag: " + path);
+        JSONObject tag = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
+        assertEquals(
+                Set.of("dwm:dalek", "dwm:paradigm_dalek", "dwm:dalek_mutant"),
+                new HashSet<>(tag.getJSONArray("values").toList().stream().map(Object::toString).toList())
+        );
+    }
+
+    /** Residents come only from settlements: no biome may carry a Thal spawner entry. */
+    @Test
+    public void noBiomeSpawnsThals() throws Exception {
+        Path biomeDir = Path.of("src/main/generated/data/dwm/worldgen/biome");
+        try (var biomes = Files.list(biomeDir)) {
+            for (Path biome : biomes.filter(f -> f.toString().endsWith(".json")).toList()) {
+                assertFalse(
+                        Files.readString(biome).contains("dwm:thal"),
+                        biome.getFileName() + " must not list dwm:thal spawners"
+                );
+            }
+        }
+    }
+
+    @Test
     public void gallifreyForestAndPlainsSpawnTimeLord() throws Exception {
         assertTrue(biomeHasCreatureSpawn("gallifrey_forest.json", "dwm:time_lord"));
         assertTrue(biomeHasCreatureSpawn("gallifrey_plains.json", "dwm:time_lord"));

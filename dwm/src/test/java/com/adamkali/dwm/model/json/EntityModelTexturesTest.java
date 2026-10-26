@@ -8,6 +8,7 @@ import com.adamkali.dwm.model.entity.DalekMutantModel;
 import com.adamkali.dwm.model.entity.ParadigmDalekModel;
 import com.adamkali.dwm.model.entity.TimeWarDalekModel;
 import com.adamkali.dwm.model.entity.FlutterwingModel;
+import com.adamkali.dwm.model.entity.ThalModel;
 import com.adamkali.dwm.model.entity.TimeLordModel;
 import com.adamkali.dwm.model.tileentity.StabilisersModel;
 import com.adamkali.dwm.model.tileentity.TardisClassicInteriorDoorModel;
@@ -55,6 +56,7 @@ class EntityModelTexturesTest {
             Map.entry("DalekMutantModel", DalekMutantModel.LAYER_LOCATION),
             Map.entry("FlutterwingModel", FlutterwingModel.LAYER_LOCATION),
             Map.entry("TimeLordModel", TimeLordModel.LAYER_LOCATION),
+            Map.entry("ThalModel", ThalModel.LAYER_LOCATION),
             Map.entry("DalekLaserModel", DalekLaserModel.LAYER_LOCATION),
             Map.entry("TardisGlobeModel", TardisGlobeModel.LAYER_LOCATION),
             Map.entry("StabilisersModel", StabilisersModel.LAYER_LOCATION),
