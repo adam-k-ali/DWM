@@ -31,7 +31,7 @@ Give survival and creative worlds a hostile Doctor Who enemy: a 1963 Dalek that 
 
 ## Known Constraints
 - Daleks do not naturally spawn on Gallifrey or other non-Skaro worlds.
-- Checkpoint, bunker, and Kaalann structure population is not shipped yet (DWM-069).
+- Dalek outposts (checkpoints) generate on Skaro without embedded Daleks (see [Skaro landmarks](./feature-skaro-dimension.md#landmarks)); outpost, bunker, and Kaalann population is not shipped yet.
 - Variants and castes are visual only; Paradigm castes do not have rank-specific behaviour (e.g. a Supreme commanding Drones) yet.
 - Does not target Time Lords or Thals in this pass.
 - No unique drops yet.
