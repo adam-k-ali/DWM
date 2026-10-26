@@ -1,0 +1,38 @@
+{
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 3,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "dwm:skaro/dalek_outpost/watchtower",
+        "projection": "rigid",
+        "processors": "dwm:skaro/dalek_outpost_ruined"
+      }
+    },
+    {
+      "weight": 4,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "dwm:skaro/dalek_outpost/barricade",
+        "projection": "terrain_matching",
+        "processors": "dwm:skaro/dalek_outpost_ruined"
+      }
+    },
+    {
+      "weight": 3,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "dwm:skaro/dalek_outpost/sensor_mast",
+        "projection": "rigid",
+        "processors": "dwm:skaro/dalek_outpost_ruined"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "element_type": "minecraft:empty_pool_element"
+      }
+    }
+  ]
+}
