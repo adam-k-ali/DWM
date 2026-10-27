@@ -6,7 +6,8 @@ package com.adamkali.dwm.entity;
  */
 public enum DalekFamily {
     CLASSIC,
-    PARADIGM;
+    PARADIGM,
+    SPECIAL_WEAPONS;
 
     /** First declared variant of this family; used when no variant was picked or the saved one does not fit. */
     public DalekVariant defaultVariant() {

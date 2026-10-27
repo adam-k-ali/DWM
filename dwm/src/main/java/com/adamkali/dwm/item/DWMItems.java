@@ -252,6 +252,7 @@ public class DWMItems {
     public static Item THAL_SPAWN_EGG;
     public static Item DALEK_SPAWN_EGG;
     public static Item PARADIGM_DALEK_SPAWN_EGG;
+    public static Item SPECIAL_WEAPONS_DALEK_SPAWN_EGG;
     public static Item DALEK_MUTANT_SPAWN_EGG;
 
     public static void initialize() {
@@ -303,6 +304,11 @@ public class DWMItems {
                 SpawnEggItem::new,
                 new Item.Properties().spawnEgg(DWMEntityTypes.PARADIGM_DALEK),
                 "paradigm_dalek_spawn_egg"
+        );
+        SPECIAL_WEAPONS_DALEK_SPAWN_EGG = register(
+                SpawnEggItem::new,
+                new Item.Properties().spawnEgg(DWMEntityTypes.SPECIAL_WEAPONS_DALEK),
+                "special_weapons_dalek_spawn_egg"
         );
         DALEK_MUTANT_SPAWN_EGG = register(
                 SpawnEggItem::new,
@@ -394,6 +400,7 @@ public class DWMItems {
             content.accept(THAL_SPAWN_EGG);
             content.accept(DALEK_SPAWN_EGG);
             content.accept(PARADIGM_DALEK_SPAWN_EGG);
+            content.accept(SPECIAL_WEAPONS_DALEK_SPAWN_EGG);
             content.accept(DALEK_MUTANT_SPAWN_EGG);
         });
     }

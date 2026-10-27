@@ -26,7 +26,7 @@ JSON is loaded from the jar at init (`EntityDefinitions.initialize()`). `/reload
 
 ## Commands
 - Unit tests: `./dwm/gradlew test --tests "com.adamkali.dwm.entity.*"`
-- GameTests: `./dwm/gradlew runGametest` (Broakir, Flutterwing, MewingDog, TimeLord, Thal, Dalek incl. Paradigm and mutant)
+- GameTests: `./dwm/gradlew runGametest` (Broakir, Flutterwing, MewingDog, TimeLord, Thal, Dalek incl. Paradigm, Special Weapons and mutant)
 - Schema: `ResourceValidationTests.validateEntityDefinitions`
 
 ## Conventions

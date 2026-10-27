@@ -12,7 +12,8 @@ public enum DalekVariant {
     PARADIGM_STRATEGIST("paradigm_strategist", DalekChassis.PARADIGM, 4),
     PARADIGM_SCIENTIST("paradigm_scientist", DalekChassis.PARADIGM, 4),
     PARADIGM_ETERNAL("paradigm_eternal", DalekChassis.PARADIGM, 3),
-    PARADIGM_SUPREME("paradigm_supreme", DalekChassis.PARADIGM, 1);
+    PARADIGM_SUPREME("paradigm_supreme", DalekChassis.PARADIGM, 1),
+    SPECIAL_WEAPONS("special_weapons", DalekChassis.SPECIAL_WEAPONS, 1);
 
     private final String id;
     private final DalekChassis chassis;

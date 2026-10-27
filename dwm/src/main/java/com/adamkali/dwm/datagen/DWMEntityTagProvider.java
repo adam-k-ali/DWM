@@ -19,10 +19,12 @@ public class DWMEntityTagProvider extends FabricTagsProvider.EntityTypeTagsProvi
         builder(EntityTypeTags.FALL_DAMAGE_IMMUNE)
                 .add(key(DWMEntityTypes.FLUTTERWING))
                 .add(key(DWMEntityTypes.DALEK))
-                .add(key(DWMEntityTypes.PARADIGM_DALEK));
+                .add(key(DWMEntityTypes.PARADIGM_DALEK))
+                .add(key(DWMEntityTypes.SPECIAL_WEAPONS_DALEK));
         builder(DWMEntityTypeTags.THAL_FEARS)
                 .add(key(DWMEntityTypes.DALEK))
                 .add(key(DWMEntityTypes.PARADIGM_DALEK))
+                .add(key(DWMEntityTypes.SPECIAL_WEAPONS_DALEK))
                 .add(key(DWMEntityTypes.DALEK_MUTANT));
     }
 

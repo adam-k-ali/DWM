@@ -33,6 +33,7 @@ public final class DWMEntityTypes {
     public static EntityType<ThalEntity> THAL;
     public static EntityType<DalekEntity> DALEK;
     public static EntityType<ParadigmDalekEntity> PARADIGM_DALEK;
+    public static EntityType<SpecialWeaponsDalekEntity> SPECIAL_WEAPONS_DALEK;
     public static EntityType<DalekMutantEntity> DALEK_MUTANT;
     public static EntityType<DalekLaserEntity> DALEK_LASER;
 
@@ -57,6 +58,7 @@ public final class DWMEntityTypes {
         THAL = registerThal();
         DALEK = registerDalek();
         PARADIGM_DALEK = registerParadigmDalek();
+        SPECIAL_WEAPONS_DALEK = registerSpecialWeaponsDalek();
         DALEK_MUTANT = registerDalekMutant();
         DALEK_LASER = registerDalekLaser();
     }
@@ -263,6 +265,29 @@ public final class DWMEntityTypes {
                         )
                         .sized(1.0F, 2.4F)
                         .eyeHeight(2.1F)
+                        .clientTrackingRange(10)
+                        .build(key)
+        );
+    }
+
+    private static EntityType<SpecialWeaponsDalekEntity> registerSpecialWeaponsDalek() {
+        ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, SpecialWeaponsDalekEntity.ID);
+        return Registry.register(
+                BuiltInRegistries.ENTITY_TYPE,
+                key,
+                FabricEntityType.Builder.createMob(
+                                SpecialWeaponsDalekEntity::new,
+                                MobCategory.MONSTER,
+                                mob -> mob
+                                        .spawnPlacement(
+                                                SpawnPlacementTypes.ON_GROUND,
+                                                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                                                DalekPatrolLogic::canSpawn
+                                        )
+                                        .defaultAttributes(SpecialWeaponsDalekEntity::createAttributes)
+                        )
+                        .sized(0.94F, 2.15F)
+                        .eyeHeight(1.9F)
                         .clientTrackingRange(10)
                         .build(key)
         );

@@ -157,6 +157,7 @@ public class DWMModelProvider extends FabricModelProvider {
         itemModelGenerator.generateFlatItem(DWMItems.THAL_SPAWN_EGG, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.DALEK_SPAWN_EGG, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.PARADIGM_DALEK_SPAWN_EGG, ModelTemplates.FLAT_ITEM);
+        itemModelGenerator.generateFlatItem(DWMItems.SPECIAL_WEAPONS_DALEK_SPAWN_EGG, ModelTemplates.FLAT_ITEM);
         itemModelGenerator.generateFlatItem(DWMItems.DALEK_MUTANT_SPAWN_EGG, ModelTemplates.FLAT_ITEM);
     }
 
