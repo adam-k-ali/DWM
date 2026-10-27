@@ -696,7 +696,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.entity.thal.ambient.subtitle", "Thal murmurs");
         t.add("dwm.entity.thal.hurt.subtitle", "Thal hurts");
         t.add("dwm.entity.thal.death.subtitle", "Thal dies");
-        t.add("dwm.entity.dalek.ambient.subtitle", "Dalek grates");
+        t.add("dwm.entity.dalek.exterminate.subtitle", "Dalek: Exterminate!");
+        t.add("dwm.entity.dalek.ambient.subtitle", "Dalek speaks");
         t.add("dwm.entity.dalek.hurt.subtitle", "Dalek hurts");
         t.add("dwm.entity.dalek.death.subtitle", "Dalek dies");
         t.add("dwm.entity.dalek.shoot.subtitle", "Dalek laser fires");

@@ -33,3 +33,4 @@ See `fixtures/README.md` for validate/compare report options.
 - Matplotlib/compare outputs under `fixtures/compare_out/` are local reports — commit only if intentionally updating checked-in fixtures.
 - Python version may differ from Java 25; the venv is independent of the Gradle toolchain.
 - Requires `ffmpeg` on `PATH` for WAV→OGG and reference fetch.
+- `generate-dalek-sfx` also needs the `flite` binary on `PATH` (`brew install flite`) for the speech source, and must be run from inside `dwm/tools/sfx` (`cd dwm/tools/sfx && poetry run generate-dalek-sfx`); `poetry -C dwm/tools/sfx run …` from the repo root fails with `ModuleNotFoundError: dwm_sfx` for this script. `--voice` picks the Flite voice (default `kal16`). Do not swap in macOS `say` or other system voices: their licences forbid redistributing the audio.
