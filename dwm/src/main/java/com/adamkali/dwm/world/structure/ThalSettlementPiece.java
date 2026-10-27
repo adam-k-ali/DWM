@@ -34,9 +34,17 @@ abstract class ThalSettlementPiece extends StructurePiece {
     private int homeX;
     private int homeZ;
 
+    /**
+     * The terrain beardifier treats a piece box's {@code minY} as the first air block, so the box must start one
+     * above the floor layer; otherwise the surface is reshaped to sit one block under the floor.
+     */
+    static int terrainPlaneY(int floorY) {
+        return floorY + 1;
+    }
+
     protected ThalSettlementPiece(StructurePieceType type, ThalFrame frame, int floorY, int height) {
         super(type, 0, new BoundingBox(
-                frame.minX(), floorY, frame.minZ(), frame.maxX(), floorY + height - 1, frame.maxZ()));
+                frame.minX(), terrainPlaneY(floorY), frame.minZ(), frame.maxX(), floorY + height - 1, frame.maxZ()));
         this.frame = frame;
         this.floorY = floorY;
         this.homeX = (frame.minX() + frame.maxX()) / 2;

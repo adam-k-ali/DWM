@@ -199,6 +199,18 @@ class ThalSettlementLayoutTest {
     }
 
     @Test
+    void pieceBoxesStartOneAboveTheFloorSoBeardTerrainIsFlush() {
+        int floorY = 70;
+        Layout layout = ThalSettlementLayout.plan(1L);
+        net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder builder =
+                new net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder();
+        ThalSettlementStructure.buildPieces(builder, layout, 0, 0, floorY);
+        assertFalse(builder.isEmpty());
+        builder.build().pieces().forEach(piece ->
+                assertEquals(floorY + 1, piece.getBoundingBox().minY(), piece.getClass().getSimpleName()));
+    }
+
+    @Test
     void siteWaterPolicy() {
         assertFalse(ThalSettlementStructure.isTooWet(false, 0, 50), "dry site");
         assertFalse(ThalSettlementStructure.isTooWet(false, 12, 50), "a quarter wet is tolerated");

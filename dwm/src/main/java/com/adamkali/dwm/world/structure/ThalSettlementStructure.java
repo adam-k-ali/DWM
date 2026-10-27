@@ -108,9 +108,10 @@ public class ThalSettlementStructure extends Structure {
         if (baseY.isEmpty()) {
             return Optional.empty();
         }
-        // baseY is the first free block above the surface, so baseY - 1 is the top ground block; sink the floor
-        // layer into it so the settlement blends in instead of standing on top of the terrain.
-        int floorY = baseY.getAsInt() - 2;
+        // baseY is the first free block above the surface, so baseY - 1 is the top ground block: the floor layer
+        // replaces it. The pieces' boxes start one above the floor (see ThalSettlementPiece.terrainPlaneY) so the
+        // terrain beardifier keeps that top block instead of reshaping the ground a block below the floor.
+        int floorY = baseY.getAsInt() - 1;
         if (floorY + ThalShelterPiece.HEIGHT >= context.heightAccessor().getMaxY()
                 || floorY < context.heightAccessor().getMinY() + 4) {
             return Optional.empty();

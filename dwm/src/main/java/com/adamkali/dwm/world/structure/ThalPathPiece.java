@@ -50,7 +50,7 @@ public class ThalPathPiece extends StructurePiece {
             minZ = Math.min(minZ, cell.z());
             maxZ = Math.max(maxZ, cell.z());
         }
-        return new BoundingBox(minX, floorY, minZ, maxX, floorY + 2, maxZ);
+        return new BoundingBox(minX, ThalSettlementPiece.terrainPlaneY(floorY), minZ, maxX, floorY + 2, maxZ);
     }
 
     @Override
