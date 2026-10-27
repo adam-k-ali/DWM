@@ -209,11 +209,40 @@
       }
     ]
   },
+  "entity.dalek.exterminate": {
+    "subtitle": "dwm.entity.dalek.exterminate.subtitle",
+    "sounds": [
+      {
+        "name": "dwm:entity/dalek/exterminate",
+        "volume": 1.0
+      },
+      {
+        "name": "dwm:entity/dalek/exterminate_2",
+        "volume": 1.0
+      },
+      {
+        "name": "dwm:entity/dalek/exterminate_3",
+        "volume": 1.0
+      }
+    ]
+  },
   "entity.dalek.ambient": {
     "subtitle": "dwm.entity.dalek.ambient.subtitle",
     "sounds": [
       {
         "name": "dwm:entity/dalek/ambient",
+        "volume": 0.7
+      },
+      {
+        "name": "dwm:entity/dalek/ambient_2",
+        "volume": 0.7
+      },
+      {
+        "name": "dwm:entity/dalek/ambient_3",
+        "volume": 0.7
+      },
+      {
+        "name": "dwm:entity/dalek/ambient_4",
         "volume": 0.7
       }
     ]
@@ -224,6 +253,14 @@
       {
         "name": "dwm:entity/dalek/hurt",
         "volume": 0.85
+      },
+      {
+        "name": "dwm:entity/dalek/hurt_2",
+        "volume": 0.85
+      },
+      {
+        "name": "dwm:entity/dalek/hurt_3",
+        "volume": 0.85
       }
     ]
   },
@@ -232,6 +269,10 @@
     "sounds": [
       {
         "name": "dwm:entity/dalek/death",
+        "volume": 0.9
+      },
+      {
+        "name": "dwm:entity/dalek/death_2",
         "volume": 0.9
       }
     ]

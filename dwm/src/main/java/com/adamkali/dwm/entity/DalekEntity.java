@@ -33,6 +33,7 @@ import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Hostile classic Dalek (1963 and Time War casings); subclasses swap the line via {@link #family()}.
@@ -54,6 +55,7 @@ public class DalekEntity extends Monster implements RangedAttackMob {
     private PathNavigation groundNavigation;
     private FlyingPathNavigation flyingNavigation;
     private boolean wasFlying;
+    private int lastExterminateTick = -DalekVoice.EXTERMINATE_COOLDOWN_TICKS;
 
     public DalekEntity(EntityType<? extends DalekEntity> type, Level level) {
         super(type, level);
@@ -200,6 +202,21 @@ public class DalekEntity extends Monster implements RangedAttackMob {
         laser.shoot(aim.x, aim.y, aim.z, LASER_SPEED, 0.0F);
         this.level().addFreshEntity(laser);
         this.playSound(DWMSounds.DALEK_SHOOT, 1.0F, 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.1F);
+    }
+
+    /** Shouts "Exterminate!" when a fresh target is acquired, at most once per cooldown. */
+    @Override
+    public void setTarget(@Nullable LivingEntity target) {
+        boolean hadTarget = this.getTarget() != null;
+        super.setTarget(target);
+        if (!(this.level() instanceof ServerLevel)) {
+            return;
+        }
+        int ticksSinceShout = this.tickCount - this.lastExterminateTick;
+        if (DalekVoice.shouldExterminate(hadTarget, target != null, ticksSinceShout)) {
+            this.lastExterminateTick = this.tickCount;
+            this.playSound(DWMSounds.DALEK_EXTERMINATE, 1.0F, 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.05F);
+        }
     }
 
     public Vec3 gunMuzzleWorldPos() {

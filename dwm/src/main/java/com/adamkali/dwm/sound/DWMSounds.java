@@ -32,6 +32,7 @@ public class DWMSounds {
     public static final SoundEvent THAL_AMBIENT = register("entity.thal.ambient");
     public static final SoundEvent THAL_HURT = register("entity.thal.hurt");
     public static final SoundEvent THAL_DEATH = register("entity.thal.death");
+    public static final SoundEvent DALEK_EXTERMINATE = register("entity.dalek.exterminate");
     public static final SoundEvent DALEK_AMBIENT = register("entity.dalek.ambient");
     public static final SoundEvent DALEK_HURT = register("entity.dalek.hurt");
     public static final SoundEvent DALEK_DEATH = register("entity.dalek.death");
