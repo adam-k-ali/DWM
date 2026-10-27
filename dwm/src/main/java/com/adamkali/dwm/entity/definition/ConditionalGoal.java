@@ -8,7 +8,7 @@ import java.util.EnumSet;
 /**
  * Forwards a vanilla goal while gating {@code canUse}/{@code canContinueToUse} on a JSON condition.
  */
-final class ConditionalGoal extends Goal {
+public final class ConditionalGoal extends Goal {
     private final Goal delegate;
     private final GoalCondition condition;
     private final Mob mob;
@@ -18,6 +18,11 @@ final class ConditionalGoal extends Goal {
         this.delegate = delegate;
         this.condition = condition;
         this.setFlags(EnumSet.copyOf(delegate.getFlags()));
+    }
+
+    /** The wrapped vanilla goal (lets tests see through the condition gate). */
+    public Goal delegate() {
+        return delegate;
     }
 
     @Override
