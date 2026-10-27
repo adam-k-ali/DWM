@@ -641,6 +641,15 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.command.tardis.claim.already_owns_another", "You already own a TARDIS");
         t.add("dwm.command.tardis.claim.unknown", "Unknown TARDIS: %s");
         t.add("dwm.command.tardis.claim.not_inside", "Stand inside a TARDIS interior to claim it, or pass a UUID");
+        t.add("dwm.command.battle.started", "Dalek/Thal skirmish started (%s Daleks)");
+        t.add("dwm.command.battle.stopped", "Dalek/Thal skirmish ended");
+        t.add("dwm.command.battle.already_running", "A Dalek/Thal skirmish is already running");
+        t.add("dwm.command.battle.failed", "Could not start a skirmish here (no Thals nearby or no room for Daleks)");
+        t.add("dwm.command.battle.none", "No Dalek/Thal skirmish is running");
+        t.add("dwm.battle.start", "Daleks are attacking the Thal settlement!");
+        t.add("dwm.battle.thals_won", "The Thals have driven off the Daleks.");
+        t.add("dwm.battle.daleks_won", "The Thal defenders have fallen.");
+        t.add("dwm.battle.ended", "The skirmish is over.");
         t.add("dwm.gui.waypoint.title", "Waypoint Selector");
         t.add("dwm.gui.waypoint.save", "Save");
         t.add("dwm.gui.waypoint.rename", "Rename");
