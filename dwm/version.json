@@ -1,5 +1,32 @@
 {
   "26.2": {
+    "1.8.0": {
+      "summary": "Face the Daleks in new forms \u2014 towering Paradigm Daleks, bronze Time War casings, and the mutants inside, now shouting \"Exterminate!\" \u2014 meet the peaceful Thals, and find Dalek outposts and Thal settlements on Skaro.",
+      "added": [
+        "Entity: Paradigm Dalek (five castes: Drone, Strategist, Scientist, Eternal, Supreme)",
+        "Entity: Dalek Mutant",
+        "Entity: Thal (four looks)",
+        "Item: Paradigm Dalek Spawn Egg",
+        "Item: Dalek Mutant Spawn Egg",
+        "Item: Thal Spawn Egg",
+        "Item: Dalek Laser Gun",
+        "Misc: Bronze Time War Dalek variants alongside the 1963 Dalek",
+        "Misc: Destroyed Daleks can release a mutant that crawls out and attacks",
+        "Misc: Rare solo Paradigm Daleks patrol Skaro",
+        "Misc: Daleks shout \"Exterminate!\" on locking a target, with spoken idle, hurt and death lines",
+        "Misc: Dalek outposts generate on Skaro, in intact and ruined forms",
+        "Misc: Rare Thal settlements on the Thal Plateau, home to resident Thals",
+        "Misc: Thals wander, open doors, look at nearby players and flee from Daleks",
+        "Misc: Dalek/Thal battles"
+      ],
+      "changed": [
+        "Misc: Classic Dalek rebuilt as 1963 and Time War casings, and shrunk to 1.7 blocks tall",
+        "Misc: Time War Dalek lens and dome lights glow in the dark",
+        "Misc: Daleks now target Thals",
+        "Misc: Dalek Laser Gun bolts fired by players hurt Daleks and Dalek mutants"
+      ],
+      "removed": []
+    },
     "1.7.0": {
       "summary": "Land on Skaro \u2014 five hostile biomes, Dalek patrols, and ambient radiation \u2014 plus petrified wood, Dalekanium, steel tools, and an EVA suit.",
       "added": [
@@ -483,7 +510,7 @@
     }
   },
   "promos": {
-    "latest": "26.2-1.7.0",
-    "recommended": "26.2-1.7.0"
+    "latest": "26.2-1.8.0",
+    "recommended": "26.2-1.8.0"
   }
 }
