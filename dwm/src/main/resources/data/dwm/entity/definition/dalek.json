@@ -42,6 +42,12 @@
       "priority": 3,
       "target": "minecraft:player",
       "must_see": true
+    },
+    {
+      "type": "minecraft:nearest_attackable_target",
+      "priority": 4,
+      "target": "dwm:thal",
+      "must_see": true
     }
   ]
 }

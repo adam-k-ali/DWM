@@ -6,6 +6,7 @@ import com.adamkali.dwm.entity.DalekShareTargetGoal;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
@@ -42,6 +43,7 @@ import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerLevel;
 
 import java.util.Optional;
 
@@ -208,7 +210,8 @@ public sealed interface EntityGoal {
 
         @Override
         public Goal create(Mob mob) {
-            return new LookAtPlayerGoal(mob, livingClass(target), lookDistance);
+            TargetSpec spec = resolveTarget(target);
+            return new TypedLookAtGoal(mob, spec, lookDistance);
         }
     }
 
@@ -455,18 +458,19 @@ public sealed interface EntityGoal {
 
         @Override
         public Goal create(Mob mob) {
-            Class<? extends net.minecraft.world.entity.LivingEntity> targetClass = livingClass(target);
-            if (mustReach.isEmpty() && interval.isEmpty() && filter.isEmpty()) {
-                return new NearestAttackableTargetGoal<>(mob, targetClass, mustSee);
+            TargetSpec spec = resolveTarget(target);
+            TargetingConditions.Selector typeSelector = spec.typeSelector();
+            if (mustReach.isEmpty() && interval.isEmpty() && filter.isEmpty() && typeSelector == null) {
+                return new NearestAttackableTargetGoal<>(mob, spec.searchClass(), mustSee);
             }
-            TargetingConditions.Selector selector = filter.map(value -> value.selector(mob)).orElse(null);
+            TargetingConditions.Selector filterSelector = filter.map(value -> value.selector(mob)).orElse(null);
             return new NearestAttackableTargetGoal<>(
                     mob,
-                    targetClass,
+                    spec.searchClass(),
                     interval.orElse(10),
                     mustSee,
                     mustReach.orElse(false),
-                    selector
+                    and(typeSelector, filterSelector)
             );
         }
     }
@@ -551,14 +555,39 @@ public sealed interface EntityGoal {
     }
 
     /**
-     * Minecraft 26.2 {@code EntityType.getBaseClass()} always returns {@code Entity.class},
-     * so look/target goals currently resolve {@code minecraft:player} only.
+     * How a look/target goal finds entities of a datapack-named type. Minecraft 26.2
+     * {@code EntityType.getBaseClass()} always returns {@code Entity.class}, so non-player types are
+     * searched as {@link LivingEntity} and narrowed by exact entity type.
      */
-    static Class<? extends net.minecraft.world.entity.LivingEntity> livingClass(Identifier id) {
+    record TargetSpec(Class<? extends LivingEntity> searchClass, TargetingConditions.Selector typeSelector) {
+    }
+
+    static TargetSpec resolveTarget(Identifier id) {
         if (id.equals(Identifier.withDefaultNamespace("player"))) {
-            return Player.class;
+            return new TargetSpec(Player.class, null);
         }
-        throw new IllegalArgumentException("Unsupported look/target entity class: " + id
-                + " (only minecraft:player is supported)");
+        EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.getOptional(id)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown look/target entity type: " + id));
+        return new TargetSpec(LivingEntity.class, (LivingEntity entity, ServerLevel level) -> entity.getType() == type);
+    }
+
+    /** {@link LookAtPlayerGoal} narrowed to one entity type; {@code lookAtContext} is only reachable from a subclass. */
+    final class TypedLookAtGoal extends LookAtPlayerGoal {
+        TypedLookAtGoal(Mob mob, TargetSpec spec, float lookDistance) {
+            super(mob, spec.searchClass(), lookDistance);
+            if (spec.typeSelector() != null) {
+                this.lookAtContext.selector(spec.typeSelector());
+            }
+        }
+    }
+
+    static TargetingConditions.Selector and(TargetingConditions.Selector first, TargetingConditions.Selector second) {
+        if (first == null) {
+            return second;
+        }
+        if (second == null) {
+            return first;
+        }
+        return (entity, level) -> first.test(entity, level) && second.test(entity, level);
     }
 }
