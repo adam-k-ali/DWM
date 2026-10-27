@@ -162,6 +162,7 @@ A single PR may carry more than one label if it touches multiple categories.
 - `dwm/tools/AGENTS.md` — index for offline Poetry tools; see also `dwm/tools/palette/AGENTS.md` and `dwm/tools/sfx/AGENTS.md`.
 - `.claude/skills/refine/SKILL.md` — refine GitHub issues (`DWM-NNN` / `E-NNN`) into build-ready descriptions via `gh`; Project Status → `Ready` only when confirmed.
 - `.claude/skills/minecraft-sprite-style/SKILL.md` — Minecraft-readable sprite style guidance and templates.
+- `.claude/skills/release-prep/SKILL.md` — prepare release metadata (`mod_version`, `version.json` changelog/promos, Modrinth listing) for a new version; never tags or publishes.
 
 ## Cloud VM specific instructions
 
