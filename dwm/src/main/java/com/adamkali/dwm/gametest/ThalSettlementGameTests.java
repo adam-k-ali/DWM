@@ -84,8 +84,8 @@ public class ThalSettlementGameTests {
             }
             check(fields == ThalSettlementLayout.FIELD_COUNT, "expected 2 fields, planned " + fields);
 
-            // Paths: every planned path cell is DIRT_PATH with headroom, and every entrance connects to the shelter's.
-            for (Cell cell : site.layout.pathCells()) {
+            // Paths (laid 3 wide): every widened path cell is DIRT_PATH with headroom, and every entrance connects to the shelter's.
+            for (Cell cell : ThalSettlementLayout.widenedPathCells(site.layout)) {
                 BlockPos pos = new BlockPos(site.centreX + cell.x(), floorY, site.centreZ + cell.z());
                 check(level.getBlockState(pos).is(Blocks.DIRT_PATH), "path cell not laid at " + pos);
                 check(level.getBlockState(pos.above()).isAir() && level.getBlockState(pos.above(2)).isAir(),

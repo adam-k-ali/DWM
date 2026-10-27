@@ -81,6 +81,28 @@ class ThalSettlementLayoutTest {
     }
 
     @Test
+    void widenedPathsCoverThreeWideAndNeverEnterFootprints() {
+        for (long seed = 0; seed < SEEDS; seed++) {
+            Layout layout = ThalSettlementLayout.plan(seed);
+            Set<Cell> widened = ThalSettlementLayout.widenedPathCells(layout);
+            for (Cell path : layout.pathCells()) {
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        Cell near = new Cell(path.x() + dx, path.z() + dz);
+                        boolean inFootprint = layout.pieces().stream().anyMatch(p -> p.frame().contains(near.x(), near.z()));
+                        assertEquals(!inFootprint, widened.contains(near), "cell " + near + " around " + path + ", seed " + seed);
+                    }
+                }
+            }
+            for (Cell cell : widened) {
+                for (PlannedPiece piece : layout.pieces()) {
+                    assertFalse(piece.frame().contains(cell.x(), cell.z()), "widened path " + cell + " inside footprint, seed " + seed);
+                }
+            }
+        }
+    }
+
+    @Test
     void everyDoorIsReachableFromTheShelterDoorThroughPaths() {
         for (long seed = 0; seed < SEEDS; seed++) {
             assertAllEntrancesConnected(ThalSettlementLayout.plan(seed), "seed " + seed);

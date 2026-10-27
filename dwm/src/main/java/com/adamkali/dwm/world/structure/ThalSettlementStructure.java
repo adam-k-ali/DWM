@@ -108,7 +108,9 @@ public class ThalSettlementStructure extends Structure {
         if (baseY.isEmpty()) {
             return Optional.empty();
         }
-        int floorY = baseY.getAsInt() - 1;
+        // baseY is the first free block above the surface, so baseY - 1 is the top ground block; sink the floor
+        // layer into it so the settlement blends in instead of standing on top of the terrain.
+        int floorY = baseY.getAsInt() - 2;
         if (floorY + ThalShelterPiece.HEIGHT >= context.heightAccessor().getMaxY()
                 || floorY < context.heightAccessor().getMinY() + 4) {
             return Optional.empty();
@@ -182,7 +184,7 @@ public class ThalSettlementStructure extends Structure {
             builder.addPiece(piece);
         }
         List<ThalSettlementLayout.Cell> worldCells = new ArrayList<>();
-        for (ThalSettlementLayout.Cell cell : layout.pathCells()) {
+        for (ThalSettlementLayout.Cell cell : ThalSettlementLayout.widenedPathCells(layout)) {
             worldCells.add(new ThalSettlementLayout.Cell(centreX + cell.x(), centreZ + cell.z()));
         }
         builder.addPiece(new ThalPathPiece(worldCells, floorY));

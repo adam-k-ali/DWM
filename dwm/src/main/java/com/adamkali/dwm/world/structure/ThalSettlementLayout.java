@@ -30,6 +30,8 @@ public final class ThalSettlementLayout {
     public static final int HUT_MIN = 3;
     public static final int HUT_MAX = 5;
     public static final int FIELD_COUNT = 2;
+    /** Built width of the paths (odd); the planner routes a 1-wide centreline that is widened at build time. */
+    public static final int PATH_WIDTH = 3;
 
     private static final int PLACEMENT_ATTEMPTS = 300;
     private static final int LAYOUT_ATTEMPTS = 64;
@@ -239,6 +241,26 @@ public final class ThalSettlementLayout {
             }
         }
         return null;
+    }
+
+    /**
+     * The planned 1-wide path network widened to {@link #PATH_WIDTH} cells: every path cell plus its neighbours
+     * within {@code PATH_WIDTH / 2}, minus any cell inside a building footprint so doors and walls stay intact.
+     */
+    public static Set<Cell> widenedPathCells(Layout layout) {
+        int radius = PATH_WIDTH / 2;
+        Set<Cell> widened = new TreeSet<>();
+        for (Cell cell : layout.pathCells()) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    Cell next = new Cell(cell.x() + dx, cell.z() + dz);
+                    if (!blocked(layout.pieces(), next)) {
+                        widened.add(next);
+                    }
+                }
+            }
+        }
+        return widened;
     }
 
     private static boolean blocked(List<PlannedPiece> placed, Cell cell) {
