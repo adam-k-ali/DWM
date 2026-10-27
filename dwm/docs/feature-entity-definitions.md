@@ -50,7 +50,7 @@ Entity **classes, renderers, variants, sounds, navigation, and spawn rules** sta
 Every goal/target object has `type`, `priority`, and optional `can_use`. Extra fields depend on the type.
 
 ## Inheritance
-A definition may name a `parent` (e.g. Paradigm Dalek has `"parent": "dwm:dalek"`). Any field the child omits is inherited from the parent:
+A definition may name a `parent` (e.g. Paradigm and Special Weapons Daleks have `"parent": "dwm:dalek"`). Any field the child omits is inherited from the parent:
 
 - `attributes` and each named set in `attribute_overrides` merge per key — the child's values win, the parent fills the gaps.
 - `attribute_base`, `goals` and `targets` are replaced wholesale if the child defines them (lists are not merged by priority).
