@@ -5,4 +5,5 @@ import net.minecraft.client.renderer.entity.state.EntityRenderState;
 public class DalekLaserRenderState extends EntityRenderState {
     public float yRot;
     public float xRot;
+    public float visualScale = 1.0F;
 }

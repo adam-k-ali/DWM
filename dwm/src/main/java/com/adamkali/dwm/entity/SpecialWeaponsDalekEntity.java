@@ -31,6 +31,16 @@ public class SpecialWeaponsDalekEntity extends DalekEntity {
     }
 
     @Override
+    public DalekLaserProfile laserProfile() {
+        return DalekLaserProfile.HEAVY;
+    }
+
+    @Override
+    protected float shotPitch() {
+        return super.shotPitch() * VOICE_PITCH_SCALE;
+    }
+
+    @Override
     public float getVoicePitch() {
         return super.getVoicePitch() * VOICE_PITCH_SCALE;
     }

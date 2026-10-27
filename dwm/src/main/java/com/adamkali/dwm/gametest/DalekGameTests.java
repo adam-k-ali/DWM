@@ -108,6 +108,15 @@ public class DalekGameTests {
         player.snapTo(dalek.getX() + 4.0, dalek.getY(), dalek.getZ());
         dalek.performRangedAttack(player, 1.0F);
         context.assertEntityPresent(DWMEntityTypes.DALEK_LASER);
+        if (dalek.laserProfile() != com.adamkali.dwm.entity.DalekLaserProfile.HEAVY) {
+            throw new AssertionError("Special Weapons Dalek should fire the heavy explosive bolt");
+        }
+        DalekLaserEntity bolt = context.getLevel()
+                .getEntitiesOfClass(DalekLaserEntity.class, dalek.getBoundingBox().inflate(8.0))
+                .getFirst();
+        if (bolt.profile() != com.adamkali.dwm.entity.DalekLaserProfile.HEAVY) {
+            throw new AssertionError("Fired bolt should carry the heavy profile");
+        }
         context.succeed();
     }
 

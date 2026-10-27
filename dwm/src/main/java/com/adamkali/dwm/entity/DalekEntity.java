@@ -48,7 +48,6 @@ public class DalekEntity extends Monster implements RangedAttackMob {
     private static final EntityDataAccessor<Boolean> DATA_FLYING =
             SynchedEntityData.defineId(DalekEntity.class, EntityDataSerializers.BOOLEAN);
 
-    private static final float LASER_SPEED = 1.6F;
 
     private final MoveControl groundMoveControl;
     private final FlyingMoveControl<DalekEntity> flyingMoveControl;
@@ -199,9 +198,21 @@ public class DalekEntity extends Monster implements RangedAttackMob {
         Vec3 aim = target.getEyePosition().subtract(muzzle);
         DalekLaserEntity laser = new DalekLaserEntity(this.level(), this);
         laser.setPos(muzzle.x, muzzle.y, muzzle.z);
-        laser.shoot(aim.x, aim.y, aim.z, LASER_SPEED, 0.0F);
+        DalekLaserProfile profile = laserProfile();
+        laser.setProfile(profile);
+        laser.shoot(aim.x, aim.y, aim.z, profile.speed(), 0.0F);
         this.level().addFreshEntity(laser);
-        this.playSound(DWMSounds.DALEK_SHOOT, 1.0F, 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.1F);
+        this.playSound(DWMSounds.DALEK_SHOOT, 1.0F, shotPitch());
+    }
+
+    /** The bolt this Dalek fires; variants override for a different speed or blast. */
+    public DalekLaserProfile laserProfile() {
+        return DalekLaserProfile.STANDARD;
+    }
+
+    /** Pitch of the firing sound, with a little random jitter. */
+    protected float shotPitch() {
+        return 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.1F;
     }
 
     /** Shouts "Exterminate!" when a fresh target is acquired, at most once per cooldown. */
