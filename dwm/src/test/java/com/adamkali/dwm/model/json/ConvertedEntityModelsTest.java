@@ -7,6 +7,7 @@ import com.adamkali.dwm.model.entity.DalekModel;
 import com.adamkali.dwm.model.entity.DalekMutantModel;
 import com.adamkali.dwm.model.entity.FlutterwingModel;
 import com.adamkali.dwm.model.entity.ParadigmDalekModel;
+import com.adamkali.dwm.model.entity.SpecialWeaponsDalekModel;
 import com.adamkali.dwm.model.entity.TimeWarDalekModel;
 import com.adamkali.dwm.model.entity.TimeLordModel;
 import com.adamkali.dwm.render.state.DalekRenderState;
@@ -131,6 +132,13 @@ class ConvertedEntityModelsTest {
     void paradigmDalekLooksLeansAndBobsOnlyWhenFlying() {
         ModelHolder<DalekModel> holder = new ModelHolder<>();
         ModelPart root = bake(ParadigmDalekModel.LAYER_LOCATION, ParadigmDalekModel::new, holder);
+        assertLooksLeansAndBobs(holder.model, root);
+    }
+
+    @Test
+    void specialWeaponsDalekLooksLeansAndBobsOnlyWhenFlying() {
+        ModelHolder<DalekModel> holder = new ModelHolder<>();
+        ModelPart root = bake(SpecialWeaponsDalekModel.LAYER_LOCATION, SpecialWeaponsDalekModel::new, holder);
         assertLooksLeansAndBobs(holder.model, root);
     }
 

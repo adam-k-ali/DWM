@@ -13,8 +13,9 @@ import java.util.List;
  * {@code entities_thals} (the four Thal variants),
  * {@code entities_classic_daleks} (1963 and Time War casings, close up, plus
  * {@code entities_classic_daleks_night}: only the Time War eye and lights glow),
- * {@code entities_paradigm_daleks}, and the same Paradigm group at midnight
- * ({@code entities_paradigm_daleks_night}) to show the glowing eye and dome lights.
+ * {@code entities_paradigm_daleks} (the five Paradigm castes plus the Special Weapons Dalek), and
+ * the same group at midnight ({@code entities_paradigm_daleks_night}) to show the glowing eye and
+ * dome lights.
  */
 public class EntitiesClientGameTest implements FabricClientGameTest {
     private static final int GROUP_SPACING = 48;
@@ -47,13 +48,14 @@ public class EntitiesClientGameTest implements FabricClientGameTest {
                     new Mob("dalek", "Variant:\"time_war_bronze\""),
                     new Mob("dalek", "Variant:\"time_war_bronze_dark\"")));
             nightShot(context, world, "entities_classic_daleks_night");
-            // A 1963 and a Time War Dalek at the end for scale against the larger Paradigm casing.
+            // A 1963 and a Time War Dalek at the end for scale against the larger Paradigm and Special Weapons casings.
             lineUp(context, world, 3, "entities_paradigm_daleks", List.of(
                     new Mob("paradigm_dalek", "Variant:\"paradigm_drone\""),
                     new Mob("paradigm_dalek", "Variant:\"paradigm_strategist\""),
                     new Mob("paradigm_dalek", "Variant:\"paradigm_scientist\""),
                     new Mob("paradigm_dalek", "Variant:\"paradigm_eternal\""),
                     new Mob("paradigm_dalek", "Variant:\"paradigm_supreme\""),
+                    new Mob("special_weapons_dalek", "Variant:\"special_weapons\""),
                     new Mob("dalek", "Variant:\"1963\""),
                     new Mob("dalek", "Variant:\"time_war_bronze\"")));
             nightShot(context, world, "entities_paradigm_daleks_night");

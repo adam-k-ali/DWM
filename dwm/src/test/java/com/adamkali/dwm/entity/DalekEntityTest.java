@@ -70,7 +70,7 @@ class DalekEntityTest {
 
     @Test
     void variantsAreDefined() {
-        assertEquals(8, DalekVariant.values().length);
+        assertEquals(9, DalekVariant.values().length);
         assertEquals("1963", DalekVariant.CLASSIC_1963.getSerializedName());
         assertEquals("time_war_bronze", DalekVariant.BRONZE_TIME_WAR.getSerializedName());
         assertEquals("time_war_bronze_dark", DalekVariant.BRONZE_TIME_WAR_DARK.getSerializedName());
