@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "D": "minecraft:diamond",
+    "L": "minecraft:lever",
+    "R": "minecraft:redstone",
+    "S": "dwm:steel_ingot"
+  },
+  "pattern": [
+    "SSD",
+    "SRS",
+    " L "
+  ],
+  "result": {
+    "id": "dwm:laser_gun"
+  }
+}

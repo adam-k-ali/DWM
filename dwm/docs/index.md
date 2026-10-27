@@ -18,6 +18,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 - [Dalekanium](./feature-dalekanium.md)
 - [Zeiton](./feature-zeiton.md)
 - [Dalek](./feature-dalek.md)
+- [Dalek Laser Gun](./feature-dalek-laser-gun.md)
 - [Thal](./feature-thal.md)
 - [Entity Definitions](./feature-entity-definitions.md)
 
