@@ -62,7 +62,7 @@
       { "part": "left_leg", "channel": "rot_x", "value": "cos(walk_pos * 0.6662 + pi) * 1.4 * walk_speed * deg" },
       { "part": "right_arm", "channel": "rot_z", "value": "(cos(age * 0.09) * 0.05 + 0.05) * deg" },
       { "part": "left_arm", "channel": "rot_z", "value": "-(cos(age * 0.09) * 0.05 + 0.05) * deg" },
-      { "part": "right_arm", "channel": "rot_x", "value": "sin(age * 0.067) * 0.05 * deg" },
+      { "part": "right_arm", "channel": "rot_x", "value": "sin(age * 0.067) * 0.05 * deg - armed * 80" },
       { "part": "left_arm", "channel": "rot_x", "value": "-sin(age * 0.067) * 0.05 * deg" }
     ]
   }
