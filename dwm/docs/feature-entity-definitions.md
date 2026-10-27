@@ -70,9 +70,10 @@ Inheritance is resolved on the raw JSON before decoding, so the codec never sees
 **Conditions / filters**
 
 - `can_use`: `{ "type": "dwm:not_flying" }` — Dalek ground stroll while not airborne
+- `can_use`: `{ "type": "dwm:armed" }` / `{ "type": "dwm:not_armed" }` — Thal goals that apply only while the Thal wields a Dalek Laser Gun (or only while it does not)
 - `filter` on nearest-attackable: `{ "type": "dwm:is_angry_at" }` — Mewing Dog persistent anger
 
-`look_at` and `nearest_attackable_target` currently resolve `minecraft:player` only.
+`look_at` and `nearest_attackable_target` resolve any registered entity-type id (e.g. `minecraft:player`, `dwm:dalek`).
 
 `dwm:avoid_entity` wraps vanilla `AvoidEntityGoal` so a mob flees living entities in an **entity-type tag**:
 

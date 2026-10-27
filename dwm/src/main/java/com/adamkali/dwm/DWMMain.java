@@ -5,6 +5,7 @@ import com.adamkali.dwm.analytics.DWMStatistics;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.DWMWoodTypes;
 import com.adamkali.dwm.block.entities.DWMBlockEntities;
+import com.adamkali.dwm.command.BattleCommands;
 import com.adamkali.dwm.command.TardisCommands;
 import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.entity.DWMEntityTypes;
@@ -22,6 +23,7 @@ import com.adamkali.dwm.tardis.worldgen.DWMStructureProcessors;
 import com.adamkali.dwm.world.structure.DWMStructurePieceTypes;
 import com.adamkali.dwm.world.structure.DWMStructureTypes;
 import com.adamkali.dwm.world.DWMPlacedFeatures;
+import com.adamkali.dwm.world.event.DalekThalBattleService;
 import com.adamkali.dwm.world.radiation.RadiationExposureService;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.ModInitializer;
@@ -60,6 +62,8 @@ public class DWMMain implements ModInitializer {
         TardisTravelService.initialize();
         RadiationExposureService.initialize();
         TardisCommands.initialize();
+        DalekThalBattleService.initialize();
+        BattleCommands.initialize();
         BiomeModifications.addFeature(
                 BiomeSelectors.tag(BiomeTags.IS_OVERWORLD),
                 GenerationStep.Decoration.UNDERGROUND_ORES,

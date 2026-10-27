@@ -52,8 +52,8 @@ public class ThalGameTests {
         var definition = EntityDefinitionGameTestSupport.definitionOf(mob);
         EntityDefinitionGameTestSupport.assertAttributesMatch(mob, definition);
         EntityDefinitionGameTestSupport.assertGoalsMatch(mob, definition);
-        if (!mob.targetSelector.getAvailableGoals().isEmpty()) {
-            throw new AssertionError("Thals must have no target goals, got " + mob.targetSelector.getAvailableGoals());
+        if (mob.isArmed()) {
+            throw new AssertionError("A freshly spawned Thal must be unarmed");
         }
         context.succeed();
     }

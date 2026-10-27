@@ -56,6 +56,7 @@
       "com.adamkali.dwm.gametest.MewingDogGameTests",
       "com.adamkali.dwm.gametest.TimeLordGameTests",
       "com.adamkali.dwm.gametest.ThalGameTests",
+      "com.adamkali.dwm.gametest.DalekThalBattleGameTests",
       "com.adamkali.dwm.gametest.ThalSettlementGameTests",
       "com.adamkali.dwm.gametest.DalekGameTests",
       "com.adamkali.dwm.gametest.DalekPopulationGameTests",
