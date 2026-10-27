@@ -19,7 +19,8 @@
       "com.adamkali.dwm.gametest.client.DalekOutpostClientGameTest",
       "com.adamkali.dwm.gametest.client.TardisBotiPortalClientGameTest",
       "com.adamkali.dwm.gametest.client.TardisSotoPortalClientGameTest",
-      "com.adamkali.dwm.gametest.client.ThalSettlementClientGameTest"
+      "com.adamkali.dwm.gametest.client.ThalSettlementClientGameTest",
+      "com.adamkali.dwm.gametest.client.LaserGunClientGameTest"
     ]
   }
 }
