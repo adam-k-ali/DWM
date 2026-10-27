@@ -38,13 +38,26 @@ Entity **classes, renderers, variants, sounds, navigation, and spawn rules** sta
 | Field | Required | Meaning |
 | --- | --- | --- |
 | `entity` | yes | Entity type id; must match the filename |
-| `attribute_base` | yes | Vanilla template: `animal`, `mob`, or `monster` |
-| `attributes` | yes | Attribute id → base value (overrides the template) |
+| `parent` | no | Another definition id to inherit from (see Inheritance) |
+| `attribute_base` | yes* | Vanilla template: `animal`, `mob`, or `monster` |
+| `attributes` | yes* | Attribute id → base value (overrides the template) |
 | `attribute_overrides` | no | Named overlays, e.g. Mewing Dog `"tamed"` max health |
-| `goals` | yes | `goalSelector` entries |
+| `goals` | yes* | `goalSelector` entries |
 | `targets` | no | `targetSelector` entries |
 
+\* Required unless `parent` supplies it.
+
 Every goal/target object has `type`, `priority`, and optional `can_use`. Extra fields depend on the type.
+
+## Inheritance
+A definition may name a `parent` (e.g. Paradigm Dalek has `"parent": "dwm:dalek"`). Any field the child omits is inherited from the parent:
+
+- `attributes` and each named set in `attribute_overrides` merge per key — the child's values win, the parent fills the gaps.
+- `attribute_base`, `goals` and `targets` are replaced wholesale if the child defines them (lists are not merged by priority).
+- `entity` is always the child's own.
+- Chains of several levels work. An unknown parent, a self-parent or a cycle fails at load.
+
+Inheritance is resolved on the raw JSON before decoding, so the codec never sees `parent`.
 
 ## Goal types
 

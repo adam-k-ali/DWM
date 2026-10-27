@@ -1,10 +1,9 @@
 {
   "entity": "dwm:paradigm_dalek",
-  "attribute_base": "monster",
+  "parent": "dwm:dalek",
   "attributes": {
     "minecraft:max_health": 50.0,
     "minecraft:movement_speed": 0.21,
-    "minecraft:flying_speed": 0.4,
     "minecraft:follow_range": 32.0,
     "minecraft:attack_damage": 6.0,
     "minecraft:knockback_resistance": 1.0,
@@ -33,15 +32,5 @@
     },
     { "type": "minecraft:look_at", "priority": 4, "target": "minecraft:player", "look_distance": 8.0 },
     { "type": "minecraft:random_look_around", "priority": 5 }
-  ],
-  "targets": [
-    { "type": "minecraft:hurt_by_target", "priority": 1, "alert_others": true },
-    { "type": "dwm:dalek_share_target", "priority": 2 },
-    {
-      "type": "minecraft:nearest_attackable_target",
-      "priority": 3,
-      "target": "minecraft:player",
-      "must_see": true
-    }
   ]
 }

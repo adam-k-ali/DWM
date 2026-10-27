@@ -35,16 +35,12 @@ class EntityDefinitionCatalogTest {
     }
 
     @Test
-    void productionFilesRoundTripThroughCodec() throws IOException {
-        try (var stream = Files.list(DEFINITION_DIR)) {
-            for (Path path : stream.filter(file -> file.getFileName().toString().endsWith(".json")).toList()) {
-                var json = JsonParser.parseString(Files.readString(path));
-                EntityDefinition decoded = EntityDefinition.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow();
-                var encoded = EntityDefinition.CODEC.encodeStart(JsonOps.INSTANCE, decoded).getOrThrow();
-                EntityDefinition roundTripped = EntityDefinition.CODEC.parse(JsonOps.INSTANCE, encoded).getOrThrow();
-                assertEquals(decoded, roundTripped, path.getFileName().toString());
-            }
-        }
+    void productionFilesRoundTripThroughCodec() {
+        definitions.forEach((id, decoded) -> {
+            var encoded = EntityDefinition.CODEC.encodeStart(JsonOps.INSTANCE, decoded).getOrThrow();
+            EntityDefinition roundTripped = EntityDefinition.CODEC.parse(JsonOps.INSTANCE, encoded).getOrThrow();
+            assertEquals(decoded, roundTripped, id.toString());
+        });
     }
 
     @Test
@@ -222,6 +218,15 @@ class EntityDefinitionCatalogTest {
     }
 
     @Test
+    void paradigmDalekInheritsTargetsAndBaseFromTheDalek() {
+        EntityDefinition paradigm = definition("paradigm_dalek");
+        EntityDefinition classic = definition("dalek");
+        assertEquals(classic.targets(), paradigm.targets());
+        assertEquals(classic.attributeBase(), paradigm.attributeBase());
+        assertEquals(attribute(classic, "flying_speed"), attribute(paradigm, "flying_speed"));
+    }
+
+    @Test
     void dalekMutantIsASmallMeleeCrawler() {
         EntityDefinition definition = definition("dalek_mutant");
         assertEquals(EntityAttributeBase.MONSTER, definition.attributeBase());
@@ -277,14 +282,16 @@ class EntityDefinitionCatalogTest {
     }
 
     private static Map<Identifier, EntityDefinition> loadAll() throws IOException {
-        java.util.HashMap<Identifier, EntityDefinition> map = new java.util.HashMap<>();
+        java.util.HashMap<Identifier, com.google.gson.JsonObject> raw = new java.util.HashMap<>();
         try (var stream = Files.list(DEFINITION_DIR)) {
             for (Path path : stream.filter(file -> file.getFileName().toString().endsWith(".json")).toList()) {
                 String stem = path.getFileName().toString().replace(".json", "");
-                var json = JsonParser.parseString(Files.readString(path));
-                map.put(id(DWMReference.MOD_ID, stem), EntityDefinition.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow());
+                raw.put(id(DWMReference.MOD_ID, stem), JsonParser.parseString(Files.readString(path)).getAsJsonObject());
             }
         }
+        java.util.HashMap<Identifier, EntityDefinition> map = new java.util.HashMap<>();
+        EntityDefinitions.resolveParents(raw).forEach((key, json) ->
+                map.put(key, EntityDefinition.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow()));
         return Map.copyOf(map);
     }
 
