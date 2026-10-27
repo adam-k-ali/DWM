@@ -69,7 +69,7 @@
       "additionalProperties": false,
       "properties": {
         "type": {
-          "const": "dwm:not_flying"
+          "enum": ["dwm:not_flying", "dwm:armed", "dwm:not_armed"]
         }
       }
     },

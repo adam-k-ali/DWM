@@ -138,18 +138,34 @@ class EntityDefinitionCatalogTest {
                 EntityGoal.Kind.FLOAT,
                 EntityGoal.Kind.AVOID_ENTITY,
                 EntityGoal.Kind.PANIC,
+                EntityGoal.Kind.RANGED_ATTACK,
                 EntityGoal.Kind.OPEN_DOOR,
                 EntityGoal.Kind.WATER_AVOIDING_RANDOM_STROLL,
                 EntityGoal.Kind.LOOK_AT,
                 EntityGoal.Kind.RANDOM_LOOK_AROUND
         ), kinds(definition.goals()));
-        assertEquals(List.of(0, 1, 1, 2, 3, 4, 5), priorities(definition.goals()));
-        assertTrue(definition.targets().isEmpty());
+        assertEquals(List.of(0, 1, 1, 2, 2, 3, 4, 5), priorities(definition.goals()));
+        assertEquals(GoalCondition.Kind.NOT_ARMED, definition.goals().get(1).canUse().orElseThrow().kind());
+        assertEquals(GoalCondition.Kind.ARMED, definition.goals().get(3).canUse().orElseThrow().kind());
+        assertEquals(4, definition.targets().size());
+        assertTrue(definition.targets().stream().allMatch(t -> t.canUse().isPresent()
+                && t.canUse().get().kind() == GoalCondition.Kind.ARMED));
         EntityGoal.AvoidEntity avoid = assertInstanceOf(EntityGoal.AvoidEntity.class, definition.goals().get(1).goal());
         assertEquals(id(DWMReference.MOD_ID, "thal_fears"), avoid.entities().location());
         assertEquals(12.0F, avoid.maxDistance());
         assertEquals(1.0, avoid.walkSpeed());
         assertEquals(1.3, avoid.sprintSpeed());
+    }
+
+    @Test
+    void armedConditionsParseAndRoundTrip() {
+        for (String type : List.of("dwm:armed", "dwm:not_armed")) {
+            var json = JsonParser.parseString("{ \"type\": \"" + type + "\" }");
+            GoalCondition condition = GoalCondition.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow();
+            assertEquals(type, condition.kind().getSerializedName());
+            var encoded = GoalCondition.CODEC.encodeStart(JsonOps.INSTANCE, condition).getOrThrow();
+            assertEquals(condition, GoalCondition.CODEC.parse(JsonOps.INSTANCE, encoded).getOrThrow());
+        }
     }
 
     @Test
