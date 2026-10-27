@@ -1101,6 +1101,64 @@ public class ResourceValidationTests {
     }
 
     @Test
+    public void thalEntityTexturesExist() throws Exception {
+        for (int i = 1; i <= 4; i++) {
+            Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/thal/thal_" + i + ".png");
+            assertTrue(
+                    Files.isRegularFile(texture) && Files.size(texture) > 0,
+                    "ThalRenderer expects assets/dwm/textures/entity/thal/thal_" + i + ".png"
+            );
+        }
+    }
+
+    @Test
+    public void thalSpawnEggTextureExists() throws Exception {
+        Path texture = Path.of("src/client/resources/assets/dwm/textures/item/thal_spawn_egg.png");
+        assertTrue(
+                Files.isRegularFile(texture) && Files.size(texture) > 0,
+                "Spawn egg item model expects assets/dwm/textures/item/thal_spawn_egg.png"
+        );
+    }
+
+    /**
+     * Guards against {@code pruneDatagenItemModels} dropping the Thal spawn egg item def
+     * (allowlist must include {@code thal} substring).
+     */
+    @Test
+    public void generatedThalSpawnEggItemModelExists() throws Exception {
+        Path item = Path.of("src/main/generated/assets/dwm/items/thal_spawn_egg.json");
+        assertTrue(
+                Files.isRegularFile(item) && Files.size(item) > 0,
+                "Missing generated Thal spawn egg item model: " + item
+        );
+    }
+
+    @Test
+    public void thalFearsTagListsTheDaleks() throws Exception {
+        Path path = Path.of("src/main/generated/data/dwm/tags/entity_type/thal_fears.json");
+        assertTrue(Files.isRegularFile(path), "Missing generated thal_fears entity tag: " + path);
+        JSONObject tag = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
+        assertEquals(
+                Set.of("dwm:dalek", "dwm:paradigm_dalek", "dwm:dalek_mutant"),
+                new HashSet<>(tag.getJSONArray("values").toList().stream().map(Object::toString).toList())
+        );
+    }
+
+    /** Residents come only from settlements: no biome may carry a Thal spawner entry. */
+    @Test
+    public void noBiomeSpawnsThals() throws Exception {
+        Path biomeDir = Path.of("src/main/generated/data/dwm/worldgen/biome");
+        try (var biomes = Files.list(biomeDir)) {
+            for (Path biome : biomes.filter(f -> f.toString().endsWith(".json")).toList()) {
+                assertFalse(
+                        Files.readString(biome).contains("dwm:thal"),
+                        biome.getFileName() + " must not list dwm:thal spawners"
+                );
+            }
+        }
+    }
+
+    @Test
     public void gallifreyForestAndPlainsSpawnTimeLord() throws Exception {
         assertTrue(biomeHasCreatureSpawn("gallifrey_forest.json", "dwm:time_lord"));
         assertTrue(biomeHasCreatureSpawn("gallifrey_plains.json", "dwm:time_lord"));
@@ -1493,6 +1551,60 @@ public class ResourceValidationTests {
                 Files.isRegularFile(Path.of("src/main/resources/data/dwm/dimension_type/skaro.json")),
                 "Missing hand-maintained dimension_type/skaro.json"
         );
+    }
+
+    private static JSONObject readJson(String path) throws Exception {
+        return new JSONObject(new JSONTokener(Files.newBufferedReader(Path.of(path))));
+    }
+
+    @Test
+    public void thalSettlementStructureIsPlateauOnlyAndSuppressesMonsterSpawns() throws Exception {
+        JSONObject structure = readJson("src/main/resources/data/dwm/worldgen/structure/thal_settlement.json");
+        assertEquals("dwm:thal_settlement", structure.getString("type"));
+        assertEquals("#dwm:has_structure/thal_settlement", structure.getString("biomes"));
+        assertEquals("surface_structures", structure.getString("step"));
+        JSONObject monster = structure.getJSONObject("spawn_overrides").getJSONObject("monster");
+        assertEquals("full", monster.getString("bounding_box"));
+        assertEquals(0, monster.getJSONArray("spawns").length(), "Dalek patrols must be suppressed inside settlements");
+
+        JSONObject tag = readJson("src/main/resources/data/dwm/tags/worldgen/biome/has_structure/thal_settlement.json");
+        assertFalse(tag.optBoolean("replace", false), "settlement biome tag must not replace");
+        assertEquals(
+                List.of("dwm:skaro_thal_plateau"),
+                tag.getJSONArray("values").toList().stream().map(Object::toString).toList(),
+                "only the Thal Plateau may host a settlement"
+        );
+    }
+
+    @Test
+    public void thalSettlementStructureSetIsRareAndUsesAUniqueSalt() throws Exception {
+        JSONObject set = readJson("src/main/resources/data/dwm/worldgen/structure_set/thal_settlement.json");
+        var structures = set.getJSONArray("structures");
+        assertEquals(1, structures.length());
+        assertEquals("dwm:thal_settlement", structures.getJSONObject(0).getString("structure"));
+        JSONObject placement = set.getJSONObject("placement");
+        assertEquals("minecraft:random_spread", placement.getString("type"));
+        assertTrue(placement.getInt("spacing") >= 32, "settlements must stay rare");
+        assertTrue(placement.getInt("separation") < placement.getInt("spacing"));
+
+        // Settlements keep clear of hostile Dalek military landmarks (outposts and later trenches/wreckage).
+        JSONObject exclusion = placement.getJSONObject("exclusion_zone");
+        assertEquals("dwm:skaro_military_landmarks", exclusion.getString("other_set"));
+        assertTrue(Files.exists(Path.of("src/main/resources/data/dwm/worldgen/structure_set/skaro_military_landmarks.json")),
+                "excluded structure set must exist");
+        int chunkCount = exclusion.getInt("chunk_count");
+        assertTrue(chunkCount >= 1 && chunkCount <= 16, "vanilla exclusion_zone chunk_count must be 1..16, got " + chunkCount);
+
+        Set<Integer> salts = new HashSet<>();
+        try (var sets = Files.list(Path.of("src/main/resources/data/dwm/worldgen/structure_set"))) {
+            for (Path file : sets.filter(f -> f.toString().endsWith(".json")).toList()) {
+                JSONObject other = readJson(file.toString());
+                assertTrue(
+                        salts.add(other.getJSONObject("placement").getInt("salt")),
+                        "duplicate structure set salt in " + file.getFileName()
+                );
+            }
+        }
     }
 
     private static void assertDalekMonsterPatrol(JSONObject biome, String biomeFile, boolean sparse) {

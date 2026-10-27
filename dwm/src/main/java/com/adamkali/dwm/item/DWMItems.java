@@ -244,6 +244,7 @@ public class DWMItems {
     public static Item FLUTTERWING_SPAWN_EGG;
     public static Item MEWING_DOG_SPAWN_EGG;
     public static Item TIME_LORD_SPAWN_EGG;
+    public static Item THAL_SPAWN_EGG;
     public static Item DALEK_SPAWN_EGG;
     public static Item PARADIGM_DALEK_SPAWN_EGG;
     public static Item DALEK_MUTANT_SPAWN_EGG;
@@ -282,6 +283,11 @@ public class DWMItems {
                 SpawnEggItem::new,
                 new Item.Properties().spawnEgg(DWMEntityTypes.TIME_LORD),
                 "time_lord_spawn_egg"
+        );
+        THAL_SPAWN_EGG = register(
+                SpawnEggItem::new,
+                new Item.Properties().spawnEgg(DWMEntityTypes.THAL),
+                "thal_spawn_egg"
         );
         DALEK_SPAWN_EGG = register(
                 SpawnEggItem::new,
@@ -379,6 +385,7 @@ public class DWMItems {
             content.accept(FLUTTERWING_SPAWN_EGG);
             content.accept(MEWING_DOG_SPAWN_EGG);
             content.accept(TIME_LORD_SPAWN_EGG);
+            content.accept(THAL_SPAWN_EGG);
             content.accept(DALEK_SPAWN_EGG);
             content.accept(PARADIGM_DALEK_SPAWN_EGG);
             content.accept(DALEK_MUTANT_SPAWN_EGG);

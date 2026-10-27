@@ -182,6 +182,33 @@
       }
     ]
   },
+  "entity.thal.ambient": {
+    "subtitle": "dwm.entity.thal.ambient.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:entity.villager.ambient",
+        "type": "event"
+      }
+    ]
+  },
+  "entity.thal.hurt": {
+    "subtitle": "dwm.entity.thal.hurt.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:entity.villager.hurt",
+        "type": "event"
+      }
+    ]
+  },
+  "entity.thal.death": {
+    "subtitle": "dwm.entity.thal.death.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:entity.villager.death",
+        "type": "event"
+      }
+    ]
+  },
   "entity.dalek.ambient": {
     "subtitle": "dwm.entity.dalek.ambient.subtitle",
     "sounds": [

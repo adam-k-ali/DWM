@@ -30,6 +30,7 @@ public final class DWMEntityTypes {
     public static EntityType<FlutterwingEntity> FLUTTERWING;
     public static EntityType<MewingDogEntity> MEWING_DOG;
     public static EntityType<TimeLordEntity> TIME_LORD;
+    public static EntityType<ThalEntity> THAL;
     public static EntityType<DalekEntity> DALEK;
     public static EntityType<ParadigmDalekEntity> PARADIGM_DALEK;
     public static EntityType<DalekMutantEntity> DALEK_MUTANT;
@@ -53,6 +54,7 @@ public final class DWMEntityTypes {
         FLUTTERWING = registerFlutterwing();
         MEWING_DOG = registerMewingDog();
         TIME_LORD = registerTimeLord();
+        THAL = registerThal();
         DALEK = registerDalek();
         PARADIGM_DALEK = registerParadigmDalek();
         DALEK_MUTANT = registerDalekMutant();
@@ -188,6 +190,29 @@ public final class DWMEntityTypes {
                                                                 && level.getBlockState(pos.below()).is(BlockTags.DIRT)
                                         )
                                         .defaultAttributes(TimeLordEntity::createAttributes)
+                        )
+                        .sized(0.6F, 1.95F)
+                        .eyeHeight(1.62F)
+                        .clientTrackingRange(10)
+                        .build(key)
+        );
+    }
+
+    private static EntityType<ThalEntity> registerThal() {
+        ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, ThalEntity.ID);
+        return Registry.register(
+                BuiltInRegistries.ENTITY_TYPE,
+                key,
+                FabricEntityType.Builder.createMob(
+                                ThalEntity::new,
+                                MobCategory.CREATURE,
+                                mob -> mob
+                                        .spawnPlacement(
+                                                SpawnPlacementTypes.ON_GROUND,
+                                                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                                                ThalSpawnRules::checkSpawnRules
+                                        )
+                                        .defaultAttributes(ThalEntity::createAttributes)
                         )
                         .sized(0.6F, 1.95F)
                         .eyeHeight(1.62F)

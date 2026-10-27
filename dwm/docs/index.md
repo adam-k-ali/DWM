@@ -18,13 +18,14 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 - [Dalekanium](./feature-dalekanium.md)
 - [Zeiton](./feature-zeiton.md)
 - [Dalek](./feature-dalek.md)
+- [Thal](./feature-thal.md)
 - [Entity Definitions](./feature-entity-definitions.md)
 
 ### Experimental Features
 - [TARDIS Chameleon System](./feature-chameleon-system.md) (config-gated and disabled by default)
 
 ### Planned Features
-- [Skaro Dimension](./feature-skaro-dimension.md) (destination world; petrified wood, five biomes, Petrified Jungle trees, radiation/suit/meter, and Dalek patrols shipped; remaining flora/structures still planned)
+- [Skaro Dimension](./feature-skaro-dimension.md) (destination world; petrified wood, five biomes, Petrified Jungle trees, radiation/suit/meter, and Dalek patrols shipped; Thal settlements shipped; remaining flora and hostile structures still planned)
 
 ## Brand and Differentiation
 - [Branding Guidelines](./branding-guidelines.md)

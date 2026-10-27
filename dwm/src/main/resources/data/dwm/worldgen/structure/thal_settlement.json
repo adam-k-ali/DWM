@@ -1,0 +1,12 @@
+{
+  "type": "dwm:thal_settlement",
+  "biomes": "#dwm:has_structure/thal_settlement",
+  "step": "surface_structures",
+  "terrain_adaptation": "beard_thin",
+  "spawn_overrides": {
+    "monster": {
+      "bounding_box": "full",
+      "spawns": []
+    }
+  }
+}

@@ -49,7 +49,7 @@ class EntityDefinitionCatalogTest {
 
     @Test
     void fileStemMatchesEntityId() {
-        assertEquals(7, definitions.size());
+        assertEquals(8, definitions.size());
         for (Map.Entry<Identifier, EntityDefinition> entry : definitions.entrySet()) {
             assertEquals(entry.getKey(), entry.getValue().entity());
         }
@@ -130,6 +130,53 @@ class EntityDefinitionCatalogTest {
         assertEquals(0.3, attribute(definition, "movement_speed"));
         EntityGoal.OpenDoor openDoor = assertInstanceOf(EntityGoal.OpenDoor.class, definition.goals().get(2).goal());
         assertTrue(openDoor.closeDoor());
+    }
+
+    @Test
+    void thalMatchesShippedStats() {
+        EntityDefinition definition = definition("thal");
+        assertEquals(EntityAttributeBase.MOB, definition.attributeBase());
+        assertEquals(20.0, attribute(definition, "max_health"));
+        assertEquals(0.3, attribute(definition, "movement_speed"));
+        assertEquals(List.of(
+                EntityGoal.Kind.FLOAT,
+                EntityGoal.Kind.AVOID_ENTITY,
+                EntityGoal.Kind.PANIC,
+                EntityGoal.Kind.OPEN_DOOR,
+                EntityGoal.Kind.WATER_AVOIDING_RANDOM_STROLL,
+                EntityGoal.Kind.LOOK_AT,
+                EntityGoal.Kind.RANDOM_LOOK_AROUND
+        ), kinds(definition.goals()));
+        assertEquals(List.of(0, 1, 1, 2, 3, 4, 5), priorities(definition.goals()));
+        assertTrue(definition.targets().isEmpty());
+        EntityGoal.AvoidEntity avoid = assertInstanceOf(EntityGoal.AvoidEntity.class, definition.goals().get(1).goal());
+        assertEquals(id(DWMReference.MOD_ID, "thal_fears"), avoid.entities().location());
+        assertEquals(12.0F, avoid.maxDistance());
+        assertEquals(1.0, avoid.walkSpeed());
+        assertEquals(1.3, avoid.sprintSpeed());
+    }
+
+    @Test
+    void avoidEntityGoalParsesTagAndRoundTrips() {
+        var json = JsonParser.parseString("""
+                { "type": "dwm:avoid_entity", "priority": 2, "entities": "#minecraft:skeletons",
+                  "max_distance": 8.0, "walk_speed": 1.1, "sprint_speed": 1.4 }
+                """);
+        EntityGoalBinding binding = EntityGoalBinding.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow();
+        EntityGoal.AvoidEntity avoid = assertInstanceOf(EntityGoal.AvoidEntity.class, binding.goal());
+        assertEquals(id("minecraft", "skeletons"), avoid.entities().location());
+        assertEquals(2, binding.priority());
+        var encoded = EntityGoalBinding.CODEC.encodeStart(JsonOps.INSTANCE, binding).getOrThrow();
+        assertEquals(binding, EntityGoalBinding.CODEC.parse(JsonOps.INSTANCE, encoded).getOrThrow());
+    }
+
+    @Test
+    void avoidEntityGoalRejectsNonTagEntities() {
+        var json = JsonParser.parseString("""
+                { "type": "dwm:avoid_entity", "priority": 2, "entities": "dwm:dalek",
+                  "max_distance": 8.0, "walk_speed": 1.1, "sprint_speed": 1.4 }
+                """);
+        assertThrows(RuntimeException.class, () -> EntityGoalBinding.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow());
     }
 
     @Test

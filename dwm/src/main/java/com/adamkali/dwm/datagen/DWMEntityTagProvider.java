@@ -1,5 +1,6 @@
 package com.adamkali.dwm.datagen;
 
+import com.adamkali.dwm.entity.DWMEntityTypeTags;
 import com.adamkali.dwm.entity.DWMEntityTypes;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
@@ -19,6 +20,10 @@ public class DWMEntityTagProvider extends FabricTagsProvider.EntityTypeTagsProvi
                 .add(key(DWMEntityTypes.FLUTTERWING))
                 .add(key(DWMEntityTypes.DALEK))
                 .add(key(DWMEntityTypes.PARADIGM_DALEK));
+        builder(DWMEntityTypeTags.THAL_FEARS)
+                .add(key(DWMEntityTypes.DALEK))
+                .add(key(DWMEntityTypes.PARADIGM_DALEK))
+                .add(key(DWMEntityTypes.DALEK_MUTANT));
     }
 
     private static net.minecraft.resources.ResourceKey<EntityType<?>> key(EntityType<?> type) {

@@ -19,6 +19,8 @@ import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
 import com.adamkali.dwm.tardis.worldgen.DWMStructureProcessors;
+import com.adamkali.dwm.world.structure.DWMStructurePieceTypes;
+import com.adamkali.dwm.world.structure.DWMStructureTypes;
 import com.adamkali.dwm.world.DWMPlacedFeatures;
 import com.adamkali.dwm.world.radiation.RadiationExposureService;
 import com.mojang.logging.LogUtils;
@@ -49,6 +51,8 @@ public class DWMMain implements ModInitializer {
         DWMBlockEntities.initialize();
         DWMSounds.initialize();
         DWMStructureProcessors.initialize();
+        DWMStructureTypes.initialize();
+        DWMStructurePieceTypes.initialize();
         FieldGuideRegistries.initialize();
         FieldGuideGrant.initialize();
         ServerPayloadTypeRegistry.initialize();
