@@ -293,4 +293,26 @@ public class DalekGameTests {
             context.succeed();
         });
     }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void playerLaserHurtsDalek(GameTestHelper context) {
+        Player player = context.makeMockPlayer(GameType.SURVIVAL);
+        DalekEntity dalek = context.spawn(DWMEntityTypes.DALEK, new BlockPos(3, 2, 2));
+        dalek.setNoAi(true);
+        dalek.setNoGravity(true);
+        float health = dalek.getHealth();
+
+        DalekLaserEntity laser = new DalekLaserEntity(context.getLevel(), player);
+        double y = dalek.getY() + dalek.getBbHeight() / 2.0;
+        laser.setPos(dalek.getX() - 1.5, y, dalek.getZ());
+        laser.shoot(1.0, 0.0, 0.0, 1.6F, 0.0F);
+        context.getLevel().addFreshEntity(laser);
+
+        context.runAfterDelay(3, () -> {
+            if (dalek.getHealth() >= health) {
+                throw new AssertionError("Player laser should hurt a Dalek: " + dalek.getHealth() + " / " + health);
+            }
+            context.succeed();
+        });
+    }
 }
