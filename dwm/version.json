@@ -16,7 +16,8 @@
         "Misc: Daleks shout \"Exterminate!\" on locking a target, with spoken idle, hurt and death lines",
         "Misc: Dalek outposts generate on Skaro, in intact and ruined forms",
         "Misc: Rare Thal settlements on the Thal Plateau, home to resident Thals",
-        "Misc: Thals wander, open doors, look at nearby players and flee from Daleks"
+        "Misc: Thals wander, open doors, look at nearby players and flee from Daleks",
+        "Misc: Dalek/Thal battles"
       ],
       "changed": [
         "Misc: Classic Dalek rebuilt as 1963 and Time War casings, and shrunk to 1.7 blocks tall",
