@@ -79,6 +79,7 @@ public class DWMModelProvider extends FabricModelProvider {
         }
 
         registerGallifreyPlants(blockStateModelGenerator);
+        registerSkaroPlants(blockStateModelGenerator);
 
         registerCubeAll(blockStateModelGenerator, DWMBlocks.AZBANTIUM_ORE);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.AZBANTIUM_BLOCK);
@@ -174,6 +175,19 @@ public class DWMModelProvider extends FabricModelProvider {
         // Cross block model from block texture; flat item uses textures/item/saccharine_cane.png
         generator.createCrossBlock(DWMBlocks.SACCHARINE_CANE, BlockModelGenerators.PlantType.NOT_TINTED);
         generator.registerSimpleFlatItemModel(DWMBlocks.SACCHARINE_CANE.asItem());
+    }
+
+    private static void registerSkaroPlants(BlockModelGenerators generator) {
+        for (Block plant : DWMBlocks.SKARO_PLANTS) {
+            generator.createCrossBlock(plant, BlockModelGenerators.PlantType.NOT_TINTED);
+            generator.registerSimpleFlatItemModel(plant.asItem());
+        }
+        // Eight growth ages share four visual stages (block/thal_crop_stage0..3).
+        generator.createCropBlock(
+                DWMBlocks.THAL_CROP,
+                com.adamkali.dwm.block.plant.ThalCropBlock.AGE,
+                0, 0, 1, 1, 2, 2, 2, 3
+        );
     }
 
     private static void registerCubeAll(BlockModelGenerators generator, Block block) {

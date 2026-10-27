@@ -1516,9 +1516,11 @@ public class ResourceValidationTests {
                     || "skaro_thal_plateau.json".equals(biomeFile);
             assertDalekMonsterPatrol(biome, biomeFile, sparse);
             String blob = Files.readString(path);
+            // Skaro's own ash scrub shares the "dwm:ash" prefix with the Gallifrey ash tree; mask it for the guard.
+            String gallifreyGuardBlob = blob.replace("dwm:ash_scrub", "dwm:skaro_scrub");
             for (String forbidden : forbiddenFeatureSubstrings) {
                 assertFalse(
-                        blob.contains(forbidden),
+                        gallifreyGuardBlob.contains(forbidden),
                         biomeFile + " must not include Gallifrey-only generated content: " + forbidden
                 );
             }

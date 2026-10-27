@@ -406,6 +406,11 @@ public class DWMItems {
         );
     }
 
+    public static final Item THAL_SEEDS = register(
+            props -> new net.minecraft.world.item.BlockItem(DWMBlocks.THAL_CROP, props),
+            new Item.Properties().useItemDescriptionPrefix(),
+            "thal_seeds");
+
     public static Item register(Function<Item.Properties, Item> item, String id) {
         return register(item, new Item.Properties(), id);
     }

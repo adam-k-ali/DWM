@@ -2,7 +2,11 @@ package com.adamkali.dwm.block;
 
 import com.adamkali.dwm.item.DWMCreativeTabs;
 
+import com.adamkali.dwm.block.plant.MutatedReedsBlock;
 import com.adamkali.dwm.block.plant.SaccharineCaneBlock;
+import com.adamkali.dwm.block.plant.SkaroPlantBlock;
+import com.adamkali.dwm.block.plant.ThalCropBlock;
+import com.adamkali.dwm.block.plant.VargaPlantBlock;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.block.wood.WoodFamilyDefinition;
 import com.adamkali.dwm.block.wood.WoodFamilyFeature;
@@ -347,6 +351,18 @@ public class DWMBlocks {
             "saccharine_cane"
     );
 
+    public static final Block VARGA_PLANT = register(
+            VargaPlantBlock::new, DWMBlockSettings.skaroPlant(), "varga_plant");
+    public static final Block RADIATION_FUNGUS = register(
+            SkaroPlantBlock::new, DWMBlockSettings.radiationFungus(), "radiation_fungus");
+    public static final Block ASH_SCRUB = register(
+            SkaroPlantBlock::new, DWMBlockSettings.skaroPlant(), "ash_scrub");
+    public static final Block MUTATED_REEDS = register(
+            MutatedReedsBlock::new, DWMBlockSettings.mutatedReeds(), "mutated_reeds");
+    /** Thal crop: no BlockItem; planted via {@code DWMItems.THAL_SEEDS}. */
+    public static final Block THAL_CROP = registerWithoutItem(
+            ThalCropBlock::new, DWMBlockSettings.thalCrop(), "thal_crop");
+
     public static final RegisteredWoodFamily ASH = WoodFamilyRegistrar.registerBlocks(
             new WoodFamilyDefinition(
                     "ash",
@@ -659,6 +675,14 @@ public class DWMBlocks {
             SACCHARINE_CANE
     );
 
+    /** Placeable Skaro plants (items); the Thal crop is planted via its seeds. */
+    public static final List<Block> SKARO_PLANTS = List.of(
+            VARGA_PLANT,
+            RADIATION_FUNGUS,
+            ASH_SCRUB,
+            MUTATED_REEDS
+    );
+
     /** Cross flowers that have potted variants. */
     public static final List<Block> GALLIFREY_CROSS_PLANTS = List.of(
             FLOWER_OF_REMEMBRANCE,
@@ -677,6 +701,10 @@ public class DWMBlocks {
         CompostableRegistry.INSTANCE.add(FLOWER_OF_REMEMBRANCE.asItem(), 0.65F);
         CompostableRegistry.INSTANCE.add(MOONLIGHT_BLOOM.asItem(), 0.65F);
         CompostableRegistry.INSTANCE.add(SACCHARINE_CANE.asItem(), 0.50F);
+        CompostableRegistry.INSTANCE.add(ASH_SCRUB.asItem(), 0.30F);
+        CompostableRegistry.INSTANCE.add(RADIATION_FUNGUS.asItem(), 0.50F);
+        CompostableRegistry.INSTANCE.add(MUTATED_REEDS.asItem(), 0.50F);
+        CompostableRegistry.INSTANCE.add(com.adamkali.dwm.item.DWMItems.THAL_SEEDS, 0.30F);
 
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) ->
                 !FirstDoctorConsoleBlock.isPlayerBreakDenied(state));
@@ -867,6 +895,10 @@ public class DWMBlocks {
             for (Block plant : GALLIFREY_PLANTS) {
                 content.accept(plant);
             }
+            for (Block plant : SKARO_PLANTS) {
+                content.accept(plant);
+            }
+            content.accept(com.adamkali.dwm.item.DWMItems.THAL_SEEDS);
         });
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.REDSTONE_BLOCKS).register(content -> {

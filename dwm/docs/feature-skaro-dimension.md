@@ -80,7 +80,7 @@ A hand-placed-looking village that is generated entirely from code (no NBT templ
 | Rarity | `random_spread`, spacing 40 / separation 14 chunks, with an `exclusion_zone` of 6 chunks against `dwm:skaro_military_landmarks`, so no Dalek outpost (or later military landmark) is placed beside a settlement. The plateau itself is already rare, so settlements are rare on top of that; a site is also rejected when its surface varies by more than 6 blocks across the settlement, its centre is in water, or more than a quarter of the sampled building columns lie under more than 2 blocks of water or lava. In a seed-12345 test world the nearest settlement was roughly 1 to 2.7 km from each sampled point |
 | Contents | 1 communal shelter (larger hall with table, seats and beds), 3 to 5 huts, 2 fields, 1 watch post, and a path network |
 | Materials | Petrified planks, stripped petrified logs, stairs, slabs and walls for walls, frames and roofs; oak doors (Thals open doors); dirt paths; lanterns, beds, crafting tables and barrels as furnishings |
-| Fields | Farmland either side of a central water channel, planted with wheat at mixed growth stages. Wheat is a placeholder until the Thal crop of DWM-068 exists (one constant, `ThalSettlementPalette.FIELD_CROP`) |
+| Fields | Farmland either side of a central water channel, planted with the Thal crop at mixed growth stages (`ThalSettlementPalette.FIELD_CROP`) |
 | Watch post | A 3x3 petrified-log tower with a door, an inside ladder and a railed platform. Nobody guards it (guards are out of scope) |
 | Paths | Every building's doorstep is joined to the shelter's by 4-connected dirt-path tiles at one shared floor level that never cross a building; the whole network is walkable with no steps, and two blocks of headroom are cleared above it |
 | Residents | 2 to 3 Thals in the shelter and 1 to 2 in each hut, spawned persistent when the building is generated and homed to the settlement centre (radius 36) so they stay resident. A once-only flag stored in the piece prevents duplicates when a chunk is regenerated or re-processed |
@@ -91,12 +91,22 @@ Build order is height-driven: the common floor level is the median sampled surfa
 
 Not included: trades, dialogue, quests, guards, raids, or a Thal crop with new progression. Debug: `/execute in dwm:skaro run locate structure dwm:thal_settlement`, then teleport nearby.
 
+## Skaro Flora (DWM-068)
+Restrained and Skaro-only: none of these are Gallifrey plants or in any Gallifrey tag (`#dwm:skaro_plants`). All contact effects run server-side.
+
+| Plant | Habitat | Behaviour | Obtainable / renewable |
+|---|---|---|---|
+| Petrified trees, snags, fallen trunks | Petrified Jungle | Nonliving petrified wood only; no leaves or saplings | Logs obtainable; not renewable (no saplings) |
+| Varga Plant | Very rare in Irradiated Wastes, Petrified Jungle, Drammankin Mire | Poison (5 s) on contact; only refreshed when under 2 s remain | Drops itself; not renewable |
+| Radiation Fungus | Petrified Jungle, Drammankin Mire | Light level 3; no radiation logic | Drops itself; not renewable |
+| Mutated Reeds | Drammankin Mire shores | Stackable; base needs soil beside water | Drops itself; stacks on itself |
+| Ash Scrub | Sparse in Irradiated Wastes and Drammankin Mountains | Decoration; pops off without ground | Drops itself; compostable |
+| Thal Crop / Thal Seeds | Thal settlement farms only (never wild) | Farmland crop, 8 ages; ripe harvest returns seeds | Renewable via seeds; Thal Plateau is the only arable region |
+
 ## Planned (not yet in the jar)
 - Remaining Dalek architecture builder family (DWM-065): wall, floor, light, door, damaged variants.
-- Remaining Skaro flora (Varga, radiation fungus, mutated reeds, ash scrub, Thal crop) under DWM-068.
 - Remaining DWM-069 landmarks (battlefield trench/ruin, wreckage/crater, mutation nest, petrified carcass/copse, dry channel), Skaro fauna, Kaalann, and related tickets (DWM-072–074). Dalek biome patrols shipped under DWM-070 and the Thal settlement under DWM-071; structure-scoped Dalek population (e.g. Daleks guarding outposts) is still planned.
 - Major hostile structures outside `dwm:skaro_military_landmarks` (Kaled bunker DWM-073, Kaalann DWM-074) must add their own `exclusion_zone` against `dwm:thal_settlement` so they never generate beside a settlement.
-- The settlement fields plant vanilla wheat as a stand-in. When the Thal crop of DWM-068 exists, swap the single constant `ThalSettlementPalette.FIELD_CROP`.
 
 ## How It Works In-Game
 1. Mine petrified logs with a pickaxe (or strip with an axe), then craft planks, stairs, slabs, and walls like other builder sets.
