@@ -523,6 +523,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItem(t, DWMItems.DALEK_SPAWN_EGG, "Dalek Spawn Egg");
         t.add(DWMEntityTypes.PARADIGM_DALEK, "Paradigm Dalek");
         addItem(t, DWMItems.PARADIGM_DALEK_SPAWN_EGG, "Paradigm Dalek Spawn Egg");
+        t.add(DWMEntityTypes.SPECIAL_WEAPONS_DALEK, "Special Weapons Dalek");
+        addItem(t, DWMItems.SPECIAL_WEAPONS_DALEK_SPAWN_EGG, "Special Weapons Dalek Spawn Egg");
         t.add(DWMEntityTypes.DALEK_MUTANT, "Dalek Mutant");
         addItem(t, DWMItems.DALEK_MUTANT_SPAWN_EGG, "Dalek Mutant Spawn Egg");
         t.add(DWMEntityTypes.DALEK_LASER, "Dalek Laser");

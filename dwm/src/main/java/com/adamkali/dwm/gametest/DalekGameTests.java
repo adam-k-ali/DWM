@@ -10,6 +10,7 @@ import com.adamkali.dwm.entity.DalekMutantEntity;
 import com.adamkali.dwm.entity.DalekVariant;
 import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.entity.ParadigmDalekEntity;
+import com.adamkali.dwm.entity.SpecialWeaponsDalekEntity;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -76,6 +77,56 @@ public class DalekGameTests {
         player.snapTo(dalek.getX() + 4.0, dalek.getY(), dalek.getZ());
         dalek.performRangedAttack(player, 1.0F);
         context.assertEntityPresent(DWMEntityTypes.DALEK_LASER);
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void spawnSpecialWeaponsDalekOnGrass(GameTestHelper context) {
+        BlockPos grassRel = new BlockPos(2, 1, 2);
+        context.setBlock(grassRel, DWMBlocks.GALLIFREY_GRASS_BLOCK.defaultBlockState());
+
+        SpecialWeaponsDalekEntity dalek = context.spawn(DWMEntityTypes.SPECIAL_WEAPONS_DALEK, grassRel.above());
+        if (dalek == null || !dalek.isAlive()) {
+            throw new AssertionError("Expected a living Special Weapons Dalek after spawn");
+        }
+        if (dalek.getVariant() != DalekVariant.SPECIAL_WEAPONS) {
+            throw new AssertionError("Special Weapons Dalek should wear its own skin, got " + dalek.getVariant());
+        }
+        dalek.finalizeSpawn(
+                context.getLevel(),
+                context.getLevel().getCurrentDifficultyAt(dalek.blockPosition()),
+                EntitySpawnReason.NATURAL,
+                null
+        );
+        assertVariantsFitFamily(dalek, DalekFamily.SPECIAL_WEAPONS);
+
+        double muzzleHeight = dalek.gunMuzzleWorldPos().y - dalek.getY();
+        if (Math.abs(muzzleHeight - DalekChassis.SPECIAL_WEAPONS.gunHeight()) > 1.0e-4) {
+            throw new AssertionError("Special Weapons muzzle height " + muzzleHeight + " does not match its chassis");
+        }
+        Player player = context.makeMockPlayer(GameType.SURVIVAL);
+        player.snapTo(dalek.getX() + 4.0, dalek.getY(), dalek.getZ());
+        dalek.performRangedAttack(player, 1.0F);
+        context.assertEntityPresent(DWMEntityTypes.DALEK_LASER);
+        if (dalek.laserProfile() != com.adamkali.dwm.entity.DalekLaserProfile.HEAVY) {
+            throw new AssertionError("Special Weapons Dalek should fire the heavy explosive bolt");
+        }
+        DalekLaserEntity bolt = context.getLevel()
+                .getEntitiesOfClass(DalekLaserEntity.class, dalek.getBoundingBox().inflate(8.0))
+                .getFirst();
+        if (bolt.profile() != com.adamkali.dwm.entity.DalekLaserProfile.HEAVY) {
+            throw new AssertionError("Fired bolt should carry the heavy profile");
+        }
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void specialWeaponsDalekMatchesDefinition(GameTestHelper context) {
+        SpecialWeaponsDalekEntity mob =
+                EntityDefinitionGameTestSupport.spawnOnGrass(context, DWMEntityTypes.SPECIAL_WEAPONS_DALEK);
+        var definition = EntityDefinitionGameTestSupport.definitionOf(mob);
+        EntityDefinitionGameTestSupport.assertAttributesMatch(mob, definition);
+        EntityDefinitionGameTestSupport.assertGoalsMatch(mob, definition);
         context.succeed();
     }
 

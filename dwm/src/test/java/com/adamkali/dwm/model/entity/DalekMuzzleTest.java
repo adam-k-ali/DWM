@@ -20,7 +20,8 @@ class DalekMuzzleTest {
     private static final Map<DalekChassis, ModelLayerLocation> MESHES = Map.of(
             DalekChassis.CLASSIC_1963, DalekModel.LAYER_LOCATION,
             DalekChassis.TIME_WAR, TimeWarDalekModel.LAYER_LOCATION,
-            DalekChassis.PARADIGM, ParadigmDalekModel.LAYER_LOCATION
+            DalekChassis.PARADIGM, ParadigmDalekModel.LAYER_LOCATION,
+            DalekChassis.SPECIAL_WEAPONS, SpecialWeaponsDalekModel.LAYER_LOCATION
     );
 
     @BeforeAll

@@ -39,6 +39,7 @@ public class DWMEntityLootTableProvider extends FabricEntityLootSubProvider {
         add(DWMEntityTypes.THAL, LootTable.lootTable());
         add(DWMEntityTypes.DALEK, LootTable.lootTable());
         add(DWMEntityTypes.PARADIGM_DALEK, LootTable.lootTable());
+        add(DWMEntityTypes.SPECIAL_WEAPONS_DALEK, LootTable.lootTable());
         add(DWMEntityTypes.DALEK_MUTANT, LootTable.lootTable());
         add(
                 DWMEntityTypes.MEWING_DOG,

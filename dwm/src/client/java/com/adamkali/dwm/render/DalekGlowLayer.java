@@ -25,12 +25,15 @@ import java.util.Map;
 public class DalekGlowLayer extends RenderLayer<DalekRenderState, DalekModel> {
     public static final Identifier PARADIGM_TEXTURE =
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "textures/entity/dalek/paradigm_glow.png");
+    public static final Identifier SPECIAL_WEAPONS_TEXTURE =
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "textures/entity/dalek/special_weapons_glow.png");
     public static final Identifier TIME_WAR_TEXTURE =
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "textures/entity/dalek/time_war_glow.png");
 
     private static final Map<DalekChassis, Identifier> TEXTURES = new EnumMap<>(Map.of(
             DalekChassis.TIME_WAR, TIME_WAR_TEXTURE,
-            DalekChassis.PARADIGM, PARADIGM_TEXTURE
+            DalekChassis.PARADIGM, PARADIGM_TEXTURE,
+            DalekChassis.SPECIAL_WEAPONS, SPECIAL_WEAPONS_TEXTURE
     ));
     private static final Map<DalekChassis, RenderType> RENDER_TYPES = new EnumMap<>(DalekChassis.class);
 

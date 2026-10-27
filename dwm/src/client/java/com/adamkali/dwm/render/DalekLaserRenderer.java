@@ -35,7 +35,8 @@ public class DalekLaserRenderer extends EntityRenderer<DalekLaserEntity, DalekLa
         poseStack.translate(0.0F, 0.08F, 0.0F);
         poseStack.mulPose(Axis.YP.rotationDegrees(state.yRot - 90.0F));
         poseStack.mulPose(Axis.ZP.rotationDegrees(state.xRot));
-        poseStack.scale(0.55F, 0.55F, 0.55F);
+        float scale = 0.55F * state.visualScale;
+        poseStack.scale(scale, scale, scale);
         submitNodeCollector.submitModel(
                 this.model,
                 state,
@@ -60,5 +61,6 @@ public class DalekLaserRenderer extends EntityRenderer<DalekLaserEntity, DalekLa
         super.extractRenderState(entity, state, partialTicks);
         state.xRot = entity.getXRot(partialTicks);
         state.yRot = entity.getYRot(partialTicks);
+        state.visualScale = entity.profile().visualScale();
     }
 }

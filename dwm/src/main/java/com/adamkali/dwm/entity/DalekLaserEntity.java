@@ -1,7 +1,14 @@
 package com.adamkali.dwm.entity;
 
 import com.adamkali.dwm.item.LaserGunLogic;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.level.Explosion;
+import net.minecraft.world.level.ExplosionDamageCalculator;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -20,6 +27,8 @@ import net.minecraft.world.phys.Vec3;
 
 public class DalekLaserEntity extends Projectile {
     private static final int MAX_LIFE_TICKS = 40;
+    private static final EntityDataAccessor<Boolean> DATA_HEAVY =
+            SynchedEntityData.defineId(DalekLaserEntity.class, EntityDataSerializers.BOOLEAN);
 
     public DalekLaserEntity(EntityType<? extends DalekLaserEntity> type, Level level) {
         super(type, level);
@@ -48,6 +57,10 @@ public class DalekLaserEntity extends Projectile {
             return;
         }
         Vec3 movement = this.getDeltaMovement();
+        if (this.level().isClientSide() && profile().explodes()) {
+            this.level().addParticle(ParticleTypes.FLAME, this.getX(), this.getY(), this.getZ(), 0.0, 0.0, 0.0);
+            this.level().addParticle(ParticleTypes.SMOKE, this.getX(), this.getY(), this.getZ(), 0.0, 0.0, 0.0);
+        }
         HitResult hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
         this.hitTargetOrDeflectSelf(hitResult);
         if (this.isRemoved()) {
@@ -87,6 +100,7 @@ public class DalekLaserEntity extends Projectile {
             }
         }
         if (!this.level().isClientSide()) {
+            detonate(hitResult.getLocation());
             this.discard();
         }
     }
@@ -95,11 +109,48 @@ public class DalekLaserEntity extends Projectile {
     protected void onHitBlock(BlockHitResult hitResult) {
         super.onHitBlock(hitResult);
         if (!this.level().isClientSide()) {
+            detonate(hitResult.getLocation());
             this.discard();
         }
     }
 
+    public void setProfile(DalekLaserProfile profile) {
+        this.entityData.set(DATA_HEAVY, profile.explodes());
+    }
+
+    public DalekLaserProfile profile() {
+        return this.entityData.get(DATA_HEAVY) ? DalekLaserProfile.HEAVY : DalekLaserProfile.STANDARD;
+    }
+
+    /** Detonates the heavy round at {@code pos}; Dalek kin and the shooter are spared the blast. */
+    private void detonate(Vec3 pos) {
+        DalekLaserProfile profile = profile();
+        if (!profile.explodes() || !(this.level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        ExplosionDamageCalculator calculator = new ExplosionDamageCalculator() {
+            @Override
+            public boolean shouldDamageEntity(Explosion explosion, Entity entity) {
+                return !isDalekKin(entity);
+            }
+        };
+        serverLevel.explode(this, null, calculator, pos, profile.blastRadius(), false, Level.ExplosionInteraction.MOB);
+    }
+
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder entityData) {
+        entityData.define(DATA_HEAVY, false);
+    }
+
+    @Override
+    protected void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putBoolean("Heavy", this.entityData.get(DATA_HEAVY));
+    }
+
+    @Override
+    protected void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.entityData.set(DATA_HEAVY, input.getBooleanOr("Heavy", false));
     }
 }

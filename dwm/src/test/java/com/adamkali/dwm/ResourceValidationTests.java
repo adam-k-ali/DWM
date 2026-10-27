@@ -1139,7 +1139,7 @@ public class ResourceValidationTests {
         assertTrue(Files.isRegularFile(path), "Missing generated thal_fears entity tag: " + path);
         JSONObject tag = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
         assertEquals(
-                Set.of("dwm:dalek", "dwm:paradigm_dalek", "dwm:dalek_mutant"),
+                Set.of("dwm:dalek", "dwm:paradigm_dalek", "dwm:special_weapons_dalek", "dwm:dalek_mutant"),
                 new HashSet<>(tag.getJSONArray("values").toList().stream().map(Object::toString).toList())
         );
     }
@@ -1173,6 +1173,15 @@ public class ResourceValidationTests {
     @Test
     public void paradigmGlowTextureCoversOnlyEyeAndLights() throws Exception {
         assertGlowCoversOnly("paradigm_dalek", "paradigm_glow", List.of(List.of(104, 8), List.of(112, 8)));
+    }
+
+    /**
+     * Same rule for the Special Weapons casing: only the eye ({@code [73, 0]}) and the dome lights
+     * ({@code [115, 0]}) of {@code special_weapons_dalek.json} may glow.
+     */
+    @Test
+    public void specialWeaponsGlowTextureCoversOnlyEyeAndLights() throws Exception {
+        assertGlowCoversOnly("special_weapons_dalek", "special_weapons_glow", List.of(List.of(73, 0), List.of(115, 0)));
     }
 
     /**
@@ -1320,7 +1329,7 @@ public class ResourceValidationTests {
 
     @Test
     public void dalekSpawnEggTextureExists() throws Exception {
-        for (String egg : new String[]{"dalek_spawn_egg", "paradigm_dalek_spawn_egg"}) {
+        for (String egg : new String[]{"dalek_spawn_egg", "paradigm_dalek_spawn_egg", "special_weapons_dalek_spawn_egg"}) {
             Path texture = Path.of("src/client/resources/assets/dwm/textures/item/" + egg + ".png");
             assertTrue(
                     Files.isRegularFile(texture) && Files.size(texture) > 0,
@@ -1335,7 +1344,7 @@ public class ResourceValidationTests {
      */
     @Test
     public void generatedDalekSpawnEggItemModelExists() throws Exception {
-        for (String egg : new String[]{"dalek_spawn_egg", "paradigm_dalek_spawn_egg"}) {
+        for (String egg : new String[]{"dalek_spawn_egg", "paradigm_dalek_spawn_egg", "special_weapons_dalek_spawn_egg"}) {
             Path item = Path.of("src/main/generated/assets/dwm/items/" + egg + ".json");
             assertTrue(
                     Files.isRegularFile(item) && Files.size(item) > 0,
@@ -1352,7 +1361,7 @@ public class ResourceValidationTests {
                 "gallifrey_wastes.json",
                 "gallifrey_badlands.json"
         }) {
-            for (String dalek : new String[]{"dwm:dalek", "dwm:paradigm_dalek"}) {
+            for (String dalek : new String[]{"dwm:dalek", "dwm:paradigm_dalek", "dwm:special_weapons_dalek"}) {
                 assertFalse(biomeHasCreatureSpawn(biome, dalek));
                 assertFalse(biomeHasMonsterSpawn(biome, dalek));
             }
@@ -1367,6 +1376,7 @@ public class ResourceValidationTests {
         var values = tag.getJSONArray("values").toList();
         assertTrue(values.contains("dwm:dalek"), "fall_damage_immune should include dwm:dalek");
         assertTrue(values.contains("dwm:paradigm_dalek"), "fall_damage_immune should include dwm:paradigm_dalek");
+        assertTrue(values.contains("dwm:special_weapons_dalek"), "fall_damage_immune should include dwm:special_weapons_dalek");
     }
 
     @Test

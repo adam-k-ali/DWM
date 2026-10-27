@@ -45,7 +45,7 @@ class EntityDefinitionCatalogTest {
 
     @Test
     void fileStemMatchesEntityId() {
-        assertEquals(8, definitions.size());
+        assertEquals(9, definitions.size());
         for (Map.Entry<Identifier, EntityDefinition> entry : definitions.entrySet()) {
             assertEquals(entry.getKey(), entry.getValue().entity());
         }
@@ -224,6 +224,31 @@ class EntityDefinitionCatalogTest {
         assertEquals(classic.targets(), paradigm.targets());
         assertEquals(classic.attributeBase(), paradigm.attributeBase());
         assertEquals(attribute(classic, "flying_speed"), attribute(paradigm, "flying_speed"));
+    }
+
+    @Test
+    void specialWeaponsDalekIsAToughSlowHeavyGun() {
+        EntityDefinition definition = definition("special_weapons_dalek");
+        EntityDefinition paradigm = definition("paradigm_dalek");
+        EntityDefinition classic = definition("dalek");
+        assertEquals(EntityAttributeBase.MONSTER, definition.attributeBase());
+        assertEquals(60.0, attribute(definition, "max_health"));
+        assertEquals(9.0, attribute(definition, "attack_damage"));
+        assertEquals(10.0, attribute(definition, "armor"));
+        assertEquals(1.0, attribute(definition, "knockback_resistance"));
+        assertEquals(attribute(classic, "flying_speed"), attribute(definition, "flying_speed"));
+        for (String path : List.of("max_health", "attack_damage", "armor")) {
+            assertTrue(attribute(definition, path) > attribute(classic, path), path);
+        }
+        assertTrue(attribute(definition, "movement_speed") < attribute(classic, "movement_speed"));
+        assertEquals(classic.targets(), definition.targets());
+        assertEquals(EntityGoal.Kind.DALEK_FLIGHT, definition.goals().get(1).goal().kind());
+        EntityGoal.RangedAttack ranged = assertInstanceOf(EntityGoal.RangedAttack.class, definition.goals().get(2).goal());
+        EntityGoal.RangedAttack paradigmRanged =
+                assertInstanceOf(EntityGoal.RangedAttack.class, paradigm.goals().get(2).goal());
+        assertEquals(24.0, ranged.attackRange());
+        assertTrue(ranged.attackRange() > paradigmRanged.attackRange());
+        assertTrue(ranged.interval() > paradigmRanged.interval());
     }
 
     @Test
