@@ -1,6 +1,8 @@
 package com.adamkali.dwm.entity.definition;
 
 import com.adamkali.dwm.DWMReference;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.JsonOps;
@@ -19,8 +21,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -45,9 +50,7 @@ public final class EntityDefinitions {
         DEFINITIONS.clear();
         Path dir = resolveDefinitionsDir();
         try (Stream<Path> stream = Files.list(dir)) {
-            for (Path path : stream.filter(file -> file.getFileName().toString().endsWith(".json")).toList()) {
-                loadFile(path);
-            }
+            loadAll(stream.filter(file -> file.getFileName().toString().endsWith(".json")).toList());
         } catch (IOException e) {
             throw new IllegalStateException("Failed to list entity definitions in " + dir, e);
         }
@@ -114,23 +117,100 @@ public final class EntityDefinitions {
         });
     }
 
-    private static void loadFile(Path path) {
-        String fileName = path.getFileName().toString();
-        String stem = fileName.substring(0, fileName.length() - ".json".length());
-        Identifier expectedId = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, stem);
-        try {
-            var json = JsonParser.parseString(Files.readString(path));
-            EntityDefinition definition = EntityDefinition.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow();
-            if (!expectedId.equals(definition.entity())) {
-                throw new IllegalStateException("Entity id mismatch: file " + expectedId + " vs json " + definition.entity());
+    private static void loadAll(List<Path> files) {
+        Map<Identifier, JsonObject> raw = new LinkedHashMap<>();
+        for (Path path : files) {
+            String fileName = path.getFileName().toString();
+            String stem = fileName.substring(0, fileName.length() - ".json".length());
+            Identifier fileId = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, stem);
+            try {
+                raw.put(fileId, JsonParser.parseString(Files.readString(path)).getAsJsonObject());
+            } catch (RuntimeException | IOException e) {
+                throw new IllegalStateException("Failed to read entity definition " + path, e);
             }
-            EntityDefinition previous = DEFINITIONS.putIfAbsent(definition.entity(), definition);
-            if (previous != null) {
-                throw new IllegalStateException("Duplicate entity definition for " + definition.entity());
-            }
-        } catch (RuntimeException | IOException e) {
-            throw new IllegalStateException("Failed to load entity definition " + path, e);
         }
+        resolveParents(raw).forEach((fileId, json) -> {
+            try {
+                EntityDefinition definition = EntityDefinition.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow();
+                if (!fileId.equals(definition.entity())) {
+                    throw new IllegalStateException("Entity id mismatch: file " + fileId + " vs json " + definition.entity());
+                }
+                DEFINITIONS.put(definition.entity(), definition);
+            } catch (RuntimeException e) {
+                throw new IllegalStateException("Failed to load entity definition " + fileId, e);
+            }
+        });
+    }
+
+    /**
+     * Flattens {@code "parent"} references: anything a child omits comes from its parent. {@code attributes} and
+     * each {@code attribute_overrides} set merge per key (child wins); every other field, including the
+     * {@code goals} and {@code targets} lists, is replaced wholesale when the child defines it. The result has no
+     * {@code parent} field, so it decodes with {@link EntityDefinition#CODEC} unchanged.
+     *
+     * @param definitions raw definition JSON keyed by definition id
+     */
+    static Map<Identifier, JsonObject> resolveParents(Map<Identifier, JsonObject> definitions) {
+        Map<Identifier, JsonObject> resolved = new LinkedHashMap<>();
+        for (Identifier id : definitions.keySet()) {
+            resolve(id, definitions, resolved, new LinkedHashSet<>());
+        }
+        return resolved;
+    }
+
+    private static JsonObject resolve(
+            Identifier id,
+            Map<Identifier, JsonObject> definitions,
+            Map<Identifier, JsonObject> resolved,
+            Set<Identifier> visiting
+    ) {
+        JsonObject done = resolved.get(id);
+        if (done != null) {
+            return done;
+        }
+        if (!visiting.add(id)) {
+            throw new IllegalStateException("Entity definition parent cycle: " + visiting + " -> " + id);
+        }
+        JsonObject child = definitions.get(id);
+        JsonObject result;
+        if (!child.has("parent")) {
+            result = child.deepCopy();
+        } else {
+            String parentName = child.get("parent").getAsString();
+            Identifier parentId = Identifier.tryParse(parentName);
+            if (parentId == null || !definitions.containsKey(parentId)) {
+                throw new IllegalStateException("Entity definition " + id + " has unknown parent " + parentName);
+            }
+            result = resolve(parentId, definitions, resolved, visiting).deepCopy();
+            for (Map.Entry<String, JsonElement> field : child.entrySet()) {
+                String key = field.getKey();
+                if (key.equals("parent")) {
+                    continue;
+                }
+                JsonElement value = field.getValue();
+                if (key.equals("attributes") && value.isJsonObject() && result.has(key)) {
+                    mergeInto(result.getAsJsonObject(key), value.getAsJsonObject());
+                } else if (key.equals("attribute_overrides") && value.isJsonObject() && result.has(key)) {
+                    JsonObject sets = result.getAsJsonObject(key);
+                    for (Map.Entry<String, JsonElement> set : value.getAsJsonObject().entrySet()) {
+                        if (sets.has(set.getKey()) && set.getValue().isJsonObject()) {
+                            mergeInto(sets.getAsJsonObject(set.getKey()), set.getValue().getAsJsonObject());
+                        } else {
+                            sets.add(set.getKey(), set.getValue().deepCopy());
+                        }
+                    }
+                } else {
+                    result.add(key, value.deepCopy());
+                }
+            }
+        }
+        visiting.remove(id);
+        resolved.put(id, result);
+        return result;
+    }
+
+    private static void mergeInto(JsonObject base, JsonObject overlay) {
+        overlay.entrySet().forEach(entry -> base.add(entry.getKey(), entry.getValue().deepCopy()));
     }
 
     private static Path resolveDefinitionsDir() {

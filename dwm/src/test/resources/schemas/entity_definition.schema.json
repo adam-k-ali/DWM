@@ -3,10 +3,19 @@
   "$id": "https://adamkali.com/schemas/entity_definition.json",
   "title": "DWM Entity Definition",
   "type": "object",
-  "required": ["entity", "attribute_base", "attributes", "goals"],
+  "required": ["entity"],
+  "if": {
+    "not": { "required": ["parent"] }
+  },
+  "then": {
+    "required": ["attribute_base", "attributes", "goals"]
+  },
   "additionalProperties": false,
   "properties": {
     "entity": {
+      "$ref": "#/definitions/identifier"
+    },
+    "parent": {
       "$ref": "#/definitions/identifier"
     },
     "attribute_base": {
