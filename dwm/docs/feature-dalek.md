@@ -48,3 +48,5 @@ Give survival and creative worlds a hostile Doctor Who enemy: a 1963 Dalek that 
 - Caste-specific Paradigm behaviour (Supreme leadership, Scientist/Strategist roles).
 - Structure-scoped patrols at checkpoints, the Kaled bunker, and Kaalann.
 - Unique loot / advancement hooks.
+
+See also the player-usable [Dalek Laser Gun](./feature-dalek-laser-gun.md).

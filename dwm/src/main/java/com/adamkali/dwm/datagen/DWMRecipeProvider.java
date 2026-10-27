@@ -132,6 +132,7 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 generateInteriorDecorRecipes();
                 generateTardisKeyRecipe();
                 generateStattenheimRemoteRecipe();
+                generateLaserGunRecipe();
                 generateSonicRecipes();
             }
 
@@ -246,6 +247,19 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         .pattern("G ")
                         .pattern("I ")
                         .unlockedBy(getHasName(Items.GOLD_NUGGET), has(Items.GOLD_NUGGET))
+                        .save(output);
+            }
+
+            private void generateLaserGunRecipe() {
+                shaped(RecipeCategory.COMBAT, DWMItems.LASER_GUN)
+                        .define('S', DWMItems.STEEL_INGOT)
+                        .define('R', Items.REDSTONE)
+                        .define('D', Items.DIAMOND)
+                        .define('L', Items.LEVER)
+                        .pattern("SSD")
+                        .pattern("SRS")
+                        .pattern(" L ")
+                        .unlockedBy(getHasName(DWMItems.STEEL_INGOT), has(DWMItems.STEEL_INGOT))
                         .save(output);
             }
 

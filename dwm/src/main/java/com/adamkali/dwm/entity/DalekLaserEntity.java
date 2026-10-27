@@ -1,5 +1,6 @@
 package com.adamkali.dwm.entity;
 
+import com.adamkali.dwm.item.LaserGunLogic;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
@@ -7,6 +8,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -69,8 +71,13 @@ public class DalekLaserEntity extends Projectile {
         super.onHitEntity(hitResult);
         if (this.getOwner() instanceof LivingEntity livingOwner && this.level() instanceof ServerLevel serverLevel) {
             Entity target = hitResult.getEntity();
-            float damage = (float) livingOwner.getAttributeValue(Attributes.ATTACK_DAMAGE);
-            DamageSource damageSource = this.damageSources().mobProjectile(this, livingOwner);
+            boolean playerFired = livingOwner instanceof Player;
+            float damage = playerFired
+                    ? LaserGunLogic.PLAYER_DAMAGE
+                    : (float) livingOwner.getAttributeValue(Attributes.ATTACK_DAMAGE);
+            DamageSource damageSource = playerFired
+                    ? this.damageSources().indirectMagic(this, livingOwner)
+                    : this.damageSources().mobProjectile(this, livingOwner);
             if (target.hurtServer(serverLevel, damageSource, damage)) {
                 EnchantmentHelper.doPostAttackEffects(serverLevel, target, damageSource);
             }

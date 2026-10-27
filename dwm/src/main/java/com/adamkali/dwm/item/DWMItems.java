@@ -62,6 +62,11 @@ public class DWMItems {
             new Item.Properties().stacksTo(1),
             "stattenheim_remote"
     );
+    public static final Item LASER_GUN = register(
+            LaserGunItem::new,
+            new Item.Properties().stacksTo(1),
+            "laser_gun"
+    );
     public static final Item FIELD_GUIDE = register(
             FieldGuideItem::new,
             new Item.Properties().stacksTo(1),
@@ -359,6 +364,7 @@ public class DWMItems {
         });
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.COMBAT).register(content -> {
+            content.accept(LASER_GUN);
             content.accept(STEEL_SWORD);
             content.accept(SILVER_DALEKANIUM_SWORD);
             content.accept(BRONZE_DALEKANIUM_SWORD);

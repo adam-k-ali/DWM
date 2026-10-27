@@ -214,6 +214,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.key.tooltip.bound", "Bound to a TARDIS");
         t.add("dwm.tardis.claimed", "This TARDIS is yours");
         addItem(t, DWMItems.STATTENHEIM_REMOTE, "Stattenheim Remote");
+        addItem(t, DWMItems.LASER_GUN, "Dalek Laser Gun");
+        t.add("item.dwm.laser_gun.tooltip", "Fires a Dalek laser bolt");
         addItem(t, DWMItems.FIELD_GUIDE, "Field Guide");
         addItem(t, DWMItems.CIRCUIT_STABILISERS, "Stabilisers Circuit");
         addItem(t, DWMItems.CIRCUIT_WAYPOINTS, "Waypoints Circuit");
