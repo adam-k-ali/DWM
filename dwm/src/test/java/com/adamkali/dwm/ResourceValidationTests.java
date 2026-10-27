@@ -1371,7 +1371,7 @@ public class ResourceValidationTests {
 
     @Test
     public void dalekSoundFilesExist() throws Exception {
-        String[] names = {"ambient", "hurt", "death", "shoot"};
+        String[] names = {"exterminate", "ambient", "hurt", "death", "shoot"};
         for (String name : names) {
             Path sound = Path.of("src/client/resources/assets/dwm/sounds/entity/dalek/" + name + ".ogg");
             assertTrue(
@@ -1394,6 +1394,7 @@ public class ResourceValidationTests {
         Path path = Path.of("src/main/resources/assets/dwm/sounds.json");
         JSONObject sounds = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
         String[] events = {
+                "entity.dalek.exterminate",
                 "entity.dalek.ambient",
                 "entity.dalek.hurt",
                 "entity.dalek.death",
@@ -1406,6 +1407,11 @@ public class ResourceValidationTests {
             for (int i = 0; i < entries.length(); i++) {
                 String name = entries.getJSONObject(i).getString("name");
                 assertTrue(name.startsWith("dwm:entity/dalek/"), event + " should use a custom dwm clip, got " + name);
+                Path clip = Path.of("src/client/resources/assets/dwm/sounds/" + name.substring("dwm:".length()) + ".ogg");
+                assertTrue(
+                        Files.isRegularFile(clip) && Files.size(clip) > 0,
+                        event + " lists a clip with no file: " + clip
+                );
             }
         }
     }
