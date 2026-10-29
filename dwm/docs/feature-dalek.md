@@ -35,6 +35,17 @@ Give survival and creative worlds a hostile Doctor Who enemy: a 1963 Dalek that 
 2. Survival players in line of sight are targeted; the Dalek stops and fires. Nearby idle patrol members may acquire the same player.
 3. Climbing out of ground reach causes the Dalek to fly up and continue shooting.
 
+## Jobs
+A Dalek can carry a **job** (`Job` in NBT) that gives it a post and a routine while it has no target. Wild Daleks have no job and behave as before. Nothing assigns jobs during world generation yet; use NBT, `/summon` or tests (`DalekEntity#assignJob`).
+- **Sentry**: returns to its post, faces the post yaw and sweeps its eyestalk.
+- **Lookout**: like a sentry, but flies back onto raised platforms and raises the alarm further (48 blocks).
+- **Patrol**: walks a ring of waypoints (`PatrolRadius`, default 12) around its post, pausing at each.
+- **Technician**: cycles its post and `WorkSpots`, pausing at each.
+- **Alarm**: a garrison Dalek with a target hands it to idle garrison Daleks within 24 blocks. Wild Daleks are never recruited.
+- **Leash**: a Dalek more than 40 blocks from its post drops its target and walks back.
+
+NBT keys: `Job`, `Post`, `PostYaw`, `PatrolRadius`, `WorkSpots`.
+
 ## Known Constraints
 - Daleks do not naturally spawn on Gallifrey or other non-Skaro worlds.
 - Dalek outposts (checkpoints) generate on Skaro without embedded Daleks (see [Skaro landmarks](./feature-skaro-dimension.md#landmarks)); outpost, bunker, and Kaalann population is not shipped yet.

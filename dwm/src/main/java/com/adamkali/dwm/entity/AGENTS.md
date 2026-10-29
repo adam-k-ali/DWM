@@ -40,6 +40,7 @@ JSON is loaded from the jar at init (`EntityDefinitions.initialize()`). `/reload
 ## Common Pitfalls
 - Changing JSON requires a process restart, not `/reload`.
 - Goal types in the `goals` array must be `Selector.GOAL`; target types belong in `targets`.
-- `dwm:dalek_flight`, `dwm:dalek_share_target`, and `dwm:not_flying` require `DalekEntity`.
+- `dwm:dalek_flight`, `dwm:dalek_share_target`, `dwm:dalek_raise_alarm`, the Dalek job goals (`dwm:dalek_hold_post`, `dwm:dalek_patrol`, `dwm:dalek_tend_station`) and `dwm:not_flying` require `DalekEntity`.
+- Dalek job goals run only with no live target; do not use vanilla `setHomeTo` (it blinds target goals) — the 40-block leash in `DalekEntity` handles straying.
 - `dwm:armed` and `dwm:not_armed` conditions require `ThalEntity`.
 - `dwm:tamable_panic`, sit/follow/owner-target goals require `TamableAnimal`.
