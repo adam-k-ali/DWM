@@ -154,6 +154,7 @@ public class DWMBlockSettings {
                 .instabreak()
                 .sound(SoundType.FUNGUS)
                 .lightLevel(state -> 3)
+                .offsetType(BlockBehaviour.OffsetType.XZ)
                 .pushReaction(PushReaction.DESTROY);
     }
 

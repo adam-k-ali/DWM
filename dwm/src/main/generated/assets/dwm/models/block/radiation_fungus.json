@@ -1,6 +1,6 @@
 {
-  "parent": "minecraft:block/cross",
+  "parent": "dwm:block/template_radiation_fungus",
   "textures": {
-    "cross": "dwm:block/radiation_fungus"
+    "texture": "dwm:block/radiation_fungus"
   }
 }
