@@ -1,5 +1,6 @@
 package com.adamkali.dwm.datagen;
 
+import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.item.DWMItems;
@@ -8,13 +9,23 @@ import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.model.ModelLocationUtils;
+import net.minecraft.client.data.models.model.ModelTemplate;
 import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.client.data.models.model.TextureSlot;
 import net.minecraft.client.data.models.model.TexturedModel;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 
+import java.util.Optional;
+
 public class DWMModelProvider extends FabricModelProvider {
+    private static final ModelTemplate RADIATION_FUNGUS_TEMPLATE = new ModelTemplate(
+            Optional.of(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "block/template_radiation_fungus")),
+            Optional.empty(),
+            TextureSlot.TEXTURE
+    );
+
     public DWMModelProvider(FabricPackOutput output) {
         super(output);
     }
@@ -79,6 +90,7 @@ public class DWMModelProvider extends FabricModelProvider {
         }
 
         registerGallifreyPlants(blockStateModelGenerator);
+        registerSkaroPlants(blockStateModelGenerator);
 
         registerCubeAll(blockStateModelGenerator, DWMBlocks.AZBANTIUM_ORE);
         registerCubeAll(blockStateModelGenerator, DWMBlocks.AZBANTIUM_BLOCK);
@@ -174,6 +186,36 @@ public class DWMModelProvider extends FabricModelProvider {
         // Cross block model from block texture; flat item uses textures/item/saccharine_cane.png
         generator.createCrossBlock(DWMBlocks.SACCHARINE_CANE, BlockModelGenerators.PlantType.NOT_TINTED);
         generator.registerSimpleFlatItemModel(DWMBlocks.SACCHARINE_CANE.asItem());
+    }
+
+    private static void registerSkaroPlants(BlockModelGenerators generator) {
+        for (Block plant : DWMBlocks.SKARO_PLANTS) {
+            if (plant == DWMBlocks.RADIATION_FUNGUS) {
+                continue;
+            }
+            generator.createCrossBlock(plant, BlockModelGenerators.PlantType.NOT_TINTED);
+            generator.registerSimpleFlatItemModel(plant.asItem());
+        }
+        registerRadiationFungus(generator);
+        // Eight growth ages share four visual stages (block/thal_crop_stage0..3).
+        generator.createCropBlock(
+                DWMBlocks.THAL_CROP,
+                com.adamkali.dwm.block.plant.ThalCropBlock.AGE,
+                0, 0, 1, 1, 2, 2, 2, 3
+        );
+    }
+
+    /**
+     * Toadstool cluster from the hand-authored {@code block/template_radiation_fungus} (UV atlas in
+     * {@code textures/block/radiation_fungus.png}); random Y rotation breaks up patches. Item stays flat.
+     */
+    private static void registerRadiationFungus(BlockModelGenerators generator) {
+        Block fungus = DWMBlocks.RADIATION_FUNGUS;
+        Identifier modelId = RADIATION_FUNGUS_TEMPLATE.create(
+                fungus, TextureMapping.defaultTexture(fungus), generator.modelOutput);
+        generator.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(
+                fungus, BlockModelGenerators.createRotatedVariants(BlockModelGenerators.plainModel(modelId))));
+        generator.registerSimpleFlatItemModel(fungus.asItem());
     }
 
     private static void registerCubeAll(BlockModelGenerators generator, Block block) {

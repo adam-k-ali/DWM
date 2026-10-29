@@ -39,12 +39,15 @@ public final class SkaroBiomeBootstrap {
             HolderGetter<PlacedFeature> features,
             HolderGetter<ConfiguredWorldCarver<?>> carvers
     ) {
+        BiomeGenerationSettings.Builder generation = basicGeneration(features, carvers);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.ASH_SCRUB_WASTES);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.VARGA_WASTES);
         return buildBiome(
                 false,
                 1.2F,
                 0.0F,
                 dalekPatrolSpawns(true),
-                basicGeneration(features, carvers),
+                generation,
                 0x8B9A2A,
                 0x6A7A18,
                 0x9A8A30,
@@ -62,6 +65,8 @@ public final class SkaroBiomeBootstrap {
         generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.PETRIFIED_JUNGLE_TREES);
         generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.PETRIFIED_JUNGLE_SNAGS);
         generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.FALLEN_PETRIFIED_JUNGLE_TREES);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.RADIATION_FUNGUS_JUNGLE);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.VARGA_JUNGLE);
         return buildBiome(
                 true,
                 0.9F,
@@ -81,12 +86,16 @@ public final class SkaroBiomeBootstrap {
             HolderGetter<PlacedFeature> features,
             HolderGetter<ConfiguredWorldCarver<?>> carvers
     ) {
+        BiomeGenerationSettings.Builder generation = basicGeneration(features, carvers);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.MUTATED_REEDS_MIRE);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.RADIATION_FUNGUS_MIRE);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.VARGA_MIRE);
         return buildBiome(
                 true,
                 0.8F,
                 0.9F,
                 dalekPatrolSpawns(false),
-                basicGeneration(features, carvers),
+                generation,
                 0x3A4A28,
                 0x2A3A18,
                 0x4A5A32,
@@ -100,12 +109,14 @@ public final class SkaroBiomeBootstrap {
             HolderGetter<PlacedFeature> features,
             HolderGetter<ConfiguredWorldCarver<?>> carvers
     ) {
+        BiomeGenerationSettings.Builder generation = basicGeneration(features, carvers);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, DWMPlacedFeatures.ASH_SCRUB_MOUNTAINS);
         return buildBiome(
                 false,
                 0.4F,
                 0.2F,
                 dalekPatrolSpawns(false),
-                basicGeneration(features, carvers),
+                generation,
                 0x4A5558,
                 0x3A4548,
                 0x5A5A58,

@@ -1,0 +1,21 @@
+{
+  "variants": {
+    "": [
+      {
+        "model": "dwm:block/radiation_fungus"
+      },
+      {
+        "model": "dwm:block/radiation_fungus",
+        "y": 90
+      },
+      {
+        "model": "dwm:block/radiation_fungus",
+        "y": 180
+      },
+      {
+        "model": "dwm:block/radiation_fungus",
+        "y": 270
+      }
+    ]
+  }
+}

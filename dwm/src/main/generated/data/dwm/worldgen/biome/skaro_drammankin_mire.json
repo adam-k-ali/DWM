@@ -76,7 +76,10 @@
       "minecraft:spring_lava"
     ],
     [
-      "minecraft:glow_lichen"
+      "minecraft:glow_lichen",
+      "dwm:mutated_reeds_mire",
+      "dwm:radiation_fungus_mire",
+      "dwm:varga_mire"
     ],
     [
       "minecraft:freeze_top_layer"

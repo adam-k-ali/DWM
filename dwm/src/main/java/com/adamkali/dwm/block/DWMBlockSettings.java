@@ -135,6 +135,48 @@ public class DWMBlockSettings {
                 .pushReaction(PushReaction.DESTROY);
     }
 
+    /** Fresh properties for Skaro ground plants (ash scrub, Varga). */
+    public static BlockBehaviour.Properties skaroPlant() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_BROWN)
+                .noCollision()
+                .instabreak()
+                .sound(SoundType.GRASS)
+                .offsetType(BlockBehaviour.OffsetType.XZ)
+                .pushReaction(PushReaction.DESTROY);
+    }
+
+    /** Radiation fungus: dim glow (light 3), no ambient radiation logic. */
+    public static BlockBehaviour.Properties radiationFungus() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_GREEN)
+                .noCollision()
+                .instabreak()
+                .sound(SoundType.FUNGUS)
+                .lightLevel(state -> 3)
+                .offsetType(BlockBehaviour.OffsetType.XZ)
+                .pushReaction(PushReaction.DESTROY);
+    }
+
+    public static BlockBehaviour.Properties mutatedReeds() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_GREEN)
+                .noCollision()
+                .instabreak()
+                .sound(SoundType.GRASS)
+                .pushReaction(PushReaction.DESTROY);
+    }
+
+    public static BlockBehaviour.Properties thalCrop() {
+        return BlockBehaviour.Properties.of()
+                .mapColor(MapColor.PLANT)
+                .noCollision()
+                .randomTicks()
+                .instabreak()
+                .sound(SoundType.CROP)
+                .pushReaction(PushReaction.DESTROY);
+    }
+
     /** Fresh properties for azbantium ore/block (harder than obsidian; avoids shared setId mutation). */
     public static BlockBehaviour.Properties azbantium() {
         return BlockBehaviour.Properties.of()

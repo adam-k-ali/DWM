@@ -686,6 +686,68 @@ public class ResourceValidationTests {
         assertTrue(edgeHasAlpha, "overlay frame must have opaque edge pixels");
     }
 
+    /**
+     * The radiation fungus is a 3D toadstool cluster, not a cross: the generated model parents the
+     * hand-authored template, whose boxes stay inside the block's outline (12 wide, 10 tall) and whose
+     * gill planes glow.
+     */
+    @Test
+    public void radiationFungusUsesToadstoolTemplate() throws Exception {
+        JSONObject model = new JSONObject(Files.readString(
+                Path.of("src/main/generated/assets/dwm/models/block/radiation_fungus.json")));
+        assertEquals("dwm:block/template_radiation_fungus", model.getString("parent"));
+        assertEquals("dwm:block/radiation_fungus", model.getJSONObject("textures").getString("texture"));
+
+        JSONObject template = new JSONObject(Files.readString(
+                Path.of("src/client/resources/assets/dwm/models/block/template_radiation_fungus.json")));
+        var elements = template.getJSONArray("elements");
+        assertFalse(elements.isEmpty(), "Toadstool template has no elements");
+        int glowing = 0;
+        for (int i = 0; i < elements.length(); i++) {
+            JSONObject element = elements.getJSONObject(i);
+            var from = element.getJSONArray("from");
+            var to = element.getJSONArray("to");
+            for (int axis : new int[]{0, 2}) {
+                assertTrue(from.getDouble(axis) >= 2 && to.getDouble(axis) <= 14, "Element " + i + " outside outline");
+            }
+            assertTrue(from.getDouble(1) >= 0 && to.getDouble(1) <= 10, "Element " + i + " outside outline height");
+            if (element.optInt("light_emission", 0) > 0) {
+                glowing++;
+            }
+        }
+        assertTrue(glowing > 0, "Toadstool gills should be emissive");
+    }
+
+    /** Radiation fungus item sprite and Thal crop stages: 16×16 cut-outs with a tight colour budget. */
+    @Test
+    public void skaroFloraSpritesMatchContract() throws Exception {
+        String root = "src/client/resources/assets/dwm/textures/";
+        assertPlantSprite(Path.of(root + "item/radiation_fungus.png"));
+        for (int stage = 0; stage <= 3; stage++) {
+            assertPlantSprite(Path.of(root + "block/thal_crop_stage" + stage + ".png"));
+        }
+        assertAtlasSize(Path.of(root + "block/radiation_fungus.png"), 16, 16);
+    }
+
+    private static void assertPlantSprite(Path png) throws Exception {
+        assertAtlasSize(png, 16, 16);
+        BufferedImage image = ImageIO.read(png.toFile());
+        for (int[] corner : new int[][]{{0, 0}, {15, 0}, {0, 15}, {15, 15}}) {
+            assertEquals(0, (image.getRGB(corner[0], corner[1]) >>> 24) & 0xFF, png + " corner must be transparent");
+        }
+        Set<Integer> opaqueRgb = new HashSet<>();
+        for (int y = 0; y < 16; y++) {
+            for (int x = 0; x < 16; x++) {
+                int argb = image.getRGB(x, y);
+                if ((argb >>> 24) != 0) {
+                    opaqueRgb.add(argb & 0xFFFFFF);
+                }
+            }
+        }
+        assertFalse(opaqueRgb.isEmpty(), png + " has no opaque pixels");
+        assertTrue(opaqueRgb.size() <= 12, png + " exceeds colour budget: " + opaqueRgb.size());
+    }
+
     private static void assertAtlasSize(Path png, int width, int height) throws Exception {
         assertTrue(Files.isRegularFile(png) && Files.size(png) > 0, "Missing atlas: " + png);
         BufferedImage image = ImageIO.read(png.toFile());
@@ -1516,9 +1578,11 @@ public class ResourceValidationTests {
                     || "skaro_thal_plateau.json".equals(biomeFile);
             assertDalekMonsterPatrol(biome, biomeFile, sparse);
             String blob = Files.readString(path);
+            // Skaro's own ash scrub shares the "dwm:ash" prefix with the Gallifrey ash tree; mask it for the guard.
+            String gallifreyGuardBlob = blob.replace("dwm:ash_scrub", "dwm:skaro_scrub");
             for (String forbidden : forbiddenFeatureSubstrings) {
                 assertFalse(
-                        blob.contains(forbidden),
+                        gallifreyGuardBlob.contains(forbidden),
                         biomeFile + " must not include Gallifrey-only generated content: " + forbidden
                 );
             }

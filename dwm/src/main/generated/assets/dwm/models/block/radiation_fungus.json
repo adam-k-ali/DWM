@@ -1,0 +1,6 @@
+{
+  "parent": "dwm:block/template_radiation_fungus",
+  "textures": {
+    "texture": "dwm:block/radiation_fungus"
+  }
+}
