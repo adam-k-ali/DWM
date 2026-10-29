@@ -203,7 +203,9 @@ class EntityDefinitionCatalogTest {
         assertEquals(0.9, attribute(definition, "knockback_resistance"));
         assertEquals(6.0, attribute(definition, "armor"));
         assertEquals(EntityGoal.Kind.DALEK_FLIGHT, definition.goals().get(1).goal().kind());
-        EntityGoalBinding stroll = definition.goals().get(3);
+        assertJobGoals(definition);
+        assertTrue(definition.targets().stream().anyMatch(t -> t.goal().kind() == EntityGoal.Kind.DALEK_RAISE_ALARM));
+        EntityGoalBinding stroll = definition.goals().get(6);
         assertEquals(EntityGoal.Kind.WATER_AVOIDING_RANDOM_STROLL, stroll.goal().kind());
         assertEquals(GoalCondition.Kind.NOT_FLYING, stroll.canUse().orElseThrow().kind());
         assertEquals(EntityGoal.Kind.DALEK_SHARE_TARGET, definition.targets().get(1).goal().kind());
@@ -230,6 +232,7 @@ class EntityDefinitionCatalogTest {
         assertEquals(EntityGoal.Kind.DALEK_FLIGHT, definition.goals().get(1).goal().kind());
         EntityGoal.RangedAttack ranged = assertInstanceOf(EntityGoal.RangedAttack.class, definition.goals().get(2).goal());
         assertEquals(20.0, ranged.attackRange());
+        assertJobGoals(definition);
         assertEquals(EntityGoal.Kind.DALEK_SHARE_TARGET, definition.targets().get(1).goal().kind());
     }
 
@@ -279,6 +282,17 @@ class EntityDefinitionCatalogTest {
                 }
                 """);
         assertThrows(RuntimeException.class, () -> EntityDefinition.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow());
+    }
+
+    private static void assertJobGoals(EntityDefinition definition) {
+        List<EntityGoalBinding> jobs = definition.goals().subList(3, 6);
+        assertEquals(
+                List.of(
+                        EntityGoal.Kind.DALEK_HOLD_POST,
+                        EntityGoal.Kind.DALEK_PATROL,
+                        EntityGoal.Kind.DALEK_TEND_STATION),
+                kinds(jobs));
+        assertEquals(List.of(3, 3, 3), priorities(jobs));
     }
 
     private static EntityDefinition definition(String path) {
