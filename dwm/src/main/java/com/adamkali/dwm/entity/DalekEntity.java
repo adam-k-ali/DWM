@@ -3,6 +3,9 @@ package com.adamkali.dwm.entity;
 import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.entity.definition.EntityDefinitions;
 import com.adamkali.dwm.sound.DWMSounds;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -48,6 +51,11 @@ public class DalekEntity extends Monster implements RangedAttackMob {
     private static final EntityDataAccessor<Boolean> DATA_FLYING =
             SynchedEntityData.defineId(DalekEntity.class, EntityDataSerializers.BOOLEAN);
 
+    private static final EntityDataAccessor<Integer> DATA_JOB =
+            SynchedEntityData.defineId(DalekEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> DATA_ON_DUTY =
+            SynchedEntityData.defineId(DalekEntity.class, EntityDataSerializers.BOOLEAN);
+
     private static final float LASER_SPEED = 1.6F;
 
     private final MoveControl groundMoveControl;
@@ -56,6 +64,10 @@ public class DalekEntity extends Monster implements RangedAttackMob {
     private FlyingPathNavigation flyingNavigation;
     private boolean wasFlying;
     private int lastExterminateTick = -DalekVoice.EXTERMINATE_COOLDOWN_TICKS;
+    private @Nullable BlockPos post;
+    private float postYaw;
+    private int patrolRadius = DalekGarrisonLogic.DEFAULT_PATROL_RADIUS;
+    private List<BlockPos> workSpots = List.of();
 
     public DalekEntity(EntityType<? extends DalekEntity> type, Level level) {
         super(type, level);
@@ -108,6 +120,64 @@ public class DalekEntity extends Monster implements RangedAttackMob {
         super.defineSynchedData(builder);
         builder.define(DATA_VARIANT, family().defaultVariant().ordinal());
         builder.define(DATA_FLYING, false);
+        builder.define(DATA_JOB, DalekJob.NONE.ordinal());
+        builder.define(DATA_ON_DUTY, false);
+    }
+
+    public DalekJob getJob() {
+        return DalekJob.byOrdinal(this.entityData.get(DATA_JOB));
+    }
+
+    public void setJob(DalekJob job) {
+        this.entityData.set(DATA_JOB, job.ordinal());
+    }
+
+    /** True while a job goal is holding, pausing or working; drives the job animations. */
+    public boolean isOnDuty() {
+        return this.entityData.get(DATA_ON_DUTY);
+    }
+
+    public void setOnDuty(boolean onDuty) {
+        if (this.isOnDuty() != onDuty) {
+            this.entityData.set(DATA_ON_DUTY, onDuty);
+        }
+    }
+
+    public @Nullable BlockPos getPost() {
+        return post;
+    }
+
+    public float getPostYaw() {
+        return postYaw;
+    }
+
+    public int getPatrolRadius() {
+        return patrolRadius;
+    }
+
+    public List<BlockPos> getWorkSpots() {
+        return workSpots;
+    }
+
+    /** Binds this Dalek to a post and job; used by garrison placement, commands and tests. */
+    public void assignJob(DalekJob job, BlockPos post, float yaw, int patrolRadius, List<BlockPos> workSpots) {
+        setJob(job);
+        this.post = post.immutable();
+        this.postYaw = yaw;
+        this.patrolRadius = patrolRadius;
+        this.workSpots = List.copyOf(workSpots);
+        this.setOnDuty(false);
+    }
+
+    @Override
+    protected void customServerAiStep(ServerLevel level) {
+        super.customServerAiStep(level);
+        if (post != null && getTarget() != null) {
+            double distance = Math.sqrt(this.blockPosition().distSqr(post));
+            if (DalekGarrisonLogic.shouldDropTarget(distance, DalekGarrisonLogic.LEASH_DISTANCE)) {
+                setTarget(null);
+            }
+        }
     }
 
     public DalekVariant getVariant() {
@@ -142,6 +212,10 @@ public class DalekEntity extends Monster implements RangedAttackMob {
     boolean hasGroundPathTo(LivingEntity target) {
         Path path = this.groundNavigation.createPath(target, 0);
         return path != null;
+    }
+
+    boolean hasGroundPathTo(BlockPos pos) {
+        return this.groundNavigation.createPath(pos, 0) != null;
     }
 
     @Override
@@ -266,6 +340,13 @@ public class DalekEntity extends Monster implements RangedAttackMob {
         super.addAdditionalSaveData(output);
         output.putString("Variant", getVariant().getSerializedName());
         output.putBoolean("Flying", isFlying());
+        output.putString("Job", getJob().getSerializedName());
+        if (post != null) {
+            output.store("Post", BlockPos.CODEC, post);
+            output.putFloat("PostYaw", postYaw);
+            output.putInt("PatrolRadius", patrolRadius);
+            output.store("WorkSpots", BlockPos.CODEC.listOf(), workSpots);
+        }
     }
 
     @Override
@@ -273,6 +354,11 @@ public class DalekEntity extends Monster implements RangedAttackMob {
         super.readAdditionalSaveData(input);
         setVariant(DalekVariant.byId(input.getStringOr("Variant", ""), family()));
         setFlying(input.getBooleanOr("Flying", false));
+        setJob(DalekJob.byId(input.getStringOr("Job", "")));
+        this.post = input.read("Post", BlockPos.CODEC).orElse(null);
+        this.postYaw = input.getFloatOr("PostYaw", 0.0F);
+        this.patrolRadius = input.getIntOr("PatrolRadius", DalekGarrisonLogic.DEFAULT_PATROL_RADIUS);
+        this.workSpots = new ArrayList<>(input.read("WorkSpots", BlockPos.CODEC.listOf()).orElse(List.of()));
     }
 
     @Override

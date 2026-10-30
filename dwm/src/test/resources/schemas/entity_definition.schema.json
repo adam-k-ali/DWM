@@ -100,7 +100,10 @@
         { "$ref": "#/definitions/goalSitWhenOrdered" },
         { "$ref": "#/definitions/goalDalekFlight" },
         { "$ref": "#/definitions/goalTamablePanic" },
-        { "$ref": "#/definitions/goalAvoidEntity" }
+        { "$ref": "#/definitions/goalAvoidEntity" },
+        { "$ref": "#/definitions/goalDalekHoldPost" },
+        { "$ref": "#/definitions/goalDalekPatrol" },
+        { "$ref": "#/definitions/goalDalekTendStation" }
       ]
     },
     "targetEntry": {
@@ -110,7 +113,8 @@
         { "$ref": "#/definitions/goalOwnerHurtByTarget" },
         { "$ref": "#/definitions/goalOwnerHurtTarget" },
         { "$ref": "#/definitions/goalResetUniversalAnger" },
-        { "$ref": "#/definitions/goalDalekShareTarget" }
+        { "$ref": "#/definitions/goalDalekShareTarget" },
+        { "$ref": "#/definitions/goalDalekRaiseAlarm" }
       ]
     },
     "goalFloat": {
@@ -361,6 +365,55 @@
       "properties": {
         "type": { "const": "dwm:dalek_share_target" },
         "priority": { "type": "integer" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalDalekHoldPost": {
+      "type": "object",
+      "required": ["type", "priority", "speed"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "dwm:dalek_hold_post" },
+        "priority": { "type": "integer" },
+        "speed": { "type": "number" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalDalekPatrol": {
+      "type": "object",
+      "required": ["type", "priority", "speed", "pause_min_ticks", "pause_max_ticks"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "dwm:dalek_patrol" },
+        "priority": { "type": "integer" },
+        "speed": { "type": "number" },
+        "pause_min_ticks": { "type": "integer" },
+        "pause_max_ticks": { "type": "integer" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalDalekTendStation": {
+      "type": "object",
+      "required": ["type", "priority", "speed", "pause_min_ticks", "pause_max_ticks"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "dwm:dalek_tend_station" },
+        "priority": { "type": "integer" },
+        "speed": { "type": "number" },
+        "pause_min_ticks": { "type": "integer" },
+        "pause_max_ticks": { "type": "integer" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalDalekRaiseAlarm": {
+      "type": "object",
+      "required": ["type", "priority", "radius", "lookout_radius"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "dwm:dalek_raise_alarm" },
+        "priority": { "type": "integer" },
+        "radius": { "type": "number" },
+        "lookout_radius": { "type": "number" },
         "can_use": { "$ref": "#/definitions/canUse" }
       }
     }

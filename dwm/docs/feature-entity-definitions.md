@@ -63,9 +63,9 @@ Inheritance is resolved on the raw JSON before decoding, so the codec never sees
 
 `minecraft:` here means “vanilla `Goal` class”, not a vanilla registry.
 
-**Goals:** `minecraft:float`, `panic`, `water_avoiding_random_stroll`, `water_avoiding_random_flying`, `look_at`, `random_look_around`, `open_door`, `ranged_attack`, `melee_attack`, `leap_at_target`, `breed`, `follow_owner`, `sit_when_ordered`, `dwm:dalek_flight`, `dwm:tamable_panic`, `dwm:avoid_entity`.
+**Goals:** `minecraft:float`, `panic`, `water_avoiding_random_stroll`, `water_avoiding_random_flying`, `look_at`, `random_look_around`, `open_door`, `ranged_attack`, `melee_attack`, `leap_at_target`, `breed`, `follow_owner`, `sit_when_ordered`, `dwm:dalek_flight`, `dwm:dalek_hold_post`, `dwm:dalek_patrol`, `dwm:dalek_tend_station`, `dwm:tamable_panic`, `dwm:avoid_entity`.
 
-**Targets:** `minecraft:hurt_by_target`, `nearest_attackable_target`, `owner_hurt_by_target`, `owner_hurt_target`, `reset_universal_anger`, `dwm:dalek_share_target`.
+**Targets:** `minecraft:hurt_by_target`, `nearest_attackable_target`, `owner_hurt_by_target`, `owner_hurt_target`, `reset_universal_anger`, `dwm:dalek_share_target`, `dwm:dalek_raise_alarm`.
 
 **Conditions / filters**
 
