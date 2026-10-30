@@ -24,9 +24,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.Identifier;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -157,21 +154,9 @@ public class FirstDoctorConsoleBlockEntity extends BlockEntity {
             ServerLevel interiorWorld,
             @Nullable TardisDataModel model
     ) {
-        if (tardisId == null || model == null || !model.hasExteriorLocation || model.exteriorDimension == null) {
-            return ExteriorEnvironmentReadout.Reading.none();
-        }
-        boolean inFlight = TardisTravelService.isTraveling(tardisId);
-        ServerLevel exterior = resolveExterior(interiorWorld, model.exteriorDimension);
-        BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
-        return ExteriorEnvironmentReadout.sample(exterior, exteriorPos, inFlight);
-    }
-
-    private static @Nullable ServerLevel resolveExterior(ServerLevel interiorWorld, String dimensionId) {
-        Identifier identifier = Identifier.tryParse(dimensionId);
-        if (identifier == null) {
-            return null;
-        }
-        return interiorWorld.getServer().getLevel(ResourceKey.create(Registries.DIMENSION, identifier));
+        boolean inFlight = tardisId != null && TardisTravelService.isTraveling(tardisId);
+        return ExteriorEnvironmentReadout.fromSample(
+                ExteriorEnvironmentReadout.sampleLinked(interiorWorld.getServer(), model, inFlight));
     }
 
     private void notifyClients() {
