@@ -14,6 +14,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -63,6 +64,10 @@ public class DalekEntity extends Monster implements RangedAttackMob {
     private PathNavigation groundNavigation;
     private FlyingPathNavigation flyingNavigation;
     private boolean wasFlying;
+    private float scanBlend;
+    private float scanBlendO;
+    private float workBlend;
+    private float workBlendO;
     private int lastExterminateTick = -DalekVoice.EXTERMINATE_COOLDOWN_TICKS;
     private @Nullable BlockPos post;
     private float postYaw;
@@ -223,7 +228,27 @@ public class DalekEntity extends Monster implements RangedAttackMob {
         super.aiStep();
         if (this.level().isClientSide()) {
             tickFlightParticles();
+            tickJobBlend();
         }
+    }
+
+    private void tickJobBlend() {
+        this.scanBlendO = this.scanBlend;
+        this.workBlendO = this.workBlend;
+        DalekJob job = this.getJob();
+        boolean onDuty = this.isOnDuty();
+        this.scanBlend = DalekJobFx.ease(this.scanBlend, DalekJobFx.scanTarget(job, onDuty));
+        this.workBlend = DalekJobFx.ease(this.workBlend, DalekJobFx.workTarget(job, onDuty));
+    }
+
+    /** Client-side eased 0–1 weight of the scanning pose; drives the eyestalk sweep. */
+    public float scanBlend(float partialTick) {
+        return Mth.lerp(partialTick, this.scanBlendO, this.scanBlend);
+    }
+
+    /** Client-side eased 0–1 weight of the working pose; drives the plunger. */
+    public float workBlend(float partialTick) {
+        return Mth.lerp(partialTick, this.workBlendO, this.workBlend);
     }
 
     private void tickFlightParticles() {
