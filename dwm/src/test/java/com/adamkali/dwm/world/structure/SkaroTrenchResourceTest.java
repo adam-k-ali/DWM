@@ -43,6 +43,8 @@ class SkaroTrenchResourceTest {
     private static final String RUINED = "dwm:dalek_trench_ruined";
     private static final String RUIN_PROCESSORS = "dwm:skaro/dalek_outpost_ruined";
     private static final String GARRISONED = "dwm:garrisoned_single_pool_element";
+    /** Blocks the trench is carved below ground; the structure start height is its negative. */
+    private static final int SINK = 2;
     private static final List<String> POOLS = List.of("start", "segments", "bunkers");
 
     /** Documented per-piece size caps (X, Y, Z) from feature-skaro-dimension.md. */
@@ -68,7 +70,8 @@ class SkaroTrenchResourceTest {
             assertEquals("surface_structures", json.getString("step"), structure);
             assertEquals("beard_thin", json.getString("terrain_adaptation"), structure);
             assertEquals(5, json.getInt("size"), structure);
-            assertEquals(0, json.getJSONObject("start_height").getInt("absolute"), structure);
+            assertEquals(-SINK, json.getJSONObject("start_height").getInt("absolute"),
+                    structure + " starts the rigid checkpoint as deep as the terrain-matched pieces sink");
             assertEquals("WORLD_SURFACE_WG", json.getString("project_start_to_heightmap"), structure);
             assertEquals(56, json.getInt("max_distance_from_center"), structure);
             assertFalse(json.getBoolean("use_expansion_hack"), structure);
@@ -137,9 +140,24 @@ class SkaroTrenchResourceTest {
                 assertEquals(intact.getJSONObject(i).getInt("weight"), ruined.getJSONObject(i).getInt("weight"));
                 assertEquals(a.getString("location"), b.getString("location"));
                 assertEquals(a.getString("projection"), b.getString("projection"));
+                assertEquals(a.optInt("sink", 0), b.optInt("sink", 0));
                 assertEquals(a.getJSONArray("garrison").toString(), b.getJSONArray("garrison").toString());
                 assertEquals("minecraft:empty", a.getString("processors"));
                 assertEquals(RUIN_PROCESSORS, b.getString("processors"));
+            }
+        }
+    }
+
+    @Test
+    void terrainMatchedPiecesSinkIntoTheGroundAndRigidOnesDoNot() throws IOException {
+        for (String pool : POOLS) {
+            for (String prefix : List.of("", "ruined_")) {
+                JSONArray elements = elements(prefix + pool);
+                for (int i = 0; i < elements.length(); i++) {
+                    JSONObject element = elements.getJSONObject(i).getJSONObject("element");
+                    boolean terrainMatching = element.getString("projection").equals("terrain_matching");
+                    assertEquals(terrainMatching ? SINK : 0, element.optInt("sink", 0), prefix + pool);
+                }
             }
         }
     }

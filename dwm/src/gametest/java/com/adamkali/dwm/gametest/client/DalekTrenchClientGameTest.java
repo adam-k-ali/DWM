@@ -24,9 +24,13 @@ public class DalekTrenchClientGameTest implements FabricClientGameTest {
     private static final int MAX_X = 44;
     private static final int MIN_Z = -12;
     private static final int MAX_Z = 72;
-    /** Minimum corner of the 11×11 checkpoint, so the yard is centred on x = 0, z = 30. */
-    private static final BlockPos CORE_ANCHOR = new BlockPos(-5, GROUND_Y, 25);
-    private static final AABB AREA = new AABB(MIN_X, GROUND_Y - 1, MIN_Z, MAX_X + 1, GROUND_Y + 40, MAX_Z + 1);
+    /** Blocks the trench is carved below ground, as in the structure's start height. */
+    private static final int SINK = 2;
+    /** Stone under the sand, deep enough for the trench to be carved into. */
+    private static final int FLOOR_Y = GROUND_Y - 8;
+    /** Minimum corner of the 11×11 checkpoint, so the yard is centred on x = 0, z = 30; its floor is SINK below the sand surface. */
+    private static final BlockPos CORE_ANCHOR = new BlockPos(-5, GROUND_Y + 1 - 1 - SINK, 25);
+    private static final AABB AREA = new AABB(MIN_X, FLOOR_Y, MIN_Z, MAX_X + 1, GROUND_Y + 40, MAX_Z + 1);
     private static final BlockPos CAMERA = new BlockPos(-24, GROUND_Y + 30, 4);
 
     @Override
@@ -47,7 +51,7 @@ public class DalekTrenchClientGameTest implements FabricClientGameTest {
                     level.getEntitiesOfClass(DalekEntity.class, AREA).forEach(Entity::discard);
                     for (int x = MIN_X; x <= MAX_X; x++) {
                         for (int z = MIN_Z; z <= MAX_Z; z++) {
-                            for (int y = GROUND_Y - 1; y <= GROUND_Y + 14; y++) {
+                            for (int y = FLOOR_Y; y <= GROUND_Y + 14; y++) {
                                 var state = y < GROUND_Y ? Blocks.STONE : y == GROUND_Y ? Blocks.SAND : Blocks.AIR;
                                 level.setBlock(new BlockPos(x, y, z), state.defaultBlockState(), 2);
                             }

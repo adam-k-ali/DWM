@@ -37,13 +37,15 @@ public final class DalekTrenchTemplates {
         return List.of(checkpoint(), segment(), junction(), bunker(), endCap());
     }
 
-    /** 11×5×11 walled yard with the structure's only loot chest and a 3-wide gate on the north and south faces. */
+    /**
+     * 11×5×11 sunken yard with the structure's only loot chest and a 3-wide, 3-high gate on the north and south
+     * faces. Layers 1-2 are underground lining; the parapet (layer 3) sits at ground level with gaps to step in by.
+     */
     public static TemplateLayout checkpoint() {
         return base(CHECKPOINT)
                 .legend('n', jigsaw(FrontAndTop.NORTH_UP), segmentConnector())
                 .legend('o', jigsaw(FrontAndTop.SOUTH_UP), segmentConnector())
-                .legend('C', Blocks.CHEST.defaultBlockState()
-                        .setValue(ChestBlock.FACING, Direction.SOUTH),
+                .legend('C', Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, Direction.SOUTH),
                         DalekOutpostTemplates.lootChest())
                 // y = 0: floor, connectors in the middle of the north and south gates
                 .layer(
@@ -58,7 +60,7 @@ public final class DalekTrenchTemplates {
                         "BBBBBBBBBBB",
                         "BBBBBBBBBBB",
                         "BBBBBoBBBBB")
-                // y = 1: perimeter wall, gates, pillars and the chest
+                // y = 1: underground lining, gates, pillars and the chest
                 .layer(
                         "rSSS...SSSr",
                         "S.........S",
@@ -71,49 +73,49 @@ public final class DalekTrenchTemplates {
                         "S.........S",
                         "S.........S",
                         "rSSS...SSSr")
-                // y = 2: grille windows on the side walls
+                // y = 2: lining continues to ground level
                 .layer(
                         "rSSS...SSSr",
                         "S.........S",
                         "S.........S",
                         "S..r...r..S",
                         "S.........S",
+                        "S.........S",
+                        "S.........S",
+                        "S..r...r..S",
+                        "S.........S",
+                        "S.........S",
+                        "rSSS...SSSr")
+                // y = 3: ground-level parapet: grille windows with open gaps on the side walls
+                .layer(
+                        "rISI...ISIr",
                         "I.........I",
                         "S.........S",
                         "S..r...r..S",
-                        "S.........S",
-                        "S.........S",
-                        "rSSS...SSSr")
-                // y = 3
-                .layer(
-                        "rSSS...SSSr",
-                        "S.........S",
-                        "S.........S",
+                        "...........",
+                        "I.........I",
+                        "...........",
                         "S..r...r..S",
                         "S.........S",
-                        "S.........S",
-                        "S.........S",
-                        "S..r...r..S",
-                        "S.........S",
-                        "S.........S",
-                        "rSSS...SSSr")
-                // y = 4: riveted cap with lamps on the pillars; the gates stay open to the sky
+                        "I.........I",
+                        "rISI...ISIr")
+                // y = 4: lamps on the pillars and corner posts; the yard stays open to the sky
                 .layer(
-                        "rRRR...RRRr",
-                        "R.........R",
-                        "R.........R",
-                        "R..L...L..R",
-                        "R.........R",
-                        "R.........R",
-                        "R.........R",
-                        "R..L...L..R",
-                        "R.........R",
-                        "R.........R",
-                        "rRRR...RRRr")
+                        "r.........r",
+                        "...........",
+                        "...........",
+                        "...L...L...",
+                        "...........",
+                        "...........",
+                        "...........",
+                        "...L...L...",
+                        "...........",
+                        "...........",
+                        "r.........r")
                 .build();
     }
 
-    /** 5×4×8 straight trench: a three-wide lane between three-high parapets with iron-bar gunports. */
+    /** 5×4×8 straight trench: a three-wide lane lined underground, with a ground-level bar parapet and gaps to drop in by. */
     public static TemplateLayout segment() {
         return base(SEGMENT)
                 .legend('n', jigsaw(FrontAndTop.NORTH_UP), segmentConnector())
@@ -138,26 +140,26 @@ public final class DalekTrenchTemplates {
                         "r...r")
                 .layer(
                         "r...r",
-                        "I...I",
                         "S...S",
                         "S...S",
                         "S...S",
-                        "I...I",
+                        "S...S",
+                        "S...S",
                         "S...S",
                         "r...r")
                 .layer(
                         "r...r",
-                        "R...R",
-                        "R...R",
-                        "R...R",
-                        "R...R",
-                        "R...R",
-                        "R...R",
+                        "I...I",
+                        "S...S",
+                        ".....",
+                        ".....",
+                        "S...S",
+                        "I...I",
                         "r...r")
                 .build();
     }
 
-    /** 5×4×8 trench segment with a doorway in each side wall that opens a bunker. */
+    /** 5×4×8 trench segment with a 3-high doorway in each side wall that opens a bunker. */
     public static TemplateLayout junction() {
         return base(JUNCTION)
                 .legend('n', jigsaw(FrontAndTop.NORTH_UP), segmentConnector())
@@ -193,17 +195,17 @@ public final class DalekTrenchTemplates {
                         "r...r")
                 .layer(
                         "r...r",
-                        "R...R",
-                        "R...R",
-                        "R...R",
-                        "R...R",
-                        "R...R",
-                        "R...R",
+                        "I...I",
+                        "S...S",
+                        ".....",
+                        "S...S",
+                        "S...S",
+                        "I...I",
                         "r...r")
                 .build();
     }
 
-    /** 9×6×9 roofed bunker with gunports on its north face and a 3-wide doorway on the south face. */
+    /** 9×6×9 half-buried bunker: gunports at ground level on the north face, a 3-wide, 3-high doorway on the south face. */
     public static TemplateLayout bunker() {
         return base(BUNKER)
                 .legend('s', jigsaw(FrontAndTop.SOUTH_UP), bunkerLinkConnector())
@@ -228,7 +230,7 @@ public final class DalekTrenchTemplates {
                         "S.......S",
                         "rSS...SSr")
                 .layer(
-                        "rSISISISr",
+                        "rSSSSSSSr",
                         "S.......S",
                         "S.......S",
                         "S.......S",
@@ -238,7 +240,7 @@ public final class DalekTrenchTemplates {
                         "S.......S",
                         "rSS...SSr")
                 .layer(
-                        "rSSSSSSSr",
+                        "rSISISISr",
                         "S.......S",
                         "S.......S",
                         "S.......S",
@@ -246,7 +248,7 @@ public final class DalekTrenchTemplates {
                         "S.......S",
                         "S.......S",
                         "S.......S",
-                        "rSSSSSSSr")
+                        "rSS...SSr")
                 .layer(
                         "rRRRRRRRr",
                         "R.......R",
@@ -287,8 +289,8 @@ public final class DalekTrenchTemplates {
                         "S...S",
                         "r...r")
                 .layer(
-                        "rRRRr",
-                        "R...R",
+                        "rISIr",
+                        "I...I",
                         "r...r")
                 .build();
     }

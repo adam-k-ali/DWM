@@ -16,6 +16,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
@@ -43,6 +44,8 @@ public class SkaroTrenchGameTests {
     );
     private static final Set<DalekJob> TRENCH_JOBS = EnumSet.of(
             DalekJob.SENTRY, DalekJob.PATROL, DalekJob.LOOKOUT, DalekJob.TECHNICIAN, DalekJob.GUNNER, DalekJob.COURIER);
+    /** Blocks the trench is carved below ground; the structure's {@code start_height} is its negative. */
+    private static final int SINK = 2;
     private static final ResourceKey<LootTable> LOOT_TABLE =
             ResourceKey.create(Registries.LOOT_TABLE, id("chests/skaro/dalek_outpost"));
 
@@ -123,8 +126,11 @@ public class SkaroTrenchGameTests {
     /** Places the real worldgen structure, preferring a start that chains at least four pieces. */
     private static List<PoolElementStructurePiece> assembleAndAssert(GameTestHelper context, String structureId) {
         ServerLevel level = context.getLevel();
+        // Anchor the checkpoint floor SINK below the ground, as worldgen's start_height does.
+        BlockPos at = context.absolutePos(new BlockPos(8, 1, 8));
+        int surface = level.getHeight(Heightmap.Types.WORLD_SURFACE, at.getX(), at.getZ());
         List<PoolElementStructurePiece> pieces = StructureGameTestSupport.placeJigsaw(
-                level, id(structureId), context.absolutePos(new BlockPos(8, 1, 8)), 4);
+                level, id(structureId), new BlockPos(at.getX(), surface - 1 - SINK, at.getZ()), 4);
         for (int i = 0; i < pieces.size(); i++) {
             if (!(pieces.get(i).getElement() instanceof GarrisonedPoolElement element)) {
                 throw new AssertionError(structureId + " placed an unexpected element " + pieces.get(i).getElement());
@@ -168,12 +174,14 @@ public class SkaroTrenchGameTests {
             if (dalek.getJob() == DalekJob.COURIER && dalek.getWorkSpots().isEmpty()) {
                 throw new AssertionError("Courier without a route: " + dalek);
             }
-            if (pieces.getFirst().getBoundingBox().isInside(dalek.getPost())) {
-                BlockPos post = dalek.getPost();
-                for (int y = 0; y < 3; y++) {
-                    if (!level.getBlockState(post.above(y)).getCollisionShape(level, post.above(y)).isEmpty()) {
-                        throw new AssertionError("Checkpoint post " + post + " is blocked at +" + y);
-                    }
+            // Every post, carved or not, stands on solid floor with headroom for a tall Dalek.
+            BlockPos post = dalek.getPost();
+            if (!level.getBlockState(post.below()).isFaceSturdy(level, post.below(), Direction.UP)) {
+                throw new AssertionError(dalek.getJob() + " post " + post + " has no floor");
+            }
+            for (int y = 0; y < 3; y++) {
+                if (!level.getBlockState(post.above(y)).getCollisionShape(level, post.above(y)).isEmpty()) {
+                    throw new AssertionError(dalek.getJob() + " post " + post + " is blocked at +" + y);
                 }
             }
         }
