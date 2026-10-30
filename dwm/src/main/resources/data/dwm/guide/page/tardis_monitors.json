@@ -1,0 +1,14 @@
+{
+  "page": { "id": "dwm:tardis_monitors" },
+  "content": [
+    {
+      "type": "text",
+      "titleKey": "dwm.guide.page.tardis_monitors.title",
+      "bodyKey": "dwm.guide.page.tardis_monitors.body"
+    },
+    {
+      "type": "crafting",
+      "recipes": ["dwm:tardis_compact_scanner"]
+    }
+  ]
+}
