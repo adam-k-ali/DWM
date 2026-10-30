@@ -48,7 +48,7 @@ NBT keys: `Job`, `Post`, `PostYaw`, `PatrolRadius`, `WorkSpots`.
 
 ## Known Constraints
 - Daleks do not naturally spawn on Gallifrey or other non-Skaro worlds.
-- Dalek outposts (checkpoints) generate on Skaro without embedded Daleks (see [Skaro landmarks](./feature-skaro-dimension.md#landmarks)); outpost, bunker, and Kaalann population is not shipped yet.
+- Dalek outposts (checkpoints) are garrisoned: each Dalek holds a job (sentry, patrol, lookout or technician) near its post (see [Skaro landmarks](./feature-skaro-dimension.md#landmarks)). Bunker and Kaalann population is not shipped yet.
 - Variants and castes are visual only; Paradigm castes do not have rank-specific behaviour (e.g. a Supreme commanding Drones) yet.
 - Does not target Time Lords in this pass. Daleks hunt Thals (`dalek.json` targets `dwm:thal`); unarmed Thals flee on sight (`#dwm:thal_fears`) and armed Thals shoot back — see [Thal](./feature-thal.md) and [Dalek/Thal Battles](./feature-dalek-thal-battles.md).
 - No unique drops yet.

@@ -43,7 +43,7 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
   - First-person visor overlay while wearing the EVA helmet (vanilla camera overlay; hidden in third person, F1, and spyglass).
 
 ## Landmarks
-Small, frequent discoveries that tell Skaro's war history. They are distinct from the planned major structures: the Kaled bunker (DWM-073) and the Dalek city of Kaalann (DWM-074) are larger, rarer destinations. Landmarks never embed Daleks, Thals, or mutants; any population belongs to later tickets.
+Small, frequent discoveries that tell Skaro's war history. They are distinct from the planned major structures: the Kaled bunker (DWM-073) and the Dalek city of Kaalann (DWM-074) are larger, rarer destinations. Landmark templates never embed entities. Dalek outposts are the exception by data: their pools use a garrisoned pool element that spawns persistent Daleks at fixed posts. An intact outpost is manned by sentries at the core doorway, a patrol, a technician at the console, a watchtower lookout, a barricade sentry and a sensor-mast technician (roughly 4–8 Daleks, depending on wings and chance rolls). A ruined outpost keeps only a remnant of 1–3 sentries or patrollers, with no technicians or lookouts. Garrisons do not respawn. Other landmarks stay unpopulated; any further population belongs to later tickets.
 
 ### Dalek outpost
 - **Structures:** `dwm:dalek_outpost` (intact checkpoint) and `dwm:dalek_outpost_ruined` (same templates, decayed).
@@ -64,6 +64,7 @@ Small, frequent discoveries that tell Skaro's war history. They are distinct fro
   Wing pool weights: watchtower 3, barricade 4, sensor mast 3, nothing 2.
 - **Terrain adaptation:** `beard_thin` packs terrain under rigid pieces and clears it above them. Together with the carved apron in front of the doorway, this keeps the approach walkable on uneven ground.
 - **Ruined variant:** a `pool_aliases` entry maps the wing pool to a ruined copy. The processor list `dwm:skaro/dalek_outpost_ruined` rots about 30% of silver walls (`#dwm:silver_dalekanium_architecture`) and turns about 15% of bronze floor panels to gravel. Floors, the chest, and the doorway survive.
+- **Garrison:** the core and wing pools use `dwm:garrisoned_single_pool_element`, which adds a `garrison` list to the pool JSON (`entity`, `job`, template-local `pos`, `facing`, `chance`, optional `variant`, `radius`, `work_spots`). Each post spawns a persistent Dalek once, from the chunk that contains it. Intact: two sentries at the doorway, a technician at the console, a chance-based patrol, a watchtower lookout on the deck, a barricade sentry and a sensor-mast technician. Ruined: a remnant of 1–3 sentries or patrollers, no technicians or lookouts. Garrisons do not respawn. Jobs are described in [Dalek](./feature-dalek.md).
 - **Loot boundary:** exactly one chest, in the core, with loot table `dwm:chests/skaro/dalek_outpost`. It holds existing items only: silver and bronze Dalekanium ingots, iron and copper ingots, redstone, gunpowder, and a rare radiation meter. Wings never hold containers.
 - **Authoring:** templates are Java layouts in `src/test/java/com/adamkali/dwm/world/structure/DalekOutpostTemplates.java`. `./gradlew generateStructureTemplates` writes `data/dwm/structure/skaro/dalek_outpost/*.nbt`, and `StructureTemplateGeneratorTest` fails the build if the committed files drift from the layouts.
 - **Debug:**
@@ -94,7 +95,7 @@ Not included: trades, dialogue, quests, guards, raids, or a Thal crop with new p
 ## Planned (not yet in the jar)
 - Remaining Dalek architecture builder family (DWM-065): wall, floor, light, door, damaged variants.
 - Remaining Skaro flora (Varga, radiation fungus, mutated reeds, ash scrub, Thal crop) under DWM-068.
-- Remaining DWM-069 landmarks (battlefield trench/ruin, wreckage/crater, mutation nest, petrified carcass/copse, dry channel), Skaro fauna, Kaalann, and related tickets (DWM-072–074). Dalek biome patrols shipped under DWM-070 and the Thal settlement under DWM-071; structure-scoped Dalek population (e.g. Daleks guarding outposts) is still planned.
+- Remaining DWM-069 landmarks (battlefield trench/ruin, wreckage/crater, mutation nest, petrified carcass/copse, dry channel), Skaro fauna, Kaalann, and related tickets (DWM-072–074). Dalek biome patrols shipped under DWM-070 and the Thal settlement under DWM-071; Dalek outposts are garrisoned; Dalek population for the Kaled bunker and Kaalann is still planned.
 - Major hostile structures outside `dwm:skaro_military_landmarks` (Kaled bunker DWM-073, Kaalann DWM-074) must add their own `exclusion_zone` against `dwm:thal_settlement` so they never generate beside a settlement.
 - The settlement fields plant vanilla wheat as a stand-in. When the Thal crop of DWM-068 exists, swap the single constant `ThalSettlementPalette.FIELD_CROP`.
 
