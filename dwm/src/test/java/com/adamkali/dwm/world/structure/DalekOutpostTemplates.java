@@ -140,7 +140,7 @@ public final class DalekOutpostTemplates {
                 .build();
     }
 
-    /** 5×12×5 observation post: open legs, ladder up a bronze pillar, railed platform and roof. */
+    /** 5×14×5 observation post: open legs, ladder up a bronze pillar, railed platform and roof. */
     public static TemplateLayout watchtower() {
         TemplateLayout.Builder builder = palette(WATCHTOWER)
                 .legend('s', jigsaw(FrontAndTop.SOUTH_UP), wingConnector())
@@ -167,7 +167,7 @@ public final class DalekOutpostTemplates {
                         "SSHSS",
                         "SSSSS",
                         "SSSSS")
-                // y = 9-10: railing and two blocks of headroom
+                // y = 9-12: railing and four blocks of headroom (a Dalek is taller than two blocks)
                 .layer(
                         "rIIIr",
                         "I...I",
@@ -180,7 +180,19 @@ public final class DalekOutpostTemplates {
                         ".....",
                         ".....",
                         "r...r")
-                // y = 11: roof with a lamp
+                .layer(
+                        "r...r",
+                        ".....",
+                        ".....",
+                        ".....",
+                        "r...r")
+                .layer(
+                        "r...r",
+                        ".....",
+                        ".....",
+                        ".....",
+                        "r...r")
+                // y = 13: roof with a lamp
                 .layer(
                         "SSSSS",
                         "SSSSS",
