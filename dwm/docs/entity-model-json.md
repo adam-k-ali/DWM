@@ -77,7 +77,7 @@ Each frame vanilla resets every part to its rest pose, then each binding **adds*
 
 Expressions support `+ - * /`, unary `-`, parentheses, numbers, variables, the constants `pi` and `deg` (`180/pi`, to turn a radian result into degrees), and `sin cos` (radians, Minecraft's `Mth` tables, so ports from Java match), `abs`, `min`, `max`, `clamp(x, lo, hi)`, `lerp(a, b, t)`. Evaluation is in `float`.
 
-Variables come from the Java model type (`AnimationVariables`). Living entities get `age`, `walk_pos`, `walk_speed`, and `head_pitch` / `head_yaw` (degrees). TARDIS exteriors and the interior door expose `door_progress` (0-1) and swing their door parts from it. Dalek (both classic casings) and Paradigm Dalek add `lean_pitch`, `lean_roll` (degrees) and `flight_bob` (model units, 0 when grounded). An unknown variable fails when the model is built and lists the available names.
+Variables come from the Java model type (`AnimationVariables`). Living entities get `age`, `walk_pos`, `walk_speed`, and `head_pitch` / `head_yaw` (degrees). TARDIS exteriors and the interior door expose `door_progress` (0-1) and swing their door parts from it. Dalek (both classic casings) and Paradigm Dalek add `lean_pitch`, `lean_roll` (degrees) `flight_bob` (model units, 0 when grounded), and `scan` / `work` (0-1 blends, eased on the entity: a garrison sentry, lookout or patroller on duty scans, an on-duty technician works; 0 for wild Daleks). An unknown variable fails when the model is built and lists the available names.
 
 A child file's bindings replace the parent's with the same part + channel and append the rest.
 
