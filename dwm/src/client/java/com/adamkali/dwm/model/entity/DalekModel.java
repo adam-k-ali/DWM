@@ -21,6 +21,8 @@ public class DalekModel extends JsonEntityModel<DalekRenderState> {
     private static final AnimationVariables<DalekRenderState> VARIABLES = AnimationVariables.<DalekRenderState>living()
             .add("lean_pitch", state -> state.leanPitch)
             .add("lean_roll", state -> state.leanRoll)
+            .add("scan", state -> state.scan)
+            .add("work", state -> state.work)
             .add("flight_bob", state -> bobOffset(state.ageInTicks, state.flying))
             .build();
 

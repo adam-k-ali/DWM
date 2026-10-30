@@ -8,4 +8,7 @@ public class DalekRenderState extends LivingEntityRenderState {
     public boolean flying;
     public float leanPitch;
     public float leanRoll;
+    /** Eased 0–1 weights of the job poses: eyestalk sweep and plunger work. */
+    public float scan;
+    public float work;
 }

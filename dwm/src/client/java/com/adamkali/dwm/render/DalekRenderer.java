@@ -67,6 +67,8 @@ public class DalekRenderer extends MobRenderer<DalekEntity, DalekRenderState, Da
         Vec3 localVel = DalekFlightFx.toLocalVelocity(entity.getDeltaMovement(), state.yRot);
         state.leanPitch = DalekFlightFx.leanPitchDegrees(localVel, state.flying);
         state.leanRoll = DalekFlightFx.leanRollDegrees(localVel, state.flying);
+        state.scan = entity.scanBlend(tickDelta);
+        state.work = entity.workBlend(tickDelta);
     }
 
     @Override

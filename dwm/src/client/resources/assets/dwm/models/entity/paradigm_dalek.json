@@ -187,7 +187,9 @@
       { "part": "head", "channel": "rot_x", "value": "head_pitch * 0.35" },
       { "part": "head", "channel": "rot_y", "value": "head_yaw * 0.35" },
       { "part": "head/eyestalk", "channel": "rot_x", "value": "head_pitch * 0.65" },
-      { "part": "head/eyestalk", "channel": "rot_y", "value": "head_yaw * 0.65" },
+      { "part": "head/eyestalk", "channel": "rot_y", "value": "head_yaw * 0.65 + scan * sin(age * 0.08) * 35" },
+      { "part": "shoulders/gun", "channel": "rot_y", "value": "scan * sin(age * 0.08) * 8" },
+      { "part": "shoulders/plunger", "channel": "rot_x", "value": "work * sin(age * 0.3) * 15" },
       { "channel": "pos_y", "value": "flight_bob" },
       { "channel": "rot_x", "value": "lean_pitch" },
       { "channel": "rot_z", "value": "lean_roll" }
