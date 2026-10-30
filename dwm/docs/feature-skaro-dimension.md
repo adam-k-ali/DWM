@@ -51,7 +51,7 @@ Small, frequent discoveries that tell Skaro's war history. They are distinct fro
   - Intact: Irradiated Wastes and Drammankin Mountains (`#dwm:has_structure/dalek_outpost`).
   - Ruined: Petrified Jungle (`#dwm:has_structure/dalek_outpost_ruined`).
   - Never on the Thal Plateau or in the Drammankin Mire.
-- **Rarity:** both share the structure set `dwm:skaro_military_landmarks` (random spread, spacing 32 chunks, separation 12, weight 1 each). Later military landmarks (trenches, wreckage) join this set, so they never cluster on top of an outpost.
+- **Rarity:** both share the structure set `dwm:skaro_military_landmarks` (random spread, spacing 32 chunks, separation 12, weight 1 each). Trenches share this set (see below) and later military landmarks (wreckage) will join it, so they never cluster on top of an outpost.
 - **Pieces** (jigsaw depth 1, `max_distance_from_center` 32). Each wing has one connector facing the core:
 
   | Piece | Size cap (X×Y×Z) | Projection | Notes |
@@ -70,6 +70,31 @@ Small, frequent discoveries that tell Skaro's war history. They are distinct fro
 - **Debug:**
   - `/execute in dwm:skaro run locate structure dwm:dalek_outpost`
   - `/place structure dwm:dalek_outpost` (or `dwm:dalek_outpost_ruined`)
+
+### Dalek trench
+A fortified battlefield line: a walled checkpoint yard opens a trench north and south; the trench runs on as straight segments, some with side doorways to bunkers, and ends in a closed cap. Daleks gather at the checkpoint and bunkers and work the line.
+- **Structures:** `dwm:dalek_trench` (intact) and `dwm:dalek_trench_ruined` (same templates, decayed by the outpost ruin processor list).
+- **Eligible biomes:**
+  - Intact: Irradiated Wastes (`#dwm:has_structure/dalek_trench`).
+  - Ruined: Petrified Jungle and Drammankin Mountains (`#dwm:has_structure/dalek_trench_ruined`).
+  - Never on the Thal Plateau or in the Drammankin Mire.
+- **Rarity:** weight 1 each in `dwm:skaro_military_landmarks` (see above), so the Thal settlement exclusion zone applies.
+- **Pieces** (jigsaw depth 5, `max_distance_from_center` 56). Pieces join end to end through `dwm:dalek_trench_link` connectors; junctions pull bunkers through `dwm:dalek_trench_bunker`.
+
+  | Piece | Size cap (X×Y×Z) | Projection | Notes |
+  |---|---|---|---|
+  | Checkpoint | 11×5×11 | rigid | Walled yard with 3-wide open gates north and south, four pillars with lamps, grille windows; the only loot chest; start piece. |
+  | Segment | 5×4×8 | terrain_matching | Three-wide lane between three-high parapets with iron-bar gunports; follows uneven ground. |
+  | Junction | 5×4×8 | terrain_matching | A segment with a doorway in each side wall that opens a bunker. |
+  | Bunker | 9×6×9 | rigid | Roofed room with gunports on its north face and a 3-wide doorway; two garrison variants (gun nest, depot). |
+  | End cap | 5×4×3 | terrain_matching | Closed trench end. |
+
+  Segment pool weights: segment 6, junction 3, end cap 1. Bunker pool: gun nest 1, depot 1.
+- **Garrison:** every piece uses `dwm:garrisoned_single_pool_element`. Checkpoint: four always-present gate sentries, a technician at the chest, a chance-based patrol and courier. Segments: chance-based gunners at the firing steps and couriers running the lane. Junctions: a sentry and a courier. Gun nest bunker: gunners at the gunports and a sentry. Depot bunker: technicians at their benches and a chance-based lookout. End cap: a gunner facing down the trench. A ruined trench has the same posts under the ruin processors. Jobs are described in [Dalek](./feature-dalek.md).
+- **Loot boundary:** exactly one chest, in the checkpoint, using `dwm:chests/skaro/dalek_outpost`. Segments, bunkers and caps never hold containers.
+- **Terrain adaptation:** `beard_thin`; segments and caps use terrain-matching projection so the lane and parapets follow uneven ground, and their posts and courier routes snap to the surface.
+- **Authoring:** `src/test/java/com/adamkali/dwm/world/structure/DalekTrenchTemplates.java`; `./gradlew generateStructureTemplates` writes `data/dwm/structure/skaro/dalek_trench/*.nbt`.
+- **Debug:** `/execute in dwm:skaro run locate structure dwm:dalek_trench`, `/place structure dwm:dalek_trench` (or `dwm:dalek_trench_ruined`).
 
 ## Thal Plateau Settlement
 A hand-placed-looking village that is generated entirely from code (no NBT templates), deterministic for a given world seed and location.
@@ -95,7 +120,7 @@ Not included: trades, dialogue, quests, guards, raids, or a Thal crop with new p
 ## Planned (not yet in the jar)
 - Remaining Dalek architecture builder family (DWM-065): wall, floor, light, door, damaged variants.
 - Remaining Skaro flora (Varga, radiation fungus, mutated reeds, ash scrub, Thal crop) under DWM-068.
-- Remaining DWM-069 landmarks (battlefield trench/ruin, wreckage/crater, mutation nest, petrified carcass/copse, dry channel), Skaro fauna, Kaalann, and related tickets (DWM-072–074). Dalek biome patrols shipped under DWM-070 and the Thal settlement under DWM-071; Dalek outposts are garrisoned; Dalek population for the Kaled bunker and Kaalann is still planned.
+- Remaining DWM-069 landmarks (wreckage/crater, mutation nest, petrified carcass/copse, dry channel), Skaro fauna, Kaalann, and related tickets (DWM-072–074). Dalek biome patrols shipped under DWM-070 and the Thal settlement under DWM-071; Dalek outposts are garrisoned; Dalek population for the Kaled bunker and Kaalann is still planned.
 - Major hostile structures outside `dwm:skaro_military_landmarks` (Kaled bunker DWM-073, Kaalann DWM-074) must add their own `exclusion_zone` against `dwm:thal_settlement` so they never generate beside a settlement.
 - The settlement fields plant vanilla wheat as a stand-in. When the Thal crop of DWM-068 exists, swap the single constant `ThalSettlementPalette.FIELD_CROP`.
 

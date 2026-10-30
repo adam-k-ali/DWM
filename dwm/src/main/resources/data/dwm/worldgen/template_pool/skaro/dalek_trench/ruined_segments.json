@@ -1,0 +1,106 @@
+{
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 6,
+      "element": {
+        "element_type": "dwm:garrisoned_single_pool_element",
+        "location": "dwm:skaro/dalek_trench/segment",
+        "projection": "terrain_matching",
+        "processors": "dwm:skaro/dalek_outpost_ruined",
+        "garrison": [
+          {
+            "entity": "dwm:dalek",
+            "job": "gunner",
+            "pos": [
+              3,
+              1,
+              1
+            ],
+            "facing": "east",
+            "chance": 0.6
+          },
+          {
+            "entity": "dwm:dalek",
+            "job": "courier",
+            "pos": [
+              2,
+              1,
+              1
+            ],
+            "facing": "south",
+            "chance": 0.4,
+            "work_spots": [
+              [
+                2,
+                1,
+                6
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "weight": 3,
+      "element": {
+        "element_type": "dwm:garrisoned_single_pool_element",
+        "location": "dwm:skaro/dalek_trench/junction",
+        "projection": "terrain_matching",
+        "processors": "dwm:skaro/dalek_outpost_ruined",
+        "garrison": [
+          {
+            "entity": "dwm:dalek",
+            "job": "sentry",
+            "pos": [
+              1,
+              1,
+              5
+            ],
+            "facing": "north",
+            "chance": 0.8
+          },
+          {
+            "entity": "dwm:dalek",
+            "job": "courier",
+            "pos": [
+              2,
+              1,
+              1
+            ],
+            "facing": "south",
+            "chance": 0.5,
+            "work_spots": [
+              [
+                2,
+                1,
+                6
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "dwm:garrisoned_single_pool_element",
+        "location": "dwm:skaro/dalek_trench/end_cap",
+        "projection": "terrain_matching",
+        "processors": "dwm:skaro/dalek_outpost_ruined",
+        "garrison": [
+          {
+            "entity": "dwm:dalek",
+            "job": "gunner",
+            "pos": [
+              2,
+              1,
+              1
+            ],
+            "facing": "south"
+          }
+        ]
+      }
+    }
+  ]
+}

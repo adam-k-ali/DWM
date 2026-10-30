@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,7 +33,7 @@ class StructureTemplateGeneratorTest {
     @Test
     @EnabledIfSystemProperty(named = WRITE_PROPERTY, matches = "true")
     void writeTemplates() throws IOException {
-        for (TemplateLayout layout : DalekOutpostTemplates.all()) {
+        for (TemplateLayout layout : allTemplates()) {
             Files.createDirectories(layout.file().getParent());
             NbtIo.writeCompressed(layout.toNbt(), layout.file());
         }
@@ -39,12 +41,18 @@ class StructureTemplateGeneratorTest {
 
     @Test
     void committedTemplatesMatchLayouts() throws IOException {
-        for (TemplateLayout layout : DalekOutpostTemplates.all()) {
+        for (TemplateLayout layout : allTemplates()) {
             assertTrue(Files.isRegularFile(layout.file()),
                     () -> layout.file() + " is missing; run ./gradlew generateStructureTemplates");
             CompoundTag committed = NbtIo.readCompressed(layout.file(), NbtAccounter.unlimitedHeap());
             assertEquals(layout.toNbt(), committed,
                     () -> layout.file() + " drifted from its layout; run ./gradlew generateStructureTemplates");
         }
+    }
+
+    private static List<TemplateLayout> allTemplates() {
+        List<TemplateLayout> all = new ArrayList<>(DalekOutpostTemplates.all());
+        all.addAll(DalekTrenchTemplates.all());
+        return all;
     }
 }
