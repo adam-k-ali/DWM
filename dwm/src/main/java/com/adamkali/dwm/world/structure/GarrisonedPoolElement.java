@@ -94,9 +94,7 @@ public class GarrisonedPoolElement extends SinglePoolElement {
         if (!manned || !chunkBB.isInside(world)) {
             return;
         }
-        if (getProjection() == StructureTemplatePool.Projection.TERRAIN_MATCHING) {
-            world = new BlockPos(world.getX(), level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, world.getX(), world.getZ()), world.getZ());
-        }
+        world = snapToTerrain(level, world);
         EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.getOptional(post.entity()).orElse(null);
         if (type == null) {
             return;
@@ -106,7 +104,8 @@ public class GarrisonedPoolElement extends SinglePoolElement {
             return;
         }
         Direction facing = rotation.rotate(post.facing());
-        List<BlockPos> workSpots = post.workSpots().stream().map(spot -> toWorld(spot, position, rotation)).toList();
+        List<BlockPos> workSpots = post.workSpots().stream()
+                .map(spot -> snapToTerrain(level, toWorld(spot, position, rotation))).toList();
         dalek.setPersistenceRequired();
         dalek.snapTo(world.getX() + 0.5, world.getY(), world.getZ() + 0.5, facing.toYRot(), 0.0F);
         dalek.finalizeSpawn(level, level.getCurrentDifficultyAt(world), EntitySpawnReason.STRUCTURE, null);
@@ -115,6 +114,14 @@ public class GarrisonedPoolElement extends SinglePoolElement {
                 .orElseGet(() -> DalekVariant.pick(RandomSource.create(variantSeed), dalek.family())));
         dalek.assignJob(post.job(), world, facing.toYRot(), post.radius(), workSpots);
         level.addFreshEntityWithPassengers(dalek);
+    }
+
+    /** Terrain-matching pieces follow the surface, so posts and work spots ride it too. */
+    private BlockPos snapToTerrain(WorldGenLevel level, BlockPos world) {
+        if (getProjection() != StructureTemplatePool.Projection.TERRAIN_MATCHING) {
+            return world;
+        }
+        return new BlockPos(world.getX(), level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, world.getX(), world.getZ()), world.getZ());
     }
 
     private static BlockPos toWorld(BlockPos local, BlockPos position, Rotation rotation) {
