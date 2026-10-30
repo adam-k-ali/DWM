@@ -1,5 +1,6 @@
 package com.adamkali.dwm.entity.definition;
 
+import com.adamkali.dwm.entity.DalekCourierGoal;
 import com.adamkali.dwm.entity.DalekEntity;
 import com.adamkali.dwm.entity.DalekFlightGoal;
 import com.adamkali.dwm.entity.DalekHoldPostGoal;
@@ -93,6 +94,7 @@ public sealed interface EntityGoal {
         DALEK_HOLD_POST("dwm:dalek_hold_post", Selector.GOAL),
         DALEK_PATROL("dwm:dalek_patrol", Selector.GOAL),
         DALEK_TEND_STATION("dwm:dalek_tend_station", Selector.GOAL),
+        DALEK_COURIER("dwm:dalek_courier", Selector.GOAL),
         DALEK_RAISE_ALARM("dwm:dalek_raise_alarm", Selector.TARGET);
 
         public static final StringRepresentable.EnumCodec<Kind> CODEC = StringRepresentable.fromEnum(Kind::values);
@@ -141,6 +143,7 @@ public sealed interface EntityGoal {
             case DALEK_HOLD_POST -> DalekHoldPost.MAP_CODEC;
             case DALEK_PATROL -> DalekPatrol.MAP_CODEC;
             case DALEK_TEND_STATION -> DalekTendStation.MAP_CODEC;
+            case DALEK_COURIER -> DalekCourier.MAP_CODEC;
             case DALEK_RAISE_ALARM -> DalekRaiseAlarm.MAP_CODEC;
             };
         }
@@ -608,6 +611,24 @@ public sealed interface EntityGoal {
         @Override
         public Goal create(Mob mob) {
             return new DalekTendStationGoal(require(mob, DalekEntity.class, kind()), speed, pauseMinTicks, pauseMaxTicks);
+        }
+    }
+
+    record DalekCourier(double speed, int pauseMinTicks, int pauseMaxTicks) implements EntityGoal {
+        static final MapCodec<DalekCourier> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+                Codec.DOUBLE.fieldOf("speed").forGetter(DalekCourier::speed),
+                Codec.INT.fieldOf("pause_min_ticks").forGetter(DalekCourier::pauseMinTicks),
+                Codec.INT.fieldOf("pause_max_ticks").forGetter(DalekCourier::pauseMaxTicks)
+        ).apply(instance, DalekCourier::new));
+
+        @Override
+        public Kind kind() {
+            return Kind.DALEK_COURIER;
+        }
+
+        @Override
+        public Goal create(Mob mob) {
+            return new DalekCourierGoal(require(mob, DalekEntity.class, kind()), speed, pauseMinTicks, pauseMaxTicks);
         }
     }
 
