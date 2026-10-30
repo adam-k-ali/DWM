@@ -21,6 +21,7 @@ import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
 import com.adamkali.dwm.tardis.worldgen.DWMStructureProcessors;
 import com.adamkali.dwm.world.structure.DWMStructurePieceTypes;
+import com.adamkali.dwm.world.structure.DWMStructurePoolElementTypes;
 import com.adamkali.dwm.world.structure.DWMStructureTypes;
 import com.adamkali.dwm.world.DWMPlacedFeatures;
 import com.adamkali.dwm.world.event.DalekThalBattleService;
@@ -54,6 +55,7 @@ public class DWMMain implements ModInitializer {
         DWMSounds.initialize();
         DWMStructureProcessors.initialize();
         DWMStructureTypes.initialize();
+        DWMStructurePoolElementTypes.initialize();
         DWMStructurePieceTypes.initialize();
         FieldGuideRegistries.initialize();
         FieldGuideGrant.initialize();
