@@ -73,11 +73,12 @@ public class TardisMonitorGameTests {
         if (monitor.page() != MonitorPage.DESTINATION) {
             throw new AssertionError("Expected DESTINATION after one use, got " + monitor.page());
         }
-        for (int i = 0; i < MonitorPage.values().length - 1; i++) {
+        // A full cycle of uses lands back on the same page.
+        for (int i = 0; i < MonitorPage.values().length; i++) {
             context.useBlock(monitorRel, player);
         }
         if (monitor.page() != MonitorPage.DESTINATION) {
-            throw new AssertionError("Expected the page cycle to wrap, got " + monitor.page());
+            throw new AssertionError("Expected a full cycle to wrap back to DESTINATION, got " + monitor.page());
         }
         context.succeed();
     }
