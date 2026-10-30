@@ -3,6 +3,13 @@ package com.adamkali.dwm.world.structure;
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.item.DWMItems;
+import com.adamkali.dwm.entity.DalekJob;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.mojang.serialization.JsonOps;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -23,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -39,6 +47,7 @@ class SkaroLandmarkResourceTest {
     private static final String INTACT = "dwm:dalek_outpost";
     private static final String RUINED = "dwm:dalek_outpost_ruined";
     private static final String RUIN_PROCESSORS = "dwm:skaro/dalek_outpost_ruined";
+    private static final String GARRISONED = "dwm:garrisoned_single_pool_element";
 
     /** Documented per-piece size caps (X, Y, Z) from feature-skaro-dimension.md. */
     private static final Map<String, int[]> SIZE_CAPS = Map.of(
@@ -220,6 +229,86 @@ class SkaroLandmarkResourceTest {
         assertTrue(entries > 0);
     }
 
+    @Test
+    void intactPoolsGarrisonEveryPieceWithTheRightJobs() throws IOException {
+        Map<String, List<GarrisonPost>> core = garrisons("core");
+        List<GarrisonPost> coreSentries = core.get(DalekOutpostTemplates.CORE).stream()
+                .filter(post -> post.job() == DalekJob.SENTRY).toList();
+        assertEquals(2, coreSentries.size(), "The core is guarded by two sentries");
+        assertTrue(coreSentries.stream().allMatch(post -> post.chance() == 1.0F), "Core sentries always spawn");
+        assertEquals(1, core.get(DalekOutpostTemplates.CORE).stream()
+                .filter(post -> post.job() == DalekJob.TECHNICIAN).count());
+
+        Map<String, List<GarrisonPost>> wings = garrisons("wings");
+        assertEquals(List.of(DalekJob.LOOKOUT), jobs(wings.get(DalekOutpostTemplates.WATCHTOWER)));
+        assertEquals(List.of(DalekJob.SENTRY), jobs(wings.get(DalekOutpostTemplates.BARRICADE)));
+        assertEquals(List.of(DalekJob.TECHNICIAN), jobs(wings.get(DalekOutpostTemplates.SENSOR_MAST)));
+        assertTrue(wings.get(DalekOutpostTemplates.WATCHTOWER).getFirst().pos().getY() > 8,
+                "The lookout stands on the watchtower deck");
+    }
+
+    @Test
+    void ruinedPoolsOnlyKeepASmallRemnant() throws IOException {
+        int total = 0;
+        for (String pool : List.of("ruined_core", "ruined_wings")) {
+            for (List<GarrisonPost> posts : garrisons(pool).values()) {
+                total += posts.size();
+                for (GarrisonPost post : posts) {
+                    assertTrue(post.job() == DalekJob.SENTRY || post.job() == DalekJob.PATROL,
+                            () -> "Ruined outposts have no " + post.job());
+                }
+            }
+        }
+        assertTrue(total >= 1 && total <= 3, "Ruined garrison must be 1-3 Daleks, was " + total);
+    }
+
+    @Test
+    void garrisonPostCodecRoundTripsAndValidates() {
+        GarrisonPost post = new GarrisonPost(Identifier.parse("dwm:paradigm_dalek"), DalekJob.TECHNICIAN,
+                new BlockPos(5, 1, 5), Direction.NORTH, 0.5F, Optional.of("paradigm_scientist"), 9,
+                List.of(new BlockPos(5, 1, 4)));
+        JsonElement json = GarrisonPost.CODEC.encodeStart(JsonOps.INSTANCE, post).getOrThrow();
+        assertEquals(post, GarrisonPost.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow());
+
+        JsonObject minimal = new JsonObject();
+        minimal.addProperty("entity", "dwm:dalek");
+        minimal.addProperty("job", "sentry");
+        minimal.add("pos", JsonParser.parseString("[1,2,3]"));
+        GarrisonPost parsed = GarrisonPost.CODEC.parse(JsonOps.INSTANCE, minimal).getOrThrow();
+        assertEquals(Direction.SOUTH, parsed.facing());
+        assertEquals(1.0F, parsed.chance());
+        assertEquals(GarrisonPost.DEFAULT_PATROL_RADIUS, parsed.radius());
+
+        minimal.addProperty("facing", "up");
+        assertTrue(GarrisonPost.CODEC.parse(JsonOps.INSTANCE, minimal).result().isEmpty(), "Facing must be horizontal");
+    }
+
+    /** Garrison posts keyed by the template each element places. */
+    private static Map<String, List<GarrisonPost>> garrisons(String poolName) throws IOException {
+        JSONArray elements = readJson(resource("worldgen/template_pool", "dwm:skaro/dalek_outpost/" + poolName))
+                .getJSONArray("elements");
+        Map<String, List<GarrisonPost>> result = new java.util.LinkedHashMap<>();
+        for (int i = 0; i < elements.length(); i++) {
+            JSONObject element = elements.getJSONObject(i).getJSONObject("element");
+            if (!element.getString("element_type").equals(GARRISONED)) {
+                continue;
+            }
+            String template = element.getString("location").substring("dwm:".length());
+            List<GarrisonPost> posts = new ArrayList<>();
+            JSONArray garrison = element.getJSONArray("garrison");
+            for (int g = 0; g < garrison.length(); g++) {
+                JsonElement json = JsonParser.parseString(garrison.getJSONObject(g).toString());
+                posts.add(GarrisonPost.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow());
+            }
+            result.put(template, posts);
+        }
+        return result;
+    }
+
+    private static List<DalekJob> jobs(List<GarrisonPost> posts) {
+        return posts.stream().map(GarrisonPost::job).toList();
+    }
+
     private static void assertPoolPair(String intactName, String ruinedName) throws IOException {
         JSONArray intact = readJson(resource("worldgen/template_pool", "dwm:skaro/dalek_outpost/" + intactName)).getJSONArray("elements");
         JSONArray ruined = readJson(resource("worldgen/template_pool", "dwm:skaro/dalek_outpost/" + ruinedName)).getJSONArray("elements");
@@ -231,7 +320,7 @@ class SkaroLandmarkResourceTest {
             JSONObject elementA = a.getJSONObject("element");
             JSONObject elementB = b.getJSONObject("element");
             assertEquals(elementA.getString("element_type"), elementB.getString("element_type"));
-            if (!elementA.getString("element_type").equals("minecraft:single_pool_element")) {
+            if (!elementA.getString("element_type").equals(GARRISONED)) {
                 continue;
             }
             assertEquals(elementA.getString("location"), elementB.getString("location"));
