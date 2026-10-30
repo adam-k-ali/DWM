@@ -4,6 +4,7 @@ import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
+import com.adamkali.dwm.block.entities.TardisMonitorBlockEntity;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
@@ -228,6 +229,8 @@ public final class FirstDoctorConsoleRoomPlacer {
                         doorEntity.setTardisId(tardisId);
                     } else if (world.getBlockEntity(pos) instanceof FirstDoctorConsoleBlockEntity consoleEntity) {
                         consoleEntity.setTardisId(tardisId);
+                    } else if (world.getBlockEntity(pos) instanceof TardisMonitorBlockEntity monitorEntity) {
+                        monitorEntity.setTardisId(tardisId);
                     }
                 }
             }
