@@ -4,28 +4,43 @@
     {
       "weight": 3,
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "dwm:garrisoned_single_pool_element",
         "location": "dwm:skaro/dalek_outpost/watchtower",
         "projection": "rigid",
-        "processors": "dwm:skaro/dalek_outpost_ruined"
+        "processors": "dwm:skaro/dalek_outpost_ruined",
+        "garrison": []
       }
     },
     {
       "weight": 4,
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "dwm:garrisoned_single_pool_element",
         "location": "dwm:skaro/dalek_outpost/barricade",
         "projection": "terrain_matching",
-        "processors": "dwm:skaro/dalek_outpost_ruined"
+        "processors": "dwm:skaro/dalek_outpost_ruined",
+        "garrison": [
+          {
+            "entity": "dwm:dalek",
+            "job": "sentry",
+            "pos": [
+              3,
+              1,
+              1
+            ],
+            "facing": "north",
+            "chance": 0.5
+          }
+        ]
       }
     },
     {
       "weight": 3,
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "dwm:garrisoned_single_pool_element",
         "location": "dwm:skaro/dalek_outpost/sensor_mast",
         "projection": "rigid",
-        "processors": "dwm:skaro/dalek_outpost_ruined"
+        "processors": "dwm:skaro/dalek_outpost_ruined",
+        "garrison": []
       }
     },
     {

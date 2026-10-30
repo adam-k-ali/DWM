@@ -4,10 +4,34 @@
     {
       "weight": 1,
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "dwm:garrisoned_single_pool_element",
         "location": "dwm:skaro/dalek_outpost/core",
         "projection": "rigid",
-        "processors": "dwm:skaro/dalek_outpost_ruined"
+        "processors": "dwm:skaro/dalek_outpost_ruined",
+        "garrison": [
+          {
+            "entity": "dwm:dalek",
+            "job": "sentry",
+            "pos": [
+              3,
+              1,
+              10
+            ],
+            "facing": "south"
+          },
+          {
+            "entity": "dwm:dalek",
+            "job": "patrol",
+            "pos": [
+              8,
+              1,
+              10
+            ],
+            "facing": "south",
+            "chance": 0.5,
+            "radius": 12
+          }
+        ]
       }
     }
   ]
