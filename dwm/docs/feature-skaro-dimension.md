@@ -72,7 +72,7 @@ Small, frequent discoveries that tell Skaro's war history. They are distinct fro
   - `/place structure dwm:dalek_outpost` (or `dwm:dalek_outpost_ruined`)
 
 ### Dalek trench
-A fortified battlefield line: a walled checkpoint yard opens a trench north and south; the trench runs on as straight segments, some with side doorways to bunkers, and ends in a closed cap. Daleks gather at the checkpoint and bunkers and work the line.
+A fortified battlefield line, carved two blocks into the ground: a sunken checkpoint yard opens a trench north and south; the trench runs on as straight segments, some with side doorways to bunkers, and ends in a closed cap. Daleks gather at the checkpoint and bunkers and work the line.
 - **Structures:** `dwm:dalek_trench` (intact) and `dwm:dalek_trench_ruined` (same templates, decayed by the outpost ruin processor list).
 - **Eligible biomes:**
   - Intact: Irradiated Wastes (`#dwm:has_structure/dalek_trench`).
@@ -83,16 +83,16 @@ A fortified battlefield line: a walled checkpoint yard opens a trench north and 
 
   | Piece | Size cap (X×Y×Z) | Projection | Notes |
   |---|---|---|---|
-  | Checkpoint | 11×5×11 | rigid | Walled yard with 3-wide open gates north and south, four pillars with lamps, grille windows; the only loot chest; start piece. |
-  | Segment | 5×4×8 | terrain_matching | Three-wide lane between three-high parapets with iron-bar gunports; follows uneven ground. |
-  | Junction | 5×4×8 | terrain_matching | A segment with a doorway in each side wall that opens a bunker. |
-  | Bunker | 9×6×9 | rigid | Roofed room with gunports on its north face and a 3-wide doorway; two garrison variants (gun nest, depot). |
+  | Checkpoint | 11×5×11 | rigid | Sunken yard with 3-wide, 3-high gates north and south, four pillars with lamps, a ground-level grille parapet with gaps to step in by; the only loot chest; start piece. |
+  | Segment | 5×4×8 | terrain_matching | Three-wide lane lined underground, with a ground-level iron-bar parapet and open gaps to drop in by (a two-block drop); follows uneven ground. |
+  | Junction | 5×4×8 | terrain_matching | A segment with a 3-high doorway in each side wall that opens a bunker. |
+  | Bunker | 9×6×9 | rigid | Half-buried roofed room with gunports at ground level on its north face and a 3-wide, 3-high doorway; two garrison variants (gun nest, depot). |
   | End cap | 5×4×3 | terrain_matching | Closed trench end. |
 
   Segment pool weights: segment 6, junction 3, end cap 1. Bunker pool: gun nest 1, depot 1.
 - **Garrison:** every piece uses `dwm:garrisoned_single_pool_element`. Checkpoint: four always-present gate sentries, a technician at the chest, a chance-based patrol and courier. Segments: chance-based gunners at the firing steps and couriers running the lane. Junctions: a sentry and a courier. Gun nest bunker: gunners at the gunports and a sentry. Depot bunker: technicians at their benches and a chance-based lookout. End cap: a gunner facing down the trench. A ruined trench has the same posts under the ruin processors. Jobs are described in [Dalek](./feature-dalek.md).
 - **Loot boundary:** exactly one chest, in the checkpoint, using `dwm:chests/skaro/dalek_outpost`. Segments, bunkers and caps never hold containers.
-- **Terrain adaptation:** `beard_thin`; segments and caps use terrain-matching projection so the lane and parapets follow uneven ground, and their posts and courier routes snap to the surface.
+- **Terrain adaptation:** `beard_thin`. The trench is sunk 2 blocks: the structure starts at `start_height` -2 and every terrain-matching element sets `"sink": 2` (an optional `garrisoned_single_pool_element` field, 0 to 8, that lowers the piece below vanilla terrain matching), so segments and caps follow uneven ground two blocks deep, and their posts and courier routes sit on the lowered floor. The rigid checkpoint and bunkers do not follow slopes, so on steep ground their floor can sit a block or two off the lane.
 - **Authoring:** `src/test/java/com/adamkali/dwm/world/structure/DalekTrenchTemplates.java`; `./gradlew generateStructureTemplates` writes `data/dwm/structure/skaro/dalek_trench/*.nbt`.
 - **Debug:** `/execute in dwm:skaro run locate structure dwm:dalek_trench`, `/place structure dwm:dalek_trench` (or `dwm:dalek_trench_ruined`).
 
