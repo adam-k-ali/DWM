@@ -28,6 +28,7 @@
     { "type": "dwm:dalek_hold_post", "priority": 3, "speed": 1.0 },
     { "type": "dwm:dalek_patrol", "priority": 3, "speed": 0.9, "pause_min_ticks": 40, "pause_max_ticks": 80 },
     { "type": "dwm:dalek_tend_station", "priority": 3, "speed": 0.9, "pause_min_ticks": 60, "pause_max_ticks": 120 },
+    { "type": "dwm:dalek_courier", "priority": 3, "speed": 1.0, "pause_min_ticks": 20, "pause_max_ticks": 50 },
     {
       "type": "minecraft:water_avoiding_random_stroll",
       "priority": 4,

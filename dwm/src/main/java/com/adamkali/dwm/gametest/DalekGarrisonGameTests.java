@@ -86,6 +86,43 @@ public class DalekGarrisonGameTests {
         });
     }
 
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 900)
+    public void courierRunsToTheFarEndOfItsRouteAndBack(GameTestHelper context) {
+        ThalEntity floor = EntityDefinitionGameTestSupport.spawnOnGrass(context, DWMEntityTypes.THAL);
+        floor.discard();
+        BlockPos post = context.absolutePos(new BlockPos(1, 2, 1));
+        BlockPos far = context.absolutePos(new BlockPos(1, 2, 8));
+        DalekEntity courier = context.spawn(DWMEntityTypes.DALEK, new BlockPos(1, 2, 1));
+        courier.assignJob(DalekJob.COURIER, post, NO_YAW, 0, List.of(far));
+        ignoreStrangers(context, courier);
+        AtomicInteger phase = new AtomicInteger();
+        context.succeedWhen(() -> {
+            double toFar = courier.distanceToSqr(far.getX() + 0.5, far.getY(), far.getZ() + 0.5);
+            double toPost = courier.distanceToSqr(post.getX() + 0.5, post.getY(), post.getZ() + 0.5);
+            if (phase.get() == 0 && toFar <= 6.25) {
+                phase.set(1);
+            }
+            context.assertTrue(phase.get() == 1 && toPost <= 6.25, "Courier should reach the far end and come back");
+        });
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 300)
+    public void gunnerHoldsItsPostLikeASentry(GameTestHelper context) {
+        ThalEntity floor = EntityDefinitionGameTestSupport.spawnOnGrass(context, DWMEntityTypes.THAL);
+        floor.discard();
+        BlockPos post = context.absolutePos(new BlockPos(1, 2, 1));
+        DalekEntity gunner = context.spawn(DWMEntityTypes.DALEK, new BlockPos(1, 2, 1));
+        gunner.assignJob(DalekJob.GUNNER, post, NO_YAW, 0, List.of());
+        ignoreStrangers(context, gunner);
+        gunner.teleportTo(post.getX() + 5.5, post.getY(), post.getZ() + 5.5);
+        context.succeedWhen(() -> {
+            context.assertTrue(gunner.isOnDuty(), "Gunner should be on duty at its post");
+            context.assertTrue(
+                    gunner.distanceToSqr(post.getX() + 0.5, post.getY(), post.getZ() + 0.5) <= 4.0,
+                    "Gunner should be back at its post");
+        });
+    }
+
     @GameTest(structure = "fabric-gametest-api-v1:empty", maxTicks = 600)
     public void technicianVisitsWorkSpot(GameTestHelper context) {
         ThalEntity floor = EntityDefinitionGameTestSupport.spawnOnGrass(context, DWMEntityTypes.THAL);

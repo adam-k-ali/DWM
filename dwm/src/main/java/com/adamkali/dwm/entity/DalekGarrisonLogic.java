@@ -22,6 +22,9 @@ public final class DalekGarrisonLogic {
     public static final int DEFAULT_PATROL_RADIUS = 12;
     public static final int PATROL_WAYPOINT_COUNT = 6;
     public static final float SCAN_SWEEP_DEGREES = 35.0F;
+    public static final float GUNNER_SWEEP_DEGREES = 70.0F;
+    public static final int COURIER_PAUSE_MIN_TICKS = 20;
+    public static final int COURIER_PAUSE_MAX_TICKS = 50;
 
     private DalekGarrisonLogic() {
     }
@@ -74,6 +77,33 @@ public final class DalekGarrisonLogic {
 
     /** Head sweep in degrees for scan tick {@code tick}: oscillates within +/- {@link #SCAN_SWEEP_DEGREES}. */
     public static float scanYawOffset(int tick) {
-        return (float) Math.sin(tick * 0.05) * SCAN_SWEEP_DEGREES;
+        return scanYawOffset(tick, SCAN_SWEEP_DEGREES);
+    }
+
+    /** Head sweep half-arc for a post-holding job; gunners cover a wider field than sentries. */
+    public static float sweepDegrees(DalekJob job) {
+        return job == DalekJob.GUNNER ? GUNNER_SWEEP_DEGREES : SCAN_SWEEP_DEGREES;
+    }
+
+    /** Head sweep in degrees for scan tick {@code tick} within +/- {@code degrees}. */
+    public static float scanYawOffset(int tick, float degrees) {
+        return (float) Math.sin(tick * 0.05) * degrees;
+    }
+
+    /**
+     * Next stop on a courier route of {@code count} stops (post first, then work spots), bouncing
+     * off both ends. {@code direction} is +1 or -1; returns {index, direction}.
+     */
+    public static int[] nextCourierLeg(int index, int direction, int count) {
+        if (count <= 1) {
+            return new int[] {0, 1};
+        }
+        int dir = direction >= 0 ? 1 : -1;
+        int next = index + dir;
+        if (next >= count || next < 0) {
+            dir = -dir;
+            next = index + dir;
+        }
+        return new int[] {next, dir};
     }
 }

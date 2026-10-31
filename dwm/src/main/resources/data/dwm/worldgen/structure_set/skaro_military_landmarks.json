@@ -7,6 +7,14 @@
     {
       "structure": "dwm:dalek_outpost_ruined",
       "weight": 1
+    },
+    {
+      "structure": "dwm:dalek_trench",
+      "weight": 1
+    },
+    {
+      "structure": "dwm:dalek_trench_ruined",
+      "weight": 1
     }
   ],
   "placement": {

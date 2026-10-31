@@ -205,7 +205,7 @@ class EntityDefinitionCatalogTest {
         assertEquals(EntityGoal.Kind.DALEK_FLIGHT, definition.goals().get(1).goal().kind());
         assertJobGoals(definition);
         assertTrue(definition.targets().stream().anyMatch(t -> t.goal().kind() == EntityGoal.Kind.DALEK_RAISE_ALARM));
-        EntityGoalBinding stroll = definition.goals().get(6);
+        EntityGoalBinding stroll = definition.goals().get(7);
         assertEquals(EntityGoal.Kind.WATER_AVOIDING_RANDOM_STROLL, stroll.goal().kind());
         assertEquals(GoalCondition.Kind.NOT_FLYING, stroll.canUse().orElseThrow().kind());
         assertEquals(EntityGoal.Kind.DALEK_SHARE_TARGET, definition.targets().get(1).goal().kind());
@@ -285,14 +285,15 @@ class EntityDefinitionCatalogTest {
     }
 
     private static void assertJobGoals(EntityDefinition definition) {
-        List<EntityGoalBinding> jobs = definition.goals().subList(3, 6);
+        List<EntityGoalBinding> jobs = definition.goals().subList(3, 7);
         assertEquals(
                 List.of(
                         EntityGoal.Kind.DALEK_HOLD_POST,
                         EntityGoal.Kind.DALEK_PATROL,
-                        EntityGoal.Kind.DALEK_TEND_STATION),
+                        EntityGoal.Kind.DALEK_TEND_STATION,
+                        EntityGoal.Kind.DALEK_COURIER),
                 kinds(jobs));
-        assertEquals(List.of(3, 3, 3), priorities(jobs));
+        assertEquals(List.of(3, 3, 3, 3), priorities(jobs));
     }
 
     private static EntityDefinition definition(String path) {

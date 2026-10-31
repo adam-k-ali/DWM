@@ -7,7 +7,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import java.util.EnumSet;
 
 /**
- * Sentries and lookouts walk (or fly, if the post is above them or unreachable on foot) back to
+ * Sentries, lookouts and gunners walk (or fly, if the post is above them or unreachable on foot) back to
  * their post when idle, then stand watch: facing the post yaw and sweeping their eyestalk.
  */
 public class DalekHoldPostGoal extends Goal {
@@ -59,7 +59,8 @@ public class DalekHoldPostGoal extends Goal {
                 dalek.setFlying(false);
             }
             dalek.setOnDuty(true);
-            float yaw = dalek.getPostYaw() + DalekGarrisonLogic.scanYawOffset(scanTick++);
+            float yaw = dalek.getPostYaw() + DalekGarrisonLogic.scanYawOffset(
+                    scanTick++, DalekGarrisonLogic.sweepDegrees(dalek.getJob()));
             dalek.setYRot(yaw);
             dalek.setYHeadRot(yaw);
             dalek.yBodyRot = yaw;

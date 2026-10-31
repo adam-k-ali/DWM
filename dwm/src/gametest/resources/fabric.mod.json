@@ -17,6 +17,7 @@
       "com.adamkali.dwm.gametest.client.FieldGuideClientGameTest",
       "com.adamkali.dwm.gametest.client.SonicHudClientGameTest",
       "com.adamkali.dwm.gametest.client.DalekOutpostClientGameTest",
+      "com.adamkali.dwm.gametest.client.DalekTrenchClientGameTest",
       "com.adamkali.dwm.gametest.client.TardisBotiPortalClientGameTest",
       "com.adamkali.dwm.gametest.client.TardisSotoPortalClientGameTest",
       "com.adamkali.dwm.gametest.client.ThalSettlementClientGameTest",

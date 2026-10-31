@@ -39,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Resource contract for Skaro landmarks (DWM-069): the modular Dalek outpost. */
+/** Resource contract for Skaro landmarks (DWM-069): the modular Dalek outpost. See {@link SkaroTrenchResourceTest} for trenches. */
 class SkaroLandmarkResourceTest {
     private static final Path DATA = Path.of("src/main/resources/data");
     private static final Path GENERATED_DATA = Path.of("src/main/generated/data");
@@ -128,7 +128,7 @@ class SkaroLandmarkResourceTest {
             assertEquals(1, entry.getInt("weight"));
             assertExists(resource("worldgen/structure", entry.getString("structure")));
         }
-        assertEquals(Set.of(INTACT, RUINED), ids);
+        assertEquals(Set.of(INTACT, RUINED, "dwm:dalek_trench", "dwm:dalek_trench_ruined"), ids);
 
         JSONObject placement = set.getJSONObject("placement");
         assertEquals("minecraft:random_spread", placement.getString("type"));
