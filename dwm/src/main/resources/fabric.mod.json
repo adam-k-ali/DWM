@@ -54,6 +54,7 @@
       "com.adamkali.dwm.gametest.BroakirGameTests",
       "com.adamkali.dwm.gametest.FlutterwingGameTests",
       "com.adamkali.dwm.gametest.MewingDogGameTests",
+      "com.adamkali.dwm.gametest.K9GameTests",
       "com.adamkali.dwm.gametest.TimeLordGameTests",
       "com.adamkali.dwm.gametest.ThalGameTests",
       "com.adamkali.dwm.gametest.DalekThalBattleGameTests",

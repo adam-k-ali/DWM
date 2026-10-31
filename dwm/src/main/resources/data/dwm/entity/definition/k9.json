@@ -1,0 +1,39 @@
+{
+  "entity": "dwm:k9",
+  "attribute_base": "animal",
+  "attributes": {
+    "minecraft:movement_speed": 0.35,
+    "minecraft:max_health": 30.0,
+    "minecraft:attack_damage": 4.0
+  },
+  "attribute_overrides": {
+    "tamed": {
+      "minecraft:max_health": 30.0
+    }
+  },
+  "goals": [
+    { "type": "minecraft:float", "priority": 1 },
+    { "type": "minecraft:sit_when_ordered", "priority": 2 },
+    {
+      "type": "minecraft:melee_attack",
+      "priority": 5,
+      "speed": 1.0,
+      "following_if_not_seen": true
+    },
+    {
+      "type": "minecraft:follow_owner",
+      "priority": 6,
+      "speed": 1.0,
+      "start_distance": 8.0,
+      "stop_distance": 2.0
+    },
+    { "type": "minecraft:water_avoiding_random_stroll", "priority": 8, "speed": 0.8 },
+    { "type": "minecraft:look_at", "priority": 10, "target": "minecraft:player", "look_distance": 8.0 },
+    { "type": "minecraft:random_look_around", "priority": 10 }
+  ],
+  "targets": [
+    { "type": "minecraft:owner_hurt_by_target", "priority": 1 },
+    { "type": "minecraft:owner_hurt_target", "priority": 2 },
+    { "type": "minecraft:hurt_by_target", "priority": 3, "alert_others": true }
+  ]
+}

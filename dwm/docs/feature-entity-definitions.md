@@ -8,7 +8,7 @@ Author living-mob combat stats and AI goal lists as JSON instead of Java `create
 
 ## Player Outcomes
 
-Unchanged from the current Broakir, Flutterwing, Mewing Dog, Time Lord, Thal, and Dalek behaviour. This is an authoring API, not a new in-game screen.
+Unchanged from the current Broakir, Flutterwing, Mewing Dog, K9, Time Lord, Thal, and Dalek behaviour. This is an authoring API, not a new in-game screen.
 
 ## Layout
 

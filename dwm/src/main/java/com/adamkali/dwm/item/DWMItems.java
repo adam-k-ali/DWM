@@ -67,6 +67,11 @@ public class DWMItems {
             new Item.Properties().stacksTo(1),
             "laser_gun"
     );
+    public static final Item K9_UNIT = register(
+            K9UnitItem::new,
+            new Item.Properties().stacksTo(1),
+            "k9_unit"
+    );
     public static final Item FIELD_GUIDE = register(
             FieldGuideItem::new,
             new Item.Properties().stacksTo(1),
@@ -248,6 +253,7 @@ public class DWMItems {
     public static Item BROAKIR_SPAWN_EGG;
     public static Item FLUTTERWING_SPAWN_EGG;
     public static Item MEWING_DOG_SPAWN_EGG;
+    public static Item K9_SPAWN_EGG;
     public static Item TIME_LORD_SPAWN_EGG;
     public static Item THAL_SPAWN_EGG;
     public static Item DALEK_SPAWN_EGG;
@@ -283,6 +289,11 @@ public class DWMItems {
                 SpawnEggItem::new,
                 new Item.Properties().spawnEgg(DWMEntityTypes.MEWING_DOG),
                 "mewing_dog_spawn_egg"
+        );
+        K9_SPAWN_EGG = register(
+                SpawnEggItem::new,
+                new Item.Properties().spawnEgg(DWMEntityTypes.K9),
+                "k9_spawn_egg"
         );
         TIME_LORD_SPAWN_EGG = register(
                 SpawnEggItem::new,
@@ -331,6 +342,7 @@ public class DWMItems {
             content.accept(SONIC_SETTING_SHEAR);
             content.accept(TARDIS_KEY);
             content.accept(STATTENHEIM_REMOTE);
+            content.accept(K9_UNIT);
             content.accept(RADIATION_METER);
             content.accept(CIRCUIT_STABILISERS);
             content.accept(CIRCUIT_WAYPOINTS);
@@ -390,6 +402,7 @@ public class DWMItems {
             content.accept(BROAKIR_SPAWN_EGG);
             content.accept(FLUTTERWING_SPAWN_EGG);
             content.accept(MEWING_DOG_SPAWN_EGG);
+            content.accept(K9_SPAWN_EGG);
             content.accept(TIME_LORD_SPAWN_EGG);
             content.accept(THAL_SPAWN_EGG);
             content.accept(DALEK_SPAWN_EGG);

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": "minecraft:bone",
+    "F": "dwm:ferrite_powder",
+    "R": "minecraft:redstone",
+    "S": "dwm:steel_ingot"
+  },
+  "pattern": [
+    " B ",
+    "SRS",
+    "SFS"
+  ],
+  "result": {
+    "id": "dwm:k9_unit"
+  }
+}

@@ -273,7 +273,7 @@ fabricApi {
 // Gallifrey / wood-family / citadel / orange-sand item models in generated
 // (ash covers dark_ash via substring; orange_sand covers cut_/chiseled_/smooth_orange_sandstone;
 // Gallifrey plant IDs lack a shared "gallifrey" prefix so they are listed explicitly;
-// azbantium / eva_suit / zeiton / ferrite / stattenheim / sonic_setting / circuit / broakir / flutterwing / mewing_dog / time_lord / thal cover those standalone items).
+// azbantium / eva_suit / zeiton / ferrite / stattenheim / sonic_setting / circuit / broakir / flutterwing / mewing_dog / k9 / time_lord / thal cover those standalone items).
 tasks.register("pruneDatagenItemModels") {
     group = "fabric"
     description = "Remove generated item models that duplicate hand-maintained client assets"
@@ -303,6 +303,7 @@ tasks.register("pruneDatagenItemModels") {
                     || f.name.contains("broakir")
                     || f.name.contains("flutterwing")
                     || f.name.contains("mewing_dog")
+                    || f.name.contains("k9")
                     || f.name.contains("time_lord")
                     || f.name.contains("thal")
                     || f.name.contains("dalek")) {
