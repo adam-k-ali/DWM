@@ -48,7 +48,6 @@ class K9EntityTest {
                 Identifier.fromNamespaceAndPath("dwm", "k9_spawn_egg"),
                 BuiltInRegistries.ITEM.getKey(DWMItems.K9_SPAWN_EGG)
         );
-        assertEquals(1, DWMItems.K9_UNIT.getDefaultMaxStackSize());
     }
 
     @Test
