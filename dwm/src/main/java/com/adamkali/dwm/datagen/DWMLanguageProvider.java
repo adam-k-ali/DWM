@@ -216,6 +216,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItem(t, DWMItems.STATTENHEIM_REMOTE, "Stattenheim Remote");
         addItem(t, DWMItems.LASER_GUN, "Dalek Laser Gun");
         t.add("item.dwm.laser_gun.tooltip", "Fires a Dalek laser bolt");
+        addItem(t, DWMItems.K9_UNIT, "K-9 Unit");
+        t.add("item.dwm.k9_unit.tooltip", "Use on a block to activate K9, a loyal robot dog");
         addItem(t, DWMItems.FIELD_GUIDE, "Field Guide");
         addItem(t, DWMItems.CIRCUIT_STABILISERS, "Stabilisers Circuit");
         addItem(t, DWMItems.CIRCUIT_WAYPOINTS, "Waypoints Circuit");
@@ -513,6 +515,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addItem(t, DWMItems.BROAKIR_SPAWN_EGG, "Broakir Spawn Egg");
         t.add(DWMEntityTypes.FLUTTERWING, "Flutterwing");
         addItem(t, DWMItems.FLUTTERWING_SPAWN_EGG, "Flutterwing Spawn Egg");
+        t.add(DWMEntityTypes.K9, "K9");
+        addItem(t, DWMItems.K9_SPAWN_EGG, "K9 Spawn Egg");
         t.add(DWMEntityTypes.MEWING_DOG, "Mewing Dog");
         addItem(t, DWMItems.MEWING_DOG_SPAWN_EGG, "Mewing Dog Spawn Egg");
         t.add(DWMEntityTypes.TIME_LORD, "Time Lord");

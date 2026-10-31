@@ -29,6 +29,7 @@ public final class DWMEntityTypes {
     public static EntityType<BroakirEntity> BROAKIR;
     public static EntityType<FlutterwingEntity> FLUTTERWING;
     public static EntityType<MewingDogEntity> MEWING_DOG;
+    public static EntityType<K9Entity> K9;
     public static EntityType<TimeLordEntity> TIME_LORD;
     public static EntityType<ThalEntity> THAL;
     public static EntityType<DalekEntity> DALEK;
@@ -53,6 +54,7 @@ public final class DWMEntityTypes {
         BROAKIR = registerBroakir();
         FLUTTERWING = registerFlutterwing();
         MEWING_DOG = registerMewingDog();
+        K9 = registerK9();
         TIME_LORD = registerTimeLord();
         THAL = registerThal();
         DALEK = registerDalek();
@@ -167,6 +169,23 @@ public final class DWMEntityTypes {
                         )
                         .sized(0.6F, 0.85F)
                         .eyeHeight(0.68F)
+                        .clientTrackingRange(10)
+                        .build(key)
+        );
+    }
+
+    private static EntityType<K9Entity> registerK9() {
+        ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, K9Entity.ID);
+        return Registry.register(
+                BuiltInRegistries.ENTITY_TYPE,
+                key,
+                FabricEntityType.Builder.createMob(
+                                K9Entity::new,
+                                MobCategory.CREATURE,
+                                mob -> mob.defaultAttributes(K9Entity::createAttributes)
+                        )
+                        .sized(0.6F, 0.7F)
+                        .eyeHeight(0.55F)
                         .clientTrackingRange(10)
                         .build(key)
         );

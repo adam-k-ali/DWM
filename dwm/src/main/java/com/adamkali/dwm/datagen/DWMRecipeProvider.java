@@ -133,6 +133,7 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                 generateTardisKeyRecipe();
                 generateStattenheimRemoteRecipe();
                 generateLaserGunRecipe();
+                generateK9UnitRecipe();
                 generateSonicRecipes();
             }
 
@@ -259,6 +260,19 @@ public class DWMRecipeProvider extends FabricRecipeProvider {
                         .pattern("SSD")
                         .pattern("SRS")
                         .pattern(" L ")
+                        .unlockedBy(getHasName(DWMItems.STEEL_INGOT), has(DWMItems.STEEL_INGOT))
+                        .save(output);
+            }
+
+            private void generateK9UnitRecipe() {
+                shaped(RecipeCategory.TOOLS, DWMItems.K9_UNIT)
+                        .define('S', DWMItems.STEEL_INGOT)
+                        .define('F', DWMItems.FERRITE_POWDER)
+                        .define('R', Items.REDSTONE)
+                        .define('B', Items.BONE)
+                        .pattern(" B ")
+                        .pattern("SRS")
+                        .pattern("SFS")
                         .unlockedBy(getHasName(DWMItems.STEEL_INGOT), has(DWMItems.STEEL_INGOT))
                         .save(output);
             }
