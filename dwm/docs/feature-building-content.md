@@ -22,7 +22,7 @@ Enable players to quickly build coherent Doctor Who-inspired interiors and exter
   - Small / large TARDIS chairs (sittable: empty-hand use; sneak to stand)
   - Decorational column
   - TARDIS ceiling vent
-  - TARDIS globe
+  - TARDIS globe (brass armillary sphere that slowly turns on its tilted axis; empty-hand use spins it up)
   - Compact / full TARDIS scanners — working **TARDIS monitors** inside an interior (live ship-status screens; see [TARDIS Exterior Block](./feature-tardis-block.md))
 - Localization and item/block presentation for these families.
 - Recipe coverage for obtaining and combining core decorative materials.
@@ -32,6 +32,7 @@ Enable players to quickly build coherent Doctor Who-inspired interiors and exter
 2. Craft themed block components from provided recipes.
 3. Combine families to create room panels, corridors, and console-like spaces.
 4. Sit in TARDIS chairs with an empty hand; sneak to dismount.
+5. Use a TARDIS globe with an empty hand to spin it: the sphere whirls through three turns, its rings swing open and the core lifts, then it settles back to its slow ambient turn. The spin is cosmetic and is not saved.
 
 ## Known Constraints
 - Current focus is on strong decorative breadth and consistency.

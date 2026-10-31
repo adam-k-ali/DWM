@@ -48,13 +48,13 @@ class TardisGlobeSpecialRendererTest {
         assertEquals((float) box.maxY, maxY, EPSILON);
         assertEquals((float) box.maxZ, maxZ, EPSILON);
 
-        // Regression: must span ~9×4×33.5 px in JSON corner space, taller than one block.
-        assertEquals(0.21875f, minX, EPSILON);
+        // Regression: must span 14×11×33 px in JSON corner space, taller than two blocks.
+        assertEquals(0.0625f, minX, EPSILON);
         assertEquals(0.0f, minY, EPSILON);
-        assertEquals(0.375f, minZ, EPSILON);
-        assertEquals(0.78125f, maxX, EPSILON);
-        assertEquals(2.09375f, maxY, EPSILON);
-        assertEquals(0.625f, maxZ, EPSILON);
+        assertEquals(0.15625f, minZ, EPSILON);
+        assertEquals(0.9375f, maxX, EPSILON);
+        assertEquals(2.0625f, maxY, EPSILON);
+        assertEquals(0.84375f, maxZ, EPSILON);
         assertTrue(maxY - minY > 2.0f);
     }
 }

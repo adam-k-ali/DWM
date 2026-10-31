@@ -230,10 +230,10 @@ class EntityModelJsonTest {
         assertTrue(laser.hasChild("bolt"));
 
         ModelPart globe = globeRoot();
-        assertTrue(globe.hasChild("mesh"));
-        assertTrue(globe.hasChild("Globe"));
-        assertTrue(globe.getChild("Globe").hasChild("mesh_1"));
-        assertEquals((float) Math.toRadians(-45.0), globe.getChild("arrow").zRot, 1.0e-4F);
+        assertTrue(globe.hasChild("base"));
+        assertTrue(globe.getChild("sphere").getChild("equator").hasChild("ring_b"));
+        assertEquals((float) Math.toRadians(23.4), globe.getChild("sphere").zRot, 1.0e-4F);
+        assertEquals((float) Math.toRadians(45.0), globe.getChild("sphere").getChild("equator").getChild("ring_b").zRot, 1.0e-4F);
 
         ModelPart stabilisers = EntityModelJson.loadClasspath(
                 Identifier.fromNamespaceAndPath("dwm", "stabilisers")

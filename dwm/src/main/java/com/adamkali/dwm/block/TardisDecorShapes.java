@@ -43,8 +43,11 @@ public final class TardisDecorShapes {
             box(0.0, 0.0, 0.0, 16.0, 2.25, 16.0),
             box(2.0, 2.0, 2.0, 14.0, 16.0, 14.0));
 
-    /** Globe: ~9×4 footprint centered, height ~2.1. */
-    public static final VoxelShape GLOBE = box(3.5, 0.0, 6.0, 12.5, 33.5, 10.0);
+    /** Globe: 10×10 plinth, column, then the 14-wide armillary sphere and finial; height ~2.06. */
+    public static final VoxelShape GLOBE = Shapes.or(
+            box(3.0, 0.0, 3.0, 13.0, 4.0, 13.0),
+            box(6.0, 4.0, 6.0, 10.0, 15.0, 10.0),
+            box(1.0, 15.0, 2.5, 15.0, 33.0, 13.5));
 
     /** Compact scanner: 1×1 footprint, height 2. */
     public static final VoxelShape COMPACT_SCANNER = box(0.0, 0.0, 0.0, 16.0, 32.0, 16.0);

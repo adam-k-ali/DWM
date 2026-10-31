@@ -3,7 +3,7 @@ package com.adamkali.dwm.render;
 import com.adamkali.dwm.model.json.EntityModelTextures;
 import com.adamkali.dwm.block.TardisDecorShapes;
 import com.adamkali.dwm.model.tileentity.TardisGlobeModel;
-import com.adamkali.dwm.render.state.TardisRenderState;
+import com.adamkali.dwm.render.state.TardisGlobeRenderState;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.mojang.serialization.MapCodec;
@@ -19,10 +19,11 @@ import org.joml.Vector3fc;
 /**
  * Item special renderer for the TARDIS globe — reuses the BER EntityModel mesh
  * so GUI / ground / hand show the 3D prop instead of the flat (missing) block atlas sprite.
+ * The item shows the rest pose (no ambient turn) with the same glow overlay as the placed block.
  */
 public class TardisGlobeSpecialRenderer implements NoDataSpecialModelRenderer {
     private final TardisGlobeModel model;
-    private final TardisRenderState animState = new TardisRenderState();
+    private final TardisGlobeRenderState animState = new TardisGlobeRenderState();
 
     public TardisGlobeSpecialRenderer(TardisGlobeModel model) {
         this.model = model;
@@ -51,8 +52,17 @@ public class TardisGlobeSpecialRenderer implements NoDataSpecialModelRenderer {
                 overlayCoords,
                 outlineColor,
                 null);
+        submitNodeCollector.order(1).submitModel(
+                this.model,
+                this.animState,
+                poseStack,
+                RenderTypes.eyes(TardisGlobeModel.GLOW_TEXTURE),
+                lightCoords,
+                overlayCoords,
+                outlineColor,
+                null);
         if (hasFoil) {
-            submitNodeCollector.order(1).submitModel(
+            submitNodeCollector.order(2).submitModel(
                     this.model,
                     this.animState,
                     poseStack,
