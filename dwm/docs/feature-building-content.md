@@ -23,7 +23,7 @@ Enable players to quickly build coherent Doctor Who-inspired interiors and exter
   - Decorational column
   - TARDIS ceiling vent
   - TARDIS globe
-  - Compact / full TARDIS scanners
+  - Compact / full TARDIS scanners — working **TARDIS monitors** inside an interior (live ship-status screens; see [TARDIS Exterior Block](./feature-tardis-block.md))
 - Localization and item/block presentation for these families.
 - Recipe coverage for obtaining and combining core decorative materials.
 

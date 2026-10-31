@@ -1,10 +1,14 @@
 package com.adamkali.dwm.tardis.logic;
 
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.world.SkaroDimensions;
 import com.adamkali.dwm.world.radiation.RadiationExposureLogic;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.Level;
@@ -133,6 +137,30 @@ public final class ExteriorEnvironmentReadout {
             return Reading.none();
         }
         return fromSample(sampleFacts(exteriorWorld, exteriorPos));
+    }
+
+    /**
+     * Samples {@code model}'s linked exterior cell. In flight, missing exterior, or an unloaded
+     * exterior world → {@link Sample#none()}.
+     */
+    public static Sample sampleLinked(
+            @Nullable MinecraftServer server,
+            @Nullable TardisDataModel model,
+            boolean inFlight
+    ) {
+        if (inFlight || server == null || model == null || !model.hasExteriorLocation
+                || model.exteriorDimension == null) {
+            return Sample.none();
+        }
+        Identifier identifier = Identifier.tryParse(model.exteriorDimension);
+        if (identifier == null) {
+            return Sample.none();
+        }
+        ServerLevel exterior = server.getLevel(ResourceKey.create(Registries.DIMENSION, identifier));
+        if (exterior == null) {
+            return Sample.none();
+        }
+        return sampleFacts(exterior, new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ));
     }
 
     public static Sample sampleFacts(Level world, BlockPos exteriorPos) {
