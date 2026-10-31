@@ -5,6 +5,7 @@
     { "id": "dwm:chronoplasm" },
     { "id": "dwm:tardis_wall" },
     { "id": "dwm:roundel" },
-    { "id": "dwm:interior_props" }
+    { "id": "dwm:interior_props" },
+    { "id": "dwm:tardis_monitors" }
   ]
 }

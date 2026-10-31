@@ -50,6 +50,7 @@
       "com.adamkali.dwm.gametest.CircuitFittedGameTests",
       "com.adamkali.dwm.gametest.ConsolePilotGameTests",
       "com.adamkali.dwm.gametest.ArtronGameTests",
+      "com.adamkali.dwm.gametest.TardisMonitorGameTests",
       "com.adamkali.dwm.gametest.FirstHourAdvancementGameTests",
       "com.adamkali.dwm.gametest.FieldGuideGrantGameTests",
       "com.adamkali.dwm.gametest.BroakirGameTests",

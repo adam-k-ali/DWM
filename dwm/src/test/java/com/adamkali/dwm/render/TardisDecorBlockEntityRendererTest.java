@@ -47,4 +47,20 @@ class TardisDecorBlockEntityRendererTest {
         }
         return true;
     }
+
+    @Test
+    void fitScale_squeezesOnlyOverflowingLines() {
+        assertEquals(1.0f, TardisDecorBlockEntityRenderer.fitScale(40.0f, 80.0f), EPSILON);
+        assertEquals(0.5f, TardisDecorBlockEntityRenderer.fitScale(160.0f, 80.0f), EPSILON);
+        assertEquals(1.0f, TardisDecorBlockEntityRenderer.fitScale(0.0f, 80.0f), EPSILON);
+    }
+
+    @Test
+    void compactScreen_fitsTitlePlusMaxLinesAndPageDots() {
+        float height = TardisDecorBlockEntityRenderer.textSpace(
+                com.adamkali.dwm.model.tileentity.TardisCompactScannerModel.SCREEN.height());
+        float needed = 2 * TardisDecorBlockEntityRenderer.SCREEN_PADDING
+                + (TardisMonitorScreenLayout.MAX_LINES + 1) * TardisDecorBlockEntityRenderer.ROW_HEIGHT + 1.0f;
+        assertTrue(height >= needed, height + " < " + needed);
+    }
 }

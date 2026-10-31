@@ -134,6 +134,9 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.guide.page.interior_props.title", "Interior Props");
         t.add("dwm.guide.page.interior_props.body",
                 "Chairs, scanners, vents, and columns craft from white TARDIS wall. Small chairs are sittable with an empty-hand use.");
+        t.add("dwm.guide.page.tardis_monitors.title", "TARDIS Monitors");
+        t.add("dwm.guide.page.tardis_monitors.body",
+                "Scanners placed inside your TARDIS show live ship status: location, destination, systems and the outside atmosphere. Use one with an empty hand to change page; sneak to go back. Anyone aboard can read them.");
 
         t.add("dwm.guide.chapter.skaro", "Skaro Survival");
         t.add("dwm.guide.page.skaro_radiation.title", "Skaro Radiation");
@@ -370,6 +373,55 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addBlockAndItem(t, DWMBlocks.TARDIS_GLOBE, "TARDIS Globe");
         addBlockAndItem(t, DWMBlocks.TARDIS_COMPACT_SCANNER, "Compact TARDIS Scanner");
         addBlockAndItem(t, DWMBlocks.TARDIS_FULL_SCANNER, "Full TARDIS Scanner");
+        addMonitorScreens(t);
+    }
+
+    private static void addMonitorScreens(TranslationBuilder t) {
+        t.add("dwm.monitor.page.location", "LOCATION");
+        t.add("dwm.monitor.page.destination", "DESTINATION");
+        t.add("dwm.monitor.page.systems", "SYSTEMS");
+        t.add("dwm.monitor.page.atmosphere", "ATMOSPHERE");
+        t.add("dwm.monitor.no_signal", "NO SIGNAL");
+        t.add("dwm.monitor.no_signal_hint", "Not inside a TARDIS");
+        t.add("dwm.monitor.no_exterior", "No exterior");
+        t.add("dwm.monitor.time_vortex", "Time Vortex");
+        t.add("dwm.monitor.coords", "X %s  Y %s  Z %s");
+        t.add("dwm.monitor.phase.idle", "Landed");
+        t.add("dwm.monitor.phase.dematerialising", "Dematerialising");
+        t.add("dwm.monitor.phase.in_flight", "In flight");
+        t.add("dwm.monitor.phase.materialising", "Materialising");
+        t.add("dwm.monitor.mode", "Mode: %s");
+        t.add("dwm.monitor.mode.biome", "Biome");
+        t.add("dwm.monitor.mode.waypoint", "Waypoint");
+        t.add("dwm.monitor.mode.player", "Player");
+        t.add("dwm.monitor.mode.fast_return", "Fast return");
+        t.add("dwm.monitor.mode.telepathic", "Telepathic");
+        t.add("dwm.monitor.target_unset", "No target set");
+        t.add("dwm.monitor.telepathic_target", "Home or world spawn");
+        t.add("dwm.monitor.stabilisers", "Stabilisers: %s");
+        t.add("dwm.monitor.on", "On");
+        t.add("dwm.monitor.off", "Off");
+        t.add("dwm.monitor.locks", "Locks: %s");
+        t.add("dwm.monitor.locks_none", "None");
+        t.add("dwm.monitor.artron", "Artron %s%%");
+        t.add("dwm.monitor.doors.open", "Doors: Open");
+        t.add("dwm.monitor.doors.closed", "Doors: Closed");
+        t.add("dwm.monitor.doors.locked", "Doors: Locked");
+        t.add("dwm.monitor.cloak.engaged", "Cloak: Engaged");
+        t.add("dwm.monitor.cloak.off", "Cloak: Off");
+        t.add("dwm.monitor.shell", "Shell: %s");
+        t.add("dwm.monitor.circuits", "Circuits %s/%s");
+        t.add("dwm.monitor.atmosphere_no_signal", "No signal in flight");
+        t.add("dwm.monitor.oxygen", "O2");
+        t.add("dwm.monitor.pressure", "Press.");
+        t.add("dwm.monitor.temperature", "Temp");
+        t.add("dwm.monitor.radiation", "Rad");
+        t.add("dwm.monitor.wing.artron", "ARTRON");
+        t.add("dwm.monitor.wing.status", "STATUS");
+        t.add("dwm.monitor.wing.phase.idle", "LANDED");
+        t.add("dwm.monitor.wing.phase.dematerialising", "DEMAT");
+        t.add("dwm.monitor.wing.phase.in_flight", "VORTEX");
+        t.add("dwm.monitor.wing.phase.materialising", "MAT");
     }
 
     private static void addGallifreyStoneFamily(TranslationBuilder t) {
