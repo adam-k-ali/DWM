@@ -2,13 +2,16 @@ package com.adamkali.dwm.block.entities;
 
 import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.block.TardisMonitorBlock;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class DWMBlockEntities {
     public static final BlockEntityType<TardisBlockEntity> TARDIS_BLOCK_ENTITY =
@@ -22,12 +25,23 @@ public class DWMBlockEntities {
 
     public static final BlockEntityType<TardisDecorBlockEntity> TARDIS_DECOR_BLOCK_ENTITY = register(
             "tardis_decor",
-            TardisDecorBlockEntity::new,
+            DWMBlockEntities::createDecor,
             DWMBlocks.TARDIS_GLOBE,
             DWMBlocks.TARDIS_COMPACT_SCANNER,
             DWMBlocks.TARDIS_FULL_SCANNER);
 
     public static void initialize() {
+    }
+
+    /**
+     * Monitors keep the shared {@code dwm:tardis_decor} id (saves and the console-room template
+     * store it) but get their own block entity class.
+     */
+    private static TardisDecorBlockEntity createDecor(BlockPos pos, BlockState state) {
+        if (state.getBlock() instanceof TardisMonitorBlock) {
+            return new TardisMonitorBlockEntity(pos, state);
+        }
+        return new TardisDecorBlockEntity(pos, state);
     }
 
     private static <T extends BlockEntity> BlockEntityType<T> register(

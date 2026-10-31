@@ -1,7 +1,12 @@
 package com.adamkali.dwm.block;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
+import com.adamkali.dwm.block.entities.DWMBlockEntities;
+import com.adamkali.dwm.block.entities.TardisDecorBlockEntity;
+import com.adamkali.dwm.block.entities.TardisMonitorBlockEntity;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.junit.jupiter.api.BeforeAll;
@@ -91,5 +96,21 @@ class TardisDecorBlockTest {
     void globeAndCompactScanner_haveExpectedHeights() {
         assertTrue(TardisDecorShapes.GLOBE.bounds().getYsize() > 2.0);
         assertEquals(2.0, TardisDecorShapes.COMPACT_SCANNER.bounds().getYsize(), EPSILON);
+    }
+
+    @Test
+    void scanners_areMonitorsWithMonitorBlockEntities() {
+        assertInstanceOf(TardisMonitorBlock.class, DWMBlocks.TARDIS_COMPACT_SCANNER);
+        assertInstanceOf(TardisMonitorBlock.class, DWMBlocks.TARDIS_FULL_SCANNER);
+        assertFalse(DWMBlocks.TARDIS_GLOBE instanceof TardisMonitorBlock);
+        BlockPos pos = BlockPos.ZERO;
+        // Shared dwm:tardis_decor type: monitors get their own class, the globe stays passive.
+        assertInstanceOf(TardisMonitorBlockEntity.class, DWMBlockEntities.TARDIS_DECOR_BLOCK_ENTITY
+                .create(pos, DWMBlocks.TARDIS_COMPACT_SCANNER.defaultBlockState()));
+        assertInstanceOf(TardisMonitorBlockEntity.class, DWMBlockEntities.TARDIS_DECOR_BLOCK_ENTITY
+                .create(pos, DWMBlocks.TARDIS_FULL_SCANNER.defaultBlockState()));
+        BlockEntity globe = DWMBlockEntities.TARDIS_DECOR_BLOCK_ENTITY
+                .create(pos, DWMBlocks.TARDIS_GLOBE.defaultBlockState());
+        assertEquals(TardisDecorBlockEntity.class, globe.getClass());
     }
 }
