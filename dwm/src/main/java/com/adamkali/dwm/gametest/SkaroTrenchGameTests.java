@@ -40,7 +40,9 @@ public class SkaroTrenchGameTests {
             id("skaro/dalek_trench/segment"),
             id("skaro/dalek_trench/junction"),
             id("skaro/dalek_trench/bunker"),
-            id("skaro/dalek_trench/end_cap")
+            id("skaro/dalek_trench/end_cap"),
+            id("skaro/dalek_trench/zigzag"),
+            id("skaro/dalek_trench/zigzag_mirrored")
     );
     private static final Set<DalekJob> TRENCH_JOBS = EnumSet.of(
             DalekJob.SENTRY, DalekJob.PATROL, DalekJob.LOOKOUT, DalekJob.TECHNICIAN, DalekJob.GUNNER, DalekJob.COURIER);

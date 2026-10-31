@@ -53,7 +53,9 @@ class SkaroTrenchResourceTest {
             DalekTrenchTemplates.SEGMENT, new int[] {5, 4, 8},
             DalekTrenchTemplates.JUNCTION, new int[] {5, 4, 8},
             DalekTrenchTemplates.BUNKER, new int[] {9, 6, 9},
-            DalekTrenchTemplates.END_CAP, new int[] {5, 4, 3}
+            DalekTrenchTemplates.END_CAP, new int[] {5, 4, 3},
+            DalekTrenchTemplates.ZIGZAG, new int[] {9, 4, 18},
+            DalekTrenchTemplates.ZIGZAG_MIRRORED, new int[] {9, 4, 18}
     );
 
     @BeforeAll
@@ -73,7 +75,7 @@ class SkaroTrenchResourceTest {
             assertEquals(-SINK, json.getJSONObject("start_height").getInt("absolute"),
                     structure + " starts the rigid checkpoint as deep as the terrain-matched pieces sink");
             assertEquals("WORLD_SURFACE_WG", json.getString("project_start_to_heightmap"), structure);
-            assertEquals(56, json.getInt("max_distance_from_center"), structure);
+            assertEquals(80, json.getInt("max_distance_from_center"), structure);
             assertFalse(json.getBoolean("use_expansion_hack"), structure);
             assertTrue(json.getJSONObject("spawn_overrides").isEmpty(), structure + " must not override spawns");
             assertExists(resource("worldgen/template_pool", json.getString("start_pool")));
@@ -186,6 +188,51 @@ class SkaroTrenchResourceTest {
                     }
                 }
             }
+        }
+    }
+
+    @Test
+    void zigzagLanesTurnAtLeastFourTimesAndStayConnectedFromEntryToExit() {
+        for (boolean mirrored : new boolean[] {false, true}) {
+            String path = mirrored ? DalekTrenchTemplates.ZIGZAG_MIRRORED : DalekTrenchTemplates.ZIGZAG;
+            TemplateLayout layout = DalekTrenchTemplates.zigzag(path, mirrored);
+            int width = layout.sizeX();
+            int depth = layout.sizeZ();
+            int laneX = mirrored ? width - 1 - DalekTrenchTemplates.ZIGZAG_LANE_X : DalekTrenchTemplates.ZIGZAG_LANE_X;
+            assertEquals('s', layout.layers().get(0).get(depth - 1).charAt(laneX), "entry connector");
+            assertEquals('n', layout.layers().get(0).get(0).charAt(laneX), "exit connector");
+
+            // Shortest walkable path through the carved lane (layer 1), north exit to south entry.
+            int[][] steps = {{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
+            int[][][] from = new int[width][depth][];
+            java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();
+            from[laneX][0] = new int[] {-1, -1};
+            queue.add(new int[] {laneX, 0});
+            while (!queue.isEmpty()) {
+                int[] cell = queue.poll();
+                for (int[] step : steps) {
+                    int x = cell[0] + step[0];
+                    int z = cell[1] + step[1];
+                    if (x >= 0 && x < width && z >= 0 && z < depth && from[x][z] == null
+                            && layout.layers().get(1).get(z).charAt(x) == '.') {
+                        from[x][z] = cell;
+                        queue.add(new int[] {x, z});
+                    }
+                }
+            }
+            assertTrue(from[laneX][depth - 1] != null, path + " lane must connect its entry to its exit");
+
+            int turns = 0;
+            int[] previous = null;
+            for (int[] cell = new int[] {laneX, depth - 1}; from[cell[0]][cell[1]][0] >= 0; cell = from[cell[0]][cell[1]]) {
+                int[] next = from[cell[0]][cell[1]];
+                int[] direction = {next[0] - cell[0], next[1] - cell[1]};
+                if (previous != null && !java.util.Arrays.equals(previous, direction)) {
+                    turns++;
+                }
+                previous = direction;
+            }
+            assertTrue(turns >= 4, path + " lane must turn at least four times so a blast cannot run its length, turned " + turns);
         }
     }
 

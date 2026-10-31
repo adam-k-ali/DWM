@@ -24,6 +24,37 @@ public final class DalekTrenchTemplates {
     public static final String JUNCTION = "skaro/dalek_trench/junction";
     public static final String BUNKER = "skaro/dalek_trench/bunker";
     public static final String END_CAP = "skaro/dalek_trench/end_cap";
+    public static final String ZIGZAG = "skaro/dalek_trench/zigzag";
+    public static final String ZIGZAG_MIRRORED = "skaro/dalek_trench/zigzag_mirrored";
+
+    /** Footprint of a zig-zag piece; entry (south) and exit (north) lanes are centred on {@link #ZIGZAG_LANE_X}. */
+    public static final int ZIGZAG_WIDTH = 9;
+    public static final int ZIGZAG_DEPTH = 18;
+    public static final int ZIGZAG_LANE_X = 2;
+    /**
+     * Lane cells of a zig-zag piece, north (z = 0) to south. A bay on the west, a traverse east, a bay on the east, a
+     * traverse back west and a last bay: the lane turns four times, so a blast or a shot cannot run down the line.
+     */
+    private static final String[] ZIGZAG_PLAN = {
+            " ...     ",
+            " ...     ",
+            " ....... ",
+            " ....... ",
+            " ....... ",
+            "     ... ",
+            "     ... ",
+            "     ... ",
+            "     ... ",
+            "     ... ",
+            "     ... ",
+            " ....... ",
+            " ....... ",
+            " ....... ",
+            " ...     ",
+            " ...     ",
+            " ...     ",
+            " ...     "
+    };
 
     public static final String SEGMENT_POOL = "dwm:skaro/dalek_trench/segments";
     public static final String BUNKER_POOL = "dwm:skaro/dalek_trench/bunkers";
@@ -34,7 +65,7 @@ public final class DalekTrenchTemplates {
     }
 
     public static List<TemplateLayout> all() {
-        return List.of(checkpoint(), segment(), junction(), bunker(), endCap());
+        return List.of(checkpoint(), segment(), junction(), bunker(), endCap(), zigzag(ZIGZAG, false), zigzag(ZIGZAG_MIRRORED, true));
     }
 
     /**
@@ -293,6 +324,64 @@ public final class DalekTrenchTemplates {
                         "I...I",
                         "r...r")
                 .build();
+    }
+
+    /**
+     * 9×4×18 zig-zag trench: three bays joined by two traverses, entering at the south end and leaving at the north end
+     * on the same axis so it chains like a straight segment. Only the lane and a one-block lining around it are
+     * placed; the rest is structure void so terrain stays. The mirror flips the plan east to west.
+     */
+    public static TemplateLayout zigzag(String path, boolean mirrored) {
+        int laneX = mirrored ? ZIGZAG_WIDTH - 1 - ZIGZAG_LANE_X : ZIGZAG_LANE_X;
+        TemplateLayout.Builder builder = base(path)
+                .legend('n', jigsaw(FrontAndTop.NORTH_UP), segmentConnector())
+                .legend('s', jigsaw(FrontAndTop.SOUTH_UP), linkConnector());
+        for (int layer = 0; layer < 4; layer++) {
+            String[] rows = new String[ZIGZAG_DEPTH];
+            for (int z = 0; z < ZIGZAG_DEPTH; z++) {
+                StringBuilder row = new StringBuilder();
+                for (int x = 0; x < ZIGZAG_WIDTH; x++) {
+                    row.append(zigzagCell(layer, x, z, mirrored, laneX));
+                }
+                rows[z] = row.toString();
+            }
+            builder.layer(rows);
+        }
+        return builder.build();
+    }
+
+    private static char zigzagCell(int layer, int x, int z, boolean mirrored, int laneX) {
+        boolean endRow = z == 0 || z == ZIGZAG_DEPTH - 1;
+        if (zigzagLane(x, z, mirrored)) {
+            if (layer == 0) {
+                return x == laneX && endRow ? (z == 0 ? 'n' : 's') : 'B';
+            }
+            return '.';
+        }
+        boolean lining = false;
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                lining |= zigzagLane(x + dx, z + dz, mirrored);
+            }
+        }
+        if (!lining) {
+            return ' ';
+        }
+        return switch (layer) {
+            case 0 -> 'B';
+            case 1, 2 -> endRow ? 'r' : 'S';
+            // Ground-level parapet: bars and solid blocks with an open gap every fourth cell to drop in by.
+            default -> endRow ? 'r' : new char[] {'I', 'S', 'S', '.'}[(x + z) % 4];
+        };
+    }
+
+    /** True when plan cell (x, z) is lane; cells outside the footprint are not. */
+    public static boolean zigzagLane(int x, int z, boolean mirrored) {
+        if (x < 0 || x >= ZIGZAG_WIDTH || z < 0 || z >= ZIGZAG_DEPTH) {
+            return false;
+        }
+        int planX = mirrored ? ZIGZAG_WIDTH - 1 - x : x;
+        return ZIGZAG_PLAN[z].charAt(planX) == '.';
     }
 
     private static TemplateLayout.Builder base(String path) {
