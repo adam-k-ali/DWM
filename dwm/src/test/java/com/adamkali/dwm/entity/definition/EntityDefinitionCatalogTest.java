@@ -45,7 +45,7 @@ class EntityDefinitionCatalogTest {
 
     @Test
     void fileStemMatchesEntityId() {
-        assertEquals(8, definitions.size());
+        assertEquals(9, definitions.size());
         for (Map.Entry<Identifier, EntityDefinition> entry : definitions.entrySet()) {
             assertEquals(entry.getKey(), entry.getValue().entity());
         }
@@ -116,6 +116,25 @@ class EntityDefinitionCatalogTest {
         assertEquals(Optional.of(false), nearest.mustReach());
         assertTrue(nearest.filter().isPresent());
         assertEquals(TargetFilter.Kind.IS_ANGRY_AT, nearest.filter().orElseThrow().kind());
+    }
+
+    @Test
+    void k9MatchesShippedStats() {
+        EntityDefinition definition = definition("k9");
+        assertEquals(EntityAttributeBase.ANIMAL, definition.attributeBase());
+        assertEquals(30.0, attribute(definition, "max_health"));
+        assertEquals(0.35, attribute(definition, "movement_speed"));
+        assertEquals(4.0, attribute(definition, "attack_damage"));
+        assertTrue(definition.goals().stream().anyMatch(g -> g.goal().kind() == EntityGoal.Kind.FOLLOW_OWNER));
+        assertTrue(definition.goals().stream().anyMatch(g -> g.goal().kind() == EntityGoal.Kind.SIT_WHEN_ORDERED));
+        assertEquals(
+                List.of(
+                        EntityGoal.Kind.OWNER_HURT_BY_TARGET,
+                        EntityGoal.Kind.OWNER_HURT_TARGET,
+                        EntityGoal.Kind.HURT_BY_TARGET
+                ),
+                kinds(definition.targets())
+        );
     }
 
     @Test

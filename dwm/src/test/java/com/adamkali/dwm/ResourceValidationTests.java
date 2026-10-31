@@ -1029,6 +1029,23 @@ public class ResourceValidationTests {
     }
 
     @Test
+    public void k9AssetsAndGeneratedFilesExist() throws Exception {
+        for (String file : new String[] {
+                "src/client/resources/assets/dwm/textures/entity/k9.png",
+                "src/client/resources/assets/dwm/models/entity/k9.json",
+                "src/client/resources/assets/dwm/textures/item/k9_unit.png",
+                "src/client/resources/assets/dwm/textures/item/k9_spawn_egg.png",
+                // generated; guards pruneDatagenItemModels (allowlist must include "k9")
+                "src/main/generated/assets/dwm/items/k9_unit.json",
+                "src/main/generated/assets/dwm/items/k9_spawn_egg.json",
+                "src/main/generated/data/dwm/recipe/k9_unit.json"
+        }) {
+            Path path = Path.of(file);
+            assertTrue(Files.isRegularFile(path) && Files.size(path) > 0, "Missing K9 file: " + file);
+        }
+    }
+
+    @Test
     public void mewingDogEntityTextureExists() throws Exception {
         Path texture = Path.of("src/client/resources/assets/dwm/textures/entity/mewing_dog.png");
         assertTrue(

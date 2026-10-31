@@ -20,6 +20,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 - [Dalek](./feature-dalek.md)
 - [Dalek Laser Gun](./feature-dalek-laser-gun.md)
 - [Thal](./feature-thal.md)
+- [K9](./feature-k9.md)
 - [Dalek/Thal Battles](./feature-dalek-thal-battles.md)
 - [Entity Definitions](./feature-entity-definitions.md)
 
