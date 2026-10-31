@@ -5,8 +5,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Passive block entity for interior decor BER meshes (globe, scanners). No NBT or tick; the globe's
- * spin is transient and started by a block event.
+ * Passive block entity for interior decor BER meshes (globe, monitors). No NBT or tick; the globe's
+ * spin is transient and started by a block event. Monitors share this type via
+ * {@link TardisMonitorBlockEntity}.
  */
 public class TardisDecorBlockEntity extends BlockEntity {
     /** Block event id sent by {@code TardisGlobeBlock} on use. */

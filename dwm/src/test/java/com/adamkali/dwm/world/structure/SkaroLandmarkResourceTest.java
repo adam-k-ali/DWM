@@ -52,7 +52,7 @@ class SkaroLandmarkResourceTest {
     /** Documented per-piece size caps (X, Y, Z) from feature-skaro-dimension.md. */
     private static final Map<String, int[]> SIZE_CAPS = Map.of(
             DalekOutpostTemplates.CORE, new int[] {11, 7, 11},
-            DalekOutpostTemplates.WATCHTOWER, new int[] {5, 12, 5},
+            DalekOutpostTemplates.WATCHTOWER, new int[] {5, 14, 5},
             DalekOutpostTemplates.BARRICADE, new int[] {7, 3, 3},
             DalekOutpostTemplates.SENSOR_MAST, new int[] {3, 8, 3}
     );
@@ -245,6 +245,20 @@ class SkaroLandmarkResourceTest {
         assertEquals(List.of(DalekJob.TECHNICIAN), jobs(wings.get(DalekOutpostTemplates.SENSOR_MAST)));
         assertTrue(wings.get(DalekOutpostTemplates.WATCHTOWER).getFirst().pos().getY() > 8,
                 "The lookout stands on the watchtower deck");
+    }
+
+    @Test
+    void watchtowerLookoutHasHeadroomAboveTheDeck() throws IOException {
+        GarrisonPost lookout = garrisons("wings").get(DalekOutpostTemplates.WATCHTOWER).getFirst();
+        TemplateLayout watchtower = DalekOutpostTemplates.watchtower();
+        int x = lookout.pos().getX();
+        int z = lookout.pos().getZ();
+        // A Dalek is taller than two blocks; it must not stand inside the roof.
+        for (int y = lookout.pos().getY(); y < lookout.pos().getY() + 4; y++) {
+            char symbol = watchtower.layers().get(y).get(z).charAt(x);
+            assertTrue(watchtower.legend().get(symbol).state().isAir(),
+                    "Watchtower block above the lookout at y=" + y + " must be air, was '" + symbol + "'");
+        }
     }
 
     @Test

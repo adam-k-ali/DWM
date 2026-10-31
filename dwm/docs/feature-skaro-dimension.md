@@ -57,7 +57,7 @@ Small, frequent discoveries that tell Skaro's war history. They are distinct fro
   | Piece | Size cap (X×Y×Z) | Projection | Notes |
   |---|---|---|---|
   | Core checkpoint | 11×7×11 | rigid | Riveted room on a one-block apron; 3-wide, 2-high doorway at floor level; grille windows; lit roof with railings; the only loot chest; connectors on three sides. |
-  | Watchtower | 5×12×5 | rigid | Open legs, ladder up a bronze pillar through a hatch, railed platform, lit roof. |
+  | Watchtower | 5×14×5 | rigid | Open legs, ladder up a bronze pillar through a hatch, railed platform, lit roof. |
   | Barricade | 7×3×3 | terrain_matching | Low riveted wall and grille that follows uneven ground. |
   | Sensor mast | 3×8×3 | rigid | Pad, plinth, chain mast with crossbar, lamp and lightning rod. |
 
