@@ -4,7 +4,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
@@ -35,6 +37,15 @@ class PortalStreamSyncServiceTest {
                 epoch, new PortalStreamSyncService.SceneEpoch(overworld, origin.east(3))));
         assertTrue(PortalStreamSyncService.epochChanged(
                 epoch, new PortalStreamSyncService.SceneEpoch(Level.NETHER, origin)));
+    }
+
+    @Test
+    void claimMetaSend_onlyClaimsOncePerViewerUntilReleased() {
+        Set<String> sent = new HashSet<>();
+        assertTrue(PortalStreamSyncService.claimMetaSend(sent, "viewer"));
+        assertFalse(PortalStreamSyncService.claimMetaSend(sent, "viewer"));
+        sent.remove("viewer");
+        assertTrue(PortalStreamSyncService.claimMetaSend(sent, "viewer"));
     }
 
     @Test
