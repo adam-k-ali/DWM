@@ -4,7 +4,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import net.minecraft.world.level.ChunkPos;
 
@@ -19,6 +21,15 @@ class PortalStreamSyncServiceTest {
     @AfterEach
     void tearDown() {
         PortalStreamSyncService.clear();
+    }
+
+    @Test
+    void claimMetaSend_onlyClaimsOncePerViewerUntilReleased() {
+        Set<String> sent = new HashSet<>();
+        assertTrue(PortalStreamSyncService.claimMetaSend(sent, "viewer"));
+        assertFalse(PortalStreamSyncService.claimMetaSend(sent, "viewer"));
+        sent.remove("viewer");
+        assertTrue(PortalStreamSyncService.claimMetaSend(sent, "viewer"));
     }
 
     @Test
