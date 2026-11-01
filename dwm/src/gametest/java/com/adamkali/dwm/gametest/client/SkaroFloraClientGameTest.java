@@ -1,7 +1,7 @@
 package com.adamkali.dwm.gametest.client;
 
 import com.adamkali.dwm.block.DWMBlocks;
-import com.adamkali.dwm.block.plant.ThalCropBlock;
+import com.adamkali.dwm.block.plant.AshwheatBlock;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
@@ -11,8 +11,8 @@ import net.minecraft.world.level.block.Blocks;
 
 /**
  * Skaro flora close-ups: {@code skaro_flora} (noon) and {@code skaro_flora_night} (midnight, so the radiation
- * fungus' emissive gills show). On screen-right a 3 x 2 radiation fungus patch on dirt; on screen-left a farmland
- * plot with the Thal crop at ages 0, 2, 4 and 7 (one column per visual stage). The camera sits low and close so
+ * fungus' emissive gills show). On screen-right a 3 x 2 gravelight patch on dirt; on screen-left a farmland
+ * plot with Ashwheat at ages 0, 2, 4 and 7 (one column per visual stage). The camera sits low and close so
  * the toadstool undersides are visible.
  *
  * <p>Random ticks are off so the crop cannot grow or the farmland dry out between placement and the shots.
@@ -20,7 +20,7 @@ import net.minecraft.world.level.block.Blocks;
 public class SkaroFloraClientGameTest implements FabricClientGameTest {
     private static final int GROUND_Y = ClientGameTestSupport.PAD_Y - 1;
     private static final int PLANT_Y = ClientGameTestSupport.PAD_Y;
-    private static final int[] CROP_AGES = {0, 2, 4, ThalCropBlock.MAX_AGE};
+    private static final int[] CROP_AGES = {0, 2, 4, AshwheatBlock.MAX_AGE};
     private static final int RENDER_TICKS = 40;
 
     @Override
@@ -48,7 +48,7 @@ public class SkaroFloraClientGameTest implements FabricClientGameTest {
         for (int x = -4; x <= -2; x++) {
             for (int z = 4; z <= 5; z++) {
                 level.setBlock(new BlockPos(x, GROUND_Y, z), Blocks.DIRT.defaultBlockState(), 2);
-                level.setBlock(new BlockPos(x, PLANT_Y, z), DWMBlocks.RADIATION_FUNGUS.defaultBlockState(), 2);
+                level.setBlock(new BlockPos(x, PLANT_Y, z), DWMBlocks.GRAVELIGHT_FUNGUS.defaultBlockState(), 2);
             }
         }
         for (int i = 0; i < CROP_AGES.length; i++) {
@@ -56,7 +56,7 @@ public class SkaroFloraClientGameTest implements FabricClientGameTest {
             for (int z = 4; z <= 5; z++) {
                 level.setBlock(new BlockPos(x, GROUND_Y, z), Blocks.FARMLAND.defaultBlockState(), 2);
                 level.setBlock(new BlockPos(x, PLANT_Y, z),
-                        DWMBlocks.THAL_CROP.defaultBlockState().setValue(ThalCropBlock.AGE, CROP_AGES[i]), 2);
+                        DWMBlocks.ASHWHEAT.defaultBlockState().setValue(AshwheatBlock.AGE, CROP_AGES[i]), 2);
             }
         }
     }

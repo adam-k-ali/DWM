@@ -19,8 +19,8 @@ import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
  * use vanilla dirt path. Everything block-specific lives here so pieces stay layout-only.
  */
 public final class ThalSettlementPalette {
-    /** The crop planted in settlement fields (the only place the Thal crop generates). */
-    public static final CropBlock FIELD_CROP = (CropBlock) DWMBlocks.THAL_CROP;
+    /** The crop planted in settlement fields (the only place the Ashwheat generates). */
+    public static final CropBlock FIELD_CROP = (CropBlock) DWMBlocks.ASHWHEAT;
     /** Lowest crop growth stage planted, so fields show a mix of young and ripe plants. */
     public static final int FIELD_CROP_MIN_AGE = 2;
 

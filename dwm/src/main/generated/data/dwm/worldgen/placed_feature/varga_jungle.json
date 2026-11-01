@@ -46,7 +46,7 @@
           {
             "type": "minecraft:would_survive",
             "state": {
-              "Name": "dwm:ash_scrub"
+              "Name": "dwm:scorchbriar"
             }
           }
         ]

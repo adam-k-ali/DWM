@@ -135,7 +135,7 @@ public class DWMBlockSettings {
                 .pushReaction(PushReaction.DESTROY);
     }
 
-    /** Fresh properties for Skaro ground plants (ash scrub, Varga). */
+    /** Fresh properties for Skaro ground plants (scorchbriar, Varga). */
     public static BlockBehaviour.Properties skaroPlant() {
         return BlockBehaviour.Properties.of()
                 .mapColor(MapColor.COLOR_BROWN)
@@ -146,8 +146,8 @@ public class DWMBlockSettings {
                 .pushReaction(PushReaction.DESTROY);
     }
 
-    /** Radiation fungus: dim glow (light 3), no ambient radiation logic. */
-    public static BlockBehaviour.Properties radiationFungus() {
+    /** Gravelight: dim glow (light 3), no ambient radiation logic. */
+    public static BlockBehaviour.Properties gravelightFungus() {
         return BlockBehaviour.Properties.of()
                 .mapColor(MapColor.COLOR_GREEN)
                 .noCollision()
@@ -158,7 +158,7 @@ public class DWMBlockSettings {
                 .pushReaction(PushReaction.DESTROY);
     }
 
-    public static BlockBehaviour.Properties mutatedReeds() {
+    public static BlockBehaviour.Properties wraithreed() {
         return BlockBehaviour.Properties.of()
                 .mapColor(MapColor.COLOR_GREEN)
                 .noCollision()
@@ -167,7 +167,7 @@ public class DWMBlockSettings {
                 .pushReaction(PushReaction.DESTROY);
     }
 
-    public static BlockBehaviour.Properties thalCrop() {
+    public static BlockBehaviour.Properties ashwheat() {
         return BlockBehaviour.Properties.of()
                 .mapColor(MapColor.PLANT)
                 .noCollision()

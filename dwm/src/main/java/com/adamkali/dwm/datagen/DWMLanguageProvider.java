@@ -442,11 +442,11 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add(DWMBlocks.POTTED_MOONLIGHT_BLOOM, "Potted Moonlight Bloom");
         addBlockAndItem(t, DWMBlocks.SACCHARINE_CANE, "Saccharine Cane");
         addBlockAndItem(t, DWMBlocks.VARGA_PLANT, "Varga Plant");
-        addBlockAndItem(t, DWMBlocks.RADIATION_FUNGUS, "Radiation Fungus");
-        addBlockAndItem(t, DWMBlocks.ASH_SCRUB, "Ash Scrub");
-        addBlockAndItem(t, DWMBlocks.MUTATED_REEDS, "Mutated Reeds");
-        t.add(DWMBlocks.THAL_CROP, "Thal Crop");
-        t.add(DWMItems.THAL_SEEDS, "Thal Seeds");
+        addBlockAndItem(t, DWMBlocks.GRAVELIGHT_FUNGUS, "Gravelight");
+        addBlockAndItem(t, DWMBlocks.SCORCHBRIAR, "Scorchbriar");
+        addBlockAndItem(t, DWMBlocks.WRAITHREED, "Wraithreed");
+        t.add(DWMBlocks.ASHWHEAT, "Ashwheat");
+        t.add(DWMItems.ASHWHEAT_SEEDS, "Ashwheat Seeds");
     }
 
     private static void addAzbantiumSet(TranslationBuilder t) {

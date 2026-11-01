@@ -687,19 +687,19 @@ public class ResourceValidationTests {
     }
 
     /**
-     * The radiation fungus is a 3D toadstool cluster, not a cross: the generated model parents the
+     * The gravelight is a 3D toadstool cluster, not a cross: the generated model parents the
      * hand-authored template, whose boxes stay inside the block's outline (12 wide, 10 tall) and whose
      * gill planes glow.
      */
     @Test
-    public void radiationFungusUsesToadstoolTemplate() throws Exception {
+    public void gravelightFungusUsesToadstoolTemplate() throws Exception {
         JSONObject model = new JSONObject(Files.readString(
-                Path.of("src/main/generated/assets/dwm/models/block/radiation_fungus.json")));
-        assertEquals("dwm:block/template_radiation_fungus", model.getString("parent"));
-        assertEquals("dwm:block/radiation_fungus", model.getJSONObject("textures").getString("texture"));
+                Path.of("src/main/generated/assets/dwm/models/block/gravelight_fungus.json")));
+        assertEquals("dwm:block/template_gravelight_fungus", model.getString("parent"));
+        assertEquals("dwm:block/gravelight_fungus", model.getJSONObject("textures").getString("texture"));
 
         JSONObject template = new JSONObject(Files.readString(
-                Path.of("src/client/resources/assets/dwm/models/block/template_radiation_fungus.json")));
+                Path.of("src/client/resources/assets/dwm/models/block/template_gravelight_fungus.json")));
         var elements = template.getJSONArray("elements");
         assertFalse(elements.isEmpty(), "Toadstool template has no elements");
         int glowing = 0;
@@ -718,15 +718,15 @@ public class ResourceValidationTests {
         assertTrue(glowing > 0, "Toadstool gills should be emissive");
     }
 
-    /** Radiation fungus item sprite and Thal crop stages: 16×16 cut-outs with a tight colour budget. */
+    /** Gravelight item sprite and Ashwheat stages: 16×16 cut-outs with a tight colour budget. */
     @Test
     public void skaroFloraSpritesMatchContract() throws Exception {
         String root = "src/client/resources/assets/dwm/textures/";
-        assertPlantSprite(Path.of(root + "item/radiation_fungus.png"));
+        assertPlantSprite(Path.of(root + "item/gravelight_fungus.png"));
         for (int stage = 0; stage <= 3; stage++) {
-            assertPlantSprite(Path.of(root + "block/thal_crop_stage" + stage + ".png"));
+            assertPlantSprite(Path.of(root + "block/ashwheat_stage" + stage + ".png"));
         }
-        assertAtlasSize(Path.of(root + "block/radiation_fungus.png"), 16, 16);
+        assertAtlasSize(Path.of(root + "block/gravelight_fungus.png"), 16, 16);
     }
 
     private static void assertPlantSprite(Path png) throws Exception {
@@ -1578,11 +1578,9 @@ public class ResourceValidationTests {
                     || "skaro_thal_plateau.json".equals(biomeFile);
             assertDalekMonsterPatrol(biome, biomeFile, sparse);
             String blob = Files.readString(path);
-            // Skaro's own ash scrub shares the "dwm:ash" prefix with the Gallifrey ash tree; mask it for the guard.
-            String gallifreyGuardBlob = blob.replace("dwm:ash_scrub", "dwm:skaro_scrub");
             for (String forbidden : forbiddenFeatureSubstrings) {
                 assertFalse(
-                        gallifreyGuardBlob.contains(forbidden),
+                        blob.contains(forbidden),
                         biomeFile + " must not include Gallifrey-only generated content: " + forbidden
                 );
             }

@@ -35,11 +35,11 @@ public final class DWMPlacedFeatures {
     public static final ResourceKey<PlacedFeature> VARGA_WASTES = key("varga_wastes");
     public static final ResourceKey<PlacedFeature> VARGA_JUNGLE = key("varga_jungle");
     public static final ResourceKey<PlacedFeature> VARGA_MIRE = key("varga_mire");
-    public static final ResourceKey<PlacedFeature> RADIATION_FUNGUS_JUNGLE = key("radiation_fungus_jungle");
-    public static final ResourceKey<PlacedFeature> RADIATION_FUNGUS_MIRE = key("radiation_fungus_mire");
-    public static final ResourceKey<PlacedFeature> ASH_SCRUB_WASTES = key("ash_scrub_wastes");
-    public static final ResourceKey<PlacedFeature> ASH_SCRUB_MOUNTAINS = key("ash_scrub_mountains");
-    public static final ResourceKey<PlacedFeature> MUTATED_REEDS_MIRE = key("mutated_reeds_mire");
+    public static final ResourceKey<PlacedFeature> GRAVELIGHT_FUNGUS_JUNGLE = key("gravelight_fungus_jungle");
+    public static final ResourceKey<PlacedFeature> GRAVELIGHT_FUNGUS_MIRE = key("gravelight_fungus_mire");
+    public static final ResourceKey<PlacedFeature> SCORCHBRIAR_WASTES = key("scorchbriar_wastes");
+    public static final ResourceKey<PlacedFeature> SCORCHBRIAR_MOUNTAINS = key("scorchbriar_mountains");
+    public static final ResourceKey<PlacedFeature> WRAITHREED_MIRE = key("wraithreed_mire");
     public static final ResourceKey<PlacedFeature> PETRIFIED_JUNGLE_TREES = key("petrified_jungle_trees");
     public static final ResourceKey<PlacedFeature> PETRIFIED_JUNGLE_SNAGS = key("petrified_jungle_snags");
     public static final ResourceKey<PlacedFeature> FALLEN_PETRIFIED_JUNGLE_TREES = key("fallen_petrified_jungle_trees");

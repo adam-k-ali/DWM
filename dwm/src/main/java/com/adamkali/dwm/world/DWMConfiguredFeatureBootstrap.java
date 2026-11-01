@@ -63,15 +63,15 @@ public final class DWMConfiguredFeatureBootstrap {
         );
 
         registerPlantPatch(registerable, DWMConfiguredFeatures.VARGA_PATCH, DWMBlocks.VARGA_PLANT);
-        registerPlantPatch(registerable, DWMConfiguredFeatures.RADIATION_FUNGUS_PATCH, DWMBlocks.RADIATION_FUNGUS);
-        registerPlantPatch(registerable, DWMConfiguredFeatures.ASH_SCRUB_PATCH, DWMBlocks.ASH_SCRUB);
+        registerPlantPatch(registerable, DWMConfiguredFeatures.GRAVELIGHT_FUNGUS_PATCH, DWMBlocks.GRAVELIGHT_FUNGUS);
+        registerPlantPatch(registerable, DWMConfiguredFeatures.SCORCHBRIAR_PATCH, DWMBlocks.SCORCHBRIAR);
         registerable.register(
-                DWMConfiguredFeatures.MUTATED_REEDS,
+                DWMConfiguredFeatures.WRAITHREED,
                 new ConfiguredFeature<>(
                         Feature.BLOCK_COLUMN,
                         BlockColumnConfiguration.simple(
                                 BiasedToBottomInt.of(1, 3),
-                                BlockStateProvider.simple(DWMBlocks.MUTATED_REEDS)
+                                BlockStateProvider.simple(DWMBlocks.WRAITHREED)
                         )
                 )
         );

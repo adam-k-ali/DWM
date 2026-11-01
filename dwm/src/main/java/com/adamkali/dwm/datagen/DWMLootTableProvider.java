@@ -60,14 +60,14 @@ public class DWMLootTableProvider extends FabricBlockLootSubProvider {
         for (Block plant : DWMBlocks.SKARO_PLANTS) {
             dropSelf(plant);
         }
-        add(DWMBlocks.THAL_CROP, createCropDrops(
-                DWMBlocks.THAL_CROP,
-                DWMItems.THAL_SEEDS,
-                DWMItems.THAL_SEEDS,
+        add(DWMBlocks.ASHWHEAT, createCropDrops(
+                DWMBlocks.ASHWHEAT,
+                DWMItems.ASHWHEAT_SEEDS,
+                DWMItems.ASHWHEAT_SEEDS,
                 net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition
-                        .hasBlockStateProperties(DWMBlocks.THAL_CROP)
+                        .hasBlockStateProperties(DWMBlocks.ASHWHEAT)
                         .setProperties(net.minecraft.advancements.predicates.StatePropertiesPredicate.Builder.properties()
-                                .hasProperty(com.adamkali.dwm.block.plant.ThalCropBlock.AGE, 7))));
+                                .hasProperty(com.adamkali.dwm.block.plant.AshwheatBlock.AGE, 7))));
         for (Block potted : DWMBlocks.GALLIFREY_POTTED_PLANTS) {
             dropPottedContents(potted);
         }

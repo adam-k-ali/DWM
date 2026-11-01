@@ -223,17 +223,17 @@ public final class DWMPlacedFeatureBootstrap {
                 PlacementUtils.countExtra(8, 0.1F, 1)
         );
         Holder<ConfiguredFeature<?, ?>> varga = configured.getOrThrow(DWMConfiguredFeatures.VARGA_PATCH);
-        Holder<ConfiguredFeature<?, ?>> fungus = configured.getOrThrow(DWMConfiguredFeatures.RADIATION_FUNGUS_PATCH);
-        Holder<ConfiguredFeature<?, ?>> scrub = configured.getOrThrow(DWMConfiguredFeatures.ASH_SCRUB_PATCH);
-        Holder<ConfiguredFeature<?, ?>> reeds = configured.getOrThrow(DWMConfiguredFeatures.MUTATED_REEDS);
+        Holder<ConfiguredFeature<?, ?>> fungus = configured.getOrThrow(DWMConfiguredFeatures.GRAVELIGHT_FUNGUS_PATCH);
+        Holder<ConfiguredFeature<?, ?>> scrub = configured.getOrThrow(DWMConfiguredFeatures.SCORCHBRIAR_PATCH);
+        Holder<ConfiguredFeature<?, ?>> reeds = configured.getOrThrow(DWMConfiguredFeatures.WRAITHREED);
         registerSkaroPatch(registerable, DWMPlacedFeatures.VARGA_WASTES, varga, 24, 3);
         registerSkaroPatch(registerable, DWMPlacedFeatures.VARGA_JUNGLE, varga, 16, 3);
         registerSkaroPatch(registerable, DWMPlacedFeatures.VARGA_MIRE, varga, 12, 4);
-        registerSkaroPatch(registerable, DWMPlacedFeatures.RADIATION_FUNGUS_JUNGLE, fungus, 4, 6);
-        registerSkaroPatch(registerable, DWMPlacedFeatures.RADIATION_FUNGUS_MIRE, fungus, 3, 6);
-        registerSkaroPatch(registerable, DWMPlacedFeatures.ASH_SCRUB_WASTES, scrub, 2, 8);
-        registerSkaroPatch(registerable, DWMPlacedFeatures.ASH_SCRUB_MOUNTAINS, scrub, 5, 5);
-        registerSkaroReeds(registerable, DWMPlacedFeatures.MUTATED_REEDS_MIRE, reeds, 2);
+        registerSkaroPatch(registerable, DWMPlacedFeatures.GRAVELIGHT_FUNGUS_JUNGLE, fungus, 4, 6);
+        registerSkaroPatch(registerable, DWMPlacedFeatures.GRAVELIGHT_FUNGUS_MIRE, fungus, 3, 6);
+        registerSkaroPatch(registerable, DWMPlacedFeatures.SCORCHBRIAR_WASTES, scrub, 2, 8);
+        registerSkaroPatch(registerable, DWMPlacedFeatures.SCORCHBRIAR_MOUNTAINS, scrub, 5, 5);
+        registerSkaroReeds(registerable, DWMPlacedFeatures.WRAITHREED_MIRE, reeds, 2);
         PlacementUtils.register(
                 registerable,
                 DWMPlacedFeatures.FALLEN_PETRIFIED_JUNGLE_TREES,
@@ -344,7 +344,7 @@ public final class DWMPlacedFeatureBootstrap {
                 BlockPredicateFilter.forPredicate(
                         BlockPredicate.allOf(
                                 BlockPredicate.ONLY_IN_AIR_PREDICATE,
-                                BlockPredicate.wouldSurvive(DWMBlocks.ASH_SCRUB.defaultBlockState(), net.minecraft.core.BlockPos.ZERO)
+                                BlockPredicate.wouldSurvive(DWMBlocks.SCORCHBRIAR.defaultBlockState(), net.minecraft.core.BlockPos.ZERO)
                         )
                 )
         );
@@ -370,7 +370,7 @@ public final class DWMPlacedFeatureBootstrap {
                 BlockPredicateFilter.forPredicate(
                         BlockPredicate.allOf(
                                 BlockPredicate.ONLY_IN_AIR_PREDICATE,
-                                BlockPredicate.wouldSurvive(DWMBlocks.MUTATED_REEDS.defaultBlockState(), net.minecraft.core.BlockPos.ZERO)
+                                BlockPredicate.wouldSurvive(DWMBlocks.WRAITHREED.defaultBlockState(), net.minecraft.core.BlockPos.ZERO)
                         )
                 )
         );

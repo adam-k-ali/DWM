@@ -29,9 +29,9 @@ public final class DWMConfiguredFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> GALLIFREY_DIAMOND_ORE_BURIED = key("gallifrey_diamond_ore_buried");
 
     public static final ResourceKey<ConfiguredFeature<?, ?>> VARGA_PATCH = key("varga_patch");
-    public static final ResourceKey<ConfiguredFeature<?, ?>> RADIATION_FUNGUS_PATCH = key("radiation_fungus_patch");
-    public static final ResourceKey<ConfiguredFeature<?, ?>> ASH_SCRUB_PATCH = key("ash_scrub_patch");
-    public static final ResourceKey<ConfiguredFeature<?, ?>> MUTATED_REEDS = key("mutated_reeds");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> GRAVELIGHT_FUNGUS_PATCH = key("gravelight_fungus_patch");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> SCORCHBRIAR_PATCH = key("scorchbriar_patch");
+    public static final ResourceKey<ConfiguredFeature<?, ?>> WRAITHREED = key("wraithreed");
     public static final ResourceKey<ConfiguredFeature<?, ?>> PETRIFIED_TREE = key("petrified_tree");
     public static final ResourceKey<ConfiguredFeature<?, ?>> PETRIFIED_SNAG = key("petrified_snag");
     public static final ResourceKey<ConfiguredFeature<?, ?>> FALLEN_PETRIFIED_TREE = key("fallen_petrified_tree");

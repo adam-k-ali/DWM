@@ -17,7 +17,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
- * Small non-collidable Skaro ground plant (ash scrub, radiation fungus, Varga). Pops off when the
+ * Small non-collidable Skaro ground plant (scorchbriar, gravelight, Varga). Pops off when the
  * block below is not natural ground. Deliberately separate from the Gallifrey plant classes.
  */
 public class SkaroPlantBlock extends Block {

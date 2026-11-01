@@ -20,8 +20,8 @@ import net.minecraft.world.level.block.Block;
 import java.util.Optional;
 
 public class DWMModelProvider extends FabricModelProvider {
-    private static final ModelTemplate RADIATION_FUNGUS_TEMPLATE = new ModelTemplate(
-            Optional.of(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "block/template_radiation_fungus")),
+    private static final ModelTemplate GRAVELIGHT_FUNGUS_TEMPLATE = new ModelTemplate(
+            Optional.of(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "block/template_gravelight_fungus")),
             Optional.empty(),
             TextureSlot.TEXTURE
     );
@@ -190,28 +190,28 @@ public class DWMModelProvider extends FabricModelProvider {
 
     private static void registerSkaroPlants(BlockModelGenerators generator) {
         for (Block plant : DWMBlocks.SKARO_PLANTS) {
-            if (plant == DWMBlocks.RADIATION_FUNGUS) {
+            if (plant == DWMBlocks.GRAVELIGHT_FUNGUS) {
                 continue;
             }
             generator.createCrossBlock(plant, BlockModelGenerators.PlantType.NOT_TINTED);
             generator.registerSimpleFlatItemModel(plant.asItem());
         }
-        registerRadiationFungus(generator);
-        // Eight growth ages share four visual stages (block/thal_crop_stage0..3).
+        registerGravelightFungus(generator);
+        // Eight growth ages share four visual stages (block/ashwheat_stage0..3).
         generator.createCropBlock(
-                DWMBlocks.THAL_CROP,
-                com.adamkali.dwm.block.plant.ThalCropBlock.AGE,
+                DWMBlocks.ASHWHEAT,
+                com.adamkali.dwm.block.plant.AshwheatBlock.AGE,
                 0, 0, 1, 1, 2, 2, 2, 3
         );
     }
 
     /**
-     * Toadstool cluster from the hand-authored {@code block/template_radiation_fungus} (UV atlas in
-     * {@code textures/block/radiation_fungus.png}); random Y rotation breaks up patches. Item stays flat.
+     * Toadstool cluster from the hand-authored {@code block/template_gravelight_fungus} (UV atlas in
+     * {@code textures/block/gravelight_fungus.png}); random Y rotation breaks up patches. Item stays flat.
      */
-    private static void registerRadiationFungus(BlockModelGenerators generator) {
-        Block fungus = DWMBlocks.RADIATION_FUNGUS;
-        Identifier modelId = RADIATION_FUNGUS_TEMPLATE.create(
+    private static void registerGravelightFungus(BlockModelGenerators generator) {
+        Block fungus = DWMBlocks.GRAVELIGHT_FUNGUS;
+        Identifier modelId = GRAVELIGHT_FUNGUS_TEMPLATE.create(
                 fungus, TextureMapping.defaultTexture(fungus), generator.modelOutput);
         generator.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(
                 fungus, BlockModelGenerators.createRotatedVariants(BlockModelGenerators.plainModel(modelId))));

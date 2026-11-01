@@ -1,7 +1,7 @@
 package com.adamkali.dwm.gametest;
 
 import com.adamkali.dwm.block.DWMBlocks;
-import com.adamkali.dwm.block.plant.ThalCropBlock;
+import com.adamkali.dwm.block.plant.AshwheatBlock;
 import com.adamkali.dwm.block.plant.VargaPlantBlock;
 import com.adamkali.dwm.item.DWMItems;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
@@ -23,7 +23,7 @@ import java.util.List;
 public class SkaroPlantsGameTests {
     @GameTest(structure = "fabric-gametest-api-v1:empty")
     public void groundPlantsSurviveOnSandAndPopOffWhenSupportIsRemoved(GameTestHelper context) {
-        List<Block> plants = List.of(DWMBlocks.VARGA_PLANT, DWMBlocks.RADIATION_FUNGUS, DWMBlocks.ASH_SCRUB);
+        List<Block> plants = List.of(DWMBlocks.VARGA_PLANT, DWMBlocks.GRAVELIGHT_FUNGUS, DWMBlocks.SCORCHBRIAR);
         int x = 1;
         for (Block plant : plants) {
             BlockPos ground = new BlockPos(x++, 1, 1);
@@ -45,10 +45,10 @@ public class SkaroPlantsGameTests {
     public void fungusEmitsLowLight(GameTestHelper context) {
         BlockPos ground = new BlockPos(1, 1, 1);
         context.setBlock(ground, Blocks.GRAVEL.defaultBlockState());
-        context.setBlock(ground.above(), DWMBlocks.RADIATION_FUNGUS.defaultBlockState());
+        context.setBlock(ground.above(), DWMBlocks.GRAVELIGHT_FUNGUS.defaultBlockState());
         BlockState state = context.getBlockState(ground.above());
         if (state.getLightEmission() != 3) {
-            throw new AssertionError("Expected radiation fungus light level 3, got " + state.getLightEmission());
+            throw new AssertionError("Expected gravelight light level 3, got " + state.getLightEmission());
         }
         context.succeed();
     }
@@ -77,7 +77,7 @@ public class SkaroPlantsGameTests {
     @GameTest(structure = "fabric-gametest-api-v1:empty")
     public void reedsNeedAdjacentWater(GameTestHelper context) {
         ServerLevel level = context.getLevel();
-        BlockState reeds = DWMBlocks.MUTATED_REEDS.defaultBlockState();
+        BlockState reeds = DWMBlocks.WRAITHREED.defaultBlockState();
 
         BlockPos dry = new BlockPos(1, 1, 1);
         context.setBlock(dry, Blocks.DIRT.defaultBlockState());
@@ -114,18 +114,18 @@ public class SkaroPlantsGameTests {
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty")
-    public void thalCropDropsSeedsAndOnlyRipeCropYieldsMore(GameTestHelper context) {
+    public void ashwheatDropsSeedsAndOnlyRipeCropYieldsMore(GameTestHelper context) {
         Player player = context.makeMockPlayer(GameType.SURVIVAL);
         BlockPos pos = new BlockPos(1, 2, 1);
-        context.setBlock(pos, DWMBlocks.THAL_CROP.defaultBlockState().setValue(ThalCropBlock.AGE, 7));
+        context.setBlock(pos, DWMBlocks.ASHWHEAT.defaultBlockState().setValue(AshwheatBlock.AGE, 7));
         int ripe = count(drops(context, player, pos));
-        context.setBlock(pos, DWMBlocks.THAL_CROP.defaultBlockState().setValue(ThalCropBlock.AGE, 2));
+        context.setBlock(pos, DWMBlocks.ASHWHEAT.defaultBlockState().setValue(AshwheatBlock.AGE, 2));
         int young = count(drops(context, player, pos));
         if (young != 0 && young != 1) {
-            throw new AssertionError("Young Thal crop should drop at most its seed, got " + young);
+            throw new AssertionError("Young Ashwheat should drop at most its seed, got " + young);
         }
         if (ripe < 2) {
-            throw new AssertionError("Ripe Thal crop should drop seeds, got " + ripe);
+            throw new AssertionError("Ripe Ashwheat should drop seeds, got " + ripe);
         }
         context.succeed();
     }
@@ -133,7 +133,7 @@ public class SkaroPlantsGameTests {
     private static int count(List<ItemStack> drops) {
         int n = 0;
         for (ItemStack stack : drops) {
-            if (stack.is(DWMItems.THAL_SEEDS)) {
+            if (stack.is(DWMItems.ASHWHEAT_SEEDS)) {
                 n += stack.getCount();
             }
         }
