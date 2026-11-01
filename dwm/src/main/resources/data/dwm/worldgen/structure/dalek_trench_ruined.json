@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:jigsaw",
+  "type": "dwm:dalek_trench",
   "biomes": "#dwm:has_structure/dalek_trench_ruined",
   "step": "surface_structures",
   "spawn_overrides": {},

@@ -68,7 +68,7 @@ class SkaroTrenchResourceTest {
     void trenchStructuresLockPlacementValuesAndResolveReferences() throws IOException {
         for (String structure : List.of(INTACT, RUINED)) {
             JSONObject json = readJson(resource("worldgen/structure", structure));
-            assertEquals("minecraft:jigsaw", json.getString("type"), structure);
+            assertEquals("dwm:dalek_trench", json.getString("type"), structure);
             assertEquals("surface_structures", json.getString("step"), structure);
             assertEquals("beard_thin", json.getString("terrain_adaptation"), structure);
             assertEquals(5, json.getInt("size"), structure);
