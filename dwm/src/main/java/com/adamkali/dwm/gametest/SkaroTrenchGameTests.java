@@ -36,11 +36,12 @@ import java.util.Set;
 /** Placement checks for the Dalek battlefield trench (DWM-069). */
 public class SkaroTrenchGameTests {
     private static final Identifier CHECKPOINT = id("skaro/dalek_trench/checkpoint");
+    private static final Identifier END_CAP = id("skaro/dalek_trench/end_cap");
     private static final Set<Identifier> PARTS = Set.of(
             id("skaro/dalek_trench/segment"),
             id("skaro/dalek_trench/junction"),
             id("skaro/dalek_trench/bunker"),
-            id("skaro/dalek_trench/end_cap"),
+            END_CAP,
             id("skaro/dalek_trench/zigzag"),
             id("skaro/dalek_trench/zigzag_mirrored")
     );
@@ -142,6 +143,14 @@ public class SkaroTrenchGameTests {
             if (!expected) {
                 throw new AssertionError(structureId + " piece " + i + " used unexpected template " + location);
             }
+        }
+        // Both arms (north and south of the checkpoint) run to the fallback pool and close with an end cap.
+        long endCaps = pieces.stream()
+                .filter(piece -> piece.getElement() instanceof GarrisonedPoolElement element
+                        && element.getTemplateLocation().equals(END_CAP))
+                .count();
+        if (endCaps < 2) {
+            throw new AssertionError(structureId + " must close both arms with an end cap but placed " + endCaps);
         }
         // Per piece, not the union box: a long trench's bounds sweep in neighbouring tests' blocks and entities.
         assertSingleLootChest(level, pieces.getFirst().getBoundingBox());

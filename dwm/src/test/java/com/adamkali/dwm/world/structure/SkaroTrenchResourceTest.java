@@ -45,7 +45,7 @@ class SkaroTrenchResourceTest {
     private static final String GARRISONED = "dwm:garrisoned_single_pool_element";
     /** Blocks the trench is carved below ground; the structure start height is its negative. */
     private static final int SINK = 2;
-    private static final List<String> POOLS = List.of("start", "segments", "bunkers");
+    private static final List<String> POOLS = List.of("start", "segments", "bunkers", "end_caps");
 
     /** Documented per-piece size caps (X, Y, Z) from feature-skaro-dimension.md. */
     private static final Map<String, int[]> SIZE_CAPS = Map.of(
@@ -75,7 +75,7 @@ class SkaroTrenchResourceTest {
             assertEquals(-SINK, json.getJSONObject("start_height").getInt("absolute"),
                     structure + " starts the rigid checkpoint as deep as the terrain-matched pieces sink");
             assertEquals("WORLD_SURFACE_WG", json.getString("project_start_to_heightmap"), structure);
-            assertEquals(80, json.getInt("max_distance_from_center"), structure);
+            assertEquals(96, json.getInt("max_distance_from_center"), structure);
             assertFalse(json.getBoolean("use_expansion_hack"), structure);
             assertTrue(json.getJSONObject("spawn_overrides").isEmpty(), structure + " must not override spawns");
             assertExists(resource("worldgen/template_pool", json.getString("start_pool")));
@@ -146,6 +146,27 @@ class SkaroTrenchResourceTest {
                 assertEquals(a.getJSONArray("garrison").toString(), b.getJSONArray("garrison").toString());
                 assertEquals("minecraft:empty", a.getString("processors"));
                 assertEquals(RUIN_PROCESSORS, b.getString("processors"));
+            }
+        }
+    }
+
+    @Test
+    void everyArmClosesWithAnEndCapFallbackAndNeverEndsEarly() throws IOException {
+        for (String prefix : List.of("", "ruined_")) {
+            JSONObject segments = readJson(resource("worldgen/template_pool", "dwm:skaro/dalek_trench/" + prefix + "segments"));
+            String fallback = segments.getString("fallback");
+            assertEquals("dwm:skaro/dalek_trench/" + prefix + "end_caps", fallback,
+                    prefix + "segments must fall back to its own end caps: the ruined pool is not reached through an alias");
+            JSONArray caps = elements(prefix + "end_caps");
+            assertEquals(1, caps.length(), "The fallback holds only the end cap");
+            assertEquals("dwm:" + DalekTrenchTemplates.END_CAP, caps.getJSONObject(0).getJSONObject("element").getString("location"));
+            assertEquals("minecraft:empty", readJson(resource("worldgen/template_pool", fallback)).getString("fallback"));
+
+            JSONArray main = segments.getJSONArray("elements");
+            for (int i = 0; i < main.length(); i++) {
+                assertFalse(main.getJSONObject(i).getJSONObject("element").getString("location")
+                        .equals("dwm:" + DalekTrenchTemplates.END_CAP),
+                        prefix + "segments must not draw the end cap, or arms close early");
             }
         }
     }
@@ -275,7 +296,8 @@ class SkaroTrenchResourceTest {
         Map<String, List<GarrisonPost>> start = garrisons("start");
         Map<String, List<GarrisonPost>> segments = garrisons("segments");
         Map<String, List<GarrisonPost>> bunkers = garrisons("bunkers");
-        for (Map<String, List<GarrisonPost>> pool : List.of(start, segments, bunkers)) {
+        Map<String, List<GarrisonPost>> endCaps = garrisons("end_caps");
+        for (Map<String, List<GarrisonPost>> pool : List.of(start, segments, bunkers, endCaps)) {
             for (List<GarrisonPost> posts : pool.values()) {
                 posts.forEach(post -> jobs.add(post.job()));
             }
@@ -288,7 +310,7 @@ class SkaroTrenchResourceTest {
                 "The checkpoint gates are always sentried");
         assertTrue(checkpoint.stream().anyMatch(p -> p.job() == DalekJob.TECHNICIAN));
 
-        assertTrue(segments.get(DalekTrenchTemplates.END_CAP).stream().allMatch(p -> p.job() == DalekJob.GUNNER));
+        assertTrue(endCaps.get(DalekTrenchTemplates.END_CAP).stream().allMatch(p -> p.job() == DalekJob.GUNNER));
         assertTrue(bunkers.get(DalekTrenchTemplates.BUNKER).stream().anyMatch(p -> p.job() == DalekJob.GUNNER));
     }
 
