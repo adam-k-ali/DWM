@@ -1,6 +1,7 @@
 package com.adamkali.dwm.entity.definition;
 
 import com.adamkali.dwm.entity.DalekEntity;
+import com.adamkali.dwm.entity.ThalEntity;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.util.StringRepresentable;
@@ -17,7 +18,9 @@ public sealed interface GoalCondition {
     Codec<GoalCondition> CODEC = Kind.CODEC.dispatch("type", GoalCondition::kind, Kind::mapCodec);
 
     enum Kind implements StringRepresentable {
-        NOT_FLYING("dwm:not_flying");
+        NOT_FLYING("dwm:not_flying"),
+        ARMED("dwm:armed"),
+        NOT_ARMED("dwm:not_armed");
 
         public static final StringRepresentable.EnumCodec<Kind> CODEC = StringRepresentable.fromEnum(Kind::values);
 
@@ -35,6 +38,8 @@ public sealed interface GoalCondition {
         MapCodec<? extends GoalCondition> mapCodec() {
             return switch (this) {
                 case NOT_FLYING -> NotFlying.MAP_CODEC;
+                case ARMED -> Armed.MAP_CODEC;
+                case NOT_ARMED -> NotArmed.MAP_CODEC;
             };
         }
     }
@@ -55,5 +60,42 @@ public sealed interface GoalCondition {
             }
             return !dalek.isFlying();
         }
+    }
+
+    record Armed() implements GoalCondition {
+        static final Armed INSTANCE = new Armed();
+        static final MapCodec<Armed> MAP_CODEC = MapCodec.unit(INSTANCE);
+
+        @Override
+        public Kind kind() {
+            return Kind.ARMED;
+        }
+
+        @Override
+        public boolean test(Mob mob) {
+            return requireThal(mob, "dwm:armed").isArmed();
+        }
+    }
+
+    record NotArmed() implements GoalCondition {
+        static final NotArmed INSTANCE = new NotArmed();
+        static final MapCodec<NotArmed> MAP_CODEC = MapCodec.unit(INSTANCE);
+
+        @Override
+        public Kind kind() {
+            return Kind.NOT_ARMED;
+        }
+
+        @Override
+        public boolean test(Mob mob) {
+            return !requireThal(mob, "dwm:not_armed").isArmed();
+        }
+    }
+
+    private static ThalEntity requireThal(Mob mob, String name) {
+        if (!(mob instanceof ThalEntity thal)) {
+            throw new IllegalStateException(name + " requires ThalEntity, got " + mob.getClass().getSimpleName());
+        }
+        return thal;
     }
 }

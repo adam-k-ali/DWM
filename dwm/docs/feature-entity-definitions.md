@@ -63,16 +63,17 @@ Inheritance is resolved on the raw JSON before decoding, so the codec never sees
 
 `minecraft:` here means “vanilla `Goal` class”, not a vanilla registry.
 
-**Goals:** `minecraft:float`, `panic`, `water_avoiding_random_stroll`, `water_avoiding_random_flying`, `look_at`, `random_look_around`, `open_door`, `ranged_attack`, `melee_attack`, `leap_at_target`, `breed`, `follow_owner`, `sit_when_ordered`, `dwm:dalek_flight`, `dwm:tamable_panic`, `dwm:avoid_entity`.
+**Goals:** `minecraft:float`, `panic`, `water_avoiding_random_stroll`, `water_avoiding_random_flying`, `look_at`, `random_look_around`, `open_door`, `ranged_attack`, `melee_attack`, `leap_at_target`, `breed`, `follow_owner`, `sit_when_ordered`, `dwm:dalek_flight`, `dwm:dalek_hold_post`, `dwm:dalek_patrol`, `dwm:dalek_tend_station`, `dwm:tamable_panic`, `dwm:avoid_entity`.
 
-**Targets:** `minecraft:hurt_by_target`, `nearest_attackable_target`, `owner_hurt_by_target`, `owner_hurt_target`, `reset_universal_anger`, `dwm:dalek_share_target`.
+**Targets:** `minecraft:hurt_by_target`, `nearest_attackable_target`, `owner_hurt_by_target`, `owner_hurt_target`, `reset_universal_anger`, `dwm:dalek_share_target`, `dwm:dalek_raise_alarm`.
 
 **Conditions / filters**
 
 - `can_use`: `{ "type": "dwm:not_flying" }` — Dalek ground stroll while not airborne
+- `can_use`: `{ "type": "dwm:armed" }` / `{ "type": "dwm:not_armed" }` — Thal goals that apply only while the Thal wields a Dalek Laser Gun (or only while it does not)
 - `filter` on nearest-attackable: `{ "type": "dwm:is_angry_at" }` — Mewing Dog persistent anger
 
-`look_at` and `nearest_attackable_target` currently resolve `minecraft:player` only.
+`look_at` and `nearest_attackable_target` resolve any registered entity-type id (e.g. `minecraft:player`, `dwm:dalek`).
 
 `dwm:avoid_entity` wraps vanilla `AvoidEntityGoal` so a mob flees living entities in an **entity-type tag**:
 

@@ -138,18 +138,34 @@ class EntityDefinitionCatalogTest {
                 EntityGoal.Kind.FLOAT,
                 EntityGoal.Kind.AVOID_ENTITY,
                 EntityGoal.Kind.PANIC,
+                EntityGoal.Kind.RANGED_ATTACK,
                 EntityGoal.Kind.OPEN_DOOR,
                 EntityGoal.Kind.WATER_AVOIDING_RANDOM_STROLL,
                 EntityGoal.Kind.LOOK_AT,
                 EntityGoal.Kind.RANDOM_LOOK_AROUND
         ), kinds(definition.goals()));
-        assertEquals(List.of(0, 1, 1, 2, 3, 4, 5), priorities(definition.goals()));
-        assertTrue(definition.targets().isEmpty());
+        assertEquals(List.of(0, 1, 1, 2, 2, 3, 4, 5), priorities(definition.goals()));
+        assertEquals(GoalCondition.Kind.NOT_ARMED, definition.goals().get(1).canUse().orElseThrow().kind());
+        assertEquals(GoalCondition.Kind.ARMED, definition.goals().get(3).canUse().orElseThrow().kind());
+        assertEquals(4, definition.targets().size());
+        assertTrue(definition.targets().stream().allMatch(t -> t.canUse().isPresent()
+                && t.canUse().get().kind() == GoalCondition.Kind.ARMED));
         EntityGoal.AvoidEntity avoid = assertInstanceOf(EntityGoal.AvoidEntity.class, definition.goals().get(1).goal());
         assertEquals(id(DWMReference.MOD_ID, "thal_fears"), avoid.entities().location());
         assertEquals(12.0F, avoid.maxDistance());
         assertEquals(1.0, avoid.walkSpeed());
         assertEquals(1.3, avoid.sprintSpeed());
+    }
+
+    @Test
+    void armedConditionsParseAndRoundTrip() {
+        for (String type : List.of("dwm:armed", "dwm:not_armed")) {
+            var json = JsonParser.parseString("{ \"type\": \"" + type + "\" }");
+            GoalCondition condition = GoalCondition.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow();
+            assertEquals(type, condition.kind().getSerializedName());
+            var encoded = GoalCondition.CODEC.encodeStart(JsonOps.INSTANCE, condition).getOrThrow();
+            assertEquals(condition, GoalCondition.CODEC.parse(JsonOps.INSTANCE, encoded).getOrThrow());
+        }
     }
 
     @Test
@@ -187,7 +203,9 @@ class EntityDefinitionCatalogTest {
         assertEquals(0.9, attribute(definition, "knockback_resistance"));
         assertEquals(6.0, attribute(definition, "armor"));
         assertEquals(EntityGoal.Kind.DALEK_FLIGHT, definition.goals().get(1).goal().kind());
-        EntityGoalBinding stroll = definition.goals().get(3);
+        assertJobGoals(definition);
+        assertTrue(definition.targets().stream().anyMatch(t -> t.goal().kind() == EntityGoal.Kind.DALEK_RAISE_ALARM));
+        EntityGoalBinding stroll = definition.goals().get(7);
         assertEquals(EntityGoal.Kind.WATER_AVOIDING_RANDOM_STROLL, stroll.goal().kind());
         assertEquals(GoalCondition.Kind.NOT_FLYING, stroll.canUse().orElseThrow().kind());
         assertEquals(EntityGoal.Kind.DALEK_SHARE_TARGET, definition.targets().get(1).goal().kind());
@@ -214,6 +232,7 @@ class EntityDefinitionCatalogTest {
         assertEquals(EntityGoal.Kind.DALEK_FLIGHT, definition.goals().get(1).goal().kind());
         EntityGoal.RangedAttack ranged = assertInstanceOf(EntityGoal.RangedAttack.class, definition.goals().get(2).goal());
         assertEquals(20.0, ranged.attackRange());
+        assertJobGoals(definition);
         assertEquals(EntityGoal.Kind.DALEK_SHARE_TARGET, definition.targets().get(1).goal().kind());
     }
 
@@ -263,6 +282,18 @@ class EntityDefinitionCatalogTest {
                 }
                 """);
         assertThrows(RuntimeException.class, () -> EntityDefinition.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow());
+    }
+
+    private static void assertJobGoals(EntityDefinition definition) {
+        List<EntityGoalBinding> jobs = definition.goals().subList(3, 7);
+        assertEquals(
+                List.of(
+                        EntityGoal.Kind.DALEK_HOLD_POST,
+                        EntityGoal.Kind.DALEK_PATROL,
+                        EntityGoal.Kind.DALEK_TEND_STATION,
+                        EntityGoal.Kind.DALEK_COURIER),
+                kinds(jobs));
+        assertEquals(List.of(3, 3, 3, 3), priorities(jobs));
     }
 
     private static EntityDefinition definition(String path) {

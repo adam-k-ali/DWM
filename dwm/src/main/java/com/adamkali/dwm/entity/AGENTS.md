@@ -33,12 +33,14 @@ JSON is loaded from the jar at init (`EntityDefinitions.initialize()`). `/reload
 - New living mobs: register the type in `DWMEntityTypes`, add `data/dwm/entity/definition/<id>.json`, keep Java for class-specific behaviour.
 - Variants that share most of another mob's definition set `"parent": "<ns:id>"` and list only what differs (maps merge per key, `goals`/`targets` replace wholesale); see `docs/feature-entity-definitions.md`.
 - Custom `Goal` subclasses stay in Java; JSON only supplies constructor parameters and optional `can_use` / `filter`.
-- `look_at` / `nearest_attackable_target` currently support `minecraft:player` only.
+- `look_at` / `nearest_attackable_target` accept `minecraft:player` and Dalek entity ids (Thal targets).
 - `dwm:avoid_entity` takes an entity-type **tag** (`#dwm:thal_fears`); extend the tag in `DWMEntityTagProvider` rather than editing the goal.
 - `ThalSpawnRules` is the pure spawn policy for Thals (no natural/chunk-generation spawns outside settlements); do not add Thals to biome spawner lists.
 
 ## Common Pitfalls
 - Changing JSON requires a process restart, not `/reload`.
 - Goal types in the `goals` array must be `Selector.GOAL`; target types belong in `targets`.
-- `dwm:dalek_flight`, `dwm:dalek_share_target`, and `dwm:not_flying` require `DalekEntity`.
+- `dwm:dalek_flight`, `dwm:dalek_share_target`, `dwm:dalek_raise_alarm`, the Dalek job goals (`dwm:dalek_hold_post` for sentry/lookout/gunner, `dwm:dalek_patrol`, `dwm:dalek_tend_station`, `dwm:dalek_courier`) and `dwm:not_flying` require `DalekEntity`.
+- Dalek job goals run only with no live target; do not use vanilla `setHomeTo` (it blinds target goals) — the 40-block leash in `DalekEntity` handles straying.
+- `dwm:armed` and `dwm:not_armed` conditions require `ThalEntity`.
 - `dwm:tamable_panic`, sit/follow/owner-target goals require `TamableAnimal`.

@@ -63,7 +63,11 @@ final class EntityDefinitionGameTestSupport {
 
     static boolean isRunning(GoalSelector selector, Class<?> goalType) {
         return selector.getAvailableGoals().stream()
-                .anyMatch(wrapped -> wrapped.isRunning() && goalType.isInstance(wrapped.getGoal()));
+                .anyMatch(wrapped -> wrapped.isRunning() && goalType.isInstance(unwrap(wrapped.getGoal())));
+    }
+
+    private static Object unwrap(Object goal) {
+        return goal instanceof com.adamkali.dwm.entity.definition.ConditionalGoal gated ? gated.delegate() : goal;
     }
 
     private static void assertSelectorMatches(Identifier entity, String label, Mob mob, GoalSelector selector,

@@ -1,6 +1,7 @@
 package com.adamkali.dwm.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import org.joml.Matrix4f;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,24 @@ class TardisDecorBlockEntityRendererTest {
         assertTrue(matricesEqual(a.last().pose(), b.last().pose()));
     }
 
+    @Test
+    void globeAge_wrapsAndAddsPartialTicks() {
+        BlockPos pos = new BlockPos(3, 64, -7);
+        float start = TardisDecorBlockEntityRenderer.globeAge(0L, pos, 0.0f);
+        assertTrue(start >= 0.0f && start < TardisDecorBlockEntityRenderer.GLOBE_AGE_PERIOD);
+        assertEquals(start, TardisDecorBlockEntityRenderer.globeAge(TardisDecorBlockEntityRenderer.GLOBE_AGE_PERIOD, pos, 0.0f), EPSILON);
+        float later = TardisDecorBlockEntityRenderer.globeAge(5_000_000_123L, pos, 0.25f);
+        assertTrue(later >= 0.0f && later < TardisDecorBlockEntityRenderer.GLOBE_AGE_PERIOD + 1.0f);
+        assertEquals(0.25f, later - (float) Math.floor(later), EPSILON);
+    }
+
+    @Test
+    void globeAge_neighboursAreOutOfPhase() {
+        float a = TardisDecorBlockEntityRenderer.globeAge(100L, new BlockPos(0, 64, 0), 0.0f);
+        float b = TardisDecorBlockEntityRenderer.globeAge(100L, new BlockPos(1, 64, 0), 0.0f);
+        assertNotEquals(a, b);
+    }
+
     private static boolean matricesEqual(Matrix4f a, Matrix4f b) {
         for (int i = 0; i < 16; i++) {
             if (Math.abs(a.get(i / 4, i % 4) - b.get(i / 4, i % 4)) > EPSILON) {
@@ -46,5 +65,21 @@ class TardisDecorBlockEntityRendererTest {
             }
         }
         return true;
+    }
+
+    @Test
+    void fitScale_squeezesOnlyOverflowingLines() {
+        assertEquals(1.0f, TardisDecorBlockEntityRenderer.fitScale(40.0f, 80.0f), EPSILON);
+        assertEquals(0.5f, TardisDecorBlockEntityRenderer.fitScale(160.0f, 80.0f), EPSILON);
+        assertEquals(1.0f, TardisDecorBlockEntityRenderer.fitScale(0.0f, 80.0f), EPSILON);
+    }
+
+    @Test
+    void compactScreen_fitsTitlePlusMaxLinesAndPageDots() {
+        float height = TardisDecorBlockEntityRenderer.textSpace(
+                com.adamkali.dwm.model.tileentity.TardisCompactScannerModel.SCREEN.height());
+        float needed = 2 * TardisDecorBlockEntityRenderer.SCREEN_PADDING
+                + (TardisMonitorScreenLayout.MAX_LINES + 1) * TardisDecorBlockEntityRenderer.ROW_HEIGHT + 1.0f;
+        assertTrue(height >= needed, height + " < " + needed);
     }
 }

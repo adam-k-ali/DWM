@@ -43,7 +43,7 @@ Give TARDIS travel a hostile destination world that is not another recolored Ove
   - First-person visor overlay while wearing the EVA helmet (vanilla camera overlay; hidden in third person, F1, and spyglass).
 
 ## Landmarks
-Small, frequent discoveries that tell Skaro's war history. They are distinct from the planned major structures: the Kaled bunker (DWM-073) and the Dalek city of Kaalann (DWM-074) are larger, rarer destinations. Landmarks never embed Daleks, Thals, or mutants; any population belongs to later tickets.
+Small, frequent discoveries that tell Skaro's war history. They are distinct from the planned major structures: the Kaled bunker (DWM-073) and the Dalek city of Kaalann (DWM-074) are larger, rarer destinations. Landmark templates never embed entities. Dalek outposts are the exception by data: their pools use a garrisoned pool element that spawns persistent Daleks at fixed posts. An intact outpost is manned by sentries at the core doorway, a patrol, a technician at the console, a watchtower lookout, a barricade sentry and a sensor-mast technician (roughly 4–8 Daleks, depending on wings and chance rolls). A ruined outpost keeps only a remnant of 1–3 sentries or patrollers, with no technicians or lookouts. Garrisons do not respawn. Other landmarks stay unpopulated; any further population belongs to later tickets.
 
 ### Dalek outpost
 - **Structures:** `dwm:dalek_outpost` (intact checkpoint) and `dwm:dalek_outpost_ruined` (same templates, decayed).
@@ -51,24 +51,51 @@ Small, frequent discoveries that tell Skaro's war history. They are distinct fro
   - Intact: Irradiated Wastes and Drammankin Mountains (`#dwm:has_structure/dalek_outpost`).
   - Ruined: Petrified Jungle (`#dwm:has_structure/dalek_outpost_ruined`).
   - Never on the Thal Plateau or in the Drammankin Mire.
-- **Rarity:** both share the structure set `dwm:skaro_military_landmarks` (random spread, spacing 32 chunks, separation 12, weight 1 each). Later military landmarks (trenches, wreckage) join this set, so they never cluster on top of an outpost.
+- **Rarity:** both share the structure set `dwm:skaro_military_landmarks` (random spread, spacing 32 chunks, separation 12, weight 1 each). Trenches share this set (see below) and later military landmarks (wreckage) will join it, so they never cluster on top of an outpost.
 - **Pieces** (jigsaw depth 1, `max_distance_from_center` 32). Each wing has one connector facing the core:
 
   | Piece | Size cap (X×Y×Z) | Projection | Notes |
   |---|---|---|---|
   | Core checkpoint | 11×7×11 | rigid | Riveted room on a one-block apron; 3-wide, 2-high doorway at floor level; grille windows; lit roof with railings; the only loot chest; connectors on three sides. |
-  | Watchtower | 5×12×5 | rigid | Open legs, ladder up a bronze pillar through a hatch, railed platform, lit roof. |
+  | Watchtower | 5×14×5 | rigid | Open legs, ladder up a bronze pillar through a hatch, railed platform, lit roof. |
   | Barricade | 7×3×3 | terrain_matching | Low riveted wall and grille that follows uneven ground. |
   | Sensor mast | 3×8×3 | rigid | Pad, plinth, chain mast with crossbar, lamp and lightning rod. |
 
   Wing pool weights: watchtower 3, barricade 4, sensor mast 3, nothing 2.
 - **Terrain adaptation:** `beard_thin` packs terrain under rigid pieces and clears it above them. Together with the carved apron in front of the doorway, this keeps the approach walkable on uneven ground.
 - **Ruined variant:** a `pool_aliases` entry maps the wing pool to a ruined copy. The processor list `dwm:skaro/dalek_outpost_ruined` rots about 30% of silver walls (`#dwm:silver_dalekanium_architecture`) and turns about 15% of bronze floor panels to gravel. Floors, the chest, and the doorway survive.
+- **Garrison:** the core and wing pools use `dwm:garrisoned_single_pool_element`, which adds a `garrison` list to the pool JSON (`entity`, `job`, template-local `pos`, `facing`, `chance`, optional `variant`, `radius`, `work_spots`). Each post spawns a persistent Dalek once, from the chunk that contains it. Intact: two sentries at the doorway, a technician at the console, a chance-based patrol, a watchtower lookout on the deck, a barricade sentry and a sensor-mast technician. Ruined: a remnant of 1–3 sentries or patrollers, no technicians or lookouts. Garrisons do not respawn. Jobs are described in [Dalek](./feature-dalek.md).
 - **Loot boundary:** exactly one chest, in the core, with loot table `dwm:chests/skaro/dalek_outpost`. It holds existing items only: silver and bronze Dalekanium ingots, iron and copper ingots, redstone, gunpowder, and a rare radiation meter. Wings never hold containers.
 - **Authoring:** templates are Java layouts in `src/test/java/com/adamkali/dwm/world/structure/DalekOutpostTemplates.java`. `./gradlew generateStructureTemplates` writes `data/dwm/structure/skaro/dalek_outpost/*.nbt`, and `StructureTemplateGeneratorTest` fails the build if the committed files drift from the layouts.
 - **Debug:**
   - `/execute in dwm:skaro run locate structure dwm:dalek_outpost`
   - `/place structure dwm:dalek_outpost` (or `dwm:dalek_outpost_ruined`)
+
+### Dalek trench
+A fortified battlefield line, carved two blocks into the ground: a sunken checkpoint yard opens a trench north and south; the trench runs on as zig-zag stretches (firing bays joined by traverses, so a blast or a shot cannot travel the length of the line) and short straight segments, some with side doorways to bunkers, and both arms always end in a closed cap. Daleks gather at the checkpoint and bunkers and work the line.
+- **Structures:** `dwm:dalek_trench` (intact) and `dwm:dalek_trench_ruined` (same templates, decayed by the outpost ruin processor list). Both use the structure type `dwm:dalek_trench`, a jigsaw assembly with the same JSON shape as `minecraft:jigsaw`.
+- **Eligible biomes:**
+  - Intact: Irradiated Wastes (`#dwm:has_structure/dalek_trench`).
+  - Ruined: Petrified Jungle and Drammankin Mountains (`#dwm:has_structure/dalek_trench_ruined`).
+  - Never on the Thal Plateau or in the Drammankin Mire.
+- **Rarity:** weight 1 each in `dwm:skaro_military_landmarks` (see above), so the Thal settlement exclusion zone applies. A trench is rejected, never truncated or stretched, when the sampled corners and centre of any piece sit on liquid (surface height differs from ocean-floor height, no tolerance) or in a biome outside the structure's biome tag, so trenches are absent near lakes and biome borders and the random-spread slot simply yields none there.
+- **Pieces** (jigsaw depth 5, `max_distance_from_center` 96). Pieces join end to end through `dwm:dalek_trench_link` connectors; junctions pull bunkers through `dwm:dalek_trench_bunker`.
+
+  | Piece | Size cap (X×Y×Z) | Projection | Notes |
+  |---|---|---|---|
+  | Checkpoint | 11×5×11 | rigid | Sunken yard with 3-wide, 3-high gates north and south, four pillars with lamps, a ground-level grille parapet with gaps to step in by; the only loot chest; start piece. |
+  | Segment | 5×4×8 | terrain_matching | Three-wide lane lined underground, with a ground-level iron-bar parapet and open gaps to drop in by (a two-block drop); follows uneven ground. |
+  | Zig-zag (and mirror) | 9×4×18 | terrain_matching | Three bays joined by two traverses: the lane turns four times, then leaves on the same axis it entered, so it chains like a straight segment. The mirror flips it east to west. Only the lane and a one-block lining are placed. |
+  | Junction | 5×4×8 | terrain_matching | A segment with a 3-high doorway in each side wall that opens a bunker. |
+  | Bunker | 9×6×9 | rigid | Half-buried roofed room with gunports at ground level on its north face and a 3-wide, 3-high doorway; two garrison variants (gun nest, depot). |
+  | End cap | 5×4×3 | terrain_matching | Closed trench end; only ever drawn from the fallback pool. |
+
+  Segment pool weights: zig-zag 4, mirrored zig-zag 4, junction 3, straight segment 2. The end cap is not in the segment pool: it is the only entry of its `fallback` pool (`end_caps`, `ruined_end_caps`), which jigsaw draws from at the depth limit or when nothing else fits, so arms run to full length and close with a cap. Bunker pool: gun nest 1, depot 1.
+- **Garrison:** every piece uses `dwm:garrisoned_single_pool_element`. Checkpoint: four always-present gate sentries, a technician at the chest, a chance-based patrol and courier. Straight segments: chance-based gunners at the firing steps and couriers running the lane. Zig-zag stretches: gunners at the traverse ends, a sentry in the middle bay, and a courier whose route follows every corner of the zig-zag. Junctions: a sentry and a courier. Gun nest bunker: gunners at the gunports and a sentry. Depot bunker: technicians at their benches and a chance-based lookout. End cap: a gunner facing down the trench. A ruined trench has the same posts under the ruin processors. Jobs are described in [Dalek](./feature-dalek.md).
+- **Loot boundary:** exactly one chest, in the checkpoint, using `dwm:chests/skaro/dalek_outpost`. Segments, bunkers and caps never hold containers.
+- **Terrain adaptation:** `beard_thin`. The trench is sunk 2 blocks: the structure starts at `start_height` -2 and every terrain-matching element sets `"sink": 2` (an optional `garrisoned_single_pool_element` field, 0 to 8, that lowers the piece below vanilla terrain matching), so segments and caps follow uneven ground two blocks deep, and their posts and courier routes sit on the lowered floor. The rigid checkpoint and bunkers do not follow slopes, so on steep ground their floor can sit a block or two off the lane.
+- **Authoring:** `src/test/java/com/adamkali/dwm/world/structure/DalekTrenchTemplates.java`; `./gradlew generateStructureTemplates` writes `data/dwm/structure/skaro/dalek_trench/*.nbt`.
+- **Debug:** `/execute in dwm:skaro run locate structure dwm:dalek_trench`, `/place structure dwm:dalek_trench` (or `dwm:dalek_trench_ruined`).
 
 ## Thal Plateau Settlement
 A hand-placed-looking village that is generated entirely from code (no NBT templates), deterministic for a given world seed and location.
@@ -105,7 +132,7 @@ Restrained and Skaro-only: none of these are Gallifrey plants or in any Gallifre
 
 ## Planned (not yet in the jar)
 - Remaining Dalek architecture builder family (DWM-065): wall, floor, light, door, damaged variants.
-- Remaining DWM-069 landmarks (battlefield trench/ruin, wreckage/crater, mutation nest, petrified carcass/copse, dry channel), Skaro fauna, Kaalann, and related tickets (DWM-072–074). Dalek biome patrols shipped under DWM-070 and the Thal settlement under DWM-071; structure-scoped Dalek population (e.g. Daleks guarding outposts) is still planned.
+- Remaining DWM-069 landmarks (wreckage/crater, mutation nest, petrified carcass/copse, dry channel), Skaro fauna, Kaalann, and related tickets (DWM-072–074). Dalek biome patrols shipped under DWM-070 and the Thal settlement under DWM-071; Dalek outposts are garrisoned; Dalek population for the Kaled bunker and Kaalann is still planned.
 - Major hostile structures outside `dwm:skaro_military_landmarks` (Kaled bunker DWM-073, Kaalann DWM-074) must add their own `exclusion_zone` against `dwm:thal_settlement` so they never generate beside a settlement.
 
 ## How It Works In-Game
@@ -126,6 +153,6 @@ Restrained and Skaro-only: none of these are Gallifrey plants or in any Gallifre
 
 ## Future Opportunities
 - Custom dimension effects for Skaro sky, fog, and clouds.
-- Thal trades or professions if a later settlement loop needs them; guards for the watch post; settlement variants (walled, larger) and Thal-crop fields once DWM-068 lands.
+- Thal trades or professions if a later settlement loop needs them; guards for the watch post; settlement variants (walled, larger).
 - Additional Dalek ranks, vehicles, or city-state mechanics beyond the baseline patrol and structure presence.
 - EVA-suit degradation, medicines, or structure-scale radiation hotspots.

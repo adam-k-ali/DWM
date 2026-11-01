@@ -4,28 +4,78 @@
     {
       "weight": 3,
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "dwm:garrisoned_single_pool_element",
         "location": "dwm:skaro/dalek_outpost/watchtower",
         "projection": "rigid",
-        "processors": "minecraft:empty"
+        "processors": "minecraft:empty",
+        "garrison": [
+          {
+            "entity": "dwm:paradigm_dalek",
+            "job": "lookout",
+            "pos": [
+              2,
+              9,
+              3
+            ],
+            "facing": "north",
+            "variant": "paradigm_strategist"
+          }
+        ]
       }
     },
     {
       "weight": 4,
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "dwm:garrisoned_single_pool_element",
         "location": "dwm:skaro/dalek_outpost/barricade",
         "projection": "terrain_matching",
-        "processors": "minecraft:empty"
+        "processors": "minecraft:empty",
+        "garrison": [
+          {
+            "entity": "dwm:dalek",
+            "job": "sentry",
+            "pos": [
+              3,
+              1,
+              1
+            ],
+            "facing": "north"
+          }
+        ]
       }
     },
     {
       "weight": 3,
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "dwm:garrisoned_single_pool_element",
         "location": "dwm:skaro/dalek_outpost/sensor_mast",
         "projection": "rigid",
-        "processors": "minecraft:empty"
+        "processors": "minecraft:empty",
+        "garrison": [
+          {
+            "entity": "dwm:paradigm_dalek",
+            "job": "technician",
+            "pos": [
+              0,
+              1,
+              1
+            ],
+            "facing": "south",
+            "variant": "paradigm_scientist",
+            "work_spots": [
+              [
+                2,
+                1,
+                1
+              ],
+              [
+                1,
+                1,
+                0
+              ]
+            ]
+          }
+        ]
       }
     },
     {

@@ -3,15 +3,24 @@
   "attribute_base": "mob",
   "attributes": {
     "minecraft:max_health": 20.0,
-    "minecraft:movement_speed": 0.3
+    "minecraft:movement_speed": 0.3,
+    "minecraft:attack_damage": 4.0,
+    "minecraft:follow_range": 24.0
   },
   "goals": [
     { "type": "minecraft:float", "priority": 0 },
-    { "type": "dwm:avoid_entity", "priority": 1, "entities": "#dwm:thal_fears", "max_distance": 12.0, "walk_speed": 1.0, "sprint_speed": 1.3 },
-    { "type": "minecraft:panic", "priority": 1, "speed": 1.25 },
+    { "type": "dwm:avoid_entity", "priority": 1, "can_use": { "type": "dwm:not_armed" }, "entities": "#dwm:thal_fears", "max_distance": 12.0, "walk_speed": 1.0, "sprint_speed": 1.3 },
+    { "type": "minecraft:panic", "priority": 1, "can_use": { "type": "dwm:not_armed" }, "speed": 1.25 },
+    { "type": "minecraft:ranged_attack", "priority": 2, "can_use": { "type": "dwm:armed" }, "speed": 1.0, "interval": 30, "attack_range": 16.0 },
     { "type": "minecraft:open_door", "priority": 2, "close_door": true },
     { "type": "minecraft:water_avoiding_random_stroll", "priority": 3, "speed": 1.0 },
     { "type": "minecraft:look_at", "priority": 4, "target": "minecraft:player", "look_distance": 8.0 },
     { "type": "minecraft:random_look_around", "priority": 5 }
+  ],
+  "targets": [
+    { "type": "minecraft:hurt_by_target", "priority": 1, "can_use": { "type": "dwm:armed" } },
+    { "type": "minecraft:nearest_attackable_target", "priority": 2, "target": "dwm:dalek", "must_see": true, "can_use": { "type": "dwm:armed" } },
+    { "type": "minecraft:nearest_attackable_target", "priority": 3, "target": "dwm:paradigm_dalek", "must_see": true, "can_use": { "type": "dwm:armed" } },
+    { "type": "minecraft:nearest_attackable_target", "priority": 4, "target": "dwm:dalek_mutant", "must_see": true, "can_use": { "type": "dwm:armed" } }
   ]
 }

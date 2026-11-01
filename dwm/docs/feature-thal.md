@@ -53,7 +53,10 @@ To make Thals flee something else (for example a future Slyther), add its entity
 - No dialogue, quests, or reputation.
 - No breeding or growth stages (Thals are not `Animal`s).
 - No unique drops.
-- No Dalek hostility toward Thals yet (see [Dalek](./feature-dalek.md)); Thals only run.
+- Settlement residents are never armed by default; they only fight during a [Dalek/Thal battle](./feature-dalek-thal-battles.md).
+
+## Armed Thals
+An armed Thal (NBT `Armed`) holds a Dalek Laser Gun (arm raised), stops fleeing, hunts Daleks, Paradigm Daleks and Dalek mutants it can see, and fires `DalekLaserEntity` bolts (4 damage, range 16). Thal bolts never hit other Thals. Only the battle event arms Thals, and it disarms survivors afterwards.
 
 ## Known Constraints
 - Stats and AI are JSON-authored; edits need a game restart, not `/reload` (see [Entity Definitions](./feature-entity-definitions.md)).
@@ -63,4 +66,5 @@ To make Thals flee something else (for example a future Slyther), add its entity
 - Unit: `ThalEntityTest`, `ThalSpawnRulesTest`, `EntityDefinitionCatalogTest` (shipped stats, `dwm:avoid_entity` parsing), and resource checks in `ResourceValidationTests` (textures, spawn egg model, `thal_fears` tag, no biome spawns).
 - Settlement: `ThalSettlementLayoutTest` (layout invariants over 500 seeds), resource checks in `ResourceValidationTests`, and `ThalSettlementGameTests` (every piece placed chunk by chunk, connected paths, persistent residents spawned once and not respawned after a save and reload, natural spawns only inside the settlement).
 - GameTests (`ThalGameTests`): matches its definition, variant survives save and load, flees a Dalek, panics rather than targets when hit by a player, and natural spawns are rejected while spawn egg and command spawns are allowed.
+- Armed Thals: `DalekThalBattleGameTests` (Thal bolt hurts a Dalek, not a Thal).
 - Client GameTest: `entities_thals` screenshot of the four variants.

@@ -2,6 +2,9 @@ package com.adamkali.dwm.gametest;
 
 import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.entity.DalekEntity;
+import com.adamkali.dwm.entity.DalekJob;
+import com.adamkali.dwm.world.structure.GarrisonedPoolElement;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -14,18 +17,23 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.levelgen.structure.templatesystem.LiquidSettings;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.phys.AABB;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /** Placement checks for Skaro landmarks (DWM-069): the modular Dalek outpost. */
@@ -92,20 +100,26 @@ public class SkaroLandmarkGameTests {
     @GameTest(structure = "fabric-gametest-api-v1:empty")
     public void intactOutpostAssemblesCoreAndWings(GameTestHelper context) {
         ServerLevel level = context.getLevel();
-        BoundingBox coreBox = assembleAndAssert(context, "dalek_outpost").getFirst().getBoundingBox();
+        List<PoolElementStructurePiece> pieces = assembleAndAssert(context, "dalek_outpost");
+        BoundingBox coreBox = pieces.getFirst().getBoundingBox();
+        assertIntactGarrison(level, pieces);
         if (countSilverWalls(level, coreBox) != templateSilverWalls(level)) {
             throw new AssertionError("Intact outpost core should keep every silver Dalekanium wall");
         }
+        discardDaleks(level, StructureGameTestSupport.bounds(pieces));
         context.succeed();
     }
 
     @GameTest(structure = "fabric-gametest-api-v1:empty")
     public void ruinedOutpostDecaysWallsButKeepsItsChest(GameTestHelper context) {
         ServerLevel level = context.getLevel();
-        BoundingBox coreBox = assembleAndAssert(context, "dalek_outpost_ruined").getFirst().getBoundingBox();
+        List<PoolElementStructurePiece> pieces = assembleAndAssert(context, "dalek_outpost_ruined");
+        BoundingBox coreBox = pieces.getFirst().getBoundingBox();
+        assertRuinedGarrison(level, pieces);
         if (countSilverWalls(level, coreBox) >= templateSilverWalls(level)) {
             throw new AssertionError("Ruined outpost core should lose some silver walls to block rot");
         }
+        discardDaleks(level, StructureGameTestSupport.bounds(pieces));
         context.succeed();
     }
 
@@ -121,7 +135,6 @@ public class SkaroLandmarkGameTests {
 
         BoundingBox box = StructureGameTestSupport.bounds(pieces);
         assertSingleLootChest(level, box);
-        assertNoEntities(level, box);
         for (BlockPos pos : cells(box)) {
             if (level.getBlockState(pos).is(Blocks.JIGSAW)) {
                 throw new AssertionError(structureId + " left a jigsaw block at " + pos);
@@ -132,7 +145,7 @@ public class SkaroLandmarkGameTests {
 
     private static void assertPieceTemplates(String structureId, List<PoolElementStructurePiece> pieces) {
         for (int i = 0; i < pieces.size(); i++) {
-            if (!(pieces.get(i).getElement() instanceof SinglePoolElement element)) {
+            if (!(pieces.get(i).getElement() instanceof GarrisonedPoolElement element)) {
                 throw new AssertionError(structureId + " placed an unexpected element " + pieces.get(i).getElement());
             }
             Identifier location = element.getTemplateLocation();
@@ -140,6 +153,121 @@ public class SkaroLandmarkGameTests {
             if (!expected) {
                 throw new AssertionError(structureId + " piece " + i + " used unexpected template " + location);
             }
+        }
+    }
+
+    /** Core: 2 sentries, 1 technician, 1-2 patrols. Each wing adds exactly its guaranteed post. */
+    private static void assertIntactGarrison(ServerLevel level, List<PoolElementStructurePiece> pieces) {
+        List<DalekEntity> daleks = daleks(level, StructureGameTestSupport.bounds(pieces));
+        Map<DalekJob, Integer> jobs = countJobs(daleks);
+        int watchtowers = countWings(pieces, "watchtower");
+        int barricades = countWings(pieces, "barricade");
+        int masts = countWings(pieces, "sensor_mast");
+        expect(jobs, DalekJob.SENTRY, 2 + barricades, 2 + barricades);
+        expect(jobs, DalekJob.TECHNICIAN, 1 + masts, 1 + masts);
+        expect(jobs, DalekJob.LOOKOUT, watchtowers, watchtowers);
+        expect(jobs, DalekJob.PATROL, 1, 2);
+        for (PoolElementStructurePiece piece : pieces) {
+            if (piece.getElement() instanceof GarrisonedPoolElement element
+                    && element.getTemplateLocation().getPath().endsWith("watchtower")) {
+                long onDeck = daleks.stream()
+                        .filter(dalek -> dalek.getJob() == DalekJob.LOOKOUT)
+                        .filter(dalek -> piece.getBoundingBox().isInside(dalek.getPost()))
+                        .filter(dalek -> dalek.getPost().getY() >= piece.getBoundingBox().minY() + 8)
+                        .count();
+                if (onDeck != 1) {
+                    throw new AssertionError("Expected one lookout on each watchtower deck but found " + onDeck);
+                }
+            }
+        }
+    }
+
+    /** Remnant only: a sentry guards the core, optionally a patrol and barricade sentries; no technicians or lookouts. */
+    private static void assertRuinedGarrison(ServerLevel level, List<PoolElementStructurePiece> pieces) {
+        List<DalekEntity> daleks = daleks(level, StructureGameTestSupport.bounds(pieces));
+        Map<DalekJob, Integer> jobs = countJobs(daleks);
+        int barricades = countWings(pieces, "barricade");
+        expect(jobs, DalekJob.TECHNICIAN, 0, 0);
+        expect(jobs, DalekJob.LOOKOUT, 0, 0);
+        expect(jobs, DalekJob.SENTRY, 1, 1 + barricades);
+        expect(jobs, DalekJob.PATROL, 0, 1);
+    }
+
+    /** Posts belong to the chunk containing them: placing a piece in two halves spawns what one full pass does. */
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void garrisonSpawnsOncePerPostAcrossChunkBoxes(GameTestHelper context) {
+        ServerLevel level = context.getLevel();
+        List<PoolElementStructurePiece> pieces = assembleAndAssert(context, "dalek_outpost");
+        PoolElementStructurePiece core = pieces.getFirst();
+        GarrisonedPoolElement element = (GarrisonedPoolElement) core.getElement();
+        BoundingBox box = core.getBoundingBox();
+        BoundingBox all = StructureGameTestSupport.bounds(pieces);
+        discardDaleks(level, all);
+
+        int whole = placeGarrison(level, core, element, box);
+        discardDaleks(level, all);
+        int mid = (box.minX() + box.maxX()) / 2;
+        int halves = placeGarrison(level, core, element,
+                new BoundingBox(box.minX(), box.minY(), box.minZ(), mid, box.maxY(), box.maxZ()))
+                + placeGarrison(level, core, element,
+                new BoundingBox(mid + 1, box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ()));
+        if (whole == 0 || whole != halves) {
+            throw new AssertionError("Expected split placement to spawn " + whole + " Daleks, got " + halves);
+        }
+        discardDaleks(level, all);
+        context.succeed();
+    }
+
+    private static int placeGarrison(
+            ServerLevel level, PoolElementStructurePiece piece, GarrisonedPoolElement element, BoundingBox chunkBox
+    ) {
+        element.place(level.getStructureManager(), level, level.structureManager(), level.getChunkSource().getGenerator(),
+                piece.getPosition(), piece.getPosition(), piece.getRotation(), chunkBox, RandomSource.create(7L),
+                LiquidSettings.APPLY_WATERLOGGING, false);
+        int count = 0;
+        for (DalekEntity dalek : daleks(level, chunkBox)) {
+            if (chunkBox.isInside(dalek.getPost())) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private static void discardDaleks(ServerLevel level, BoundingBox box) {
+        daleks(level, box).forEach(Entity::discard);
+    }
+
+    private static List<DalekEntity> daleks(ServerLevel level, BoundingBox box) {
+        // Full height: terrain-matching pieces (the barricade) put their post on the surface, not inside the template box.
+        AABB column = new AABB(box.minX() - 1, level.getMinY(), box.minZ() - 1, box.maxX() + 2, level.getMaxY(), box.maxZ() + 2);
+        return level.getEntitiesOfClass(DalekEntity.class, column);
+    }
+
+    private static Map<DalekJob, Integer> countJobs(List<DalekEntity> daleks) {
+        Map<DalekJob, Integer> jobs = new EnumMap<>(DalekJob.class);
+        for (DalekEntity dalek : daleks) {
+            if (dalek.getJob() == DalekJob.NONE || dalek.getPost() == null) {
+                throw new AssertionError("Garrison Dalek without a job or post: " + dalek);
+            }
+            if (!dalek.isPersistenceRequired()) {
+                throw new AssertionError("Garrison Dalek must be persistent: " + dalek);
+            }
+            jobs.merge(dalek.getJob(), 1, Integer::sum);
+        }
+        return jobs;
+    }
+
+    private static int countWings(List<PoolElementStructurePiece> pieces, String name) {
+        return (int) pieces.stream()
+                .filter(piece -> piece.getElement() instanceof GarrisonedPoolElement element
+                        && element.getTemplateLocation().getPath().endsWith(name))
+                .count();
+    }
+
+    private static void expect(Map<DalekJob, Integer> jobs, DalekJob job, int min, int max) {
+        int count = jobs.getOrDefault(job, 0);
+        if (count < min || count > max) {
+            throw new AssertionError("Expected " + min + ".." + max + " " + job + " Daleks but found " + count + " in " + jobs);
         }
     }
 

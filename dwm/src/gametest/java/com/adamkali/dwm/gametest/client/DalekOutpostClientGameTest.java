@@ -1,17 +1,21 @@
 package com.adamkali.dwm.gametest.client;
 
 import com.adamkali.dwm.DWMReference;
+import com.adamkali.dwm.entity.DalekEntity;
 import com.adamkali.dwm.gametest.StructureGameTestSupport;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.AABB;
 
 /**
  * Screenshots of the assembled Skaro Dalek outpost from an elevated three-quarter view:
- * {@code dalek_outpost.png} (wastes/mountains) and {@code dalek_outpost_ruined.png} (petrified jungle).
+ * {@code dalek_outpost.png} (wastes/mountains) and {@code dalek_outpost_ruined.png} (petrified jungle). The garrison
+ * is part of each shot and is frozen so it stays stable.
  */
 public class DalekOutpostClientGameTest implements FabricClientGameTest {
     /** Sand ground around the outpost; the core floor replaces its top layer like worldgen would. */
@@ -22,6 +26,7 @@ public class DalekOutpostClientGameTest implements FabricClientGameTest {
     private static final int MAX_Z = 42;
     /** Minimum corner of the 11×11 core, so the core is centred on x = 0, z = 22. */
     private static final BlockPos CORE_ANCHOR = new BlockPos(-5, GROUND_Y, 17);
+    private static final AABB AREA = new AABB(MIN_X, GROUND_Y - 1, MIN_Z, MAX_X + 1, GROUND_Y + 40, MAX_Z + 1);
     private static final BlockPos CAMERA = new BlockPos(-14, GROUND_Y + 14, 6);
 
     @Override
@@ -38,6 +43,8 @@ public class DalekOutpostClientGameTest implements FabricClientGameTest {
             for (String structure : new String[] {"dalek_outpost", "dalek_outpost_ruined"}) {
                 world.getServer().runOnServer(server -> {
                     var level = server.overworld();
+                    // The previous shot's garrison would otherwise stand around the next outpost.
+                    level.getEntitiesOfClass(DalekEntity.class, AREA).forEach(Entity::discard);
                     for (int x = MIN_X; x <= MAX_X; x++) {
                         for (int z = MIN_Z; z <= MAX_Z; z++) {
                             for (int y = GROUND_Y - 1; y <= GROUND_Y + 14; y++) {
@@ -48,6 +55,11 @@ public class DalekOutpostClientGameTest implements FabricClientGameTest {
                     }
                     StructureGameTestSupport.placeJigsaw(
                             level, Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, structure), CORE_ANCHOR, 3);
+                    // Garrison Daleks are frozen (NoAI, silent) so the shots are stable, as with the Thal settlement.
+                    level.getEntitiesOfClass(DalekEntity.class, AREA).forEach(dalek -> {
+                        dalek.setNoAi(true);
+                        dalek.setSilent(true);
+                    });
                 });
                 context.waitTicks(40);
                 ClientGameTestSupport.screenshot(context, structure);

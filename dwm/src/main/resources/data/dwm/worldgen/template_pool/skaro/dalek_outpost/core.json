@@ -4,10 +4,88 @@
     {
       "weight": 1,
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "dwm:garrisoned_single_pool_element",
         "location": "dwm:skaro/dalek_outpost/core",
         "projection": "rigid",
-        "processors": "minecraft:empty"
+        "processors": "minecraft:empty",
+        "garrison": [
+          {
+            "entity": "dwm:dalek",
+            "job": "sentry",
+            "pos": [
+              3,
+              1,
+              10
+            ],
+            "facing": "south"
+          },
+          {
+            "entity": "dwm:dalek",
+            "job": "sentry",
+            "pos": [
+              7,
+              1,
+              10
+            ],
+            "facing": "south"
+          },
+          {
+            "entity": "dwm:paradigm_dalek",
+            "job": "technician",
+            "pos": [
+              5,
+              1,
+              5
+            ],
+            "facing": "south",
+            "variant": "paradigm_scientist",
+            "work_spots": [
+              [
+                5,
+                1,
+                4
+              ],
+              [
+                5,
+                1,
+                2
+              ],
+              [
+                2,
+                1,
+                5
+              ],
+              [
+                8,
+                1,
+                5
+              ]
+            ]
+          },
+          {
+            "entity": "dwm:dalek",
+            "job": "patrol",
+            "pos": [
+              2,
+              1,
+              10
+            ],
+            "facing": "south",
+            "radius": 12
+          },
+          {
+            "entity": "dwm:paradigm_dalek",
+            "job": "patrol",
+            "pos": [
+              8,
+              1,
+              10
+            ],
+            "facing": "south",
+            "chance": 0.6,
+            "radius": 12
+          }
+        ]
       }
     }
   ]

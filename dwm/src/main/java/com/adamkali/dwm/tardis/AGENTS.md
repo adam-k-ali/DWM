@@ -16,7 +16,7 @@ TARDIS gameplay spans persistence, server-authoritative logic, world placement, 
 | `tardis.boti` | Bigger-on-the-inside interior mesh sampling and relative position codec (shared data for client BOTI renderer). |
 | `tardis.soto` | Scanning-the-outside exterior sampling and atmosphere (chameleon/SOTO path). |
 | `block` / `block.entities` (outside package) | Block types and BEs that TARDIS logic drives — keep block interaction thin, delegate to logic. |
-| `src/client/java/.../render/` | Client renderers (`TardisBlockEntityRenderer`, `PortalDoorRenderer`, `TardisBotiRenderer`, console HUD). No gameplay state changes. |
+| `src/client/java/.../render/` | Client renderers (`TardisBlockEntityRenderer`, `PortalDoorRenderer`, `TardisBotiRenderer`, console HUD, monitor screens in `TardisDecorBlockEntityRenderer` laid out by `TardisMonitorScreenLayout`). No gameplay state changes. |
 
 Entry orchestration for doors/travel generally flows: block/BE interaction → `TardisLogic` / feature `*Logic` → `TardisDataLoader` persist → optional `PortalStreamSyncService` or interior services.
 

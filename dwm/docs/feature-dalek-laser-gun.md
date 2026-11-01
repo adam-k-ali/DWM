@@ -10,5 +10,7 @@ A hand-held version of the Dalek's gun-stick, with a pistol grip.
 - **Recipe:** shaped — steel ingots, redstone, a diamond and a lever.
 - **Creative tab:** Combat.
 
+Thals can wield the gun during [Dalek/Thal battles](./feature-dalek-thal-battles.md); their bolts hurt Daleks but not Thals.
+
 Tuning lives in `LaserGunLogic`; the item is `LaserGunItem`. Player-fired bolts use a fixed damage value
 and a non-mob damage source in `DalekLaserEntity`; Dalek-fired bolts are unchanged.
