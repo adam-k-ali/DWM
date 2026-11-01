@@ -1,6 +1,7 @@
 package com.adamkali.dwm.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import org.joml.Matrix4f;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,24 @@ class TardisDecorBlockEntityRendererTest {
         TardisDecorBlockEntityRenderer.applyTransforms(a, Direction.WEST);
         TardisDecorBlockEntityRenderer.applyTransforms(b, Direction.WEST);
         assertTrue(matricesEqual(a.last().pose(), b.last().pose()));
+    }
+
+    @Test
+    void globeAge_wrapsAndAddsPartialTicks() {
+        BlockPos pos = new BlockPos(3, 64, -7);
+        float start = TardisDecorBlockEntityRenderer.globeAge(0L, pos, 0.0f);
+        assertTrue(start >= 0.0f && start < TardisDecorBlockEntityRenderer.GLOBE_AGE_PERIOD);
+        assertEquals(start, TardisDecorBlockEntityRenderer.globeAge(TardisDecorBlockEntityRenderer.GLOBE_AGE_PERIOD, pos, 0.0f), EPSILON);
+        float later = TardisDecorBlockEntityRenderer.globeAge(5_000_000_123L, pos, 0.25f);
+        assertTrue(later >= 0.0f && later < TardisDecorBlockEntityRenderer.GLOBE_AGE_PERIOD + 1.0f);
+        assertEquals(0.25f, later - (float) Math.floor(later), EPSILON);
+    }
+
+    @Test
+    void globeAge_neighboursAreOutOfPhase() {
+        float a = TardisDecorBlockEntityRenderer.globeAge(100L, new BlockPos(0, 64, 0), 0.0f);
+        float b = TardisDecorBlockEntityRenderer.globeAge(100L, new BlockPos(1, 64, 0), 0.0f);
+        assertNotEquals(a, b);
     }
 
     private static boolean matricesEqual(Matrix4f a, Matrix4f b) {

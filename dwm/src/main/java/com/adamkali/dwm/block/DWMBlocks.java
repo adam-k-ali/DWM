@@ -172,7 +172,7 @@ public class DWMBlocks {
             DWMBlockSettings.tardisCeilingVent(),
             "tardis_ceiling_vent");
     public static final Block TARDIS_GLOBE = register(
-            settings -> new TardisDecorEntityBlock(settings, TardisDecorShapes.GLOBE),
+            TardisGlobeBlock::new,
             DWMBlockSettings.TARDIS_DECOR_SETTINGS,
             "tardis_globe");
     public static final Block TARDIS_COMPACT_SCANNER = register(
