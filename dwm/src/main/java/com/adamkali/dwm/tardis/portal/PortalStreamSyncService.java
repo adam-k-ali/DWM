@@ -63,6 +63,8 @@ public final class PortalStreamSyncService {
     private static final Map<StreamKey, Set<UUID>> SUBSCRIBERS = new ConcurrentHashMap<>();
     private static final Map<ViewerKey, Set<Long>> SENT_CHUNKS = new ConcurrentHashMap<>();
     private static final Map<ViewerKey, Set<UUID>> TRACKED_ENTITIES = new ConcurrentHashMap<>();
+    /** Dimension + footprint origin the viewer's sent chunks were sampled against. */
+    private static final Map<ViewerKey, SceneEpoch> VIEWER_EPOCHS = new ConcurrentHashMap<>();
     private static final Map<StreamKey, Set<Long>> DIRTY_CHUNKS = new ConcurrentHashMap<>();
     private static final Map<StreamKey, Integer> BOTI_LIGHT_DEFER_STARTED = new ConcurrentHashMap<>();
     private static final Map<StreamKey, Integer> LEAVE_GRACE = new ConcurrentHashMap<>();
@@ -97,6 +99,7 @@ public final class PortalStreamSyncService {
         SUBSCRIBERS.clear();
         SENT_CHUNKS.clear();
         TRACKED_ENTITIES.clear();
+        VIEWER_EPOCHS.clear();
         DIRTY_CHUNKS.clear();
         BOTI_LIGHT_DEFER_STARTED.clear();
         LEAVE_GRACE.clear();
@@ -455,6 +458,35 @@ public final class PortalStreamSyncService {
             }
             SENT_CHUNKS.remove(key);
             TRACKED_ENTITIES.remove(key);
+            VIEWER_EPOCHS.remove(key);
+        }
+    }
+
+    /**
+     * True when chunks already sent to a viewer were sampled against a different dimension or footprint
+     * origin than {@code current}, so the viewer's cache must be dropped and resent. Package-visible for tests.
+     */
+    static boolean epochChanged(@Nullable SceneEpoch previous, SceneEpoch current) {
+        return previous != null && !previous.equals(current);
+    }
+
+    /** Drops everything the viewer holds for a scene that moved (new dimension or origin). */
+    private static void resetViewerForNewEpoch(ServerPlayer player, SceneContext ctx, ViewerKey key, Set<Long> sent) {
+        for (long packed : Set.copyOf(sent)) {
+            ServerPlayNetworking.send(player, new UnloadPortalChunkS2CPayload(
+                    ctx.kind(), ctx.tardisId(), ChunkPos.getX(packed), ChunkPos.getZ(packed)
+            ));
+        }
+        sent.clear();
+        Set<UUID> tracked = TRACKED_ENTITIES.get(key);
+        if (tracked != null) {
+            for (UUID entityId : Set.copyOf(tracked)) {
+                ServerPlayNetworking.send(player, new SyncPortalEntityRemoveS2CPayload(
+                        ctx.kind(), ctx.tardisId(), entityId
+                ));
+                PortalStreamPerfStats.noteEntityRemove();
+            }
+            tracked.clear();
         }
     }
 
@@ -507,6 +539,11 @@ public final class PortalStreamSyncService {
     ) {
         ViewerKey key = new ViewerKey(ctx.kind(), ctx.tardisId(), player.getUUID());
         Set<Long> sent = SENT_CHUNKS.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet());
+        SceneEpoch epoch = new SceneEpoch(ctx.world().dimension(), ctx.footprintOrigin());
+        if (epochChanged(VIEWER_EPOCHS.get(key), epoch)) {
+            resetViewerForNewEpoch(player, ctx, key, sent);
+        }
+        VIEWER_EPOCHS.put(key, epoch);
         int[] bounds = ctx.chunkBounds(player);
         Set<Long> desired = new HashSet<>();
         for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
@@ -667,6 +704,9 @@ public final class PortalStreamSyncService {
         BlockPos plotOrigin = TardisPlotAllocator.plotOrigin(tardisId);
         PortalAtmosphere atmosphere = BotiInteriorSampler.sampleAtmosphere(interior, plotOrigin);
         return new SceneContext(kind, tardisId, interior, plotOrigin, plotOrigin, shell, atmosphere);
+    }
+
+    record SceneEpoch(ResourceKey<Level> worldKey, BlockPos footprintOrigin) {
     }
 
     private record StreamKey(PortalStreamKind kind, UUID tardisId) {

@@ -229,6 +229,37 @@ class SotoGhostExteriorTest {
         assertEquals(2_000L, next.receiveTimeMs());
     }
 
+    @Test
+    void applyChunk_newFootprintOrigin_dropsChunksFromOldOrigin() {
+        UUID id = UUID.randomUUID();
+        BlockPos oldOnly = new BlockPos(2, 1, 3);
+        BlockPos newRel = new BlockPos(4, 1, 5);
+        SotoGhostExterior.applyChunk(PortalStreamKind.SOTO, dirtChunk(id, 0, 0, Blocks.DIRT));
+        SotoGhostExterior.applyChunk(PortalStreamKind.SOTO, dirtChunk(id, 1, 0, Blocks.DIRT));
+
+        SotoGhostExterior ghost = SotoGhostExterior.get(PortalStreamKind.SOTO, id);
+        assertNotNull(ghost);
+        assertEquals(2, ghost.chunkCount());
+
+        SotoGhostExterior.applyChunk(PortalStreamKind.SOTO, new SyncPortalChunkS2CPayload(
+                PortalStreamKind.SOTO,
+                id,
+                0,
+                0,
+                103,
+                64,
+                200,
+                List.of(new SyncPortalChunkS2CPayload.BlockEntry(
+                        newRel.getX(), newRel.getY(), newRel.getZ(),
+                        BotiRelativePosCodec.stateId(Blocks.STONE.defaultBlockState()))),
+                List.of()));
+
+        assertEquals(new BlockPos(103, 64, 200), ghost.footprintOrigin());
+        assertEquals(1, ghost.chunkCount());
+        assertTrue(ghost.getBlockState(oldOnly).isAir());
+        assertEquals(Blocks.STONE, ghost.getBlockState(newRel).getBlock());
+    }
+
     private static SyncPortalChunkS2CPayload dirtChunk(
             UUID id,
             int cx,
