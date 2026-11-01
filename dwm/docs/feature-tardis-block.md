@@ -83,6 +83,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 ## SOTO Notes
 - Uses the same deferred portal FBO pipeline and the same portal stream packet family as BOTI (shared `enableDoorPortals`, default on).
 - Visual illusion: portal-composites a streamed exterior scene (shell + atmosphere + view-distance ghost chunks + entities) through the classic interior door aperture (not a live world stream); hitch-fixed look-out at the shell door plane.
+- Overworld exteriors draw a sky behind the streamed terrain: sky disc, sun, moon (with its current phase), stars and the sunrise/sunset glow, driven by the synced time of day and rain (`SotoSkyState`). Nether and End exteriors keep the flat atmosphere-colour backdrop. Clouds are not drawn yet: vanilla's cloud renderer always writes to the main framebuffer, so it needs its own portal-target path.
 - Stream keyed by `PortalStreamKind.SOTO`; meta revision and chunk/entity lifecycle match BOTI's wire format. Sampled sky/block light illuminates terrain and features, while atmosphere-colored distance fog blends the outer stream into its backdrop.
 
 ## Known Constraints

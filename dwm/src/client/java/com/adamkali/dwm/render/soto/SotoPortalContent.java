@@ -88,7 +88,7 @@ public final class SotoPortalContent implements PortalContent {
         SotoAtmosphere atmosphere = portal != null ? SotoAtmosphere.fromPortal(portal) : SotoAtmosphere.DEFAULT;
 
         long skyStart = PortalPerfStats.begin();
-        SotoSkyFogRenderer.renderPortalSky(sceneMatrices, null, atmosphere);
+        SotoSkyFogRenderer.renderPortalSky(context, atmosphere);
         context.bindTarget();
         GpuBufferSlice previousFog = SotoSkyFogRenderer.applyPortalTerrainFog(atmosphere);
         PortalPerfStats.end(PortalPerfStats.Stage.SKY_FOG, skyStart);

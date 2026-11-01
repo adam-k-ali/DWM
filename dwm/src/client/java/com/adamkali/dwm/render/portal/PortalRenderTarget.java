@@ -245,10 +245,16 @@ public final class PortalRenderTarget implements AutoCloseable {
         return height;
     }
 
+    /** The portal colour/depth target, or {@code null} until {@link #isReady()}. */
+    public RenderTarget renderTarget() {
+        return isReady() ? framebuffer : null;
+    }
+
     @Override
     public void close() {
         renderedFrameByKey.clear();
         clearOutputOverrides();
+        com.adamkali.dwm.render.soto.SotoSkyFogRenderer.closePortalSky();
         if (framebuffer != null) {
             framebuffer.destroyBuffers();
             framebuffer = null;

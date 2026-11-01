@@ -1,33 +1,38 @@
 package com.adamkali.dwm.render.soto;
 
 import com.adamkali.dwm.render.portal.PortalFogRenderer;
+import com.adamkali.dwm.render.portal.PortalContentContext;
 import com.adamkali.dwm.tardis.portal.PortalSampler;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors.EffectsKind;
-import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
+import com.adamkali.dwm.tardis.soto.SotoSkyState;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.SkyRenderer;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4f;
+import org.joml.Matrix4fStack;
 import org.lwjgl.opengl.GL11;
 
 /**
  * Mini skybox + fog for the SOTO exterior portal, driven by synced {@link SotoAtmosphere}.
  * <p>
  * Minecraft 26.2 replaced {@code FogParameters}/{@code Tesselator}/{@code CoreShaders} with
- * GpuBufferSlice fog and RenderPass draws. Portal sky currently fills via target clear color
- * ({@link #portalBackdropRgb}); solid backdrop mesh redraw is deferred until a POSITION_COLOR
- * RenderPass helper lands. Terrain fog apply/restore preserves the previous GpuBufferSlice.
+ * GpuBufferSlice fog and RenderPass draws. The overworld sky (disc, sun, moon, stars, sunrise glow)
+ * is drawn by a portal-owned vanilla {@code SkyRenderer}; other dimensions fill via the target
+ * clear colour ({@link #portalBackdropRgb}). Clouds are deferred. Terrain fog apply/restore
+ * preserves the previous GpuBufferSlice.
  */
 public final class SotoSkyFogRenderer {
-    /** Vanilla sky dome radius; scale so it sits behind the streamed exterior. */
-    private static final float VANILLA_SKY_RADIUS = 512.0F;
-    private static final float SKY_SCALE = 10.0F / VANILLA_SKY_RADIUS;
+    /** Sky fog must never tint the celestials, so push its end far past the sky dome. */
+    private static final float SKY_FOG_END = 100_000.0F;
+
+    private static SkyRenderer portalSky;
+    private static RenderTarget portalSkyTarget;
 
     private SotoSkyFogRenderer() {
     }
@@ -46,24 +51,25 @@ public final class SotoSkyFogRenderer {
     }
 
     /**
-     * Draws the portal sky with fog reaching the edge of the view-distance ghost stream.
+     * Draws the overworld sun, moon, stars and sunrise/sunset glow into the portal target using a
+     * portal-owned vanilla {@link SkyRenderer}. Nether/End keep the flat fog-colour clear backdrop,
+     * and clouds are not drawn (vanilla's cloud renderer hard-binds the main target).
      * <p>
      * The shared entity submit collector must not be used for sky fills — it can rebind the main
-     * framebuffer. Backdrop RGB is applied by the portal clear; optional mesh fill is a no-op
-     * until RenderPass POSITION_COLOR drawing is ported.
+     * framebuffer.
      */
-    public static void renderPortalSky(
-            PoseStack matrices,
-            SubmitNodeCollector ignoredSubmitNodeCollector,
-            SotoAtmosphere atmosphere
-    ) {
-        if (atmosphere == null) {
-            atmosphere = SotoAtmosphere.DEFAULT;
+    public static void renderPortalSky(PortalContentContext context, SotoAtmosphere atmosphere) {
+        SotoSkyState state = SotoSkyState.from(atmosphere);
+        if (!state.hasCelestials()) {
+            return;
         }
-        EffectsKind kind = SotoAtmosphereColors.effectsKind(atmosphere.dimensionEffectsId());
-        float skyAngle = SotoAtmosphereColors.skyAngle(atmosphere.timeOfDay());
-        int skyRgb = portalBackdropRgb(atmosphere, kind, skyAngle);
-        GpuBufferSlice previous = RenderSystem.getShaderFog();
+        SkyRenderer renderer = portalSkyRenderer(context.target().renderTarget());
+        if (renderer == null) {
+            return;
+        }
+        GpuBufferSlice previousFog = PortalFogRenderer.apply(
+                0.0F, SKY_FOG_END, ARGB.redFloat(state.skyColor()),
+                ARGB.greenFloat(state.skyColor()), ARGB.blueFloat(state.skyColor()));
 
         boolean depthWasEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
         boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
@@ -72,17 +78,25 @@ public final class SotoSkyFogRenderer {
         SotoGl.depthFunc(GL11.GL_LEQUAL);
         SotoGl.disableCull();
 
-        matrices.pushPose();
+        // Sky meshes are camera-centred: the model-view must carry rotation only.
+        Matrix4fStack modelView = RenderSystem.getModelViewStack();
+        modelView.pushMatrix();
         try {
-            double cx = SotoExteriorSampler.RELATIVE_TARDIS_POS.getX() + 0.5;
-            double cy = SotoExteriorSampler.RELATIVE_TARDIS_POS.getY() + 1.0;
-            double cz = SotoExteriorSampler.RELATIVE_TARDIS_POS.getZ() + 0.5;
-            matrices.translate(cx, cy, cz);
-            matrices.scale(SKY_SCALE, SKY_SCALE, SKY_SCALE);
-            // Portal clear already painted skyRgb; mesh backdrop deferred (no Tesselator in 26.2).
-            renderSolidBackdropRgb(matrices, skyRgb);
+            modelView.identity();
+            context.portalCamera().getViewRotationMatrix(modelView);
+            PoseStack poseStack = new PoseStack();
+            renderer.renderSkyDisc(state.skyColor());
+            renderer.renderSunriseAndSunset(poseStack, state.sunAngle(), state.sunriseSunsetColor());
+            renderer.renderSunMoonAndStars(
+                    poseStack,
+                    state.sunAngle(),
+                    state.moonAngle(),
+                    state.starAngle(),
+                    state.moonPhase(),
+                    state.rainBrightness(),
+                    state.starBrightness());
         } finally {
-            matrices.popPose();
+            modelView.popMatrix();
             SotoGl.depthMask(true);
             if (cullWasEnabled) {
                 SotoGl.enableCull();
@@ -92,10 +106,30 @@ public final class SotoSkyFogRenderer {
             if (!depthWasEnabled) {
                 SotoGl.disableDepthTest();
             }
-            if (previous != null) {
-                RenderSystem.setShaderFog(previous);
-            }
+            PortalFogRenderer.restore(previousFog);
         }
+    }
+
+    private static SkyRenderer portalSkyRenderer(RenderTarget target) {
+        if (target == null) {
+            return null;
+        }
+        if (portalSky == null || portalSkyTarget != target) {
+            closePortalSky();
+            Minecraft client = Minecraft.getInstance();
+            portalSky = new SkyRenderer(client.getTextureManager(), client.getAtlasManager(), target);
+            portalSkyTarget = target;
+        }
+        return portalSky;
+    }
+
+    /** Releases the portal sky buffers; called when the portal target is destroyed. */
+    public static void closePortalSky() {
+        if (portalSky != null) {
+            portalSky.close();
+        }
+        portalSky = null;
+        portalSkyTarget = null;
     }
 
     /** RGB used to clear / fill the portal sky when geometry cannot rely on vanilla sky VBOs. */
@@ -162,15 +196,6 @@ public final class SotoSkyFogRenderer {
                 (float) color.y,
                 (float) color.z
         );
-    }
-
-    private static void renderSolidBackdropRgb(PoseStack matrices, int argb) {
-        // Intentionally empty on 26.2 until POSITION_COLOR RenderPass draw helper exists.
-        // Portal bindAndClear already fills with portalBackdropRgb.
-        Matrix4f ignored = matrices.last().pose();
-        if (ignored == null || argb == 0 && VANILLA_SKY_RADIUS <= 0) {
-            return;
-        }
     }
 
     /** Local fog color description (replaces removed FogParameters for color math). */

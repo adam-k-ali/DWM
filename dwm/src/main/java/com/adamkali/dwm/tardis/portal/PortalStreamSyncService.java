@@ -62,6 +62,7 @@ public final class PortalStreamSyncService {
 
     private static final Map<StreamKey, Set<UUID>> SUBSCRIBERS = new ConcurrentHashMap<>();
     private static final Map<ViewerKey, Set<Long>> SENT_CHUNKS = new ConcurrentHashMap<>();
+    private static final Set<ViewerKey> META_SENT = ConcurrentHashMap.newKeySet();
     private static final Map<ViewerKey, Set<UUID>> TRACKED_ENTITIES = new ConcurrentHashMap<>();
     private static final Map<StreamKey, Set<Long>> DIRTY_CHUNKS = new ConcurrentHashMap<>();
     private static final Map<StreamKey, Integer> BOTI_LIGHT_DEFER_STARTED = new ConcurrentHashMap<>();
@@ -96,6 +97,7 @@ public final class PortalStreamSyncService {
     public static void clear() {
         SUBSCRIBERS.clear();
         SENT_CHUNKS.clear();
+        META_SENT.clear();
         TRACKED_ENTITIES.clear();
         DIRTY_CHUNKS.clear();
         BOTI_LIGHT_DEFER_STARTED.clear();
@@ -197,12 +199,13 @@ public final class PortalStreamSyncService {
         SUBSCRIBERS.computeIfAbsent(streamKey, id -> ConcurrentHashMap.newKeySet()).add(player.getUUID());
         LEAVE_GRACE.remove(streamKey);
         ViewerKey viewerKey = new ViewerKey(kind, tardisId, player.getUUID());
+        sendMeta(player, ctx);
+        META_SENT.add(viewerKey);
         Set<Long> alreadySent = SENT_CHUNKS.get(viewerKey);
         boolean alreadyStreaming = alreadySent != null && !alreadySent.isEmpty();
         if (alreadyStreaming) {
             return true;
         }
-        sendMeta(player, ctx);
         SENT_CHUNKS.computeIfAbsent(viewerKey, k -> ConcurrentHashMap.newKeySet());
         TRACKED_ENTITIES.computeIfAbsent(viewerKey, k -> ConcurrentHashMap.newKeySet());
         sendViewerChunks(player, ctx, new HashMap<>(), SampleBudget.start(), new HashMap<>());
@@ -454,6 +457,7 @@ public final class PortalStreamSyncService {
                 }
             }
             SENT_CHUNKS.remove(key);
+            META_SENT.remove(key);
             TRACKED_ENTITIES.remove(key);
         }
     }
@@ -490,6 +494,11 @@ public final class PortalStreamSyncService {
         return viewers;
     }
 
+    /** True the first time a viewer is seen, so shell/atmosphere meta goes out with their first chunk batch. */
+    static <K> boolean claimMetaSend(Set<K> metaSent, K viewerKey) {
+        return metaSent.add(viewerKey);
+    }
+
     private static void sendMeta(ServerPlayer player, SceneContext ctx) {
         int revision = META_REVISIONS.merge(ctx.tardisId(), 1, Integer::sum);
         ServerPlayNetworking.send(player, SyncPortalMetaS2CPayload.of(
@@ -506,6 +515,9 @@ public final class PortalStreamSyncService {
             Map<Long, Integer> dirtyGot
     ) {
         ViewerKey key = new ViewerKey(ctx.kind(), ctx.tardisId(), player.getUUID());
+        if (claimMetaSend(META_SENT, key)) {
+            sendMeta(player, ctx);
+        }
         Set<Long> sent = SENT_CHUNKS.computeIfAbsent(key, k -> ConcurrentHashMap.newKeySet());
         int[] bounds = ctx.chunkBounds(player);
         Set<Long> desired = new HashSet<>();
