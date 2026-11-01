@@ -11,7 +11,11 @@ public enum DalekJob implements StringRepresentable {
     SENTRY("sentry"),
     PATROL("patrol"),
     LOOKOUT("lookout"),
-    TECHNICIAN("technician");
+    TECHNICIAN("technician"),
+    /** Trench firing-step gunner: holds its post like a sentry but sweeps a wider arc. */
+    GUNNER("gunner"),
+    /** Runs the trench line, walking back and forth between its work-spot route. */
+    COURIER("courier");
 
     private final String id;
 
@@ -38,8 +42,8 @@ public enum DalekJob implements StringRepresentable {
         return ordinal >= 0 && ordinal < jobs.length ? jobs[ordinal] : NONE;
     }
 
-    /** Sentries and lookouts stand at their post and scan. */
+    /** Sentries, lookouts and gunners stand at their post and scan. */
     public boolean holdsPost() {
-        return this == SENTRY || this == LOOKOUT;
+        return this == SENTRY || this == LOOKOUT || this == GUNNER;
     }
 }

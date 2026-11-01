@@ -1,0 +1,27 @@
+{
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "dwm:garrisoned_single_pool_element",
+        "location": "dwm:skaro/dalek_trench/end_cap",
+        "projection": "terrain_matching",
+        "processors": "dwm:skaro/dalek_outpost_ruined",
+        "garrison": [
+          {
+            "entity": "dwm:dalek",
+            "job": "gunner",
+            "pos": [
+              2,
+              1,
+              1
+            ],
+            "facing": "south"
+          }
+        ],
+        "sink": 2
+      }
+    }
+  ]
+}

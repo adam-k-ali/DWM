@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -127,7 +128,9 @@ class DalekGarrisonLogicTest {
     }
 
     @Test
-    void onlySentriesAndLookoutsHoldAPost() {
+    void onlySentriesLookoutsAndGunnersHoldAPost() {
+        assertTrue(DalekJob.GUNNER.holdsPost());
+        assertFalse(DalekJob.COURIER.holdsPost());
         assertTrue(DalekJob.SENTRY.holdsPost());
         assertTrue(DalekJob.LOOKOUT.holdsPost());
         assertFalse(DalekJob.PATROL.holdsPost());
@@ -144,5 +147,35 @@ class DalekGarrisonLogicTest {
         assertEquals(DalekJob.NONE, DalekJob.byId("garbage"));
         assertEquals(DalekJob.NONE, DalekJob.byOrdinal(-1));
         assertEquals(DalekJob.NONE, DalekJob.byOrdinal(99));
+    }
+
+    @Test
+    void gunnersSweepWiderThanSentries() {
+        assertEquals(DalekGarrisonLogic.GUNNER_SWEEP_DEGREES, DalekGarrisonLogic.sweepDegrees(DalekJob.GUNNER));
+        assertEquals(DalekGarrisonLogic.SCAN_SWEEP_DEGREES, DalekGarrisonLogic.sweepDegrees(DalekJob.SENTRY));
+        assertEquals(DalekGarrisonLogic.SCAN_SWEEP_DEGREES, DalekGarrisonLogic.sweepDegrees(DalekJob.LOOKOUT));
+        for (int tick = 0; tick < 400; tick++) {
+            assertTrue(Math.abs(DalekGarrisonLogic.scanYawOffset(tick, DalekGarrisonLogic.GUNNER_SWEEP_DEGREES))
+                    <= DalekGarrisonLogic.GUNNER_SWEEP_DEGREES + 0.001F);
+        }
+    }
+
+    @Test
+    void courierBouncesBetweenBothEndsOfItsRoute() {
+        int index = 0;
+        int direction = 1;
+        int[] visited = new int[8];
+        for (int i = 0; i < visited.length; i++) {
+            visited[i] = index;
+            int[] leg = DalekGarrisonLogic.nextCourierLeg(index, direction, 4);
+            index = leg[0];
+            direction = leg[1];
+        }
+        assertArrayEquals(new int[] {0, 1, 2, 3, 2, 1, 0, 1}, visited);
+    }
+
+    @Test
+    void courierWithASingleStopStaysPut() {
+        assertArrayEquals(new int[] {0, 1}, DalekGarrisonLogic.nextCourierLeg(0, -1, 1));
     }
 }

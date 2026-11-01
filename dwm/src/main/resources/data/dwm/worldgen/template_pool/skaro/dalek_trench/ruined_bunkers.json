@@ -1,0 +1,134 @@
+{
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "dwm:garrisoned_single_pool_element",
+        "location": "dwm:skaro/dalek_trench/bunker",
+        "projection": "rigid",
+        "processors": "dwm:skaro/dalek_outpost_ruined",
+        "garrison": [
+          {
+            "entity": "dwm:dalek",
+            "job": "gunner",
+            "pos": [
+              2,
+              1,
+              1
+            ],
+            "facing": "north"
+          },
+          {
+            "entity": "dwm:dalek",
+            "job": "gunner",
+            "pos": [
+              4,
+              1,
+              1
+            ],
+            "facing": "north",
+            "chance": 0.8
+          },
+          {
+            "entity": "dwm:dalek",
+            "job": "gunner",
+            "pos": [
+              6,
+              1,
+              1
+            ],
+            "facing": "north",
+            "chance": 0.6
+          },
+          {
+            "entity": "dwm:dalek",
+            "job": "sentry",
+            "pos": [
+              4,
+              1,
+              7
+            ],
+            "facing": "south",
+            "chance": 0.7
+          }
+        ]
+      }
+    },
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "dwm:garrisoned_single_pool_element",
+        "location": "dwm:skaro/dalek_trench/bunker",
+        "projection": "rigid",
+        "processors": "dwm:skaro/dalek_outpost_ruined",
+        "garrison": [
+          {
+            "entity": "dwm:paradigm_dalek",
+            "job": "technician",
+            "pos": [
+              4,
+              1,
+              4
+            ],
+            "facing": "north",
+            "variant": "paradigm_scientist",
+            "work_spots": [
+              [
+                2,
+                1,
+                2
+              ],
+              [
+                6,
+                1,
+                2
+              ],
+              [
+                2,
+                1,
+                6
+              ],
+              [
+                6,
+                1,
+                6
+              ]
+            ]
+          },
+          {
+            "entity": "dwm:paradigm_dalek",
+            "job": "technician",
+            "pos": [
+              6,
+              1,
+              6
+            ],
+            "facing": "west",
+            "variant": "paradigm_scientist",
+            "chance": 0.6,
+            "work_spots": [
+              [
+                2,
+                1,
+                6
+              ]
+            ]
+          },
+          {
+            "entity": "dwm:paradigm_dalek",
+            "job": "lookout",
+            "pos": [
+              4,
+              1,
+              7
+            ],
+            "facing": "south",
+            "variant": "paradigm_strategist",
+            "chance": 0.5
+          }
+        ]
+      }
+    }
+  ]
+}
