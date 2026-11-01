@@ -239,7 +239,7 @@ public final class DalekOutpostTemplates {
     }
 
     /** Shared Dalek palette: bronze floors and structure, silver walls (the ruin processor rots silver). */
-    private static TemplateLayout.Builder palette(String path) {
+    static TemplateLayout.Builder palette(String path) {
         return TemplateLayout.builder(path)
                 .legend('.', Blocks.AIR.defaultBlockState())
                 .legend('B', DWMBlocks.BRONZE_DALEKANIUM_PANEL.defaultBlockState())
@@ -250,11 +250,11 @@ public final class DalekOutpostTemplates {
                 .legend('L', Blocks.SEA_LANTERN.defaultBlockState());
     }
 
-    private static BlockState jigsaw(FrontAndTop orientation) {
+    static BlockState jigsaw(FrontAndTop orientation) {
         return Blocks.JIGSAW.defaultBlockState().setValue(JigsawBlock.ORIENTATION, orientation);
     }
 
-    private static CompoundTag lootChest() {
+    static CompoundTag lootChest() {
         CompoundTag nbt = new CompoundTag();
         nbt.putString("id", "minecraft:chest");
         nbt.putString("LootTable", LOOT_TABLE);
@@ -271,7 +271,7 @@ public final class DalekOutpostTemplates {
         return jigsawNbt(WING_JIGSAW_NAME, "minecraft:empty", "minecraft:empty");
     }
 
-    private static CompoundTag jigsawNbt(String name, String target, String pool) {
+    static CompoundTag jigsawNbt(String name, String target, String pool) {
         CompoundTag nbt = new CompoundTag();
         nbt.putString("id", "minecraft:jigsaw");
         nbt.putString("name", name);

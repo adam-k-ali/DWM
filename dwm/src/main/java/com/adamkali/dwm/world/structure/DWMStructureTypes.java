@@ -14,6 +14,8 @@ import net.minecraft.world.level.levelgen.structure.StructureType;
 public final class DWMStructureTypes {
     public static final StructureType<ThalSettlementStructure> THAL_SETTLEMENT =
             register("thal_settlement", () -> ThalSettlementStructure.CODEC);
+    public static final StructureType<DalekTrenchStructure> DALEK_TRENCH =
+            register("dalek_trench", () -> DalekTrenchStructure.CODEC);
 
     private DWMStructureTypes() {
     }

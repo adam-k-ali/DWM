@@ -103,7 +103,8 @@
         { "$ref": "#/definitions/goalAvoidEntity" },
         { "$ref": "#/definitions/goalDalekHoldPost" },
         { "$ref": "#/definitions/goalDalekPatrol" },
-        { "$ref": "#/definitions/goalDalekTendStation" }
+        { "$ref": "#/definitions/goalDalekTendStation" },
+        { "$ref": "#/definitions/goalDalekCourier" }
       ]
     },
     "targetEntry": {
@@ -398,6 +399,19 @@
       "additionalProperties": false,
       "properties": {
         "type": { "const": "dwm:dalek_tend_station" },
+        "priority": { "type": "integer" },
+        "speed": { "type": "number" },
+        "pause_min_ticks": { "type": "integer" },
+        "pause_max_ticks": { "type": "integer" },
+        "can_use": { "$ref": "#/definitions/canUse" }
+      }
+    },
+    "goalDalekCourier": {
+      "type": "object",
+      "required": ["type", "priority", "speed", "pause_min_ticks", "pause_max_ticks"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "dwm:dalek_courier" },
         "priority": { "type": "integer" },
         "speed": { "type": "number" },
         "pause_min_ticks": { "type": "integer" },

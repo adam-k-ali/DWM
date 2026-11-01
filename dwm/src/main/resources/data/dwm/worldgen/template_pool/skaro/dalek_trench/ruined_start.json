@@ -1,0 +1,114 @@
+{
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "dwm:garrisoned_single_pool_element",
+        "location": "dwm:skaro/dalek_trench/checkpoint",
+        "projection": "rigid",
+        "processors": "dwm:skaro/dalek_outpost_ruined",
+        "garrison": [
+          {
+            "entity": "dwm:dalek",
+            "job": "sentry",
+            "pos": [
+              4,
+              1,
+              1
+            ],
+            "facing": "north"
+          },
+          {
+            "entity": "dwm:dalek",
+            "job": "sentry",
+            "pos": [
+              6,
+              1,
+              1
+            ],
+            "facing": "north"
+          },
+          {
+            "entity": "dwm:dalek",
+            "job": "sentry",
+            "pos": [
+              4,
+              1,
+              9
+            ],
+            "facing": "south"
+          },
+          {
+            "entity": "dwm:dalek",
+            "job": "sentry",
+            "pos": [
+              6,
+              1,
+              9
+            ],
+            "facing": "south"
+          },
+          {
+            "entity": "dwm:paradigm_dalek",
+            "job": "technician",
+            "pos": [
+              4,
+              1,
+              5
+            ],
+            "facing": "east",
+            "variant": "paradigm_scientist",
+            "work_spots": [
+              [
+                6,
+                1,
+                5
+              ],
+              [
+                5,
+                1,
+                4
+              ],
+              [
+                5,
+                1,
+                6
+              ]
+            ]
+          },
+          {
+            "entity": "dwm:dalek",
+            "job": "courier",
+            "pos": [
+              5,
+              1,
+              1
+            ],
+            "facing": "south",
+            "chance": 0.5,
+            "work_spots": [
+              [
+                5,
+                1,
+                9
+              ]
+            ]
+          },
+          {
+            "entity": "dwm:dalek",
+            "job": "patrol",
+            "pos": [
+              2,
+              1,
+              2
+            ],
+            "facing": "south",
+            "chance": 0.7,
+            "radius": 3
+          }
+        ]
+      }
+    }
+  ]
+}
