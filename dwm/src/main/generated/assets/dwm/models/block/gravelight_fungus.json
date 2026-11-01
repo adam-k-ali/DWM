@@ -1,0 +1,6 @@
+{
+  "parent": "dwm:block/template_gravelight_fungus",
+  "textures": {
+    "texture": "dwm:block/gravelight_fungus"
+  }
+}

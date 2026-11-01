@@ -45,6 +45,17 @@ public class DWMBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                 .add(key(DWMBlocks.STRIPPED_PETRIFIED_LOG))
                 .add(key(DWMBlocks.STRIPPED_PETRIFIED_WOOD));
 
+        var skaroPlantsTag = builder(DWMBlockTags.SKARO_PLANTS);
+        for (Block plant : DWMBlocks.SKARO_PLANTS) {
+            skaroPlantsTag.add(key(plant));
+        }
+        builder(DWMBlockTags.SKARO_PLANT_SOIL)
+                .add(key(net.minecraft.world.level.block.Blocks.GRAVEL))
+                .add(key(net.minecraft.world.level.block.Blocks.TUFF))
+                .add(key(net.minecraft.world.level.block.Blocks.TERRACOTTA))
+                .add(key(net.minecraft.world.level.block.Blocks.STONE))
+                .add(key(net.minecraft.world.level.block.Blocks.MUD));
+
         var gallifreyPlantsTag = builder(DWMBlockTags.GALLIFREY_PLANTS);
         for (Block plant : DWMBlocks.GALLIFREY_PLANTS) {
             gallifreyPlantsTag.add(key(plant));

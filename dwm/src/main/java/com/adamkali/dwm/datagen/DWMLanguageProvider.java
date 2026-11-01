@@ -493,6 +493,12 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         addBlockAndItem(t, DWMBlocks.MOONLIGHT_BLOOM, "Moonlight Bloom");
         t.add(DWMBlocks.POTTED_MOONLIGHT_BLOOM, "Potted Moonlight Bloom");
         addBlockAndItem(t, DWMBlocks.SACCHARINE_CANE, "Saccharine Cane");
+        addBlockAndItem(t, DWMBlocks.VARGA_PLANT, "Varga Plant");
+        addBlockAndItem(t, DWMBlocks.GRAVELIGHT_FUNGUS, "Gravelight");
+        addBlockAndItem(t, DWMBlocks.SCORCHBRIAR, "Scorchbriar");
+        addBlockAndItem(t, DWMBlocks.WRAITHREED, "Wraithreed");
+        t.add(DWMBlocks.ASHWHEAT, "Ashwheat");
+        t.add(DWMItems.ASHWHEAT_SEEDS, "Ashwheat Seeds");
     }
 
     private static void addAzbantiumSet(TranslationBuilder t) {
@@ -583,6 +589,7 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("biome.dwm.gallifrey_plains", "Gallifrey Plains");
         t.add("biome.dwm.gallifrey_forest", "Gallifrey Forest");
         t.add("tag.item.dwm.gallifrey_plants", "Gallifrey Plants");
+        t.add("tag.item.dwm.skaro_plants", "Skaro Plants");
         t.add("tag.item.dwm.azbantium_ores", "Azbantium Ores");
         t.add("tag.item.dwm.zeiton_ores", "Zeiton Ores");
         t.add("tag.item.dwm.dalekanium_ores", "Dalekanium Ores");

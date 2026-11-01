@@ -76,7 +76,8 @@
       "minecraft:spring_lava"
     ],
     [
-      "minecraft:glow_lichen"
+      "minecraft:glow_lichen",
+      "dwm:scorchbriar_mountains"
     ],
     [
       "minecraft:freeze_top_layer"

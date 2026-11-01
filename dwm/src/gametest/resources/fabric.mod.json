@@ -22,6 +22,7 @@
       "com.adamkali.dwm.gametest.client.TardisSotoPortalClientGameTest",
       "com.adamkali.dwm.gametest.client.ThalSettlementClientGameTest",
       "com.adamkali.dwm.gametest.client.LaserGunClientGameTest",
+      "com.adamkali.dwm.gametest.client.SkaroFloraClientGameTest",
       "com.adamkali.dwm.gametest.client.TardisGlobeClientGameTest",
       "com.adamkali.dwm.gametest.client.TardisMonitorClientGameTest"
     ]

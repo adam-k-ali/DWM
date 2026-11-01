@@ -76,7 +76,9 @@
       "minecraft:spring_lava"
     ],
     [
-      "minecraft:glow_lichen"
+      "minecraft:glow_lichen",
+      "dwm:scorchbriar_wastes",
+      "dwm:varga_wastes"
     ],
     [
       "minecraft:freeze_top_layer"

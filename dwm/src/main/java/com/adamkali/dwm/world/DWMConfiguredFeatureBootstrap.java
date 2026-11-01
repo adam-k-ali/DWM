@@ -62,6 +62,20 @@ public final class DWMConfiguredFeatureBootstrap {
                 )
         );
 
+        registerPlantPatch(registerable, DWMConfiguredFeatures.VARGA_PATCH, DWMBlocks.VARGA_PLANT);
+        registerPlantPatch(registerable, DWMConfiguredFeatures.GRAVELIGHT_FUNGUS_PATCH, DWMBlocks.GRAVELIGHT_FUNGUS);
+        registerPlantPatch(registerable, DWMConfiguredFeatures.SCORCHBRIAR_PATCH, DWMBlocks.SCORCHBRIAR);
+        registerable.register(
+                DWMConfiguredFeatures.WRAITHREED,
+                new ConfiguredFeature<>(
+                        Feature.BLOCK_COLUMN,
+                        BlockColumnConfiguration.simple(
+                                BiasedToBottomInt.of(1, 3),
+                                BlockStateProvider.simple(DWMBlocks.WRAITHREED)
+                        )
+                )
+        );
+
         registerable.register(
                 DWMConfiguredFeatures.AZBANTIUM_ORE,
                 new ConfiguredFeature<>(
@@ -126,6 +140,20 @@ public final class DWMConfiguredFeatureBootstrap {
                                 BlockStateProvider.simple(DWMBlocks.PETRIFIED_LOG),
                                 UniformInt.of(4, 11)
                         ).build()
+                )
+        );
+    }
+
+    private static void registerPlantPatch(
+            BootstrapContext<ConfiguredFeature<?, ?>> registerable,
+            ResourceKey<ConfiguredFeature<?, ?>> key,
+            Block plant
+    ) {
+        registerable.register(
+                key,
+                new ConfiguredFeature<>(
+                        Feature.SIMPLE_BLOCK,
+                        new SimpleBlockConfiguration(BlockStateProvider.simple(plant))
                 )
         );
     }

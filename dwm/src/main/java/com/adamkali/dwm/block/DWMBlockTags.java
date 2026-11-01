@@ -27,6 +27,17 @@ public final class DWMBlockTags {
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "gallifrey_plants")
     );
 
+    public static final TagKey<Block> SKARO_PLANTS = TagKey.create(
+            Registries.BLOCK,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "skaro_plants")
+    );
+
+    /** Extra ground (beyond dirt/sand tags) that Skaro ground plants may stand on. */
+    public static final TagKey<Block> SKARO_PLANT_SOIL = TagKey.create(
+            Registries.BLOCK,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "skaro_plant_soil")
+    );
+
     /** Gallifrey stone only — ore replacement target (excludes dirt/sand/grass family members). */
     public static final TagKey<Block> GALLIFREY_ORE_REPLACEABLES = TagKey.create(
             Registries.BLOCK,
