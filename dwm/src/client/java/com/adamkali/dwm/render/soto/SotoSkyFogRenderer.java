@@ -6,11 +6,13 @@ import com.adamkali.dwm.tardis.portal.PortalSampler;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors.EffectsKind;
+import com.adamkali.dwm.tardis.soto.SotoCloudState;
 import com.adamkali.dwm.tardis.soto.SotoSkyState;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SkyRenderer;
 import net.minecraft.util.ARGB;
@@ -23,16 +25,20 @@ import org.lwjgl.opengl.GL11;
  * <p>
  * Minecraft 26.2 replaced {@code FogParameters}/{@code Tesselator}/{@code CoreShaders} with
  * GpuBufferSlice fog and RenderPass draws. The overworld sky (disc, sun, moon, stars, sunrise glow)
- * is drawn by a portal-owned vanilla {@code SkyRenderer}; other dimensions fill via the target
- * clear colour ({@link #portalBackdropRgb}). Clouds are deferred. Terrain fog apply/restore
+ * is drawn by a portal-owned vanilla {@code SkyRenderer} and clouds by {@link SotoCloudRenderer};
+ * other dimensions fill via the target clear colour ({@link #portalBackdropRgb}). Terrain fog apply/restore
  * preserves the previous GpuBufferSlice.
  */
 public final class SotoSkyFogRenderer {
     /** Sky fog must never tint the celestials, so push its end far past the sky dome. */
     private static final float SKY_FOG_END = 100_000.0F;
 
+    /** Assumed exterior camera height; clouds sit at an absolute world Y (192.33 in the overworld). */
+    private static final double CLOUD_REFERENCE_CAMERA_Y = 70.0;
+
     private static SkyRenderer portalSky;
     private static RenderTarget portalSkyTarget;
+    private static SotoCloudRenderer portalClouds;
 
     private SotoSkyFogRenderer() {
     }
@@ -52,8 +58,8 @@ public final class SotoSkyFogRenderer {
 
     /**
      * Draws the overworld sun, moon, stars and sunrise/sunset glow into the portal target using a
-     * portal-owned vanilla {@link SkyRenderer}. Nether/End keep the flat fog-colour clear backdrop,
-     * and clouds are not drawn (vanilla's cloud renderer hard-binds the main target).
+     * portal-owned vanilla {@link SkyRenderer}, then clouds via {@link SotoCloudRenderer} (vanilla's
+     * cloud renderer hard-binds the main target). Nether/End keep the flat fog-colour clear backdrop.
      * <p>
      * The shared entity submit collector must not be used for sky fills — it can rebind the main
      * framebuffer.
@@ -95,6 +101,7 @@ public final class SotoSkyFogRenderer {
                     state.moonPhase(),
                     state.rainBrightness(),
                     state.starBrightness());
+            renderPortalClouds(context, atmosphere);
         } finally {
             modelView.popMatrix();
             SotoGl.depthMask(true);
@@ -108,6 +115,37 @@ public final class SotoSkyFogRenderer {
             }
             PortalFogRenderer.restore(previousFog);
         }
+    }
+
+    /**
+     * Draws clouds with the portal-owned {@link SotoCloudRenderer}. The portal camera lives in
+     * SOTO-local space, so X/Z drive the drift while Y uses {@link #CLOUD_REFERENCE_CAMERA_Y}
+     * (the exterior's real world height is not synced).
+     */
+    private static void renderPortalClouds(PortalContentContext context, SotoAtmosphere atmosphere) {
+        Minecraft client = context.client();
+        if (client.level == null || client.options == null) {
+            return;
+        }
+        SotoCloudState clouds = SotoCloudState.from(atmosphere);
+        CloudStatus status = client.options.cloudStatus().get();
+        if (!clouds.hasClouds() || status == CloudStatus.OFF) {
+            return;
+        }
+        if (portalClouds == null) {
+            portalClouds = new SotoCloudRenderer();
+        }
+        Vec3 camera = context.portalCamera().position();
+        portalClouds.render(
+                context.target().colorTextureView(),
+                context.target().depthTextureView(),
+                clouds.color(),
+                status,
+                clouds.height(),
+                client.options.cloudRange().get(),
+                new Vec3(camera.x, CLOUD_REFERENCE_CAMERA_Y, camera.z),
+                client.level.getGameTime(),
+                context.tickDelta());
     }
 
     private static SkyRenderer portalSkyRenderer(RenderTarget target) {
@@ -125,6 +163,10 @@ public final class SotoSkyFogRenderer {
 
     /** Releases the portal sky buffers; called when the portal target is destroyed. */
     public static void closePortalSky() {
+        if (portalClouds != null) {
+            portalClouds.close();
+            portalClouds = null;
+        }
         if (portalSky != null) {
             portalSky.close();
         }
