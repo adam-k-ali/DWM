@@ -72,14 +72,14 @@ Small, frequent discoveries that tell Skaro's war history. They are distinct fro
   - `/place structure dwm:dalek_outpost` (or `dwm:dalek_outpost_ruined`)
 
 ### Dalek trench
-A fortified battlefield line, carved two blocks into the ground: a sunken checkpoint yard opens a trench north and south; the trench runs on as zig-zag stretches (firing bays joined by traverses, so a blast or a shot cannot travel the length of the line) and short straight segments, some with side doorways to bunkers, and ends in a closed cap. Daleks gather at the checkpoint and bunkers and work the line.
-- **Structures:** `dwm:dalek_trench` (intact) and `dwm:dalek_trench_ruined` (same templates, decayed by the outpost ruin processor list).
+A fortified battlefield line, carved two blocks into the ground: a sunken checkpoint yard opens a trench north and south; the trench runs on as zig-zag stretches (firing bays joined by traverses, so a blast or a shot cannot travel the length of the line) and short straight segments, some with side doorways to bunkers, and both arms always end in a closed cap. Daleks gather at the checkpoint and bunkers and work the line.
+- **Structures:** `dwm:dalek_trench` (intact) and `dwm:dalek_trench_ruined` (same templates, decayed by the outpost ruin processor list). Both use the structure type `dwm:dalek_trench`, a jigsaw assembly with the same JSON shape as `minecraft:jigsaw`.
 - **Eligible biomes:**
   - Intact: Irradiated Wastes (`#dwm:has_structure/dalek_trench`).
   - Ruined: Petrified Jungle and Drammankin Mountains (`#dwm:has_structure/dalek_trench_ruined`).
   - Never on the Thal Plateau or in the Drammankin Mire.
-- **Rarity:** weight 1 each in `dwm:skaro_military_landmarks` (see above), so the Thal settlement exclusion zone applies.
-- **Pieces** (jigsaw depth 5, `max_distance_from_center` 80). Pieces join end to end through `dwm:dalek_trench_link` connectors; junctions pull bunkers through `dwm:dalek_trench_bunker`.
+- **Rarity:** weight 1 each in `dwm:skaro_military_landmarks` (see above), so the Thal settlement exclusion zone applies. A trench is rejected, never truncated or stretched, when the sampled corners and centre of any piece sit on liquid (surface height differs from ocean-floor height, no tolerance) or in a biome outside the structure's biome tag, so trenches are absent near lakes and biome borders and the random-spread slot simply yields none there.
+- **Pieces** (jigsaw depth 5, `max_distance_from_center` 96). Pieces join end to end through `dwm:dalek_trench_link` connectors; junctions pull bunkers through `dwm:dalek_trench_bunker`.
 
   | Piece | Size cap (X×Y×Z) | Projection | Notes |
   |---|---|---|---|
@@ -88,9 +88,9 @@ A fortified battlefield line, carved two blocks into the ground: a sunken checkp
   | Zig-zag (and mirror) | 9×4×18 | terrain_matching | Three bays joined by two traverses: the lane turns four times, then leaves on the same axis it entered, so it chains like a straight segment. The mirror flips it east to west. Only the lane and a one-block lining are placed. |
   | Junction | 5×4×8 | terrain_matching | A segment with a 3-high doorway in each side wall that opens a bunker. |
   | Bunker | 9×6×9 | rigid | Half-buried roofed room with gunports at ground level on its north face and a 3-wide, 3-high doorway; two garrison variants (gun nest, depot). |
-  | End cap | 5×4×3 | terrain_matching | Closed trench end. |
+  | End cap | 5×4×3 | terrain_matching | Closed trench end; only ever drawn from the fallback pool. |
 
-  Segment pool weights: zig-zag 4, mirrored zig-zag 4, junction 3, straight segment 2, end cap 1. Bunker pool: gun nest 1, depot 1.
+  Segment pool weights: zig-zag 4, mirrored zig-zag 4, junction 3, straight segment 2. The end cap is not in the segment pool: it is the only entry of its `fallback` pool (`end_caps`, `ruined_end_caps`), which jigsaw draws from at the depth limit or when nothing else fits, so arms run to full length and close with a cap. Bunker pool: gun nest 1, depot 1.
 - **Garrison:** every piece uses `dwm:garrisoned_single_pool_element`. Checkpoint: four always-present gate sentries, a technician at the chest, a chance-based patrol and courier. Straight segments: chance-based gunners at the firing steps and couriers running the lane. Zig-zag stretches: gunners at the traverse ends, a sentry in the middle bay, and a courier whose route follows every corner of the zig-zag. Junctions: a sentry and a courier. Gun nest bunker: gunners at the gunports and a sentry. Depot bunker: technicians at their benches and a chance-based lookout. End cap: a gunner facing down the trench. A ruined trench has the same posts under the ruin processors. Jobs are described in [Dalek](./feature-dalek.md).
 - **Loot boundary:** exactly one chest, in the checkpoint, using `dwm:chests/skaro/dalek_outpost`. Segments, bunkers and caps never hold containers.
 - **Terrain adaptation:** `beard_thin`. The trench is sunk 2 blocks: the structure starts at `start_height` -2 and every terrain-matching element sets `"sink": 2` (an optional `garrisoned_single_pool_element` field, 0 to 8, that lowers the piece below vanilla terrain matching), so segments and caps follow uneven ground two blocks deep, and their posts and courier routes sit on the lowered floor. The rigid checkpoint and bunkers do not follow slopes, so on steep ground their floor can sit a block or two off the lane.
