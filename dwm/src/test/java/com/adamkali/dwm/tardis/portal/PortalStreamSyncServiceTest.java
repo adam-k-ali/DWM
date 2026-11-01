@@ -8,7 +8,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -21,6 +23,20 @@ class PortalStreamSyncServiceTest {
     @AfterEach
     void tearDown() {
         PortalStreamSyncService.clear();
+    }
+
+    @Test
+    void epochChanged_resetsOnlyWhenOriginOrDimensionChanges() {
+        var overworld = Level.OVERWORLD;
+        var origin = new BlockPos(-5, 99, -1);
+        var epoch = new PortalStreamSyncService.SceneEpoch(overworld, origin);
+
+        assertFalse(PortalStreamSyncService.epochChanged(null, epoch));
+        assertFalse(PortalStreamSyncService.epochChanged(epoch, new PortalStreamSyncService.SceneEpoch(overworld, origin)));
+        assertTrue(PortalStreamSyncService.epochChanged(
+                epoch, new PortalStreamSyncService.SceneEpoch(overworld, origin.east(3))));
+        assertTrue(PortalStreamSyncService.epochChanged(
+                epoch, new PortalStreamSyncService.SceneEpoch(Level.NETHER, origin)));
     }
 
     @Test
