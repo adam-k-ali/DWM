@@ -1233,6 +1233,28 @@ public class ResourceValidationTests {
         }
     }
 
+    /**
+     * Each Cyberman skin has the atlas size its model declares: {@code texture_width} / {@code texture_height}
+     * from the child model, falling back to the parent {@code cyberman.json}. A mismatch stretches every UV island.
+     */
+    @Test
+    public void cybermanSkinsMatchTheirModelAtlas() throws Exception {
+        Path models = Path.of("src/client/resources/assets/dwm/models/entity");
+        JSONObject parent = new JSONObject(new JSONTokener(Files.newBufferedReader(models.resolve("cyberman.json"))));
+        for (String id : CYBERMEN) {
+            JSONObject model = new JSONObject(new JSONTokener(Files.newBufferedReader(models.resolve(id + ".json"))));
+            assertEquals("dwm:cyberman", model.getString("parent"), id + " should inherit the Cyberman base model");
+            int width = model.optInt("texture_width", parent.getInt("texture_width"));
+            int height = model.optInt("texture_height", parent.getInt("texture_height"));
+            String texture = model.getString("texture");
+            assertEquals("dwm:textures/entity/cyberman/" + id + ".png", texture, id + " texture");
+            BufferedImage skin = ImageIO.read(
+                    Path.of("src/client/resources/assets/dwm/textures/entity/cyberman/" + id + ".png").toFile());
+            assertEquals(width, skin.getWidth(), id + " skin width");
+            assertEquals(height, skin.getHeight(), id + " skin height");
+        }
+    }
+
     /** Guards against {@code pruneDatagenItemModels} dropping the Cyberman spawn egg item defs ({@code cyber}). */
     @Test
     public void generatedCybermanSpawnEggItemModelsExist() throws Exception {
