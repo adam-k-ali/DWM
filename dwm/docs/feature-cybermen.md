@@ -13,10 +13,10 @@ Add the Cybermen as DWM's second hostile antagonist family. There are four types
 ## Types
 | Entity id | Name | Look | Signature ability |
 | --- | --- | --- | --- |
-| `dwm:cybermondan` | CyberMondan | Original Mondasian design: cloth-wrapped face, fabric suit, headlamp, chest unit, handlebars, bare hands | Slow and relentless. Lowest armour, but very hard to knock back |
-| `dwm:cybus_cyberman` | Cybus Cyberman | Bulky Cybus Industries steel armour, chest "C" plate, teardrop eyes, handlebars | **Electric grip**: every landed melee hit applies Slowness II for 2 seconds, with sparks and a zap sound |
-| `dwm:cybermaster` | Cybermaster | Gunmetal and gold Cyberman built from Time Lords, Gallifreyan high collar, wrist-laser gauntlet | **Wrist laser**: ranged attack. **Regeneration**: survives its first killing blow once (see below) |
-| `dwm:weapons_grade_cyberman` | Weapons-Grade Cyberman | Sleek Cyberiad armour (*Nightmare in Silver*), slim handlebars | **Adaptive upgrade** and **super-speed** dashes (see below) |
+| `dwm:cybermondan` | CyberMondan | Original Mondasian design: cloth-wrapped face, metal crown with headlamp, fabric suit, boxy chest unit, pipes along the arms, handlebars, bare hands | Slow and relentless. Lowest armour, but very hard to knock back |
+| `dwm:cybus_cyberman` | Cybus Cyberman | Bulky Cybus Industries steel armour, raised chest "C" plate, teardrop eyes, shoulder pads, armoured boots, handlebars | **Electric grip**: every landed melee hit applies Slowness II for 2 seconds, with sparks and a zap sound |
+| `dwm:cybermaster` | Cybermaster | Gunmetal and gold Cyberman built from Time Lords, flared Gallifreyan collar framing the head, Seal-of-Rassilon chest, wrist-laser gauntlet | **Wrist laser**: ranged attack. **Regeneration**: survives its first killing blow once (see below) |
+| `dwm:weapons_grade_cyberman` | Weapons-Grade Cyberman | Sleek dark Cyberiad alloy (*Nightmare in Silver*), slim handlebars, black rubber joints, Cyberiad chest emblem, jaw plate, wrist blaster | **Adaptive upgrade** and **super-speed** dashes (see below) |
 
 ## Behaviour
 | Aspect | Value |

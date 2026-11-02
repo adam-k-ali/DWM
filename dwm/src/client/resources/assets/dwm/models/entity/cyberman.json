@@ -1,5 +1,5 @@
 {
-  "credit": "DWM Cyberman base humanoid (player proportions); each Cyberman type overrides parts",
+  "credit": "DWM Cyberman base: player-proportioned humanoid and march animation; every Cyberman type replaces all six parts with its own geometry",
   "texture_width": 64,
   "texture_height": 64,
   "texture": "dwm:textures/entity/cyberman/cybus_cyberman.png",
