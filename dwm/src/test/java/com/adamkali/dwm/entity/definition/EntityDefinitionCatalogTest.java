@@ -45,7 +45,7 @@ class EntityDefinitionCatalogTest {
 
     @Test
     void fileStemMatchesEntityId() {
-        assertEquals(8, definitions.size());
+        assertEquals(12, definitions.size());
         for (Map.Entry<Identifier, EntityDefinition> entry : definitions.entrySet()) {
             assertEquals(entry.getKey(), entry.getValue().entity());
         }
@@ -243,6 +243,60 @@ class EntityDefinitionCatalogTest {
         assertEquals(classic.targets(), paradigm.targets());
         assertEquals(classic.attributeBase(), paradigm.attributeBase());
         assertEquals(attribute(classic, "flying_speed"), attribute(paradigm, "flying_speed"));
+    }
+
+    @Test
+    void cybusCybermanIsAHostileMeleeTrooper() {
+        EntityDefinition definition = definition("cybus_cyberman");
+        assertEquals(EntityAttributeBase.MONSTER, definition.attributeBase());
+        assertEquals(30.0, attribute(definition, "max_health"));
+        assertEquals(0.23, attribute(definition, "movement_speed"));
+        assertEquals(6.0, attribute(definition, "attack_damage"));
+        assertEquals(8.0, attribute(definition, "armor"));
+        assertEquals(List.of(
+                EntityGoal.Kind.FLOAT,
+                EntityGoal.Kind.MELEE_ATTACK,
+                EntityGoal.Kind.WATER_AVOIDING_RANDOM_STROLL,
+                EntityGoal.Kind.LOOK_AT,
+                EntityGoal.Kind.RANDOM_LOOK_AROUND
+        ), kinds(definition.goals()));
+        assertEquals(List.of(
+                EntityGoal.Kind.HURT_BY_TARGET,
+                EntityGoal.Kind.NEAREST_ATTACKABLE_TARGET
+        ), kinds(definition.targets()));
+    }
+
+    @Test
+    void cyberMondanAndWeaponsGradeInheritCybusAiWithTheirOwnStats() {
+        EntityDefinition cybus = definition("cybus_cyberman");
+        EntityDefinition mondan = definition("cybermondan");
+        EntityDefinition weaponsGrade = definition("weapons_grade_cyberman");
+        for (EntityDefinition child : List.of(mondan, weaponsGrade)) {
+            assertEquals(cybus.attributeBase(), child.attributeBase());
+            assertEquals(cybus.goals(), child.goals());
+            assertEquals(cybus.targets(), child.targets());
+        }
+        assertEquals(24.0, attribute(mondan, "max_health"));
+        assertEquals(0.2, attribute(mondan, "movement_speed"));
+        assertEquals(4.0, attribute(mondan, "armor"));
+        assertEquals(0.8, attribute(mondan, "knockback_resistance"));
+        assertTrue(attribute(mondan, "movement_speed") < attribute(cybus, "movement_speed"));
+        assertEquals(32.0, attribute(weaponsGrade, "max_health"));
+        assertEquals(0.28, attribute(weaponsGrade, "movement_speed"));
+        assertEquals(32.0, attribute(weaponsGrade, "follow_range"));
+        assertTrue(attribute(weaponsGrade, "movement_speed") > attribute(cybus, "movement_speed"));
+    }
+
+    @Test
+    void cybermasterFightsAtRange() {
+        EntityDefinition definition = definition("cybermaster");
+        assertEquals(EntityAttributeBase.MONSTER, definition.attributeBase());
+        assertEquals(30.0, attribute(definition, "max_health"));
+        assertEquals(0.25, attribute(definition, "movement_speed"));
+        assertEquals(5.0, attribute(definition, "attack_damage"));
+        EntityGoal.RangedAttack ranged = assertInstanceOf(EntityGoal.RangedAttack.class, definition.goals().get(1).goal());
+        assertEquals(16.0, ranged.attackRange());
+        assertEquals(EntityGoal.Kind.NEAREST_ATTACKABLE_TARGET, definition.targets().get(1).goal().kind());
     }
 
     @Test

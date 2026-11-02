@@ -1220,6 +1220,53 @@ public class ResourceValidationTests {
         }
     }
 
+    private static final List<String> CYBERMEN = List.of(
+            "cybermondan", "cybus_cyberman", "cybermaster", "weapons_grade_cyberman");
+
+    @Test
+    public void cybermanSkinsAndSpawnEggTexturesExist() throws Exception {
+        for (String id : CYBERMEN) {
+            Path skin = Path.of("src/client/resources/assets/dwm/textures/entity/cyberman/" + id + ".png");
+            assertTrue(Files.isRegularFile(skin) && Files.size(skin) > 0, "Missing Cyberman skin: " + skin);
+            Path egg = Path.of("src/client/resources/assets/dwm/textures/item/" + id + "_spawn_egg.png");
+            assertTrue(Files.isRegularFile(egg) && Files.size(egg) > 0, "Missing Cyberman spawn egg texture: " + egg);
+        }
+    }
+
+    /** Guards against {@code pruneDatagenItemModels} dropping the Cyberman spawn egg item defs ({@code cyber}). */
+    @Test
+    public void generatedCybermanSpawnEggItemModelsExist() throws Exception {
+        for (String id : CYBERMEN) {
+            Path item = Path.of("src/main/generated/assets/dwm/items/" + id + "_spawn_egg.json");
+            assertTrue(Files.isRegularFile(item) && Files.size(item) > 0, "Missing generated spawn egg item model: " + item);
+        }
+    }
+
+    @Test
+    public void cybermenTagListsEveryCybermanType() throws Exception {
+        Path path = Path.of("src/main/generated/data/dwm/tags/entity_type/cybermen.json");
+        assertTrue(Files.isRegularFile(path), "Missing generated cybermen entity tag: " + path);
+        JSONObject tag = new JSONObject(new JSONTokener(Files.newBufferedReader(path)));
+        assertEquals(
+                new HashSet<>(CYBERMEN.stream().map(id -> "dwm:" + id).toList()),
+                new HashSet<>(tag.getJSONArray("values").toList().stream().map(Object::toString).toList())
+        );
+    }
+
+    /** Cybermen are spawn-egg / command only for now: no biome may carry a Cyberman spawner entry. */
+    @Test
+    public void noBiomeSpawnsCybermen() throws Exception {
+        Path biomeDir = Path.of("src/main/generated/data/dwm/worldgen/biome");
+        try (var biomes = Files.list(biomeDir)) {
+            for (Path biome : biomes.filter(f -> f.toString().endsWith(".json")).toList()) {
+                String json = Files.readString(biome);
+                for (String id : CYBERMEN) {
+                    assertFalse(json.contains("dwm:" + id), biome.getFileName() + " must not list dwm:" + id + " spawners");
+                }
+            }
+        }
+    }
+
     @Test
     public void gallifreyForestAndPlainsSpawnTimeLord() throws Exception {
         assertTrue(biomeHasCreatureSpawn("gallifrey_forest.json", "dwm:time_lord"));
