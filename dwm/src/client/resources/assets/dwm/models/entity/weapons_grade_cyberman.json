@@ -1,0 +1,118 @@
+{
+  "credit": "DWM Weapons-grade Cyberman (sleek Cyberiad armour, slim handlebars)",
+  "parent": "dwm:cyberman",
+  "texture": "dwm:textures/entity/cyberman/weapons_grade_cyberman.png",
+  "parts": [
+    {
+      "name": "head",
+      "pivot": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "cubes": [
+        {
+          "uv": [
+            0,
+            0
+          ],
+          "origin": [
+            -4.0,
+            -8.0,
+            -4.0
+          ],
+          "size": [
+            8.0,
+            8.0,
+            8.0
+          ]
+        },
+        {
+          "uv": [
+            32,
+            8
+          ],
+          "origin": [
+            -5.0,
+            -6.0,
+            -1.5
+          ],
+          "size": [
+            1.0,
+            3.0,
+            3.0
+          ],
+          "inflate": -0.2
+        },
+        {
+          "uv": [
+            40,
+            8
+          ],
+          "origin": [
+            4.0,
+            -6.0,
+            -1.5
+          ],
+          "size": [
+            1.0,
+            3.0,
+            3.0
+          ],
+          "inflate": -0.2
+        },
+        {
+          "uv": [
+            32,
+            0
+          ],
+          "origin": [
+            -5.0,
+            -10.0,
+            -0.5
+          ],
+          "size": [
+            1.0,
+            4.0,
+            1.0
+          ],
+          "inflate": -0.2
+        },
+        {
+          "uv": [
+            36,
+            0
+          ],
+          "origin": [
+            4.0,
+            -10.0,
+            -0.5
+          ],
+          "size": [
+            1.0,
+            4.0,
+            1.0
+          ],
+          "inflate": -0.2
+        },
+        {
+          "uv": [
+            40,
+            0
+          ],
+          "origin": [
+            -4.0,
+            -10.0,
+            -0.5
+          ],
+          "size": [
+            8.0,
+            1.0,
+            1.0
+          ],
+          "inflate": -0.2
+        }
+      ]
+    }
+  ]
+}

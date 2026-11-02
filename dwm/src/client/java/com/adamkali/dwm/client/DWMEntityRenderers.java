@@ -6,6 +6,9 @@ import com.adamkali.dwm.block.wood.RegisteredWoodFamily;
 import com.adamkali.dwm.entity.DWMEntityTypes;
 import com.adamkali.dwm.model.armor.EvaSuitModel;
 import com.adamkali.dwm.model.entity.BroakirModel;
+import com.adamkali.dwm.model.entity.CyberMondanModel;
+import com.adamkali.dwm.model.entity.CybermasterModel;
+import com.adamkali.dwm.model.entity.CybusCybermanModel;
 import com.adamkali.dwm.model.entity.DalekLaserModel;
 import com.adamkali.dwm.model.entity.DalekMutantModel;
 import com.adamkali.dwm.model.entity.DalekModel;
@@ -14,8 +17,10 @@ import com.adamkali.dwm.model.entity.ParadigmDalekModel;
 import com.adamkali.dwm.model.entity.TimeWarDalekModel;
 import com.adamkali.dwm.model.entity.ThalModel;
 import com.adamkali.dwm.model.entity.TimeLordModel;
+import com.adamkali.dwm.model.entity.WeaponsGradeCybermanModel;
 import com.adamkali.dwm.model.json.JsonEntityModelLayers;
 import com.adamkali.dwm.render.BroakirRenderer;
+import com.adamkali.dwm.render.CybermanRenderer;
 import com.adamkali.dwm.render.DalekLaserRenderer;
 import com.adamkali.dwm.render.DalekMutantRenderer;
 import com.adamkali.dwm.render.DalekRenderer;
@@ -75,5 +80,17 @@ public final class DWMEntityRenderers {
         EntityRendererRegistry.register(DWMEntityTypes.DALEK_MUTANT, DalekMutantRenderer::new);
         JsonEntityModelLayers.register(DalekLaserModel.LAYER_LOCATION);
         EntityRendererRegistry.register(DWMEntityTypes.DALEK_LASER, DalekLaserRenderer::new);
+        JsonEntityModelLayers.register(CyberMondanModel.LAYER_LOCATION);
+        EntityRendererRegistry.register(DWMEntityTypes.CYBERMONDAN,
+                context -> new CybermanRenderer<>(context, CyberMondanModel.LAYER_LOCATION, CyberMondanModel::new));
+        JsonEntityModelLayers.register(CybusCybermanModel.LAYER_LOCATION);
+        EntityRendererRegistry.register(DWMEntityTypes.CYBUS_CYBERMAN,
+                context -> new CybermanRenderer<>(context, CybusCybermanModel.LAYER_LOCATION, CybusCybermanModel::new));
+        JsonEntityModelLayers.register(CybermasterModel.LAYER_LOCATION);
+        EntityRendererRegistry.register(DWMEntityTypes.CYBERMASTER,
+                context -> new CybermanRenderer<>(context, CybermasterModel.LAYER_LOCATION, CybermasterModel::new));
+        JsonEntityModelLayers.register(WeaponsGradeCybermanModel.LAYER_LOCATION);
+        EntityRendererRegistry.register(DWMEntityTypes.WEAPONS_GRADE_CYBERMAN,
+                context -> new CybermanRenderer<>(context, WeaponsGradeCybermanModel.LAYER_LOCATION, WeaponsGradeCybermanModel::new));
     }
 }
