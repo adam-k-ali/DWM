@@ -24,6 +24,11 @@ public class DWMEntityTagProvider extends FabricTagsProvider.EntityTypeTagsProvi
                 .add(key(DWMEntityTypes.DALEK))
                 .add(key(DWMEntityTypes.PARADIGM_DALEK))
                 .add(key(DWMEntityTypes.DALEK_MUTANT));
+        builder(DWMEntityTypeTags.CYBERMEN)
+                .add(key(DWMEntityTypes.CYBERMONDAN))
+                .add(key(DWMEntityTypes.CYBUS_CYBERMAN))
+                .add(key(DWMEntityTypes.CYBERMASTER))
+                .add(key(DWMEntityTypes.WEAPONS_GRADE_CYBERMAN));
     }
 
     private static net.minecraft.resources.ResourceKey<EntityType<?>> key(EntityType<?> type) {

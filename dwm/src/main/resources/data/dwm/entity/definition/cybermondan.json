@@ -1,0 +1,11 @@
+{
+  "entity": "dwm:cybermondan",
+  "parent": "dwm:cybus_cyberman",
+  "attributes": {
+    "minecraft:max_health": 24.0,
+    "minecraft:movement_speed": 0.2,
+    "minecraft:attack_damage": 5.0,
+    "minecraft:knockback_resistance": 0.8,
+    "minecraft:armor": 4.0
+  }
+}

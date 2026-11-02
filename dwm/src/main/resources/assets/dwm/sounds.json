@@ -312,5 +312,77 @@
         "type": "event"
       }
     ]
+  },
+  "entity.cyberman.ambient": {
+    "subtitle": "dwm.entity.cyberman.ambient.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:entity.iron_golem.repair",
+        "type": "event"
+      }
+    ]
+  },
+  "entity.cyberman.hurt": {
+    "subtitle": "dwm.entity.cyberman.hurt.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:entity.iron_golem.hurt",
+        "type": "event"
+      }
+    ]
+  },
+  "entity.cyberman.death": {
+    "subtitle": "dwm.entity.cyberman.death.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:entity.iron_golem.death",
+        "type": "event"
+      }
+    ]
+  },
+  "entity.cyberman.step": {
+    "subtitle": "dwm.entity.cyberman.step.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:entity.iron_golem.step",
+        "type": "event"
+      }
+    ]
+  },
+  "entity.cybus_cyberman.zap": {
+    "subtitle": "dwm.entity.cybus_cyberman.zap.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:block.copper_bulb.turn_on",
+        "type": "event"
+      }
+    ]
+  },
+  "entity.cybermaster.shoot": {
+    "subtitle": "dwm.entity.cybermaster.shoot.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:entity.blaze.shoot",
+        "type": "event"
+      }
+    ]
+  },
+  "entity.cybermaster.regenerate": {
+    "subtitle": "dwm.entity.cybermaster.regenerate.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:item.totem.use",
+        "type": "event"
+      }
+    ]
+  },
+  "entity.weapons_grade_cyberman.upgrade": {
+    "subtitle": "dwm.entity.weapons_grade_cyberman.upgrade.subtitle",
+    "sounds": [
+      {
+        "name": "minecraft:block.beacon.power_select",
+        "type": "event"
+      }
+    ]
   }
 }

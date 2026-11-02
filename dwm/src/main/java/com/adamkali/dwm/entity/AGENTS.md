@@ -4,7 +4,7 @@
 This file applies to `com.adamkali.dwm.entity` and `com.adamkali.dwm.entity.definition` — living mobs, projectiles, seats, and the JSON attribute/AI overlay.
 
 ## Local Context
-Product behaviour for fauna is documented in `docs/feature-gallifrey-dimension.md`, `docs/feature-dalek.md`, and `docs/feature-skaro-dimension.md`. Authoring stats and AI goals is documented in `docs/feature-entity-definitions.md`.
+Product behaviour for fauna is documented in `docs/feature-gallifrey-dimension.md`, `docs/feature-dalek.md`, `docs/feature-cybermen.md`, and `docs/feature-skaro-dimension.md`. Authoring stats and AI goals is documented in `docs/feature-entity-definitions.md`.
 
 ### Attributes and AI
 Do **not** hardcode `createAttributes()` values or `registerGoals()` lists on living mobs. Edit `src/main/resources/data/dwm/entity/definition/<id>.json` and the matching JSON Schema branch if you add a goal `type`. Entity classes keep a one-liner:
@@ -26,7 +26,7 @@ JSON is loaded from the jar at init (`EntityDefinitions.initialize()`). `/reload
 
 ## Commands
 - Unit tests: `./dwm/gradlew test --tests "com.adamkali.dwm.entity.*"`
-- GameTests: `./dwm/gradlew runGametest` (Broakir, Flutterwing, MewingDog, TimeLord, Thal, Dalek incl. Paradigm and mutant)
+- GameTests: `./dwm/gradlew runGametest` (Broakir, Flutterwing, MewingDog, TimeLord, Thal, Dalek incl. Paradigm and mutant, Cybermen)
 - Schema: `ResourceValidationTests.validateEntityDefinitions`
 
 ## Conventions

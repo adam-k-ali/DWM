@@ -15,10 +15,14 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.SpawnPlacementTypes;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.vehicle.boat.Boat;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.tags.BlockTags;
+
+import java.util.function.Supplier;
 
 public final class DWMEntityTypes {
     public static EntityType<Boat> ASH_BOAT;
@@ -35,6 +39,10 @@ public final class DWMEntityTypes {
     public static EntityType<ParadigmDalekEntity> PARADIGM_DALEK;
     public static EntityType<DalekMutantEntity> DALEK_MUTANT;
     public static EntityType<DalekLaserEntity> DALEK_LASER;
+    public static EntityType<CyberMondanEntity> CYBERMONDAN;
+    public static EntityType<CybusCybermanEntity> CYBUS_CYBERMAN;
+    public static EntityType<CybermasterEntity> CYBERMASTER;
+    public static EntityType<WeaponsGradeCybermanEntity> WEAPONS_GRADE_CYBERMAN;
 
     private DWMEntityTypes() {
     }
@@ -59,6 +67,14 @@ public final class DWMEntityTypes {
         PARADIGM_DALEK = registerParadigmDalek();
         DALEK_MUTANT = registerDalekMutant();
         DALEK_LASER = registerDalekLaser();
+        CYBERMONDAN = registerCyberman(
+                CyberMondanEntity.ID, CyberMondanEntity::new, CyberMondanEntity::createAttributes);
+        CYBUS_CYBERMAN = registerCyberman(
+                CybusCybermanEntity.ID, CybusCybermanEntity::new, CybusCybermanEntity::createAttributes);
+        CYBERMASTER = registerCyberman(
+                CybermasterEntity.ID, CybermasterEntity::new, CybermasterEntity::createAttributes);
+        WEAPONS_GRADE_CYBERMAN = registerCyberman(
+                WeaponsGradeCybermanEntity.ID, WeaponsGradeCybermanEntity::new, WeaponsGradeCybermanEntity::createAttributes);
     }
 
     private static EntityType<TardisSeatEntity> registerSeat() {
@@ -286,6 +302,37 @@ public final class DWMEntityTypes {
                         )
                         .sized(0.7F, 0.7F)
                         .eyeHeight(0.4F)
+                        .clientTrackingRange(10)
+                        .build(key)
+        );
+    }
+
+    /**
+     * Cybermen are player-sized hostile humanoids. They have no biome spawner entries, so the vanilla
+     * monster placement rule only matters for spawn eggs, commands and spawners.
+     */
+    private static <T extends CybermanEntity> EntityType<T> registerCyberman(
+            Identifier id,
+            EntityType.EntityFactory<T> factory,
+            Supplier<AttributeSupplier.Builder> attributes
+    ) {
+        ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, id);
+        return Registry.register(
+                BuiltInRegistries.ENTITY_TYPE,
+                key,
+                FabricEntityType.Builder.createMob(
+                                factory,
+                                MobCategory.MONSTER,
+                                mob -> mob
+                                        .spawnPlacement(
+                                                SpawnPlacementTypes.ON_GROUND,
+                                                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                                                Monster::checkMonsterSpawnRules
+                                        )
+                                        .defaultAttributes(attributes)
+                        )
+                        .sized(0.6F, 1.95F)
+                        .eyeHeight(1.62F)
                         .clientTrackingRange(10)
                         .build(key)
         );
