@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "dwm:item/weapons_grade_cyberman_spawn_egg"
+  }
+}
