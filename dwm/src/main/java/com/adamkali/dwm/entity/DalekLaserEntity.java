@@ -66,6 +66,9 @@ public class DalekLaserEntity extends Projectile {
         if (entity instanceof ThalEntity && this.getOwner() instanceof ThalEntity) {
             return false;
         }
+        if (CybermanEntity.isCyberman(entity) && CybermanEntity.isCyberman(this.getOwner())) {
+            return false;
+        }
         return super.canHitEntity(entity);
     }
 

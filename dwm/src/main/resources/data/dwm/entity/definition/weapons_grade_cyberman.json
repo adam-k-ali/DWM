@@ -1,0 +1,12 @@
+{
+  "entity": "dwm:weapons_grade_cyberman",
+  "parent": "dwm:cybus_cyberman",
+  "attributes": {
+    "minecraft:max_health": 32.0,
+    "minecraft:movement_speed": 0.28,
+    "minecraft:follow_range": 32.0,
+    "minecraft:attack_damage": 6.0,
+    "minecraft:knockback_resistance": 0.5,
+    "minecraft:armor": 6.0
+  }
+}
