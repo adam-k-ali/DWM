@@ -11,7 +11,8 @@ import java.util.List;
  * Screenshots of DWM mobs lined up facing the camera (AI off, so poses are stable):
  * {@code entities_time_lords}, {@code entities_flutterwings}, {@code entities_misc},
  * {@code entities_thals} (the four Thal variants),
- * {@code entities_cybermen} (CyberMondan, Cybus, Cybermaster, weapons-grade),
+ * {@code entities_cybermen} (CyberMondan, Cybus, Cybermaster, weapons-grade, close up, plus
+ * {@code entities_cybermen_angled}: the same four turned 35 degrees to show the depth of the sculpted faces),
  * {@code entities_classic_daleks} (1963 and Time War casings, close up, plus
  * {@code entities_classic_daleks_night}: only the Time War eye and lights glow),
  * {@code entities_paradigm_daleks}, and the same Paradigm group at midnight
@@ -19,7 +20,8 @@ import java.util.List;
  */
 public class EntitiesClientGameTest implements FabricClientGameTest {
     private static final int GROUP_SPACING = 48;
-    private static final String FACING_CAMERA = "Rotation:[180f,0f]";
+    private static final float FACING_CAMERA = 180.0F;
+    private static final float ANGLED = 145.0F;
     private static final Framing DEFAULT = new Framing(7, 2.5);
     private static final Framing CLOSE_UP = new Framing(4, 1.6);
 
@@ -63,14 +65,19 @@ public class EntitiesClientGameTest implements FabricClientGameTest {
                     new Mob("thal", "Variant:\"thal_2\""),
                     new Mob("thal", "Variant:\"thal_3\""),
                     new Mob("thal", "Variant:\"thal_4\"")));
-            lineUp(context, world, 6, "entities_cybermen", List.of(
-                    new Mob("cybermondan", ""),
-                    new Mob("cybus_cyberman", ""),
-                    new Mob("cybermaster", ""),
-                    new Mob("weapons_grade_cyberman", "")));
+            lineUp(context, world, 6, "entities_cybermen", CLOSE_UP, cybermen(FACING_CAMERA));
+            lineUp(context, world, 7, "entities_cybermen_angled", CLOSE_UP, cybermen(ANGLED));
 
             ClientGameTestSupport.toggleHud(context);
         }
+    }
+
+    private static List<Mob> cybermen(float yaw) {
+        return List.of(
+                new Mob("cybermondan", "", yaw),
+                new Mob("cybus_cyberman", "", yaw),
+                new Mob("cybermaster", "", yaw),
+                new Mob("weapons_grade_cyberman", "", yaw));
     }
 
     /** Re-shoots the current group at midnight, then restores noon. */
@@ -121,11 +128,18 @@ public class EntitiesClientGameTest implements FabricClientGameTest {
     private record Framing(int distance, double spacing) {
     }
 
-    /** A DWM entity to summon: registry path under {@code dwm:} plus any extra NBT entries (no braces). */
-    private record Mob(String type, String extraNbt) {
-        /** AI off and silent so poses are stable, and turned to face the camera. */
+    /**
+     * A DWM entity to summon: registry path under {@code dwm:}, any extra NBT entries (no braces) and its
+     * yaw ({@value #FACING_CAMERA} faces the camera).
+     */
+    private record Mob(String type, String extraNbt, float yaw) {
+        Mob(String type, String extraNbt) {
+            this(type, extraNbt, FACING_CAMERA);
+        }
+
+        /** AI off and silent so poses are stable, and turned to the given yaw. */
         String summonNbt() {
-            String base = "NoAI:1b,Silent:1b," + FACING_CAMERA;
+            String base = "NoAI:1b,Silent:1b,Rotation:[" + yaw + "f,0f]";
             return "{" + (extraNbt.isEmpty() ? base : extraNbt + "," + base) + "}";
         }
     }
