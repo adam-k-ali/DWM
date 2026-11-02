@@ -11,6 +11,7 @@ import java.util.List;
  * Screenshots of DWM mobs lined up facing the camera (AI off, so poses are stable):
  * {@code entities_time_lords}, {@code entities_flutterwings}, {@code entities_misc},
  * {@code entities_thals} (the four Thal variants),
+ * {@code entities_cybermen} (CyberMondan, Cybus, Cybermaster, weapons-grade),
  * {@code entities_classic_daleks} (1963 and Time War casings, close up, plus
  * {@code entities_classic_daleks_night}: only the Time War eye and lights glow),
  * {@code entities_paradigm_daleks}, and the same Paradigm group at midnight
@@ -62,6 +63,11 @@ public class EntitiesClientGameTest implements FabricClientGameTest {
                     new Mob("thal", "Variant:\"thal_2\""),
                     new Mob("thal", "Variant:\"thal_3\""),
                     new Mob("thal", "Variant:\"thal_4\"")));
+            lineUp(context, world, 6, "entities_cybermen", List.of(
+                    new Mob("cybermondan", ""),
+                    new Mob("cybus_cyberman", ""),
+                    new Mob("cybermaster", ""),
+                    new Mob("weapons_grade_cyberman", "")));
 
             ClientGameTestSupport.toggleHud(context);
         }
