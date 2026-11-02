@@ -1,7 +1,7 @@
 {
   "credit": "DWM Cyberman base: player-proportioned humanoid and march animation; every Cyberman type replaces all six parts with its own geometry",
-  "texture_width": 64,
-  "texture_height": 64,
+  "texture_width": 128,
+  "texture_height": 128,
   "texture": "dwm:textures/entity/cyberman/cybus_cyberman.png",
   "parts": [
     {
@@ -40,8 +40,8 @@
       "cubes": [
         {
           "uv": [
-            16,
-            16
+            32,
+            0
           ],
           "origin": [
             -4.0,
@@ -66,8 +66,8 @@
       "cubes": [
         {
           "uv": [
-            40,
-            16
+            88,
+            0
           ],
           "origin": [
             -3.0,
@@ -92,8 +92,8 @@
       "cubes": [
         {
           "uv": [
-            32,
-            48
+            56,
+            0
           ],
           "origin": [
             -1.0,
@@ -118,8 +118,8 @@
       "cubes": [
         {
           "uv": [
-            0,
-            16
+            104,
+            0
           ],
           "origin": [
             -2.0,
@@ -144,8 +144,8 @@
       "cubes": [
         {
           "uv": [
-            16,
-            48
+            72,
+            0
           ],
           "origin": [
             -2.0,
