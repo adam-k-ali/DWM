@@ -12,7 +12,7 @@ This is **not** vanilla block/item JSON (no bone tree, per-face UV) and **not** 
 |----------|------|
 | `dwm:dalek_laser` | `assets/dwm/models/entity/dalek_laser.json` |
 | `dwm:first_doctor_box` … `dwm:seventh_doctor_box`, `dwm:tt_capsule`, `dwm:tardis_classic_interior_door` (TARDIS exteriors and interior door) | `assets/dwm/models/entity/<id>.json` |
-| `dwm:broakir`, `dwm:dalek`, `dwm:time_war_dalek`, `dwm:paradigm_dalek`, `dwm:dalek_mutant`, `dwm:flutterwing`, `dwm:time_lord`, `dwm:thal` (mobs, with `animation`; `texture` is the default variant skin, the renderer picks the real one from the entity variant; `dwm:dalek` and `dwm:time_war_dalek` are both meshes of the `dwm:dalek` entity, chosen per variant) | `assets/dwm/models/entity/<id>.json` |
+| `dwm:broakir`, `dwm:dalek`, `dwm:time_war_dalek`, `dwm:paradigm_dalek`, `dwm:dalek_mutant`, `dwm:flutterwing`, `dwm:time_lord`, `dwm:thal`, `dwm:cybermondan`, `dwm:cybus_cyberman`, `dwm:cybermaster`, `dwm:weapons_grade_cyberman` (mobs, with `animation`; the four Cybermen inherit body and animation from the unregistered parent `dwm:cyberman`; `texture` is the default variant skin, the renderer picks the real one from the entity variant; `dwm:dalek` and `dwm:time_war_dalek` are both meshes of the `dwm:dalek` entity, chosen per variant) | `assets/dwm/models/entity/<id>.json` |
 | `dwm:tardis_globe` (decor prop, with `animation`; the BER adds a full-bright pass from `tardis_globe_glow.png`) | `assets/dwm/models/entity/tardis_globe.json` |
 | `dwm:entity/console_selector` (parent form) | `assets/dwm/models/entity/console_selector.json` |
 
