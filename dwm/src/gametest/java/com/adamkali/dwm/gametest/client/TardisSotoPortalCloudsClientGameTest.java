@@ -29,6 +29,9 @@ final class TardisSotoPortalCloudsClientGameTest {
     private static final float LOOK_UP_PITCH = -20.0F;
     /** Minimum number of pixels that must turn light (cloud-coloured) when clouds are enabled. */
     private static final int MIN_CLOUD_PIXELS = 400;
+    /** ~0.03 blocks/tick drift: this many ticks shifts the cloud field by several blocks. */
+    private static final int DRIFT_WAIT_TICKS = 200;
+    private static final int MIN_DRIFT_PIXELS = 200;
 
     /**
      * Runs inside the SOTO test's world (a separate world per scenario exhausts the software-GL client
@@ -49,11 +52,22 @@ final class TardisSotoPortalCloudsClientGameTest {
             Path off = shoot(context, CloudStatus.OFF, "portal_soto_clouds_off");
             Path on = shoot(context, CloudStatus.FANCY, "portal_soto_clouds_on");
 
+            // Freshness: the portal frame is cached, so without the periodic refresh the clouds would stay frozen.
+            // Do NOT dirty the portal here; only the refresh may redraw it.
+            context.waitTicks(DRIFT_WAIT_TICKS);
+            Path later = ClientGameTestSupport.screenshot(context, "portal_soto_clouds_later");
+
             int cloudPixels = countNewLightPixels(off, on);
             if (cloudPixels < MIN_CLOUD_PIXELS) {
                 throw new AssertionError("Expected clouds in the SOTO portal: only " + cloudPixels
                         + " pixels turned cloud-grey with clouds enabled (need " + MIN_CLOUD_PIXELS + "); compare "
                         + off + " and " + on);
+            }
+            int moved = countChangedPixels(on, later);
+            if (moved < MIN_DRIFT_PIXELS) {
+                throw new AssertionError("Expected the SOTO portal clouds to drift: only " + moved
+                        + " pixels changed over " + DRIFT_WAIT_TICKS + " ticks (need " + MIN_DRIFT_PIXELS
+                        + "); the portal frame is stale. Compare " + on + " and " + later);
             }
         } finally {
             context.runOnClient(client -> {
@@ -84,6 +98,32 @@ final class TardisSotoPortalCloudsClientGameTest {
             for (int y = 0; y < h; y++) {
                 for (int x = 0; x < w; x++) {
                     if (isCloudLike(b.getRGB(x, y)) && !isCloudLike(a.getRGB(x, y))) {
+                        count++;
+                    }
+                }
+            }
+            return count;
+        } catch (IOException e) {
+            throw new AssertionError("Could not read screenshots", e);
+        }
+    }
+
+    /** Pixels whose colour moved noticeably between two screenshots. */
+    static int countChangedPixels(Path a, Path b) {
+        try {
+            BufferedImage first = ImageIO.read(a.toFile());
+            BufferedImage second = ImageIO.read(b.toFile());
+            int w = Math.min(first.getWidth(), second.getWidth());
+            int h = Math.min(first.getHeight(), second.getHeight());
+            int count = 0;
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    int p = first.getRGB(x, y);
+                    int q = second.getRGB(x, y);
+                    int delta = Math.abs((p >> 16 & 0xFF) - (q >> 16 & 0xFF))
+                            + Math.abs((p >> 8 & 0xFF) - (q >> 8 & 0xFF))
+                            + Math.abs((p & 0xFF) - (q & 0xFF));
+                    if (delta > 40) {
                         count++;
                     }
                 }
