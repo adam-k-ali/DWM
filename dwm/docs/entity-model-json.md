@@ -14,7 +14,12 @@ This is **not** vanilla block/item JSON (no bone tree, per-face UV) and **not** 
 | `dwm:first_doctor_box` … `dwm:seventh_doctor_box`, `dwm:tt_capsule`, `dwm:tardis_classic_interior_door` (TARDIS exteriors and interior door) | `assets/dwm/models/entity/<id>.json` |
 | `dwm:broakir`, `dwm:dalek`, `dwm:time_war_dalek`, `dwm:paradigm_dalek`, `dwm:dalek_mutant`, `dwm:flutterwing`, `dwm:time_lord`, `dwm:thal` (mobs, with `animation`; `texture` is the default variant skin, the renderer picks the real one from the entity variant; `dwm:dalek` and `dwm:time_war_dalek` are both meshes of the `dwm:dalek` entity, chosen per variant) | `assets/dwm/models/entity/<id>.json` |
 | `dwm:tardis_globe` (decor prop, with `animation`; the BER adds a full-bright pass from `tardis_globe_glow.png`) | `assets/dwm/models/entity/tardis_globe.json` |
-| `dwm:entity/console_selector` (parent form) | `assets/dwm/models/entity/console_selector.json` |
+| `dwm:first_doctor_console`, `dwm:materialisation_lever`, `dwm:fast_return`, `dwm:reader` (oxygen skin by default; the renderer swaps pressure / temperature / refueler skins), `dwm:radiation_reader`, `dwm:cloak_lever`, `dwm:door_lock`, `dwm:telepathic_circuit`, `dwm:coordinate_lock`, `dwm:stabilisers` (console panels and controls, most with `animation`) | `assets/dwm/models/entity/<id>.json` |
+| `dwm:biome_selector`, `dwm:planet_locator`, `dwm:waypoint_selector`, `dwm:player_locator`, `dwm:chameleon_circuit` (each is `parent: dwm:entity/console_selector` plus its own `texture`) | `assets/dwm/models/entity/<id>.json` |
+| `dwm:entity/console_selector` (shared selector dial mesh; only ever used as a parent) | `assets/dwm/models/entity/console_selector.json` |
+| `dwm:tardis_compact_scanner`, `dwm:tardis_full_scanner` (decor monitors), `dwm:radiation_meter` (handheld item) | `assets/dwm/models/entity/<id>.json` |
+| `dwm:eva_suit_helmet`, `dwm:eva_suit_chestplate`, `dwm:eva_suit_leggings`, `dwm:eva_suit_boots` (armor, each `parent: dwm:entity/humanoid_armor_base`) | `assets/dwm/models/entity/<id>.json` |
+| `dwm:entity/humanoid_armor_base` (empty vanilla humanoid skeleton; only ever used as a parent) | `assets/dwm/models/entity/humanoid_armor_base.json` |
 
 The layer id (`ModelLayerLocation`) is defined in Java. New meshes still need one Java registration line; resource packs can override the JSON of registered ids. A missing or malformed file fails the model reload with an error naming the model and resource; there is no built-in fallback.
 
@@ -78,7 +83,7 @@ Each frame vanilla resets every part to its rest pose, then each binding **adds*
 
 Expressions support `+ - * /`, unary `-`, parentheses, numbers, variables, the constants `pi` and `deg` (`180/pi`, to turn a radian result into degrees), and `sin cos` (radians, Minecraft's `Mth` tables, so ports from Java match), `abs`, `min`, `max`, `clamp(x, lo, hi)`, `lerp(a, b, t)`. Evaluation is in `float`.
 
-Variables come from the Java model type (`AnimationVariables`). Living entities get `age`, `walk_pos`, `walk_speed`, and `head_pitch` / `head_yaw` (degrees). TARDIS exteriors and the interior door expose `door_progress` (0-1) and swing their door parts from it. The TARDIS globe exposes `age` (ambient clock in ticks, phase-offset per block position and wrapped every 24000 ticks), `spin` (extra sphere turn in degrees from the use spin) and `energy` (0-1 envelope of that spin, 0 at rest). Dalek (both classic casings) and Paradigm Dalek add `lean_pitch`, `lean_roll` (degrees) and `flight_bob` (model units, 0 when grounded). An unknown variable fails when the model is built and lists the available names.
+Variables come from the Java model type (`AnimationVariables`). Living entities get `age`, `walk_pos`, `walk_speed`, and `head_pitch` / `head_yaw` (degrees). TARDIS exteriors and the interior door expose `door_progress` (0-1) and swing their door parts from it. The TARDIS globe exposes `age` (ambient clock in ticks, phase-offset per block position and wrapped every 24000 ticks), `spin` (extra sphere turn in degrees from the use spin) and `energy` (0-1 envelope of that spin, 0 at rest). Dalek (both classic casings) and Paradigm Dalek add `lean_pitch`, `lean_roll` (degrees) and `flight_bob` (model units, 0 when grounded). Console controls (`TardisControlVariables`) expose `doors_locked`, `cloaked`, `stabilisers`, `lock_x`, `lock_y`, `lock_z` (0 or 1), `needle` (reader fill, 0-1), `rotor_bob` (time-rotor vertical offset in model units) and `rotor_spin` (radians; multiply by `deg` for a rotation channel). Bindings **add** to the rest pose, so a lever whose rest pose is its "off" angle binds `state * (on - off)`. An unknown variable fails when the model is built and lists the available names.
 
 A child file's bindings replace the parent's with the same part + channel and append the rest.
 
@@ -94,6 +99,7 @@ Package `com.adamkali.dwm.model.json`:
 - `EntityModelAnimations.get(ModelLayerLocation)` — animation recorded when the layer loads
 - `com.adamkali.dwm.model.json.anim` — `Expression`, `EntityAnimation`, `AnimationVariables`, `AnimationRunner`
 - `JsonEntityModelLayers.register(ModelLayerLocation)` — Fabric layer whose supplier loads the JSON and records its `texture`
+- `JsonEntityModelLayers.registerArmor(ArmorModelSet<ModelLayerLocation>)` — the same for the four slot layers of an armor set (each slot has its own model id)
 - `EntityModelTextures.get(ModelLayerLocation)` — texture declared by the layer's JSON
 
-TARDIS `renderShell` / `renderDoors` and door-part lookup stay in Java; renderer texture variants (e.g. per-variant skins) also stay in Java. Armor/humanoid templates are not in this format yet.
+TARDIS `renderShell` / `renderDoors` and door-part lookup stay in Java; renderer texture variants (e.g. per-variant skins) also stay in Java. Armor uses the same format: slot files parent onto `humanoid_armor_base` (which keeps the part names `HumanoidModel` binds) and redeclare the parts they own, so a part that gains children (e.g. `head` with `hat`) must list them again.
