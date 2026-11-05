@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://adamkali.com/schemas/item_definition.json",
+  "title": "DWM Item Definition",
+  "type": "object",
+  "required": ["item"],
+  "additionalProperties": false,
+  "properties": {
+    "item": { "$ref": "#/definitions/identifier" },
+    "parent": { "$ref": "#/definitions/identifier" },
+    "abstract": { "type": "boolean" },
+    "type": { "enum": ["dwm:item", "dwm:sword", "dwm:pickaxe", "dwm:shovel", "dwm:axe", "dwm:hoe", "dwm:armor"] },
+    "properties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stacks_to": { "type": "integer", "minimum": 1, "maximum": 99 },
+        "use_item_description_prefix": { "type": "boolean" },
+        "tool": {
+          "type": "object",
+          "required": ["material", "attack_damage", "attack_speed"],
+          "additionalProperties": false,
+          "properties": {
+            "material": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+            "attack_damage": { "type": "number" },
+            "attack_speed": { "type": "number" }
+          }
+        },
+        "armor": {
+          "type": "object",
+          "required": ["material", "slot"],
+          "additionalProperties": false,
+          "properties": {
+            "material": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+            "slot": { "enum": ["helmet", "chestplate", "leggings", "boots"] }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "identifier": { "type": "string", "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$" }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://adamkali.com/schemas/block_definition.json",
+  "title": "DWM Block Definition",
+  "type": "object",
+  "required": ["block"],
+  "additionalProperties": false,
+  "properties": {
+    "block": { "$ref": "#/definitions/identifier" },
+    "parent": { "$ref": "#/definitions/identifier" },
+    "abstract": { "type": "boolean" },
+    "type": { "enum": ["dwm:block", "dwm:stairs", "dwm:slab", "dwm:wall", "dwm:colored_falling"] },
+    "base": { "$ref": "#/definitions/identifier" },
+    "falling_dust_color": { "type": "integer", "minimum": 0, "maximum": 16777215 },
+    "item": { "type": "boolean" },
+    "creative_tab": { "$ref": "#/definitions/identifier" },
+    "properties": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "map_color": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "instrument": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "strength": {
+          "type": "object",
+          "required": ["destroy_time"],
+          "additionalProperties": false,
+          "properties": {
+            "destroy_time": { "type": "number" },
+            "explosion_resistance": { "type": "number", "minimum": 0 }
+          }
+        },
+        "sound": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "requires_correct_tool": { "type": "boolean" },
+        "light_level": { "type": "integer", "minimum": 0, "maximum": 15 },
+        "occlude": { "type": "boolean" },
+        "collision": { "type": "boolean" },
+        "instabreak": { "type": "boolean" },
+        "random_ticks": { "type": "boolean" },
+        "ignited_by_lava": { "type": "boolean" },
+        "push_reaction": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "offset_type": { "type": "string", "pattern": "^[a-z0-9_]+$" }
+      }
+    }
+  },
+  "definitions": {
+    "identifier": { "type": "string", "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$" }
+  }
+}
