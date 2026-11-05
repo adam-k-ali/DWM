@@ -1,5 +1,6 @@
 package com.adamkali.dwm.model.tileentity;
 
+import com.adamkali.dwm.model.json.TestModelLoading;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import net.minecraft.client.model.geom.ModelPart;
 import org.junit.jupiter.api.Test;
@@ -11,7 +12,7 @@ class FirstDoctorConsoleModelTest {
 
     @Test
     void texturedModelData_hasTimeRotorHierarchy() {
-        ModelPart root = FirstDoctorConsoleModel.getTexturedModelData().bakeRoot();
+        ModelPart root = TestModelLoading.bake(FirstDoctorConsoleModel.LAYER_LOCATION);
         assertTrue(root.hasChild("time_rotor"));
         ModelPart rotor = root.getChild("time_rotor");
         assertTrue(rotor.hasChild("Time_middle"));
@@ -122,7 +123,7 @@ class FirstDoctorConsoleModelTest {
 
     @Test
     void setAngles_movesTimeRotorPivotY() {
-        ModelPart root = FirstDoctorConsoleModel.getTexturedModelData().bakeRoot();
+        ModelPart root = TestModelLoading.bake(FirstDoctorConsoleModel.LAYER_LOCATION);
         FirstDoctorConsoleModel model = new FirstDoctorConsoleModel(root);
         ModelPart timeRotor = root.getChild("time_rotor");
 
@@ -138,7 +139,7 @@ class FirstDoctorConsoleModelTest {
 
     @Test
     void setAngles_spinsTimeMiddleWithoutChangingBob() {
-        ModelPart root = FirstDoctorConsoleModel.getTexturedModelData().bakeRoot();
+        ModelPart root = TestModelLoading.bake(FirstDoctorConsoleModel.LAYER_LOCATION);
         FirstDoctorConsoleModel model = new FirstDoctorConsoleModel(root);
         ModelPart timeRotor = root.getChild("time_rotor");
         ModelPart timeMiddle = timeRotor.getChild("Time_middle");

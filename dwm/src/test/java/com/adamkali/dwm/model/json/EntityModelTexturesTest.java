@@ -10,6 +10,23 @@ import com.adamkali.dwm.model.entity.TimeWarDalekModel;
 import com.adamkali.dwm.model.entity.FlutterwingModel;
 import com.adamkali.dwm.model.entity.ThalModel;
 import com.adamkali.dwm.model.entity.TimeLordModel;
+import com.adamkali.dwm.model.tileentity.FirstDoctorConsoleModel;
+import com.adamkali.dwm.model.tileentity.BiomeSelectorModel;
+import com.adamkali.dwm.model.tileentity.PlanetLocatorModel;
+import com.adamkali.dwm.model.tileentity.WaypointSelectorModel;
+import com.adamkali.dwm.model.tileentity.PlayerLocatorModel;
+import com.adamkali.dwm.model.tileentity.ChameleonCircuitModel;
+import com.adamkali.dwm.model.tileentity.MaterialisationLeverModel;
+import com.adamkali.dwm.model.tileentity.FastReturnModel;
+import com.adamkali.dwm.model.tileentity.ReaderModel;
+import com.adamkali.dwm.model.tileentity.RadiationReaderModel;
+import com.adamkali.dwm.model.tileentity.CloakLeverModel;
+import com.adamkali.dwm.model.tileentity.DoorLockModel;
+import com.adamkali.dwm.model.tileentity.TelepathicCircuitModel;
+import com.adamkali.dwm.model.tileentity.CoordinateLockModel;
+import com.adamkali.dwm.model.tileentity.TardisCompactScannerModel;
+import com.adamkali.dwm.model.tileentity.TardisFullScannerModel;
+import com.adamkali.dwm.model.item.RadiationMeterModel;
 import com.adamkali.dwm.model.tileentity.StabilisersModel;
 import com.adamkali.dwm.model.tileentity.TardisClassicInteriorDoorModel;
 import com.adamkali.dwm.model.tileentity.TardisGlobeModel;
@@ -59,6 +76,23 @@ class EntityModelTexturesTest {
             Map.entry("ThalModel", ThalModel.LAYER_LOCATION),
             Map.entry("DalekLaserModel", DalekLaserModel.LAYER_LOCATION),
             Map.entry("TardisGlobeModel", TardisGlobeModel.LAYER_LOCATION),
+            Map.entry("FirstDoctorConsoleModel", FirstDoctorConsoleModel.LAYER_LOCATION),
+            Map.entry("BiomeSelectorModel", BiomeSelectorModel.LAYER_LOCATION),
+            Map.entry("PlanetLocatorModel", PlanetLocatorModel.LAYER_LOCATION),
+            Map.entry("WaypointSelectorModel", WaypointSelectorModel.LAYER_LOCATION),
+            Map.entry("PlayerLocatorModel", PlayerLocatorModel.LAYER_LOCATION),
+            Map.entry("ChameleonCircuitModel", ChameleonCircuitModel.LAYER_LOCATION),
+            Map.entry("MaterialisationLeverModel", MaterialisationLeverModel.LAYER_LOCATION),
+            Map.entry("FastReturnModel", FastReturnModel.LAYER_LOCATION),
+            Map.entry("ReaderModel", ReaderModel.LAYER_LOCATION),
+            Map.entry("RadiationReaderModel", RadiationReaderModel.LAYER_LOCATION),
+            Map.entry("CloakLeverModel", CloakLeverModel.LAYER_LOCATION),
+            Map.entry("DoorLockModel", DoorLockModel.LAYER_LOCATION),
+            Map.entry("TelepathicCircuitModel", TelepathicCircuitModel.LAYER_LOCATION),
+            Map.entry("CoordinateLockModel", CoordinateLockModel.LAYER_LOCATION),
+            Map.entry("TardisCompactScannerModel", TardisCompactScannerModel.LAYER_LOCATION),
+            Map.entry("TardisFullScannerModel", TardisFullScannerModel.LAYER_LOCATION),
+            Map.entry("RadiationMeterModel", RadiationMeterModel.LAYER_LOCATION),
             Map.entry("StabilisersModel", StabilisersModel.LAYER_LOCATION),
             Map.entry("TardisClassicInteriorDoorModel", TardisClassicInteriorDoorModel.LAYER_LOCATION)
     );

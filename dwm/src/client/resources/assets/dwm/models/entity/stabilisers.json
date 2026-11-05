@@ -51,5 +51,10 @@
         { "uv": [10, 28], "origin": [-0.5, 0.0, -1.5], "size": [1.0, 1.0, 3.0] }
       ]
     }
-  ]
+  ],
+  "animation": {
+    "bindings": [
+      { "part": "stable_adjust/lever", "channel": "rot_x", "value": "(stabilisers - 1) * 0.872665 * deg" }
+    ]
+  }
 }

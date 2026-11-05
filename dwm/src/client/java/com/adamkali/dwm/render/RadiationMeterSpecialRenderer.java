@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render;
 
+import com.adamkali.dwm.model.json.EntityModelTextures;
 import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.item.DWMDataComponents;
 import com.adamkali.dwm.model.item.RadiationMeterModel;
@@ -78,7 +79,7 @@ public class RadiationMeterSpecialRenderer
                 this.model,
                 this.modelState,
                 poseStack,
-                RadiationMeterModel.TEXTURE_LOCATION,
+                EntityModelTextures.get(RadiationMeterModel.LAYER_LOCATION),
                 lightCoords,
                 overlayCoords,
                 outlineColor,

@@ -13,4 +13,9 @@ public final class TestModelLoading {
         EntityModelAnimations.put(layer.model(), file.animation());
         return EntityModelJson.toLayerDefinition(file).bakeRoot();
     }
+
+    /** The resolved {@code texture} of the layer's JSON. */
+    public static net.minecraft.resources.Identifier texture(ModelLayerLocation layer) {
+        return EntityModelJson.loadClasspathFile(layer.model()).texture().orElseThrow();
+    }
 }
