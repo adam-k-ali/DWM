@@ -2,6 +2,7 @@ package com.adamkali.dwm.render;
 
 import com.adamkali.dwm.item.DWMItems;
 import com.adamkali.dwm.model.armor.EvaSuitModel;
+import com.adamkali.dwm.model.json.EntityModelTextures;
 import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -43,9 +44,7 @@ public final class EvaSuitArmorRenderer implements ArmorRenderer {
             HumanoidModel<HumanoidRenderState> contextModel
     ) {
         EvaSuitModel model = this.models.get(slot);
-        Identifier texture = slot == EquipmentSlot.LEGS
-                ? EvaSuitModel.LEGGINGS_TEXTURE
-                : EvaSuitModel.OUTER_TEXTURE;
+        Identifier texture = EntityModelTextures.get(EvaSuitModel.LAYER_SET.get(slot));
 
         ArmorRenderer.submitTransformCopyingModel(
                 contextModel,

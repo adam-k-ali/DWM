@@ -1,8 +1,8 @@
 package com.adamkali.dwm.model.armor;
 
+import com.adamkali.dwm.model.json.TestModelLoading;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.model.geom.builders.LayerDefinition;
-import net.minecraft.client.renderer.entity.ArmorModelSet;
+import net.minecraft.resources.Identifier;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,16 +12,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class EvaSuitModelTest {
     @Test
     void layerSetUsesEvaSuitId() {
-        assertEquals("eva_suit", EvaSuitModel.LAYER_SET.head().model().getPath());
-        assertEquals("helmet", EvaSuitModel.LAYER_SET.head().layer());
-        assertEquals("chestplate", EvaSuitModel.LAYER_SET.chest().layer());
-        assertEquals("leggings", EvaSuitModel.LAYER_SET.legs().layer());
-        assertEquals("boots", EvaSuitModel.LAYER_SET.feet().layer());
+        assertEquals("eva_suit_helmet", EvaSuitModel.LAYER_SET.head().model().getPath());
+        assertEquals("eva_suit_chestplate", EvaSuitModel.LAYER_SET.chest().model().getPath());
+        assertEquals("eva_suit_leggings", EvaSuitModel.LAYER_SET.legs().model().getPath());
+        assertEquals("eva_suit_boots", EvaSuitModel.LAYER_SET.feet().model().getPath());
+    }
+
+    @Test
+    void slotTexturesComeFromJson() {
+        Identifier outer = Identifier.parse("dwm:textures/entity/equipment/humanoid/eva_suit.png");
+        assertEquals(outer, TestModelLoading.texture(EvaSuitModel.LAYER_SET.head()));
+        assertEquals(outer, TestModelLoading.texture(EvaSuitModel.LAYER_SET.chest()));
+        assertEquals(Identifier.parse("dwm:textures/entity/equipment/humanoid_leggings/eva_suit.png"),
+                TestModelLoading.texture(EvaSuitModel.LAYER_SET.legs()));
+        assertEquals(outer, TestModelLoading.texture(EvaSuitModel.LAYER_SET.feet()));
     }
 
     @Test
     void helmetBakesSealedShellVisorAndNeckRing() {
-        ModelPart root = EvaSuitModel.createHelmetLayer().bakeRoot();
+        ModelPart root = TestModelLoading.bake(EvaSuitModel.LAYER_SET.head());
         assertHumanoidPartsPresent(root);
         ModelPart head = root.getChild("head");
         assertTrue(head.hasChild("helmet_shell"));
@@ -34,7 +43,7 @@ class EvaSuitModelTest {
 
     @Test
     void chestBakesBackpackAndFullSleeves() {
-        ModelPart root = EvaSuitModel.createChestLayer().bakeRoot();
+        ModelPart root = TestModelLoading.bake(EvaSuitModel.LAYER_SET.chest());
         assertHumanoidPartsPresent(root);
         ModelPart body = root.getChild("body");
         assertFalse(body.isEmpty());
@@ -48,7 +57,7 @@ class EvaSuitModelTest {
 
     @Test
     void leggingsBakeWaistAndLegsOnly() {
-        ModelPart root = EvaSuitModel.createLeggingsLayer().bakeRoot();
+        ModelPart root = TestModelLoading.bake(EvaSuitModel.LAYER_SET.legs());
         assertHumanoidPartsPresent(root);
         assertFalse(root.getChild("body").isEmpty());
         assertFalse(root.getChild("right_leg").isEmpty());
@@ -60,7 +69,7 @@ class EvaSuitModelTest {
 
     @Test
     void bootsBakeLowerLegsOnly() {
-        ModelPart root = EvaSuitModel.createBootsLayer().bakeRoot();
+        ModelPart root = TestModelLoading.bake(EvaSuitModel.LAYER_SET.feet());
         assertHumanoidPartsPresent(root);
         assertFalse(root.getChild("right_leg").isEmpty());
         assertFalse(root.getChild("left_leg").isEmpty());
@@ -68,15 +77,6 @@ class EvaSuitModelTest {
         assertTrue(root.getChild("body").isEmpty());
         assertTrue(root.getChild("right_arm").isEmpty());
         assertTrue(root.getChild("left_arm").isEmpty());
-    }
-
-    @Test
-    void createArmorLayerSetReturnsFourLayers() {
-        ArmorModelSet<LayerDefinition> set = EvaSuitModel.createArmorLayerSet();
-        assertTrue(set.head().bakeRoot().getChild("head").hasChild("visor"));
-        assertTrue(set.chest().bakeRoot().getChild("body").hasChild("backpack"));
-        assertFalse(set.legs().bakeRoot().getChild("right_leg").isEmpty());
-        assertFalse(set.feet().bakeRoot().getChild("left_leg").isEmpty());
     }
 
     private static void assertHumanoidPartsPresent(ModelPart root) {

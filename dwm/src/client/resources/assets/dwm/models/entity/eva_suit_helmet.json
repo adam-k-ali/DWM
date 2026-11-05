@@ -1,0 +1,22 @@
+{
+  "credit": "Compact EVA suit helmet: sealed shell, visor and neck ring",
+  "parent": "dwm:entity/humanoid_armor_base",
+  "texture": "dwm:textures/entity/equipment/humanoid/eva_suit.png",
+  "parts": [
+    {
+      "name": "head",
+      "children": [
+        { "name": "hat" },
+        { "name": "helmet_shell", "cubes": [
+          { "uv": [0, 0], "origin": [-5, -9, -5], "size": [10, 10, 10], "inflate": 0.05 }
+        ] },
+        { "name": "visor", "cubes": [
+          { "uv": [40, 0], "origin": [-4, -7, -6.25], "size": [8, 5, 2] }
+        ] },
+        { "name": "neck_ring", "cubes": [
+          { "uv": [40, 8], "origin": [-3.5, 0.4, -3.5], "size": [7, 1.6, 7], "inflate": 0.05 }
+        ] }
+      ]
+    }
+  ]
+}

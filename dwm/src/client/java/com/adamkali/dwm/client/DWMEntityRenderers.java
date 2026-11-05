@@ -38,10 +38,7 @@ public final class DWMEntityRenderers {
     }
 
     public static void initialize() {
-        ModelLayerRegistry.registerArmorModelLayers(
-                EvaSuitModel.LAYER_SET,
-                EvaSuitModel::createArmorLayerSet
-        );
+        JsonEntityModelLayers.registerArmor(EvaSuitModel.LAYER_SET);
         EvaSuitArmorRenderer.register();
 
         for (RegisteredWoodFamily family : DWMBlocks.WOOD_FAMILIES) {

@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.renderer.entity.ArmorModelSet;
 import net.minecraft.resources.Identifier;
 
 /**
@@ -19,6 +20,11 @@ public final class JsonEntityModelLayers {
 
     public static void register(ModelLayerLocation location) {
         ModelLayerRegistry.registerModelLayer(location, () -> load(location.model()));
+    }
+
+    /** Registers the four slot layers of an armor set; each loads like {@link #register}. */
+    public static void registerArmor(ArmorModelSet<ModelLayerLocation> locations) {
+        ModelLayerRegistry.registerArmorModelLayers(locations, () -> locations.map(location -> load(location.model())));
     }
 
     static LayerDefinition load(Identifier modelId) {
