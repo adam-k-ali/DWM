@@ -1,0 +1,13 @@
+{
+  "block": "dwm:orange_sandstone_base",
+  "abstract": true,
+  "properties": {
+    "map_color": "color_orange",
+    "instrument": "basedrum",
+    "requires_correct_tool": true,
+    "strength": {
+      "destroy_time": 0.8,
+      "explosion_resistance": 0.8
+    }
+  }
+}

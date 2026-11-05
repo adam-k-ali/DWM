@@ -1,0 +1,10 @@
+{
+  "item": "dwm:eva_suit_boots",
+  "type": "dwm:armor",
+  "properties": {
+    "armor": {
+      "material": "eva_suit",
+      "slot": "boots"
+    }
+  }
+}

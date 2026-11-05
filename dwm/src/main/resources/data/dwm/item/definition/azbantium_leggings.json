@@ -1,0 +1,10 @@
+{
+  "item": "dwm:azbantium_leggings",
+  "type": "dwm:armor",
+  "properties": {
+    "armor": {
+      "material": "azbantium",
+      "slot": "leggings"
+    }
+  }
+}

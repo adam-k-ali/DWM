@@ -1,0 +1,6 @@
+{
+  "block": "dwm:orange_sand",
+  "parent": "dwm:orange_sand_base",
+  "type": "dwm:colored_falling",
+  "falling_dust_color": 16037251
+}

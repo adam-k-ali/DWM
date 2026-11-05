@@ -1,0 +1,11 @@
+{
+  "item": "dwm:azbantium_pickaxe",
+  "type": "dwm:pickaxe",
+  "properties": {
+    "tool": {
+      "material": "azbantium",
+      "attack_damage": 1.0,
+      "attack_speed": -2.8
+    }
+  }
+}

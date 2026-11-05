@@ -1,0 +1,11 @@
+{
+  "item": "dwm:azbantium_sword",
+  "type": "dwm:sword",
+  "properties": {
+    "tool": {
+      "material": "azbantium",
+      "attack_damage": 3.0,
+      "attack_speed": -2.4
+    }
+  }
+}

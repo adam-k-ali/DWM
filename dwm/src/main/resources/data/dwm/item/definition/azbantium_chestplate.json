@@ -1,0 +1,10 @@
+{
+  "item": "dwm:azbantium_chestplate",
+  "type": "dwm:armor",
+  "properties": {
+    "armor": {
+      "material": "azbantium",
+      "slot": "chestplate"
+    }
+  }
+}

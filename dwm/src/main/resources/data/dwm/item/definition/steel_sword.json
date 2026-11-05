@@ -1,0 +1,11 @@
+{
+  "item": "dwm:steel_sword",
+  "type": "dwm:sword",
+  "properties": {
+    "tool": {
+      "material": "steel",
+      "attack_damage": 3.0,
+      "attack_speed": -2.4
+    }
+  }
+}
