@@ -159,6 +159,7 @@ A single PR may carry more than one label if it touches multiple categories.
 ## Nested Context
 - `dwm/src/main/java/com/adamkali/dwm/tardis/AGENTS.md` — TARDIS domain layout (logic vs data vs interior vs portal rendering).
 - `dwm/src/main/java/com/adamkali/dwm/entity/AGENTS.md` — living mob classes vs JSON attribute/AI definitions.
+- `dwm/docs/feature-block-item-definitions.md` — JSON block/item definitions (`data/dwm/{block,item}/definition/`); prefer editing JSON over `DWMBlockSettings` for plain blocks and items.
 - `dwm/tools/AGENTS.md` — index for offline Poetry tools; see also `dwm/tools/palette/AGENTS.md` and `dwm/tools/sfx/AGENTS.md`.
 - `.claude/skills/refine/SKILL.md` — refine GitHub issues (`DWM-NNN` / `E-NNN`) into build-ready descriptions via `gh`; Project Status → `Ready` only when confirmed.
 - `.claude/skills/minecraft-sprite-style/SKILL.md` — Minecraft-readable sprite style guidance and templates.

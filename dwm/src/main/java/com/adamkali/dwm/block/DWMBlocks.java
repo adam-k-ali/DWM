@@ -1,5 +1,6 @@
 package com.adamkali.dwm.block;
 
+import com.adamkali.dwm.block.definition.BlockDefinitions;
 import com.adamkali.dwm.item.DWMCreativeTabs;
 
 import com.adamkali.dwm.block.plant.WraithreedBlock;
@@ -43,113 +44,113 @@ import java.util.List;
 import java.util.function.Function;
 
 public class DWMBlocks {
-    public static final Block BLACK_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "black_roundel_a");
-    public static final Block BLUE_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "blue_roundel_a");
-    public static final Block BROWN_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "brown_roundel_a");
-    public static final Block CYAN_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "cyan_roundel_a");
-    public static final Block GREEN_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "green_roundel_a");
-    public static final Block LIGHT_BLUE_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "light_blue_roundel_a");
-    public static final Block LIGHT_GRAY_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "light_gray_roundel_a");
-    public static final Block LIME_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "lime_roundel_a");
-    public static final Block MAGENTA_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "magenta_roundel_a");
-    public static final Block ORANGE_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "orange_roundel_a");
-    public static final Block PINK_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "pink_roundel_a");
-    public static final Block RED_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "red_roundel_a");
-    public static final Block WHITE_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "white_roundel_a");
-    public static final Block YELLOW_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "yellow_roundel_a");
-    public static final Block GRAY_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "gray_roundel_a");
-    public static final Block PURPLE_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "purple_roundel_a");
-    public static final Block TEAL_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "teal_roundel_a");
+    public static final Block BLACK_ROUNDEL_A = BlockDefinitions.register("black_roundel_a");
+    public static final Block BLUE_ROUNDEL_A = BlockDefinitions.register("blue_roundel_a");
+    public static final Block BROWN_ROUNDEL_A = BlockDefinitions.register("brown_roundel_a");
+    public static final Block CYAN_ROUNDEL_A = BlockDefinitions.register("cyan_roundel_a");
+    public static final Block GREEN_ROUNDEL_A = BlockDefinitions.register("green_roundel_a");
+    public static final Block LIGHT_BLUE_ROUNDEL_A = BlockDefinitions.register("light_blue_roundel_a");
+    public static final Block LIGHT_GRAY_ROUNDEL_A = BlockDefinitions.register("light_gray_roundel_a");
+    public static final Block LIME_ROUNDEL_A = BlockDefinitions.register("lime_roundel_a");
+    public static final Block MAGENTA_ROUNDEL_A = BlockDefinitions.register("magenta_roundel_a");
+    public static final Block ORANGE_ROUNDEL_A = BlockDefinitions.register("orange_roundel_a");
+    public static final Block PINK_ROUNDEL_A = BlockDefinitions.register("pink_roundel_a");
+    public static final Block RED_ROUNDEL_A = BlockDefinitions.register("red_roundel_a");
+    public static final Block WHITE_ROUNDEL_A = BlockDefinitions.register("white_roundel_a");
+    public static final Block YELLOW_ROUNDEL_A = BlockDefinitions.register("yellow_roundel_a");
+    public static final Block GRAY_ROUNDEL_A = BlockDefinitions.register("gray_roundel_a");
+    public static final Block PURPLE_ROUNDEL_A = BlockDefinitions.register("purple_roundel_a");
+    public static final Block TEAL_ROUNDEL_A = BlockDefinitions.register("teal_roundel_a");
 
-    public static final Block BLACK_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundelNoOcclusion(), "black_roundel_b");
-    public static final Block BLUE_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundelNoOcclusion(), "blue_roundel_b");
-    public static final Block BROWN_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundelNoOcclusion(), "brown_roundel_b");
-    public static final Block CYAN_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundelNoOcclusion(), "cyan_roundel_b");
-    public static final Block GREEN_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundelNoOcclusion(), "green_roundel_b");
-    public static final Block LIGHT_BLUE_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundelNoOcclusion(), "light_blue_roundel_b");
-    public static final Block LIGHT_GRAY_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundelNoOcclusion(), "light_gray_roundel_b");
-    public static final Block LIME_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundelNoOcclusion(), "lime_roundel_b");
-    public static final Block MAGENTA_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundelNoOcclusion(), "magenta_roundel_b");
-    public static final Block ORANGE_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundelNoOcclusion(), "orange_roundel_b");
-    public static final Block PINK_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundelNoOcclusion(), "pink_roundel_b");
-    public static final Block RED_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundelNoOcclusion(), "red_roundel_b");
-    public static final Block WHITE_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundelNoOcclusion(), "white_roundel_b");
-    public static final Block YELLOW_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundelNoOcclusion(), "yellow_roundel_b");
-    public static final Block GRAY_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundelNoOcclusion(), "gray_roundel_b");
-    public static final Block PURPLE_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundelNoOcclusion(), "purple_roundel_b");
-    public static final Block TEAL_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundelNoOcclusion(), "teal_roundel_b");
+    public static final Block BLACK_ROUNDEL_B = BlockDefinitions.register("black_roundel_b");
+    public static final Block BLUE_ROUNDEL_B = BlockDefinitions.register("blue_roundel_b");
+    public static final Block BROWN_ROUNDEL_B = BlockDefinitions.register("brown_roundel_b");
+    public static final Block CYAN_ROUNDEL_B = BlockDefinitions.register("cyan_roundel_b");
+    public static final Block GREEN_ROUNDEL_B = BlockDefinitions.register("green_roundel_b");
+    public static final Block LIGHT_BLUE_ROUNDEL_B = BlockDefinitions.register("light_blue_roundel_b");
+    public static final Block LIGHT_GRAY_ROUNDEL_B = BlockDefinitions.register("light_gray_roundel_b");
+    public static final Block LIME_ROUNDEL_B = BlockDefinitions.register("lime_roundel_b");
+    public static final Block MAGENTA_ROUNDEL_B = BlockDefinitions.register("magenta_roundel_b");
+    public static final Block ORANGE_ROUNDEL_B = BlockDefinitions.register("orange_roundel_b");
+    public static final Block PINK_ROUNDEL_B = BlockDefinitions.register("pink_roundel_b");
+    public static final Block RED_ROUNDEL_B = BlockDefinitions.register("red_roundel_b");
+    public static final Block WHITE_ROUNDEL_B = BlockDefinitions.register("white_roundel_b");
+    public static final Block YELLOW_ROUNDEL_B = BlockDefinitions.register("yellow_roundel_b");
+    public static final Block GRAY_ROUNDEL_B = BlockDefinitions.register("gray_roundel_b");
+    public static final Block PURPLE_ROUNDEL_B = BlockDefinitions.register("purple_roundel_b");
+    public static final Block TEAL_ROUNDEL_B = BlockDefinitions.register("teal_roundel_b");
 
-    public static final Block BLACK_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "black_big_roundel_a");
-    public static final Block BLUE_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "blue_big_roundel_a");
-    public static final Block BROWN_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "brown_big_roundel_a");
-    public static final Block CYAN_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "cyan_big_roundel_a");
-    public static final Block GREEN_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "green_big_roundel_a");
-    public static final Block LIGHT_BLUE_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "light_blue_big_roundel_a");
-    public static final Block LIGHT_GRAY_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "light_gray_big_roundel_a");
-    public static final Block LIME_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "lime_big_roundel_a");
-    public static final Block MAGENTA_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "magenta_big_roundel_a");
-    public static final Block ORANGE_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "orange_big_roundel_a");
-    public static final Block PINK_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "pink_big_roundel_a");
-    public static final Block RED_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "red_big_roundel_a");
-    public static final Block WHITE_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "white_big_roundel_a");
-    public static final Block YELLOW_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "yellow_big_roundel_a");
-    public static final Block GRAY_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "gray_big_roundel_a");
-    public static final Block PURPLE_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "purple_big_roundel_a");
-    public static final Block TEAL_BIG_ROUNDEL_A = register(Block::new, DWMBlockSettings.tardisRoundel(), "teal_big_roundel_a");
+    public static final Block BLACK_BIG_ROUNDEL_A = BlockDefinitions.register("black_big_roundel_a");
+    public static final Block BLUE_BIG_ROUNDEL_A = BlockDefinitions.register("blue_big_roundel_a");
+    public static final Block BROWN_BIG_ROUNDEL_A = BlockDefinitions.register("brown_big_roundel_a");
+    public static final Block CYAN_BIG_ROUNDEL_A = BlockDefinitions.register("cyan_big_roundel_a");
+    public static final Block GREEN_BIG_ROUNDEL_A = BlockDefinitions.register("green_big_roundel_a");
+    public static final Block LIGHT_BLUE_BIG_ROUNDEL_A = BlockDefinitions.register("light_blue_big_roundel_a");
+    public static final Block LIGHT_GRAY_BIG_ROUNDEL_A = BlockDefinitions.register("light_gray_big_roundel_a");
+    public static final Block LIME_BIG_ROUNDEL_A = BlockDefinitions.register("lime_big_roundel_a");
+    public static final Block MAGENTA_BIG_ROUNDEL_A = BlockDefinitions.register("magenta_big_roundel_a");
+    public static final Block ORANGE_BIG_ROUNDEL_A = BlockDefinitions.register("orange_big_roundel_a");
+    public static final Block PINK_BIG_ROUNDEL_A = BlockDefinitions.register("pink_big_roundel_a");
+    public static final Block RED_BIG_ROUNDEL_A = BlockDefinitions.register("red_big_roundel_a");
+    public static final Block WHITE_BIG_ROUNDEL_A = BlockDefinitions.register("white_big_roundel_a");
+    public static final Block YELLOW_BIG_ROUNDEL_A = BlockDefinitions.register("yellow_big_roundel_a");
+    public static final Block GRAY_BIG_ROUNDEL_A = BlockDefinitions.register("gray_big_roundel_a");
+    public static final Block PURPLE_BIG_ROUNDEL_A = BlockDefinitions.register("purple_big_roundel_a");
+    public static final Block TEAL_BIG_ROUNDEL_A = BlockDefinitions.register("teal_big_roundel_a");
 
-    public static final Block BLACK_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundel(), "black_big_roundel_b");
-    public static final Block BLUE_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundel(), "blue_big_roundel_b");
-    public static final Block BROWN_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundel(), "brown_big_roundel_b");
-    public static final Block CYAN_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundel(), "cyan_big_roundel_b");
-    public static final Block GREEN_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundel(), "green_big_roundel_b");
-    public static final Block LIGHT_BLUE_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundel(), "light_blue_big_roundel_b");
-    public static final Block LIGHT_GRAY_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundel(), "light_gray_big_roundel_b");
-    public static final Block LIME_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundel(), "lime_big_roundel_b");
-    public static final Block MAGENTA_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundel(), "magenta_big_roundel_b");
-    public static final Block ORANGE_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundel(), "orange_big_roundel_b");
-    public static final Block PINK_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundel(), "pink_big_roundel_b");
-    public static final Block RED_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundel(), "red_big_roundel_b");
-    public static final Block WHITE_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundel(), "white_big_roundel_b");
-    public static final Block YELLOW_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundel(), "yellow_big_roundel_b");
-    public static final Block GRAY_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundel(), "gray_big_roundel_b");
-    public static final Block PURPLE_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundel(), "purple_big_roundel_b");
-    public static final Block TEAL_BIG_ROUNDEL_B = register(Block::new, DWMBlockSettings.tardisRoundel(), "teal_big_roundel_b");
+    public static final Block BLACK_BIG_ROUNDEL_B = BlockDefinitions.register("black_big_roundel_b");
+    public static final Block BLUE_BIG_ROUNDEL_B = BlockDefinitions.register("blue_big_roundel_b");
+    public static final Block BROWN_BIG_ROUNDEL_B = BlockDefinitions.register("brown_big_roundel_b");
+    public static final Block CYAN_BIG_ROUNDEL_B = BlockDefinitions.register("cyan_big_roundel_b");
+    public static final Block GREEN_BIG_ROUNDEL_B = BlockDefinitions.register("green_big_roundel_b");
+    public static final Block LIGHT_BLUE_BIG_ROUNDEL_B = BlockDefinitions.register("light_blue_big_roundel_b");
+    public static final Block LIGHT_GRAY_BIG_ROUNDEL_B = BlockDefinitions.register("light_gray_big_roundel_b");
+    public static final Block LIME_BIG_ROUNDEL_B = BlockDefinitions.register("lime_big_roundel_b");
+    public static final Block MAGENTA_BIG_ROUNDEL_B = BlockDefinitions.register("magenta_big_roundel_b");
+    public static final Block ORANGE_BIG_ROUNDEL_B = BlockDefinitions.register("orange_big_roundel_b");
+    public static final Block PINK_BIG_ROUNDEL_B = BlockDefinitions.register("pink_big_roundel_b");
+    public static final Block RED_BIG_ROUNDEL_B = BlockDefinitions.register("red_big_roundel_b");
+    public static final Block WHITE_BIG_ROUNDEL_B = BlockDefinitions.register("white_big_roundel_b");
+    public static final Block YELLOW_BIG_ROUNDEL_B = BlockDefinitions.register("yellow_big_roundel_b");
+    public static final Block GRAY_BIG_ROUNDEL_B = BlockDefinitions.register("gray_big_roundel_b");
+    public static final Block PURPLE_BIG_ROUNDEL_B = BlockDefinitions.register("purple_big_roundel_b");
+    public static final Block TEAL_BIG_ROUNDEL_B = BlockDefinitions.register("teal_big_roundel_b");
 
-    public static final Block BLACK_TARDIS_WALL = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "black_tardis_wall");
-    public static final Block BLUE_TARDIS_WALL = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "blue_tardis_wall");
-    public static final Block BROWN_TARDIS_WALL = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "brown_tardis_wall");
-    public static final Block CYAN_TARDIS_WALL = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "cyan_tardis_wall");
-    public static final Block GREEN_TARDIS_WALL = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "green_tardis_wall");
-    public static final Block LIGHT_BLUE_TARDIS_WALL = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "light_blue_tardis_wall");
-    public static final Block LIGHT_GRAY_TARDIS_WALL = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "light_gray_tardis_wall");
-    public static final Block LIME_TARDIS_WALL = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "lime_tardis_wall");
-    public static final Block MAGENTA_TARDIS_WALL = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "magenta_tardis_wall");
-    public static final Block ORANGE_TARDIS_WALL = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "orange_tardis_wall");
-    public static final Block PINK_TARDIS_WALL = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "pink_tardis_wall");
-    public static final Block RED_TARDIS_WALL = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "red_tardis_wall");
-    public static final Block WHITE_TARDIS_WALL = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "white_tardis_wall");
-    public static final Block YELLOW_TARDIS_WALL = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "yellow_tardis_wall");
-    public static final Block GRAY_TARDIS_WALL = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "gray_tardis_wall");
-    public static final Block PURPLE_TARDIS_WALL = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "purple_tardis_wall");
-    public static final Block TEAL_TARDIS_WALL = register(Block::new, DWMBlockSettings.TARDIS_WALL_SETTINGS, "teal_tardis_wall");
+    public static final Block BLACK_TARDIS_WALL = BlockDefinitions.register("black_tardis_wall");
+    public static final Block BLUE_TARDIS_WALL = BlockDefinitions.register("blue_tardis_wall");
+    public static final Block BROWN_TARDIS_WALL = BlockDefinitions.register("brown_tardis_wall");
+    public static final Block CYAN_TARDIS_WALL = BlockDefinitions.register("cyan_tardis_wall");
+    public static final Block GREEN_TARDIS_WALL = BlockDefinitions.register("green_tardis_wall");
+    public static final Block LIGHT_BLUE_TARDIS_WALL = BlockDefinitions.register("light_blue_tardis_wall");
+    public static final Block LIGHT_GRAY_TARDIS_WALL = BlockDefinitions.register("light_gray_tardis_wall");
+    public static final Block LIME_TARDIS_WALL = BlockDefinitions.register("lime_tardis_wall");
+    public static final Block MAGENTA_TARDIS_WALL = BlockDefinitions.register("magenta_tardis_wall");
+    public static final Block ORANGE_TARDIS_WALL = BlockDefinitions.register("orange_tardis_wall");
+    public static final Block PINK_TARDIS_WALL = BlockDefinitions.register("pink_tardis_wall");
+    public static final Block RED_TARDIS_WALL = BlockDefinitions.register("red_tardis_wall");
+    public static final Block WHITE_TARDIS_WALL = BlockDefinitions.register("white_tardis_wall");
+    public static final Block YELLOW_TARDIS_WALL = BlockDefinitions.register("yellow_tardis_wall");
+    public static final Block GRAY_TARDIS_WALL = BlockDefinitions.register("gray_tardis_wall");
+    public static final Block PURPLE_TARDIS_WALL = BlockDefinitions.register("purple_tardis_wall");
+    public static final Block TEAL_TARDIS_WALL = BlockDefinitions.register("teal_tardis_wall");
 
-    public static final Block BLACK_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "black_chronoplasm_powder");
-    public static final Block BLUE_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "blue_chronoplasm_powder");
-    public static final Block BROWN_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "brown_chronoplasm_powder");
-    public static final Block CYAN_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "cyan_chronoplasm_powder");
-    public static final Block GREEN_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "green_chronoplasm_powder");
-    public static final Block LIGHT_BLUE_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "light_blue_chronoplasm_powder");
-    public static final Block LIGHT_GRAY_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "light_gray_chronoplasm_powder");
-    public static final Block LIME_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "lime_chronoplasm_powder");
-    public static final Block MAGENTA_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "magenta_chronoplasm_powder");
-    public static final Block ORANGE_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "orange_chronoplasm_powder");
-    public static final Block PINK_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "pink_chronoplasm_powder");
-    public static final Block RED_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "red_chronoplasm_powder");
-    public static final Block WHITE_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "white_chronoplasm_powder");
-    public static final Block YELLOW_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "yellow_chronoplasm_powder");
-    public static final Block GRAY_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "gray_chronoplasm_powder");
-    public static final Block PURPLE_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "purple_chronoplasm_powder");
-    public static final Block TEAL_CHRONOPLASM_POWDER = register(Block::new, DWMBlockSettings.CHRONOPLASM_POWDER_SETTINGS, "teal_chronoplasm_powder");
+    public static final Block BLACK_CHRONOPLASM_POWDER = BlockDefinitions.register("black_chronoplasm_powder");
+    public static final Block BLUE_CHRONOPLASM_POWDER = BlockDefinitions.register("blue_chronoplasm_powder");
+    public static final Block BROWN_CHRONOPLASM_POWDER = BlockDefinitions.register("brown_chronoplasm_powder");
+    public static final Block CYAN_CHRONOPLASM_POWDER = BlockDefinitions.register("cyan_chronoplasm_powder");
+    public static final Block GREEN_CHRONOPLASM_POWDER = BlockDefinitions.register("green_chronoplasm_powder");
+    public static final Block LIGHT_BLUE_CHRONOPLASM_POWDER = BlockDefinitions.register("light_blue_chronoplasm_powder");
+    public static final Block LIGHT_GRAY_CHRONOPLASM_POWDER = BlockDefinitions.register("light_gray_chronoplasm_powder");
+    public static final Block LIME_CHRONOPLASM_POWDER = BlockDefinitions.register("lime_chronoplasm_powder");
+    public static final Block MAGENTA_CHRONOPLASM_POWDER = BlockDefinitions.register("magenta_chronoplasm_powder");
+    public static final Block ORANGE_CHRONOPLASM_POWDER = BlockDefinitions.register("orange_chronoplasm_powder");
+    public static final Block PINK_CHRONOPLASM_POWDER = BlockDefinitions.register("pink_chronoplasm_powder");
+    public static final Block RED_CHRONOPLASM_POWDER = BlockDefinitions.register("red_chronoplasm_powder");
+    public static final Block WHITE_CHRONOPLASM_POWDER = BlockDefinitions.register("white_chronoplasm_powder");
+    public static final Block YELLOW_CHRONOPLASM_POWDER = BlockDefinitions.register("yellow_chronoplasm_powder");
+    public static final Block GRAY_CHRONOPLASM_POWDER = BlockDefinitions.register("gray_chronoplasm_powder");
+    public static final Block PURPLE_CHRONOPLASM_POWDER = BlockDefinitions.register("purple_chronoplasm_powder");
+    public static final Block TEAL_CHRONOPLASM_POWDER = BlockDefinitions.register("teal_chronoplasm_powder");
 
     public static final Block TARDIS_BLOCK = register(TardisBlock::new, DWMBlockSettings.TARDIS_BLOCK, "tardis_block");
 
@@ -188,78 +189,46 @@ public class DWMBlocks {
             DWMBlockSettings.TARDIS_DECOR_SETTINGS,
             "tardis_full_scanner");
 
-    public static final Block GALLIFREY_STONE = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "gallifrey_stone");
-    public static final Block GALLIFREY_STONE_BRICKS = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "gallifrey_stone_bricks");
-    public static final Block CHISELED_GALLIFREY_STONE_BRICKS = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "chiseled_gallifrey_stone_bricks");
-    public static final Block CRACKED_GALLIFREY_STONE_BRICKS = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "cracked_gallifrey_stone_bricks");
-    public static final Block MOSSY_GALLIFREY_STONE_BRICKS = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "mossy_gallifrey_stone_bricks");
-    public static final Block GALLIFREY_COBBLESTONE = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "gallifrey_cobblestone");
-    public static final Block GALLIFREY_COBBLESTONE_STAIRS = registerStairs(GALLIFREY_COBBLESTONE, "gallifrey_cobblestone_stairs");
-    public static final Block GALLIFREY_COBBLESTONE_SLAB = registerSlab(GALLIFREY_COBBLESTONE, "gallifrey_cobblestone_slab");
-    public static final Block GALLIFREY_COBBLESTONE_WALL = registerWall(GALLIFREY_COBBLESTONE, "gallifrey_cobblestone_wall");
-    public static final Block GALLIFREY_MOSSY_COBBLESTONE = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "gallifrey_mossy_cobblestone");
-    public static final Block GALLIFREY_MOSSY_COBBLESTONE_STAIRS = registerStairs(GALLIFREY_MOSSY_COBBLESTONE, "gallifrey_mossy_cobblestone_stairs");
-    public static final Block GALLIFREY_MOSSY_COBBLESTONE_SLAB = registerSlab(GALLIFREY_MOSSY_COBBLESTONE, "gallifrey_mossy_cobblestone_slab");
-    public static final Block GALLIFREY_MOSSY_COBBLESTONE_WALL = registerWall(GALLIFREY_MOSSY_COBBLESTONE, "gallifrey_mossy_cobblestone_wall");
-    public static final Block GALLIFREY_STONE_BRICK_STAIRS = registerStairs(GALLIFREY_STONE_BRICKS, "gallifrey_stone_brick_stairs");
-    public static final Block GALLIFREY_STONE_BRICK_SLAB = registerSlab(GALLIFREY_STONE_BRICKS, "gallifrey_stone_brick_slab");
-    public static final Block GALLIFREY_STONE_BRICK_WALL = registerWall(GALLIFREY_STONE_BRICKS, "gallifrey_stone_brick_wall");
-    public static final Block MOSSY_GALLIFREY_STONE_BRICK_STAIRS = registerStairs(MOSSY_GALLIFREY_STONE_BRICKS, "mossy_gallifrey_stone_brick_stairs");
-    public static final Block MOSSY_GALLIFREY_STONE_BRICK_SLAB = registerSlab(MOSSY_GALLIFREY_STONE_BRICKS, "mossy_gallifrey_stone_brick_slab");
-    public static final Block MOSSY_GALLIFREY_STONE_BRICK_WALL = registerWall(MOSSY_GALLIFREY_STONE_BRICKS, "mossy_gallifrey_stone_brick_wall");
-    public static final Block GALLIFREY_SMOOTH_STONE = register(Block::new, DWMBlockSettings.GALLIFREY_STONE, "gallifrey_smooth_stone");
-    public static final Block GALLIFREY_SMOOTH_STONE_SLAB = registerSlab(GALLIFREY_SMOOTH_STONE, "gallifrey_smooth_stone_slab");
-    public static final Block GALLIFREY_SANDSTONE = register(Block::new, DWMBlockSettings.GALLIFREY_SANDSTONE, "gallifrey_sandstone");
-    public static final Block GALLIFREY_CUT_SANDSTONE = register(Block::new, DWMBlockSettings.GALLIFREY_SANDSTONE, "gallifrey_cut_sandstone");
-    public static final Block GALLIFREY_CHISELED_SANDSTONE = register(Block::new, DWMBlockSettings.GALLIFREY_SANDSTONE, "gallifrey_chiseled_sandstone");
-    public static final Block GALLIFREY_SAND = register(
-            settings -> new ColoredFallingBlock(new ColorRGBA(0xC47A3A), settings),
-            DWMBlockSettings.GALLIFREY_SAND,
-            "gallifrey_sand"
-    );
-    public static final Block GALLIFREY_DIRT = register(Block::new, DWMBlockSettings.GALLIFREY_DIRT, "gallifrey_dirt");
-    public static final Block GALLIFREY_COARSE_DIRT = register(Block::new, DWMBlockSettings.GALLIFREY_DIRT, "gallifrey_coarse_dirt");
-    public static final Block GALLIFREY_GRASS_BLOCK = register(Block::new, DWMBlockSettings.GALLIFREY_GRASS, "gallifrey_grass_block");
+    public static final Block GALLIFREY_STONE = BlockDefinitions.register("gallifrey_stone");
+    public static final Block GALLIFREY_STONE_BRICKS = BlockDefinitions.register("gallifrey_stone_bricks");
+    public static final Block CHISELED_GALLIFREY_STONE_BRICKS = BlockDefinitions.register("chiseled_gallifrey_stone_bricks");
+    public static final Block CRACKED_GALLIFREY_STONE_BRICKS = BlockDefinitions.register("cracked_gallifrey_stone_bricks");
+    public static final Block MOSSY_GALLIFREY_STONE_BRICKS = BlockDefinitions.register("mossy_gallifrey_stone_bricks");
+    public static final Block GALLIFREY_COBBLESTONE = BlockDefinitions.register("gallifrey_cobblestone");
+    public static final Block GALLIFREY_COBBLESTONE_STAIRS = BlockDefinitions.register("gallifrey_cobblestone_stairs");
+    public static final Block GALLIFREY_COBBLESTONE_SLAB = BlockDefinitions.register("gallifrey_cobblestone_slab");
+    public static final Block GALLIFREY_COBBLESTONE_WALL = BlockDefinitions.register("gallifrey_cobblestone_wall");
+    public static final Block GALLIFREY_MOSSY_COBBLESTONE = BlockDefinitions.register("gallifrey_mossy_cobblestone");
+    public static final Block GALLIFREY_MOSSY_COBBLESTONE_STAIRS = BlockDefinitions.register("gallifrey_mossy_cobblestone_stairs");
+    public static final Block GALLIFREY_MOSSY_COBBLESTONE_SLAB = BlockDefinitions.register("gallifrey_mossy_cobblestone_slab");
+    public static final Block GALLIFREY_MOSSY_COBBLESTONE_WALL = BlockDefinitions.register("gallifrey_mossy_cobblestone_wall");
+    public static final Block GALLIFREY_STONE_BRICK_STAIRS = BlockDefinitions.register("gallifrey_stone_brick_stairs");
+    public static final Block GALLIFREY_STONE_BRICK_SLAB = BlockDefinitions.register("gallifrey_stone_brick_slab");
+    public static final Block GALLIFREY_STONE_BRICK_WALL = BlockDefinitions.register("gallifrey_stone_brick_wall");
+    public static final Block MOSSY_GALLIFREY_STONE_BRICK_STAIRS = BlockDefinitions.register("mossy_gallifrey_stone_brick_stairs");
+    public static final Block MOSSY_GALLIFREY_STONE_BRICK_SLAB = BlockDefinitions.register("mossy_gallifrey_stone_brick_slab");
+    public static final Block MOSSY_GALLIFREY_STONE_BRICK_WALL = BlockDefinitions.register("mossy_gallifrey_stone_brick_wall");
+    public static final Block GALLIFREY_SMOOTH_STONE = BlockDefinitions.register("gallifrey_smooth_stone");
+    public static final Block GALLIFREY_SMOOTH_STONE_SLAB = BlockDefinitions.register("gallifrey_smooth_stone_slab");
+    public static final Block GALLIFREY_SANDSTONE = BlockDefinitions.register("gallifrey_sandstone");
+    public static final Block GALLIFREY_CUT_SANDSTONE = BlockDefinitions.register("gallifrey_cut_sandstone");
+    public static final Block GALLIFREY_CHISELED_SANDSTONE = BlockDefinitions.register("gallifrey_chiseled_sandstone");
+    public static final Block GALLIFREY_SAND = BlockDefinitions.register("gallifrey_sand");
+    public static final Block GALLIFREY_DIRT = BlockDefinitions.register("gallifrey_dirt");
+    public static final Block GALLIFREY_COARSE_DIRT = BlockDefinitions.register("gallifrey_coarse_dirt");
+    public static final Block GALLIFREY_GRASS_BLOCK = BlockDefinitions.register("gallifrey_grass_block");
 
-    public static final Block ORANGE_SAND = register(
-            settings -> new ColoredFallingBlock(new ColorRGBA(0xF4B583), settings),
-            DWMBlockSettings.ORANGE_SAND,
-            "orange_sand"
-    );
-    public static final Block ORANGE_SANDSTONE = register(Block::new, DWMBlockSettings.ORANGE_SANDSTONE, "orange_sandstone");
-    public static final Block ORANGE_SANDSTONE_STAIRS = register(
-            settings -> new StairBlock(ORANGE_SANDSTONE.defaultBlockState(), settings),
-            BlockBehaviour.Properties.ofLegacyCopy(ORANGE_SANDSTONE),
-            "orange_sandstone_stairs"
-    );
-    public static final Block ORANGE_SANDSTONE_SLAB = register(
-            SlabBlock::new,
-            BlockBehaviour.Properties.ofLegacyCopy(ORANGE_SANDSTONE),
-            "orange_sandstone_slab"
-    );
-    public static final Block ORANGE_SANDSTONE_WALL = register(
-            WallBlock::new,
-            BlockBehaviour.Properties.ofLegacyCopy(ORANGE_SANDSTONE),
-            "orange_sandstone_wall"
-    );
-    public static final Block CUT_ORANGE_SANDSTONE = register(Block::new, DWMBlockSettings.ORANGE_SANDSTONE, "cut_orange_sandstone");
-    public static final Block CUT_ORANGE_SANDSTONE_SLAB = register(
-            SlabBlock::new,
-            BlockBehaviour.Properties.ofLegacyCopy(CUT_ORANGE_SANDSTONE),
-            "cut_orange_sandstone_slab"
-    );
-    public static final Block CHISELED_ORANGE_SANDSTONE = register(Block::new, DWMBlockSettings.ORANGE_SANDSTONE, "chiseled_orange_sandstone");
-    public static final Block SMOOTH_ORANGE_SANDSTONE = register(Block::new, DWMBlockSettings.ORANGE_SANDSTONE, "smooth_orange_sandstone");
-    public static final Block SMOOTH_ORANGE_SANDSTONE_STAIRS = register(
-            settings -> new StairBlock(SMOOTH_ORANGE_SANDSTONE.defaultBlockState(), settings),
-            BlockBehaviour.Properties.ofLegacyCopy(SMOOTH_ORANGE_SANDSTONE),
-            "smooth_orange_sandstone_stairs"
-    );
-    public static final Block SMOOTH_ORANGE_SANDSTONE_SLAB = register(
-            SlabBlock::new,
-            BlockBehaviour.Properties.ofLegacyCopy(SMOOTH_ORANGE_SANDSTONE),
-            "smooth_orange_sandstone_slab"
-    );
+    public static final Block ORANGE_SAND = BlockDefinitions.register("orange_sand");
+    public static final Block ORANGE_SANDSTONE = BlockDefinitions.register("orange_sandstone");
+    public static final Block ORANGE_SANDSTONE_STAIRS = BlockDefinitions.register("orange_sandstone_stairs");
+    public static final Block ORANGE_SANDSTONE_SLAB = BlockDefinitions.register("orange_sandstone_slab");
+    public static final Block ORANGE_SANDSTONE_WALL = BlockDefinitions.register("orange_sandstone_wall");
+    public static final Block CUT_ORANGE_SANDSTONE = BlockDefinitions.register("cut_orange_sandstone");
+    public static final Block CUT_ORANGE_SANDSTONE_SLAB = BlockDefinitions.register("cut_orange_sandstone_slab");
+    public static final Block CHISELED_ORANGE_SANDSTONE = BlockDefinitions.register("chiseled_orange_sandstone");
+    public static final Block SMOOTH_ORANGE_SANDSTONE = BlockDefinitions.register("smooth_orange_sandstone");
+    public static final Block SMOOTH_ORANGE_SANDSTONE_STAIRS = BlockDefinitions.register("smooth_orange_sandstone_stairs");
+    public static final Block SMOOTH_ORANGE_SANDSTONE_SLAB = BlockDefinitions.register("smooth_orange_sandstone_slab");
 
     /** Skaro petrified wood — mineralized trunks (nonflammable, pickaxe). */
     public static final Block PETRIFIED_LOG = register(
@@ -283,9 +252,9 @@ public class DWMBlocks {
             "stripped_petrified_wood"
     );
     public static final Block PETRIFIED_PLANKS = register(Block::new, DWMBlockSettings.petrified(), "petrified_planks");
-    public static final Block PETRIFIED_STAIRS = registerStairs(PETRIFIED_PLANKS, "petrified_stairs");
-    public static final Block PETRIFIED_SLAB = registerSlab(PETRIFIED_PLANKS, "petrified_slab");
-    public static final Block PETRIFIED_WALL = registerWall(PETRIFIED_PLANKS, "petrified_wall");
+    public static final Block PETRIFIED_STAIRS = BlockDefinitions.register("petrified_stairs");
+    public static final Block PETRIFIED_SLAB = BlockDefinitions.register("petrified_slab");
+    public static final Block PETRIFIED_WALL = BlockDefinitions.register("petrified_wall");
 
     public static final Block CITADEL_WALL = register(Block::new, DWMBlockSettings.CITADEL, "citadel_wall");
     public static final Block CITADEL_PANEL = register(Block::new, DWMBlockSettings.CITADEL, "citadel_panel");
@@ -697,6 +666,7 @@ public class DWMBlocks {
 
     public static void initialize() {
         DWMWoodTypes.initialize();
+        BlockDefinitions.registerUnclaimed();
 
         CompostableRegistry.INSTANCE.add(FLOWER_OF_REMEMBRANCE.asItem(), 0.65F);
         CompostableRegistry.INSTANCE.add(MOONLIGHT_BLOOM.asItem(), 0.65F);

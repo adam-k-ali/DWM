@@ -1,0 +1,8 @@
+{
+  "block": "dwm:roundel_no_occlusion_base",
+  "abstract": true,
+  "parent": "dwm:roundel_base",
+  "properties": {
+    "occlude": false
+  }
+}

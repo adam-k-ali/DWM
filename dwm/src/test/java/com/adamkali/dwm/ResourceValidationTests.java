@@ -64,6 +64,22 @@ public class ResourceValidationTests {
     }
 
     @Test
+    public void validateBlockDefinitions() {
+        assertTrue(JsonValidationHelpers.validateJsonFiles(
+                "src/test/resources/schemas/block_definition.schema.json",
+                "src/main/resources/data/dwm/block/definition"
+        ));
+    }
+
+    @Test
+    public void validateItemDefinitions() {
+        assertTrue(JsonValidationHelpers.validateJsonFiles(
+                "src/test/resources/schemas/item_definition.schema.json",
+                "src/main/resources/data/dwm/item/definition"
+        ));
+    }
+
+    @Test
     public void validateEntityModels() {
         assertTrue(JsonValidationHelpers.validateJsonFiles(
                 "src/test/resources/schemas/entity_model.schema.json",

@@ -1,0 +1,13 @@
+{
+  "block": "dwm:gallifrey_stone_base",
+  "abstract": true,
+  "properties": {
+    "map_color": "terracotta_orange",
+    "instrument": "basedrum",
+    "requires_correct_tool": true,
+    "strength": {
+      "destroy_time": 1.5,
+      "explosion_resistance": 6.0
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "block": "dwm:gallifrey_sand_base",
+  "abstract": true,
+  "properties": {
+    "map_color": "terracotta_orange",
+    "instrument": "snare",
+    "strength": {
+      "destroy_time": 0.5,
+      "explosion_resistance": 0.5
+    },
+    "sound": "sand"
+  }
+}

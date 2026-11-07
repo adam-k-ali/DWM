@@ -1,0 +1,11 @@
+{
+  "item": "dwm:bronze_dalekanium_pickaxe",
+  "type": "dwm:pickaxe",
+  "properties": {
+    "tool": {
+      "material": "bronze_dalekanium",
+      "attack_damage": 1.0,
+      "attack_speed": -2.8
+    }
+  }
+}

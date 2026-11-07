@@ -22,6 +22,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 - [Thal](./feature-thal.md)
 - [Dalek/Thal Battles](./feature-dalek-thal-battles.md)
 - [Entity Definitions](./feature-entity-definitions.md)
+- [Block and Item Definitions](./feature-block-item-definitions.md)
 
 ### Experimental Features
 - [TARDIS Chameleon System](./feature-chameleon-system.md) (config-gated and disabled by default)
