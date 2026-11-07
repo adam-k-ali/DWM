@@ -4,12 +4,12 @@ import com.adamkali.dwm.DWMReference;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.mojang.logging.LogUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
-import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -31,8 +31,6 @@ public final class DefinitionFiles {
     /** Key marking a definition as a template: it can be a {@code parent} but is never registered. */
     public static final String ABSTRACT = "abstract";
     public static final String PARENT = "parent";
-
-    private static final Logger LOGGER = LogUtils.getLogger();
 
     private DefinitionFiles() {
     }
@@ -129,21 +127,34 @@ public final class DefinitionFiles {
         return json.has(ABSTRACT) && json.get(ABSTRACT).getAsBoolean();
     }
 
-    private static Path resolveDir(String folder) {
+    /**
+     * Locates the definition folder: the mod container's copy first, then the same folder on this class's
+     * classpath (unit tests, where Fabric does not load the mod). Never consults the working directory, and a
+     * failing container lookup propagates instead of silently loading some other set of files.
+     */
+    static Path resolveDir(String folder) {
+        Optional<Path> packed = FabricLoader.getInstance()
+                .getModContainer(DWMReference.MOD_ID)
+                .flatMap(container -> container.findPath(folder));
+        if (packed.isPresent()) {
+            return requireDirectory(packed.get(), folder);
+        }
+        URL resource = DefinitionFiles.class.getClassLoader().getResource(folder);
+        if (resource == null) {
+            throw new IllegalStateException("Cannot locate definition directory " + folder
+                    + ": mod '" + DWMReference.MOD_ID + "' has no such path and it is not on the classpath");
+        }
         try {
-            Optional<Path> packed = FabricLoader.getInstance()
-                    .getModContainer(DWMReference.MOD_ID)
-                    .flatMap(container -> container.findPath(folder));
-            if (packed.isPresent() && Files.isDirectory(packed.get())) {
-                return packed.get();
-            }
-        } catch (RuntimeException e) {
-            LOGGER.debug("Fabric mod container unavailable for {}: {}", folder, e.toString());
+            return requireDirectory(Path.of(resource.toURI()), folder);
+        } catch (URISyntaxException | RuntimeException e) {
+            throw new IllegalStateException("Cannot open definition directory " + folder + " from " + resource, e);
         }
-        Path fallback = Path.of("src/main/resources", folder);
-        if (Files.isDirectory(fallback)) {
-            return fallback;
+    }
+
+    private static Path requireDirectory(Path path, String folder) {
+        if (!Files.isDirectory(path)) {
+            throw new IllegalStateException("Definition path " + folder + " resolved to " + path + ", which is not a directory");
         }
-        throw new IllegalStateException("Cannot locate definition directory " + folder);
+        return path;
     }
 }
