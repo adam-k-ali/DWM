@@ -124,7 +124,7 @@ public final class TardisInteriorService {
         if (interiorWorld == null) {
             return false;
         }
-        TardisTeleport.teleport(player, interiorWorld, entrance, 0.0f);
+        TardisTeleport.teleport(player, interiorWorld, entrance, player.getYRot());
         DWMCriteria.FIND_TARDIS.trigger(player);
         if (TardisOwnershipLogic.tryClaimOnEnter(exteriorEntity.getTardisIdOrNull(), player.getUUID())) {
             FirstHourLogic.notifyClaimed(player);
@@ -158,8 +158,7 @@ public final class TardisInteriorService {
         BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
         Direction doorFacing = TardisExteriorFacing.doorDirection(model.exteriorRotation);
         BlockPos exitPos = exteriorPos.relative(doorFacing);
-        float yaw = Direction.getYRot(doorFacing);
-        TardisTeleport.teleport(player, exteriorWorld, exitPos, yaw);
+        TardisTeleport.teleport(player, exteriorWorld, exitPos, player.getYRot());
         return true;
     }
 
