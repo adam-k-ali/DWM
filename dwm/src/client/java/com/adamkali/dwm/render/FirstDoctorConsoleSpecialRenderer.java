@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render;
 
+import com.adamkali.dwm.model.json.EntityModelTextures;
 import com.adamkali.dwm.model.tileentity.FirstDoctorConsoleModel;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -55,7 +56,7 @@ public class FirstDoctorConsoleSpecialRenderer implements NoDataSpecialModelRend
                 this.model,
                 this.animState,
                 poseStack,
-                FirstDoctorConsoleModel.TEXTURE_LOCATION,
+                EntityModelTextures.get(FirstDoctorConsoleModel.LAYER_LOCATION),
                 lightCoords,
                 overlayCoords,
                 outlineColor,

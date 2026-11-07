@@ -1,0 +1,14 @@
+{
+  "credit": "Empty vanilla humanoid skeleton so HumanoidModel can bind every part; armor slot models replace the parts they own",
+  "texture_width": 128,
+  "texture_height": 64,
+  "texture": "dwm:textures/entity/equipment/humanoid/eva_suit.png",
+  "parts": [
+    { "name": "head", "children": [ { "name": "hat" } ] },
+    { "name": "body" },
+    { "name": "right_arm", "pivot": [-5, 2, 0] },
+    { "name": "left_arm", "pivot": [5, 2, 0] },
+    { "name": "right_leg", "pivot": [-1.9, 12, 0] },
+    { "name": "left_leg", "pivot": [1.9, 12, 0] }
+  ]
+}
