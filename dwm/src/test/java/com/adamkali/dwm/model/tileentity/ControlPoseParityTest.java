@@ -97,4 +97,22 @@ class ControlPoseParityTest {
             assertEquals((needle - 0.5F) * 1.6F, radiation.getChild("needle").xRot, EPS);
         }
     }
+
+    @Test
+    void timeRotorBobsAndSpins() {
+        ModelPart root = TestModelLoading.bake(FirstDoctorConsoleModel.LAYER_LOCATION);
+        FirstDoctorConsoleModel model = new FirstDoctorConsoleModel(root);
+        ModelPart rotor = root.getChild("time_rotor");
+        TardisRenderState state = new TardisRenderState();
+        state.setRotorBobOffset(-2.5F);
+        state.setRotorSpinRadians(1.25F);
+        model.setupAnim(state);
+        assertEquals(-2.5F, rotor.y, EPS);
+        assertEquals(1.25F, rotor.getChild("Time_middle").yRot, EPS);
+        state.setRotorBobOffset(0.0F);
+        state.setRotorSpinRadians(0.0F);
+        model.setupAnim(state);
+        assertEquals(0.0F, rotor.y, EPS);
+        assertEquals(0.0F, rotor.getChild("Time_middle").yRot, EPS);
+    }
 }

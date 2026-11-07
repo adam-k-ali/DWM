@@ -24,7 +24,8 @@
       "com.adamkali.dwm.gametest.client.LaserGunClientGameTest",
       "com.adamkali.dwm.gametest.client.SkaroFloraClientGameTest",
       "com.adamkali.dwm.gametest.client.TardisGlobeClientGameTest",
-      "com.adamkali.dwm.gametest.client.TardisMonitorClientGameTest"
+      "com.adamkali.dwm.gametest.client.TardisMonitorClientGameTest",
+      "com.adamkali.dwm.gametest.client.ConsoleAndSuitClientGameTest"
     ]
   }
 }
