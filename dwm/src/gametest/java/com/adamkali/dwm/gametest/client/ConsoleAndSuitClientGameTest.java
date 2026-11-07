@@ -20,9 +20,9 @@ public class ConsoleAndSuitClientGameTest implements FabricClientGameTest {
             ClientGameTestSupport.stage(server, "creative");
             server.runCommand(String.format("setblock 0 %d %d dwm:first_doctor_console",
                     ClientGameTestSupport.PAD_Y, Z + 2));
-            server.runCommand(String.format("tp @a 0 %d 0 0 35", ClientGameTestSupport.CAMERA_Y + 2));
+            server.runCommand(String.format("tp @a 0 %d 2 0 0", ClientGameTestSupport.CAMERA_Y + 1));
             ClientGameTestSupport.toggleHud(context);
-            context.getInput().lookAt(new BlockPos(0, ClientGameTestSupport.PAD_Y, Z + 2));
+            context.getInput().lookAt(new BlockPos(0, ClientGameTestSupport.PAD_Y + 1, Z + 2));
             context.waitTicks(30);
             ClientGameTestSupport.screenshot(context, "first_doctor_console");
 
@@ -48,6 +48,8 @@ public class ConsoleAndSuitClientGameTest implements FabricClientGameTest {
             server.runCommand(String.format(
                     "summon item_frame 0 %d %d {Facing:2b,Fixed:1b,Item:{id:\"dwm:radiation_meter\",count:1}}",
                     ClientGameTestSupport.CAMERA_Y, Z + 2));
+            server.runCommand("kill @e[type=minecraft:mannequin]");
+            server.runCommand(String.format("tp @a 0 %d %d 0 0", ClientGameTestSupport.CAMERA_Y, Z));
             context.getInput().lookAt(new BlockPos(0, ClientGameTestSupport.CAMERA_Y, Z + 2));
             context.waitTicks(20);
             ClientGameTestSupport.screenshot(context, "radiation_meter");
