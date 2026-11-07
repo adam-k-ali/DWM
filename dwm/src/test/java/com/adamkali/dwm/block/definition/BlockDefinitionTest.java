@@ -118,4 +118,48 @@ class BlockDefinitionTest {
         assertThrows(IllegalStateException.class, () -> BlockDefinitions.parse(raw("a", "{\"block\":\"dwm:a\",\"properties\":{\"sound\":\"nope\"}}")));
         assertThrows(IllegalStateException.class, () -> BlockDefinitions.parse(raw("a", "{\"block\":\"dwm:a\",\"properties\":{\"map_color\":\"nope\"}}")));
     }
+
+    private static BlockDefinition def(String path, String base) {
+        return new BlockDefinition(id(path), base == null ? BlockType.BLOCK : BlockType.SLAB,
+                java.util.Optional.ofNullable(base).map(BlockDefinitionTest::id), java.util.Optional.empty(), true,
+                java.util.Optional.empty(), BlockProperties.EMPTY);
+    }
+
+    private static Map<Identifier, BlockDefinition> defs(BlockDefinition... definitions) {
+        Map<Identifier, BlockDefinition> map = new LinkedHashMap<>();
+        for (BlockDefinition d : definitions) {
+            map.put(d.block(), d);
+        }
+        return map;
+    }
+
+    private static java.util.List<String> order(Map<Identifier, BlockDefinition> definitions, java.util.Set<Identifier> registered) {
+        return BlockDefinitions.registrationOrder(definitions, registered::contains).stream().map(d -> d.block().getPath()).toList();
+    }
+
+    @Test
+    void registrationOrderPutsABaseBeforeAChildThatSortsFirst() {
+        assertEquals(java.util.List.of("z_base", "a_slab"),
+                order(defs(def("a_slab", "z_base"), def("z_base", null)), java.util.Set.of()));
+    }
+
+    @Test
+    void registrationOrderFollowsBaseChainsAndKeepsFileOrderOtherwise() {
+        assertEquals(java.util.List.of("c", "b", "a", "d"),
+                order(defs(def("a", "b"), def("b", "c"), def("c", null), def("d", null)), java.util.Set.of()));
+    }
+
+    @Test
+    void registrationOrderSkipsRegisteredBlocksAndAllowsRegisteredOrVanillaBases() {
+        assertEquals(java.util.List.of("child"),
+                order(defs(def("done", null), def("child", "done")), java.util.Set.of(id("done"))));
+        assertEquals(java.util.List.of("child"),
+                order(defs(def("child", "minecraft_stone")), java.util.Set.of(id("minecraft_stone"))));
+    }
+
+    @Test
+    void registrationOrderRejectsCyclesAndUnknownBases() {
+        assertThrows(IllegalStateException.class, () -> order(defs(def("a", "b"), def("b", "a")), java.util.Set.of()));
+        assertThrows(IllegalStateException.class, () -> order(defs(def("a", "missing")), java.util.Set.of()));
+    }
 }

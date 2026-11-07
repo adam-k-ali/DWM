@@ -16,7 +16,7 @@ Unchanged: every migrated block and item registers with the same id, class and p
 - Loaded from the mod jar at init, before registration. `/reload` does not apply; restart to pick up edits.
 - `parent` inherits from another definition; `properties` merge per key (child wins), everything else is replaced. `"abstract": true` marks a template that is never registered (e.g. `roundel_base`).
 - Java keeps its constants: `public static final Block X = BlockDefinitions.register("x");` so datagen, tests and other code are unaffected.
-- A definition with **no** Java field is registered automatically (`registerUnclaimed()`), so a data-only block/item needs just JSON plus its assets, lang and datagen entries. Stairs/slab/walls registered this way must sort after their `base` by file name.
+- A definition with **no** Java field is registered automatically (`registerUnclaimed()`), so a data-only block/item needs just JSON plus its assets, lang and datagen entries. A stairs/slab/wall registered this way may name an unclaimed `base`; the base is registered first.
 
 ## Block JSON
 
@@ -28,7 +28,7 @@ Unchanged: every migrated block and item registers with the same id, class and p
 | --- | --- |
 | `block` | Block id (required) |
 | `type` | `dwm:block` (default), `dwm:stairs`, `dwm:slab`, `dwm:wall`, `dwm:colored_falling` |
-| `base` | Block whose properties/state stairs, slab and wall copy; must already be registered |
+| `base` | Block whose properties/state stairs, slab and wall copy; for `BlockDefinitions.register(...)` calls from Java it must already be registered (data-only blocks order themselves) |
 | `falling_dust_color` | RGB int for `dwm:colored_falling` |
 | `item` | `false` skips the `BlockItem` (default `true`) |
 | `creative_tab` | Vanilla tab id, for data-only blocks |

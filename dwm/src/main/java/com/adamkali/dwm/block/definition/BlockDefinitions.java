@@ -21,11 +21,16 @@ import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Registry of JSON block definitions ({@code data/dwm/block/definition/*.json}). Loaded from the jar at init;
@@ -100,21 +105,62 @@ public final class BlockDefinitions {
     }
 
     /**
-     * Registers definitions that no Java field claimed, so a data-only block needs just its JSON. Definitions are
-     * registered in file-name order; a stairs/slab/wall must therefore sort after its base or be claimed in Java.
+     * Registers definitions that no Java field claimed, so a data-only block needs just its JSON. A stairs, slab or
+     * wall whose {@code base} is also unclaimed is registered after that base, whatever the file names sort like.
      */
     public static void registerUnclaimed() {
         initialize();
-        for (BlockDefinition definition : DEFINITIONS.values()) {
-            if (BuiltInRegistries.BLOCK.containsKey(definition.block())) {
-                continue;
-            }
+        for (BlockDefinition definition : registrationOrder(DEFINITIONS, BuiltInRegistries.BLOCK::containsKey)) {
             Block block = register(definition.block().getPath());
             definition.creativeTab().ifPresent(tab -> CreativeModeTabEvents
                     .modifyOutputEvent(ResourceKey.<CreativeModeTab>create(Registries.CREATIVE_MODE_TAB, tab))
                     .register(content -> content.accept(block)));
             LOGGER.debug("Registered data-only block {}", definition.block());
         }
+    }
+
+    /**
+     * The definitions still to register, in a safe order: each block's {@code base} comes before it, and file order
+     * is kept otherwise. Bases that are already registered (or unknown to the data, e.g. vanilla) are left alone.
+     *
+     * @throws IllegalStateException on a {@code base} cycle, or a base that is neither registered nor defined
+     */
+    static List<BlockDefinition> registrationOrder(Map<Identifier, BlockDefinition> definitions, Predicate<Identifier> alreadyRegistered) {
+        List<BlockDefinition> ordered = new ArrayList<>();
+        Set<Identifier> done = new HashSet<>();
+        for (BlockDefinition definition : definitions.values()) {
+            visit(definition, definitions, alreadyRegistered, done, new LinkedHashSet<>(), ordered);
+        }
+        return ordered;
+    }
+
+    private static void visit(
+            BlockDefinition definition,
+            Map<Identifier, BlockDefinition> definitions,
+            Predicate<Identifier> alreadyRegistered,
+            Set<Identifier> done,
+            Set<Identifier> visiting,
+            List<BlockDefinition> ordered
+    ) {
+        Identifier id = definition.block();
+        if (alreadyRegistered.test(id) || done.contains(id)) {
+            return;
+        }
+        if (!visiting.add(id)) {
+            throw new IllegalStateException("Block definition base cycle: " + visiting + " -> " + id);
+        }
+        if (definition.base().isPresent()) {
+            Identifier baseId = definition.base().get();
+            BlockDefinition base = definitions.get(baseId);
+            if (base != null) {
+                visit(base, definitions, alreadyRegistered, done, visiting, ordered);
+            } else if (!alreadyRegistered.test(baseId)) {
+                throw new IllegalStateException(id + " has base " + baseId + ", which is neither registered nor defined");
+            }
+        }
+        visiting.remove(id);
+        done.add(id);
+        ordered.add(definition);
     }
 
     private static Function<BlockBehaviour.Properties, Block> factory(BlockDefinition definition, Block base) {
