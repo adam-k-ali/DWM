@@ -95,12 +95,20 @@ public final class ItemDefinitions {
     }
 
     private static Function<Item.Properties, Item> factory(ItemDefinition definition) {
-        ItemProperties.Tool tool = definition.properties().tool().orElse(null);
         return switch (definition.type()) {
             case ITEM, SWORD, PICKAXE, ARMOR -> Item::new;
-            case SHOVEL -> props -> new ShovelItem(tool.material(), tool.attackDamage(), tool.attackSpeed(), props);
-            case AXE -> props -> new AxeItem(tool.material(), tool.attackDamage(), tool.attackSpeed(), props);
-            case HOE -> props -> new HoeItem(tool.material(), tool.attackDamage(), tool.attackSpeed(), props);
+            case SHOVEL -> props -> {
+                ItemProperties.Tool tool = definition.properties().tool().orElseThrow();
+                return new ShovelItem(tool.material(), tool.attackDamage(), tool.attackSpeed(), props);
+            };
+            case AXE -> props -> {
+                ItemProperties.Tool tool = definition.properties().tool().orElseThrow();
+                return new AxeItem(tool.material(), tool.attackDamage(), tool.attackSpeed(), props);
+            };
+            case HOE -> props -> {
+                ItemProperties.Tool tool = definition.properties().tool().orElseThrow();
+                return new HoeItem(tool.material(), tool.attackDamage(), tool.attackSpeed(), props);
+            };
         };
     }
 }

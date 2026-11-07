@@ -89,4 +89,14 @@ class ItemDefinitionTest {
         assertThrows(IllegalStateException.class, () -> ItemDefinitions.parse(raw("a",
                 "{\"item\":\"dwm:a\",\"type\":\"dwm:sword\",\"properties\":{\"tool\":{\"material\":\"nope\",\"attack_damage\":1,\"attack_speed\":1}}}")));
     }
+
+    @Test
+    void applyingAToolTypeWithoutAToolFailsClearly() {
+        for (ItemType type : new ItemType[]{ItemType.SWORD, ItemType.PICKAXE}) {
+            assertThrows(java.util.NoSuchElementException.class,
+                    () -> ItemProperties.EMPTY.apply(new net.minecraft.world.item.Item.Properties(), type), type.toString());
+        }
+        assertThrows(java.util.NoSuchElementException.class,
+                () -> ItemProperties.EMPTY.apply(new net.minecraft.world.item.Item.Properties(), ItemType.ARMOR));
+    }
 }

@@ -54,10 +54,15 @@ public record ItemProperties(
         if (useItemDescriptionPrefix.orElse(false)) {
             target.useItemDescriptionPrefix();
         }
-        Tool toolSpec = tool.orElse(null);
         switch (type) {
-            case SWORD -> target.sword(toolSpec.material(), toolSpec.attackDamage(), toolSpec.attackSpeed());
-            case PICKAXE -> target.pickaxe(toolSpec.material(), toolSpec.attackDamage(), toolSpec.attackSpeed());
+            case SWORD -> {
+                Tool spec = tool.orElseThrow();
+                target.sword(spec.material(), spec.attackDamage(), spec.attackSpeed());
+            }
+            case PICKAXE -> {
+                Tool spec = tool.orElseThrow();
+                target.pickaxe(spec.material(), spec.attackDamage(), spec.attackSpeed());
+            }
             case ARMOR -> target.humanoidArmor(armor.orElseThrow().material(), armor.orElseThrow().slot());
             default -> { }
         }
