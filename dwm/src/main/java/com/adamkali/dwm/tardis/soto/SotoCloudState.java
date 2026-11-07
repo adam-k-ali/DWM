@@ -2,7 +2,9 @@ package com.adamkali.dwm.tardis.soto;
 
 import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors.EffectsKind;
 import net.minecraft.util.ARGB;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Pure cloud parameters for the SOTO portal, derived from a synced {@link SotoAtmosphere}.
@@ -18,6 +20,34 @@ public record SotoCloudState(int color, float height) {
     private static final int BASE_COLOR = ARGB.white(0.8F);
     private static final int NIGHT_MULTIPLIER = ARGB.colorFromFloat(1.0F, 0.1F, 0.1F, 0.15F);
     private static final int DAY_TICKS = 24000;
+
+    /** Ticks between portal re-renders while clouds are visible; drift is 0.03 blocks/tick, so 20 is ~0.6 blocks. */
+    public static final int REFRESH_INTERVAL_TICKS = 20;
+
+    /** Camera Y used only before the exterior's footprint origin is known. */
+    public static final double FALLBACK_CAMERA_Y = 70.0;
+
+    /**
+     * Cloud camera in world space. The portal camera is footprint-local, so adding the synced footprint
+     * origin gives the real exterior position (cloud field, drift origin and height all match the outside).
+     * Without an origin only the local X/Z and {@link #FALLBACK_CAMERA_Y} are available.
+     */
+    public static Vec3 cloudCamera(BlockPos footprintOrigin, Vec3 portalLocalCamera) {
+        if (footprintOrigin == null) {
+            return new Vec3(portalLocalCamera.x, FALLBACK_CAMERA_Y, portalLocalCamera.z);
+        }
+        return new Vec3(
+                footprintOrigin.getX() + portalLocalCamera.x,
+                footprintOrigin.getY() + portalLocalCamera.y,
+                footprintOrigin.getZ() + portalLocalCamera.z);
+    }
+
+    /** True when the cached portal frame is old enough that the clouds should be redrawn. */
+    public static boolean refreshDue(long gameTime, long lastRefreshTick) {
+        return lastRefreshTick == Long.MIN_VALUE
+                || gameTime < lastRefreshTick
+                || gameTime - lastRefreshTick >= REFRESH_INTERVAL_TICKS;
+    }
 
     /** Only the overworld has clouds. */
     public boolean hasClouds() {

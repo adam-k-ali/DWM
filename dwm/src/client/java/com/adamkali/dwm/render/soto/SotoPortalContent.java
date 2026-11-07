@@ -4,6 +4,7 @@ import com.adamkali.dwm.render.portal.PortalCameraTransform;
 import com.adamkali.dwm.render.portal.PortalContent;
 import com.adamkali.dwm.render.portal.PortalContentContext;
 import com.adamkali.dwm.render.portal.PortalFeatureFlush;
+import com.adamkali.dwm.render.portal.PortalFrameCache;
 import com.adamkali.dwm.render.portal.PortalLightmap;
 import com.adamkali.dwm.render.portal.PortalPerfStats;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
@@ -14,6 +15,7 @@ import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
 import com.adamkali.dwm.tardis.portal.PortalShellState;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphere;
+import com.adamkali.dwm.tardis.soto.SotoCloudState;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -22,6 +24,7 @@ import org.joml.Matrix4fStack;
 
 import java.util.Objects;
 import java.util.UUID;
+import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
@@ -31,6 +34,7 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
  */
 public final class SotoPortalContent implements PortalContent {
     private final UUID tardisId;
+    private long lastCloudRefreshTick = Long.MIN_VALUE;
 
     public SotoPortalContent(UUID tardisId) {
         this.tardisId = Objects.requireNonNull(tardisId, "tardisId");
@@ -52,6 +56,25 @@ public final class SotoPortalContent implements PortalContent {
                 && shell != null
                 && ghost.chunkCount() > 0
                 && SotoGhostMeshCache.hasMeshes(PortalStreamKind.SOTO, tardisId);
+    }
+
+    /** Clouds drift every tick but the portal frame is cached, so redraw periodically while they are visible. */
+    @Override
+    public void onFrameRequested(Minecraft client) {
+        if (client.level == null || client.options == null
+                || client.options.cloudStatus().get() == CloudStatus.OFF) {
+            return;
+        }
+        PortalAtmosphere portal = PortalSceneStore.getAtmosphere(PortalStreamKind.SOTO, tardisId);
+        if (!SotoCloudState.from(portal != null ? SotoAtmosphere.fromPortal(portal) : SotoAtmosphere.DEFAULT)
+                .hasClouds()) {
+            return;
+        }
+        long now = client.level.getGameTime();
+        if (SotoCloudState.refreshDue(now, lastCloudRefreshTick)) {
+            lastCloudRefreshTick = now;
+            PortalFrameCache.markDirty(PortalStreamKind.SOTO, tardisId);
+        }
     }
 
     @Override
@@ -88,7 +111,9 @@ public final class SotoPortalContent implements PortalContent {
         SotoAtmosphere atmosphere = portal != null ? SotoAtmosphere.fromPortal(portal) : SotoAtmosphere.DEFAULT;
 
         long skyStart = PortalPerfStats.begin();
-        SotoSkyFogRenderer.renderPortalSky(context, atmosphere);
+        SotoGhostExterior skyGhost = SotoGhostExterior.get(PortalStreamKind.SOTO, id);
+        SotoSkyFogRenderer.renderPortalSky(
+                context, atmosphere, skyGhost != null ? skyGhost.footprintOrigin() : null);
         context.bindTarget();
         GpuBufferSlice previousFog = SotoSkyFogRenderer.applyPortalTerrainFog(atmosphere);
         PortalPerfStats.end(PortalPerfStats.Stage.SKY_FOG, skyStart);

@@ -14,6 +14,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.client.renderer.SkyRenderer;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.phys.Vec3;
@@ -32,9 +33,6 @@ import org.lwjgl.opengl.GL11;
 public final class SotoSkyFogRenderer {
     /** Sky fog must never tint the celestials, so push its end far past the sky dome. */
     private static final float SKY_FOG_END = 100_000.0F;
-
-    /** Assumed exterior camera height; clouds sit at an absolute world Y (192.33 in the overworld). */
-    private static final double CLOUD_REFERENCE_CAMERA_Y = 70.0;
 
     private static SkyRenderer portalSky;
     private static RenderTarget portalSkyTarget;
@@ -64,7 +62,7 @@ public final class SotoSkyFogRenderer {
      * The shared entity submit collector must not be used for sky fills — it can rebind the main
      * framebuffer.
      */
-    public static void renderPortalSky(PortalContentContext context, SotoAtmosphere atmosphere) {
+    public static void renderPortalSky(PortalContentContext context, SotoAtmosphere atmosphere, BlockPos footprintOrigin) {
         SotoSkyState state = SotoSkyState.from(atmosphere);
         if (!state.hasCelestials()) {
             return;
@@ -101,7 +99,7 @@ public final class SotoSkyFogRenderer {
                     state.moonPhase(),
                     state.rainBrightness(),
                     state.starBrightness());
-            renderPortalClouds(context, atmosphere);
+            renderPortalClouds(context, atmosphere, footprintOrigin);
         } finally {
             modelView.popMatrix();
             SotoGl.depthMask(true);
@@ -119,10 +117,11 @@ public final class SotoSkyFogRenderer {
 
     /**
      * Draws clouds with the portal-owned {@link SotoCloudRenderer}. The portal camera lives in
-     * SOTO-local space, so X/Z drive the drift while Y uses {@link #CLOUD_REFERENCE_CAMERA_Y}
-     * (the exterior's real world height is not synced).
+     * footprint-local space; {@link SotoCloudState#cloudCamera} adds the synced footprint origin so the
+     * clouds are placed from the exterior's real world position.
      */
-    private static void renderPortalClouds(PortalContentContext context, SotoAtmosphere atmosphere) {
+    private static void renderPortalClouds(
+            PortalContentContext context, SotoAtmosphere atmosphere, BlockPos footprintOrigin) {
         Minecraft client = context.client();
         if (client.level == null || client.options == null) {
             return;
@@ -143,7 +142,7 @@ public final class SotoSkyFogRenderer {
                 status,
                 clouds.height(),
                 client.options.cloudRange().get(),
-                new Vec3(camera.x, CLOUD_REFERENCE_CAMERA_Y, camera.z),
+                SotoCloudState.cloudCamera(footprintOrigin, camera),
                 client.level.getGameTime(),
                 context.tickDelta());
     }

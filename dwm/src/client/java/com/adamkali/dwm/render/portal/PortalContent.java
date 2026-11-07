@@ -17,5 +17,9 @@ public interface PortalContent {
      */
     PortalCameraTransform.Result hitch(Minecraft client);
 
+    /** Called every time the scene is requested, before the frame-cache check (e.g. to mark time-driven content dirty). */
+    default void onFrameRequested(Minecraft client) {
+    }
+
     void renderInto(PortalContentContext context);
 }

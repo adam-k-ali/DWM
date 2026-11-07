@@ -88,8 +88,20 @@ public final class PortalRenderTarget implements AutoCloseable {
         }
     }
 
+    /**
+     * Releases the portal target and its sky/cloud GPU buffers. Disconnect events arrive on a Netty thread,
+     * and unmapping/destroying GL buffers off the render thread aborts the JVM ("No context is current"),
+     * so hop onto the render thread when needed.
+     */
     public static void closeGlobal() {
-        INSTANCE.close();
+        if (RenderSystem.isOnRenderThread()) {
+            INSTANCE.close();
+            return;
+        }
+        Minecraft client = Minecraft.getInstance();
+        if (client != null) {
+            client.execute(INSTANCE::close);
+        }
     }
 
     public boolean ensureReady(Minecraft client) {

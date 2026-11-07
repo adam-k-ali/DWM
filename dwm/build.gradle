@@ -11,7 +11,15 @@ base {
 }
 
 repositories {
-    maven { url "https://maven.shedaniel.me/" }
+    maven {
+        name = "Shedaniel"
+        url = "https://maven.shedaniel.me/"
+        content {
+            includeGroup "me.shedaniel.cloth"
+            includeGroup "me.shedaniel.cloth.api"
+            includeGroup "me.shedaniel"
+        }
+    }
     // Prefer Modrinth: Terraformers Maven is intermittently unavailable (502/timeouts).
     maven {
         name = "Modrinth"

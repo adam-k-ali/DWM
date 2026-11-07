@@ -2,7 +2,9 @@ package com.adamkali.dwm.tardis.soto;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.ARGB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -68,5 +70,29 @@ class SotoCloudStateTest {
     void nightMultiplier_wrapsAcrossMidnightOfDayCount() {
         assertEquals(SotoCloudState.nightMultiplier(6000L), SotoCloudState.nightMultiplier(6000L + 24000L * 5));
         assertEquals(-1, SotoCloudState.nightMultiplier(133L));
+    }
+
+    @Test
+    void cloudCamera_addsFootprintOriginToLocalCamera() {
+        Vec3 camera = SotoCloudState.cloudCamera(new BlockPos(100, 64, -200), new Vec3(5.5, 2.6, 4.0));
+        assertEquals(105.5, camera.x, 1e-9);
+        assertEquals(66.6, camera.y, 1e-9);
+        assertEquals(-196.0, camera.z, 1e-9);
+    }
+
+    @Test
+    void cloudCamera_withoutOriginFallsBackToReferenceHeight() {
+        Vec3 camera = SotoCloudState.cloudCamera(null, new Vec3(5.5, 2.6, 4.0));
+        assertEquals(5.5, camera.x, 1e-9);
+        assertEquals(SotoCloudState.FALLBACK_CAMERA_Y, camera.y, 1e-9);
+        assertEquals(4.0, camera.z, 1e-9);
+    }
+
+    @Test
+    void refreshDue_onlyAfterIntervalOrClockRewind() {
+        assertTrue(SotoCloudState.refreshDue(5, Long.MIN_VALUE));
+        assertFalse(SotoCloudState.refreshDue(119, 100));
+        assertTrue(SotoCloudState.refreshDue(100 + SotoCloudState.REFRESH_INTERVAL_TICKS, 100));
+        assertTrue(SotoCloudState.refreshDue(50, 100));
     }
 }
