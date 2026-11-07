@@ -251,6 +251,10 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
             return;
         }
         SotoGhostExterior ghost = getOrCreate(kind, payload.tardisId());
+        if (ghost.hasChunks() && !ghost.footprintOrigin.equals(payload.footprintOrigin())) {
+            // Chunk data is footprint-relative: blocks cached against the old origin are wrong now.
+            ghost.dropCachedChunks();
+        }
         ghost.footprintOrigin = payload.footprintOrigin();
         long key = ChunkPos.pack(payload.chunkX(), payload.chunkZ());
         Map<BlockPos, BlockState> newBlocks = new HashMap<>(payload.toBlockMap());
@@ -289,6 +293,22 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         ghost.blocksByRel.putAll(newBlocks);
         ghost.blockEntitiesByRel.putAll(newBes);
         ghost.rebuildChunkAndLightNeighbors(payload.chunkX(), payload.chunkZ());
+    }
+
+    private boolean hasChunks() {
+        return !chunkBlocks.isEmpty();
+    }
+
+    private void dropCachedChunks() {
+        List<Long> keys = List.copyOf(chunkBlocks.keySet());
+        chunkBlocks.clear();
+        chunkBlockEntities.clear();
+        chunkLights.clear();
+        blocksByRel.clear();
+        blockEntitiesByRel.clear();
+        for (long packed : keys) {
+            SotoGhostMeshCache.onChunkUnloaded(kind, tardisId, ChunkPos.getX(packed), ChunkPos.getZ(packed));
+        }
     }
 
     /**
