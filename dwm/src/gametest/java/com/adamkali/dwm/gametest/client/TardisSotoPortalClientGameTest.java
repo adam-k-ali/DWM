@@ -42,6 +42,7 @@ public class TardisSotoPortalClientGameTest implements FabricClientGameTest {
             context.waitTicks(40);
             ClientGameTestSupport.assertPortalsStillAvailable(context);
             ClientGameTestSupport.screenshot(context, "portal_soto_interior");
+            TardisSotoPortalCloudsClientGameTest.run(context, world, id);
             ClientGameTestSupport.toggleHud(context);
         }
     }

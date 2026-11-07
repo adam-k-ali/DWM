@@ -20,7 +20,12 @@ public final class PortalFogRenderer {
         GpuBufferSlice previous = RenderSystem.getShaderFog();
         FogRenderer fogRenderer = renderer();
         fogRenderer.updateBuffer(buildFogData(start, end, red, green, blue));
-        RenderSystem.setShaderFog(fogRenderer.getBuffer(FogRenderer.FogMode.WORLD));
+        GpuBufferSlice applied = fogRenderer.getBuffer(FogRenderer.FogMode.WORLD);
+        // Draws recorded with this slice may still be pending when the next apply() runs (sky/cloud fog,
+        // then terrain fog, within one portal frame). Rotate so the next apply writes a different ring
+        // slot (fence-guarded) instead of overwriting the UBO those draws are about to read.
+        fogRenderer.endFrame();
+        RenderSystem.setShaderFog(applied);
         return previous;
     }
 
