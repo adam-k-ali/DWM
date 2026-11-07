@@ -80,6 +80,7 @@ public final class PortalRenderer {
                 PortalPerfStats.setOutcome(PortalPerfStats.Outcome.NOT_READY);
                 return PortalTexture.UNAVAILABLE;
             }
+            content.onFrameRequested(client);
             PortalCameraTransform.Result hitch = content.hitch(client);
             if (hitch == null) {
                 renderedReady.remove(key);
