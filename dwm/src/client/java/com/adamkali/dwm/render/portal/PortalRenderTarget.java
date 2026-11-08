@@ -9,12 +9,14 @@ import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.textures.GpuTextureView;
+import org.joml.Matrix4f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 
 import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ProjectionMatrixBuffer;
 
 /**
  * Owns the full-window color/depth target used by the portal pass.
@@ -32,6 +34,8 @@ public final class PortalRenderTarget implements AutoCloseable {
     private static boolean redirectingMainWrite;
 
     private final Map<PortalKey, Long> renderedFrameByKey = new HashMap<>();
+    private final Matrix4f projectionScratch = new Matrix4f();
+    private ProjectionMatrixBuffer projectionBuffer;
     private TextureTarget framebuffer;
     private int width;
     private int height;
@@ -262,8 +266,24 @@ public final class PortalRenderTarget implements AutoCloseable {
         return isReady() ? framebuffer : null;
     }
 
+    /**
+     * Uploads the fixed portal projection for the current target size and returns its UBO slice.
+     * The buffer is owned here so {@link #close()} releases it with the rest of the portal GPU state.
+     */
+    public GpuBufferSlice portalProjection(float zFar) {
+        if (projectionBuffer == null) {
+            projectionBuffer = new ProjectionMatrixBuffer("dwm portal");
+        }
+        return projectionBuffer.getBuffer(PortalProjection.matrix(width, height, zFar,
+                RenderSystem.getDevice().getDeviceInfo().isZZeroToOne(), projectionScratch));
+    }
+
     @Override
     public void close() {
+        if (projectionBuffer != null) {
+            projectionBuffer.close();
+            projectionBuffer = null;
+        }
         renderedFrameByKey.clear();
         clearOutputOverrides();
         com.adamkali.dwm.render.soto.SotoSkyFogRenderer.closePortalSky();

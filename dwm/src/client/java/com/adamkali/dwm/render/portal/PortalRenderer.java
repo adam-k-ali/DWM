@@ -3,6 +3,8 @@ package com.adamkali.dwm.render.portal;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
+import com.mojang.blaze3d.ProjectionType;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -166,6 +168,14 @@ public final class PortalRenderer {
             modelViewStack.pushMatrix();
             modelViewStack.set(hitch.viewMatrix());
 
+            GpuBufferSlice previousProjection = RenderSystem.getProjectionMatrixBuffer();
+            ProjectionType previousProjectionType = RenderSystem.getProjectionType();
+            RenderSystem.setProjectionMatrix(
+                    target.portalProjection(PortalProjection.farPlane(
+                            client.options.getEffectiveRenderDistance(),
+                            client.options.cloudRange().get())),
+                    ProjectionType.PERSPECTIVE);
+
             PoseStack sceneMatrices = new PoseStack();
             EntityRenderDispatcher entityDispatcher = client.getEntityRenderDispatcher();
             BlockEntityRenderDispatcher blockEntityDispatcher = client.getBlockEntityRenderDispatcher();
@@ -192,12 +202,14 @@ public final class PortalRenderer {
                     blockEntityDispatcher.prepare(client.gameRenderer.mainCamera().position());
                 }
                 modelViewStack.popMatrix();
+                if (previousProjection != null) {
+                    RenderSystem.setProjectionMatrix(previousProjection, previousProjectionType);
+                }
             }
         } finally {
             PortalRenderTarget.endPortalPass();
         }
     }
-
     private CameraRenderState createPortalCameraState(PortalCameraTransform.Result hitch) {
         CameraRenderState cameraState = new CameraRenderState();
         cameraState.initialized = true;
