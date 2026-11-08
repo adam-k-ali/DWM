@@ -1,0 +1,12 @@
+{
+  "block": "dwm:gallifrey_dirt_base",
+  "abstract": true,
+  "properties": {
+    "map_color": "terracotta_orange",
+    "strength": {
+      "destroy_time": 0.5,
+      "explosion_resistance": 0.5
+    },
+    "sound": "gravel"
+  }
+}

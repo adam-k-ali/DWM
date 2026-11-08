@@ -1,0 +1,11 @@
+{
+  "item": "dwm:bronze_dalekanium_shovel",
+  "type": "dwm:shovel",
+  "properties": {
+    "tool": {
+      "material": "bronze_dalekanium",
+      "attack_damage": 1.5,
+      "attack_speed": -3.0
+    }
+  }
+}

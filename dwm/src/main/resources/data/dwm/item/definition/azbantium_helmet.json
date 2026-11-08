@@ -1,0 +1,10 @@
+{
+  "item": "dwm:azbantium_helmet",
+  "type": "dwm:armor",
+  "properties": {
+    "armor": {
+      "material": "azbantium",
+      "slot": "helmet"
+    }
+  }
+}

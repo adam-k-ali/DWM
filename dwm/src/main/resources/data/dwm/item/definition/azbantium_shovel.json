@@ -1,0 +1,11 @@
+{
+  "item": "dwm:azbantium_shovel",
+  "type": "dwm:shovel",
+  "properties": {
+    "tool": {
+      "material": "azbantium",
+      "attack_damage": 1.5,
+      "attack_speed": -3.0
+    }
+  }
+}

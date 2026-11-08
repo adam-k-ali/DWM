@@ -1,0 +1,6 @@
+{
+  "block": "dwm:gallifrey_sand",
+  "parent": "dwm:gallifrey_sand_base",
+  "type": "dwm:colored_falling",
+  "falling_dust_color": 12876346
+}

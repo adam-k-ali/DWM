@@ -1,0 +1,11 @@
+{
+  "block": "dwm:chronoplasm_powder_base",
+  "abstract": true,
+  "properties": {
+    "strength": {
+      "destroy_time": 0.5,
+      "explosion_resistance": 0.5
+    },
+    "sound": "sand"
+  }
+}

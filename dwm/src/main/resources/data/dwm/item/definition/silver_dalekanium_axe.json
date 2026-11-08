@@ -1,0 +1,11 @@
+{
+  "item": "dwm:silver_dalekanium_axe",
+  "type": "dwm:axe",
+  "properties": {
+    "tool": {
+      "material": "silver_dalekanium",
+      "attack_damage": 5.0,
+      "attack_speed": -3.0
+    }
+  }
+}

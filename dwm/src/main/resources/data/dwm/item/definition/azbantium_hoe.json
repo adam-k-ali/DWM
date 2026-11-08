@@ -1,0 +1,11 @@
+{
+  "item": "dwm:azbantium_hoe",
+  "type": "dwm:hoe",
+  "properties": {
+    "tool": {
+      "material": "azbantium",
+      "attack_damage": -3.0,
+      "attack_speed": 0.0
+    }
+  }
+}

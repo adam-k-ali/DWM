@@ -1,0 +1,12 @@
+{
+  "block": "dwm:roundel_base",
+  "abstract": true,
+  "properties": {
+    "strength": {
+      "destroy_time": 2.0,
+      "explosion_resistance": 3.0
+    },
+    "sound": "metal",
+    "light_level": 10
+  }
+}
