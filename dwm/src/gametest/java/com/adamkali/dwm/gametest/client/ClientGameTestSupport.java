@@ -128,6 +128,20 @@ final class ClientGameTestSupport {
         });
     }
 
+    /** Opens (swing 1) or closes (swing 0) the TARDIS door and syncs the change to portal viewers. */
+    static void setDoorOpen(TestServerContext server, UUID id, boolean open) {
+        server.runOnServer(minecraft -> {
+            TardisDataModel model = TardisDataLoader.get(id);
+            if (model == null) {
+                throw new AssertionError("Missing TARDIS data for " + id);
+            }
+            model.doorState.isOpen = open;
+            model.doorState.doorSwing = open ? 1.0f : 0.0f;
+            model.setChanged();
+            PortalStreamSyncService.setMetaChanged(id);
+        });
+    }
+
     /** Waits until the interior is generated, preload jobs are done and the console room light has propagated. */
     static void waitForInteriorReady(TestServerContext server, BlockPos shellPos, UUID id) {
         waitOrFail("interior of TARDIS " + id + " to be built and lit", () -> server.waitFor(minecraft -> {
