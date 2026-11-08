@@ -28,6 +28,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
@@ -124,7 +125,12 @@ public final class TardisInteriorService {
         if (interiorWorld == null) {
             return false;
         }
-        TardisTeleport.teleport(player, interiorWorld, entrance, player.getYRot());
+        BlockState exteriorState = exteriorWorld.getBlockState(exteriorEntity.getBlockPos());
+        int exteriorRotation = exteriorState.hasProperty(TardisBlock.FACING_ROTATION)
+                ? exteriorState.getValue(TardisBlock.FACING_ROTATION)
+                : 0;
+        TardisTeleport.teleport(player, interiorWorld, entrance,
+                TardisExteriorFacing.enterYaw(player.getYRot(), exteriorRotation));
         DWMCriteria.FIND_TARDIS.trigger(player);
         if (TardisOwnershipLogic.tryClaimOnEnter(exteriorEntity.getTardisIdOrNull(), player.getUUID())) {
             FirstHourLogic.notifyClaimed(player);
@@ -158,7 +164,8 @@ public final class TardisInteriorService {
         BlockPos exteriorPos = new BlockPos(model.exteriorX, model.exteriorY, model.exteriorZ);
         Direction doorFacing = TardisExteriorFacing.doorDirection(model.exteriorRotation);
         BlockPos exitPos = exteriorPos.relative(doorFacing);
-        TardisTeleport.teleport(player, exteriorWorld, exitPos, player.getYRot());
+        TardisTeleport.teleport(player, exteriorWorld, exitPos,
+                TardisExteriorFacing.exitYaw(player.getYRot(), model.exteriorRotation));
         return true;
     }
 

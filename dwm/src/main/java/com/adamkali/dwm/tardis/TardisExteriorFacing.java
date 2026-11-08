@@ -1,6 +1,7 @@
 package com.adamkali.dwm.tardis;
 
 import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.state.properties.RotationSegment;
 
 /**
@@ -30,6 +31,22 @@ public final class TardisExteriorFacing {
                 ? doorFacing
                 : Direction.NORTH;
         return RotationSegment.convertToSegment(horizontal.getOpposite().toYRot());
+    }
+
+    /**
+     * Yaw for a player entering through the exterior door. Keeps their heading relative to the door:
+     * walking straight in leaves them facing away from the interior door (south, yaw 0).
+     */
+    public static float enterYaw(float playerYaw, int facingRotation) {
+        return Mth.wrapDegrees(playerYaw - RotationSegment.convertToDegrees(facingRotation));
+    }
+
+    /**
+     * Yaw for a player leaving through the interior door (which faces south). Walking straight out
+     * leaves them heading away from the shell, along {@link #doorDirection(int)}.
+     */
+    public static float exitYaw(float playerYaw, int facingRotation) {
+        return Mth.wrapDegrees(playerYaw + RotationSegment.convertToDegrees(facingRotation));
     }
 
     private static Direction rotationToHorizontal(int rotation) {
