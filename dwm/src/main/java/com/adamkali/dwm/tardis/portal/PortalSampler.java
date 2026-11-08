@@ -277,7 +277,7 @@ public abstract class PortalSampler {
      * neighboring surface (plus a 1-block pad). Soto uses this so buried cave layers are not
      * walked; BOTI keeps the full plot Y range.
      */
-    protected boolean useSurfaceSkin() {
+    protected boolean useSurfaceSkin(ServerLevel world) {
         return false;
     }
 
@@ -537,7 +537,7 @@ public abstract class PortalSampler {
         }
         int[] colMin = new int[256];
         int[] colMax = new int[256];
-        if (useSurfaceSkin()) {
+        if (useSurfaceSkin(world)) {
             int[] heights = new int[256];
             for (int lz = 0; lz < 16; lz++) {
                 for (int lx = 0; lx < 16; lx++) {
