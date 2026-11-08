@@ -23,6 +23,13 @@ class SotoExteriorSamplerTest {
     }
 
     @Test
+    void shouldUseSurfaceSkin_disabledInCeilingDimensions() {
+        // Nether: WORLD_SURFACE is the bedrock roof, so a skin would drop the cave floor and contents.
+        assertFalse(SotoExteriorSampler.shouldUseSurfaceSkin(true));
+        assertTrue(SotoExteriorSampler.shouldUseSurfaceSkin(false));
+    }
+
+    @Test
     void isSotoVisible_excludesAirLightAndTardisBlock() {
         assertFalse(SotoExteriorSampler.isSotoVisible(Blocks.AIR.defaultBlockState()));
         assertFalse(SotoExteriorSampler.isSotoVisible(Blocks.LIGHT.defaultBlockState()));
