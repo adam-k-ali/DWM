@@ -3,6 +3,7 @@ package com.adamkali.dwm.tardis.soto;
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.tardis.boti.BotiRelativePosCodec;
+import com.adamkali.dwm.tardis.portal.PortalLightData;
 import com.adamkali.dwm.tardis.portal.PortalSampler;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,18 @@ class SotoExteriorSamplerTest {
     @BeforeAll
     static void bootstrap() {
         MinecraftTestBootstrap.ensure();
+    }
+
+    @Test
+    void applyOpenSky_onlyInDimensionsWithSkyLight() {
+        PortalLightData dark = new PortalLightData(
+                BlockPos.ZERO, 1, 3, 1, new byte[3]);
+        java.util.List<BlockPos> blocks = java.util.List.of(new BlockPos(0, 0, 0));
+
+        assertEquals(15, SotoExteriorSampler.applyOpenSky(true, dark, blocks)
+                .brightness(net.minecraft.world.level.LightLayer.SKY, new BlockPos(0, 2, 0), -1));
+        assertEquals(0, SotoExteriorSampler.applyOpenSky(false, dark, blocks)
+                .brightness(net.minecraft.world.level.LightLayer.SKY, new BlockPos(0, 2, 0), -1));
     }
 
     @Test
