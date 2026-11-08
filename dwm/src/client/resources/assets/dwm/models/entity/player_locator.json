@@ -1,0 +1,4 @@
+{
+  "parent": "dwm:entity/console_selector",
+  "texture": "dwm:textures/entity/player_locator.png"
+}

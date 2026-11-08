@@ -1,0 +1,41 @@
+{
+  "texture_width": 16,
+  "texture_height": 16,
+  "texture": "dwm:textures/entity/misc_levers_1.png",
+  "parts": [
+    {
+      "name": "lever",
+      "pivot": [0, 0, 2],
+      "children": [
+        {
+          "name": "lever_control2",
+          "pivot": [0, 1.5, -2.5],
+          "rotation": [-65, 0, 0],
+          "cubes": [
+            { "uv": [20, 25], "origin": [-0.5, 0, -0.5], "size": [1, 4, 1] },
+            { "uv": [0, 28], "origin": [-1, 4, -1], "size": [2, 2, 2] }
+          ]
+        },
+        {
+          "name": "lever_panel2",
+          "pivot": [-5, 2.275, -2.5],
+          "cubes": [
+            { "uv": [0, 0], "origin": [5.5, 0.725, -2.5], "size": [1, 1, 5] },
+            { "uv": [8, 0], "origin": [3, -2.275, -5.5], "size": [4, 1, 11] },
+            { "uv": [8, 0], "origin": [3.5, -1.275, -4.5], "size": [3, 1, 9] },
+            { "uv": [0, 0], "origin": [3.5, -0.275, -3.5], "size": [1, 1, 7] },
+            { "uv": [0, 0], "origin": [5.5, -0.275, -3.5], "size": [1, 1, 7] },
+            { "uv": [0, 16], "origin": [4.5, -0.275, -3.5], "size": [1, 1, 1] },
+            { "uv": [0, 16], "origin": [4.5, -0.275, 2.5], "size": [1, 1, 1] },
+            { "uv": [0, 0], "origin": [3.5, 0.725, -2.5], "size": [1, 1, 5] }
+          ]
+        }
+      ]
+    }
+  ],
+  "animation": {
+    "bindings": [
+      { "part": "lever/lever_control2", "channel": "rot_x", "value": "cloaked * 0.872665 * deg" }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "texture_width": 64,
+  "texture_height": 64,
+  "texture": "dwm:textures/entity/biome_selector.png",
+  "parts": [
+    {
+      "name": "console_selector",
+      "cubes": [
+        { "uv": [0, 0], "origin": [-5, 0.5, -5], "size": [10, 1, 10] },
+        { "uv": [14, 14], "origin": [5, 0, -5], "size": [2, 1, 10] },
+        { "uv": [0, 12], "origin": [-7, 0, -5], "size": [2, 1, 10] },
+        { "uv": [24, 25], "origin": [-5, 0, 5], "size": [10, 1, 2] },
+        { "uv": [0, 25], "origin": [-5, 0, -7], "size": [10, 1, 2] },
+        { "uv": [3, 1], "origin": [-6, 0, 5], "size": [1, 1, 1] },
+        { "uv": [8, 21], "origin": [-6, 0, -6], "size": [1, 1, 1] },
+        { "uv": [25, 27], "origin": [5, 0, 5], "size": [1, 1, 1] },
+        { "uv": [0, 25], "origin": [5, 0, -6], "size": [1, 1, 1] },
+        { "uv": [3, 1], "origin": [-4, 1, -4], "size": [8, 1, 8] }
+      ]
+    }
+  ]
+}

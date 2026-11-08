@@ -141,10 +141,10 @@ public class TardisDecorBlockEntityRenderer
         Identifier texture;
         if (block == DWMBlocks.TARDIS_COMPACT_SCANNER) {
             model = compactScannerModel;
-            texture = TardisCompactScannerModel.TEXTURE_LOCATION;
+            texture = EntityModelTextures.get(TardisCompactScannerModel.LAYER_LOCATION);
         } else if (block == DWMBlocks.TARDIS_FULL_SCANNER) {
             model = fullScannerModel;
-            texture = TardisFullScannerModel.TEXTURE_LOCATION;
+            texture = EntityModelTextures.get(TardisFullScannerModel.LAYER_LOCATION);
         } else {
             return;
         }
@@ -209,7 +209,7 @@ public class TardisDecorBlockEntityRenderer
                 ? Component.literal((state.page.ordinal() + 1) + "/" + MonitorPage.values().length)
                 : null;
         if (state.block == DWMBlocks.TARDIS_FULL_SCANNER) {
-            Identifier texture = TardisFullScannerModel.TEXTURE_LOCATION;
+            Identifier texture = EntityModelTextures.get(TardisFullScannerModel.LAYER_LOCATION);
             float u = TardisFullScannerModel.GLOW_U;
             float v = TardisFullScannerModel.GLOW_V;
             submitScreen(poseStack, collector, TardisFullScannerModel.SCREEN, texture, u, v, readout.linked(),
@@ -220,7 +220,7 @@ public class TardisDecorBlockEntityRenderer
                     null, 0, null, TardisMonitorScreenLayout.rightWing(readout));
         } else {
             submitScreen(poseStack, collector, TardisCompactScannerModel.SCREEN,
-                    TardisCompactScannerModel.TEXTURE_LOCATION,
+                    EntityModelTextures.get(TardisCompactScannerModel.LAYER_LOCATION),
                     TardisCompactScannerModel.GLOW_U, TardisCompactScannerModel.GLOW_V, readout.linked(),
                     title, titleColor, pageIndicator, lines);
         }

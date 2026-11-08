@@ -1,0 +1,45 @@
+{
+  "texture_width": 128,
+  "texture_height": 64,
+  "texture": "dwm:textures/entity/tardis_compact_scanner.png",
+  "parts": [
+    {
+      "name": "monitor",
+      "rotation": [0, 0, 180],
+      "children": [
+        {
+          "name": "controls",
+          "cubes": [
+            { "uv": [120, 26], "origin": [-5, -11, -7], "size": [2, 2, 1] },
+            { "uv": [0, 42], "origin": [3, -11, -7], "size": [2, 2, 1] },
+            { "uv": [74, 42], "origin": [-1, -12, -7], "size": [2, 1, 1] }
+          ]
+        },
+        {
+          "name": "screen",
+          "cubes": [
+            { "uv": [0, 0], "origin": [-8, -31, -5], "size": [16, 14, 12] }
+          ]
+        },
+        {
+          "name": "bezel",
+          "cubes": [
+            { "uv": [6, 42], "origin": [-8, -31, -6], "size": [16, 1, 1] },
+            { "uv": [40, 42], "origin": [-8, -18, -6], "size": [16, 1, 1] },
+            { "uv": [60, 26], "origin": [-8, -30, -6], "size": [1, 12, 1] },
+            { "uv": [64, 26], "origin": [7, -30, -6], "size": [1, 12, 1] },
+            { "uv": [84, 26], "origin": [-8, -32, -7], "size": [16, 1, 2] }
+          ]
+        },
+        {
+          "name": "body",
+          "cubes": [
+            { "uv": [0, 26], "origin": [-8, -2, -7], "size": [16, 2, 14] },
+            { "uv": [56, 0], "origin": [-7, -14, -6], "size": [14, 12, 12] },
+            { "uv": [68, 26], "origin": [-2, -17, -2], "size": [4, 3, 4] }
+          ]
+        }
+      ]
+    }
+  ]
+}

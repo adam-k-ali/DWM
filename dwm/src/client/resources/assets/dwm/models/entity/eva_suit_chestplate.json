@@ -1,0 +1,36 @@
+{
+  "credit": "Compact EVA suit torso: backpack and full-length sealed sleeves with glove cuffs",
+  "parent": "dwm:entity/humanoid_armor_base",
+  "texture": "dwm:textures/entity/equipment/humanoid/eva_suit.png",
+  "parts": [
+    {
+      "name": "body",
+      "cubes": [
+        { "uv": [16, 32], "origin": [-4, 0, -2.5], "size": [8, 12, 5], "inflate": 0.65 }
+      ],
+      "children": [
+        { "name": "backpack", "cubes": [
+          { "uv": [96, 0], "origin": [-3.5, 1, 2.4], "size": [7, 9, 4] },
+          { "uv": [96, 16], "origin": [-2, 2.5, 6], "size": [4, 4, 2] },
+          { "uv": [108, 16], "origin": [-1, 7.5, 6], "size": [2, 2, 1.5] }
+        ] }
+      ]
+    },
+    {
+      "name": "right_arm",
+      "pivot": [-5, 2, 0],
+      "cubes": [
+        { "uv": [64, 16], "origin": [-3.5, -2.5, -2.5], "size": [5, 13, 5], "inflate": 0.2 },
+        { "uv": [64, 36], "origin": [-3.6, 7.5, -2.6], "size": [5.2, 3.2, 5.2], "inflate": 0.15 }
+      ]
+    },
+    {
+      "name": "left_arm",
+      "pivot": [5, 2, 0],
+      "cubes": [
+        { "uv": [64, 16], "origin": [-1.5, -2.5, -2.5], "size": [5, 13, 5], "inflate": 0.2, "mirror": true },
+        { "uv": [64, 36], "origin": [-1.6, 7.5, -2.6], "size": [5.2, 3.2, 5.2], "inflate": 0.15, "mirror": true }
+      ]
+    }
+  ]
+}

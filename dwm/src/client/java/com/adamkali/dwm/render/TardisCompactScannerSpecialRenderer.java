@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render;
 
+import com.adamkali.dwm.model.json.EntityModelTextures;
 import com.adamkali.dwm.block.TardisDecorShapes;
 import com.adamkali.dwm.model.tileentity.TardisCompactScannerModel;
 import com.adamkali.dwm.render.state.TardisRenderState;
@@ -45,7 +46,7 @@ public class TardisCompactScannerSpecialRenderer implements NoDataSpecialModelRe
                 this.model,
                 this.animState,
                 poseStack,
-                TardisCompactScannerModel.TEXTURE_LOCATION,
+                EntityModelTextures.get(TardisCompactScannerModel.LAYER_LOCATION),
                 lightCoords,
                 overlayCoords,
                 outlineColor,

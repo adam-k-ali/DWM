@@ -79,13 +79,13 @@ class TardisDecorModelTest {
 
     @Test
     void compactScannerModel_bakesMonitorParts() {
-        ModelPart root = assertDoesNotThrow(() -> TardisCompactScannerModel.getTexturedModelData().bakeRoot());
+        ModelPart root = assertDoesNotThrow(() -> TestModelLoading.bake(TardisCompactScannerModel.LAYER_LOCATION));
         assertMonitorParts(root);
     }
 
     @Test
     void fullScannerModel_bakesMonitorParts() {
-        ModelPart root = assertDoesNotThrow(() -> TardisFullScannerModel.getTexturedModelData().bakeRoot());
+        ModelPart root = assertDoesNotThrow(() -> TestModelLoading.bake(TardisFullScannerModel.LAYER_LOCATION));
         assertMonitorParts(root);
     }
 
@@ -93,7 +93,7 @@ class TardisDecorModelTest {
     void layersAndTextures_areDistinctWhereExpected() {
         assertNotEquals(TardisGlobeModel.LAYER_LOCATION, TardisFullScannerModel.LAYER_LOCATION);
         assertNotEquals(TardisCompactScannerModel.LAYER_LOCATION, TardisFullScannerModel.LAYER_LOCATION);
-        assertNotEquals(TardisCompactScannerModel.TEXTURE_LOCATION, TardisFullScannerModel.TEXTURE_LOCATION);
+        assertNotEquals(TestModelLoading.texture(TardisCompactScannerModel.LAYER_LOCATION), TestModelLoading.texture(TardisFullScannerModel.LAYER_LOCATION));
         assertEquals("tardis_globe", TardisGlobeModel.LAYER_LOCATION.model().getPath());
         assertEquals("tardis_compact_scanner", TardisCompactScannerModel.LAYER_LOCATION.model().getPath());
         assertEquals("tardis_full_scanner", TardisFullScannerModel.LAYER_LOCATION.model().getPath());
@@ -101,10 +101,10 @@ class TardisDecorModelTest {
 
     @Test
     void monitorTextures_matchDeclaredSizeAndGlowTexelIsWhite() throws IOException {
-        assertGlowTexel(TardisCompactScannerModel.TEXTURE_LOCATION, TardisCompactScannerModel.TEXTURE_WIDTH,
+        assertGlowTexel(TestModelLoading.texture(TardisCompactScannerModel.LAYER_LOCATION), TardisCompactScannerModel.TEXTURE_WIDTH,
                 TardisCompactScannerModel.TEXTURE_HEIGHT, TardisCompactScannerModel.GLOW_U,
                 TardisCompactScannerModel.GLOW_V);
-        assertGlowTexel(TardisFullScannerModel.TEXTURE_LOCATION, TardisFullScannerModel.TEXTURE_WIDTH,
+        assertGlowTexel(TestModelLoading.texture(TardisFullScannerModel.LAYER_LOCATION), TardisFullScannerModel.TEXTURE_WIDTH,
                 TardisFullScannerModel.TEXTURE_HEIGHT, TardisFullScannerModel.GLOW_U,
                 TardisFullScannerModel.GLOW_V);
     }

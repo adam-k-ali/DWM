@@ -1,0 +1,4 @@
+{
+  "parent": "dwm:entity/console_selector",
+  "texture": "dwm:textures/entity/chameleion_circuit_on.png"
+}
