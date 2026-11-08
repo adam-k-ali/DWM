@@ -11,7 +11,7 @@ class PortalProjectionTest {
 
     @Test
     void focalLengthsComeFromFixedFovAndFboAspect() {
-        Matrix4f m = PortalProjection.matrix(1920, 1080, 512f, new Matrix4f());
+        Matrix4f m = PortalProjection.matrix(1920, 1080, 512f, false, new Matrix4f());
         float tanHalf = (float) Math.tan(Math.toRadians(PortalProjection.FOV_DEGREES) / 2.0);
         float aspect = 1920f / 1080f;
 
@@ -21,16 +21,16 @@ class PortalProjectionTest {
 
     @Test
     void sameFboSizeAlwaysGivesSameMatrix() {
-        Matrix4f a = PortalProjection.matrix(854, 480, 256f, new Matrix4f());
-        Matrix4f b = PortalProjection.matrix(854, 480, 256f, new Matrix4f());
+        Matrix4f a = PortalProjection.matrix(854, 480, 256f, false, new Matrix4f());
+        Matrix4f b = PortalProjection.matrix(854, 480, 256f, false, new Matrix4f());
 
         assertEquals(a, b);
     }
 
     @Test
     void verticalZoomIsIndependentOfAspect() {
-        Matrix4f wide = PortalProjection.matrix(1920, 1080, 512f, new Matrix4f());
-        Matrix4f narrow = PortalProjection.matrix(800, 800, 512f, new Matrix4f());
+        Matrix4f wide = PortalProjection.matrix(1920, 1080, 512f, false, new Matrix4f());
+        Matrix4f narrow = PortalProjection.matrix(800, 800, 512f, false, new Matrix4f());
 
         assertEquals(wide.m11(), narrow.m11(), EPS);
         assertNotEquals(wide.m00(), narrow.m00(), EPS);
@@ -38,9 +38,20 @@ class PortalProjectionTest {
 
     @Test
     void zeroHeightDoesNotProduceNonFiniteMatrix() {
-        Matrix4f m = PortalProjection.matrix(100, 0, 512f, new Matrix4f());
+        Matrix4f m = PortalProjection.matrix(100, 0, 512f, false, new Matrix4f());
 
         assertEquals(true, Float.isFinite(m.m00()));
+    }
+
+    @Test
+    void usesReverseZLikeVanilla() {
+        float far = 512f;
+        Matrix4f m = PortalProjection.matrix(1920, 1080, far, false, new Matrix4f());
+        org.joml.Vector4f nearPt = new org.joml.Vector4f(0, 0, -PortalProjection.Z_NEAR, 1).mul(m);
+        org.joml.Vector4f farPt = new org.joml.Vector4f(0, 0, -far, 1).mul(m);
+
+        assertEquals(1.0f, nearPt.z / nearPt.w, 1.0e-3f);
+        assertEquals(-1.0f, farPt.z / farPt.w, 1.0e-3f);
     }
 
     @Test

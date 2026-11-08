@@ -17,10 +17,15 @@ public final class PortalProjection {
     private PortalProjection() {
     }
 
-    /** Writes the portal projection for an FBO of the given size into {@code dest}. */
-    public static Matrix4f matrix(int fboWidth, int fboHeight, float zFar, Matrix4f dest) {
+    /**
+     * Writes the portal projection for an FBO of the given size into {@code dest}.
+     * <p>
+     * Vanilla's {@code Projection} builds a reverse-Z matrix (near and far swapped) that the level
+     * pipelines' depth state expects; a standard-depth matrix drops distant geometry.
+     */
+    public static Matrix4f matrix(int fboWidth, int fboHeight, float zFar, boolean zZeroToOne, Matrix4f dest) {
         float aspect = fboWidth / (float) Math.max(1, fboHeight);
-        return dest.setPerspective((float) Math.toRadians(FOV_DEGREES), aspect, Z_NEAR, zFar);
+        return dest.setPerspective((float) Math.toRadians(FOV_DEGREES), aspect, zFar, Z_NEAR, zZeroToOne);
     }
 
     /** Far plane matching vanilla's level camera. */

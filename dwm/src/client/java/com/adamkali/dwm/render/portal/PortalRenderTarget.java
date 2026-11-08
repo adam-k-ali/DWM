@@ -274,7 +274,8 @@ public final class PortalRenderTarget implements AutoCloseable {
         if (projectionBuffer == null) {
             projectionBuffer = new ProjectionMatrixBuffer("dwm portal");
         }
-        return projectionBuffer.getBuffer(PortalProjection.matrix(width, height, zFar, projectionScratch));
+        return projectionBuffer.getBuffer(PortalProjection.matrix(width, height, zFar,
+                RenderSystem.getDevice().getDeviceInfo().isZZeroToOne(), projectionScratch));
     }
 
     @Override
