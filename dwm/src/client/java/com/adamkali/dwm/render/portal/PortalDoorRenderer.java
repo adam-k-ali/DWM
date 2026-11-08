@@ -133,11 +133,30 @@ public final class PortalDoorRenderer {
             float viewPanU,
             float viewPanV
     ) {
+        render(matrices, submitNodeCollector, scene, aperture, viewPanU, viewPanV, true);
+    }
+
+    /**
+     * @param schedulePortal when false the doorway cannot contribute pixels this frame (see
+     *                       {@link PortalVisibility}), so the off-screen render is not scheduled;
+     *                       the last composite texture is still drawn.
+     */
+    public static void render(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            PortalScene scene,
+            PortalAperture aperture,
+            float viewPanU,
+            float viewPanV,
+            boolean schedulePortal
+    ) {
         if (matrices == null || submitNodeCollector == null || scene == null || aperture == null) {
             return;
         }
-        PortalScheduler.schedule(scene);
-        PortalPerfStats.noteScheduled(scene.key());
+        if (schedulePortal) {
+            PortalScheduler.schedule(scene);
+            PortalPerfStats.noteScheduled(scene.key());
+        }
         long compositeStart = PortalPerfStats.begin();
         PortalRenderer.PortalTexture portalTexture =
                 PortalScheduler.peekCompositeTexture(scene.key());

@@ -46,6 +46,22 @@ public final class TardisBotiRenderer {
             TardisChameleonVariant variant,
             float viewPanU
     ) {
+        render(matrices, submitNodeCollector, tickDelta, tardisId, variant, viewPanU, true);
+    }
+
+    /**
+     * @param schedulePortal false skips scheduling the off-screen portal render (doorway not
+     *                       visible); the last composite is still drawn.
+     */
+    public static void render(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            float tickDelta,
+            UUID tardisId,
+            TardisChameleonVariant variant,
+            float viewPanU,
+            boolean schedulePortal
+    ) {
         if (tardisId == null || variant == null) {
             return;
         }
@@ -55,7 +71,7 @@ public final class TardisBotiRenderer {
                 tickDelta,
                 new BotiPortalContent(tardisId)
         );
-        PortalDoorRenderer.render(matrices, submitNodeCollector, scene, aperture, viewPanU, 0.0f);
+        PortalDoorRenderer.render(matrices, submitNodeCollector, scene, aperture, viewPanU, 0.0f, schedulePortal);
     }
 
     /** Expose layout size for tests / debug. */

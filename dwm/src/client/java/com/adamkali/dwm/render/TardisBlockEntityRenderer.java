@@ -11,6 +11,7 @@ import com.adamkali.dwm.render.boti.TardisBotiRenderer;
 import com.adamkali.dwm.render.portal.PortalApertureComposite;
 import com.adamkali.dwm.render.portal.PortalDoorRenderer;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
+import com.adamkali.dwm.render.portal.PortalVisibility;
 import com.adamkali.dwm.render.state.TardisBlockEntityRenderState;
 import com.adamkali.dwm.render.state.TardisRenderState;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
@@ -25,6 +26,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.function.Predicate;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -38,6 +40,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.RotationSegment;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBlockEntity, TardisBlockEntityRenderState> {
@@ -138,13 +141,18 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
             );
             Direction exteriorOutward = TardisExteriorFacing.doorDirection(state.facingRotation);
             float viewPanU = PortalApertureComposite.viewPanU(camera.pos, exteriorDoorCenter, exteriorOutward);
+            // Skip the off-screen portal render when the doorway can't be seen (BS-09).
+            Predicate<AABB> frustumVisible = camera.cullFrustum != null ? camera.cullFrustum::isVisible : null;
+            boolean schedulePortal = PortalVisibility.shouldSchedule(
+                    camera.pos, exteriorDoorCenter, exteriorOutward, frustumVisible);
             TardisBotiRenderer.render(
                     poseStack,
                     submitNodeCollector,
                     state.partialTicks,
                     state.tardisId,
                     state.variant,
-                    viewPanU
+                    viewPanU,
+                    schedulePortal
             );
             poseStack.popPose();
 
