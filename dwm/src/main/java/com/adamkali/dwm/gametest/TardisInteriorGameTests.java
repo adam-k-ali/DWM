@@ -15,6 +15,7 @@ import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.interior.TardisEntryGate;
 import com.adamkali.dwm.tardis.interior.TardisInteriorService;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
+import com.adamkali.dwm.tardis.interior.TardisTeleport;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.WaypointLogic;
 import net.minecraft.core.BlockPos;
@@ -22,6 +23,7 @@ import net.minecraft.core.Direction;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.LightLayer;
@@ -120,6 +122,24 @@ public class TardisInteriorGameTests {
             throw new AssertionError("Unexpected dimension id");
         }
 
+        context.succeed();
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void teleport_PreservesYawAndPitchWhenPassedPlayerYaw(GameTestHelper context) {
+        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        player.setYRot(135.0f);
+        player.setXRot(20.0f);
+
+        BlockPos destination = context.absolutePos(new BlockPos(2, 2, 2));
+        TardisTeleport.teleport(player, context.getLevel(), destination, player.getYRot());
+
+        if (Math.abs(player.getYRot() - 135.0f) > 0.01f) {
+            throw new AssertionError("Expected yaw 135 but got " + player.getYRot());
+        }
+        if (Math.abs(player.getXRot() - 20.0f) > 0.01f) {
+            throw new AssertionError("Expected pitch 20 but got " + player.getXRot());
+        }
         context.succeed();
     }
 
