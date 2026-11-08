@@ -53,7 +53,7 @@ class PortalLightDataTest {
     }
 
     @Test
-    void sample_nullLayersReadAsZero() {
+    void sample_nullLayersReadAsZeroWhenEngineReportsDark() {
         LayerLightEventListener blockLight = Mockito.mock(LayerLightEventListener.class);
         LayerLightEventListener skyLight = Mockito.mock(LayerLightEventListener.class);
         Mockito.when(blockLight.getDataLayerData(any())).thenReturn(null);
@@ -64,6 +64,22 @@ class PortalLightDataTest {
 
         assertEquals(0, data.brightness(LightLayer.BLOCK, BlockPos.ZERO, -1));
         assertEquals(0, data.brightness(LightLayer.SKY, BlockPos.ZERO, -1));
+    }
+
+    /** Regression: open sky above the topmost section has no sky layer and must read as 15, not black. */
+    @Test
+    void sample_nullSkyLayerResolvesThroughEngine() {
+        LayerLightEventListener blockLight = Mockito.mock(LayerLightEventListener.class);
+        LayerLightEventListener skyLight = Mockito.mock(LayerLightEventListener.class);
+        Mockito.when(blockLight.getDataLayerData(any())).thenReturn(null);
+        Mockito.when(skyLight.getDataLayerData(any())).thenReturn(null);
+        Mockito.when(skyLight.getLightValue(any())).thenReturn(15);
+
+        BlockPos pos = new BlockPos(3, 80, 5);
+        PortalLightData data = PortalLightData.sample(blockLight, skyLight, pos, pos);
+
+        assertEquals(15, data.brightness(LightLayer.SKY, pos, -1));
+        assertEquals(0, data.brightness(LightLayer.BLOCK, pos, -1));
     }
 
     @Test
