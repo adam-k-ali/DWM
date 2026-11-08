@@ -171,8 +171,17 @@ public final class SotoExteriorSampler extends PortalSampler {
     }
 
     @Override
-    protected boolean useSurfaceSkin() {
-        return true;
+    protected boolean useSurfaceSkin(ServerLevel world) {
+        return world != null && shouldUseSurfaceSkin(world.dimensionType().hasCeiling());
+    }
+
+    /**
+     * The WORLD_SURFACE heightmap is the bedrock roof in ceiling dimensions (the Nether), so a
+     * surface skin would stream only the roof and drop the cave floor and everything built in the
+     * open space below it. Those dimensions stream the full Y range instead.
+     */
+    static boolean shouldUseSurfaceSkin(boolean hasCeiling) {
+        return !hasCeiling;
     }
 
     @Override
