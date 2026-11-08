@@ -5,6 +5,7 @@ import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.model.tileentity.TardisClassicInteriorDoorModel;
 import com.adamkali.dwm.render.portal.PortalDoorRenderer;
+import com.adamkali.dwm.render.portal.PortalVisibility;
 import com.adamkali.dwm.render.soto.TardisSotoRenderer;
 import com.adamkali.dwm.render.state.TardisInteriorDoorBlockEntityRenderState;
 import com.adamkali.dwm.render.state.TardisRenderState;
@@ -21,7 +22,10 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.function.Predicate;
 
 public class TardisInteriorDoorBlockEntityRenderer
         implements BlockEntityRenderer<TardisInteriorDoorBlockEntity, TardisInteriorDoorBlockEntityRenderState> {
@@ -77,13 +81,21 @@ public class TardisInteriorDoorBlockEntityRenderer
             // and swung leaves still composite over the exterior preview.
             submitShell(animState, poseStack, submitNodeCollector, state);
 
+            // Skip the off-screen portal render when the doorway can't be seen (BS-09).
+            Predicate<AABB> frustumVisible = camera.cullFrustum != null ? camera.cullFrustum::isVisible : null;
+            boolean schedulePortal = PortalVisibility.shouldSchedule(
+                    camera.pos,
+                    TardisSotoRenderer.doorCenter(state.blockPos, state.facing),
+                    state.facing,
+                    frustumVisible);
             sotoRenderer.render(
                     poseStack,
                     submitNodeCollector,
                     state.partialTicks,
                     state.tardisId,
                     state.blockPos,
-                    state.facing
+                    state.facing,
+                    schedulePortal
             );
 
             submitDoors(animState, poseStack, submitNodeCollector, state);

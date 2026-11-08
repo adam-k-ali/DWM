@@ -156,6 +156,8 @@ public final class PortalDoorRenderer {
         if (schedulePortal) {
             PortalScheduler.schedule(scene);
             PortalPerfStats.noteScheduled(scene.key());
+        } else {
+            PortalScheduler.noteCulled(scene.key());
         }
         long compositeStart = PortalPerfStats.begin();
         PortalRenderer.PortalTexture portalTexture =
