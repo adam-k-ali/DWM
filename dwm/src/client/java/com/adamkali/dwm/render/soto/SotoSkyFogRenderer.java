@@ -8,6 +8,7 @@ import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors;
 import com.adamkali.dwm.tardis.soto.SotoAtmosphereColors.EffectsKind;
 import com.adamkali.dwm.tardis.soto.SotoCloudState;
 import com.adamkali.dwm.tardis.soto.SotoSkyState;
+import com.mojang.blaze3d.ProjectionType;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -85,6 +86,12 @@ public final class SotoSkyFogRenderer {
         // Sky meshes are camera-centred: the model-view must carry rotation only.
         Matrix4fStack modelView = RenderSystem.getModelViewStack();
         modelView.pushMatrix();
+        // Parallax: the terrain projection is oblique-clipped at the door plane, which would cut the sky.
+        GpuBufferSlice previousProjection = RenderSystem.getProjectionMatrixBuffer();
+        ProjectionType previousProjectionType = RenderSystem.getProjectionType();
+        if (context.skyProjection() != null) {
+            RenderSystem.setProjectionMatrix(context.skyProjection(), ProjectionType.PERSPECTIVE);
+        }
         try {
             modelView.identity();
             context.portalCamera().getViewRotationMatrix(modelView);
@@ -102,6 +109,9 @@ public final class SotoSkyFogRenderer {
             renderPortalClouds(context, atmosphere, footprintOrigin);
         } finally {
             modelView.popMatrix();
+            if (context.skyProjection() != null && previousProjection != null) {
+                RenderSystem.setProjectionMatrix(previousProjection, previousProjectionType);
+            }
             SotoGl.depthMask(true);
             if (cullWasEnabled) {
                 SotoGl.enableCull();

@@ -52,7 +52,7 @@ public class TardisSotoPortalClientGameTest implements FabricClientGameTest {
      * proves the portal shows the overworld, with a row of grass blocks beyond it so biome-tinted tops show. Must exist before the exterior is streamed; the chunks are also
      * force-loaded because the viewer leaves the overworld.
      */
-    private static void placeLandmarks(TestSingleplayerContext world) {
+    static void placeLandmarks(TestSingleplayerContext world) {
         world.getServer().runCommand("execute in minecraft:overworld run forceload add -48 -48 48 48");
         world.getServer().runOnServer(server -> {
             var level = server.overworld();

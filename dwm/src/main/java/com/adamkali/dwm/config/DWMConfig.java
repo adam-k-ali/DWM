@@ -21,6 +21,12 @@ public class DWMConfig {
     public static final ConfigKey<Boolean> ENABLE_DOOR_PORTALS = new ConfigKey<>("enableDoorPortals", true);
 
     /**
+     * Experimental: render door portals from the viewer-relative camera (true parallax) instead of
+     * the fixed door hitch. Default off while the prototype is evaluated.
+     */
+    public static final ConfigKey<Boolean> PORTAL_PARALLAX = new ConfigKey<>("portalParallax", false);
+
+    /**
      * Client F3-style HUD overlay with shared portal pipeline stage timings (BOTI + SOTO).
      * Default off — enable only while profiling.
      */

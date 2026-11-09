@@ -12,10 +12,18 @@ public interface PortalContent {
     int clearRgb(Minecraft client);
 
     /**
-     * Hitch-fixed portal camera for this frame.
+     * Portal camera for this frame: the fixed door hitch, or the viewer-relative camera in parallax mode.
      * @return hitch, or {@code null} if content is not ready to draw
      */
     PortalCameraTransform.Result hitch(Minecraft client);
+
+    /**
+     * Parallax only: the destination door plane in the view space of {@code camera}, kept side
+     * positive. Non-null switches the pass to the viewer's projection, oblique-clipped at this plane.
+     */
+    default org.joml.Vector4f clipPlaneView(PortalCameraTransform.Result camera) {
+        return null;
+    }
 
     /** Called every time the scene is requested, before the frame-cache check (e.g. to mark time-driven content dirty). */
     default void onFrameRequested(Minecraft client) {

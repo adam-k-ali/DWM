@@ -109,6 +109,40 @@ public final class PortalApertureComposite {
     }
 
     /**
+     * Parallax doorway stamp: the aperture quad only masks the doorway; the fragment shader copies
+     * the portal FBO texel at each fragment's screen position (see {@code portal_screen.fsh}).
+     */
+    public static void drawScreenComposite(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            PortalAperture aperture
+    ) {
+        PortalSamplingTexture.bindPortalColor(PortalRenderTarget.getInstance());
+        float x0 = aperture.x0();
+        float x1 = aperture.x1();
+        float y0 = aperture.y0();
+        float y1 = aperture.y1();
+        float z = aperture.z();
+        float[] xs = {x0, x0, x1, x1};
+        float[] ys = {y0, y1, y1, y0};
+        submitNodeCollector.submitCustomGeometry(
+                matrices,
+                PortalDoorRenderer.portalScreenCompositeRenderType(),
+                (PoseStack.Pose pose, VertexConsumer consumer) -> {
+                    Matrix4f matrix = pose.pose();
+                    for (int i = 0; i < 4; i++) {
+                        consumer.addVertex(matrix, xs[i], ys[i], z)
+                                .setColor(0xFFFFFFFF)
+                                .setUv(0.0f, 0.0f)
+                                .setOverlay(OverlayTexture.NO_OVERLAY)
+                                .setLight(FULLBRIGHT)
+                                .setNormal(0.0f, 0.0f, -1.0f);
+                    }
+                }
+        );
+    }
+
+    /**
      * Signed doorway pan from the viewer: positive when the player is to the door's right.
      * Composite UVs subtract this so strafing right reveals more of the left interior.
      */

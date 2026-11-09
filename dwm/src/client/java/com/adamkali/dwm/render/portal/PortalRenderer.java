@@ -11,8 +11,12 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix4fStack;
 import org.lwjgl.opengl.GL11;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import org.joml.Matrix4f;
+import org.joml.Vector4f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeStorage;
@@ -35,6 +39,8 @@ public final class PortalRenderer {
     private final PortalRenderTarget target;
     private final PortalCamera portalCamera = new PortalCamera();
     private final Set<PortalKey> renderedReady = new HashSet<>();
+    /** Parallax: view·projection last rendered per key; a change means the cached frame is stale. */
+    private final Map<PortalKey, Matrix4f> lastViewerMatrix = new HashMap<>();
 
     public PortalRenderer() {
         this(PortalRenderTarget.getInstance());
@@ -90,6 +96,22 @@ public final class PortalRenderer {
                 return PortalTexture.UNAVAILABLE;
             }
             recordSceneCounts(key);
+            Vector4f clipPlane = content.clipPlaneView(hitch);
+            Matrix4f viewerProjection = null;
+            boolean viewerMoved = false;
+            if (clipPlane != null) {
+                PortalViewerState.Viewer viewer = PortalViewerState.current(client);
+                if (viewer == null) {
+                    renderedReady.remove(key);
+                    PortalPerfStats.setOutcome(PortalPerfStats.Outcome.NOT_READY);
+                    return PortalTexture.UNAVAILABLE;
+                }
+                viewerProjection = new Matrix4f(viewer.projection());
+                Matrix4f viewProjection = new Matrix4f(viewerProjection).mul(hitch.viewMatrix());
+                Matrix4f previous = lastViewerMatrix.get(key);
+                viewerMoved = previous == null || !previous.equals(viewProjection, 1.0e-6f);
+                lastViewerMatrix.put(key, viewProjection);
+            }
 
             try (PortalRenderTarget.RenderStateGuard ignored =
                          PortalRenderTarget.RenderStateGuard.capture()) {
@@ -105,12 +127,13 @@ public final class PortalRenderer {
                 boolean dirty = PortalFrameCache.isDirty(key);
                 boolean lastWriter = PortalFrameCache.wasLastWriter(key);
                 if (!dirty
+                        && !viewerMoved
                         && lastWriter
                         && renderedReady.contains(key)) {
                     PortalPerfStats.setOutcome(PortalPerfStats.Outcome.FRAME_CACHE_HIT);
                     return peekLastRendered(key);
                 }
-                renderScene(client, scene, hitch, content.clearRgb(client));
+                renderScene(client, scene, hitch, content.clearRgb(client), viewerProjection, clipPlane);
                 for (PortalKey overwritten : PortalFrameCache.overwrittenReadyKeys(key, renderedReady)) {
                     renderedReady.remove(overwritten);
                 }
@@ -144,7 +167,9 @@ public final class PortalRenderer {
             Minecraft client,
             PortalScene scene,
             PortalCameraTransform.Result hitch,
-            int clearRgb
+            int clearRgb,
+            Matrix4f viewerProjection,
+            Vector4f clipPlane
     ) {
         PortalRenderTarget.beginPortalPass();
         try {
@@ -170,11 +195,22 @@ public final class PortalRenderer {
 
             GpuBufferSlice previousProjection = RenderSystem.getProjectionMatrixBuffer();
             ProjectionType previousProjectionType = RenderSystem.getProjectionType();
-            RenderSystem.setProjectionMatrix(
-                    target.portalProjection(PortalProjection.farPlane(
-                            client.options.getEffectiveRenderDistance(),
-                            client.options.cloudRange().get())),
-                    ProjectionType.PERSPECTIVE);
+            GpuBufferSlice skyProjection = null;
+            if (viewerProjection != null) {
+                // Parallax: the viewer's own projection so the FBO maps 1:1 onto the screen, with the
+                // near plane swapped for the destination door plane.
+                boolean zZeroToOne = RenderSystem.getDevice().getDeviceInfo().isZZeroToOne();
+                skyProjection = target.uploadSkyProjection(new Matrix4f(viewerProjection));
+                RenderSystem.setProjectionMatrix(
+                        target.uploadProjection(PortalObliqueClip.apply(viewerProjection, clipPlane, zZeroToOne)),
+                        ProjectionType.PERSPECTIVE);
+            } else {
+                RenderSystem.setProjectionMatrix(
+                        target.portalProjection(PortalProjection.farPlane(
+                                client.options.getEffectiveRenderDistance(),
+                                client.options.cloudRange().get())),
+                        ProjectionType.PERSPECTIVE);
+            }
 
             PoseStack sceneMatrices = new PoseStack();
             EntityRenderDispatcher entityDispatcher = client.getEntityRenderDispatcher();
@@ -195,6 +231,7 @@ public final class PortalRenderer {
                         target,
                         featureFlush
                 );
+                context.setSkyProjection(skyProjection);
                 scene.content().renderInto(context);
             } finally {
                 if (client.level != null) {

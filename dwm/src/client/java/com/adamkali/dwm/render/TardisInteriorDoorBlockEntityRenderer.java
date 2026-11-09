@@ -4,7 +4,10 @@ import com.adamkali.dwm.model.json.EntityModelTextures;
 import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.block.entities.TardisInteriorDoorBlockEntity;
 import com.adamkali.dwm.model.tileentity.TardisClassicInteriorDoorModel;
+import com.adamkali.dwm.render.portal.PortalDoorFrame;
+import com.adamkali.dwm.tardis.data.model.PortalAperture;
 import com.adamkali.dwm.render.portal.PortalDoorRenderer;
+import com.adamkali.dwm.render.portal.PortalViewerState;
 import com.adamkali.dwm.render.portal.PortalVisibility;
 import com.adamkali.dwm.render.soto.TardisSotoRenderer;
 import com.adamkali.dwm.render.state.TardisInteriorDoorBlockEntityRenderState;
@@ -88,6 +91,14 @@ public class TardisInteriorDoorBlockEntityRenderer
                     TardisSotoRenderer.doorCenter(state.blockPos, state.facing),
                     state.facing,
                     frustumVisible);
+            // facing points into the room, so stepping through the doorway heads the opposite way.
+            PortalDoorFrame interiorDoor = PortalViewerState.isParallaxEnabled()
+                    ? PortalDoorFrame.fromAperture(
+                            poseStack.last().pose(),
+                            PortalAperture.CLASSIC_INTERIOR_DOORS,
+                            camera.pos,
+                            state.facing.getUnitVec3().scale(-1.0))
+                    : null;
             sotoRenderer.render(
                     poseStack,
                     submitNodeCollector,
@@ -95,7 +106,8 @@ public class TardisInteriorDoorBlockEntityRenderer
                     state.tardisId,
                     state.blockPos,
                     state.facing,
-                    schedulePortal
+                    schedulePortal,
+                    interiorDoor
             );
 
             submitDoors(animState, poseStack, submitNodeCollector, state);
@@ -176,7 +188,7 @@ public class TardisInteriorDoorBlockEntityRenderer
      * Standard Blockbench tile-entity placement: pivot at top of door volume, X-180 flip,
      * then yaw for {@code facing}. Model pixel units render as 1/16 block.
      */
-    static void applyTransforms(PoseStack matrices, Direction facing) {
+    public static void applyTransforms(PoseStack matrices, Direction facing) {
         matrices.translate(0.5, TardisInteriorDoorShapes.MODEL_HEIGHT_BLOCKS, 0.5);
         matrices.mulPose(Axis.YP.rotationDegrees(-Direction.getYRot(facing)));
         // Center the ~3-block-wide mesh on the 3-wide bank (origin is bank start cell).
