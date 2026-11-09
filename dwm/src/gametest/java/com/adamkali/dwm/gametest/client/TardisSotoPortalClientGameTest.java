@@ -49,7 +49,7 @@ public class TardisSotoPortalClientGameTest implements FabricClientGameTest {
 
     /**
      * Coloured wool in front of the exterior door (it faces north, towards z &lt; 4) so the screenshot visibly
-     * proves the portal shows the overworld. Must exist before the exterior is streamed; the chunks are also
+     * proves the portal shows the overworld, with a row of grass blocks beyond it so biome-tinted tops show. Must exist before the exterior is streamed; the chunks are also
      * force-loaded because the viewer leaves the overworld.
      */
     private static void placeLandmarks(TestSingleplayerContext world) {
@@ -64,7 +64,31 @@ public class TardisSotoPortalClientGameTest implements FabricClientGameTest {
                     level.setBlock(new BlockPos(x, ClientGameTestSupport.PAD_Y, z),
                             wool[x + 2].defaultBlockState(), 3);
                 }
+                // Biome-tinted tops: rendered black when the ghost tint had no alpha.
+                level.setBlock(new BlockPos(x, ClientGameTestSupport.PAD_Y, -1),
+                        Blocks.GRASS_BLOCK.defaultBlockState(), 3);
             }
+            placeLeafShadedStep(level);
         });
+    }
+
+    /**
+     * A grass wall (z = -6..-4, top at PAD_Y + 2) behind a one-block-lower strip (z = -3) with leaves
+     * hanging over the strip. Its south face (towards the viewer) must render in full: a surface skin
+     * built from a heightmap that counts leaves dropped all but the top of the wall's interior columns.
+     */
+    private static void placeLeafShadedStep(net.minecraft.server.level.ServerLevel level) {
+        int padY = ClientGameTestSupport.PAD_Y;
+        var leaves = Blocks.OAK_LEAVES.defaultBlockState()
+                .setValue(net.minecraft.world.level.block.LeavesBlock.PERSISTENT, true);
+        for (int x = -5; x <= 5; x++) {
+            level.setBlock(new BlockPos(x, padY - 1, -3), Blocks.STONE.defaultBlockState(), 3);
+            for (int z = -6; z <= -4; z++) {
+                for (int y = padY - 1; y <= padY + 2; y++) {
+                    level.setBlock(new BlockPos(x, y, z), Blocks.GRASS_BLOCK.defaultBlockState(), 3);
+                }
+            }
+            level.setBlock(new BlockPos(x, padY + 6, -3), leaves, 3);
+        }
     }
 }

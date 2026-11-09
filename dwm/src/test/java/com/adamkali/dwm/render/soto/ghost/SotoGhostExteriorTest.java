@@ -12,8 +12,11 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ARGB;
+import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -31,6 +34,40 @@ class SotoGhostExteriorTest {
     void tearDown() {
         SotoGhostExterior.invalidateAll();
         SotoGhostMeshCache.invalidateAll();
+    }
+
+    /**
+     * Regression: getBlockTint returned 0xFFFFFF (alpha 0). ModelBlockRenderer multiplies the tint
+     * into the vertex colour including alpha, so grass tops rendered as black holes in SOTO views.
+     */
+    @Test
+    void tintFor_vanillaBiomeResolversAreOpaque() {
+        for (ColorResolver resolver : List.of(
+                BiomeColors.GRASS_COLOR_RESOLVER,
+                BiomeColors.FOLIAGE_COLOR_RESOLVER,
+                BiomeColors.DRY_FOLIAGE_COLOR_RESOLVER,
+                BiomeColors.WATER_COLOR_RESOLVER
+        )) {
+            int tint = SotoGhostExterior.tintFor(resolver);
+            assertEquals(255, ARGB.alpha(tint));
+            // Same multiply ModelBlockRenderer applies to a white vertex colour.
+            assertEquals(255, ARGB.alpha(ARGB.multiply(-1, tint)));
+            assertEquals(255, ARGB.alpha(ARGB.multiply(0xFFFFFFFF, tint)));
+        }
+        assertEquals(tintThroughGetter(BiomeColors.GRASS_COLOR_RESOLVER),
+                SotoGhostExterior.tintFor(BiomeColors.GRASS_COLOR_RESOLVER));
+    }
+
+    @Test
+    void tintFor_unknownResolverIsNoTint() {
+        ColorResolver modded = (biome, x, z) -> 0x123456;
+        assertEquals(-1, SotoGhostExterior.tintFor(modded));
+        assertEquals(0xFF808080, ARGB.multiply(0xFF808080, SotoGhostExterior.tintFor(modded)));
+    }
+
+    private static int tintThroughGetter(ColorResolver resolver) {
+        SotoGhostExterior ghost = SotoGhostExterior.getOrCreate(PortalStreamKind.SOTO, UUID.randomUUID());
+        return ghost.getBlockTint(BlockPos.ZERO, resolver);
     }
 
     @Test
