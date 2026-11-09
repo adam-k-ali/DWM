@@ -221,13 +221,20 @@ public abstract class PortalSampler {
         float rain = world.getRainLevel(0.0f);
         float thunder = world.getThunderLevel(0.0f);
         var attrs = world.environmentAttributes();
+        // Lightmap inputs as a camera standing at samplePos would see them (dimension, biome,
+        // timeline and weather layers), so the portal is lit like the looked-into world.
         return new PortalAtmosphere(
                 effectsId,
                 timeOfDay,
                 rain,
                 thunder,
                 attrs.getValue(EnvironmentAttributes.SKY_COLOR, samplePos),
-                attrs.getValue(EnvironmentAttributes.FOG_COLOR, samplePos)
+                attrs.getValue(EnvironmentAttributes.FOG_COLOR, samplePos),
+                attrs.getValue(EnvironmentAttributes.SKY_LIGHT_FACTOR, samplePos),
+                attrs.getValue(EnvironmentAttributes.SKY_LIGHT_COLOR, samplePos),
+                attrs.getValue(EnvironmentAttributes.AMBIENT_LIGHT_COLOR, samplePos),
+                attrs.getValue(EnvironmentAttributes.BLOCK_LIGHT_TINT, samplePos),
+                world.dimensionType().cardinalLightType()
         );
     }
 

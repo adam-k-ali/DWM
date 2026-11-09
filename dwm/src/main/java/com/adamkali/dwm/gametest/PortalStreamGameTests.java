@@ -2,14 +2,21 @@ package com.adamkali.dwm.gametest;
 
 import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomPlacer;
+import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
+import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
 import com.adamkali.dwm.tardis.portal.PortalSampler;
 import com.adamkali.dwm.tardis.soto.SotoExteriorSampler;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.attribute.EnvironmentAttributes;
+import net.minecraft.world.level.CardinalLighting;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.dimension.DimensionType;
 
 import java.util.UUID;
 
@@ -86,6 +93,37 @@ public class PortalStreamGameTests {
         if (columns > MAX_STREAM_CHUNKS) {
             throw new AssertionError("Stream radius " + radius + " covers " + columns
                     + " chunk columns, above the " + MAX_STREAM_CHUNKS + " budget");
+        }
+        context.succeed();
+    }
+
+    /**
+     * The portal is lit with the looked-into world's own lighting: the sampled atmosphere carries
+     * that level's live lightmap attributes and cardinal light type. The GameTest server does not
+     * load {@code dwm:tardis}, so the TARDIS side is checked through its registered dimension type.
+     */
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void portalAtmosphere_SamplesLightingOfTheLookedIntoWorld(GameTestHelper context) {
+        ServerLevel level = context.getLevel();
+        BlockPos pos = context.absolutePos(BlockPos.ZERO);
+        PortalAtmosphere sampled = PortalSampler.sampleAtmosphere(level, pos);
+        var attrs = level.environmentAttributes();
+        if (sampled.cardinalLighting() != level.dimensionType().cardinalLightType()) {
+            throw new AssertionError("Sampled cardinal lighting was " + sampled.cardinalLighting());
+        }
+        float skyFactor = attrs.getValue(EnvironmentAttributes.SKY_LIGHT_FACTOR, pos);
+        if (Math.abs(sampled.skyLightFactor() - skyFactor) > 1.0e-6f) {
+            throw new AssertionError("Sampled sky light factor " + sampled.skyLightFactor() + " != " + skyFactor);
+        }
+        int ambient = attrs.getValue(EnvironmentAttributes.AMBIENT_LIGHT_COLOR, pos);
+        if (sampled.ambientLightColor() != ambient) {
+            throw new AssertionError("Sampled ambient light " + Integer.toHexString(sampled.ambientLightColor()));
+        }
+        DimensionType tardisType = level.registryAccess()
+                .lookupOrThrow(Registries.DIMENSION_TYPE)
+                .getValueOrThrow(ResourceKey.create(Registries.DIMENSION_TYPE, TardisDimensions.DIMENSION_ID));
+        if (tardisType.cardinalLightType() != CardinalLighting.Type.NETHER) {
+            throw new AssertionError("TARDIS cardinal light type was " + tardisType.cardinalLightType());
         }
         context.succeed();
     }

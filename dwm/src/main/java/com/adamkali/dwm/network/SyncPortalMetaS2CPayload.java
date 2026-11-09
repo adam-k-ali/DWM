@@ -10,11 +10,12 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.CardinalLighting;
 import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 
 /**
  * S2C portal shell + atmosphere metadata (shared by BOTI and SOTO).
- * formatVersion 1 = shell + atmosphere.
+ * formatVersion 1 = shell + atmosphere; 2 adds the atmosphere's lightmap inputs and cardinal light type.
  */
 public record SyncPortalMetaS2CPayload(
         byte formatVersion,
@@ -27,7 +28,7 @@ public record SyncPortalMetaS2CPayload(
         int exteriorRotation,
         PortalAtmosphere atmosphere
 ) implements CustomPacketPayload {
-    public static final byte FORMAT_VERSION = 1;
+    public static final byte FORMAT_VERSION = 2;
 
     public static final CustomPacketPayload.Type<SyncPortalMetaS2CPayload> ID =
             new CustomPacketPayload.Type<>(DWMPacketIds.SYNC_PORTAL_META_PACKET_ID);
@@ -78,6 +79,11 @@ public record SyncPortalMetaS2CPayload(
         buf.writeFloat(value.thunderGradient());
         buf.writeInt(value.biomeSkyColor());
         buf.writeInt(value.biomeFogColor());
+        buf.writeFloat(value.skyLightFactor());
+        buf.writeInt(value.skyLightColor());
+        buf.writeInt(value.ambientLightColor());
+        buf.writeInt(value.blockLightTint());
+        buf.writeEnum(value.cardinalLighting());
     }
 
     private static PortalAtmosphere decodeAtmosphere(RegistryFriendlyByteBuf buf) {
@@ -91,7 +97,12 @@ public record SyncPortalMetaS2CPayload(
                 buf.readFloat(),
                 buf.readFloat(),
                 buf.readInt(),
-                buf.readInt()
+                buf.readInt(),
+                buf.readFloat(),
+                buf.readInt(),
+                buf.readInt(),
+                buf.readInt(),
+                buf.readEnum(CardinalLighting.Type.class)
         );
     }
 
