@@ -6,11 +6,11 @@ Stdlib only and deterministic. Writes, per era:
   src/client/resources/assets/dwm/textures/entity/tardis_<year>.png
 
 Layout:
-  eras.py     per-era design spec (colours, wear, proportions, roof, lamp, glazing, badge)
-  geometry.py shared police-box geometry built from the spec
+  eras.py     per-era design spec (colours, weathering, posts, signs, roof, lamp, glazing, badge)
+  geometry.py shared police-box geometry built from the spec, on a one-pixel grid
   uvpack.py   vanilla box-UV nets, shelf-packed; identical cube + paint pairs share a net
-  paint.py    per-face painters (timber, glass, sign lettering, notice, badge, lamp)
-  preview.py  offline orthographic preview renderer (scratch output, not shipped)
+  paint.py    per-face painters (flat mottled paint, glass, sign lettering, notice, badge, lamp)
+  preview.py  offline preview renderer, optionally beside the older boxes (scratch output, not shipped)
 
 Contract with the game (see TardisModel / TardisChameleonVariant):
   * root parts `LeftDoor` (hinge x=+5, the leaf that swings) and `rightDoor`, bound by
@@ -64,8 +64,9 @@ def build(era: Era):
         for face, role in roles:
             fu, fv, fw, fh = rects[face]
             px = (round(fu * PX), round(fv * PX), round(fw * PX), round(fh * PX))
-            if px[2] > 0 and px[3] > 0:
-                painter.paint(role, px, face)
+            if px[2] < 1 or px[3] < 1:
+                raise ValueError(f"{face} face of a {w}x{h}x{d} cube is thinner than a texture pixel")
+            painter.paint(role, px, face)
 
     json_parts = []
     for spec in part_specs:
