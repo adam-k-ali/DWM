@@ -14,6 +14,7 @@ import com.adamkali.dwm.tardis.portal.PortalShellState;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.level.CardinalLighting;
 
 import java.util.Map;
 import java.util.UUID;
@@ -50,9 +51,23 @@ public final class PortalSceneStore {
         PortalShellState shell = payload.shellState();
         PortalAtmosphere atmosphere = payload.atmosphere() == null ? PortalAtmosphere.DEFAULT : payload.atmosphere();
         META.put(key, new MetaEntry(payload.revision(), shell, atmosphere));
+        if (cardinalLightingChanged(existing == null ? null : existing.atmosphere(), atmosphere)) {
+            // Face shading is baked into the ghost meshes; rebake what was built with the old type.
+            SotoGhostMeshCache.rebakeAll(payload.kind(), payload.tardisId());
+        }
         // Do not clear LAST_REQUEST_MS here — that re-armed requestIfNeeded every meta
         // packet and caused subscribe storms.
         PortalFrameCache.markDirty(payload.kind(), payload.tardisId());
+    }
+
+    /**
+     * Whether meshes baked against {@code previous} ({@code null}: before any meta, which the ghost
+     * world reports as default shading) need rebaking for {@code next}.
+     */
+    static boolean cardinalLightingChanged(PortalAtmosphere previous, PortalAtmosphere next) {
+        CardinalLighting.Type before = previous == null ? CardinalLighting.Type.DEFAULT : previous.cardinalLighting();
+        CardinalLighting.Type after = next == null ? CardinalLighting.Type.DEFAULT : next.cardinalLighting();
+        return before != after;
     }
 
     public static PortalShellState getShell(PortalStreamKind kind, UUID tardisId) {

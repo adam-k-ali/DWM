@@ -10,6 +10,7 @@ import com.adamkali.dwm.render.portal.PortalFrameCache;
 import com.adamkali.dwm.render.portal.PortalPerfStats;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.tardis.boti.BotiEntitySample;
+import com.adamkali.dwm.tardis.portal.PortalAtmosphere;
 import com.adamkali.dwm.tardis.portal.PortalLightData;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.mojang.authlib.GameProfile;
@@ -718,9 +719,14 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         return BOTTOM_Y;
     }
 
+    /**
+     * Block-face shading of the looked-into dimension ({@code dwm:tardis} uses {@code nether}), baked
+     * into the ghost meshes. {@link PortalSceneStore#applyMeta} rebakes when the synced type changes.
+     */
     @Override
     public CardinalLighting cardinalLighting() {
-        return CardinalLighting.DEFAULT;
+        PortalAtmosphere atmosphere = PortalSceneStore.getAtmosphere(kind, tardisId);
+        return atmosphere == null ? CardinalLighting.DEFAULT : atmosphere.cardinalLighting().get();
     }
 
     @Override

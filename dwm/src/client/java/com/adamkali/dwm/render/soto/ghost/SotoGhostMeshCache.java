@@ -109,6 +109,24 @@ public final class SotoGhostMeshCache {
         markPassBatchesDirty(sceneKey);
     }
 
+    /**
+     * Re-bakes every chunk mesh of a scene from its ghost world, keeping the old meshes drawable
+     * until each replacement is ready (used when baked-in shading such as cardinal light changes).
+     */
+    public static void rebakeAll(PortalStreamKind kind, UUID tardisId) {
+        if (kind == null || tardisId == null) {
+            return;
+        }
+        SotoGhostExterior ghost = SotoGhostExterior.get(kind, tardisId);
+        Map<Long, ChunkMesh> byChunk = MESHES.get(new PortalSceneStore.SceneKey(kind, tardisId));
+        if (ghost == null || byChunk == null) {
+            return;
+        }
+        for (long packed : List.copyOf(byChunk.keySet())) {
+            onChunkApplied(kind, tardisId, ChunkPos.getX(packed), ChunkPos.getZ(packed), ghost);
+        }
+    }
+
     public static void onChunkUnloaded(PortalStreamKind kind, UUID tardisId, int chunkX, int chunkZ) {
         if (kind == null || tardisId == null) {
             return;
