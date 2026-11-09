@@ -209,17 +209,10 @@ public final class SotoExteriorSampler extends PortalSampler {
         }
         int baseX = chunkX << 4;
         int baseZ = chunkZ << 4;
-        PortalLightData sampled = PortalLightData.sample(
+        return PortalLightData.sample(
                 world.getLightEngine(),
                 new BlockPos(baseX, lightY.min(), baseZ),
                 new BlockPos(baseX + 15, lightY.max(), baseZ + 15)
         );
-        // Sampled sky light can be 0 over open air (unpropagated); only dimensions with sky light
-        // have open sky to restore, so the End/Nether keep their real values.
-        return applyOpenSky(world.dimensionType().hasSkyLight(), sampled, blocks.keySet());
-    }
-
-    static PortalLightData applyOpenSky(boolean hasSkyLight, PortalLightData sampled, Iterable<BlockPos> blocks) {
-        return hasSkyLight ? sampled.withOpenSkyAbove(blocks) : sampled;
     }
 }

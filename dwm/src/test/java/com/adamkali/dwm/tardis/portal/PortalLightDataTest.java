@@ -113,32 +113,6 @@ class PortalLightDataTest {
         assertEquals(0, data.brightness(LightLayer.BLOCK, new BlockPos(16, 15, 15), -1));
     }
 
-    /** Regression: unpropagated (all-zero) server light over open air rendered terrain tops black. */
-    @Test
-    void withOpenSkyAbove_fillsCellsAboveHighestBlockOnly() {
-        DataLayer darkBlock = new DataLayer();
-        DataLayer darkSky = new DataLayer();
-        darkBlock.set(2, 6, 3, 5);
-        LayerLightEventListener blockLight = Mockito.mock(LayerLightEventListener.class);
-        LayerLightEventListener skyLight = Mockito.mock(LayerLightEventListener.class);
-        Mockito.when(blockLight.getDataLayerData(any())).thenReturn(darkBlock);
-        Mockito.when(skyLight.getDataLayerData(any())).thenReturn(darkSky);
-        PortalLightData raw = PortalLightData.sample(
-                blockLight, skyLight, new BlockPos(0, 0, 0), new BlockPos(3, 9, 3));
-        assertEquals(0, raw.brightness(LightLayer.SKY, new BlockPos(2, 8, 3), -1));
-
-        PortalLightData lit = raw.withOpenSkyAbove(java.util.List.of(
-                new BlockPos(2, 4, 3), new BlockPos(2, 2, 3)));
-
-        assertEquals(15, lit.brightness(LightLayer.SKY, new BlockPos(2, 5, 3), -1));
-        assertEquals(15, lit.brightness(LightLayer.SKY, new BlockPos(2, 9, 3), -1));
-        assertEquals(5, lit.brightness(LightLayer.BLOCK, new BlockPos(2, 6, 3), -1));
-        // At and below the highest block, and in columns with no blocks, nothing changes.
-        assertEquals(0, lit.brightness(LightLayer.SKY, new BlockPos(2, 4, 3), -1));
-        assertEquals(0, lit.brightness(LightLayer.SKY, new BlockPos(2, 1, 3), -1));
-        assertEquals(0, lit.brightness(LightLayer.SKY, new BlockPos(0, 9, 0), -1));
-    }
-
     @Test
     void translated_preservesValuesInNewCoordinateSpace() {
         PortalLightData data = new PortalLightData(

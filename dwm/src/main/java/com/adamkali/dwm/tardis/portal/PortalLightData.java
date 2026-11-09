@@ -179,50 +179,6 @@ public final class PortalLightData {
         return packed[(y * sizeZ + z) * sizeX + x] & 0xFF;
     }
 
-    /**
-     * Returns a copy where every cell strictly above the highest streamed block of its column reads
-     * as full sky light (block light is kept). The server may sample light before it has propagated
-     * (or from a stale visible layer), which stores 0 over open air and renders neighbouring faces
-     * and their ambient occlusion black. Columns with no streamed block are left unchanged.
-     *
-     * @param blocks positions in the same coordinate space as {@link #min()}
-     */
-    public PortalLightData withOpenSkyAbove(Iterable<BlockPos> blocks) {
-        if (isEmpty()) {
-            return this;
-        }
-        int[] top = new int[sizeX * sizeZ];
-        Arrays.fill(top, Integer.MIN_VALUE);
-        for (BlockPos pos : blocks) {
-            int x = pos.getX() - min.getX();
-            int z = pos.getZ() - min.getZ();
-            if (x < 0 || x >= sizeX || z < 0 || z >= sizeZ) {
-                continue;
-            }
-            int column = z * sizeX + x;
-            top[column] = Math.max(top[column], pos.getY());
-        }
-        byte[] out = packed.clone();
-        boolean changed = false;
-        for (int z = 0; z < sizeZ; z++) {
-            for (int x = 0; x < sizeX; x++) {
-                int columnTop = top[z * sizeX + x];
-                if (columnTop == Integer.MIN_VALUE) {
-                    continue;
-                }
-                for (int y = Math.max(0, columnTop + 1 - min.getY()); y < sizeY; y++) {
-                    int index = (y * sizeZ + z) * sizeX + x;
-                    byte updated = (byte) (0xF0 | (out[index] & 0xF));
-                    if (updated != out[index]) {
-                        out[index] = updated;
-                        changed = true;
-                    }
-                }
-            }
-        }
-        return changed ? new PortalLightData(min, sizeX, sizeY, sizeZ, out) : this;
-    }
-
     public PortalLightData translated(BlockPos offset) {
         return isEmpty() ? EMPTY : new PortalLightData(min.offset(offset), sizeX, sizeY, sizeZ, packed);
     }
