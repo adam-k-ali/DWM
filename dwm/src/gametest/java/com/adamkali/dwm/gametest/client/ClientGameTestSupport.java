@@ -53,6 +53,8 @@ final class ClientGameTestSupport {
      */
     static void stage(TestServerContext server, String gameMode, boolean doorPortals) {
         DWMConfig.setBoolean(DWMConfig.ENABLE_DOOR_PORTALS, doorPortals);
+        // Experimental parallax portals stay off unless a scenario opts in after staging.
+        DWMConfig.setBoolean(DWMConfig.PORTAL_PARALLAX, false);
         // Keep chat clean for screenshots (advancement chat lines, "game mode updated", ...).
         server.runCommand("gamerule send_command_feedback false");
         server.runCommand("gamerule show_advancement_messages false");
