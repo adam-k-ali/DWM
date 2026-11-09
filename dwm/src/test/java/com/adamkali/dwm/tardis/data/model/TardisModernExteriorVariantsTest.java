@@ -20,7 +20,8 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Checks the 2005/2010/2014/2018 exteriors: wired to an existing mesh, a texture that is a whole-number
  * upscale of the declared UV space, door leaves that fill the BOTI aperture, UV nets inside the texture,
- * geometry on the texture-pixel grid with every face painted, and the same envelope as the Doctor boxes.
+ * geometry on the texture-pixel grid with every face painted, the same envelope as the Doctor boxes, and a
+ * roof that steps in from the corner posts instead of overhanging them.
  */
 class TardisModernExteriorVariantsTest {
     private static final List<TardisChameleonVariant> MODERN = List.of(
@@ -200,6 +201,36 @@ class TardisModernExteriorVariantsTest {
             assertEquals(7.5f, reach[0], 0.01f, variant + " footprint must match the Doctor boxes");
             assertTrue(reach[1] <= 30.5f, variant + " is taller than the Doctor boxes allow: " + reach[1]);
         }
+    }
+
+    @Test
+    void roofStepsInsideTheCornerPostsWithoutOverhang() throws IOException {
+        for (TardisChameleonVariant variant : MODERN) {
+            JsonObject json = readModel(variant);
+            float posts = reach(rootPart(json, "posts"));
+            float roof = reach(rootPart(json, "roof"));
+            assertTrue(roof < posts, variant + " roof (±" + roof + ") must not overhang the posts (±" + posts + ")");
+            assertTrue(reach(rootPart(json, "lamp")) < roof, variant + " lamp must sit inside the roof");
+        }
+    }
+
+    /** Largest |x| or |z| any cube of the part reaches; the part must pivot on the box's centre line. */
+    private static float reach(JsonObject part) {
+        assertNotNull(part);
+        JsonArray pivot = part.getAsJsonArray("pivot");
+        assertEquals(0f, pivot.get(0).getAsFloat(), 1e-6f);
+        assertEquals(0f, pivot.get(2).getAsFloat(), 1e-6f);
+        float r = 0;
+        for (JsonElement e : part.getAsJsonArray("cubes")) {
+            JsonObject cube = e.getAsJsonObject();
+            JsonArray origin = cube.getAsJsonArray("origin");
+            JsonArray size = cube.getAsJsonArray("size");
+            for (int axis : new int[] {0, 2}) {
+                float a = origin.get(axis).getAsFloat();
+                r = Math.max(r, Math.max(Math.abs(a), Math.abs(a + size.get(axis).getAsFloat())));
+            }
+        }
+        return r;
     }
 
     private static void forEachCube(JsonObject json, java.util.function.BiConsumer<JsonArray, JsonObject> action) {
