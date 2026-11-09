@@ -46,15 +46,17 @@ public final class PortalDoorRenderer {
      * Flushes after the shell (blending flag) without mixing world color, and does not
      * depth-reject inward-swinging leaves.
      * <p>
-     * Uses vanilla {@code core/entity} shaders from {@link RenderPipelines#ENTITY_SNIPPET}.
+     * Uses the vanilla {@code core/entity} vertex shader from {@link RenderPipelines#ENTITY_SNIPPET}
+     * with DWM's unlit {@code core/portal_composite} fragment shader: the portal image is already
+     * lit by its own world, so per-face light and the viewer's lightmap must not darken it again.
      * Must be {@link RenderPipelines#register}ed before {@link RenderPipelines#getStaticPipelines()}
      * compiles GPU programs — see client mixin and {@link com.adamkali.dwm.DWMClient}.
      */
     public static final RenderPipeline PORTAL_COMPOSITE_PIPELINE = RenderPipelines.register(
             RenderPipeline.builder(RenderPipelines.ENTITY_SNIPPET)
                     .withLocation(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "pipeline/portal_composite"))
-                    .withShaderDefine("ALPHA_CUTOUT", 0.1F)
-                    .withShaderDefine("PER_FACE_LIGHTING")
+                    .withFragmentShader(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "core/portal_composite"))
+                    .withShaderDefine("NO_CARDINAL_LIGHTING")
                     .withBindGroupLayout(BindGroupLayouts.SAMPLER1)
                     .withCull(false)
                     .withColorTargetState(new ColorTargetState(PORTAL_COMPOSITE_BLEND))

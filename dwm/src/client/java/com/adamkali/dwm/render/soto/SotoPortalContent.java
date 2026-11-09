@@ -181,7 +181,8 @@ public final class SotoPortalContent implements PortalContent {
         context.bindTarget();
         GpuBufferSlice previousFog = SotoSkyFogRenderer.applyPortalTerrainFog(atmosphere);
         PortalPerfStats.end(PortalPerfStats.Stage.SKY_FOG, skyStart);
-        PortalLightmap portalLightmap = PortalLightmap.apply(Minecraft.getInstance(), atmosphere);
+        PortalLightmap portalLightmap = PortalLightmap.apply(
+                Minecraft.getInstance(), portal != null ? portal : PortalAtmosphere.DEFAULT);
         try {
             long opaqueStart = PortalPerfStats.begin();
             SotoGhostMeshCache.drawLayer(

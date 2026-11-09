@@ -4,6 +4,7 @@ import com.adamkali.dwm.render.portal.PortalCameraTransform;
 import com.adamkali.dwm.render.portal.PortalContent;
 import com.adamkali.dwm.render.portal.PortalContentContext;
 import com.adamkali.dwm.render.portal.PortalFeatureFlush;
+import com.adamkali.dwm.render.portal.PortalLightmap;
 import com.adamkali.dwm.render.portal.PortalPerfStats;
 import com.adamkali.dwm.render.portal.PortalDoorFrame;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
@@ -140,7 +141,9 @@ public final class BotiPortalContent implements PortalContent {
                 atmosphere, PortalSampler.fogStartBlocks(radius), PortalSampler.fogEndBlocks(radius)
         );
         PortalPerfStats.end(PortalPerfStats.Stage.SKY_FOG, fogStart);
-        try {
+        // Light the interior as it is lit from inside (TARDIS lightmap and cardinal shading), not
+        // with the viewer's overworld values. Null (no meta yet) leaves the viewer's lighting.
+        try (PortalLightmap ignored = PortalLightmap.apply(Minecraft.getInstance(), portal)) {
             renderLitContent(context);
         } finally {
             SotoSkyFogRenderer.restoreFog(previousFog);
