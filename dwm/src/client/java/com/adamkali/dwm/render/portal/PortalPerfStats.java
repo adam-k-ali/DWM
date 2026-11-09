@@ -102,6 +102,17 @@ public final class PortalPerfStats {
         }
     }
 
+    /** Door was submitted this frame but culled by {@link PortalVisibility}; no off-main render. */
+    public static void noteCulled(PortalKey key) {
+        if (!isEnabled() || key == null) {
+            return;
+        }
+        activeKey = key;
+        if (outcome == Outcome.IDLE) {
+            outcome = Outcome.CULLED;
+        }
+    }
+
     public static void beginOffMain(PortalKey key) {
         if (!isEnabled() || key == null) {
             return;
@@ -833,6 +844,7 @@ public final class PortalPerfStats {
     public enum Outcome {
         IDLE("idle"),
         SCHEDULED("scheduled"),
+        CULLED("culled"),
         NOT_READY("notReady"),
         ONCE_PER_FRAME("oncePerFrame"),
         FRAME_CACHE_HIT("frameCacheHit"),

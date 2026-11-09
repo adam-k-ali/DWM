@@ -10,6 +10,7 @@ import java.util.UUID;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Interior SOTO: thin facade that builds an exterior look-out {@link PortalScene} and
@@ -45,6 +46,19 @@ public final class TardisSotoRenderer {
     }
 
     /**
+     * World-space centre of the 3x2 interior door bank for visibility culling.
+     * {@code bankOrigin} is the lower/slot-0 cell; the bank grows along {@code facing.getCounterClockWise()}.
+     */
+    public static Vec3 doorCenter(BlockPos bankOrigin, Direction facing) {
+        Direction along = facing.getCounterClockWise();
+        return new Vec3(
+                bankOrigin.getX() + 0.5 + along.getStepX(),
+                bankOrigin.getY() + 1.0,
+                bankOrigin.getZ() + 0.5 + along.getStepZ()
+        );
+    }
+
+    /**
      * Schedules portal work for END_MAIN and submits deferred doorway composite geometry.
      * Must not touch GL state or open RenderPasses (mid-BER poison on 26.2).
      */
@@ -56,6 +70,22 @@ public final class TardisSotoRenderer {
             BlockPos interiorDoorPos,
             Direction interiorDoorFacing
     ) {
+        render(matrices, submitNodeCollector, tickDelta, tardisId, interiorDoorPos, interiorDoorFacing, true);
+    }
+
+    /**
+     * @param schedulePortal false when the doorway is not visible (see {@code PortalVisibility});
+     *                       the stream is still requested, only the off-main render is skipped.
+     */
+    public void render(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            float tickDelta,
+            UUID tardisId,
+            BlockPos interiorDoorPos,
+            Direction interiorDoorFacing,
+            boolean schedulePortal
+    ) {
         if (tardisId == null || interiorDoorPos == null || interiorDoorFacing == null) {
             return;
         }
@@ -66,7 +96,10 @@ public final class TardisSotoRenderer {
                 matrices,
                 submitNodeCollector,
                 scene,
-                PortalAperture.CLASSIC_INTERIOR_DOORS
+                PortalAperture.CLASSIC_INTERIOR_DOORS,
+                0.0f,
+                0.0f,
+                schedulePortal
         );
     }
 }

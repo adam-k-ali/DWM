@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Decouples portal GPU work from mid-BER submit.
@@ -17,7 +18,36 @@ public final class PortalScheduler {
     private static final Map<PortalKey, PortalScene> PENDING = new ConcurrentHashMap<>();
     private static final PortalRenderer RENDERER = new PortalRenderer();
 
+    private static final AtomicLong SCHEDULED_TOTAL = new AtomicLong();
+    private static final AtomicLong CULLED_TOTAL = new AtomicLong();
+
     private PortalScheduler() {
+    }
+
+    /** Doorway was submitted but skipped by visibility culling (always-on, cheap; for tests/perf reports). */
+    public static void noteCulled(PortalKey key) {
+        CULLED_TOTAL.incrementAndGet();
+        PortalPerfStats.noteCulled(key);
+    }
+
+    /** Cumulative number of scenes scheduled since startup. */
+    public static long scheduledTotal() {
+        return SCHEDULED_TOTAL.get();
+    }
+
+    /** Cumulative number of doorway submissions culled since startup. */
+    public static long culledTotal() {
+        return CULLED_TOTAL.get();
+    }
+
+    static int pendingCountForTest() {
+        return PENDING.size();
+    }
+
+    static void resetForTests() {
+        PENDING.clear();
+        SCHEDULED_TOTAL.set(0L);
+        CULLED_TOTAL.set(0L);
     }
 
     public static void schedule(PortalScene scene) {
@@ -25,6 +55,7 @@ public final class PortalScheduler {
             return;
         }
         PENDING.put(scene.key(), scene);
+        SCHEDULED_TOTAL.incrementAndGet();
     }
 
     /**
