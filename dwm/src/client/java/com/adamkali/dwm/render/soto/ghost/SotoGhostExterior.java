@@ -13,11 +13,13 @@ import com.adamkali.dwm.tardis.boti.BotiEntitySample;
 import com.adamkali.dwm.tardis.portal.PortalLightData;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
 import com.mojang.authlib.GameProfile;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.RemotePlayer;
+import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
@@ -33,6 +35,9 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.CardinalLighting;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ColorResolver;
+import net.minecraft.world.level.DryFoliageColor;
+import net.minecraft.world.level.FoliageColor;
+import net.minecraft.world.level.GrassColor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
@@ -64,6 +69,8 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
     public static final long ENTITY_UPDATE_INTERVAL_MS = 100L;
     private static final int BOTTOM_Y = -64;
     private static final int HEIGHT = 384;
+    /** Vanilla's default biome water colour (plains, forest, …). */
+    private static final int DEFAULT_WATER_COLOR = 0x3F76E4;
     private static final AtomicInteger NEXT_GHOST_ENTITY_ID = new AtomicInteger(1_000_000);
 
     private static final Map<PortalSceneStore.SceneKey, SotoGhostExterior> BY_KEY = new ConcurrentHashMap<>();
@@ -723,7 +730,31 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
 
     @Override
     public int getBlockTint(BlockPos pos, ColorResolver colorResolver) {
-        return 0xFFFFFF;
+        return tintFor(colorResolver);
+    }
+
+    /**
+     * Opaque ARGB tint for a biome colour resolver. {@code ModelBlockRenderer} multiplies the tint
+     * into the vertex colour including alpha, so a 24-bit RGB value (alpha 0) makes every
+     * biome-tinted quad (grass tops, grass side overlay, oak leaves, water) fully transparent and
+     * the portal shows black through them. The exterior biome is not streamed, so vanilla resolvers
+     * get their default colours; unknown resolvers return {@code -1} (no tint).
+     * Package-visible for unit tests.
+     */
+    static int tintFor(ColorResolver colorResolver) {
+        if (colorResolver == BiomeColors.GRASS_COLOR_RESOLVER) {
+            return ARGB.opaque(GrassColor.getDefaultColor());
+        }
+        if (colorResolver == BiomeColors.FOLIAGE_COLOR_RESOLVER) {
+            return ARGB.opaque(FoliageColor.FOLIAGE_DEFAULT);
+        }
+        if (colorResolver == BiomeColors.DRY_FOLIAGE_COLOR_RESOLVER) {
+            return ARGB.opaque(DryFoliageColor.FOLIAGE_DRY_DEFAULT);
+        }
+        if (colorResolver == BiomeColors.WATER_COLOR_RESOLVER) {
+            return ARGB.opaque(DEFAULT_WATER_COLOR);
+        }
+        return -1;
     }
 
     @Override

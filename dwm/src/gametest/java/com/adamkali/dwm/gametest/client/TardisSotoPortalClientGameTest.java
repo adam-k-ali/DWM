@@ -49,7 +49,7 @@ public class TardisSotoPortalClientGameTest implements FabricClientGameTest {
 
     /**
      * Coloured wool in front of the exterior door (it faces north, towards z &lt; 4) so the screenshot visibly
-     * proves the portal shows the overworld. Must exist before the exterior is streamed; the chunks are also
+     * proves the portal shows the overworld, with a row of grass blocks beyond it so biome-tinted tops show. Must exist before the exterior is streamed; the chunks are also
      * force-loaded because the viewer leaves the overworld.
      */
     private static void placeLandmarks(TestSingleplayerContext world) {
@@ -64,6 +64,9 @@ public class TardisSotoPortalClientGameTest implements FabricClientGameTest {
                     level.setBlock(new BlockPos(x, ClientGameTestSupport.PAD_Y, z),
                             wool[x + 2].defaultBlockState(), 3);
                 }
+                // Biome-tinted tops: rendered black when the ghost tint had no alpha.
+                level.setBlock(new BlockPos(x, ClientGameTestSupport.PAD_Y, -1),
+                        Blocks.GRASS_BLOCK.defaultBlockState(), 3);
             }
         });
     }
