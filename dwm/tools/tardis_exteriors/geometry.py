@@ -40,10 +40,12 @@ PROUD = (-6.75, -6.5)  # astragal, handle, lock: on the face of the frame
 JAMB = (-6.75, -5.0)
 
 DOOR_BOTTOM, DOOR_TOP = 1.0, 23.0
-LINTEL_H1 = 23.5
-SIGN_H1 = 25.5
-POST_TOP = 26.0
+LINTEL_H1 = 23.25  # a narrow strip between the door top and the sign box
+SIGN_H1 = 25.25  # sign box: 2 units (8 px) tall
+FRIEZE_H1 = 26.0  # frieze band above the sign boxes; the roof starts here
+POST_TOP = 26.25  # posts stand a little proud of the frieze, as corner caps
 POST_INNER = 5.5
+SIGN_HALF = 6.25  # sign boxes and frieze reach part-way across the posts, never past them
 
 # Leaf layout, measured outward from the centre line (0) to the hinge side (5). The meeting stile is
 # narrower than the hinge stile, as on the real doors.
@@ -157,14 +159,15 @@ def window(X) -> list[Box]:
 
 
 def surround(era: Era) -> list[Box]:
-    """Fixed joinery around one doorway: jambs, lintel, the sign box and its hood."""
+    """Fixed joinery around one doorway: jambs, lintel and the projecting sign box."""
     front = era.sign_front
+    if front > -era.post_outer - 0.25 + 1e-6:
+        raise ValueError(f"{era.year}: the sign box must stand at least 0.25 proud of the posts")
     return [
         box(-POST_INNER, -5.0, DOOR_BOTTOM, DOOR_TOP, *JAMB, "frame"),
         box(5.0, POST_INNER, DOOR_BOTTOM, DOOR_TOP, *JAMB, "frame"),
         box(-POST_INNER, POST_INNER, DOOR_TOP, LINTEL_H1, *JAMB, "frame"),
-        box(-POST_INNER, POST_INNER, LINTEL_H1, SIGN_H1, front, -5.5, "frame", north="sign"),
-        box(-POST_INNER, POST_INNER, SIGN_H1, POST_TOP, front - 0.25, -5.5, "frame"),
+        box(-SIGN_HALF, SIGN_HALF, LINTEL_H1, SIGN_H1, front, -5.5, "frame", north="sign"),
     ]
 
 
@@ -186,12 +189,20 @@ def posts(era: Era) -> list[Box]:
 
 
 def roof(era: Era) -> tuple[list[Box], float]:
-    """The stepped roof stack; the first tier is the cornice. Returns (boxes, height of the top)."""
-    out = []
-    h = POST_TOP
+    """Frieze band, roof base band and the stepped pitch. Returns (boxes, height of the top).
+
+    Every tier steps in from the one below and stays inside the posts: there is no overhanging
+    cornice.
+    """
+    out = [box(-SIGN_HALF, SIGN_HALF, SIGN_H1, FRIEZE_H1, -SIGN_HALF, SIGN_HALF, "frame")]
+    h = FRIEZE_H1
+    widest = SIGN_HALF
     for i, (half, thick) in enumerate(era.roof_tiers):
+        if half >= widest:
+            raise ValueError(f"{era.year}: roof tier {i} (±{half}) must step in from ±{widest}")
         out.append(box(-half, half, h, h + thick, -half, half, "frame" if i == 0 else "roof", down="roof"))
         h += thick
+        widest = half
     return out, h
 
 

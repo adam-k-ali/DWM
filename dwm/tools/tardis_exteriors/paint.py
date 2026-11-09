@@ -126,22 +126,29 @@ class Painter:
                 put(self.img, x, y, c)
 
     def sign(self, rect, face):
+        """Black sign panel inside a 1 px border of body paint: POLICE, PUBLIC over CALL, BOX."""
         e = self.era
         x0, y0, w, h = rect
-        self.fill(rect, (20, 20, 24), mottle=0.03)
-        ty = y0 + (h - 5) // 2
+        self.fill(rect, e.body)
+        panel = (x0 + 1, y0 + 1, w - 2, h - 2)
+        self.fill(panel, (20, 20, 24), mottle=0.03)
+        px0, py0, pw, ph = panel
+        ty = py0 + (ph - 5) // 2
         left, right = text_width("POLICE"), text_width("BOX")
         for dx, dy in text_pixels("POLICE"):
-            put(self.img, x0 + 1 + dx, ty + dy, e.sign_text)
+            put(self.img, px0 + 1 + dx, ty + dy, e.sign_text)
         for dx, dy in text_pixels("BOX"):
-            put(self.img, x0 + w - 1 - right + dx, ty + dy, e.sign_text)
-        # "PUBLIC" over "CALL" is too small to letter: two short bars of dimmer type
-        m0, m1 = x0 + 1 + left + 2, x0 + w - 1 - right - 2
-        dim = scale(e.sign_text, 0.62)
-        for x in range(m0, m1):
-            put(self.img, x, ty + 1, dim)
-        for x in range(m0 + 1, m1 - 1):
-            put(self.img, x, ty + 3, dim)
+            put(self.img, px0 + pw - 1 - right + dx, ty + dy, e.sign_text)
+        # "PUBLIC" over "CALL" in small type: too small to letter at this density, so two rows of
+        # broken strokes (one stroke per letter) between the big words.
+        m0, m1 = px0 + 1 + left + 2, px0 + pw - 1 - right - 2
+        dim = scale(e.sign_text, 0.7)
+        for row, word in ((ty, "PUBLIC"), (ty + 3, "CALL")):
+            span = len(word) * 2 - 1
+            start = m0 + (m1 - m0 - span) // 2
+            for i in range(len(word)):
+                for t in range(2):
+                    put(self.img, start + 2 * i, row + t, dim)
 
     def notice(self, rect, face):
         """Telephone notice: heading bar, three lines of copy, and the PULL TO OPEN line."""
