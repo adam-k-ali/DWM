@@ -62,6 +62,32 @@ public final class PortalDoorRenderer {
                     .build()
     );
 
+    /**
+     * Parallax composite: same vertex path and blend/depth state as {@link #PORTAL_COMPOSITE_PIPELINE},
+     * but the fragment shader copies the portal texel at the fragment's screen position, unlit.
+     */
+    public static final RenderPipeline PORTAL_SCREEN_COMPOSITE_PIPELINE = RenderPipelines.register(
+            RenderPipeline.builder(RenderPipelines.ENTITY_SNIPPET)
+                    .withLocation(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "pipeline/portal_screen_composite"))
+                    .withFragmentShader(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "core/portal_screen"))
+                    .withBindGroupLayout(BindGroupLayouts.SAMPLER1)
+                    .withCull(false)
+                    .withColorTargetState(new ColorTargetState(PORTAL_COMPOSITE_BLEND))
+                    .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
+                    .build()
+    );
+
+    private static final Function<Identifier, RenderType> PORTAL_SCREEN_COMPOSITE = Util.memoize(
+            texture -> RenderType.create(
+                    "dwm_portal_screen_composite",
+                    RenderSetup.builder(PORTAL_SCREEN_COMPOSITE_PIPELINE)
+                            .withTexture("Sampler0", texture)
+                            .useLightmap()
+                            .useOverlay()
+                            .createRenderSetup()
+            )
+    );
+
     private static final Function<Identifier, RenderType> PORTAL_COMPOSITE = Util.memoize(
             texture -> RenderType.create(
                     "dwm_portal_composite",
@@ -78,7 +104,7 @@ public final class PortalDoorRenderer {
 
     /** Touch the pipeline field so {@link RenderPipelines#register} runs before shader compile. */
     public static void ensurePipelineRegistered() {
-        if (PORTAL_COMPOSITE_PIPELINE == null) {
+        if (PORTAL_COMPOSITE_PIPELINE == null || PORTAL_SCREEN_COMPOSITE_PIPELINE == null) {
             throw new IllegalStateException("Portal composite pipeline failed to register");
         }
     }
@@ -110,6 +136,11 @@ public final class PortalDoorRenderer {
      */
     public static RenderType portalCompositeRenderType() {
         return PORTAL_COMPOSITE.apply(PortalSamplingTexture.ID);
+    }
+
+    /** Parallax doorway stamp: screen-position sampling of the viewer-relative portal FBO. */
+    public static RenderType portalScreenCompositeRenderType() {
+        return PORTAL_SCREEN_COMPOSITE.apply(PortalSamplingTexture.ID);
     }
 
     /**
@@ -150,6 +181,23 @@ public final class PortalDoorRenderer {
             float viewPanV,
             boolean schedulePortal
     ) {
+        render(matrices, submitNodeCollector, scene, aperture, viewPanU, viewPanV, schedulePortal, false);
+    }
+
+    /**
+     * @param screenSpace parallax mode: the scene was rendered from the viewer-relative camera, so the
+     *                    doorway samples the portal FBO at screen position (pan values are ignored)
+     */
+    public static void render(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            PortalScene scene,
+            PortalAperture aperture,
+            float viewPanU,
+            float viewPanV,
+            boolean schedulePortal,
+            boolean screenSpace
+    ) {
         if (matrices == null || submitNodeCollector == null || scene == null || aperture == null) {
             return;
         }
@@ -164,7 +212,9 @@ public final class PortalDoorRenderer {
                 PortalScheduler.peekCompositeTexture(scene.key());
         matrices.pushPose();
         try {
-            if (portalTexture.available()) {
+            if (portalTexture.available() && screenSpace) {
+                PortalApertureComposite.drawScreenComposite(matrices, submitNodeCollector, aperture);
+            } else if (portalTexture.available()) {
                 PortalApertureComposite.drawPortalComposite(
                         matrices,
                         submitNodeCollector,

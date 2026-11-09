@@ -27,6 +27,14 @@ public final class PortalSupport {
         }
         initialized = true;
         LevelRenderEvents.START_MAIN.register(context -> PortalRenderTarget.beginClientFrame());
+        // Parallax: the portal view follows the camera, so it must be rendered this frame — after the
+        // BERs have scheduled it, before submit geometry (the doorway composite) is drawn. A one-frame
+        // stale image would visibly slide against the door frame while turning.
+        LevelRenderEvents.COLLECT_SUBMITS.register(context -> {
+            if (PortalViewerState.isParallaxEnabled()) {
+                PortalScheduler.flushEndMain();
+            }
+        });
         // Portal FBO clear/mesh draws must not run mid-BER (blacks out world/items on 26.2).
         LevelRenderEvents.END_MAIN.register(context -> {
             try {

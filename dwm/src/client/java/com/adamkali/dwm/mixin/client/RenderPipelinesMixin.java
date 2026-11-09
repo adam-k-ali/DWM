@@ -12,7 +12,7 @@ import java.util.List;
 import net.minecraft.client.renderer.RenderPipelines;
 
 /**
- * Registers the opaque no-depth-write portal composite pipeline before vanilla
+ * Registers the opaque no-depth-write portal composite pipelines (UV-cropped and parallax) before vanilla
  * compiles {@link RenderPipelines#getStaticPipelines()}.
  */
 @Mixin(RenderPipelines.class)
@@ -21,11 +21,18 @@ public class RenderPipelinesMixin {
     private static void dwm$ensurePortalCompositePipeline(CallbackInfoReturnable<List<RenderPipeline>> cir) {
         PortalDoorRenderer.ensurePipelineRegistered();
         List<RenderPipeline> list = cir.getReturnValue();
-        if (list != null && list.contains(PortalDoorRenderer.PORTAL_COMPOSITE_PIPELINE)) {
-            return;
-        }
         List<RenderPipeline> copy = new ArrayList<>(list == null ? List.of() : list);
-        copy.add(PortalDoorRenderer.PORTAL_COMPOSITE_PIPELINE);
-        cir.setReturnValue(List.copyOf(copy));
+        boolean changed = false;
+        for (RenderPipeline pipeline : List.of(
+                PortalDoorRenderer.PORTAL_COMPOSITE_PIPELINE,
+                PortalDoorRenderer.PORTAL_SCREEN_COMPOSITE_PIPELINE)) {
+            if (!copy.contains(pipeline)) {
+                copy.add(pipeline);
+                changed = true;
+            }
+        }
+        if (changed) {
+            cir.setReturnValue(List.copyOf(copy));
+        }
     }
 }
