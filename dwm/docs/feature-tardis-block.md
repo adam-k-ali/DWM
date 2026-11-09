@@ -80,6 +80,11 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 - May not work with Fabulous graphics / order-independent transparency; disable via `enableDoorPortals` if needed.
 - Until the portal composite is first rendered the doorway shows a flat dark blue-grey placeholder; automated checks should wait for the composite rather than trust a screenshot (see the client GameTests `TardisBotiPortalClientGameTest` / `TardisSotoPortalClientGameTest`).
 
+## Portal Visibility Culling (BOTI and SOTO)
+- Both door portals only schedule their off-screen render when the doorway can contribute pixels: the camera must be on the open side of the door plane and the doorway's bounding box must intersect the view frustum (`PortalVisibility`, under-culls when unsure). The last composite is still drawn, so visuals do not change; the portal stream stays warm.
+- A culled doorway counts into `PortalScheduler.culledTotal()` and shows the `culled` outcome in the portal perf HUD/log.
+- Perf regression coverage: unit tests (`PortalScheduleGateTest`, `TardisSotoDoorCullTest`, `PortalStreamPerfBudgetTest`), the server GameTests `PortalStreamGameTests`, and the client GameTest `TardisPortalPerfClientGameTest`, which measures frame time with the door closed / open but culled / open and visible for both portals and writes `perf/portal_perf.json` in the client GameTest run directory.
+
 ## SOTO Notes
 - Uses the same deferred portal FBO pipeline and the same portal stream packet family as BOTI (shared `enableDoorPortals`, default on).
 - Visual illusion: portal-composites a streamed exterior scene (shell + atmosphere + view-distance ghost chunks + entities) through the classic interior door aperture (not a live world stream); hitch-fixed look-out at the shell door plane.

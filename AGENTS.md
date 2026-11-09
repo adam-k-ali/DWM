@@ -26,7 +26,8 @@
 | Intent | Command |
 | --- | --- |
 | DWM client | `./dwm/gradlew runClient` |
-| Client GameTests + screenshots (headless) | `./dwm/scripts/run-client-gametest.sh` |
+| Client GameTests + screenshots (headless, Linux) | `./dwm/scripts/run-client-gametest.sh` |
+| Client GameTests + screenshots (macOS, real client) | `./dwm/gradlew runClientGameTest` |
 | Minecraft named sources (Grep) | `./dwm/gradlew unpackMinecraftSources` |
 
 ## Agent-First Engineering Principles
@@ -85,6 +86,7 @@ DWM uses **Mojang official mappings** for the Minecraft version in [`dwm/gradle.
 - **DWM unit tests** (`./dwm/gradlew test`): JUnit 5 via `fabric-loader-junit`. Included in `./dwm/gradlew build` and CI.
 - **GameTests** (`./dwm/gradlew runGametest`): Headless dedicated-server in-world tests in `dwm/src/main/java/.../gametest/`. Not run by CI today — run locally when GameTest code changes.
 - **Client GameTests** (`./dwm/scripts/run-client-gametest.sh`): launch a real client under `xvfb-run` with software GL, load a singleplayer world and save screenshots to `dwm/build/run/clientGameTest/screenshots/` (open the PNGs to check client-side/rendering changes). Tests live in `dwm/src/gametest/java/.../gametest/client/` and are registered in `dwm/src/gametest/resources/fabric.mod.json`.
+  - **On macOS** agents do not need `xvfb-run` or software GL: run `./dwm/gradlew runClientGameTest` directly and the real client opens a window. Screenshots land in the same `dwm/build/run/clientGameTest/screenshots/` directory. The script is for Linux/cloud VMs only.
 - Keep test runs reproducible and suitable for unattended agent execution.
 
 ## Automation Pipeline For Agents
@@ -102,7 +104,8 @@ DWM uses **Mojang official mappings** for the Minecraft version in [`dwm/gradle.
   - `./dwm/gradlew build` — compile DWM + JUnit (CI gate)
   - `./dwm/gradlew runDatagen` — regenerate `dwm/src/main/generated/` (only when datagen providers or promoted assets change); finalized by `pruneDatagenItemModels`
   - `./dwm/gradlew runGametest` — headless GameTests → `dwm/build/gametest/report.xml`
-  - `./dwm/scripts/run-client-gametest.sh` — client GameTests + screenshots (needs `xvfb-run`)
+  - `./dwm/scripts/run-client-gametest.sh` — client GameTests + screenshots (Linux; needs `xvfb-run`)
+  - `./dwm/gradlew runClientGameTest` — client GameTests + screenshots on macOS (real client, no Xvfb)
   - `./dwm/gradlew syncVersionJson` / `checkVersionSync` — keep `dwm/version.json` aligned with `dwm/gradle.properties`
   - `./dwm/gradlew unpackMinecraftSources` — explode Fabric named Minecraft sources into `dwm/minecraft-sources/` (local/agent; not CI)
   - `./dwm/gradlew generateStructureTemplates` — rewrite worldgen structure `.nbt` templates from their Java layouts in `dwm/src/test/java/.../world/structure/` (the `test` drift check fails until you do)
