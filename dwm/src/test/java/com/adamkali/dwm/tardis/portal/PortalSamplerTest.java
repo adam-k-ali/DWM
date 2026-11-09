@@ -188,7 +188,7 @@ class PortalSamplerTest {
         heights[(3 << 4) | 3] = 90;
         int[] colMin = new int[256];
         int[] colMax = new int[256];
-        PortalSampler.computeSurfaceSkinBounds(heights, 0, 128, colMin, colMax);
+        PortalSampler.computeSurfaceSkinBounds(heights, heights.clone(), 0, 128, colMin, colMax);
 
         int interior = (8 << 4) | 8;
         assertEquals(70, colMax[interior]);
@@ -205,5 +205,31 @@ class PortalSamplerTest {
         int edge = (0 << 4) | 8;
         assertEquals(70, colMax[edge]);
         assertEquals(54, colMin[edge]);
+    }
+
+    /**
+     * Regression: a wall (top 72) next to a lower strip (ground 69) shaded by leaves at 76. With the
+     * leafy WORLD_SURFACE height as the floor, the wall streamed only y 71..72 and its exposed face at
+     * y 70 rendered black. The floor must come from leaf-free ground.
+     */
+    @Test
+    void computeSurfaceSkinBounds_ignoresLeavesOverLowerNeighbourForFloor() {
+        int[] surface = new int[256];
+        int[] ground = new int[256];
+        java.util.Arrays.fill(surface, 72);
+        java.util.Arrays.fill(ground, 72);
+        int shaded = (8 << 4) | 7;
+        surface[shaded] = 76;
+        ground[shaded] = 69;
+        int[] colMin = new int[256];
+        int[] colMax = new int[256];
+        PortalSampler.computeSurfaceSkinBounds(surface, ground, 0, 128, colMin, colMax);
+
+        int wall = (8 << 4) | 8;
+        assertEquals(72, colMax[wall]);
+        assertEquals(68, colMin[wall], "wall streams down to its exposed face above the shaded strip");
+
+        assertEquals(76, colMax[shaded], "the canopy still streams");
+        assertEquals(68, colMin[shaded], "the shaded strip's own ground streams");
     }
 }

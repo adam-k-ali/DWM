@@ -339,31 +339,39 @@ public abstract class PortalSampler {
     }
 
     /**
-     * Per-column inclusive Y bounds from a 16×16 WORLD_SURFACE heightmap.
-     * Interior columns keep a 1-block pad below the lowest 4-neighbor surface; chunk-edge
-     * columns extend 16 blocks down so cliffs on a chunk border still get a face.
+     * Per-column inclusive Y bounds for the surface skin.
+     * <p>
+     * {@code surfaceY} (WORLD_SURFACE: any non-air block, leaves included) caps each column so canopies
+     * stream. {@code groundY} (MOTION_BLOCKING_NO_LEAVES) sets how deep it goes: interior columns keep a
+     * 1-block pad below the lowest ground of themselves and their 4 neighbours, and chunk-edge columns
+     * extend 16 blocks below their own ground so cliffs on a chunk border still get a face. Taking the
+     * floor from leaf-free ground matters: with leaves counted, a lower column under overhanging leaves
+     * looked tall, so the taller column next to it streamed only its top and its exposed side face
+     * (and the shaded column's own ground) rendered as black holes.
      */
-    static void computeSurfaceSkinBounds(int[] heightY, int rangeMin, int rangeMax, int[] colMin, int[] colMax) {
+    static void computeSurfaceSkinBounds(
+            int[] surfaceY, int[] groundY, int rangeMin, int rangeMax, int[] colMin, int[] colMax) {
         for (int lz = 0; lz < 16; lz++) {
             for (int lx = 0; lx < 16; lx++) {
                 int index = (lz << 4) | lx;
-                int own = heightY[index];
-                int floor = own;
+                int own = surfaceY[index];
+                int ownGround = Math.min(own, groundY[index]);
+                int floor = ownGround;
                 if (lx > 0) {
-                    floor = Math.min(floor, heightY[index - 1]);
+                    floor = Math.min(floor, groundY[index - 1]);
                 }
                 if (lx < 15) {
-                    floor = Math.min(floor, heightY[index + 1]);
+                    floor = Math.min(floor, groundY[index + 1]);
                 }
                 if (lz > 0) {
-                    floor = Math.min(floor, heightY[index - 16]);
+                    floor = Math.min(floor, groundY[index - 16]);
                 }
                 if (lz < 15) {
-                    floor = Math.min(floor, heightY[index + 16]);
+                    floor = Math.min(floor, groundY[index + 16]);
                 }
                 int minY = floor - 1;
                 if (lx == 0 || lx == 15 || lz == 0 || lz == 15) {
-                    minY = Math.min(minY, own - 16);
+                    minY = Math.min(minY, ownGround - 16);
                 }
                 colMax[index] = Math.min(rangeMax, own);
                 colMin[index] = Math.max(rangeMin, minY);
@@ -539,12 +547,14 @@ public abstract class PortalSampler {
         int[] colMax = new int[256];
         if (useSurfaceSkin(world)) {
             int[] heights = new int[256];
+            int[] ground = new int[256];
             for (int lz = 0; lz < 16; lz++) {
                 for (int lx = 0; lx < 16; lx++) {
                     heights[(lz << 4) | lx] = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, lx, lz);
+                    ground[(lz << 4) | lx] = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, lx, lz);
                 }
             }
-            computeSurfaceSkinBounds(heights, yRange.min(), yRange.max(), colMin, colMax);
+            computeSurfaceSkinBounds(heights, ground, yRange.min(), yRange.max(), colMin, colMax);
         } else {
             Arrays.fill(colMin, yRange.min());
             Arrays.fill(colMax, yRange.max());
