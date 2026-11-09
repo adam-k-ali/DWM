@@ -19,7 +19,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Checks the 2005/2010/2014/2018 exteriors: wired to an existing mesh, a texture that is a whole-number
- * upscale of the declared UV space, door leaves that fill the BOTI aperture, and UV nets inside the texture.
+ * upscale of the declared UV space, door leaves that fill the BOTI aperture, UV nets inside the texture,
+ * geometry on the texture-pixel grid with every face painted, and the same envelope as the Doctor boxes.
  */
 class TardisModernExteriorVariantsTest {
     private static final List<TardisChameleonVariant> MODERN = List.of(
@@ -124,6 +125,89 @@ class TardisModernExteriorVariantsTest {
                     float v1 = uv.get(1).getAsFloat() + sz + sy;
                     assertTrue(u1 <= w + 1e-3f && v1 <= h + 1e-3f, variant + " cube net overflows the texture: " + cube);
                 }
+            }
+        }
+    }
+
+    /** One texture pixel in model units (4 px per unit, like the 2nd-7th Doctor boxes). */
+    private static final float GRID = 0.25f;
+
+    @Test
+    void everyCubeSitsOnThePixelGrid() throws IOException {
+        for (TardisChameleonVariant variant : MODERN) {
+            forEachCube(readModel(variant), (pivot, cube) -> {
+                JsonArray origin = cube.getAsJsonArray("origin");
+                JsonArray size = cube.getAsJsonArray("size");
+                for (int i = 0; i < 3; i++) {
+                    float o = origin.get(i).getAsFloat() / GRID;
+                    float s = size.get(i).getAsFloat() / GRID;
+                    assertEquals(Math.round(o), o, 1e-3f, variant + " cube origin is off the pixel grid: " + cube);
+                    assertEquals(Math.round(s), s, 1e-3f, variant + " cube size is off the pixel grid: " + cube);
+                    assertTrue(s >= 1 - 1e-3f, variant + " cube is thinner than a texture pixel: " + cube);
+                }
+            });
+        }
+    }
+
+    @Test
+    void everyCubeFaceIsFullyPainted() throws IOException {
+        for (TardisChameleonVariant variant : MODERN) {
+            JsonObject json = readModel(variant);
+            Path png = ASSETS.resolve(Identifier.parse(json.get("texture").getAsString()).getPath());
+            java.awt.image.BufferedImage image;
+            try (InputStream in = Files.newInputStream(png)) {
+                image = ImageIO.read(in);
+            }
+            int px = image.getWidth() / json.get("texture_width").getAsInt();
+            forEachCube(json, (pivot, cube) -> {
+                JsonArray uv = cube.getAsJsonArray("uv");
+                JsonArray size = cube.getAsJsonArray("size");
+                float u = uv.get(0).getAsFloat(), v = uv.get(1).getAsFloat();
+                float w = size.get(0).getAsFloat(), h = size.get(1).getAsFloat(), d = size.get(2).getAsFloat();
+                // vanilla box-UV net: {u0, v0, width, height} for down, up, west, north, east, south
+                float[][] faces = {
+                        {u + d, v, w, d}, {u + d + w, v, w, d},
+                        {u, v + d, d, h}, {u + d, v + d, w, h}, {u + d + w, v + d, d, h}, {u + 2 * d + w, v + d, w, h}};
+                for (float[] f : faces) {
+                    int x0 = Math.round(f[0] * px), y0 = Math.round(f[1] * px);
+                    int x1 = Math.round((f[0] + f[2]) * px), y1 = Math.round((f[1] + f[3]) * px);
+                    for (int y = y0; y < y1; y++) {
+                        for (int x = x0; x < x1; x++) {
+                            if ((image.getRGB(x, y) >>> 24) != 0xFF) {
+                                fail(variant + " has an unpainted texel at " + x + "," + y + " under " + cube);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    @Test
+    void envelopeMatchesTheDoctorBoxes() throws IOException {
+        for (TardisChameleonVariant variant : MODERN) {
+            float[] reach = {0, 0}; // {footprint half-width, height}
+            forEachCube(readModel(variant), (pivot, cube) -> {
+                JsonArray origin = cube.getAsJsonArray("origin");
+                JsonArray size = cube.getAsJsonArray("size");
+                // walls are whole quarter turns about the centre, so max(|x|, |z|) is rotation-proof
+                for (int axis : new int[] {0, 2}) {
+                    float a = pivot.get(axis).getAsFloat() + origin.get(axis).getAsFloat();
+                    reach[0] = Math.max(reach[0], Math.max(Math.abs(a), Math.abs(a + size.get(axis).getAsFloat())));
+                }
+                reach[1] = Math.max(reach[1], 24.0f - pivot.get(1).getAsFloat() - origin.get(1).getAsFloat());
+            });
+            assertEquals(7.5f, reach[0], 0.01f, variant + " footprint must match the Doctor boxes");
+            assertTrue(reach[1] <= 30.5f, variant + " is taller than the Doctor boxes allow: " + reach[1]);
+        }
+    }
+
+    private static void forEachCube(JsonObject json, java.util.function.BiConsumer<JsonArray, JsonObject> action) {
+        for (JsonElement p : json.getAsJsonArray("parts")) {
+            JsonObject part = p.getAsJsonObject();
+            assertFalse(part.has("children"), "generated exteriors keep a flat part tree");
+            for (JsonElement e : part.getAsJsonArray("cubes")) {
+                action.accept(part.getAsJsonArray("pivot"), e.getAsJsonObject());
             }
         }
     }
