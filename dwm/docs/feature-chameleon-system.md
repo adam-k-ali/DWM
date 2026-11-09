@@ -12,7 +12,7 @@ Allow players to personalize TARDIS exterior identity through selectable visual 
 - Cycle the shell from the First Doctor console without opening the exterior GUI.
 
 ## Implemented Now
-- Multiple chameleon variants mapped to different TARDIS exterior styles.
+- Multiple chameleon variants mapped to different TARDIS exterior styles: TT Capsule, the First–Seventh Doctor boxes, and the 2005, 2010, 2014 and 2018 TARDIS exteriors (the modern ones are procedurally generated placeholder art, replaceable in Blockbench).
 - **Basic console chameleon circuit** (Panel6): look-hit cycles `TardisChameleonVariant` with wrap-around; overlay names the new variant; a translucent shell hologram above the control mirrors the synced current variant. **Owner-only** (same gate as other piloting controls).
 - Client GUI for selecting variants (sneak-use on exterior; config-gated). **Owner-only**; non-owners get the not-owner overlay and the GUI does not open.
 - Networking payloads to update variant state server-side (owner-checked).

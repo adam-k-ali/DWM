@@ -11,7 +11,7 @@ This is **not** vanilla block/item JSON (no bone tree, per-face UV) and **not** 
 | Layer id | File |
 |----------|------|
 | `dwm:dalek_laser` | `assets/dwm/models/entity/dalek_laser.json` |
-| `dwm:first_doctor_box` … `dwm:seventh_doctor_box`, `dwm:tt_capsule`, `dwm:tardis_classic_interior_door` (TARDIS exteriors and interior door) | `assets/dwm/models/entity/<id>.json` |
+| `dwm:first_doctor_box` … `dwm:seventh_doctor_box`, `dwm:tardis_2005`, `dwm:tardis_2010`, `dwm:tardis_2014`, `dwm:tardis_2018`, `dwm:tt_capsule`, `dwm:tardis_classic_interior_door` (TARDIS exteriors and interior door) | `assets/dwm/models/entity/<id>.json` |
 | `dwm:broakir`, `dwm:dalek`, `dwm:time_war_dalek`, `dwm:paradigm_dalek`, `dwm:dalek_mutant`, `dwm:flutterwing`, `dwm:time_lord`, `dwm:thal` (mobs, with `animation`; `texture` is the default variant skin, the renderer picks the real one from the entity variant; `dwm:dalek` and `dwm:time_war_dalek` are both meshes of the `dwm:dalek` entity, chosen per variant) | `assets/dwm/models/entity/<id>.json` |
 | `dwm:tardis_globe` (decor prop, with `animation`; the BER adds a full-bright pass from `tardis_globe_glow.png`) | `assets/dwm/models/entity/tardis_globe.json` |
 | `dwm:first_doctor_console`, `dwm:materialisation_lever`, `dwm:fast_return`, `dwm:reader` (oxygen skin by default; the renderer swaps pressure / temperature / refueler skins), `dwm:radiation_reader`, `dwm:cloak_lever`, `dwm:door_lock`, `dwm:telepathic_circuit`, `dwm:coordinate_lock`, `dwm:stabilisers` (console panels and controls, most with `animation`) | `assets/dwm/models/entity/<id>.json` |

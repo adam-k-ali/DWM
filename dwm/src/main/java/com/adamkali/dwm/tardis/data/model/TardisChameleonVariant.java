@@ -11,7 +11,11 @@ public enum TardisChameleonVariant {
     FOURTH_DOCTOR_BOX(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "fourth_doctor_box"), PortalAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -5.5f)),
     FIFTH_DOCTOR_BOX(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "fifth_doctor_box"), PortalAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -5.5f)),
     SIXTH_DOCTOR_BOX(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sixth_doctor_box"), PortalAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -5.5f)),
-    SEVENTH_DOCTOR_BOX(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "seventh_doctor_box"), PortalAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -5.5f));
+    SEVENTH_DOCTOR_BOX(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "seventh_doctor_box"), PortalAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -5.5f)),
+    TARDIS_2005(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "tardis_2005"), PortalAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -5.5f)),
+    TARDIS_2010(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "tardis_2010"), PortalAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -5.5f)),
+    TARDIS_2014(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "tardis_2014"), PortalAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -5.5f)),
+    TARDIS_2018(Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "tardis_2018"), PortalAperture.ofPixels(-5.0f, 5.0f, 1.0f, 23.0f, -5.5f));
 
     private final Identifier id;
     private final PortalAperture aperture;
