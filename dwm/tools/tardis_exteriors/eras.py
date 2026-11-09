@@ -39,7 +39,7 @@ class Era:
     sign_front: float  # z of the sign face (more negative = deeper sign box)
     roof_tiers: tuple[tuple[float, float], ...]  # (half width, thickness), stacked from the posts up
     lamp: Lamp
-    hammered: bool  # bottom window panes in hammered glass
+    hammered: bool  # bottom row of window panes in hammered glass
     badge: bool  # St John Ambulance badge on the opening door
     shade: float = 1.0  # extra roof and plinth darkening
 

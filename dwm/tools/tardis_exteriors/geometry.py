@@ -45,15 +45,20 @@ SIGN_H1 = 25.5
 POST_TOP = 26.0
 POST_INNER = 5.5
 
-# Leaf layout, measured outward from the centre line (0) to the hinge side (5).
-STILE_IN = (0.0, 1.0)
+# Leaf layout, measured outward from the centre line (0) to the hinge side (5). The meeting stile is
+# narrower than the hinge stile, as on the real doors.
+STILE_IN = (0.0, 0.75)
 STILE_OUT = (4.0, 5.0)
+INNER = (STILE_IN[1], STILE_OUT[0])  # panels, rails and the window span this
 PANELS = [(2.0, 6.0), (7.0, 11.0), (12.0, 16.0)]
-RAILS = [(1.0, 2.0), (6.0, 7.0), (11.0, 12.0), (16.0, 17.0), (21.5, 23.0)]
-WINDOW = (17.0, 21.5)
-# Window: a 0.25 frame, then 2 x 3 panes of 1 x 1 separated by 0.5 bars.
-PANE = 1.0
-BAR = 0.5
+RAILS = [(1.0, 2.0), (6.0, 7.0), (11.0, 12.0), (16.0, 17.0), (21.25, 23.0)]
+WINDOW = (17.0, 21.25)
+# Window, like the Doctor boxes: a 0.25 frame round 2 rows of 3 panes (0.75 wide, 1.75 tall),
+# split by 0.25 glazing bars.
+FRAME_W = 0.25
+PANE_W, PANE_H = 0.75, 1.75
+BAR = 0.25
+COLS, ROWS = 3, 2
 
 
 @dataclass
@@ -103,38 +108,51 @@ def leaf(era: Era, side: int, kind: str) -> list[Box]:
     out = []
     for a, b in (STILE_IN, STILE_OUT):
         out.append(box(*X(a, b), DOOR_BOTTOM, DOOR_TOP, *FRAME, "frame"))
+    i0, i1 = INNER
     for h0, h1 in RAILS:
-        out.append(box(*X(1.0, 4.0), h0, h1, *FRAME, "frame"))
+        out.append(box(*X(i0, i1), h0, h1, *FRAME, "frame"))
 
     for i, (h0, h1) in enumerate(PANELS):
         top_panel = i == len(PANELS) - 1
         if top_panel and kind == "door_open" and era.badge:
-            out.append(box(*X(1.0, 4.0), h0, h1, *PANEL, "panel", north="panel_badge"))
+            out.append(box(*X(i0, i1), h0, h1, *PANEL, "panel", north="panel_badge"))
         else:
-            out.append(box(*X(1.0, 4.0), h0, h1, *PANEL, "panel"))
+            out.append(box(*X(i0, i1), h0, h1, *PANEL, "panel"))
         if top_panel and kind == "door_fixed":
-            out.append(box(*X(1.25, 3.75), h0 + 0.25, h1 - 0.25, *NOTICE, "notice_edge", north="notice"))
+            out.append(box(*X(i0 + 0.25, i1 - 0.25), h0 + 0.25, h1 - 0.25, *NOTICE, "notice_edge", north="notice"))
 
-    w0, w1 = WINDOW
-    out += [
-        box(*X(1.0, 1.25), w0, w1, *WINDOW_FRAME, "bead"),
-        box(*X(3.75, 4.0), w0, w1, *WINDOW_FRAME, "bead"),
-        box(*X(1.25, 3.75), w0, w0 + 0.25, *WINDOW_FRAME, "bead"),
-        box(*X(1.25, 3.75), w1 - 0.25, w1, *WINDOW_FRAME, "bead"),
-        box(*X(1.25, 3.75), w0 + 0.25, w1 - 0.25, *GLASS, "bead", north="glass", south="glass"),
-        # glazing bars: one upright, and two cross bars split either side of it
-        box(*X(1.25 + PANE, 1.25 + PANE + BAR), w0 + 0.25, w1 - 0.25, *BARS, "bead"),
-    ]
-    for row in (1, 2):
-        h = w0 + 0.25 + row * PANE + (row - 1) * BAR
-        out.append(box(*X(1.25, 1.25 + PANE), h, h + BAR, *BARS, "bead"))
-        out.append(box(*X(1.25 + PANE + BAR, 3.75), h, h + BAR, *BARS, "bead"))
+    out += window(X)
 
     if kind == "door_open":
         out.append(box(*X(0.25, 0.75), 10.75, 11.75, *PROUD, "handle"))
         out.append(box(*X(0.25, 0.75), 12.5, 13.0, *PROUD, "handle", north="lock"))
     if kind == "door_fixed":
         out.append(box(-0.25, 0.25, DOOR_BOTTOM, DOOR_TOP, *PROUD, "frame"))
+    return out
+
+
+def window(X) -> list[Box]:
+    """Frame, glass and glazing bars for one leaf's window (2 rows of 3 panes)."""
+    i0, i1 = INNER
+    w0, w1 = WINDOW
+    g0, g1 = i0 + FRAME_W, i1 - FRAME_W  # glass, inside the frame
+    gh0, gh1 = w0 + FRAME_W, w1 - FRAME_W
+    assert abs((g1 - g0) - (COLS * PANE_W + (COLS - 1) * BAR)) < 1e-6, "window panes do not fill the width"
+    assert abs((gh1 - gh0) - (ROWS * PANE_H + (ROWS - 1) * BAR)) < 1e-6, "window panes do not fill the height"
+    out = [
+        box(*X(i0, g0), w0, w1, *WINDOW_FRAME, "bead"),
+        box(*X(g1, i1), w0, w1, *WINDOW_FRAME, "bead"),
+        box(*X(g0, g1), w0, gh0, *WINDOW_FRAME, "bead"),
+        box(*X(g0, g1), gh1, w1, *WINDOW_FRAME, "bead"),
+        box(*X(g0, g1), gh0, gh1, *GLASS, "bead", north="glass", south="glass"),
+    ]
+    cols = [g0 + c * (PANE_W + BAR) for c in range(COLS)]  # left edge of each pane column
+    for c in range(1, COLS):  # upright bars, full height
+        out.append(box(*X(cols[c] - BAR, cols[c]), gh0, gh1, *BARS, "bead"))
+    for r in range(1, ROWS):  # cross bars, one segment per pane so no bars overlap
+        h = gh0 + r * PANE_H + (r - 1) * BAR
+        for x in cols:
+            out.append(box(*X(x, x + PANE_W), h, h + BAR, *BARS, "bead"))
     return out
 
 

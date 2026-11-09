@@ -105,20 +105,21 @@ class Painter:
         self.fill(rect, self.era.mullion, mottle=self.era.mottle * 0.5)
 
     def glass(self, rect, face):
-        """Pane tints behind the modelled glazing bars: 2 x 3 panes of 4 px with 2 px bars."""
+        """Pane tints behind the modelled glazing bars: 2 rows of 3 panes (3 x 7 px) with 1 px bars."""
         e = self.era
         x0, y0, w, h = rect
+        pw, ph, bar = 3, 7, 1
         dark = scale(e.glass, 0.45)
         for y in range(y0, y0 + h):
             for x in range(x0, x0 + w):
-                lx, ly = (x - x0) % 6, (y - y0) % 6
-                if lx >= 4 or ly >= 4:
+                lx, ly = (x - x0) % (pw + bar), (y - y0) % (ph + bar)
+                if lx >= pw or ly >= ph:
                     put(self.img, x, y, dark)  # hidden behind the bars
                     continue
-                c = scale(e.glass, 1.0 - 0.03 * ly)
+                c = scale(e.glass, 1.0 - 0.02 * ly)
                 if lx == 0 or ly == 0:
-                    c = scale(c, 0.86)  # shadow of the bars along the top/left of each pane
-                if e.hammered and (y - y0) // 6 == 2 and (lx + ly) % 2 == 1:
+                    c = scale(c, 0.86)  # shadow of the frame and bars along the top/left of each pane
+                if e.hammered and (y - y0) // (ph + bar) == 1 and (lx + ly) % 2 == 1:
                     c = scale(c, 0.9)
                 if face == "south":
                     c = scale(c, 0.8)
