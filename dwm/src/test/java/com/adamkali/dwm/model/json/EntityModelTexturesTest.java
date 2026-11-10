@@ -2,6 +2,10 @@ package com.adamkali.dwm.model.json;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.model.entity.BroakirModel;
+import com.adamkali.dwm.model.entity.CyberMondanModel;
+import com.adamkali.dwm.model.entity.CybermasterModel;
+import com.adamkali.dwm.model.entity.CybusCybermanModel;
+import com.adamkali.dwm.model.entity.WeaponsGradeCybermanModel;
 import com.adamkali.dwm.model.entity.DalekLaserModel;
 import com.adamkali.dwm.model.entity.DalekModel;
 import com.adamkali.dwm.model.entity.DalekMutantModel;
@@ -75,6 +79,10 @@ class EntityModelTexturesTest {
             Map.entry("TimeLordModel", TimeLordModel.LAYER_LOCATION),
             Map.entry("ThalModel", ThalModel.LAYER_LOCATION),
             Map.entry("DalekLaserModel", DalekLaserModel.LAYER_LOCATION),
+            Map.entry("CyberMondanModel", CyberMondanModel.LAYER_LOCATION),
+            Map.entry("CybusCybermanModel", CybusCybermanModel.LAYER_LOCATION),
+            Map.entry("CybermasterModel", CybermasterModel.LAYER_LOCATION),
+            Map.entry("WeaponsGradeCybermanModel", WeaponsGradeCybermanModel.LAYER_LOCATION),
             Map.entry("TardisGlobeModel", TardisGlobeModel.LAYER_LOCATION),
             Map.entry("FirstDoctorConsoleModel", FirstDoctorConsoleModel.LAYER_LOCATION),
             Map.entry("BiomeSelectorModel", BiomeSelectorModel.LAYER_LOCATION),

@@ -40,6 +40,14 @@ public class DWMSounds {
     public static final SoundEvent DALEK_MUTANT_AMBIENT = register("entity.dalek_mutant.ambient");
     public static final SoundEvent DALEK_MUTANT_HURT = register("entity.dalek_mutant.hurt");
     public static final SoundEvent DALEK_MUTANT_DEATH = register("entity.dalek_mutant.death");
+    public static final SoundEvent CYBERMAN_AMBIENT = register("entity.cyberman.ambient");
+    public static final SoundEvent CYBERMAN_HURT = register("entity.cyberman.hurt");
+    public static final SoundEvent CYBERMAN_DEATH = register("entity.cyberman.death");
+    public static final SoundEvent CYBERMAN_STEP = register("entity.cyberman.step");
+    public static final SoundEvent CYBUS_CYBERMAN_ZAP = register("entity.cybus_cyberman.zap");
+    public static final SoundEvent CYBERMASTER_SHOOT = register("entity.cybermaster.shoot");
+    public static final SoundEvent CYBERMASTER_REGENERATE = register("entity.cybermaster.regenerate");
+    public static final SoundEvent WEAPONS_GRADE_CYBERMAN_UPGRADE = register("entity.weapons_grade_cyberman.upgrade");
 
     public static void initialize() {
     }

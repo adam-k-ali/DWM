@@ -40,6 +40,10 @@ public class DWMEntityLootTableProvider extends FabricEntityLootSubProvider {
         add(DWMEntityTypes.DALEK, LootTable.lootTable());
         add(DWMEntityTypes.PARADIGM_DALEK, LootTable.lootTable());
         add(DWMEntityTypes.DALEK_MUTANT, LootTable.lootTable());
+        add(DWMEntityTypes.CYBERMONDAN, LootTable.lootTable());
+        add(DWMEntityTypes.CYBUS_CYBERMAN, LootTable.lootTable());
+        add(DWMEntityTypes.CYBERMASTER, LootTable.lootTable());
+        add(DWMEntityTypes.WEAPONS_GRADE_CYBERMAN, LootTable.lootTable());
         add(
                 DWMEntityTypes.MEWING_DOG,
                 LootTable.lootTable().withPool(

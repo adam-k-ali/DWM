@@ -158,6 +158,10 @@ public class DWMItems {
     public static Item DALEK_SPAWN_EGG;
     public static Item PARADIGM_DALEK_SPAWN_EGG;
     public static Item DALEK_MUTANT_SPAWN_EGG;
+    public static Item CYBERMONDAN_SPAWN_EGG;
+    public static Item CYBUS_CYBERMAN_SPAWN_EGG;
+    public static Item CYBERMASTER_SPAWN_EGG;
+    public static Item WEAPONS_GRADE_CYBERMAN_SPAWN_EGG;
 
     public static void initialize() {
         ItemDefinitions.registerUnclaimed();
@@ -214,6 +218,26 @@ public class DWMItems {
                 SpawnEggItem::new,
                 new Item.Properties().spawnEgg(DWMEntityTypes.DALEK_MUTANT),
                 "dalek_mutant_spawn_egg"
+        );
+        CYBERMONDAN_SPAWN_EGG = register(
+                SpawnEggItem::new,
+                new Item.Properties().spawnEgg(DWMEntityTypes.CYBERMONDAN),
+                "cybermondan_spawn_egg"
+        );
+        CYBUS_CYBERMAN_SPAWN_EGG = register(
+                SpawnEggItem::new,
+                new Item.Properties().spawnEgg(DWMEntityTypes.CYBUS_CYBERMAN),
+                "cybus_cyberman_spawn_egg"
+        );
+        CYBERMASTER_SPAWN_EGG = register(
+                SpawnEggItem::new,
+                new Item.Properties().spawnEgg(DWMEntityTypes.CYBERMASTER),
+                "cybermaster_spawn_egg"
+        );
+        WEAPONS_GRADE_CYBERMAN_SPAWN_EGG = register(
+                SpawnEggItem::new,
+                new Item.Properties().spawnEgg(DWMEntityTypes.WEAPONS_GRADE_CYBERMAN),
+                "weapons_grade_cyberman_spawn_egg"
         );
 
         CreativeModeTabEvents.modifyOutputEvent(DWMCreativeTabs.INGREDIENTS).register(content -> {
@@ -301,6 +325,10 @@ public class DWMItems {
             content.accept(DALEK_SPAWN_EGG);
             content.accept(PARADIGM_DALEK_SPAWN_EGG);
             content.accept(DALEK_MUTANT_SPAWN_EGG);
+            content.accept(CYBERMONDAN_SPAWN_EGG);
+            content.accept(CYBUS_CYBERMAN_SPAWN_EGG);
+            content.accept(CYBERMASTER_SPAWN_EGG);
+            content.accept(WEAPONS_GRADE_CYBERMAN_SPAWN_EGG);
         });
     }
 

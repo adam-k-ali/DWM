@@ -21,6 +21,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 - [Dalek Laser Gun](./feature-dalek-laser-gun.md)
 - [Thal](./feature-thal.md)
 - [Dalek/Thal Battles](./feature-dalek-thal-battles.md)
+- [Cybermen](./feature-cybermen.md)
 - [Entity Definitions](./feature-entity-definitions.md)
 - [Block and Item Definitions](./feature-block-item-definitions.md)
 

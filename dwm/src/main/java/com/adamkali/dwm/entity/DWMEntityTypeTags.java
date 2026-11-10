@@ -13,6 +13,12 @@ public final class DWMEntityTypeTags {
             Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "thal_fears")
     );
 
+    /** Every Cyberman type; Cybermen never damage members of this tag. */
+    public static final TagKey<EntityType<?>> CYBERMEN = TagKey.create(
+            Registries.ENTITY_TYPE,
+            Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "cybermen")
+    );
+
     private DWMEntityTypeTags() {
     }
 }
