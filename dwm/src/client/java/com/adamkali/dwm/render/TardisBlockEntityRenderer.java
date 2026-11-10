@@ -9,6 +9,7 @@ import com.adamkali.dwm.model.tileentity.TardisModel;
 import com.adamkali.dwm.config.DWMConfig;
 import com.adamkali.dwm.render.boti.TardisBotiRenderer;
 import com.adamkali.dwm.render.portal.PortalApertureComposite;
+import com.adamkali.dwm.render.portal.PortalDoorFrame;
 import com.adamkali.dwm.render.portal.PortalDoorRenderer;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.render.portal.PortalVisibility;
@@ -145,6 +146,11 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
             Predicate<AABB> frustumVisible = camera.cullFrustum != null ? camera.cullFrustum::isVisible : null;
             boolean schedulePortal = PortalVisibility.shouldSchedule(
                     camera.pos, exteriorDoorCenter, exteriorOutward, frustumVisible);
+            PortalDoorFrame exteriorDoor = PortalDoorFrame.fromAperture(
+                    poseStack.last().pose(),
+                    state.variant.getAperture(),
+                    camera.pos,
+                    exteriorOutward.getUnitVec3().scale(-1.0));
             TardisBotiRenderer.render(
                     poseStack,
                     submitNodeCollector,
@@ -152,7 +158,8 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
                     state.tardisId,
                     state.variant,
                     viewPanU,
-                    schedulePortal
+                    schedulePortal,
+                    exteriorDoor
             );
             poseStack.popPose();
 
@@ -250,7 +257,7 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
     }
 
     /** Shared by the block BER and {@link TardisBlockSpecialRenderer} item path. */
-    static void applyExteriorTransforms(PoseStack matrices, float rotationDegrees) {
+    public static void applyExteriorTransforms(PoseStack matrices, float rotationDegrees) {
         matrices.scale(2.0f, 2.0f, 2.0f);
         matrices.mulPose(Axis.XP.rotationDegrees(180.0f));
         matrices.translate(0.25D, -1.5D, -0.25D);

@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render.soto;
 
+import com.adamkali.dwm.render.portal.PortalDoorFrame;
 import com.adamkali.dwm.render.portal.PortalDoorRenderer;
 import com.adamkali.dwm.render.portal.PortalKey;
 import com.adamkali.dwm.render.portal.PortalScene;
@@ -86,10 +87,28 @@ public final class TardisSotoRenderer {
             Direction interiorDoorFacing,
             boolean schedulePortal
     ) {
+        render(matrices, submitNodeCollector, tickDelta, tardisId, interiorDoorPos, interiorDoorFacing,
+                schedulePortal, null);
+    }
+
+    /**
+     * @param interiorDoor parallax mode: the interior doorway in world space. Non-null renders the
+     *                     exterior from the viewer-relative camera and composites in screen space.
+     */
+    public void render(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            float tickDelta,
+            UUID tardisId,
+            BlockPos interiorDoorPos,
+            Direction interiorDoorFacing,
+            boolean schedulePortal,
+            PortalDoorFrame interiorDoor
+    ) {
         if (tardisId == null || interiorDoorPos == null || interiorDoorFacing == null) {
             return;
         }
-        SotoPortalContent content = new SotoPortalContent(tardisId);
+        SotoPortalContent content = new SotoPortalContent(tardisId, interiorDoor);
         content.requestSync();
         PortalScene scene = new PortalScene(PortalKey.soto(tardisId), tickDelta, content);
         PortalDoorRenderer.render(
@@ -99,7 +118,8 @@ public final class TardisSotoRenderer {
                 PortalAperture.CLASSIC_INTERIOR_DOORS,
                 0.0f,
                 0.0f,
-                schedulePortal
+                schedulePortal,
+                interiorDoor != null
         );
     }
 }

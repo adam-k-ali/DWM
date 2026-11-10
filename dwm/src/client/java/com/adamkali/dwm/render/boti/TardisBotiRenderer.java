@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render.boti;
 
+import com.adamkali.dwm.render.portal.PortalDoorFrame;
 import com.adamkali.dwm.render.portal.PortalDoorRenderer;
 import com.adamkali.dwm.render.portal.PortalKey;
 import com.adamkali.dwm.render.portal.PortalScene;
@@ -62,6 +63,23 @@ public final class TardisBotiRenderer {
             float viewPanU,
             boolean schedulePortal
     ) {
+        render(matrices, submitNodeCollector, tickDelta, tardisId, variant, viewPanU, schedulePortal, null);
+    }
+
+    /**
+     * @param exteriorDoor parallax mode: the exterior doorway in world space. Non-null renders the
+     *                     interior from the viewer-relative camera and composites in screen space.
+     */
+    public static void render(
+            PoseStack matrices,
+            SubmitNodeCollector submitNodeCollector,
+            float tickDelta,
+            UUID tardisId,
+            TardisChameleonVariant variant,
+            float viewPanU,
+            boolean schedulePortal,
+            PortalDoorFrame exteriorDoor
+    ) {
         if (tardisId == null || variant == null) {
             return;
         }
@@ -69,9 +87,10 @@ public final class TardisBotiRenderer {
         PortalScene scene = new PortalScene(
                 PortalKey.boti(tardisId),
                 tickDelta,
-                new BotiPortalContent(tardisId)
+                new BotiPortalContent(tardisId, exteriorDoor)
         );
-        PortalDoorRenderer.render(matrices, submitNodeCollector, scene, aperture, viewPanU, 0.0f, schedulePortal);
+        PortalDoorRenderer.render(
+                matrices, submitNodeCollector, scene, aperture, viewPanU, 0.0f, schedulePortal, exteriorDoor != null);
     }
 
     /** Expose layout size for tests / debug. */

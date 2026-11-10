@@ -36,6 +36,7 @@ public final class PortalRenderTarget implements AutoCloseable {
     private final Map<PortalKey, Long> renderedFrameByKey = new HashMap<>();
     private final Matrix4f projectionScratch = new Matrix4f();
     private ProjectionMatrixBuffer projectionBuffer;
+    private ProjectionMatrixBuffer skyProjectionBuffer;
     private TextureTarget framebuffer;
     private int width;
     private int height;
@@ -278,11 +279,34 @@ public final class PortalRenderTarget implements AutoCloseable {
                 RenderSystem.getDevice().getDeviceInfo().isZZeroToOne(), projectionScratch));
     }
 
+    /** Uploads an explicit portal projection (parallax: the viewer's, oblique-clipped at the door). */
+    public GpuBufferSlice uploadProjection(Matrix4f projection) {
+        if (projectionBuffer == null) {
+            projectionBuffer = new ProjectionMatrixBuffer("dwm portal");
+        }
+        return projectionBuffer.getBuffer(projection);
+    }
+
+    /**
+     * Separate UBO for the unclipped parallax projection used by the camera-centred sky, so it does
+     * not overwrite the clipped terrain projection within one portal frame.
+     */
+    public GpuBufferSlice uploadSkyProjection(Matrix4f projection) {
+        if (skyProjectionBuffer == null) {
+            skyProjectionBuffer = new ProjectionMatrixBuffer("dwm portal sky");
+        }
+        return skyProjectionBuffer.getBuffer(projection);
+    }
+
     @Override
     public void close() {
         if (projectionBuffer != null) {
             projectionBuffer.close();
             projectionBuffer = null;
+        }
+        if (skyProjectionBuffer != null) {
+            skyProjectionBuffer.close();
+            skyProjectionBuffer = null;
         }
         renderedFrameByKey.clear();
         clearOutputOverrides();

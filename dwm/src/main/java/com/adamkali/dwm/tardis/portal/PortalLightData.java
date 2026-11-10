@@ -49,7 +49,8 @@ public final class PortalLightData {
     }
 
     /**
-     * Copies nibble light layers into the packed volume. Null section layers read as zero.
+     * Copies nibble light layers into the packed volume. Null block layers read as zero; null sky
+     * layers are resolved through the engine (open sky above the topmost section reads as 15).
      */
     public static PortalLightData sample(
             LayerLightEventListener blockLight,
@@ -92,7 +93,10 @@ public final class PortalLightData {
                     SectionPos sectionPos = SectionPos.of(sectionX, sectionY, sectionZ);
                     DataLayer cachedBlock = blockLight.getDataLayerData(sectionPos);
                     DataLayer cachedSky = skyLight.getDataLayerData(sectionPos);
-                    if (isZeroLayer(cachedBlock) && isZeroLayer(cachedSky)) {
+                    // A missing sky layer is not dark: vanilla treats it as open sky (15) above the
+                    // topmost section and inherits from the layer above below it, so ask the engine.
+                    boolean skyMissing = cachedSky == null;
+                    if (isZeroLayer(cachedBlock) && !skyMissing && cachedSky.isEmpty()) {
                         continue;
                     }
                     for (int y = y0; y <= y1; y++) {
@@ -104,7 +108,9 @@ public final class PortalLightData {
                             for (int x = x0; x <= x1; x++) {
                                 int lx = x & 15;
                                 int block = cachedBlock == null ? 0 : cachedBlock.get(lx, ly, lz);
-                                int sky = cachedSky == null ? 0 : cachedSky.get(lx, ly, lz);
+                                int sky = skyMissing
+                                        ? skyLight.getLightValue(new BlockPos(x, y, z))
+                                        : cachedSky.get(lx, ly, lz);
                                 values[row + (x - minX)] = pack(block, sky);
                             }
                         }

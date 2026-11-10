@@ -7,7 +7,11 @@ import com.adamkali.dwm.render.portal.PortalFeatureFlush;
 import com.adamkali.dwm.render.portal.PortalFrameCache;
 import com.adamkali.dwm.render.portal.PortalLightmap;
 import com.adamkali.dwm.render.portal.PortalPerfStats;
+import com.adamkali.dwm.render.portal.PortalDoorFrame;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
+import com.adamkali.dwm.render.portal.PortalViewerCamera;
+import com.adamkali.dwm.render.portal.PortalViewerState;
+import com.adamkali.dwm.render.TardisBlockEntityRenderer;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostExterior;
 import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
 import com.adamkali.dwm.tardis.TardisExteriorFacing;
@@ -21,6 +25,7 @@ import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix4fStack;
+import org.joml.Vector4f;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -28,16 +33,46 @@ import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.properties.RotationSegment;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * SOTO portal content: hitch-fixed exterior look-out with ghost terrain + entities.
  */
 public final class SotoPortalContent implements PortalContent {
     private final UUID tardisId;
+    /** Parallax: interior doorway in world space; {@code null} keeps the fixed door hitch. */
+    private final PortalDoorFrame interiorDoor;
     private long lastCloudRefreshTick = Long.MIN_VALUE;
 
     public SotoPortalContent(UUID tardisId) {
+        this(tardisId, null);
+    }
+
+    public SotoPortalContent(UUID tardisId, PortalDoorFrame interiorDoor) {
         this.tardisId = Objects.requireNonNull(tardisId, "tardisId");
+        this.interiorDoor = interiorDoor;
+    }
+
+    /**
+     * Exterior shell aperture in footprint-relative coords, built with the exterior BER's own
+     * transforms for the synced chameleon variant and rotation.
+     */
+    static PortalDoorFrame exteriorDoorFrame(PortalShellState shell) {
+        float rotationDegrees = RotationSegment.convertToDegrees(shell.exteriorRotation());
+        Direction outward = TardisExteriorFacing.doorDirection(shell.exteriorRotation());
+        PoseStack pose = new PoseStack();
+        BlockPos tardis = SotoExteriorSampler.RELATIVE_TARDIS_POS;
+        pose.translate(tardis.getX(), tardis.getY(), tardis.getZ());
+        TardisBlockEntityRenderer.applyExteriorTransforms(pose, rotationDegrees);
+        return PortalDoorFrame.fromAperture(
+                pose.last().pose(),
+                shell.variant().getAperture(),
+                Vec3.ZERO,
+                new Vec3(outward.getStepX(), 0.0, outward.getStepZ())
+        );
     }
 
     public void requestSync() {
@@ -86,6 +121,32 @@ public final class SotoPortalContent implements PortalContent {
 
     @Override
     public PortalCameraTransform.Result hitch(Minecraft client) {
+        PortalCameraTransform.Result fixed = fixedHitch();
+        if (interiorDoor == null || fixed == null) {
+            return fixed;
+        }
+        PortalViewerState.Viewer viewer = PortalViewerState.current(client);
+        PortalShellState shell = PortalSceneStore.getShell(PortalStreamKind.SOTO, tardisId);
+        SotoGhostExterior ghost = SotoGhostExterior.get(PortalStreamKind.SOTO, tardisId);
+        if (viewer == null || shell == null || ghost == null) {
+            return fixed;
+        }
+        return PortalViewerCamera.map(
+                viewer.position(), viewer.yaw(), viewer.pitch(), viewer.viewRotation(),
+                interiorDoor, exteriorDoorFrame(shell), ghost.footprintOrigin());
+    }
+
+    @Override
+    public Vector4f clipPlaneView(PortalCameraTransform.Result camera) {
+        PortalShellState shell = PortalSceneStore.getShell(PortalStreamKind.SOTO, tardisId);
+        if (interiorDoor == null || camera == null || shell == null) {
+            return null;
+        }
+        return PortalViewerCamera.clipPlaneInView(camera.viewMatrix(), exteriorDoorFrame(shell));
+    }
+
+    /** Door hitch: the whole camera in hitch mode; the stable cull/batch camera in parallax mode. */
+    private PortalCameraTransform.Result fixedHitch() {
         SotoGhostExterior ghost = SotoGhostExterior.get(PortalStreamKind.SOTO, tardisId);
         PortalShellState shell = PortalSceneStore.getShell(PortalStreamKind.SOTO, tardisId);
         if (ghost == null || shell == null) {
@@ -105,6 +166,9 @@ public final class SotoPortalContent implements PortalContent {
         UUID id = tardisId;
         float tickDelta = context.tickDelta();
         PortalCameraTransform.Result hitch = context.hitch();
+        // Batches are rebuilt whenever the cull camera changes; keep it fixed so parallax only moves the view.
+        PortalCameraTransform.Result fixed = fixedHitch();
+        PortalCameraTransform.Result cull = fixed != null ? fixed : hitch;
         PoseStack sceneMatrices = context.sceneMatrices();
 
         PortalAtmosphere portal = PortalSceneStore.getAtmosphere(PortalStreamKind.SOTO, id);
@@ -117,7 +181,8 @@ public final class SotoPortalContent implements PortalContent {
         context.bindTarget();
         GpuBufferSlice previousFog = SotoSkyFogRenderer.applyPortalTerrainFog(atmosphere);
         PortalPerfStats.end(PortalPerfStats.Stage.SKY_FOG, skyStart);
-        PortalLightmap portalLightmap = PortalLightmap.apply(Minecraft.getInstance(), atmosphere);
+        PortalLightmap portalLightmap = PortalLightmap.apply(
+                Minecraft.getInstance(), portal != null ? portal : PortalAtmosphere.DEFAULT);
         try {
             long opaqueStart = PortalPerfStats.begin();
             SotoGhostMeshCache.drawLayer(
@@ -125,7 +190,7 @@ public final class SotoPortalContent implements PortalContent {
                     id,
                     hitch.viewMatrix(),
                     SotoGhostMeshCache.TerrainPass.OPAQUE,
-                    hitch
+                    cull
             );
             PortalPerfStats.end(PortalPerfStats.Stage.TERRAIN_OPAQUE, opaqueStart);
 
@@ -135,7 +200,7 @@ public final class SotoPortalContent implements PortalContent {
                     id,
                     hitch.viewMatrix(),
                     SotoGhostMeshCache.TerrainPass.CUTOUT,
-                    hitch
+                    cull
             );
             PortalPerfStats.end(PortalPerfStats.Stage.TERRAIN_CUTOUT, cutoutStart);
 
@@ -145,7 +210,7 @@ public final class SotoPortalContent implements PortalContent {
                     id,
                     hitch.viewMatrix(),
                     SotoGhostMeshCache.TerrainPass.TRANSLUCENT,
-                    hitch
+                    cull
             );
             PortalPerfStats.end(PortalPerfStats.Stage.TERRAIN_TRANSLUCENT, translucentStart);
 

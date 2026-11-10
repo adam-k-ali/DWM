@@ -1,5 +1,7 @@
 package com.adamkali.dwm.render.portal;
 
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -19,6 +21,7 @@ public final class PortalContentContext {
     private final CameraRenderState cameraState;
     private final PortalRenderTarget target;
     private final PortalFeatureFlush featureFlush;
+    private GpuBufferSlice skyProjection;
 
     public PortalContentContext(
             Minecraft client,
@@ -76,6 +79,15 @@ public final class PortalContentContext {
 
     public PortalFeatureFlush featureFlush() {
         return featureFlush;
+    }
+
+    /** Parallax only: unclipped projection for camera-centred sky draws; {@code null} otherwise. */
+    public GpuBufferSlice skyProjection() {
+        return skyProjection;
+    }
+
+    void setSkyProjection(GpuBufferSlice skyProjection) {
+        this.skyProjection = skyProjection;
     }
 
     public void bindTarget() {
