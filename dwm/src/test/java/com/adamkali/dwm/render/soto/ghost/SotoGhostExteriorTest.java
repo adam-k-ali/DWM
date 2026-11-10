@@ -281,6 +281,24 @@ class SotoGhostExteriorTest {
     }
 
     @Test
+    void drainAllBakeQueues_drainsWithoutPortalDraw_underOneSharedBudget() {
+        // Regression: portals only draw once they have meshes, so the queue must drain from the
+        // per-frame hook, not from drawLayer. Two scenes share one chunk budget per frame.
+        UUID a = UUID.randomUUID();
+        UUID b = UUID.randomUUID();
+        for (int cx = 0; cx < 3; cx++) {
+            SotoGhostExterior.applyChunk(PortalStreamKind.SOTO, dirtChunk(a, cx, 0, Blocks.DIRT));
+            SotoGhostExterior.applyChunk(PortalStreamKind.BOTI, dirtChunk(b, cx, 0, Blocks.DIRT));
+        }
+        assertEquals(4, SotoGhostMeshCache.drainAllBakeQueues(4, Long.MAX_VALUE, System::nanoTime));
+        int left = SotoGhostMeshCache.pendingBakeCount(PortalStreamKind.SOTO, a)
+                + SotoGhostMeshCache.pendingBakeCount(PortalStreamKind.BOTI, b);
+        assertEquals(2, left);
+        assertEquals(2, SotoGhostMeshCache.drainAllBakeQueues(4, Long.MAX_VALUE, System::nanoTime));
+        assertEquals(0, SotoGhostMeshCache.drainAllBakeQueues(4, Long.MAX_VALUE, System::nanoTime));
+    }
+
+    @Test
     void applyChunk_interiorEdit_rebakesOnlyThatChunk() {
         UUID id = UUID.randomUUID();
         for (int cx = 0; cx < 3; cx++) {

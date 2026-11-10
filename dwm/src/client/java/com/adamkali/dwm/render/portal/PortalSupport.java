@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render.portal;
 
+import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
@@ -26,7 +27,11 @@ public final class PortalSupport {
             return;
         }
         initialized = true;
-        LevelRenderEvents.START_MAIN.register(context -> PortalRenderTarget.beginClientFrame());
+        LevelRenderEvents.START_MAIN.register(context -> {
+            PortalRenderTarget.beginClientFrame();
+            // Deferred ghost bakes drain here, not in the portal draw path (which needs meshes first).
+            SotoGhostMeshCache.drainAllBakeQueues();
+        });
         // Portal FBO clear/mesh draws must not run mid-BER (blacks out world/items on 26.2).
         LevelRenderEvents.END_MAIN.register(context -> {
             try {
