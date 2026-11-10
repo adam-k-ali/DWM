@@ -737,11 +737,10 @@ public final class PortalStreamSyncService {
             PortalAtmosphere atmosphere
     ) {
         int[] chunkBounds(ServerPlayer viewer) {
-            int radius = PortalSampler.streamRadiusChunks(viewer);
             if (kind == PortalStreamKind.SOTO) {
-                return SotoExteriorSampler.streamChunkBounds(anchorPos, radius);
+                return SotoExteriorSampler.streamChunkBounds(anchorPos, PortalSampler.sotoStreamRadiusChunks(viewer));
             }
-            return BotiInteriorSampler.streamChunkBounds(footprintOrigin, radius);
+            return BotiInteriorSampler.streamChunkBounds(footprintOrigin, PortalSampler.streamRadiusChunks(viewer));
         }
 
         @Nullable PortalStreamSample sampleChunk(int chunkX, int chunkZ) {

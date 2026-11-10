@@ -26,6 +26,13 @@ public class DWMConfig {
      */
     public static final ConfigKey<Boolean> SHOW_PORTAL_PERF_DEBUG = new ConfigKey<>("showPortalPerfDebug", false);
 
+    /**
+     * Upper bound (chunks) on the SOTO ghost-exterior stream radius. The effective radius is
+     * {@code min(render distance, this)}; BOTI is unaffected. Scene size grows with (2r+1)^2, so
+     * the cap bounds bake/upload cost at high render distance.
+     */
+    public static final ConfigKey<Integer> SOTO_GHOST_MAX_RADIUS = new ConfigKey<>("sotoGhostMaxRadius", 8);
+
     /** Legacy keys migrated into {@link #ENABLE_DOOR_PORTALS} on load. */
     static final String LEGACY_ENABLE_BOTI = "enableBoti";
     static final String LEGACY_ENABLE_SOTO = "enableSoto";
@@ -100,6 +107,22 @@ public class DWMConfig {
             config.put(key.getKey(), key.getDefaultValue());
         }
         return (boolean) config.get(key.getKey());
+    }
+
+    public static int getInt(ConfigKey<Integer> key) {
+        requireInitialized();
+        Object value = config.get(key.getKey());
+        if (value instanceof Number n) {
+            return n.intValue();
+        }
+        if (value instanceof String str) {
+            try {
+                return Integer.parseInt(str.trim());
+            } catch (NumberFormatException ignored) {
+                // fall through to default
+            }
+        }
+        return key.getDefaultValue();
     }
 
     public static void setBoolean(ConfigKey<Boolean> key, boolean value) {
