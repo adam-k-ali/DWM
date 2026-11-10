@@ -41,6 +41,10 @@ public final class PortalPerfStats {
     private static int meshBakeCountThisFrame;
     private static int meshBakeSkipCountThisFrame;
     private static long lastMeshBakeNs;
+    private static int lastBakesPerFrame;
+    private static int lastBakeQueueDepth;
+    private static int peakBakesPerFrame;
+    private static int peakBakeQueueDepth;
     private static int entityUpdatesThisFrame;
     private static int entitySpawnsThisFrame;
     private static int entityRemovesThisFrame;
@@ -153,6 +157,30 @@ public final class PortalPerfStats {
         meshBakeCountThisFrame++;
         lastMeshBakeNs = bakeNs;
         addStageNs(Stage.MESH_BAKE, bakeNs);
+    }
+
+    /** Records the deferred bake queue state after one frame's drain (queue depth + bakes this frame). */
+    public static void noteBakeFrame(int bakedThisFrame, int queueDepth) {
+        lastBakesPerFrame = Math.max(0, bakedThisFrame);
+        lastBakeQueueDepth = Math.max(0, queueDepth);
+        peakBakesPerFrame = Math.max(peakBakesPerFrame, lastBakesPerFrame);
+        peakBakeQueueDepth = Math.max(peakBakeQueueDepth, lastBakeQueueDepth);
+    }
+
+    public static int lastBakesPerFrame() {
+        return lastBakesPerFrame;
+    }
+
+    public static int lastBakeQueueDepth() {
+        return lastBakeQueueDepth;
+    }
+
+    public static int peakBakesPerFrame() {
+        return peakBakesPerFrame;
+    }
+
+    public static int peakBakeQueueDepth() {
+        return peakBakeQueueDepth;
     }
 
     /** Records a skipped mesh bake (unchanged chunk content with drawable mesh). */
@@ -638,6 +666,10 @@ public final class PortalPerfStats {
         meshBakeCountThisFrame = 0;
         meshBakeSkipCountThisFrame = 0;
         lastMeshBakeNs = 0L;
+        lastBakesPerFrame = 0;
+        lastBakeQueueDepth = 0;
+        peakBakesPerFrame = 0;
+        peakBakeQueueDepth = 0;
         entityUpdatesThisFrame = 0;
         entitySpawnsThisFrame = 0;
         entityRemovesThisFrame = 0;

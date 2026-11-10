@@ -45,6 +45,7 @@ import net.minecraft.world.level.storage.ValueInput;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -292,7 +293,58 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         }
         ghost.blocksByRel.putAll(newBlocks);
         ghost.blockEntitiesByRel.putAll(newBes);
-        ghost.rebuildChunkAndLightNeighbors(payload.chunkX(), payload.chunkZ());
+        boolean lightChanged = !Objects.equals(previousLight, newLight);
+        Set<Long> neighbors = lightChanged
+                ? GhostNeighborDirty.allNeighbors(payload.chunkX(), payload.chunkZ())
+                : GhostNeighborDirty.neighborsToRebake(
+                        changedPositions(previousBlocks, newBlocks, previousBes, newBes),
+                        ghost.footprintOrigin.getX(), ghost.footprintOrigin.getZ(),
+                        payload.chunkX(), payload.chunkZ()
+                );
+        ghost.enqueueBake(payload.chunkX(), payload.chunkZ(), neighbors);
+    }
+
+    /** Footprint-relative positions whose block state or block entity differs between two chunk payloads. */
+    static Set<BlockPos> changedPositions(
+            Map<BlockPos, BlockState> previousBlocks,
+            Map<BlockPos, BlockState> newBlocks,
+            Map<BlockPos, CompoundTag> previousBes,
+            Map<BlockPos, CompoundTag> newBes
+    ) {
+        Set<BlockPos> changed = new HashSet<>();
+        diffInto(changed, previousBlocks, newBlocks);
+        diffInto(changed, previousBes, newBes);
+        return changed;
+    }
+
+    private static <V> void diffInto(Set<BlockPos> out, Map<BlockPos, V> previous, Map<BlockPos, V> current) {
+        Map<BlockPos, V> prev = previous == null ? Map.of() : previous;
+        Map<BlockPos, V> cur = current == null ? Map.of() : current;
+        for (Map.Entry<BlockPos, V> e : cur.entrySet()) {
+            if (!Objects.equals(prev.get(e.getKey()), e.getValue())) {
+                out.add(e.getKey());
+            }
+        }
+        for (BlockPos pos : prev.keySet()) {
+            if (!cur.containsKey(pos)) {
+                out.add(pos);
+            }
+        }
+    }
+
+    /**
+     * Queues the changed chunk (primary) and the given neighbours that already hold data (border
+     * refresh). Neighbours that have not arrived yet bake with full neighbour data when they do.
+     */
+    private void enqueueBake(int chunkX, int chunkZ, Set<Long> neighbors) {
+        SotoGhostMeshCache.onChunkApplied(kind, tardisId, chunkX, chunkZ, this);
+        for (long neighbor : neighbors) {
+            if (chunkBlocks.containsKey(neighbor)) {
+                SotoGhostMeshCache.onChunkRefresh(
+                        kind, tardisId, ChunkPos.getX(neighbor), ChunkPos.getZ(neighbor), this
+                );
+            }
+        }
     }
 
     private boolean hasChunks() {
@@ -328,18 +380,6 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
                 && Objects.equals(previousLight, newLight);
     }
 
-    private void rebuildChunkAndLightNeighbors(int chunkX, int chunkZ) {
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
-                int affectedX = chunkX + dx;
-                int affectedZ = chunkZ + dz;
-                if (chunkBlocks.containsKey(ChunkPos.pack(affectedX, affectedZ))) {
-                    SotoGhostMeshCache.onChunkApplied(kind, tardisId, affectedX, affectedZ, this);
-                }
-            }
-        }
-    }
-
     private static <K, V> Map<K, V> emptyToNull(Map<K, V> map) {
         return map == null || map.isEmpty() ? null : map;
     }
@@ -352,7 +392,7 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
         long key = ChunkPos.pack(chunkX, chunkZ);
         Map<BlockPos, BlockState> removedBlocks = ghost.chunkBlocks.remove(key);
         Map<BlockPos, CompoundTag> removedBes = ghost.chunkBlockEntities.remove(key);
-        ghost.chunkLights.remove(key);
+        PortalLightData removedLight = ghost.chunkLights.remove(key);
         if (removedBlocks != null) {
             for (BlockPos pos : removedBlocks.keySet()) {
                 ghost.blocksByRel.remove(pos);
@@ -364,7 +404,19 @@ public final class SotoGhostExterior implements BlockAndTintGetter {
             }
         }
         SotoGhostMeshCache.onChunkUnloaded(kind, tardisId, chunkX, chunkZ);
-        ghost.rebuildChunkAndLightNeighbors(chunkX, chunkZ);
+        Set<Long> neighbors = removedLight != null
+                ? GhostNeighborDirty.allNeighbors(chunkX, chunkZ)
+                : GhostNeighborDirty.neighborsToRebake(
+                        changedPositions(removedBlocks, null, removedBes, null),
+                        ghost.footprintOrigin.getX(), ghost.footprintOrigin.getZ(), chunkX, chunkZ
+                );
+        for (long neighbor : neighbors) {
+            if (ghost.chunkBlocks.containsKey(neighbor)) {
+                SotoGhostMeshCache.onChunkRefresh(
+                        kind, tardisId, ChunkPos.getX(neighbor), ChunkPos.getZ(neighbor), ghost
+                );
+            }
+        }
     }
 
     public static void applyEntitySpawn(PortalStreamKind kind, SyncPortalEntitySpawnS2CPayload payload) {
