@@ -12,7 +12,6 @@ import com.adamkali.dwm.render.portal.PortalApertureComposite;
 import com.adamkali.dwm.render.portal.PortalDoorFrame;
 import com.adamkali.dwm.render.portal.PortalDoorRenderer;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
-import com.adamkali.dwm.render.portal.PortalViewerState;
 import com.adamkali.dwm.render.portal.PortalVisibility;
 import com.adamkali.dwm.render.state.TardisBlockEntityRenderState;
 import com.adamkali.dwm.render.state.TardisRenderState;
@@ -147,13 +146,11 @@ public class TardisBlockEntityRenderer implements BlockEntityRenderer<TardisBloc
             Predicate<AABB> frustumVisible = camera.cullFrustum != null ? camera.cullFrustum::isVisible : null;
             boolean schedulePortal = PortalVisibility.shouldSchedule(
                     camera.pos, exteriorDoorCenter, exteriorOutward, frustumVisible);
-            PortalDoorFrame exteriorDoor = PortalViewerState.isParallaxEnabled()
-                    ? PortalDoorFrame.fromAperture(
-                            poseStack.last().pose(),
-                            state.variant.getAperture(),
-                            camera.pos,
-                            exteriorOutward.getUnitVec3().scale(-1.0))
-                    : null;
+            PortalDoorFrame exteriorDoor = PortalDoorFrame.fromAperture(
+                    poseStack.last().pose(),
+                    state.variant.getAperture(),
+                    camera.pos,
+                    exteriorOutward.getUnitVec3().scale(-1.0));
             TardisBotiRenderer.render(
                     poseStack,
                     submitNodeCollector,

@@ -7,7 +7,6 @@ import com.adamkali.dwm.model.tileentity.TardisClassicInteriorDoorModel;
 import com.adamkali.dwm.render.portal.PortalDoorFrame;
 import com.adamkali.dwm.tardis.data.model.PortalAperture;
 import com.adamkali.dwm.render.portal.PortalDoorRenderer;
-import com.adamkali.dwm.render.portal.PortalViewerState;
 import com.adamkali.dwm.render.portal.PortalVisibility;
 import com.adamkali.dwm.render.soto.TardisSotoRenderer;
 import com.adamkali.dwm.render.state.TardisInteriorDoorBlockEntityRenderState;
@@ -92,13 +91,11 @@ public class TardisInteriorDoorBlockEntityRenderer
                     state.facing,
                     frustumVisible);
             // facing points into the room, so stepping through the doorway heads the opposite way.
-            PortalDoorFrame interiorDoor = PortalViewerState.isParallaxEnabled()
-                    ? PortalDoorFrame.fromAperture(
-                            poseStack.last().pose(),
-                            PortalAperture.CLASSIC_INTERIOR_DOORS,
-                            camera.pos,
-                            state.facing.getUnitVec3().scale(-1.0))
-                    : null;
+            PortalDoorFrame interiorDoor = PortalDoorFrame.fromAperture(
+                    poseStack.last().pose(),
+                    PortalAperture.CLASSIC_INTERIOR_DOORS,
+                    camera.pos,
+                    state.facing.getUnitVec3().scale(-1.0));
             sotoRenderer.render(
                     poseStack,
                     submitNodeCollector,

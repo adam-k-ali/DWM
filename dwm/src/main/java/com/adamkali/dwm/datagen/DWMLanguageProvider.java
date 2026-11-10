@@ -832,8 +832,6 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.config.option.chameleon_gui", "Enable Chameleon GUI");
         t.add("dwm.config.option.enable_door_portals", "Door portals (BOTI / SOTO)");
         t.add("dwm.config.option.enable_door_portals.tooltip", "Show doorway previews through open exterior and interior doors using the shared portal renderer. Disabled on Fabulous graphics or when order-independent transparency is on.");
-        t.add("dwm.config.option.portal_parallax", "Door portal parallax (experimental)");
-        t.add("dwm.config.option.portal_parallax.tooltip", "Render door portals from your own viewpoint so the doorway behaves like a real opening instead of a fixed picture. Re-renders the portal whenever the camera moves.");
         t.add("dwm.config.option.show_portal_perf_debug", "Portal performance debug HUD");
         t.add("dwm.config.option.show_portal_perf_debug.tooltip", "Show an F3-style on-screen overlay with shared portal pipeline stage timings (BOTI and SOTO). Enable only while profiling.");
         t.add("dwm.config.category.experimental", "Experimental");
