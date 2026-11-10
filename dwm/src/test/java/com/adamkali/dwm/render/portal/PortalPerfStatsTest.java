@@ -81,7 +81,7 @@ class PortalPerfStatsTest {
         avg.put(PortalPerfStats.Stage.FLUSH_TOTAL, 3.0);
         avg.put(PortalPerfStats.Stage.OFF_MAIN_TOTAL, 2.5);
         avg.put(PortalPerfStats.Stage.TERRAIN_OPAQUE, 1.2);
-        avg.put(PortalPerfStats.Stage.PASS_BATCH_REBUILD, 0.8);
+        avg.put(PortalPerfStats.Stage.MESH_UPLOAD, 0.8);
 
         PortalPerfStats.DisplaySnapshot snap = new PortalPerfStats.DisplaySnapshot(
                 key,

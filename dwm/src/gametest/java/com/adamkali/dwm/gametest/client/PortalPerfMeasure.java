@@ -1,6 +1,9 @@
 package com.adamkali.dwm.gametest.client;
 
+import com.adamkali.dwm.render.portal.PortalFrameCache;
+import com.adamkali.dwm.render.portal.PortalKey;
 import com.adamkali.dwm.render.portal.PortalScheduler;
+import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -15,7 +18,8 @@ import java.util.Locale;
 
 /**
  * Measures what a door portal costs the client in a given camera state: frame time (mean / p95 / max) and how
- * many portal scenes were scheduled vs culled. Results are written to {@code perf/portal_perf.json} in the run
+ * many portal scenes were scheduled vs culled, plus ghost-mesh GPU work (per-chunk draw calls, bytes uploaded,
+ * buffers created / closed). Results are written to {@code perf/portal_perf.json} in the run
  * directory so the numbers can be compared between runs.
  */
 final class PortalPerfMeasure {
@@ -29,18 +33,24 @@ final class PortalPerfMeasure {
     }
 
     record Sample(String name, int frames, double meanFrameMs, double p95FrameMs, double maxFrameMs,
-                  long scheduled, long culled) {
+                  long scheduled, long culled, long drawCalls, long bytesUploaded,
+                  long buffersCreated, long buffersClosed) {
         String json() {
             return String.format(Locale.ROOT,
                     "{\"name\":\"%s\",\"frames\":%d,\"meanFrameMs\":%.3f,\"p95FrameMs\":%.3f,"
-                            + "\"maxFrameMs\":%.3f,\"scheduled\":%d,\"culled\":%d}",
-                    name, frames, meanFrameMs, p95FrameMs, maxFrameMs, scheduled, culled);
+                            + "\"maxFrameMs\":%.3f,\"scheduled\":%d,\"culled\":%d,\"drawCalls\":%d,"
+                            + "\"bytesUploaded\":%d,\"buffersCreated\":%d,\"buffersClosed\":%d}",
+                    name, frames, meanFrameMs, p95FrameMs, maxFrameMs, scheduled, culled, drawCalls,
+                    bytesUploaded, buffersCreated, buffersClosed);
         }
 
         @Override
         public String toString() {
-            return String.format(Locale.ROOT, "%-24s frames=%-4d mean=%7.2fms p95=%7.2fms max=%7.2fms scheduled=%d culled=%d",
-                    name, frames, meanFrameMs, p95FrameMs, maxFrameMs, scheduled, culled);
+            return String.format(Locale.ROOT,
+                    "%-24s frames=%-4d mean=%7.2fms p95=%7.2fms max=%7.2fms scheduled=%d culled=%d"
+                            + " draws=%d uploaded=%dB buffers=+%d/-%d",
+                    name, frames, meanFrameMs, p95FrameMs, maxFrameMs, scheduled, culled, drawCalls,
+                    bytesUploaded, buffersCreated, buffersClosed);
         }
     }
 
@@ -65,17 +75,40 @@ final class PortalPerfMeasure {
 
     /** Lets the scene settle, then records {@code ticks} ticks of frames and the schedule/cull counter deltas. */
     static Sample measure(ClientGameTestContext context, String name, int ticks) {
+        return measure(context, name, ticks, null);
+    }
+
+    /**
+     * Like {@link #measure(ClientGameTestContext, String, int)}, but when {@code redraw} is non-null the portal's
+     * cached frame is invalidated every tick so the ghost mesh is actually redrawn (draw-call cost per frame).
+     */
+    static Sample measure(ClientGameTestContext context, String name, int ticks, PortalKey redraw) {
         install();
         context.waitTicks(WARMUP_TICKS);
         long scheduled0 = PortalScheduler.scheduledTotal();
         long culled0 = PortalScheduler.culledTotal();
+        long draws0 = SotoGhostMeshCache.drawCalls();
+        long bytes0 = SotoGhostMeshCache.bytesUploaded();
+        long created0 = SotoGhostMeshCache.buffersCreated();
+        long closed0 = SotoGhostMeshCache.buffersClosed();
         synchronized (LOCK) {
             FRAME_MS.clear();
             lastFrameNs = 0L;
         }
-        context.waitTicks(ticks);
+        if (redraw == null) {
+            context.waitTicks(ticks);
+        } else {
+            for (int i = 0; i < ticks; i++) {
+                context.runOnClient(client -> PortalFrameCache.markDirty(redraw));
+                context.waitTick();
+            }
+        }
         long scheduled = PortalScheduler.scheduledTotal() - scheduled0;
         long culled = PortalScheduler.culledTotal() - culled0;
+        long draws = SotoGhostMeshCache.drawCalls() - draws0;
+        long bytes = SotoGhostMeshCache.bytesUploaded() - bytes0;
+        long created = SotoGhostMeshCache.buffersCreated() - created0;
+        long closed = SotoGhostMeshCache.buffersClosed() - closed0;
         double[] frames;
         synchronized (LOCK) {
             frames = FRAME_MS.stream().mapToDouble(Double::doubleValue).toArray();
@@ -87,9 +120,26 @@ final class PortalPerfMeasure {
         double sum = Arrays.stream(frames).sum();
         double p95 = frames[Math.min(frames.length - 1, (int) Math.ceil(frames.length * 0.95) - 1)];
         Sample sample = new Sample(name, frames.length, sum / frames.length, p95, frames[frames.length - 1],
-                scheduled, culled);
+                scheduled, culled, draws, bytes, created, closed);
         System.out.println("[portal-perf] " + sample);
         return sample;
+    }
+
+    /** Snapshot of the ghost-mesh GPU counters, for work that is not tied to a frame-time window. */
+    record Counters(long drawCalls, long bytesUploaded, long buffersCreated, long buffersClosed) {
+        static Counters now() {
+            return new Counters(SotoGhostMeshCache.drawCalls(), SotoGhostMeshCache.bytesUploaded(),
+                    SotoGhostMeshCache.buffersCreated(), SotoGhostMeshCache.buffersClosed());
+        }
+
+        /** A frame-less sample holding the counter deltas since {@code start}. */
+        Sample since(String name, Counters start) {
+            Sample sample = new Sample(name, 0, 0.0, 0.0, 0.0, 0L, 0L,
+                    drawCalls - start.drawCalls, bytesUploaded - start.bytesUploaded,
+                    buffersCreated - start.buffersCreated, buffersClosed - start.buffersClosed);
+            System.out.println("[portal-perf] " + sample);
+            return sample;
+        }
     }
 
     static void writeReport(String fileName, List<Sample> samples) {

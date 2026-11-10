@@ -40,18 +40,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Per-chunk CPU meshes baked from {@link SotoGhostExterior} on chunk apply, drawn via
- * hitch-culled pass-level GPU batches (one draw per {@link TerrainPass}).
+ * Per-chunk meshes baked from {@link SotoGhostExterior} and uploaded to their own GPU buffers once,
+ * right after the bake. Each frame draws the hitch-visible chunks' buffers directly (one draw per
+ * chunk per {@link TerrainPass}); editing one chunk never re-uploads another.
  * Keyed by (PortalStreamKind, UUID) so BOTI and SOTO share the same mesh infrastructure.
  */
 public final class SotoGhostMeshCache {
-    private static final int QUAD_VERTEX_STRIDE = 4;
-    private static final int QUAD_INDEX_STRIDE = 6;
-
     private static final Map<PortalSceneStore.SceneKey, Map<Long, ChunkMesh>> MESHES = new ConcurrentHashMap<>();
-    private static final Map<PortalSceneStore.SceneKey, PassBatchState> PASS_BATCHES = new ConcurrentHashMap<>();
+    /** GPU upload time inside the current {@link #bakeNow} (render thread only). */
+    private static long uploadNsThisBake;
     private static final Map<PortalSceneStore.SceneKey, GhostBakeScheduler> BAKE_QUEUES = new ConcurrentHashMap<>();
 
     private SotoGhostMeshCache() {
@@ -139,6 +141,8 @@ public final class SotoGhostMeshCache {
     }
 
     static int drainAllBakeQueues(int maxChunks, long maxNanos, java.util.function.LongSupplier clock) {
+        // Release GPU buffers whose meshes were closed off the render thread (e.g. on disconnect).
+        LayerBuffer.drainPendingClose();
         if (BAKE_QUEUES.isEmpty()) {
             return 0;
         }
@@ -201,8 +205,10 @@ public final class SotoGhostMeshCache {
         long key = ChunkPos.pack(chunkX, chunkZ);
         Map<BlockPos, BlockState> blocks = ghost.blocksInChunk(key);
         long bakeStart = PortalPerfStats.begin();
+        uploadNsThisBake = 0L;
         ChunkMesh baked = bakeChunk(blocks, ghost);
-        PortalPerfStats.noteMeshBake(bakeStart >= 0L ? System.nanoTime() - bakeStart : 0L);
+        // Upload time is reported separately (MESH_UPLOAD); keep MESH_BAKE to tessellation only.
+        PortalPerfStats.noteMeshBake(bakeStart >= 0L ? System.nanoTime() - bakeStart - uploadNsThisBake : 0L);
         Map<Long, ChunkMesh> byChunk = MESHES.computeIfAbsent(sceneKey, ignored -> new ConcurrentHashMap<>());
         ChunkMesh previous = byChunk.put(key, baked);
         if (previous != null) {
@@ -211,7 +217,6 @@ public final class SotoGhostMeshCache {
         if (baked.isEmpty()) {
             byChunk.remove(key, baked);
         }
-        markPassBatchesDirty(sceneKey);
     }
 
     /**
@@ -252,7 +257,6 @@ public final class SotoGhostMeshCache {
         if (byChunk.isEmpty()) {
             MESHES.remove(sceneKey, byChunk);
         }
-        markPassBatchesDirty(sceneKey);
     }
 
     public static void invalidate(PortalStreamKind kind, UUID tardisId) {
@@ -271,10 +275,6 @@ public final class SotoGhostMeshCache {
             }
             byChunk.clear();
         }
-        PassBatchState batches = PASS_BATCHES.remove(sceneKey);
-        if (batches != null) {
-            batches.close();
-        }
     }
 
     public static void invalidateAll() {
@@ -285,12 +285,6 @@ public final class SotoGhostMeshCache {
             queue.clear();
         }
         BAKE_QUEUES.clear();
-        for (PortalSceneStore.SceneKey key : List.copyOf(PASS_BATCHES.keySet())) {
-            PassBatchState batches = PASS_BATCHES.remove(key);
-            if (batches != null) {
-                batches.close();
-            }
-        }
     }
 
     /**
@@ -307,7 +301,6 @@ public final class SotoGhostMeshCache {
         if (previous != null && previous != ChunkMesh.TEST_DRAWABLE && previous != ChunkMesh.MARKER) {
             previous.close();
         }
-        markPassBatchesDirty(sceneKey);
     }
 
     /**
@@ -324,21 +317,71 @@ public final class SotoGhostMeshCache {
         if (previous != null && previous != ChunkMesh.MARKER && previous != ChunkMesh.TEST_DRAWABLE) {
             previous.close();
         }
-        markPassBatchesDirty(sceneKey);
-    }
-
-    /** Test helper: whether pass batches need rebuild for this scene. */
-    public static boolean arePassBatchesDirtyForTest(PortalStreamKind kind, UUID tardisId) {
-        if (kind == null || tardisId == null) {
-            return false;
-        }
-        PassBatchState state = PASS_BATCHES.get(new PortalSceneStore.SceneKey(kind, tardisId));
-        return state == null || state.dirty;
     }
 
     /**
-     * Draws one terrain pass as a single GPU batch (opaque → cutout → translucent order preserved
-     * by the caller issuing three draws).
+     * Test helper: installs a REAL mesh holding one GPU-free {@link LayerBuffer} per pass given,
+     * closing whatever mesh it replaces (same lifecycle as a real bake).
+     */
+    static void markChunkBuffersForTest(
+            PortalStreamKind kind, UUID tardisId, int chunkX, int chunkZ, TerrainPass... passes
+    ) {
+        if (kind == null || tardisId == null) {
+            return;
+        }
+        List<LayerBuffer> buffers = new ArrayList<>();
+        for (TerrainPass pass : passes) {
+            buffers.add(LayerBuffer.forTest(pass));
+        }
+        PortalSceneStore.SceneKey sceneKey = new PortalSceneStore.SceneKey(kind, tardisId);
+        Map<Long, ChunkMesh> byChunk = MESHES.computeIfAbsent(sceneKey, ignored -> new ConcurrentHashMap<>());
+        ChunkMesh previous = byChunk.put(ChunkPos.pack(chunkX, chunkZ), new ChunkMesh(buffers));
+        if (previous != null) {
+            previous.close();
+        }
+    }
+
+    /** Test helper: the live buffer objects of one chunk (identity checks), or empty. */
+    static List<LayerBuffer> chunkBuffersForTest(PortalStreamKind kind, UUID tardisId, int chunkX, int chunkZ) {
+        if (kind == null || tardisId == null) {
+            return List.of();
+        }
+        Map<Long, ChunkMesh> byChunk = MESHES.get(new PortalSceneStore.SceneKey(kind, tardisId));
+        ChunkMesh mesh = byChunk == null ? null : byChunk.get(ChunkPos.pack(chunkX, chunkZ));
+        return mesh == null ? List.of() : mesh.layers;
+    }
+
+    /** GPU buffer sets ever created (one per chunk layer upload). */
+    public static long buffersCreated() {
+        return LayerBuffer.CREATED.get();
+    }
+
+    /** GPU buffer sets closed; equals {@link #buffersCreated()} once every mesh is released. */
+    public static long buffersClosed() {
+        return LayerBuffer.CLOSED.get();
+    }
+
+    /** Vertex + index bytes uploaded to the GPU since the last reset. */
+    public static long bytesUploaded() {
+        return LayerBuffer.BYTES_UPLOADED.get();
+    }
+
+    /** Per-chunk draw calls issued since the last reset. */
+    public static long drawCalls() {
+        return LayerBuffer.DRAW_CALLS.get();
+    }
+
+    /** Resets the buffer/upload/draw counters (perf tests). */
+    public static void resetBufferStats() {
+        LayerBuffer.CREATED.set(0L);
+        LayerBuffer.CLOSED.set(0L);
+        LayerBuffer.BYTES_UPLOADED.set(0L);
+        LayerBuffer.DRAW_CALLS.set(0L);
+    }
+
+    /**
+     * Draws one terrain pass from each hitch-visible chunk's own GPU buffers (opaque → cutout →
+     * translucent order preserved by the caller issuing three passes). Nothing is merged or uploaded here.
      */
     public static void drawLayer(
             PortalStreamKind kind,
@@ -355,46 +398,49 @@ public final class SotoGhostMeshCache {
         if (byChunk == null || byChunk.isEmpty()) {
             return;
         }
-        PassBatchState batches = ensurePassBatches(sceneKey, byChunk, hitch);
-        LayerBuffer batch = batches.buffer(pass);
-        if (batch == null) {
-            return;
-        }
+        SotoGhostExterior ghost = SotoGhostExterior.get(kind, tardisId);
+        BlockPos origin = ghost != null && ghost.footprintOrigin() != null ? ghost.footprintOrigin() : BlockPos.ZERO;
+        Vec3 eye = hitch != null ? hitch.eyeRelative() : null;
+        Vec3 look = hitch != null ? hitch.lookDirection() : null;
+        Matrix4f cullView = hitch != null ? hitch.viewMatrix() : null;
+
+        List<Long> chunkKeys = new ArrayList<>(byChunk.keySet());
+        chunkKeys.sort(Long::compare);
+
+        int kept = 0;
+        int culled = 0;
         Matrix4fStack modelViewStack = RenderSystem.getModelViewStack();
         modelViewStack.pushMatrix();
         modelViewStack.set(viewMatrix);
         try {
-            batch.draw();
+            // Prepared after the modelview is set (it captures the transform slice); one per section layer.
+            EnumMap<ChunkSectionLayer, PreparedRenderType> prepared = new EnumMap<>(ChunkSectionLayer.class);
+            for (Long chunkKey : chunkKeys) {
+                ChunkMesh mesh = byChunk.get(chunkKey);
+                if (mesh == null || !mesh.isDrawable()) {
+                    continue;
+                }
+                if (!SotoGhostHitchCull.isChunkVisibleToHitch(
+                        ChunkPos.getX(chunkKey), ChunkPos.getZ(chunkKey), origin, eye, look, cullView)) {
+                    culled++;
+                    continue;
+                }
+                kept++;
+                for (LayerBuffer buffer : mesh.layers) {
+                    if (buffer.pass() != pass) {
+                        continue;
+                    }
+                    PreparedRenderType type = prepared.computeIfAbsent(
+                            buffer.sectionLayer(), layer -> LayerBuffer.renderTypeFor(layer).prepare());
+                    buffer.draw(type);
+                }
+            }
         } finally {
             modelViewStack.popMatrix();
         }
-    }
-
-    private static void markPassBatchesDirty(PortalSceneStore.SceneKey sceneKey) {
-        PassBatchState state = PASS_BATCHES.get(sceneKey);
-        if (state != null) {
-            state.dirty = true;
-        } else {
-            PASS_BATCHES.put(sceneKey, new PassBatchState());
+        if (pass == TerrainPass.OPAQUE) {
+            PortalPerfStats.setCullCounts(kept, culled);
         }
-    }
-
-    private static PassBatchState ensurePassBatches(
-            PortalSceneStore.SceneKey sceneKey,
-            Map<Long, ChunkMesh> byChunk,
-            PortalCameraTransform.Result hitch
-    ) {
-        PassBatchState state = PASS_BATCHES.computeIfAbsent(sceneKey, ignored -> new PassBatchState());
-        HitchSignature signature = HitchSignature.from(hitch);
-        if (!state.dirty && signature.equals(state.hitchSignature)) {
-            return state;
-        }
-        SotoGhostExterior ghost = SotoGhostExterior.get(sceneKey.kind(), sceneKey.tardisId());
-        BlockPos footprintOrigin = ghost != null ? ghost.footprintOrigin() : BlockPos.ZERO;
-        long rebuildStart = PortalPerfStats.begin();
-        state.rebuild(byChunk, hitch, signature, footprintOrigin);
-        PortalPerfStats.end(PortalPerfStats.Stage.PASS_BATCH_REBUILD, rebuildStart);
-        return state;
     }
 
     private static ChunkMesh bakeChunk(Map<BlockPos, BlockState> blocks, SotoGhostExterior ghost) {
@@ -421,6 +467,7 @@ public final class SotoGhostMeshCache {
             return ChunkMesh.MARKER;
         }
 
+        List<LayerBuffer> uploaded = new ArrayList<>();
         try {
             BlockStateModelSet models = client.getModelManager().getBlockStateModelSet();
             BlockColors blockColors = client.getBlockColors();
@@ -454,27 +501,35 @@ public final class SotoGhostMeshCache {
                 );
             }
 
-            List<CpuLayer> uploaded = new ArrayList<>();
-            for (ChunkSectionLayer layer : ChunkSectionLayer.values()) {
-                BufferBuilder builder = builders.get(layer);
-                if (builder == null) {
-                    continue;
-                }
-                MeshData meshData = builder.build();
-                if (meshData == null) {
-                    continue;
-                }
-                try {
-                    CpuLayer cpuLayer = CpuLayer.fromMesh(layer, meshData);
-                    if (cpuLayer != null) {
-                        uploaded.add(cpuLayer);
+            try {
+                for (ChunkSectionLayer layer : ChunkSectionLayer.values()) {
+                    BufferBuilder builder = builders.get(layer);
+                    if (builder == null) {
+                        continue;
                     }
-                } finally {
-                    meshData.close();
+                    MeshData meshData = builder.build();
+                    if (meshData == null) {
+                        continue;
+                    }
+                    try {
+                        CpuLayer cpuLayer = CpuLayer.fromMesh(layer, meshData);
+                        if (cpuLayer != null) {
+                            // Upload once, here; later frames only draw (no merge / re-upload).
+                            long uploadStart = PortalPerfStats.begin();
+                            uploaded.add(LayerBuffer.upload(cpuLayer));
+                            PortalPerfStats.end(PortalPerfStats.Stage.MESH_UPLOAD, uploadStart);
+                            if (uploadStart >= 0L) {
+                                uploadNsThisBake += System.nanoTime() - uploadStart;
+                            }
+                        }
+                    } finally {
+                        meshData.close();
+                    }
                 }
-            }
-            for (ByteBufferBuilder allocator : allocators.values()) {
-                allocator.close();
+            } finally {
+                for (ByteBufferBuilder allocator : allocators.values()) {
+                    allocator.close();
+                }
             }
 
             if (uploaded.isEmpty()) {
@@ -482,6 +537,9 @@ public final class SotoGhostMeshCache {
             }
             return new ChunkMesh(uploaded);
         } catch (Throwable ignored) {
+            for (LayerBuffer buffer : uploaded) {
+                buffer.close();
+            }
             return ChunkMesh.MARKER;
         }
     }
@@ -516,186 +574,6 @@ public final class SotoGhostMeshCache {
         return bytes;
     }
 
-    private static void appendSequentialQuadIndices(ByteBuffer dest, IndexType type, int vertexBase, int vertexCount) {
-        int quadCount = vertexCount / QUAD_VERTEX_STRIDE;
-        for (int q = 0; q < quadCount; q++) {
-            int i = vertexBase + q * QUAD_VERTEX_STRIDE;
-            putIndex(dest, type, i);
-            putIndex(dest, type, i + 1);
-            putIndex(dest, type, i + 2);
-            putIndex(dest, type, i + 2);
-            putIndex(dest, type, i + 3);
-            putIndex(dest, type, i);
-        }
-    }
-
-    private static void appendRemappedIndices(
-            ByteBuffer dest,
-            IndexType outType,
-            byte[] srcIndices,
-            IndexType srcType,
-            int indexCount,
-            int vertexBase
-    ) {
-        ByteBuffer src = ByteBuffer.wrap(srcIndices).order(ByteOrder.nativeOrder());
-        for (int i = 0; i < indexCount; i++) {
-            int value = srcType == IndexType.INT ? src.getInt() : Short.toUnsignedInt(src.getShort());
-            putIndex(dest, outType, value + vertexBase);
-        }
-    }
-
-    private static void putIndex(ByteBuffer dest, IndexType type, int value) {
-        if (type == IndexType.INT) {
-            dest.putInt(value);
-        } else {
-            dest.putShort((short) value);
-        }
-    }
-
-    private static LayerBuffer uploadMerged(TerrainPass pass, ChunkSectionLayer sectionLayer, List<CpuLayer> parts) {
-        if (parts == null || parts.isEmpty()) {
-            return null;
-        }
-        int totalVertexBytes = 0;
-        int totalVertices = 0;
-        int totalIndices = 0;
-        for (CpuLayer part : parts) {
-            totalVertexBytes += part.vertexBytes().length;
-            totalVertices += part.vertexCount();
-            if (part.indexBytes() != null) {
-                totalIndices += part.indexCount();
-            } else {
-                totalIndices += (part.vertexCount() / QUAD_VERTEX_STRIDE) * QUAD_INDEX_STRIDE;
-            }
-        }
-        if (totalVertices <= 0 || totalIndices <= 0 || totalVertexBytes <= 0) {
-            return null;
-        }
-
-        IndexType outType = IndexType.least(totalVertices);
-        ByteBuffer mergedVertices = ByteBuffer.allocateDirect(totalVertexBytes).order(ByteOrder.nativeOrder());
-        ByteBuffer mergedIndices = ByteBuffer.allocateDirect(totalIndices * outType.bytes).order(ByteOrder.nativeOrder());
-        int vertexBase = 0;
-        for (CpuLayer part : parts) {
-            mergedVertices.put(part.vertexBytes());
-            if (part.indexBytes() != null) {
-                appendRemappedIndices(
-                        mergedIndices,
-                        outType,
-                        part.indexBytes(),
-                        part.indexType(),
-                        part.indexCount(),
-                        vertexBase
-                );
-            } else {
-                appendSequentialQuadIndices(mergedIndices, outType, vertexBase, part.vertexCount());
-            }
-            vertexBase += part.vertexCount();
-        }
-        mergedVertices.flip();
-        mergedIndices.flip();
-
-        GpuBuffer vertexBuffer = RenderSystem.getDevice().createBuffer(
-                () -> "dwm_soto_pass_" + pass.name().toLowerCase(),
-                GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST,
-                mergedVertices
-        );
-        GpuBuffer indexBuffer = RenderSystem.getDevice().createBuffer(
-                () -> "dwm_soto_pass_idx_" + pass.name().toLowerCase(),
-                GpuBuffer.USAGE_INDEX | GpuBuffer.USAGE_COPY_DST,
-                mergedIndices
-        );
-        return new LayerBuffer(pass, sectionLayer, vertexBuffer, indexBuffer, outType, totalIndices);
-    }
-
-    private record HitchSignature(double eyeX, double eyeY, double eyeZ, double lookX, double lookY, double lookZ) {
-        static HitchSignature from(PortalCameraTransform.Result hitch) {
-            if (hitch == null) {
-                return new HitchSignature(Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN);
-            }
-            Vec3 eye = hitch.eyeRelative();
-            Vec3 look = hitch.lookDirection();
-            return new HitchSignature(eye.x, eye.y, eye.z, look.x, look.y, look.z);
-        }
-    }
-
-    private static final class PassBatchState implements AutoCloseable {
-        private final EnumMap<TerrainPass, LayerBuffer> batches = new EnumMap<>(TerrainPass.class);
-        private boolean dirty = true;
-        private HitchSignature hitchSignature;
-
-        LayerBuffer buffer(TerrainPass pass) {
-            return batches.get(pass);
-        }
-
-        void rebuild(
-                Map<Long, ChunkMesh> byChunk,
-                PortalCameraTransform.Result hitch,
-                HitchSignature signature,
-                BlockPos footprintOrigin
-        ) {
-            closeBatches();
-            EnumMap<TerrainPass, List<CpuLayer>> byPass = new EnumMap<>(TerrainPass.class);
-            EnumMap<TerrainPass, ChunkSectionLayer> sectionForPass = new EnumMap<>(TerrainPass.class);
-
-            List<Long> chunkKeys = new ArrayList<>(byChunk.keySet());
-            chunkKeys.sort(Long::compare);
-            Matrix4f viewMatrix = hitch != null ? hitch.viewMatrix() : null;
-            Vec3 eye = hitch != null ? hitch.eyeRelative() : null;
-            Vec3 look = hitch != null ? hitch.lookDirection() : null;
-            BlockPos origin = footprintOrigin == null ? BlockPos.ZERO : footprintOrigin;
-
-            int kept = 0;
-            int culled = 0;
-            for (Long chunkKey : chunkKeys) {
-                ChunkMesh mesh = byChunk.get(chunkKey);
-                if (mesh == null || !mesh.isDrawable() || mesh.layers.isEmpty()) {
-                    continue;
-                }
-                int chunkX = ChunkPos.getX(chunkKey);
-                int chunkZ = ChunkPos.getZ(chunkKey);
-                if (!SotoGhostHitchCull.isChunkVisibleToHitch(chunkX, chunkZ, origin, eye, look, viewMatrix)) {
-                    culled++;
-                    continue;
-                }
-                kept++;
-                for (CpuLayer layer : mesh.layers) {
-                    TerrainPass pass = layer.pass();
-                    byPass.computeIfAbsent(pass, ignored -> new ArrayList<>()).add(layer);
-                    sectionForPass.putIfAbsent(pass, layer.sectionLayer());
-                }
-            }
-            PortalPerfStats.setCullCounts(kept, culled);
-
-            for (TerrainPass pass : TerrainPass.values()) {
-                List<CpuLayer> parts = byPass.get(pass);
-                if (parts == null || parts.isEmpty()) {
-                    continue;
-                }
-                LayerBuffer merged = uploadMerged(pass, sectionForPass.get(pass), parts);
-                if (merged != null) {
-                    batches.put(pass, merged);
-                }
-            }
-            dirty = false;
-            hitchSignature = signature;
-        }
-
-        private void closeBatches() {
-            for (LayerBuffer buffer : batches.values()) {
-                buffer.close();
-            }
-            batches.clear();
-        }
-
-        @Override
-        public void close() {
-            closeBatches();
-            dirty = true;
-            hitchSignature = null;
-        }
-    }
-
     private static final class ChunkMesh implements AutoCloseable {
         static final ChunkMesh EMPTY = new ChunkMesh(List.of(), Kind.EMPTY);
         static final ChunkMesh MARKER = new ChunkMesh(List.of(), Kind.MARKER);
@@ -708,15 +586,15 @@ public final class SotoGhostMeshCache {
             REAL
         }
 
-        private final List<CpuLayer> layers;
+        private final List<LayerBuffer> layers;
         private final Kind kind;
         private boolean closed;
 
-        private ChunkMesh(List<CpuLayer> layers) {
+        private ChunkMesh(List<LayerBuffer> layers) {
             this(layers, Kind.REAL);
         }
 
-        private ChunkMesh(List<CpuLayer> layers, Kind kind) {
+        private ChunkMesh(List<LayerBuffer> layers, Kind kind) {
             this.layers = List.copyOf(layers);
             this.kind = kind;
         }
@@ -738,6 +616,9 @@ public final class SotoGhostMeshCache {
                 return;
             }
             closed = true;
+            for (LayerBuffer buffer : layers) {
+                buffer.close();
+            }
         }
     }
 
@@ -777,19 +658,95 @@ public final class SotoGhostMeshCache {
         }
     }
 
-    private record LayerBuffer(
-            TerrainPass pass,
-            ChunkSectionLayer sectionLayer,
-            GpuBuffer vertexBuffer,
-            GpuBuffer indexBuffer,
-            IndexType indexType,
-            int indexCount
-    ) implements AutoCloseable {
-        void draw() {
-            if (vertexBuffer == null || vertexBuffer.isClosed() || indexCount <= 0) {
+    /**
+     * One chunk's GPU buffers for a single {@link ChunkSectionLayer}, uploaded once after the bake.
+     * {@code close()} is idempotent and null-tolerant; off the render thread the real GPU release is
+     * deferred to {@link #drainPendingClose()}.
+     */
+    static final class LayerBuffer implements AutoCloseable {
+        static final AtomicLong CREATED = new AtomicLong();
+        static final AtomicLong CLOSED = new AtomicLong();
+        static final AtomicLong BYTES_UPLOADED = new AtomicLong();
+        static final AtomicLong DRAW_CALLS = new AtomicLong();
+        private static final ConcurrentLinkedQueue<GpuBuffer> PENDING_CLOSE = new ConcurrentLinkedQueue<>();
+
+        private final TerrainPass pass;
+        private final ChunkSectionLayer sectionLayer;
+        private final GpuBuffer vertexBuffer;
+        private final GpuBuffer indexBuffer;
+        private final IndexType indexType;
+        private final int indexCount;
+        private final AtomicBoolean closed = new AtomicBoolean();
+
+        LayerBuffer(
+                TerrainPass pass,
+                ChunkSectionLayer sectionLayer,
+                GpuBuffer vertexBuffer,
+                GpuBuffer indexBuffer,
+                IndexType indexType,
+                int indexCount
+        ) {
+            this.pass = pass;
+            this.sectionLayer = sectionLayer;
+            this.vertexBuffer = vertexBuffer;
+            this.indexBuffer = indexBuffer;
+            this.indexType = indexType;
+            this.indexCount = indexCount;
+            CREATED.incrementAndGet();
+        }
+
+        /** Uploads a baked layer to the GPU. Render thread only. */
+        static LayerBuffer upload(CpuLayer cpu) {
+            ByteBuffer vertices = ByteBuffer.allocateDirect(cpu.vertexBytes().length).order(ByteOrder.nativeOrder());
+            vertices.put(cpu.vertexBytes()).flip();
+            GpuBuffer vertexBuffer = RenderSystem.getDevice().createBuffer(
+                    () -> "dwm_soto_chunk_" + cpu.pass().name().toLowerCase(),
+                    GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST,
+                    vertices
+            );
+            GpuBuffer indexBuffer = null;
+            long bytes = cpu.vertexBytes().length;
+            // Null index bytes: draw() falls back to the shared sequential quad index buffer.
+            if (cpu.indexBytes() != null) {
+                ByteBuffer indices = ByteBuffer.allocateDirect(cpu.indexBytes().length).order(ByteOrder.nativeOrder());
+                indices.put(cpu.indexBytes()).flip();
+                try {
+                    indexBuffer = RenderSystem.getDevice().createBuffer(
+                            () -> "dwm_soto_chunk_idx_" + cpu.pass().name().toLowerCase(),
+                            GpuBuffer.USAGE_INDEX | GpuBuffer.USAGE_COPY_DST,
+                            indices
+                    );
+                } catch (Throwable t) {
+                    vertexBuffer.close();
+                    throw t;
+                }
+                bytes += cpu.indexBytes().length;
+            }
+            BYTES_UPLOADED.addAndGet(bytes);
+            return new LayerBuffer(cpu.pass(), cpu.sectionLayer(), vertexBuffer, indexBuffer, cpu.indexType(), cpu.indexCount());
+        }
+
+        /** Test seam: a buffer with no GPU resources that still participates in lifecycle counting. */
+        static LayerBuffer forTest(TerrainPass pass) {
+            return new LayerBuffer(pass, ChunkSectionLayer.SOLID, null, null, IndexType.SHORT, 6);
+        }
+
+        TerrainPass pass() {
+            return pass;
+        }
+
+        ChunkSectionLayer sectionLayer() {
+            return sectionLayer;
+        }
+
+        boolean isClosed() {
+            return closed.get();
+        }
+
+        void draw(PreparedRenderType prepared) {
+            if (closed.get() || vertexBuffer == null || vertexBuffer.isClosed() || indexCount <= 0) {
                 return;
             }
-            PreparedRenderType prepared = renderTypeFor(sectionLayer).prepare();
             GpuBuffer ib = indexBuffer;
             IndexType type = indexType;
             if (ib == null || ib.isClosed()) {
@@ -798,9 +755,10 @@ public final class SotoGhostMeshCache {
                 type = sequential.type();
             }
             prepared.drawFromBuffer(vertexBuffer, ib, type, 0, 0, indexCount);
+            DRAW_CALLS.incrementAndGet();
         }
 
-        private static net.minecraft.client.renderer.rendertype.RenderType renderTypeFor(ChunkSectionLayer layer) {
+        static net.minecraft.client.renderer.rendertype.RenderType renderTypeFor(ChunkSectionLayer layer) {
             if (layer == ChunkSectionLayer.TRANSLUCENT) {
                 return RenderTypes.translucentMovingBlock();
             }
@@ -810,13 +768,34 @@ public final class SotoGhostMeshCache {
             return RenderTypes.solidMovingBlock();
         }
 
+        /** Releases GPU buffers queued by off-render-thread closes. Call on the render thread. */
+        static void drainPendingClose() {
+            GpuBuffer buffer;
+            while ((buffer = PENDING_CLOSE.poll()) != null) {
+                if (!buffer.isClosed()) {
+                    buffer.close();
+                }
+            }
+        }
+
         @Override
         public void close() {
-            if (vertexBuffer != null && !vertexBuffer.isClosed()) {
-                vertexBuffer.close();
+            if (!closed.compareAndSet(false, true)) {
+                return;
             }
-            if (indexBuffer != null && !indexBuffer.isClosed()) {
-                indexBuffer.close();
+            CLOSED.incrementAndGet();
+            release(vertexBuffer);
+            release(indexBuffer);
+        }
+
+        private static void release(GpuBuffer buffer) {
+            if (buffer == null || buffer.isClosed()) {
+                return;
+            }
+            if (RenderSystem.isOnRenderThread()) {
+                buffer.close();
+            } else {
+                PENDING_CLOSE.add(buffer);
             }
         }
     }

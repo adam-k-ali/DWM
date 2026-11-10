@@ -470,7 +470,7 @@ public final class PortalPerfStats {
         lines.add(formatStageTriple(
                 snap,
                 Stage.GHOST_FEATURES, "features",
-                Stage.PASS_BATCH_REBUILD, "batch",
+                Stage.MESH_UPLOAD, "upload",
                 Stage.MESH_BAKE, "bake"
         ));
         lines.add(String.format(
@@ -834,7 +834,7 @@ public final class PortalPerfStats {
         TERRAIN_TRANSLUCENT("trans"),
         GHOST_FEATURES("features"),
         MESH_BAKE("bake"),
-        PASS_BATCH_REBUILD("batch"),
+        MESH_UPLOAD("upload"),
         COMPOSITE("composite");
 
         static final Stage[] HUD_ORDER = {
@@ -845,7 +845,7 @@ public final class PortalPerfStats {
                 TERRAIN_CUTOUT,
                 TERRAIN_TRANSLUCENT,
                 GHOST_FEATURES,
-                PASS_BATCH_REBUILD,
+                MESH_UPLOAD,
                 MESH_BAKE,
                 COMPOSITE
         };
@@ -857,7 +857,7 @@ public final class PortalPerfStats {
                 TERRAIN_CUTOUT,
                 TERRAIN_TRANSLUCENT,
                 GHOST_FEATURES,
-                PASS_BATCH_REBUILD,
+                MESH_UPLOAD,
                 MESH_BAKE,
                 COMPOSITE
         };

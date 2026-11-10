@@ -110,20 +110,65 @@ class SotoGhostMeshCacheTest {
         assertFalse(SotoGhostMeshCache.hasMeshes(PortalStreamKind.BOTI, b));
     }
 
-    @Test
-    void passBatches_markedDirtyOnMeshLifecycle() {
-        UUID id = UUID.randomUUID();
-        assertTrue(SotoGhostMeshCache.arePassBatchesDirtyForTest(PortalStreamKind.SOTO, id));
+    private static final SotoGhostMeshCache.TerrainPass OPAQUE = SotoGhostMeshCache.TerrainPass.OPAQUE;
+    private static final SotoGhostMeshCache.TerrainPass CUTOUT = SotoGhostMeshCache.TerrainPass.CUTOUT;
 
-        SotoGhostMeshCache.markChunkMeshForTest(PortalStreamKind.SOTO, id, 0, 0);
-        assertTrue(SotoGhostMeshCache.arePassBatchesDirtyForTest(PortalStreamKind.SOTO, id));
+    @Test
+    void editingChunkA_doesNotRecreateChunkBBuffers() {
+        UUID id = UUID.randomUUID();
+        SotoGhostMeshCache.resetBufferStats();
+        SotoGhostMeshCache.markChunkBuffersForTest(PortalStreamKind.SOTO, id, 0, 0, OPAQUE, CUTOUT);
+        SotoGhostMeshCache.markChunkBuffersForTest(PortalStreamKind.SOTO, id, 1, 0, OPAQUE, CUTOUT);
+        List<SotoGhostMeshCache.LayerBuffer> aBefore = SotoGhostMeshCache.chunkBuffersForTest(PortalStreamKind.SOTO, id, 0, 0);
+        List<SotoGhostMeshCache.LayerBuffer> bBefore = SotoGhostMeshCache.chunkBuffersForTest(PortalStreamKind.SOTO, id, 1, 0);
+        long createdBefore = SotoGhostMeshCache.buffersCreated();
+
+        // Re-bake A only.
+        SotoGhostMeshCache.markChunkBuffersForTest(PortalStreamKind.SOTO, id, 0, 0, OPAQUE);
+
+        List<SotoGhostMeshCache.LayerBuffer> bAfter = SotoGhostMeshCache.chunkBuffersForTest(PortalStreamKind.SOTO, id, 1, 0);
+        assertEquals(bBefore.size(), bAfter.size());
+        for (int i = 0; i < bBefore.size(); i++) {
+            assertSame(bBefore.get(i), bAfter.get(i), "chunk B buffers must be the same objects");
+            assertFalse(bAfter.get(i).isClosed());
+        }
+        for (SotoGhostMeshCache.LayerBuffer old : aBefore) {
+            assertTrue(old.isClosed(), "chunk A's replaced buffers must be closed");
+        }
+        assertEquals(createdBefore + 1, SotoGhostMeshCache.buffersCreated(), "only A's new buffer is created");
+        assertEquals(2, SotoGhostMeshCache.buffersClosed());
+    }
+
+    @Test
+    void unloadAndInvalidate_releaseEveryBuffer() {
+        UUID id = UUID.randomUUID();
+        SotoGhostMeshCache.resetBufferStats();
+        SotoGhostMeshCache.markChunkBuffersForTest(PortalStreamKind.SOTO, id, 0, 0, OPAQUE, CUTOUT);
+        SotoGhostMeshCache.markChunkBuffersForTest(PortalStreamKind.SOTO, id, 3, 3, OPAQUE);
+        SotoGhostMeshCache.markChunkBuffersForTest(PortalStreamKind.BOTI, id, 5, 5, CUTOUT);
+        assertEquals(4, SotoGhostMeshCache.buffersCreated());
+        assertEquals(2, SotoGhostMeshCache.meshChunkCount(PortalStreamKind.SOTO, id));
 
         SotoGhostMeshCache.onChunkUnloaded(PortalStreamKind.SOTO, id, 0, 0);
-        assertTrue(SotoGhostMeshCache.arePassBatchesDirtyForTest(PortalStreamKind.SOTO, id));
+        assertEquals(2, SotoGhostMeshCache.buffersClosed());
 
-        SotoGhostMeshCache.markChunkMeshForTest(PortalStreamKind.SOTO, id, 2, 2);
         SotoGhostMeshCache.invalidate(PortalStreamKind.SOTO, id);
-        assertTrue(SotoGhostMeshCache.arePassBatchesDirtyForTest(PortalStreamKind.SOTO, id));
+        assertEquals(3, SotoGhostMeshCache.buffersClosed());
         assertFalse(SotoGhostMeshCache.hasMeshes(PortalStreamKind.SOTO, id));
+
+        SotoGhostMeshCache.invalidateAll();
+        assertEquals(SotoGhostMeshCache.buffersCreated(), SotoGhostMeshCache.buffersClosed());
+    }
+
+    @Test
+    void replacingRealMeshWithMarker_closesBuffers() {
+        UUID id = UUID.randomUUID();
+        SotoGhostMeshCache.resetBufferStats();
+        SotoGhostMeshCache.markChunkBuffersForTest(PortalStreamKind.SOTO, id, 0, 0, OPAQUE);
+        List<SotoGhostMeshCache.LayerBuffer> before = SotoGhostMeshCache.chunkBuffersForTest(PortalStreamKind.SOTO, id, 0, 0);
+        SotoGhostMeshCache.markChunkMarkerForTest(PortalStreamKind.SOTO, id, 0, 0);
+        assertTrue(before.get(0).isClosed());
+        assertFalse(SotoGhostMeshCache.hasDrawableChunk(PortalStreamKind.SOTO, id, 0, 0));
+        assertEquals(SotoGhostMeshCache.buffersCreated(), SotoGhostMeshCache.buffersClosed());
     }
 }

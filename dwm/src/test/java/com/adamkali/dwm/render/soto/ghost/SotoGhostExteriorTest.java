@@ -180,7 +180,6 @@ class SotoGhostExteriorTest {
         assertEquals(0, SotoGhostMeshCache.pendingBakeCount(PortalStreamKind.SOTO, id));
         // Real bake in unit tests yields MARKER/empty — drawable test mesh must be replaced.
         assertFalse(SotoGhostMeshCache.hasDrawableChunk(PortalStreamKind.SOTO, id, 1, 2));
-        assertTrue(SotoGhostMeshCache.arePassBatchesDirtyForTest(PortalStreamKind.SOTO, id));
 
         SotoGhostExterior ghost = SotoGhostExterior.get(PortalStreamKind.SOTO, id);
         assertNotNull(ghost);
