@@ -1,6 +1,5 @@
 package com.adamkali.dwm.render.portal;
 
-import com.adamkali.dwm.config.DWMConfig;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 
@@ -17,10 +16,6 @@ public final class PortalViewerState {
     private static boolean levelProjectionCaptured;
 
     private PortalViewerState() {
-    }
-
-    public static boolean isParallaxEnabled() {
-        return DWMConfig.getBoolean(DWMConfig.PORTAL_PARALLAX);
     }
 
     /** Called from {@code GameRendererPortalMixin} with the final level projection for this frame. */
