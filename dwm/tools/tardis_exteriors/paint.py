@@ -2,7 +2,7 @@
 
 The finish follows the 1st-7th Doctor boxes: flat paint with soft, low-contrast tonal clouds and no
 per-pixel grain, so the geometry carries the detail. Painted detail is limited to what cannot be
-modelled at this scale (sign lettering, notice, badge, pane tints).
+modelled at this scale (sign panel, notice, badge, pane tints).
 
 Noise is a pure hash of the atlas pixel and the era, so output is deterministic and shared nets are
 painted once.
@@ -10,7 +10,6 @@ painted once.
 from __future__ import annotations
 
 from eras import Era
-from font import text_pixels, text_width
 
 Image = list[list[tuple[int, int, int, int]]]
 
@@ -126,29 +125,10 @@ class Painter:
                 put(self.img, x, y, c)
 
     def sign(self, rect, face):
-        """Black sign panel inside a 1 px border of body paint: POLICE, PUBLIC over CALL, BOX."""
-        e = self.era
+        """Plain black sign panel inside a 1 px border of body paint (no lettering, like the Doctor boxes)."""
         x0, y0, w, h = rect
-        self.fill(rect, e.body)
-        panel = (x0 + 1, y0 + 1, w - 2, h - 2)
-        self.fill(panel, (20, 20, 24), mottle=0.03)
-        px0, py0, pw, ph = panel
-        ty = py0 + (ph - 5) // 2
-        left, right = text_width("POLICE"), text_width("BOX")
-        for dx, dy in text_pixels("POLICE"):
-            put(self.img, px0 + 1 + dx, ty + dy, e.sign_text)
-        for dx, dy in text_pixels("BOX"):
-            put(self.img, px0 + pw - 1 - right + dx, ty + dy, e.sign_text)
-        # "PUBLIC" over "CALL" in small type: too small to letter at this density, so two rows of
-        # broken strokes (one stroke per letter) between the big words.
-        m0, m1 = px0 + 1 + left + 2, px0 + pw - 1 - right - 2
-        dim = scale(e.sign_text, 0.7)
-        for row, word in ((ty, "PUBLIC"), (ty + 3, "CALL")):
-            span = len(word) * 2 - 1
-            start = m0 + (m1 - m0 - span) // 2
-            for i in range(len(word)):
-                for t in range(2):
-                    put(self.img, start + 2 * i, row + t, dim)
+        self.fill(rect, self.era.body)
+        self.fill((x0 + 1, y0 + 1, w - 2, h - 2), (20, 20, 24), mottle=0.03)
 
     def notice(self, rect, face):
         """Telephone notice: heading bar, three lines of copy, and the PULL TO OPEN line."""

@@ -29,7 +29,7 @@ class Era:
     body: RGB  # main paint
     glass: RGB  # window glass
     mullion: RGB  # window frame and glazing bars
-    sign_text: RGB
+    sign_text: RGB  # white of the St John Ambulance badge
     notice: RGB  # telephone notice board
     notice_text: RGB
     lens: RGB

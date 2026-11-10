@@ -9,7 +9,7 @@ Layout:
   eras.py     per-era design spec (colours, weathering, posts, signs, roof, lamp, glazing, badge)
   geometry.py shared police-box geometry built from the spec, on a one-pixel grid
   uvpack.py   vanilla box-UV nets, shelf-packed; identical cube + paint pairs share a net
-  paint.py    per-face painters (flat mottled paint, glass, sign lettering, notice, badge, lamp)
+  paint.py    per-face painters (flat mottled paint, glass, sign panel, notice, badge, lamp)
   preview.py  offline preview renderer, optionally beside the older boxes (scratch output, not shipped)
 
 Contract with the game (see TardisModel / TardisChameleonVariant):
