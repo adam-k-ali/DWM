@@ -9,10 +9,20 @@ import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
 import net.minecraft.core.BlockPos;
 
+import java.util.List;
 import java.util.UUID;
 
-/** One screenshot of the TARDIS exterior per chameleon variant: {@code tardis_variant_<id>.png}. */
+/**
+ * One screenshot of the TARDIS exterior per chameleon variant ({@code tardis_variant_<id>.png}), plus an
+ * open-door shot of each generated modern exterior ({@code tardis_variant_<id>_open.png}).
+ */
 public class TardisVariantsClientGameTest implements FabricClientGameTest {
+    private static final List<TardisChameleonVariant> GENERATED_EXTERIORS = List.of(
+            TardisChameleonVariant.TARDIS_2005,
+            TardisChameleonVariant.TARDIS_2010,
+            TardisChameleonVariant.TARDIS_2014,
+            TardisChameleonVariant.TARDIS_2018);
+
     @Override
     public void runTest(ClientGameTestContext context) {
         try (TestSingleplayerContext world = context.worldBuilder().create()) {
@@ -35,6 +45,15 @@ public class TardisVariantsClientGameTest implements FabricClientGameTest {
                 context.waitTicks(20);
                 ClientGameTestSupport.screenshot(context, "tardis_variant_" + variant.getId().getPath());
             }
+
+            // Door swung open on the generated exteriors, to check the hinge side and the leaf/aperture fit.
+            ClientGameTestSupport.setDoorOpen(world.getServer(), tardisId, true);
+            for (TardisChameleonVariant variant : GENERATED_EXTERIORS) {
+                world.getServer().runOnServer(server -> TardisLogic.setVariant(tardisId, variant, server));
+                context.waitTicks(20);
+                ClientGameTestSupport.screenshot(context, "tardis_variant_" + variant.getId().getPath() + "_open");
+            }
+            ClientGameTestSupport.setDoorOpen(world.getServer(), tardisId, false);
             ClientGameTestSupport.toggleHud(context);
         }
     }
