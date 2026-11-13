@@ -55,6 +55,11 @@ public final class SotoSkyFogRenderer {
         return renderDistance > 0 ? renderDistance : PortalSampler.DEFAULT_STREAM_RADIUS_CHUNKS;
     }
 
+    /** SOTO ghost radius on the client: render distance capped by the configured SOTO maximum. */
+    public static int clientSotoStreamRadiusChunks() {
+        return PortalSampler.sotoRadiusChunks(clientStreamRadiusChunks());
+    }
+
     /**
      * Draws the overworld sun, moon, stars and sunrise/sunset glow into the portal target using a
      * portal-owned vanilla {@link SkyRenderer}, then clouds via {@link SotoCloudRenderer} (vanilla's
@@ -209,7 +214,7 @@ public final class SotoSkyFogRenderer {
     }
 
     public static GpuBufferSlice applyPortalTerrainFog(SotoAtmosphere atmosphere) {
-        int radius = clientStreamRadiusChunks();
+        int radius = clientSotoStreamRadiusChunks();
         return applyPortalTerrainFog(
                 atmosphere, PortalSampler.fogStartBlocks(radius), PortalSampler.fogEndBlocks(radius));
     }
@@ -226,7 +231,7 @@ public final class SotoSkyFogRenderer {
     }
 
     static FogColor buildFogColor(SotoAtmosphere atmosphere, EffectsKind kind) {
-        int radius = clientStreamRadiusChunks();
+        int radius = clientSotoStreamRadiusChunks();
         return buildFogColor(
                 atmosphere, kind, PortalSampler.fogStartBlocks(radius), PortalSampler.fogEndBlocks(radius));
     }

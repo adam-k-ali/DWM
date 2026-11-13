@@ -1,5 +1,6 @@
 package com.adamkali.dwm.tardis.portal;
 
+import com.adamkali.dwm.config.DWMConfig;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -87,6 +88,29 @@ public abstract class PortalSampler {
             return serverView;
         }
         return Math.min(serverView, requested);
+    }
+
+    /**
+     * Pure SOTO ghost radius: {@code min(radiusChunks, maxRadiusChunks)}, never below 1.
+     * A non-positive {@code maxRadiusChunks} is treated as 1.
+     */
+    public static int capSotoRadiusChunks(int radiusChunks, int maxRadiusChunks) {
+        return Math.max(1, Math.min(radiusChunks, Math.max(1, maxRadiusChunks)));
+    }
+
+    /** Configured SOTO cap applied to a stream/render radius (server and client share this). */
+    public static int sotoRadiusChunks(int radiusChunks) {
+        return capSotoRadiusChunks(radiusChunks, DWMConfig.getInt(DWMConfig.SOTO_GHOST_MAX_RADIUS));
+    }
+
+    /** SOTO stream radius for a world: server view distance capped by the configured maximum. */
+    public static int sotoStreamRadiusChunks(ServerLevel world) {
+        return sotoRadiusChunks(streamRadiusChunks(world));
+    }
+
+    /** Per-viewer SOTO stream radius: per-viewer radius capped by the configured maximum. */
+    public static int sotoStreamRadiusChunks(ServerPlayer player) {
+        return sotoRadiusChunks(streamRadiusChunks(player));
     }
 
     /**

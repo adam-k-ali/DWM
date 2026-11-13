@@ -71,6 +71,31 @@ class PortalSamplerTest {
     }
 
     @Test
+    void capSotoRadiusChunks_capsHighRenderDistance() {
+        assertEquals(8, PortalSampler.capSotoRadiusChunks(32, 8));
+    }
+
+    @Test
+    void capSotoRadiusChunks_leavesLowRenderDistanceUnchanged() {
+        assertEquals(4, PortalSampler.capSotoRadiusChunks(4, 8));
+        assertEquals(8, PortalSampler.capSotoRadiusChunks(8, 8));
+    }
+
+    @Test
+    void capSotoRadiusChunks_respectsConfiguredMax() {
+        assertEquals(6, PortalSampler.capSotoRadiusChunks(32, 6));
+        assertEquals(12, PortalSampler.capSotoRadiusChunks(32, 12));
+    }
+
+    @Test
+    void capSotoRadiusChunks_neverBelowOne() {
+        assertEquals(1, PortalSampler.capSotoRadiusChunks(0, 8));
+        assertEquals(1, PortalSampler.capSotoRadiusChunks(-3, 8));
+        assertEquals(1, PortalSampler.capSotoRadiusChunks(32, 0));
+        assertEquals(1, PortalSampler.capSotoRadiusChunks(32, -5));
+    }
+
+    @Test
     void streamYRadiusBlocks_matchesChunkWidth() {
         assertEquals(0, PortalSampler.streamYRadiusBlocks(0));
         assertEquals(32, PortalSampler.streamYRadiusBlocks(2));
