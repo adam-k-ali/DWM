@@ -828,6 +828,10 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.fifth_doctor_box", "Fifth Doctor Box");
         t.add("dwm.sixth_doctor_box", "Sixth Doctor Box");
         t.add("dwm.seventh_doctor_box", "Seventh Doctor Box");
+        t.add("dwm.tardis_2005", "2005 TARDIS Exterior");
+        t.add("dwm.tardis_2010", "2010 TARDIS Exterior");
+        t.add("dwm.tardis_2014", "2014 TARDIS Exterior");
+        t.add("dwm.tardis_2018", "2018 TARDIS Exterior");
         t.add("dwm.gui.no_more_variants", "No more variants");
         t.add("dwm.config.option.chameleon_gui", "Enable Chameleon GUI");
         t.add("dwm.config.option.enable_door_portals", "Door portals (BOTI / SOTO)");
