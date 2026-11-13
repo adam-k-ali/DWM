@@ -1,6 +1,7 @@
 package com.adamkali.dwm.render.soto.ghost;
 
 import com.adamkali.dwm.render.portal.PortalCameraTransform;
+import com.adamkali.dwm.render.portal.PortalFrameCache;
 import com.adamkali.dwm.render.portal.PortalPerfStats;
 import com.adamkali.dwm.render.portal.PortalSceneStore;
 import com.adamkali.dwm.tardis.portal.PortalStreamKind;
@@ -33,6 +34,7 @@ import org.joml.Matrix4fStack;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +52,7 @@ public final class SotoGhostMeshCache {
 
     private static final Map<PortalSceneStore.SceneKey, Map<Long, ChunkMesh>> MESHES = new ConcurrentHashMap<>();
     private static final Map<PortalSceneStore.SceneKey, PassBatchState> PASS_BATCHES = new ConcurrentHashMap<>();
+    private static final Map<PortalSceneStore.SceneKey, GhostBakeScheduler> BAKE_QUEUES = new ConcurrentHashMap<>();
 
     private SotoGhostMeshCache() {
     }
@@ -88,11 +91,113 @@ public final class SotoGhostMeshCache {
         return mesh != null && mesh.isDrawable();
     }
 
+    /** Max chunks baked per frame by {@link #drainBakeQueue}. */
+    static final int BAKE_BUDGET_CHUNKS = 4;
+    /** Soft time budget per frame (at least one chunk is always baked). */
+    static final long BAKE_BUDGET_NANOS = 4_000_000L;
+
+    /** Queues a new or changed chunk for baking; the bake happens in {@link #drainBakeQueue}. */
     public static void onChunkApplied(PortalStreamKind kind, UUID tardisId, int chunkX, int chunkZ, SotoGhostExterior ghost) {
+        enqueue(kind, tardisId, chunkX, chunkZ, ghost, GhostBakeScheduler.Priority.PRIMARY);
+    }
+
+    /** Queues a neighbour whose border (AO / light) may have changed. Coalesces with other pending bakes. */
+    public static void onChunkRefresh(PortalStreamKind kind, UUID tardisId, int chunkX, int chunkZ, SotoGhostExterior ghost) {
+        enqueue(kind, tardisId, chunkX, chunkZ, ghost, GhostBakeScheduler.Priority.REFRESH);
+    }
+
+    private static void enqueue(
+            PortalStreamKind kind, UUID tardisId, int chunkX, int chunkZ,
+            SotoGhostExterior ghost, GhostBakeScheduler.Priority priority
+    ) {
         if (kind == null || tardisId == null || ghost == null) {
             return;
         }
         PortalSceneStore.SceneKey sceneKey = new PortalSceneStore.SceneKey(kind, tardisId);
+        BAKE_QUEUES.computeIfAbsent(sceneKey, ignored -> new GhostBakeScheduler())
+                .enqueue(ChunkPos.pack(chunkX, chunkZ), priority);
+    }
+
+    /** Chunks waiting to be baked for this scene. */
+    public static int pendingBakeCount(PortalStreamKind kind, UUID tardisId) {
+        if (kind == null || tardisId == null) {
+            return 0;
+        }
+        GhostBakeScheduler queue = BAKE_QUEUES.get(new PortalSceneStore.SceneKey(kind, tardisId));
+        return queue == null ? 0 : queue.size();
+    }
+
+    /**
+     * Bakes queued chunks for every scene under one shared per-frame budget. Called once per frame on
+     * the render thread from {@code LevelRenderEvents.START_MAIN}, independently of portal drawing:
+     * portals only draw once they have meshes ({@code isReady}) and reuse cached frames, so draining
+     * from the draw path would never produce the first mesh. Scenes that baked are marked dirty so the
+     * cached portal frame picks the new meshes up. Returns the number of chunks baked.
+     */
+    public static int drainAllBakeQueues() {
+        return drainAllBakeQueues(BAKE_BUDGET_CHUNKS, BAKE_BUDGET_NANOS, System::nanoTime);
+    }
+
+    static int drainAllBakeQueues(int maxChunks, long maxNanos, java.util.function.LongSupplier clock) {
+        if (BAKE_QUEUES.isEmpty()) {
+            return 0;
+        }
+        long start = clock.getAsLong();
+        int total = 0;
+        int pending = 0;
+        List<PortalSceneStore.SceneKey> keys = new ArrayList<>(BAKE_QUEUES.keySet());
+        keys.sort(Comparator.comparing((PortalSceneStore.SceneKey k) -> k.kind()).thenComparing(PortalSceneStore.SceneKey::tardisId));
+        for (PortalSceneStore.SceneKey key : keys) {
+            int chunksLeft = maxChunks - total;
+            long nanosLeft = maxNanos - (clock.getAsLong() - start);
+            if (chunksLeft > 0 && (total == 0 || nanosLeft > 0L)) {
+                int baked = drainBakeQueue(key.kind(), key.tardisId(), chunksLeft, Math.max(1L, nanosLeft), clock);
+                if (baked > 0) {
+                    total += baked;
+                    PortalFrameCache.markDirty(key.kind(), key.tardisId());
+                }
+            }
+            pending += pendingBakeCount(key.kind(), key.tardisId());
+        }
+        PortalPerfStats.noteBakeFrame(total, pending);
+        return total;
+    }
+
+    /**
+     * Bakes queued chunks for one scene under the given budget (render thread). Returns the number
+     * of chunks baked.
+     */
+    public static int drainBakeQueue(PortalStreamKind kind, UUID tardisId) {
+        return drainBakeQueue(kind, tardisId, BAKE_BUDGET_CHUNKS, BAKE_BUDGET_NANOS, System::nanoTime);
+    }
+
+    static int drainBakeQueue(
+            PortalStreamKind kind, UUID tardisId, int maxChunks, long maxNanos, java.util.function.LongSupplier clock
+    ) {
+        if (kind == null || tardisId == null) {
+            return 0;
+        }
+        PortalSceneStore.SceneKey sceneKey = new PortalSceneStore.SceneKey(kind, tardisId);
+        GhostBakeScheduler queue = BAKE_QUEUES.get(sceneKey);
+        SotoGhostExterior ghost = SotoGhostExterior.get(kind, tardisId);
+        if (queue == null || queue.size() == 0) {
+            return 0;
+        }
+        if (ghost == null) {
+            queue.clear();
+            return 0;
+        }
+        BlockPos origin = ghost.footprintOrigin();
+        int originChunkX = origin.getX() >> 4;
+        int originChunkZ = origin.getZ() >> 4;
+        return queue.drain(maxChunks, maxNanos, clock, packed -> {
+            double dx = ChunkPos.getX(packed) - originChunkX;
+            double dz = ChunkPos.getZ(packed) - originChunkZ;
+            return dx * dx + dz * dz;
+        }, packed -> bakeNow(sceneKey, ChunkPos.getX(packed), ChunkPos.getZ(packed), ghost));
+    }
+
+    private static void bakeNow(PortalSceneStore.SceneKey sceneKey, int chunkX, int chunkZ, SotoGhostExterior ghost) {
         long key = ChunkPos.pack(chunkX, chunkZ);
         Map<BlockPos, BlockState> blocks = ghost.blocksInChunk(key);
         long bakeStart = PortalPerfStats.begin();
@@ -132,6 +237,10 @@ public final class SotoGhostMeshCache {
             return;
         }
         PortalSceneStore.SceneKey sceneKey = new PortalSceneStore.SceneKey(kind, tardisId);
+        GhostBakeScheduler queue = BAKE_QUEUES.get(sceneKey);
+        if (queue != null) {
+            queue.remove(ChunkPos.pack(chunkX, chunkZ));
+        }
         Map<Long, ChunkMesh> byChunk = MESHES.get(sceneKey);
         if (byChunk == null) {
             return;
@@ -151,6 +260,10 @@ public final class SotoGhostMeshCache {
             return;
         }
         PortalSceneStore.SceneKey sceneKey = new PortalSceneStore.SceneKey(kind, tardisId);
+        GhostBakeScheduler queue = BAKE_QUEUES.remove(sceneKey);
+        if (queue != null) {
+            queue.clear();
+        }
         Map<Long, ChunkMesh> byChunk = MESHES.remove(sceneKey);
         if (byChunk != null) {
             for (ChunkMesh mesh : byChunk.values()) {
@@ -168,6 +281,10 @@ public final class SotoGhostMeshCache {
         for (PortalSceneStore.SceneKey key : List.copyOf(MESHES.keySet())) {
             invalidate(key.kind(), key.tardisId());
         }
+        for (GhostBakeScheduler queue : BAKE_QUEUES.values()) {
+            queue.clear();
+        }
+        BAKE_QUEUES.clear();
         for (PortalSceneStore.SceneKey key : List.copyOf(PASS_BATCHES.keySet())) {
             PassBatchState batches = PASS_BATCHES.remove(key);
             if (batches != null) {

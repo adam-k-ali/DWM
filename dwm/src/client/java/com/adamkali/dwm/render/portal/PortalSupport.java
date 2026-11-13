@@ -1,5 +1,6 @@
 package com.adamkali.dwm.render.portal;
 
+import com.adamkali.dwm.render.soto.ghost.SotoGhostMeshCache;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
@@ -26,7 +27,11 @@ public final class PortalSupport {
             return;
         }
         initialized = true;
-        LevelRenderEvents.START_MAIN.register(context -> PortalRenderTarget.beginClientFrame());
+        LevelRenderEvents.START_MAIN.register(context -> {
+            PortalRenderTarget.beginClientFrame();
+            // Deferred ghost bakes drain here, not in the portal draw path (which needs meshes first).
+            SotoGhostMeshCache.drainAllBakeQueues();
+        });
         // Parallax: the portal view follows the camera, so it must be rendered this frame — after the
         // BERs have scheduled it, before submit geometry (the doorway composite) is drawn. A one-frame
         // stale image would visibly slide against the door frame while turning.

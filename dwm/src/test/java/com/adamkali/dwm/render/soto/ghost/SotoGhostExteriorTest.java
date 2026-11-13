@@ -173,6 +173,11 @@ class SotoGhostExteriorTest {
         assertTrue(SotoGhostMeshCache.hasDrawableChunk(PortalStreamKind.SOTO, id, 1, 2));
 
         SotoGhostExterior.applyChunk(PortalStreamKind.SOTO, stone);
+        // Baking is deferred to the per-frame budget: the old mesh stays until the queue drains.
+        assertTrue(SotoGhostMeshCache.hasDrawableChunk(PortalStreamKind.SOTO, id, 1, 2));
+        assertEquals(1, SotoGhostMeshCache.pendingBakeCount(PortalStreamKind.SOTO, id));
+        SotoGhostMeshCache.drainBakeQueue(PortalStreamKind.SOTO, id);
+        assertEquals(0, SotoGhostMeshCache.pendingBakeCount(PortalStreamKind.SOTO, id));
         // Real bake in unit tests yields MARKER/empty — drawable test mesh must be replaced.
         assertFalse(SotoGhostMeshCache.hasDrawableChunk(PortalStreamKind.SOTO, id, 1, 2));
         assertTrue(SotoGhostMeshCache.arePassBatchesDirtyForTest(PortalStreamKind.SOTO, id));
@@ -295,6 +300,74 @@ class SotoGhostExteriorTest {
         assertEquals(1, ghost.chunkCount());
         assertTrue(ghost.getBlockState(oldOnly).isAir());
         assertEquals(Blocks.STONE, ghost.getBlockState(newRel).getBlock());
+    }
+
+    @Test
+    void applyChunk_fill_bakesEachChunkOnce() {
+        UUID id = UUID.randomUUID();
+        for (int cx = 0; cx < 3; cx++) {
+            for (int cz = 0; cz < 3; cz++) {
+                SotoGhostExterior.applyChunk(PortalStreamKind.SOTO, dirtChunk(id, cx, cz, Blocks.DIRT));
+            }
+        }
+        // 9 arrivals, no neighbour fan-out: one queue entry per chunk.
+        assertEquals(9, SotoGhostMeshCache.pendingBakeCount(PortalStreamKind.SOTO, id));
+        int baked = SotoGhostMeshCache.drainBakeQueue(PortalStreamKind.SOTO, id, 100, Long.MAX_VALUE, System::nanoTime);
+        assertEquals(9, baked);
+        assertEquals(0, SotoGhostMeshCache.pendingBakeCount(PortalStreamKind.SOTO, id));
+    }
+
+    @Test
+    void drainAllBakeQueues_drainsWithoutPortalDraw_underOneSharedBudget() {
+        // Regression: portals only draw once they have meshes, so the queue must drain from the
+        // per-frame hook, not from drawLayer. Two scenes share one chunk budget per frame.
+        UUID a = UUID.randomUUID();
+        UUID b = UUID.randomUUID();
+        for (int cx = 0; cx < 3; cx++) {
+            SotoGhostExterior.applyChunk(PortalStreamKind.SOTO, dirtChunk(a, cx, 0, Blocks.DIRT));
+            SotoGhostExterior.applyChunk(PortalStreamKind.BOTI, dirtChunk(b, cx, 0, Blocks.DIRT));
+        }
+        assertEquals(4, SotoGhostMeshCache.drainAllBakeQueues(4, Long.MAX_VALUE, System::nanoTime));
+        int left = SotoGhostMeshCache.pendingBakeCount(PortalStreamKind.SOTO, a)
+                + SotoGhostMeshCache.pendingBakeCount(PortalStreamKind.BOTI, b);
+        assertEquals(2, left);
+        assertEquals(2, SotoGhostMeshCache.drainAllBakeQueues(4, Long.MAX_VALUE, System::nanoTime));
+        assertEquals(0, SotoGhostMeshCache.drainAllBakeQueues(4, Long.MAX_VALUE, System::nanoTime));
+    }
+
+    @Test
+    void applyChunk_interiorEdit_rebakesOnlyThatChunk() {
+        UUID id = UUID.randomUUID();
+        for (int cx = 0; cx < 3; cx++) {
+            for (int cz = 0; cz < 3; cz++) {
+                SotoGhostExterior.applyChunk(PortalStreamKind.SOTO, dirtChunk(id, cx, cz, Blocks.DIRT));
+            }
+        }
+        SotoGhostMeshCache.drainBakeQueue(PortalStreamKind.SOTO, id, 100, Long.MAX_VALUE, System::nanoTime);
+
+        SotoGhostExterior.applyChunk(PortalStreamKind.SOTO, dirtChunk(id, 1, 1, Blocks.STONE));
+        assertEquals(1, SotoGhostMeshCache.pendingBakeCount(PortalStreamKind.SOTO, id));
+    }
+
+    @Test
+    void applyChunk_borderEdit_refreshesAdjacentNeighbourOnly() {
+        UUID id = UUID.randomUUID();
+        for (int cx = 0; cx < 3; cx++) {
+            for (int cz = 0; cz < 3; cz++) {
+                SotoGhostExterior.applyChunk(PortalStreamKind.SOTO, dirtChunk(id, cx, cz, Blocks.DIRT));
+            }
+        }
+        SotoGhostMeshCache.drainBakeQueue(PortalStreamKind.SOTO, id, 100, Long.MAX_VALUE, System::nanoTime);
+
+        // Origin x = 100, so rel x = 12 is world x = 112 = local 0 of its chunk: touches the -X neighbour.
+        SotoGhostExterior.applyChunk(PortalStreamKind.SOTO, new SyncPortalChunkS2CPayload(
+                PortalStreamKind.SOTO, id, 1, 1, 100, 64, 200,
+                List.of(new SyncPortalChunkS2CPayload.BlockEntry(
+                        12, 1, 3, BotiRelativePosCodec.stateId(Blocks.STONE.defaultBlockState())
+                )),
+                List.of()));
+        // The chunk itself plus exactly one neighbour (chunk 0,1), not the whole 3x3.
+        assertEquals(2, SotoGhostMeshCache.pendingBakeCount(PortalStreamKind.SOTO, id));
     }
 
     private static SyncPortalChunkS2CPayload dirtChunk(
