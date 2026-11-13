@@ -40,7 +40,7 @@ public final class PortalPerfDebugHud {
         LEAF_COLORS.put(PortalPerfStats.Stage.TERRAIN_CUTOUT, ARGB.opaque(0xDDCC44));
         LEAF_COLORS.put(PortalPerfStats.Stage.TERRAIN_TRANSLUCENT, ARGB.opaque(0x66DDDD));
         LEAF_COLORS.put(PortalPerfStats.Stage.GHOST_FEATURES, ARGB.opaque(0xDD77FF));
-        LEAF_COLORS.put(PortalPerfStats.Stage.PASS_BATCH_REBUILD, ARGB.opaque(0xFF8844));
+        LEAF_COLORS.put(PortalPerfStats.Stage.MESH_UPLOAD, ARGB.opaque(0xFF8844));
         LEAF_COLORS.put(PortalPerfStats.Stage.MESH_BAKE, ARGB.opaque(0xFF5555));
         LEAF_COLORS.put(PortalPerfStats.Stage.COMPOSITE, ARGB.opaque(0xAAAAAA));
     }
