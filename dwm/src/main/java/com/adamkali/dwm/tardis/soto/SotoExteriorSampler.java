@@ -83,7 +83,7 @@ public final class SotoExteriorSampler extends PortalSampler {
     }
 
     public static int[] streamChunkBounds(ServerLevel world, BlockPos exteriorPos) {
-        return streamChunkBounds(exteriorPos, PortalSampler.streamRadiusChunks(world));
+        return streamChunkBounds(exteriorPos, PortalSampler.sotoStreamRadiusChunks(world));
     }
 
     /** Axis-aligned box covering the ghost stream radius (horizontal chunks + vertical radius). */
@@ -113,7 +113,7 @@ public final class SotoExteriorSampler extends PortalSampler {
         if (world == null || exteriorPos == null) {
             return;
         }
-        INSTANCE.addStreamTickets(world, exteriorPos, PortalSampler.streamRadiusChunks(world));
+        INSTANCE.addStreamTickets(world, exteriorPos, PortalSampler.sotoStreamRadiusChunks(world));
     }
 
     /**
