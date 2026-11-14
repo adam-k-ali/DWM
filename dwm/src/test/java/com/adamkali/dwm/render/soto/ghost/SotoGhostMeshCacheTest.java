@@ -171,4 +171,19 @@ class SotoGhostMeshCacheTest {
         assertFalse(SotoGhostMeshCache.hasDrawableChunk(PortalStreamKind.SOTO, id, 0, 0));
         assertEquals(SotoGhostMeshCache.buffersCreated(), SotoGhostMeshCache.buffersClosed());
     }
+
+    @Test
+    void needsBake_includesFluidsAndWaterloggedBlocks() {
+        assertTrue(SotoGhostMeshCache.needsBake(Blocks.STONE.defaultBlockState()));
+        assertTrue(SotoGhostMeshCache.needsBake(Blocks.WATER.defaultBlockState()));
+        assertTrue(SotoGhostMeshCache.needsBake(Blocks.LAVA.defaultBlockState()));
+        assertTrue(SotoGhostMeshCache.needsBake(Blocks.OAK_SLAB.defaultBlockState()
+                .setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED, true)));
+    }
+
+    @Test
+    void needsBake_excludesAirAndNull() {
+        assertFalse(SotoGhostMeshCache.needsBake(null));
+        assertFalse(SotoGhostMeshCache.needsBake(Blocks.AIR.defaultBlockState()));
+    }
 }
