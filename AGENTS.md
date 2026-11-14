@@ -87,6 +87,7 @@ DWM uses **Mojang official mappings** for the Minecraft version in [`dwm/gradle.
 - **GameTests** (`./dwm/gradlew runGametest`): Headless dedicated-server in-world tests in `dwm/src/main/java/.../gametest/`. Not run by CI today — run locally when GameTest code changes.
 - **Client GameTests** (`./dwm/scripts/run-client-gametest.sh`): launch a real client under `xvfb-run` with software GL, load a singleplayer world and save screenshots to `dwm/build/run/clientGameTest/screenshots/` (open the PNGs to check client-side/rendering changes). Tests live in `dwm/src/gametest/java/.../gametest/client/` and are registered in `dwm/src/gametest/resources/fabric.mod.json`.
   - **On macOS** agents do not need `xvfb-run` or software GL: run `./dwm/gradlew runClientGameTest` directly and the real client opens a window. Screenshots land in the same `dwm/build/run/clientGameTest/screenshots/` directory. The script is for Linux/cloud VMs only.
+- **PR screenshots**: for client-visible changes, attach client GameTest screenshots to the PR description via [`dwm/scripts/upload-pr-screenshots.sh`](dwm/scripts/upload-pr-screenshots.sh) (public S3/CloudFront bucket; see [dwm/docs/pr-screenshots.md](dwm/docs/pr-screenshots.md)). Never upload anything sensitive.
 - Keep test runs reproducible and suitable for unattended agent execution.
 
 ## Automation Pipeline For Agents

@@ -17,3 +17,7 @@
 <!-- Deviations from the plan, issues discovered during implementation, tradeoffs. Use “None” if nothing applies. -->
 
 - …
+
+## Screenshots
+
+<!-- Optional. For client-visible changes, upload via dwm/scripts/upload-pr-screenshots.sh and paste the markdown (see dwm/docs/pr-screenshots.md). Omit if not applicable. -->
