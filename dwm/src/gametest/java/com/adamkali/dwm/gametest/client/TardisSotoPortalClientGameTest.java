@@ -69,7 +69,27 @@ public class TardisSotoPortalClientGameTest implements FabricClientGameTest {
                         Blocks.GRASS_BLOCK.defaultBlockState(), 3);
             }
             placeLeafShadedStep(level);
+            placeLiquidPools(level);
         });
+    }
+
+    /**
+     * Sunken water (left) and lava (right) pools right in front of the exterior door, level with the pad top.
+     * Fluid blocks are {@code RenderShape.INVISIBLE} and must be meshed by the fluid renderer, so they
+     * regress to empty space in the portal if the ghost bake skips them.
+     */
+    private static void placeLiquidPools(net.minecraft.server.level.ServerLevel level) {
+        int padY = ClientGameTestSupport.PAD_Y;
+        for (int x = -4; x <= 4; x++) {
+            for (int z = 2; z <= 3; z++) {
+                if (x == 0) {
+                    continue;
+                }
+                level.setBlock(new BlockPos(x, padY - 2, z), Blocks.STONE.defaultBlockState(), 3);
+                level.setBlock(new BlockPos(x, padY - 1, z),
+                        (x < 0 ? Blocks.WATER : Blocks.LAVA).defaultBlockState(), 3);
+            }
+        }
     }
 
     /**
