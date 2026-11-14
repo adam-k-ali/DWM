@@ -12,6 +12,7 @@ import com.adamkali.dwm.render.SonicFieldModeHud;
 import com.adamkali.dwm.render.SonicFieldModeHudController;
 import com.adamkali.dwm.render.SonicPingClientFx;
 import com.adamkali.dwm.render.SonicScanHud;
+import com.adamkali.dwm.render.TardisTransitionFade;
 import com.adamkali.dwm.render.TardisBlockSpecialRenderer;
 import com.adamkali.dwm.render.TardisCompactScannerSpecialRenderer;
 import com.adamkali.dwm.render.TardisFullScannerSpecialRenderer;
@@ -59,6 +60,7 @@ public class DWMClient implements ClientModInitializer {
         SonicFieldModeHudController.initialize();
         SonicFieldModeHud.initialize();
         SonicScanHud.initialize();
+        TardisTransitionFade.initialize();
         SonicScrewdriverItem.openFieldModeSelector = SonicFieldModeHudController::open;
         FieldGuideItem.openGuide = player -> FieldGuideScreens.openDirect(Minecraft.getInstance());
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
