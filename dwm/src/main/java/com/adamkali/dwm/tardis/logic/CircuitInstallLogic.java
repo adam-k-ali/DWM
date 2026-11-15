@@ -143,6 +143,7 @@ public final class CircuitInstallLogic {
             case RADIATION_READER -> "dwm.console.radiation_reader";
             case REFUELER -> "dwm.console.refueler";
             case DOOR_LOCK -> "dwm.console.door_lock";
+            case ARS -> "dwm.console.ars";
             case NONE -> "dwm.console.circuit_mismatch";
         };
     }

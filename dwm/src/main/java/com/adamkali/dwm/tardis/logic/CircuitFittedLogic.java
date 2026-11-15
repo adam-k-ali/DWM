@@ -99,7 +99,7 @@ public final class CircuitFittedLogic {
                     java.util.Optional.of(TardisCircuit.COORDINATE_LOCKS);
             case STABILISERS -> java.util.Optional.of(TardisCircuit.STABILISERS);
             case BIOME_SELECTOR, MATERIALISATION_LEVER, OXYGEN_READER, PRESSURE_READER,
-                 TEMPERATURE_READER, RADIATION_READER, REFUELER, DOOR_LOCK, NONE ->
+                 TEMPERATURE_READER, RADIATION_READER, REFUELER, DOOR_LOCK, ARS, NONE ->
                     java.util.Optional.empty();
         };
     }

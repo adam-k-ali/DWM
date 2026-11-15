@@ -21,6 +21,7 @@ import com.adamkali.dwm.model.tileentity.FastReturnModel;
 import com.adamkali.dwm.model.tileentity.ReaderModel;
 import com.adamkali.dwm.model.tileentity.RadiationReaderModel;
 import com.adamkali.dwm.model.tileentity.CloakLeverModel;
+import com.adamkali.dwm.model.tileentity.ArsControlModel;
 import com.adamkali.dwm.model.tileentity.DoorLockModel;
 import com.adamkali.dwm.model.tileentity.TelepathicCircuitModel;
 import com.adamkali.dwm.model.tileentity.CoordinateLockModel;
@@ -94,6 +95,7 @@ class EntityModelTexturesTest {
             Map.entry("TardisFullScannerModel", TardisFullScannerModel.LAYER_LOCATION),
             Map.entry("RadiationMeterModel", RadiationMeterModel.LAYER_LOCATION),
             Map.entry("StabilisersModel", StabilisersModel.LAYER_LOCATION),
+            Map.entry("ArsControlModel", ArsControlModel.LAYER_LOCATION),
             Map.entry("TardisClassicInteriorDoorModel", TardisClassicInteriorDoorModel.LAYER_LOCATION)
     );
     private static final List<ModelLayerLocation> JSON_LAYERS = jsonLayers();

@@ -467,6 +467,46 @@ class FirstDoctorConsoleControlsTest {
     }
 
     @Test
+    void arsIsTheLastLookTarget() {
+        FirstDoctorConsoleControls.LookTarget[] values = FirstDoctorConsoleControls.LookTarget.values();
+        assertEquals(FirstDoctorConsoleControls.LookTarget.ARS, values[values.length - 1],
+                "ordinals are saved in entity NBT: append new controls after ARS only");
+    }
+
+    @Test
+    void arsControl_sitsOnPanel5BottomRowWithoutOverlappingTheRefueler() {
+        for (Direction facing : Direction.Plane.HORIZONTAL) {
+            BlockPos pos = BlockPos.ZERO;
+            FirstDoctorConsoleControls.InteractionPose ars = FirstDoctorConsoleControls.interactionPose(
+                    FirstDoctorConsoleControls.LookTarget.ARS, pos, facing);
+            FirstDoctorConsoleControls.InteractionPose refueler = FirstDoctorConsoleControls.interactionPose(
+                    FirstDoctorConsoleControls.LookTarget.REFUELER, pos, facing);
+            assertNotNull(ars);
+            assertNotNull(refueler);
+            assertFalse(ars.aabb().intersects(refueler.aabb()), "ARS must not overlap the refueler, " + facing);
+            for (FirstDoctorConsoleControls.LookTarget other : FirstDoctorConsoleControls.LookTarget.interactiveValues()) {
+                if (other == FirstDoctorConsoleControls.LookTarget.ARS) {
+                    continue;
+                }
+                assertFalse(ars.aabb().intersects(
+                                FirstDoctorConsoleControls.interactionPose(other, pos, facing).aabb()),
+                        "ARS must not overlap " + other + ", " + facing);
+            }
+            double arsDist = Math.hypot(ars.position().x - 0.5, ars.position().z - 0.5);
+            double refuelerDist = Math.hypot(refueler.position().x - 0.5, refueler.position().z - 0.5);
+            assertTrue(arsDist > refuelerDist, "ARS should sit on Panel5's outer (bottom) row");
+        }
+        FirstDoctorConsoleControls.InteractionPose north = FirstDoctorConsoleControls.interactionPose(
+                FirstDoctorConsoleControls.LookTarget.ARS, BlockPos.ZERO, Direction.NORTH);
+        FirstDoctorConsoleControls.InteractionPose refuelerNorth = FirstDoctorConsoleControls.interactionPose(
+                FirstDoctorConsoleControls.LookTarget.REFUELER, BlockPos.ZERO, Direction.NORTH);
+        // Same panel: the two controls point the same way from the console centre.
+        double arsAngle = Math.atan2(north.position().z - 0.5, north.position().x - 0.5);
+        double refuelerAngle = Math.atan2(refuelerNorth.position().z - 0.5, refuelerNorth.position().x - 0.5);
+        assertEquals(refuelerAngle, arsAngle, 0.05);
+    }
+
+    @Test
     void panel6InteractionPoses_doNotOverlap() {
         Direction facing = Direction.NORTH;
         BlockPos pos = BlockPos.ZERO;

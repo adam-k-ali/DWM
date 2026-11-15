@@ -42,6 +42,15 @@ class Dwm033ControlModelTest {
     }
 
     @Test
+    void arsControl_bakesTreeOnPlate() {
+        ModelPart root = assertDoesNotThrow(() -> TestModelLoading.bake(ArsControlModel.LAYER_LOCATION));
+        assertNotNull(root.getChild("plate"));
+        assertNotNull(root.getChild("tree").getChild("orbs"));
+        assertNotNull(root.getChild("lamp"));
+        assertNotNull(root.getChild("dial"));
+    }
+
+    @Test
     void coordinateLock_bakesAxisSwitches() {
         ModelPart root = assertDoesNotThrow(() -> TestModelLoading.bake(CoordinateLockModel.LAYER_LOCATION));
         assertNotNull(root.getChild("coord_button_x").getChild("switch"));
