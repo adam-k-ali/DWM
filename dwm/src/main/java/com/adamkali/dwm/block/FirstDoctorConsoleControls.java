@@ -128,7 +128,7 @@ public final class FirstDoctorConsoleControls {
     private static final float CLOAK_SCALE = LEVER_SCALE;
     private static final float DOOR_LOCK_SCALE = 0.14F;
     private static final float COORDINATE_LOCK_SCALE = 0.11F;
-    private static final float ARS_SCALE = 0.2F;
+    private static final float ARS_SCALE = 0.22F;
 
     private static final float SEL_MIN_X = -7.0F;
     private static final float SEL_MIN_Y = 0.0F;
@@ -204,12 +204,12 @@ public final class FirstDoctorConsoleControls {
     private static final float CLKA_MIN_Z = -12.0F;
     private static final float CLKA_MAX_Z = -6.0F;
 
-    /** ARS control mesh extents (plate 12×10, copper tree up to 7 high). */
+    /** ARS control mesh extents (plate 12×10, copper tree up to 9 high). */
     private static final float ARS_MIN_X = -6.0F;
     private static final float ARS_MIN_Y = 0.0F;
     private static final float ARS_MIN_Z = -5.0F;
     private static final float ARS_MAX_X = 6.0F;
-    private static final float ARS_MAX_Y = 7.0F;
+    private static final float ARS_MAX_Y = 9.0F;
     private static final float ARS_MAX_Z = 5.0F;
 
     private static final float Y_SCALE = 0.8F;
