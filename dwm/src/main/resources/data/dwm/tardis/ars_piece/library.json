@@ -1,0 +1,11 @@
+{
+  "kind": "room",
+  "structure": "dwm:tardis/ars/library",
+  "cells": [2, 2],
+  "connectors": [
+    { "cell": [0, 0], "side": "north" },
+    { "cell": [1, 1], "side": "east" }
+  ],
+  "artron_cost": 40,
+  "map_color": "#B08D57"
+}

@@ -53,6 +53,7 @@ class StructureTemplateGeneratorTest {
     private static List<TemplateLayout> allTemplates() {
         List<TemplateLayout> all = new ArrayList<>(DalekOutpostTemplates.all());
         all.addAll(DalekTrenchTemplates.all());
+        all.addAll(TardisArsTemplates.all());
         return all;
     }
 }
