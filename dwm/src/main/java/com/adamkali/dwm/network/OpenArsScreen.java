@@ -14,10 +14,15 @@ import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Opens (or refreshes) the ARS map screen: the TARDIS's current layout and artron. Piece definitions are not
+ * Opens or refreshes the ARS map screen: the TARDIS's current layout and artron. Piece definitions are not
  * sent; the client reads them from the synced {@code ArsRegistries.PIECE} registry.
+ *
+ * <p>{@code refresh} is false when the console control opens the screen and true for the snapshot sent after a
+ * grow or jettison request. A refresh only updates an ARS screen already open for that TARDIS; it never opens one
+ * (the player may have closed the screen before the reply arrived).
  */
-public record OpenArsScreen(UUID tardisId, List<PlacedPiece> layout, int artron) implements CustomPacketPayload {
+public record OpenArsScreen(UUID tardisId, List<PlacedPiece> layout, int artron, boolean refresh)
+        implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<OpenArsScreen> ID =
             new CustomPacketPayload.Type<>(DWMPacketIds.OPEN_ARS_SCREEN_ID);
 
@@ -33,6 +38,7 @@ public record OpenArsScreen(UUID tardisId, List<PlacedPiece> layout, int artron)
             DWMPacketCodecs.UUID_PACKET_CODEC, OpenArsScreen::tardisId,
             PIECE_CODEC.apply(ByteBufCodecs.list()), OpenArsScreen::layout,
             ByteBufCodecs.VAR_INT, OpenArsScreen::artron,
+            ByteBufCodecs.BOOL, OpenArsScreen::refresh,
             OpenArsScreen::new
     );
 
@@ -44,9 +50,9 @@ public record OpenArsScreen(UUID tardisId, List<PlacedPiece> layout, int artron)
      * Snapshot of {@code model}'s layout and artron. Saved pieces whose id does not parse are skipped (the
      * layout rules ignore them too); a null model gives an empty layout and no artron.
      */
-    public static OpenArsScreen of(UUID tardisId, @Nullable TardisDataModel model) {
+    public static OpenArsScreen of(UUID tardisId, @Nullable TardisDataModel model, boolean refresh) {
         if (model == null) {
-            return new OpenArsScreen(tardisId, List.of(), 0);
+            return new OpenArsScreen(tardisId, List.of(), 0, refresh);
         }
         List<PlacedPiece> pieces = new ArrayList<>(model.getArsPieces().size());
         for (ArsPlacedPiece piece : model.getArsPieces()) {
@@ -59,7 +65,7 @@ public record OpenArsScreen(UUID tardisId, List<PlacedPiece> layout, int artron)
             }
             pieces.add(new PlacedPiece(id, piece.cellX, piece.cellZ, piece.rotation));
         }
-        return new OpenArsScreen(tardisId, pieces, ArtronLogic.read(model));
+        return new OpenArsScreen(tardisId, pieces, ArtronLogic.read(model), refresh);
     }
 
     /** The layout as {@link ArsPlacedPiece}s, for {@code ArsLayoutLogic}. */

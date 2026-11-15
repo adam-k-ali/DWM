@@ -45,7 +45,9 @@ Interactions:
   select it. The readout shows its name, the refund and whether it can be removed; **Jettison** asks the server to
   remove it and is disabled, with the reason as its tooltip, when the rules refuse.
 - **Done** or `Esc` closes the screen. After every request the server shows the result as an overlay and re-sends
-  the layout; the open screen updates in place, keeping the palette selection and rotation.
+  the layout as a refresh: an ARS screen still open for that TARDIS updates in place, keeping the palette
+  selection and rotation, and a refresh never reopens the screen once it has been closed. Only the console
+  control opens it.
 
 ### Server checks
 The screen only sends requests (`ArsGrowC2SPayload`, `ArsJettisonC2SPayload`); the server re-checks everything:

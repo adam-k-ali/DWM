@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -193,6 +194,21 @@ class ArsMapStateTest {
         assertEquals(new ArsCell(4, 2), state.selectedCell());
         state.update(layout().subList(0, 2), 60, DEFS);
         assertNull(state.selectedCell());
+    }
+
+    @Test
+    void receive_refreshOnlyUpdatesTheOpenScreenForThatTardis() {
+        UUID tardis = UUID.randomUUID();
+        UUID other = UUID.randomUUID();
+
+        assertEquals(ArsMapState.Receive.UPDATE, ArsMapState.receive(tardis, tardis, true));
+        assertEquals(ArsMapState.Receive.UPDATE, ArsMapState.receive(tardis, tardis, false));
+        // Closed (or another screen showing): the grow/jettison reply must not reopen the screen.
+        assertEquals(ArsMapState.Receive.IGNORE, ArsMapState.receive(null, tardis, true));
+        assertEquals(ArsMapState.Receive.IGNORE, ArsMapState.receive(other, tardis, true));
+        // The console control opens it.
+        assertEquals(ArsMapState.Receive.OPEN, ArsMapState.receive(null, tardis, false));
+        assertEquals(ArsMapState.Receive.OPEN, ArsMapState.receive(other, tardis, false));
     }
 
     @Test

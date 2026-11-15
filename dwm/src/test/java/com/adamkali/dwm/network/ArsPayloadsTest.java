@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ArsPayloadsTest {
@@ -31,7 +32,7 @@ class ArsPayloadsTest {
         OpenArsScreen payload = new OpenArsScreen(UUID.randomUUID(), List.of(
                 new OpenArsScreen.PlacedPiece(STRAIGHT, 2, 1, 1),
                 new OpenArsScreen.PlacedPiece(LIBRARY, 4, 0, 3)
-        ), 375);
+        ), 375, false);
 
         OpenArsScreen decoded = roundTrip(OpenArsScreen.CODEC, payload);
 
@@ -41,9 +42,11 @@ class ArsPayloadsTest {
 
     @Test
     void openArsScreen_roundTripsEmptyLayout() {
-        OpenArsScreen payload = new OpenArsScreen(UUID.randomUUID(), List.of(), 0);
+        OpenArsScreen payload = new OpenArsScreen(UUID.randomUUID(), List.of(), 0, true);
 
-        assertEquals(payload, roundTrip(OpenArsScreen.CODEC, payload));
+        OpenArsScreen decoded = roundTrip(OpenArsScreen.CODEC, payload);
+        assertEquals(payload, decoded);
+        assertTrue(decoded.refresh());
     }
 
     @Test
@@ -56,20 +59,22 @@ class ArsPayloadsTest {
         model.getArsPieces().add(null);
         UUID id = UUID.randomUUID();
 
-        OpenArsScreen payload = OpenArsScreen.of(id, model);
+        OpenArsScreen payload = OpenArsScreen.of(id, model, true);
 
         assertEquals(id, payload.tardisId());
         assertEquals(List.of(new OpenArsScreen.PlacedPiece(STRAIGHT, 2, 1, 1)), payload.layout());
         assertEquals(120, payload.artron());
+        assertTrue(payload.refresh());
         assertEquals(List.of(new ArsPlacedPiece(STRAIGHT.toString(), 2, 1, 1)), payload.placedPieces());
     }
 
     @Test
     void openArsScreen_ofNullModelIsEmpty() {
-        OpenArsScreen payload = OpenArsScreen.of(UUID.randomUUID(), null);
+        OpenArsScreen payload = OpenArsScreen.of(UUID.randomUUID(), null, false);
 
         assertTrue(payload.layout().isEmpty());
         assertEquals(0, payload.artron());
+        assertFalse(payload.refresh());
     }
 
     @Test

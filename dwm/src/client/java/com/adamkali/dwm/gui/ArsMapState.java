@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
@@ -87,6 +88,28 @@ public final class ArsMapState {
         static Click of(ClickKind kind) {
             return new Click(kind, null, null);
         }
+    }
+
+    /** What the client does with an {@code OpenArsScreen} payload. */
+    public enum Receive {
+        /** Open a new ARS screen. */
+        OPEN,
+        /** Update the ARS screen already open for that TARDIS in place. */
+        UPDATE,
+        /** Drop it: a refresh with no ARS screen open for that TARDIS. */
+        IGNORE
+    }
+
+    /**
+     * Receiver decision for an {@code OpenArsScreen} payload. {@code openScreenTardisId} is the TARDIS of the ARS
+     * screen currently showing, or {@code null} when another screen (or none) is showing. A matching open screen is
+     * updated; otherwise a refresh is ignored and only the console control's payload opens the screen.
+     */
+    public static Receive receive(@Nullable UUID openScreenTardisId, UUID payloadTardisId, boolean refresh) {
+        if (openScreenTardisId != null && openScreenTardisId.equals(payloadTardisId)) {
+            return Receive.UPDATE;
+        }
+        return refresh ? Receive.IGNORE : Receive.OPEN;
     }
 
     /**

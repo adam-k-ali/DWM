@@ -417,7 +417,8 @@ public class ServerPayloadTypeRegistry {
 
     /**
      * After the service ran: shows its message, re-syncs the console (artron changed, so the refueler needle
-     * moves) and re-sends the layout so an open ARS screen refreshes, also after a refusal.
+     * moves) and re-sends the layout as a refresh, so an ARS screen still open refreshes (also after a refusal);
+     * a refresh never reopens a closed screen.
      */
     private static boolean finishArsAction(UUID tardisId, @Nullable ArsService.Result result, ServerPlayer player) {
         if (result == null) {
@@ -425,7 +426,7 @@ public class ServerPayloadTypeRegistry {
         }
         player.sendOverlayMessage(result.message());
         FirstDoctorConsoleSync.syncFromModel(player.level().getServer(), tardisId);
-        ServerPlayNetworking.send(player, OpenArsScreen.of(tardisId, TardisDataLoader.get(tardisId)));
+        ServerPlayNetworking.send(player, OpenArsScreen.of(tardisId, TardisDataLoader.get(tardisId), true));
         return result.success();
     }
 

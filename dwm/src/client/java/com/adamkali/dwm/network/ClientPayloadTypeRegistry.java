@@ -1,6 +1,7 @@
 package com.adamkali.dwm.network;
 
 import com.adamkali.dwm.ClientTardis;
+import com.adamkali.dwm.gui.ArsMapState;
 import com.adamkali.dwm.gui.ArsScreen;
 import com.adamkali.dwm.gui.PlayerLocatorScreen;
 import com.adamkali.dwm.gui.TardisChameleonGui;
@@ -89,18 +90,23 @@ public class ClientPayloadTypeRegistry {
         });
     }
 
-    /** Opens the ARS screen, or refreshes it in place when it is already open for this TARDIS. */
+    /**
+     * Opens the ARS screen, or refreshes it in place when it is already open for this TARDIS. A refresh (the
+     * reply to a grow or jettison) never opens the screen.
+     */
     private static void openArsScreen(OpenArsScreen payload, ClientPlayNetworking.Context context) {
         context.client().execute(() -> {
             if (context.client().level == null) {
                 LOGGER.warn("Received OpenArsScreen payload but client or world is null");
                 return;
             }
-            if (context.client().gui.screen() instanceof ArsScreen open && open.tardisId().equals(payload.tardisId())) {
-                open.update(payload);
-                return;
+            ArsScreen open = context.client().gui.screen() instanceof ArsScreen ars ? ars : null;
+            switch (ArsMapState.receive(open == null ? null : open.tardisId(), payload.tardisId(), payload.refresh())) {
+                case UPDATE -> open.update(payload);
+                case OPEN -> context.client().setScreenAndShow(new ArsScreen(new ClientTardis(payload.tardisId()), payload));
+                case IGNORE -> {
+                }
             }
-            context.client().setScreenAndShow(new ArsScreen(new ClientTardis(payload.tardisId()), payload));
         });
     }
 

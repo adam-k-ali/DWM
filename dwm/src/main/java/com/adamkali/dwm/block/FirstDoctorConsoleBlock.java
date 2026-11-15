@@ -420,7 +420,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             player.sendOverlayMessage(Component.translatable("dwm.console.travel_in_flight"));
             return InteractionResult.CONSUME;
         }
-        ServerPlayNetworking.send(player, OpenArsScreen.of(tardisId, TardisDataLoader.get(tardisId)));
+        ServerPlayNetworking.send(player, OpenArsScreen.of(tardisId, TardisDataLoader.get(tardisId), false));
         playClick(world, pos);
         return InteractionResult.SUCCESS;
     }

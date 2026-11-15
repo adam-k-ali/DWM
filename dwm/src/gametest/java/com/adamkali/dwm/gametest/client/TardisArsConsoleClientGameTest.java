@@ -43,6 +43,7 @@ public class TardisArsConsoleClientGameTest implements FabricClientGameTest {
     private static final Identifier CROSS = Identifier.fromNamespaceAndPath("dwm", "corridor_cross");
     private static final Identifier BEDROOM = Identifier.fromNamespaceAndPath("dwm", "bedroom");
     private static final Identifier LIBRARY = Identifier.fromNamespaceAndPath("dwm", "library");
+    private static final Identifier DEAD_END = Identifier.fromNamespaceAndPath("dwm", "corridor_dead_end");
     private static final double EYE_HEIGHT = 1.62;
     private static final int LIGHT_WAIT_TICKS = 200;
     private static final int RENDER_TICKS = 40;
@@ -121,6 +122,14 @@ public class TardisArsConsoleClientGameTest implements FabricClientGameTest {
             }
             ClientGameTestSupport.screenshot(context, "ars_screen_layout");
             context.setScreen(() -> null);
+
+            // The reply to a request made after closing is a refresh: it must not reopen the screen.
+            grow(server, new ArsGrowC2SPayload(id, DEAD_END, 3, 0, 2));
+            context.waitTicks(10);
+            if (context.computeOnClient(client -> client.gui.screen()) != null) {
+                throw new AssertionError("A grow reply reopened a closed screen: "
+                        + context.computeOnClient(client -> client.gui.screen()));
+            }
 
             // 5-7. In the world, in spectator so the camera can stand anywhere.
             server.runCommand("gamemode spectator @a");
