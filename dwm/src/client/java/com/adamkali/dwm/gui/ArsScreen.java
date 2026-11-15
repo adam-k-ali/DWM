@@ -536,7 +536,9 @@ public class ArsScreen extends Screen {
         ArsPieceDefinition selectedDefinition = selected == null ? null : lookup.apply(selected);
         if (selected != null && selectedDefinition != null) {
             graphics.text(font, Component.translatable("dwm.gui.ars.placing",
-                    Component.translatable(ArsService.pieceNameKey(selected)),
+                    Component.translatable(ArsService.pieceNameKey(selected))), x, y, WHITE, false);
+            y += 11;
+            graphics.text(font, Component.translatable("dwm.gui.ars.cost_rotation",
                     selectedDefinition.artronCost(), state.rotation() * 90), x, y, LABEL, false);
             y += 11;
             Optional<ArsMapState.Ghost> ghost = state.ghostAt(hovered, lookup);
