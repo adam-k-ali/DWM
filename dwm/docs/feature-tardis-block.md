@@ -105,3 +105,7 @@ Make the TARDIS a tangible world object that is expressive, interactive, and per
 ## Future Opportunities
 - Per-chameleon BOTI / SOTO aperture meshes.
 - Ownership and multi-room corridors.
+
+## Enter/exit transition
+
+Entering or leaving the TARDIS changes dimension, so vanilla would show the "Downloading terrain" screen and then re-render the world. DWM replaces that screen with plain black and fades the new world in over ~350 ms (`TardisTransitionFadeLogic`, client mixins `ClientPacketListenerTardisMixin` / `LevelLoadingScreenTardisMixin`). Other dimension changes are unchanged.
