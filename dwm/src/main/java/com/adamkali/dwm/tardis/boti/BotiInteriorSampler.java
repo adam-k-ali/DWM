@@ -157,17 +157,28 @@ public final class BotiInteriorSampler extends PortalSampler {
         if (world == null || plotOrigin == null) {
             return;
         }
-        int[] bounds = FirstDoctorConsoleRoomPlacer.roomChunkBounds(plotOrigin);
+        enableChunkLighting(world, FirstDoctorConsoleRoomPlacer.roomChunkBounds(plotOrigin));
+        BlockPos sourcePos = plotOrigin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.above(3));
+        world.getLightEngine().checkBlock(sourcePos);
+    }
+
+    /**
+     * Enables vanilla light storage and queues source propagation for every chunk in the inclusive bounds
+     * {@code [minChunkX, maxChunkX, minChunkZ, maxChunkZ]}, for rooms stamped into previously empty chunks
+     * (see {@link #enableFootprintLighting}).
+     */
+    public static void enableChunkLighting(ServerLevel world, int[] chunkBounds) {
+        if (world == null || chunkBounds == null) {
+            return;
+        }
         var lightEngine = world.getLightEngine();
-        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
-            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
+        for (int cx = chunkBounds[0]; cx <= chunkBounds[1]; cx++) {
+            for (int cz = chunkBounds[2]; cz <= chunkBounds[3]; cz++) {
                 ChunkPos chunkPos = new ChunkPos(cx, cz);
                 lightEngine.setLightEnabled(chunkPos, true);
                 lightEngine.propagateLightSources(chunkPos);
             }
         }
-        BlockPos sourcePos = plotOrigin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.above(3));
-        lightEngine.checkBlock(sourcePos);
     }
 
     /**

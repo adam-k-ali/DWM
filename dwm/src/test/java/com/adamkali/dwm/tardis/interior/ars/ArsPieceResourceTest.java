@@ -58,9 +58,9 @@ class ArsPieceResourceTest {
     private static final Pattern WALL_PALETTE =
             Pattern.compile("dwm:[a-z_]+_(tardis_wall|roundel_a|roundel_b|big_roundel_a|big_roundel_b)");
 
-    private static final Identifier CONSOLE_ANNEX = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "tardis/ars/console_annex");
+    private static final Identifier CONSOLE_ANNEX = ArsGeometry.ANNEX_STRUCTURE_ID;
     /** Plot-local origin the annex is placed at: immediately east of the console room's east wall. */
-    private static final BlockPos ANNEX_ORIGIN = new BlockPos(11, ArsGrid.FLOOR_Y, 6);
+    private static final BlockPos ANNEX_ORIGIN = ArsGeometry.ANNEX_ORIGIN;
 
     @BeforeAll
     static void bootstrap() {
@@ -167,12 +167,18 @@ class ArsPieceResourceTest {
     @Test
     void consoleAnnexJoinsConsoleRoomToRootCell() throws IOException {
         Template annex = Template.load(CONSOLE_ANNEX);
-        assertEquals(5, annex.sizeX);
-        assertEquals(6, annex.sizeY);
-        assertEquals(9, annex.sizeZ);
+        assertEquals(ArsGeometry.ANNEX_SIZE_X, annex.sizeX);
+        assertEquals(ArsGeometry.ANNEX_SIZE_Y, annex.sizeY);
+        assertEquals(ArsGeometry.ANNEX_SIZE_Z, annex.sizeZ);
         int east = annex.sizeX - 1;
         int south = annex.sizeZ - 1;
         int ceiling = annex.sizeY - 1;
+        // The console doorway is carved in the wall that closes the annex's open west side, inside its walls.
+        assertEquals(ANNEX_ORIGIN.getX() - 1, ArsGeometry.CONSOLE_DOORWAY_X);
+        assertTrue(ArsGeometry.CONSOLE_DOORWAY_MIN_Z - ANNEX_ORIGIN.getZ() > 0);
+        assertTrue(ArsGeometry.CONSOLE_DOORWAY_MAX_Z - ANNEX_ORIGIN.getZ() < south);
+        assertTrue(ArsGeometry.CONSOLE_DOORWAY_MIN_Y >= ArsGrid.APERTURE_MIN_Y);
+        assertTrue(ArsGeometry.CONSOLE_DOORWAY_MAX_Y <= ArsGrid.APERTURE_MAX_Y);
         // The annex ends right where the root cell's west face begins, and its doorway faces that face's aperture.
         assertEquals(ArsGrid.cellMinBlockX(ArsGrid.ROOT_CELL_X), ANNEX_ORIGIN.getX() + annex.sizeX);
         assertEquals(Direction.WEST, ArsGrid.ROOT_SIDE);

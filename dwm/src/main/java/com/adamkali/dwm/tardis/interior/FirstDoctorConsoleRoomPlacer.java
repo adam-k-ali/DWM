@@ -8,6 +8,7 @@ import com.adamkali.dwm.block.entities.TardisMonitorBlockEntity;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.interior.ars.ArsService;
 import com.adamkali.dwm.tardis.logic.FirstDoctorConsoleSync;
 import com.mojang.logging.LogUtils;
 import java.util.Optional;
@@ -105,8 +106,23 @@ public final class FirstDoctorConsoleRoomPlacer {
         if (world == null || origin == null) {
             return;
         }
-        addRoomTickets(world, origin);
-        int[] bounds = roomChunkBounds(origin);
+        forceLoadChunks(world, roomChunkBounds(origin));
+    }
+
+    /**
+     * Synchronously force-loads every chunk in the inclusive bounds
+     * {@code [minChunkX, maxChunkX, minChunkZ, maxChunkZ]}, with the same short-lived room ticket.
+     */
+    public static void forceLoadChunks(ServerLevel world, int[] bounds) {
+        if (world == null || bounds == null) {
+            return;
+        }
+        var chunkManager = world.getChunkSource();
+        for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
+            for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
+                chunkManager.addTicketWithRadius(ROOM_LOAD_TICKET, new ChunkPos(cx, cz), 0);
+            }
+        }
         for (int cx = bounds[0]; cx <= bounds[1]; cx++) {
             for (int cz = bounds[2]; cz <= bounds[3]; cz++) {
                 world.getChunk(cx, cz);
@@ -140,6 +156,8 @@ public final class FirstDoctorConsoleRoomPlacer {
         placeInteriorLight(world, origin);
         stampInteriorEntities(world, origin, tardisId);
         applyDoorOpenFromModel(world, origin, tardisId);
+        // The template's east wall is solid; keep the way into the ARS rooms open.
+        ArsService.restoreConsoleDoorway(world, origin, tardisId);
         BotiInteriorSampler.enableFootprintLighting(world, origin);
         FirstDoctorConsoleSync.syncFromModel(world.getServer(), tardisId);
 
