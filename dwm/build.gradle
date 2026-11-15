@@ -276,6 +276,18 @@ fabricApi {
     }
 }
 
+// Client GameTest selection (see DwmClientGameTests):
+//   ./gradlew runClientGameTest -Pgametest.tests=TardisVariants,FieldGuide   (individual tests)
+//   ./gradlew runClientGameTest -Pgametest.categories=portal,items-ui        (categories; default: all)
+tasks.matching { it.name == "runClientGameTest" }.configureEach { task ->
+    ["tests", "categories"].each { key ->
+        def value = providers.gradleProperty("gametest.${key}").orNull
+        if (value != null && !value.isBlank()) {
+            task.systemProperty("dwm.gametest.${key}", value)
+        }
+    }
+}
+
 // Fabric ModelProvider auto-emits item models for every BlockItem; hand-maintained items
 // (roundels, sonic, TARDIS, radiation meter, …) live under src/client/resources. Keep only datagen-owned
 // Gallifrey / wood-family / citadel / orange-sand item models in generated

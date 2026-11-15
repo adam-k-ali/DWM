@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
 
 /** Opens the Field Guide screen and saves {@code field_guide_cover.png}. */
+@ClientGameTestCategory(GameTestCategory.ITEMS_UI)
 public class FieldGuideClientGameTest implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {

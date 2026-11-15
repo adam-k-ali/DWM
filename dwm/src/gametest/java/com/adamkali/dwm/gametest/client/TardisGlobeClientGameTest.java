@@ -13,6 +13,7 @@ import net.minecraft.core.Direction;
  * TARDIS globes on the pad: {@code tardis_globe} shows three in their ambient poses (each globe has
  * its own phase), {@code tardis_globe_spin} the middle one part-way through the spin started on use.
  */
+@ClientGameTestCategory(GameTestCategory.TARDIS_EXTERIOR)
 public class TardisGlobeClientGameTest implements FabricClientGameTest {
     private static final int Z = 4;
     private static final Direction[] FACINGS = {Direction.EAST, Direction.SOUTH, Direction.WEST};

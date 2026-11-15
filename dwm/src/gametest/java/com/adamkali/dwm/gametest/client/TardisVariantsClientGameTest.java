@@ -16,6 +16,7 @@ import java.util.UUID;
  * One screenshot of the TARDIS exterior per chameleon variant ({@code tardis_variant_<id>.png}), plus an
  * open-door shot of each generated modern exterior ({@code tardis_variant_<id>_open.png}).
  */
+@ClientGameTestCategory(GameTestCategory.TARDIS_EXTERIOR)
 public class TardisVariantsClientGameTest implements FabricClientGameTest {
     private static final List<TardisChameleonVariant> GENERATED_EXTERIORS = List.of(
             TardisChameleonVariant.TARDIS_2005,

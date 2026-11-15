@@ -16,6 +16,7 @@ import java.util.List;
  * {@code entities_paradigm_daleks}, and the same Paradigm group at midnight
  * ({@code entities_paradigm_daleks_night}) to show the glowing eye and dome lights.
  */
+@ClientGameTestCategory(GameTestCategory.ENTITIES)
 public class EntitiesClientGameTest implements FabricClientGameTest {
     private static final int GROUP_SPACING = 48;
     private static final String FACING_CAMERA = "Rotation:[180f,0f]";

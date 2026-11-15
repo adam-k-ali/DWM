@@ -27,6 +27,7 @@ import java.util.List;
  * <p>Registered after the portal scenarios on purpose: in a full run, placing it before them made the SOTO portal
  * composite wait time out (each of the portal tests passes alone or with this one; cause not yet isolated).
  */
+@ClientGameTestCategory(GameTestCategory.WORLDGEN)
 public class ThalSettlementClientGameTest implements FabricClientGameTest {
     /** Plans a settlement with a shelter, five huts, two fields and a watch post (asserted below). */
     private static final long SEED = 20260725L;

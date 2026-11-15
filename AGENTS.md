@@ -27,7 +27,7 @@
 | --- | --- |
 | DWM client | `./dwm/gradlew runClient` |
 | Client GameTests + screenshots (headless, Linux) | `./dwm/scripts/run-client-gametest.sh` |
-| Client GameTests + screenshots (macOS, real client) | `./dwm/gradlew runClientGameTest` |
+| Client GameTests + screenshots (macOS, real client) | `./dwm/gradlew runClientGameTest [-Pgametest.tests=Name \| -Pgametest.categories=id]` |
 | Minecraft named sources (Grep) | `./dwm/gradlew unpackMinecraftSources` |
 
 ## Agent-First Engineering Principles
@@ -85,7 +85,22 @@ DWM uses **Mojang official mappings** for the Minecraft version in [`dwm/gradle.
 ## Testing Expectations
 - **DWM unit tests** (`./dwm/gradlew test`): JUnit 5 via `fabric-loader-junit`. Included in `./dwm/gradlew build` and CI.
 - **GameTests** (`./dwm/gradlew runGametest`): Headless dedicated-server in-world tests in `dwm/src/main/java/.../gametest/`. Not run by CI today — run locally when GameTest code changes.
-- **Client GameTests** (`./dwm/scripts/run-client-gametest.sh`): launch a real client under `xvfb-run` with software GL, load a singleplayer world and save screenshots to `dwm/build/run/clientGameTest/screenshots/` (open the PNGs to check client-side/rendering changes). Tests live in `dwm/src/gametest/java/.../gametest/client/` and are registered in `dwm/src/gametest/resources/fabric.mod.json`.
+- **Client GameTests** (`./dwm/scripts/run-client-gametest.sh`): launch a real client under `xvfb-run` with software GL, load a singleplayer world and save screenshots to `dwm/build/run/clientGameTest/screenshots/` (open the PNGs to check client-side/rendering changes). Tests live in `dwm/src/gametest/java/.../gametest/client/` and are registered in `DwmClientGameTests` (the one entrypoint in `dwm/src/gametest/resources/fabric.mod.json`).
+  - **Run only what you need** — a full run boots 18 worlds and is slow. Select with Gradle properties (also accepted by the script):
+    - One test (use this while writing/iterating on a test): `./dwm/gradlew runClientGameTest -Pgametest.tests=TardisVariants` (comma list; name = test class minus `ClientGameTest`).
+    - By category: `./dwm/gradlew runClientGameTest -Pgametest.categories=portal,items-ui` (default `all`).
+    - If a name/category is unknown the run fails and prints the valid ones.
+
+    | Category | Tests | Run when you change |
+    | --- | --- | --- |
+    | `tardis-exterior` | TardisExterior, TardisVariants, TardisGlobe, TardisMonitor | TARDIS exterior/variant models, globes, monitors |
+    | `portal` | TardisBotiPortal, TardisSotoPortal, TardisSotoRelocate, TardisPortalParallax, TardisPortalPerf (slowest) | BOTI/SOTO portal, ghost chunk or door rendering |
+    | `entities` | Entities | mob models/renderers |
+    | `worldgen` | DalekOutpost, DalekTrench, SkaroFlora, ThalSettlement | structures, flora, settlements |
+    | `items-ui` | FieldGuide, SonicHud, LaserGun, ConsoleAndSuit | HUD, screens, item models, JSON-model meshes |
+
+    Run the matching category (or just the one test) during development; run `all` once before handoff only for broad changes or changes to shared code (`ClientGameTestSupport`, shared renderers).
+  - **Adding a client test:** annotate the class with `@ClientGameTestCategory(GameTestCategory.X)` and add it to `DwmClientGameTests.entries()` (the single entrypoint registered in `fabric.mod.json`); the run fails if a listed test has no category.
   - **On macOS** agents do not need `xvfb-run` or software GL: run `./dwm/gradlew runClientGameTest` directly and the real client opens a window. Screenshots land in the same `dwm/build/run/clientGameTest/screenshots/` directory. The script is for Linux/cloud VMs only.
 - Keep test runs reproducible and suitable for unattended agent execution.
 
@@ -105,7 +120,7 @@ DWM uses **Mojang official mappings** for the Minecraft version in [`dwm/gradle.
   - `./dwm/gradlew runDatagen` — regenerate `dwm/src/main/generated/` (only when datagen providers or promoted assets change); finalized by `pruneDatagenItemModels`
   - `./dwm/gradlew runGametest` — headless GameTests → `dwm/build/gametest/report.xml`
   - `./dwm/scripts/run-client-gametest.sh` — client GameTests + screenshots (Linux; needs `xvfb-run`)
-  - `./dwm/gradlew runClientGameTest` — client GameTests + screenshots on macOS (real client, no Xvfb)
+  - `./dwm/gradlew runClientGameTest [-Pgametest.tests=… | -Pgametest.categories=…]` — client GameTests + screenshots on macOS (real client, no Xvfb); prefer a single test or category
   - `./dwm/gradlew syncVersionJson` / `checkVersionSync` — keep `dwm/version.json` aligned with `dwm/gradle.properties`
   - `./dwm/gradlew unpackMinecraftSources` — explode Fabric named Minecraft sources into `dwm/minecraft-sources/` (local/agent; not CI)
   - `./dwm/gradlew generateStructureTemplates` — rewrite worldgen structure `.nbt` templates from their Java layouts in `dwm/src/test/java/.../world/structure/` (the `test` drift check fails until you do)

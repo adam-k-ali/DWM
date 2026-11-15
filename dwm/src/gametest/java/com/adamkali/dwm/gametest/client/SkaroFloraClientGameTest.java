@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.Blocks;
  *
  * <p>Random ticks are off so the crop cannot grow or the farmland dry out between placement and the shots.
  */
+@ClientGameTestCategory(GameTestCategory.WORLDGEN)
 public class SkaroFloraClientGameTest implements FabricClientGameTest {
     private static final int GROUND_Y = ClientGameTestSupport.PAD_Y - 1;
     private static final int PLANT_Y = ClientGameTestSupport.PAD_Y;

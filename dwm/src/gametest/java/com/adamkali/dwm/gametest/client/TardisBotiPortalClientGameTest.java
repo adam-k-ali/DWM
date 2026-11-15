@@ -12,6 +12,7 @@ import java.util.UUID;
  * Exterior look-in portal (BOTI): stands outside an open TARDIS door and saves
  * {@code portal_boti_exterior.png}. Fails if the portal never renders instead of saving the placeholder.
  */
+@ClientGameTestCategory(GameTestCategory.PORTAL)
 public class TardisBotiPortalClientGameTest implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {
