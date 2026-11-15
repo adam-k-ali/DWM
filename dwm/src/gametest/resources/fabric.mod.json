@@ -29,7 +29,8 @@
       "com.adamkali.dwm.gametest.client.TardisGlobeClientGameTest",
       "com.adamkali.dwm.gametest.client.TardisMonitorClientGameTest",
       "com.adamkali.dwm.gametest.client.ConsoleAndSuitClientGameTest",
-      "com.adamkali.dwm.gametest.client.TardisArsTemplatesClientGameTest"
+      "com.adamkali.dwm.gametest.client.TardisArsTemplatesClientGameTest",
+      "com.adamkali.dwm.gametest.client.TardisArsConsoleClientGameTest"
     ]
   }
 }
