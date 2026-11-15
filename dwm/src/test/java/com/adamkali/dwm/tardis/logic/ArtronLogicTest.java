@@ -120,4 +120,42 @@ class ArtronLogicTest {
         assertEquals(ArtronLogic.ARTRON_EMPTY_KEY, ArtronLogic.spendRefuseKey(0));
         assertEquals(ArtronLogic.NOT_ENOUGH_KEY, ArtronLogic.spendRefuseKey(5));
     }
+
+    @Test
+    void refund_addsAndMarksChanged() {
+        model.artron = 100;
+        assertFalse(model.needsSaving());
+
+        ArtronLogic.refund(model, 20);
+
+        assertEquals(120, ArtronLogic.read(model));
+        assertTrue(model.needsSaving());
+    }
+
+    @Test
+    void refund_clampsToCapacity() {
+        model.artron = ArtronLogic.CAPACITY - 5;
+        ArtronLogic.refund(model, 40);
+        assertEquals(ArtronLogic.CAPACITY, ArtronLogic.read(model));
+
+        model.artron = null;
+        ArtronLogic.refund(model, 10);
+        assertEquals(ArtronLogic.CAPACITY, ArtronLogic.read(model));
+
+        model.artron = 10;
+        ArtronLogic.refund(model, Integer.MAX_VALUE);
+        assertEquals(ArtronLogic.CAPACITY, ArtronLogic.read(model));
+    }
+
+    @Test
+    void refund_ignoresNullModelAndNonPositiveAmounts() {
+        ArtronLogic.refund(null, 10);
+
+        model.artron = 50;
+        ArtronLogic.refund(model, 0);
+        ArtronLogic.refund(model, -10);
+
+        assertEquals(50, ArtronLogic.read(model));
+        assertFalse(model.needsSaving());
+    }
 }
