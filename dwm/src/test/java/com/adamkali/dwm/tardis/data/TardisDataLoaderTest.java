@@ -1,5 +1,6 @@
 package com.adamkali.dwm.tardis.data;
 
+import com.adamkali.dwm.tardis.data.model.ArsPlacedPiece;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
@@ -277,5 +279,56 @@ public class TardisDataLoaderTest {
 
         assertTrue(found.isPresent());
         assertEquals(tardisId, found.get().uuid);
+    }
+
+    @Test
+    void arsPieces_RoundTripThroughSaveAndLoad() throws Exception {
+        TardisDataModel model = TardisDataLoader.create();
+        UUID uuid = model.uuid;
+        model.getArsPieces().add(new ArsPlacedPiece("dwm:library", 2, 1, 0));
+        model.getArsPieces().add(new ArsPlacedPiece("dwm:corridor", 4, 1, 3));
+        model.setChanged();
+        TardisDataLoader.save();
+        clearCache();
+
+        TardisDataModel loaded = TardisDataLoader.get(uuid);
+
+        assertNotNull(loaded);
+        assertEquals(List.of(
+                new ArsPlacedPiece("dwm:library", 2, 1, 0),
+                new ArsPlacedPiece("dwm:corridor", 4, 1, 3)
+        ), loaded.getArsPieces());
+        assertEquals(model, loaded);
+    }
+
+    @Test
+    void arsPieces_MissingOrNullFieldLoadsAsEmptyList() throws Exception {
+        UUID missingId = UUID.randomUUID();
+        UUID nullId = UUID.randomUUID();
+        writeLegacySave(missingId, "");
+        writeLegacySave(nullId, ", \"arsPieces\": null");
+
+        TardisDataModel missing = TardisDataLoader.get(missingId);
+        TardisDataModel explicitNull = TardisDataLoader.get(nullId);
+
+        assertNotNull(missing);
+        assertNotNull(explicitNull);
+        assertEquals(List.of(), missing.getArsPieces());
+        assertEquals(List.of(), explicitNull.getArsPieces());
+    }
+
+    private void writeLegacySave(UUID uuid, String extraFields) throws IOException {
+        File file = new File(tempDir.toFile(), uuid + ".json");
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write("{\"uuid\": \"" + uuid + "\", \"doorState\": {}, \"variant\": \"TT_CAPSULE\""
+                    + extraFields + "}");
+        }
+    }
+
+    private static void clearCache() throws Exception {
+        Field field = TardisDataLoader.class.getDeclaredField("tardisData");
+        field.setAccessible(true);
+        HashMap<?, ?> cache = (HashMap<?, ?>) field.get(null);
+        cache.clear();
     }
 }

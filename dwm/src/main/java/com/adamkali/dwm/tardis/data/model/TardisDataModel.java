@@ -121,6 +121,9 @@ public class TardisDataModel {
     public Boolean stabilisersFitted;
     public Boolean remoteSummonFitted;
 
+    /** Architectural Reconfiguration System pieces grown on the interior plot grid. */
+    public List<ArsPlacedPiece> arsPieces = new ArrayList<>();
+
     private transient boolean needsSaving = false;
 
     /**
@@ -150,6 +153,7 @@ public class TardisDataModel {
         this.coordinateLocksFitted = Boolean.TRUE;
         this.stabilisersFitted = Boolean.TRUE;
         this.remoteSummonFitted = Boolean.TRUE;
+        this.arsPieces = new ArrayList<>();
     }
 
     public TardisTravelPhase getTravelPhase() {
@@ -188,6 +192,16 @@ public class TardisDataModel {
             locationHistory = new ArrayList<>();
         }
         return locationHistory;
+    }
+
+    /**
+     * Ensures {@link #arsPieces} is non-null after Gson load of older saves.
+     */
+    public List<ArsPlacedPiece> getArsPieces() {
+        if (arsPieces == null) {
+            arsPieces = new ArrayList<>();
+        }
+        return arsPieces;
     }
 
     /**
@@ -269,6 +283,7 @@ public class TardisDataModel {
                 + ", coordinateLocksFitted=" + coordinateLocksFitted
                 + ", stabilisersFitted=" + stabilisersFitted
                 + ", remoteSummonFitted=" + remoteSummonFitted
+                + ", arsPieces=" + (arsPieces == null ? 0 : arsPieces.size())
                 + ']';
     }
 
@@ -319,7 +334,8 @@ public class TardisDataModel {
                     && Objects.equals(this.chameleonFitted, other.chameleonFitted)
                     && Objects.equals(this.coordinateLocksFitted, other.coordinateLocksFitted)
                     && Objects.equals(this.stabilisersFitted, other.stabilisersFitted)
-                    && Objects.equals(this.remoteSummonFitted, other.remoteSummonFitted);
+                    && Objects.equals(this.remoteSummonFitted, other.remoteSummonFitted)
+                    && Objects.equals(this.getArsPieces(), other.getArsPieces());
         }
         return false;
     }
