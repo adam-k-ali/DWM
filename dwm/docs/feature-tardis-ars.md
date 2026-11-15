@@ -2,9 +2,6 @@
 
 See also: [Docs Index](./index.md), [TARDIS Exterior Block](./feature-tardis-block.md), [Building Content System](./feature-building-content.md)
 
-> **Status: in development.** Pieces can be grown and jettisoned in a TARDIS interior with the ops command
-> `/tardis ars`. Only the console control and the ARS screen remain to be built.
-
 ## Product Intent
 Let a TARDIS crew grow the ship's interior beyond the console room: corridors, crew quarters, a library and the ARS
 chamber itself, laid out on a grid so pieces join cleanly and can be removed again.
@@ -19,6 +16,44 @@ chamber itself, laid out on a grid so pieces join cleanly and can be removed aga
 - **Layout rules** (`ArsLayoutLogic`): pure logic for placing and removing pieces on the grid.
 - **Growing and jettisoning** pieces in the interior (`ArsService`, `ArsRoomPlacer`), with the console annex and
   console doorway, and the ops command `/tardis ars`.
+- **Console control and ARS screen:** the owner opens a map of the plot from the First Doctor console, grows pieces
+  from a palette and jettisons them.
+
+## Console Control and ARS Screen
+The **ARS control** sits on the console's Panel5 (Systems) bottom row, below the refueler: a small copper tree on a
+map-grid plate with an amber lamp and a brass dial. Its HUD label is *Architectural Reconfiguration*. Only the
+TARDIS owner can use it (visitors see *You do not own this TARDIS*); no circuit is needed. In flight it refuses with
+the in-flight overlay. Otherwise it opens the ARS screen, which does not pause the game.
+
+The screen has two halves:
+- **Map** (left): the 8×8 grid as a floor plan, north up (cell x grows to the right/east, z downward/south; the
+  screen says *North*). The console room's six cells are drawn as the console room with the console marked. The
+  root link, the west face of cell (2, 1), is the console doorway: amber while closed, joined once a piece opens it.
+  Each placed piece fills its cells in its `map_color` with an outline; its connectors are notches on the cell
+  edges, and matched connectors (open links) are drawn as doorways across the shared edge.
+- **Palette** (right): every registered piece, corridors first and then rooms, each by id, with its name, footprint
+  and artron cost. Below it a readout shows the artron reserve (and that building is free in creative), the
+  selected piece's cost and rotation, and why a placement or jettison is refused.
+
+Interactions:
+- **Grow:** click a palette piece, then hover the map. A ghost of its rotated footprint and connectors follows the
+  cursor (its anchor cell is the one under the cursor), green when the layout rules allow it and red with the
+  reason otherwise; the client uses the same `ArsLayoutLogic` rules as the server. `R` or **Rotate** turns it a
+  quarter turn clockwise. Clicking a valid cell asks the server to grow it. Clicking the palette entry again
+  clears it.
+- **Jettison:** with nothing selected in the palette, click a placed piece (or right-click it at any time) to
+  select it. The readout shows its name, the refund and whether it can be removed; **Jettison** asks the server to
+  remove it and is disabled, with the reason as its tooltip, when the rules refuse.
+- **Done** or `Esc` closes the screen. After every request the server shows the result as an overlay and re-sends
+  the layout; the open screen updates in place, keeping the palette selection and rotation.
+
+### Server checks
+The screen only sends requests (`ArsGrowC2SPayload`, `ArsJettisonC2SPayload`); the server re-checks everything:
+the TARDIS must exist, the sender must own it, it must not be in flight, and the sender must be standing in
+`dwm:tardis` inside that TARDIS's interior plot (*Stand inside this TARDIS to reconfigure it*). Cells, rotation
+and piece id are then passed to `ArsService`, which applies the layout rules, so out-of-range values and unknown
+pieces are refused rather than trusted. Building is free when the sender is in creative. The layout and artron are
+sent back with `OpenArsScreen` (piece definitions come from the synced registry).
 
 ## Growing and Jettisoning
 A TARDIS's layout is the list of placed pieces in its saved data (`arsPieces`: piece id, anchor cell, rotation).
@@ -159,7 +194,7 @@ Templates are not built in game. They are described in Java in the test source s
 (`ars_<name>*.png`) to `dwm/build/run/clientGameTest/screenshots/`.
 
 ## Known Constraints
-- No console control or ARS screen yet; pieces are placed with `/tardis ars`.
+- The palette shows eight rows at a time; datapacks with more pieces scroll it with the mouse wheel.
 - Room blocks are not protected: players can still break walls by hand.
 - Removing a piece whose datapack definition no longer exists is not possible; its blocks stay until a new piece is
   grown over its cells.

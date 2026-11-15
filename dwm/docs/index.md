@@ -23,13 +23,13 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 - [Dalek/Thal Battles](./feature-dalek-thal-battles.md)
 - [Entity Definitions](./feature-entity-definitions.md)
 - [Block and Item Definitions](./feature-block-item-definitions.md)
+- [TARDIS Architectural Reconfiguration System](./feature-tardis-ars.md)
 
 ### Experimental Features
 - [TARDIS Chameleon System](./feature-chameleon-system.md) (config-gated and disabled by default)
 
 ### Planned Features
 - [Skaro Dimension](./feature-skaro-dimension.md) (destination world; petrified wood, five biomes, Petrified Jungle trees, radiation/suit/meter, and Dalek patrols shipped; Thal settlements and Dalek trenches shipped; remaining flora and hostile structures still planned)
-- [TARDIS Architectural Reconfiguration System](./feature-tardis-ars.md) (in development; piece definitions and room/corridor templates only, no in-world placement yet)
 
 ## Brand and Differentiation
 - [Branding Guidelines](./branding-guidelines.md)
