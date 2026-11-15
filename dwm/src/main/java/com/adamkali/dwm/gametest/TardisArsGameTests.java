@@ -4,6 +4,7 @@ import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.ArsPlacedPiece;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomPlacer;
 import com.adamkali.dwm.tardis.interior.TardisInteriorService;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
@@ -25,10 +26,16 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.storage.LevelResource;
+import net.minecraft.world.phys.AABB;
 
 /**
  * Server GameTests for growing and jettisoning ARS pieces. Each test builds a console room at its own
@@ -197,6 +204,109 @@ public class TardisArsGameTests {
         context.succeed();
     }
 
+    // --- Jettisoning ----------------------------------------------------------------------------------
+
+    @GameTest(structure = STRUCTURE)
+    public void jettison_LeafClearsBoxResealsNeighbourAndRefundsHalf(GameTestHelper context) {
+        Plot plot = plot(context);
+        grow(plot, "corridor_t", 2, 1, 0);
+        BoundingBox tEast = ArsGeometry.apertureBox(new ArsCell(2, 1), Direction.EAST);
+        Map<BlockPos, BlockState> tEastBefore = snapshot(plot, tEast);
+        // 2x1 bedroom turned 3 times: cells (3, 0) and (3, 1), door west of (3, 1) facing the T's east plug.
+        grow(plot, "bedroom", 3, 0, 3);
+        assertAir(plot, ArsGeometry.doorwayBox(new ArsLayoutLogic.Link(new ArsCell(3, 1), Direction.WEST)), "bedroom doorway");
+        BoundingBox bedroom = new BoundingBox(24, 0, 0, 31, ArsGrid.MAX_PIECE_HEIGHT - 1, 15);
+        int stocked = stockContainers(plot, bedroom);
+        check(stocked > 0, "expected the bedroom to contain a container");
+        int artronBefore = ArtronLogic.read(plot.model());
+
+        ArsService.Result result = ArsService.jettison(plot.level(), plot.origin(), plot.id(), 3, 1);
+
+        check(result.success(), "jettison refused: " + result.translationKey());
+        assertAir(plot, bedroom, "jettisoned bedroom");
+        assertUnchanged(plot, tEastBefore, "T east wall re-sealed");
+        check(ArtronLogic.read(plot.model()) == artronBefore + 10, "refund: " + ArtronLogic.read(plot.model()));
+        check(result.args().get(1).equals(10), "result refund arg " + result.args());
+        check(plot.model().getArsPieces().equals(List.of(new ArsPlacedPiece("dwm:corridor_t", 2, 1, 0))),
+                "model layout " + plot.model().getArsPieces());
+        List<ItemEntity> items = plot.level().getEntitiesOfClass(ItemEntity.class,
+                AABB.of(ArsGeometry.toWorld(bedroom, plot.origin())).inflate(4.0));
+        check(items.isEmpty(), "jettison dropped items: " + items);
+        // The console room is still connected.
+        assertAir(plot, ArsGeometry.consoleDoorwayBox(), "console doorway");
+        context.succeed();
+    }
+
+    @GameTest(structure = STRUCTURE)
+    public void jettison_RefusedWhenOthersDependOnPiece(GameTestHelper context) {
+        Plot plot = plot(context);
+        grow(plot, "corridor_t", 2, 1, 0);
+        grow(plot, "corridor_straight", 3, 1, 1);
+        BoundingBox both = new BoundingBox(16, 0, 8, 31, ArsGrid.MAX_PIECE_HEIGHT - 1, 15);
+        Map<BlockPos, BlockState> before = snapshot(plot, both);
+        int artron = ArtronLogic.read(plot.model());
+
+        ArsService.Result result = ArsService.jettison(plot.level(), plot.origin(), plot.id(), 2, 1);
+
+        check(!result.success() && ArsLayoutLogic.WOULD_DISCONNECT_KEY.equals(result.translationKey()),
+                "expected would disconnect, got " + result);
+        assertUnchanged(plot, before, "refused jettison");
+        check(plot.model().getArsPieces().size() == 2, "model changed: " + plot.model().getArsPieces());
+        check(ArtronLogic.read(plot.model()) == artron, "artron changed");
+        ArsService.Result empty = ArsService.jettison(plot.level(), plot.origin(), plot.id(), 5, 5);
+        check(!empty.success() && ArsLayoutLogic.NO_PIECE_KEY.equals(empty.translationKey()), "expected no piece, got " + empty);
+        context.succeed();
+    }
+
+    @GameTest(structure = STRUCTURE)
+    public void jettison_LastPieceRemovesAnnexAndRestoresConsoleWall(GameTestHelper context) {
+        Plot plot = plot(context);
+        // Right after placement the doorway box holds exactly the console room template's blocks.
+        Map<BlockPos, BlockState> consoleWall = snapshot(plot, ArsGeometry.consoleDoorwayBox());
+        grow(plot, "corridor_straight", 2, 1, 1);
+        assertAir(plot, ArsGeometry.consoleDoorwayBox(), "console doorway while a piece exists");
+
+        ArsService.Result result = ArsService.jettison(plot.level(), plot.origin(), plot.id(), 2, 1);
+
+        check(result.success(), "jettison refused: " + result.translationKey());
+        assertUnchanged(plot, consoleWall, "console east wall");
+        assertAir(plot, ArsGeometry.annexBox(), "annex");
+        assertAir(plot, new BoundingBox(16, 0, 8, 23, ArsGrid.MAX_PIECE_HEIGHT - 1, 15), "root cell");
+        check(plot.model().getArsPieces().isEmpty(), "model not empty");
+        context.succeed();
+    }
+
+    @GameTest(structure = STRUCTURE)
+    public void jettison_RefusedWhilePlayerInside(GameTestHelper context) {
+        Plot plot = plot(context);
+        grow(plot, "corridor_straight", 2, 1, 1);
+        ServerPlayer player = context.makeMockServerPlayerInLevel();
+        try {
+            BlockPos corridor = plot.origin().offset(19, 1, 11);
+            player.snapTo(corridor.getX() + 0.5, corridor.getY(), corridor.getZ() + 0.5);
+            ArsService.Result inRoom = ArsService.jettison(plot.level(), plot.origin(), plot.id(), 2, 1);
+            check(!inRoom.success() && ArsService.PLAYER_INSIDE_KEY.equals(inRoom.translationKey()),
+                    "expected player inside (room), got " + inRoom);
+
+            // The last piece also takes the annex with it.
+            BlockPos annex = plot.origin().offset(13, 1, 10);
+            player.snapTo(annex.getX() + 0.5, annex.getY(), annex.getZ() + 0.5);
+            ArsService.Result inAnnex = ArsService.jettison(plot.level(), plot.origin(), plot.id(), 2, 1);
+            check(!inAnnex.success() && ArsService.PLAYER_INSIDE_KEY.equals(inAnnex.translationKey()),
+                    "expected player inside (annex), got " + inAnnex);
+            check(plot.model().getArsPieces().size() == 1, "model changed while refused");
+            assertAir(plot, ArsGeometry.consoleDoorwayBox(), "console doorway while refused");
+
+            BlockPos console = plot.origin().offset(FirstDoctorConsoleRoomLayout.LOCAL_ENTRANCE);
+            player.snapTo(console.getX() + 0.5, console.getY(), console.getZ() + 0.5);
+            ArsService.Result away = ArsService.jettison(plot.level(), plot.origin(), plot.id(), 2, 1);
+            check(away.success(), "jettison with the player in the console room refused: " + away.translationKey());
+        } finally {
+            plot.level().getServer().getPlayerList().remove(player);
+        }
+        context.succeed();
+    }
+
     // --- Helpers -------------------------------------------------------------------------------------
 
     static void redirectSaves(GameTestHelper context) {
@@ -278,6 +388,18 @@ public class TardisArsGameTests {
                 throw new AssertionError(what + ": open through plot-local " + pos.immutable());
             }
         });
+    }
+
+    /** Puts a stack in the first slot of every container in the box; returns how many were stocked. */
+    private static int stockContainers(Plot plot, BoundingBox local) {
+        int[] stocked = {0};
+        BlockPos.betweenClosedStream(ArsGeometry.toWorld(local, plot.origin())).forEach(pos -> {
+            if (plot.level().getBlockEntity(pos) instanceof Container container && container.getContainerSize() > 0) {
+                container.setItem(0, new ItemStack(Items.DIAMOND, 3));
+                stocked[0]++;
+            }
+        });
+        return stocked[0];
     }
 
     private static void check(boolean condition, String message) {

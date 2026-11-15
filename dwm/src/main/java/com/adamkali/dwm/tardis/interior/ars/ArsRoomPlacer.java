@@ -3,7 +3,9 @@ package com.adamkali.dwm.tardis.interior.ars;
 import com.adamkali.dwm.tardis.boti.BotiInteriorSampler;
 import com.adamkali.dwm.tardis.data.model.ArsPlacedPiece;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomPlacer;
+import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.logic.ArsLayoutLogic;
+import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
@@ -11,6 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Mirror;
@@ -81,9 +84,30 @@ public final class ArsRoomPlacer {
         return annex.get().placeInWorld(world, position, position, settings, RandomSource.create(), Block.UPDATE_CLIENTS);
     }
 
+    /** Clears the annex lobby to air. */
+    public static void clearAnnex(ServerLevel world, BlockPos plotOrigin) {
+        clearBox(world, plotOrigin, ArsGeometry.annexBox());
+    }
+
     /** Opens the 2×3 doorway through the console room's east wall. */
     public static void carveConsoleDoorway(ServerLevel world, BlockPos plotOrigin) {
         fill(world, plotOrigin, ArsGeometry.consoleDoorwayBox(), Blocks.AIR.defaultBlockState());
+    }
+
+    /**
+     * Restores the console room's east wall by re-placing the console room template bounded to the doorway.
+     *
+     * @return false when the console room template is missing
+     */
+    public static boolean restoreConsoleWall(ServerLevel world, BlockPos plotOrigin) {
+        Optional<StructureTemplate> room = template(world, TardisDimensions.CONSOLE_ROOM_STRUCTURE_ID);
+        if (room.isEmpty()) {
+            return false;
+        }
+        StructurePlaceSettings settings = new StructurePlaceSettings()
+                .setIgnoreEntities(true)
+                .setBoundingBox(ArsGeometry.toWorld(ArsGeometry.consoleDoorwayBox(), plotOrigin));
+        return room.get().placeInWorld(world, plotOrigin, plotOrigin, settings, RandomSource.create(), Block.UPDATE_CLIENTS);
     }
 
     /** Opens both wall layers of an open link (for the root link the annex side is already open). */
@@ -99,6 +123,24 @@ public final class ArsRoomPlacer {
         fill(world, plotOrigin, local, Blocks.AIR.defaultBlockState());
         AABB around = AABB.of(ArsGeometry.toWorld(local, plotOrigin)).inflate(1.0);
         world.getEntitiesOfClass(ItemEntity.class, around).forEach(Entity::discard);
+    }
+
+    /** Discards every non-player entity in a box (mobs, items, item frames, ...). */
+    public static void discardNonPlayerEntities(ServerLevel world, BlockPos plotOrigin, BoundingBox local) {
+        AABB box = AABB.of(ArsGeometry.toWorld(local, plotOrigin));
+        List<Entity> entities = world.getEntitiesOfClass(Entity.class, box, entity -> !(entity instanceof Player));
+        entities.forEach(Entity::discard);
+    }
+
+    /** Whether any player in {@code world} overlaps the box. */
+    public static boolean hasPlayerInside(ServerLevel world, BlockPos plotOrigin, BoundingBox local) {
+        AABB box = AABB.of(ArsGeometry.toWorld(local, plotOrigin));
+        for (Player player : world.players()) {
+            if (player.isAlive() && player.getBoundingBox().intersects(box)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Synchronously loads every chunk the box touches. */

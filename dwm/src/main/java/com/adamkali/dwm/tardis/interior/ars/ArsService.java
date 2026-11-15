@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -30,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 /**
- * Grows Architectural Reconfiguration System pieces in a TARDIS interior: checks the
+ * Grows and jettisons Architectural Reconfiguration System pieces in a TARDIS interior: checks the
  * rules ({@link ArsLayoutLogic}), spends or refunds artron, updates {@link TardisDataModel#getArsPieces()}
  * and drives {@link ArsRoomPlacer}. Server thread only.
  *
@@ -45,12 +46,15 @@ public final class ArsService {
     public static final String IN_FLIGHT_KEY = "dwm.console.travel_in_flight";
     public static final String NO_INTERIOR_KEY = "dwm.ars.no_interior";
     public static final String MISSING_STRUCTURE_KEY = "dwm.ars.missing_structure";
+    public static final String PLAYER_INSIDE_KEY = "dwm.ars.player_inside";
     public static final String GROWN_KEY = "dwm.ars.grown";
+    public static final String JETTISONED_KEY = "dwm.ars.jettisoned";
     public static final String PIECE_NAME_PREFIX = "dwm.ars.piece.";
 
     /**
-     * Outcome of {@link #grow}. {@code args} are translation arguments for
-     * {@code translationKey}: on success the piece name ({@link Component}) and the artron spent; refusals carry none.
+     * Outcome of {@link #grow} or {@link #jettison}. {@code args} are translation arguments for
+     * {@code translationKey}: on success the piece name ({@link Component}) and the artron spent or
+     * refunded; refusals carry none.
      */
     public record Result(boolean success, String translationKey, List<Object> args) {
         public Result {
@@ -169,6 +173,110 @@ public final class ArsService {
         return new Result(true, GROWN_KEY, List.of(Component.translatable(pieceNameKey(pieceId)), cost));
     }
 
+    /** Jettisons the piece covering a cell in the TARDIS's plot in {@code dwm:tardis}. */
+    public static Result jettison(MinecraftServer server, UUID tardisId, int cellX, int cellZ) {
+        ServerLevel world = server == null ? null : server.getLevel(TardisDimensions.TARDIS_WORLD_KEY);
+        if (world == null || tardisId == null) {
+            return Result.refused(NO_INTERIOR_KEY);
+        }
+        return jettison(world, TardisPlotAllocator.plotOrigin(tardisId), tardisId, cellX, cellZ);
+    }
+
+    /**
+     * Jettisons the resolved piece covering cell {@code (cellX, cellZ)}. Refuses without changing anything
+     * when the TARDIS is unknown or in flight, the console room is not generated, the layout rules refuse
+     * (no piece, or others depend on it), or a player is inside the piece (or inside the annex when this is
+     * the last piece). Otherwise destroys everything in the piece (blocks, block-entity contents and
+     * non-player entities, with no drops), re-seals the neighbours' walls, removes the annex and restores the
+     * console wall when no piece is left, and refunds half the cost.
+     */
+    public static Result jettison(ServerLevel world, BlockPos plotOrigin, UUID tardisId, int cellX, int cellZ) {
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        @Nullable Result refusal = checkTardis(world, plotOrigin, tardisId, model);
+        if (refusal != null) {
+            return refusal;
+        }
+        Function<Identifier, ArsPieceDefinition> definitions = definitions(world);
+        List<ArsPlacedPiece> layout = model.getArsPieces();
+        ArsLayoutLogic.RemoveResult removeResult = ArsLayoutLogic.canRemove(layout, definitions, cellX, cellZ);
+        if (removeResult != ArsLayoutLogic.RemoveResult.OK) {
+            return Result.refused(removeResult.translationKey());
+        }
+        ArsPlacedPiece piece = ArsLayoutLogic.pieceAt(layout, definitions, cellX, cellZ).orElseThrow();
+        ArsPieceDefinition definition = ArsLayoutLogic.definitionOf(piece, definitions);
+        Identifier pieceId = Identifier.parse(piece.pieceId);
+        BoundingBox box = ArsGeometry.pieceBox(piece, definition, ArsGrid.MAX_PIECE_HEIGHT);
+        boolean lastPiece = resolvedCount(layout, definitions) == 1;
+        if (ArsRoomPlacer.hasPlayerInside(world, plotOrigin, box)
+                || (lastPiece && ArsRoomPlacer.hasPlayerInside(world, plotOrigin, ArsGeometry.annexBox()))) {
+            return Result.refused(PLAYER_INSIDE_KEY);
+        }
+
+        BoundingBox touched = box.inflatedBy(1, 0, 1);
+        if (lastPiece) {
+            touched = BoundingBox.encapsulating(touched, ArsGeometry.annexBox());
+            touched = BoundingBox.encapsulating(touched, ArsGeometry.consoleDoorwayBox());
+        }
+        ArsRoomPlacer.forceLoad(world, plotOrigin, touched);
+
+        Set<ArsLayoutLogic.Link> linksBefore = ArsLayoutLogic.openLinks(layout, definitions);
+        Set<ArsCell> removedCells = new HashSet<>(ArsLayoutLogic.occupiedCells(piece, definition));
+        ArsRoomPlacer.discardNonPlayerEntities(world, plotOrigin, box);
+        ArsRoomPlacer.clearBox(world, plotOrigin, box);
+        layout.removeIf(placed -> placed == piece);
+        model.setChanged();
+
+        Set<ArsLayoutLogic.Link> closed = new HashSet<>(linksBefore);
+        closed.removeAll(ArsLayoutLogic.openLinks(layout, definitions));
+        for (ArsLayoutLogic.Link link : closed) {
+            sealSurvivingSide(world, plotOrigin, layout, definitions, link, removedCells);
+        }
+        if (!hasResolvedPieces(layout, definitions)) {
+            ArsRoomPlacer.clearAnnex(world, plotOrigin);
+            if (!ArsRoomPlacer.restoreConsoleWall(world, plotOrigin)) {
+                LOGGER.error("Missing console room template {}; console wall not restored",
+                        TardisDimensions.CONSOLE_ROOM_STRUCTURE_ID);
+            }
+        }
+
+        int refund = ArsLayoutLogic.refundFor(definition);
+        ArtronLogic.refund(model, refund);
+        ArsRoomPlacer.enableLighting(world, plotOrigin, touched);
+        PortalStreamSyncService.markBotiFootprintDirty(tardisId);
+        return new Result(true, JETTISONED_KEY, List.of(Component.translatable(pieceNameKey(pieceId)), refund));
+    }
+
+    /**
+     * Re-seals the wall layer on the side of {@code link} that survives a jettison, by re-placing the owning
+     * piece's template bounded to that layer. The root link's surviving side is the annex, whose doorway is
+     * permanently open, so nothing is sealed there.
+     */
+    private static void sealSurvivingSide(
+            ServerLevel world,
+            BlockPos plotOrigin,
+            List<ArsPlacedPiece> layout,
+            Function<Identifier, ArsPieceDefinition> definitions,
+            ArsLayoutLogic.Link link,
+            Set<ArsCell> removedCells
+    ) {
+        ArsCell across = link.cell().relative(link.side());
+        boolean removedOwnsLinkCell = removedCells.contains(link.cell());
+        ArsCell survivor = removedOwnsLinkCell ? across : link.cell();
+        Direction survivorSide = removedOwnsLinkCell ? link.side().getOpposite() : link.side();
+        Optional<ArsPlacedPiece> owner = ArsLayoutLogic.pieceAt(layout, definitions, survivor.x(), survivor.z());
+        if (owner.isEmpty()) {
+            return;
+        }
+        ArsPieceDefinition ownerDefinition = ArsLayoutLogic.definitionOf(owner.get(), definitions);
+        Optional<StructureTemplate> template = ArsRoomPlacer.template(world, ownerDefinition.structure());
+        if (template.isEmpty()) {
+            LOGGER.error("Cannot re-seal ARS wall at {}: missing template {}", survivor, ownerDefinition.structure());
+            return;
+        }
+        ArsRoomPlacer.placePiece(world, plotOrigin, template.get(), owner.get(),
+                ArsGeometry.apertureBox(survivor, survivorSide));
+    }
+
     /**
      * Re-carves the console room's east doorway after the console room template is re-placed, when the
      * TARDIS has at least one resolved ARS piece. Used by the console room placer so a rebuild does not
@@ -205,13 +313,19 @@ public final class ArsService {
 
     /** Whether any piece is one {@link ArsLayoutLogic} does not ignore: valid rotation and a known definition. */
     static boolean hasResolvedPieces(List<ArsPlacedPiece> layout, Function<Identifier, ArsPieceDefinition> definitions) {
+        return resolvedCount(layout, definitions) > 0;
+    }
+
+    /** Number of pieces {@link ArsLayoutLogic} does not ignore. */
+    static int resolvedCount(List<ArsPlacedPiece> layout, Function<Identifier, ArsPieceDefinition> definitions) {
+        int count = 0;
         for (ArsPlacedPiece piece : layout) {
             if (piece != null && ArsGrid.isValidRotation(piece.rotation)
                     && ArsLayoutLogic.definitionOf(piece, definitions) != null) {
-                return true;
+                count++;
             }
         }
-        return false;
+        return count;
     }
 
     private static @Nullable Result checkTardis(
