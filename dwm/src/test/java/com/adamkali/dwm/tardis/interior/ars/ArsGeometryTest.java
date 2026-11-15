@@ -3,6 +3,7 @@ package com.adamkali.dwm.tardis.interior.ars;
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.tardis.data.model.ArsPlacedPiece;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
+import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import com.adamkali.dwm.tardis.logic.ArsLayoutLogic;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -107,6 +108,26 @@ class ArsGeometryTest {
     void consoleDoorwayIsInConsoleRoomEastWall() {
         assertBox(ArsGeometry.consoleDoorwayBox(), 10, 1, 7, 10, 3, 8);
         assertEquals(FirstDoctorConsoleRoomLayout.SIZE_X - 1, ArsGeometry.CONSOLE_DOORWAY_X);
+    }
+
+    @Test
+    void clampToPlotKeepsEdgePiecesInsideTheirPlot() {
+        assertEquals(TardisPlotAllocator.PLOT_SPACING, ArsGrid.GRID_SIZE * ArsGrid.CELL_SIZE);
+        // Cell (7, 7): the 1-block halo around it would reach x/z = 64, the next plot.
+        BoundingBox corner = ArsGeometry.pieceBox(new ArsPlacedPiece("dwm:corridor_cross", 7, 7, 0), single(), 16)
+                .inflatedBy(1, 0, 1);
+        assertBox(ArsGeometry.clampToPlot(corner), 55, 0, 55, 63, 15, 63);
+        // Row cz = 0 and a 2x1 piece on column 6..7: the halo would reach z = -1 and x = 64.
+        BoundingBox north = ArsGeometry.pieceBox(new ArsPlacedPiece("dwm:bedroom", 6, 0, 0), WIDE, 16)
+                .inflatedBy(1, 0, 1);
+        assertBox(north, 47, 0, -1, 64, 15, 8);
+        assertBox(ArsGeometry.clampToPlot(north), 47, 0, 0, 63, 15, 8);
+        BlockPos origin = new BlockPos(64 * 10, 64, 64 * -3);
+        int[] chunks = ArsGeometry.chunkBounds(ArsGeometry.toWorld(ArsGeometry.clampToPlot(north), origin));
+        assertArrayEquals(new int[]{origin.getX() / 16 + 2, origin.getX() / 16 + 3, origin.getZ() / 16, origin.getZ() / 16},
+                chunks);
+        // Boxes already inside are unchanged.
+        assertBox(ArsGeometry.clampToPlot(new BoundingBox(10, 2, 20, 30, 5, 40)), 10, 2, 20, 30, 5, 40);
     }
 
     @Test

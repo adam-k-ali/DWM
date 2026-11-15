@@ -150,6 +150,7 @@ public final class ArsService {
             touched = BoundingBox.encapsulating(touched, ArsGeometry.annexBox());
             touched = BoundingBox.encapsulating(touched, ArsGeometry.consoleDoorwayBox());
         }
+        touched = ArsGeometry.clampToPlot(touched);
         ArsRoomPlacer.forceLoad(world, plotOrigin, touched);
 
         ArsRoomPlacer.clearBox(world, plotOrigin, clearBox);
@@ -227,6 +228,7 @@ public final class ArsService {
             touched = BoundingBox.encapsulating(touched, ArsGeometry.annexBox());
             touched = BoundingBox.encapsulating(touched, ArsGeometry.consoleDoorwayBox());
         }
+        touched = ArsGeometry.clampToPlot(touched);
         ArsRoomPlacer.forceLoad(world, plotOrigin, touched);
 
         Set<ArsCell> removedCells = new HashSet<>(ArsLayoutLogic.occupiedCells(piece, definition));

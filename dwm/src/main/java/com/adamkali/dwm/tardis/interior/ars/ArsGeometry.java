@@ -118,6 +118,17 @@ public final class ArsGeometry {
         return StructureTemplate.getZeroPositionWithTransform(anchorMin, Mirror.NONE, rotation(rotation), sizeX, sizeZ);
     }
 
+    /**
+     * {@code local} with its x and z clamped to the plot footprint ({@code 0..GRID_SIZE*CELL_SIZE-1}), so chunk
+     * work around a piece on the plot edge never reaches a neighbouring TARDIS's plot. Y is unchanged.
+     */
+    public static BoundingBox clampToPlot(BoundingBox local) {
+        int last = ArsGrid.GRID_SIZE * ArsGrid.CELL_SIZE - 1;
+        return new BoundingBox(
+                Math.clamp(local.minX(), 0, last), local.minY(), Math.clamp(local.minZ(), 0, last),
+                Math.clamp(local.maxX(), 0, last), local.maxY(), Math.clamp(local.maxZ(), 0, last));
+    }
+
     /** {@code box} moved from plot-local to world coordinates. */
     public static BoundingBox toWorld(BoundingBox local, BlockPos plotOrigin) {
         return local.moved(plotOrigin.getX(), plotOrigin.getY(), plotOrigin.getZ());
