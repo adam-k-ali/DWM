@@ -257,8 +257,34 @@ public class TardisDataLoaderTest {
 
         assertTrue(found.isPresent());
         assertEquals(model.uuid, found.get().uuid);
-        assertTrue(TardisDataLoader.findAtInteriorPos(origin.offset(TardisPlotAllocator.PLOT_SPACING / 2, 0, 0)).isEmpty());
         assertTrue(TardisDataLoader.findAtInteriorPos(null).isEmpty());
+    }
+
+    @Test
+    void findAtInteriorPos_CoversWholePlotOutsideConsoleRoom() {
+        UUID tardisId = UUID.fromString("abababab-bbbb-cccc-dddd-eeeeeeeeeeee");
+        TardisDataModel model = TardisDataLoader.getOrCreate(tardisId);
+        BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
+        int last = TardisPlotAllocator.PLOT_SPACING - 1;
+
+        // An ARS room far from the console room, at any height, still belongs to this plot.
+        for (BlockPos inside : new BlockPos[]{
+                origin.offset(TardisPlotAllocator.PLOT_SPACING / 2, 0, 0),
+                origin.offset(last, 12, last),
+                origin.offset(40, -3, 20)}) {
+            Optional<TardisDataModel> found = TardisDataLoader.findAtInteriorPos(inside);
+            assertTrue(found.isPresent(), "expected plot at " + inside);
+            assertEquals(model.uuid, found.get().uuid);
+        }
+        for (BlockPos outside : new BlockPos[]{
+                origin.offset(-1, 0, 0),
+                origin.offset(0, 0, -1),
+                origin.offset(TardisPlotAllocator.PLOT_SPACING, 0, 5),
+                origin.offset(5, 0, TardisPlotAllocator.PLOT_SPACING)}) {
+            assertTrue(TardisDataLoader.findAtInteriorPos(outside)
+                    .map(found -> !tardisId.equals(found.uuid))
+                    .orElse(true), "expected no match for this TARDIS at " + outside);
+        }
     }
 
     @Test

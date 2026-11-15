@@ -2,7 +2,6 @@ package com.adamkali.dwm.tardis.data;
 
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
-import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import com.adamkali.dwm.tardis.logic.ArtronLogic;
 import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
@@ -231,7 +230,9 @@ public class TardisDataLoader {
     }
 
     /**
-     * Returns the TARDIS whose interior plot contains {@code pos}, if any. Scans disk so uncached
+     * Returns the TARDIS whose interior plot contains {@code pos}, if any: the whole
+     * {@link TardisPlotAllocator#PLOT_SPACING}-square footprint at any height, so ARS rooms count as
+     * well as the console room. Scans disk so uncached
      * models are included. Does not use {@code BotiPlotIndex} (empty until an interior is entered).
      */
     public static Optional<TardisDataModel> findAtInteriorPos(@Nullable BlockPos pos) {
@@ -243,13 +244,7 @@ public class TardisDataLoader {
             if (model.uuid == null) {
                 continue;
             }
-            BlockPos origin = TardisPlotAllocator.plotOrigin(model.uuid);
-            int localX = pos.getX() - origin.getX();
-            int localY = pos.getY() - origin.getY();
-            int localZ = pos.getZ() - origin.getZ();
-            if (localX >= 0 && localX < FirstDoctorConsoleRoomLayout.SIZE_X
-                    && localY >= 0 && localY < FirstDoctorConsoleRoomLayout.SIZE_Y
-                    && localZ >= 0 && localZ < FirstDoctorConsoleRoomLayout.SIZE_Z) {
+            if (TardisPlotAllocator.isInsidePlot(pos, TardisPlotAllocator.plotOrigin(model.uuid))) {
                 return Optional.of(model);
             }
         }

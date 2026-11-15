@@ -59,7 +59,7 @@ public final class TardisTravelAudio {
         }
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
         for (ServerPlayer player : interior.players()) {
-            if (isInsideConsoleRoom(player.blockPosition(), origin)
+            if (isInsidePlot(player.blockPosition(), origin)
                     || player.blockPosition().closerThan(console, EXTERIOR_RANGE)) {
                 ServerPlayNetworking.send(player, interiorCue);
             }
@@ -88,7 +88,7 @@ public final class TardisTravelAudio {
         if (interior != null) {
             BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
             for (ServerPlayer player : interior.players()) {
-                if (isInsideConsoleRoom(player.blockPosition(), origin)
+                if (isInsidePlot(player.blockPosition(), origin)
                         || player.blockPosition().closerThan(consolePos(tardisId), EXTERIOR_RANGE)) {
                     ServerPlayNetworking.send(player, interiorStop);
                 }
@@ -122,7 +122,7 @@ public final class TardisTravelAudio {
         }
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
         for (ServerPlayer player : interior.players()) {
-            if (isInsideConsoleRoom(player.blockPosition(), origin)
+            if (isInsidePlot(player.blockPosition(), origin)
                     || player.blockPosition().closerThan(console, EXTERIOR_RANGE)) {
                 ServerPlayNetworking.send(player, interiorCue);
             }
@@ -133,12 +133,8 @@ public final class TardisTravelAudio {
         return TardisPlotAllocator.plotOrigin(tardisId).offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE);
     }
 
-    static boolean isInsideConsoleRoom(BlockPos worldPos, BlockPos origin) {
-        int localX = worldPos.getX() - origin.getX();
-        int localY = worldPos.getY() - origin.getY();
-        int localZ = worldPos.getZ() - origin.getZ();
-        return localX >= 0 && localX < FirstDoctorConsoleRoomLayout.SIZE_X
-                && localY >= 0 && localY < FirstDoctorConsoleRoomLayout.SIZE_Y
-                && localZ >= 0 && localZ < FirstDoctorConsoleRoomLayout.SIZE_Z;
+    /** Interior listeners: anyone in the TARDIS's plot, including ARS rooms beyond the console room. */
+    static boolean isInsidePlot(BlockPos worldPos, BlockPos origin) {
+        return TardisPlotAllocator.isInsidePlot(worldPos, origin);
     }
 }
