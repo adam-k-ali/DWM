@@ -42,9 +42,22 @@ public class TardisSotoPortalClientGameTest implements FabricClientGameTest {
             context.waitTicks(40);
             ClientGameTestSupport.assertPortalsStillAvailable(context);
             ClientGameTestSupport.screenshot(context, "portal_soto_interior");
+            lookIntoWaterPool(context, world, plot);
             TardisSotoPortalCloudsClientGameTest.run(context, world, id);
             ClientGameTestSupport.toggleHud(context);
         }
+    }
+
+    /**
+     * Stands close behind the door and looks down-left through it at the three-deep water pool and its squid:
+     * underwater faces must be culled and the submerged squid must draw through the translucent water.
+     */
+    private static void lookIntoWaterPool(ClientGameTestContext context, TestSingleplayerContext world, BlockPos plot) {
+        world.getServer().runCommand(String.format(
+                "execute in dwm:tardis run tp @a %.1f %.1f %.1f 168 38",
+                plot.getX() + VIEWER_LOCAL_X, plot.getY() + 1.4, plot.getZ() + 2.4));
+        context.waitTicks(20);
+        ClientGameTestSupport.screenshot(context, "portal_soto_water_pool");
     }
 
     /**
@@ -69,7 +82,38 @@ public class TardisSotoPortalClientGameTest implements FabricClientGameTest {
                         Blocks.GRASS_BLOCK.defaultBlockState(), 3);
             }
             placeLeafShadedStep(level);
+            placeLiquidPools(level);
+            // Submerged entity: must draw through the translucent water, not be depth-rejected by it.
+            server.getCommands().performPrefixedCommand(server.createCommandSourceStack(),
+                    "execute in minecraft:overworld run summon minecraft:squid -1.5 " + (ClientGameTestSupport.PAD_Y - 2.5)
+                            + " 2.7 {NoAI:1b,PersistenceRequired:1b}");
         });
+    }
+
+    /**
+     * Sunken water (left) and lava (right) pools right in front of the exterior door, level with the pad top.
+     * Fluid blocks are {@code RenderShape.INVISIBLE} and must be meshed by the fluid renderer, so they
+     * regress to empty space in the portal if the ghost bake skips them.
+     */
+    private static void placeLiquidPools(net.minecraft.server.level.ServerLevel level) {
+        int padY = ClientGameTestSupport.PAD_Y;
+        for (int x = -4; x <= 4; x++) {
+            for (int z = 2; z <= 3; z++) {
+                if (x == 0) {
+                    continue;
+                }
+                if (x < 0) {
+                    // Three deep: underwater faces must cull against each other, and a squid fits fully submerged.
+                    level.setBlock(new BlockPos(x, padY - 4, z), Blocks.STONE.defaultBlockState(), 3);
+                    for (int dy = 1; dy <= 3; dy++) {
+                        level.setBlock(new BlockPos(x, padY - dy, z), Blocks.WATER.defaultBlockState(), 3);
+                    }
+                } else {
+                    level.setBlock(new BlockPos(x, padY - 2, z), Blocks.STONE.defaultBlockState(), 3);
+                    level.setBlock(new BlockPos(x, padY - 1, z), Blocks.LAVA.defaultBlockState(), 3);
+                }
+            }
+        }
     }
 
     /**

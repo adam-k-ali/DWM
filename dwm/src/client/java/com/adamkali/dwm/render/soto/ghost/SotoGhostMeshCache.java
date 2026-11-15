@@ -14,9 +14,11 @@ import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.QuadInstance;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.renderer.block.BlockStateModelSet;
+import net.minecraft.client.renderer.block.FluidRenderer;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
@@ -27,6 +29,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
@@ -454,7 +457,7 @@ public final class SotoGhostMeshCache {
 
         boolean anyVisible = false;
         for (BlockState state : blocks.values()) {
-            if (state != null && state.getRenderShape() != RenderShape.INVISIBLE) {
+            if (needsBake(state)) {
                 anyVisible = true;
                 break;
             }
@@ -475,13 +478,32 @@ public final class SotoGhostMeshCache {
 
             EnumMap<ChunkSectionLayer, ByteBufferBuilder> allocators = new EnumMap<>(ChunkSectionLayer.class);
             EnumMap<ChunkSectionLayer, BufferBuilder> builders = new EnumMap<>(ChunkSectionLayer.class);
+            FluidRenderer fluidRenderer = new FluidRenderer(client.getModelManager().getFluidStateModelSet());
             QuadInstance quadInstance = new QuadInstance();
             quadInstance.setOverlayCoords(0);
 
             for (Map.Entry<BlockPos, BlockState> entry : blocks.entrySet()) {
                 BlockPos pos = entry.getKey();
                 BlockState state = entry.getValue();
-                if (pos == null || state == null || state.getRenderShape() == RenderShape.INVISIBLE) {
+                if (pos == null || !needsBake(state)) {
+                    continue;
+                }
+                // Fluid blocks are RenderShape.INVISIBLE in vanilla; they are meshed by FluidRenderer, not a model.
+                FluidState fluidState = state.getFluidState();
+                if (!fluidState.isEmpty()) {
+                    // FluidRenderer emits section-relative (pos & 15) vertices; the block path uses absolute coords.
+                    float offX = pos.getX() - (pos.getX() & 15);
+                    float offY = pos.getY() - (pos.getY() & 15);
+                    float offZ = pos.getZ() - (pos.getZ() & 15);
+                    fluidRenderer.tesselate(
+                            ghost,
+                            pos,
+                            layer -> new OffsetVertexConsumer(builderFor(layer, allocators, builders), offX, offY, offZ),
+                            state,
+                            fluidState
+                    );
+                }
+                if (state.getRenderShape() == RenderShape.INVISIBLE) {
                     continue;
                 }
                 BlockStateModel model = models.get(state);
@@ -553,7 +575,15 @@ public final class SotoGhostMeshCache {
             BakedQuad quad,
             QuadInstance instance
     ) {
-        ChunkSectionLayer layer = quad.materialInfo().layer();
+        builderFor(quad.materialInfo().layer(), allocators, builders).putBlockBakedQuad(x, y, z, quad, instance);
+    }
+
+    /** Lazily creates the per-layer builder (null layer falls back to SOLID). */
+    private static BufferBuilder builderFor(
+            ChunkSectionLayer layer,
+            EnumMap<ChunkSectionLayer, ByteBufferBuilder> allocators,
+            EnumMap<ChunkSectionLayer, BufferBuilder> builders
+    ) {
         if (layer == null) {
             layer = ChunkSectionLayer.SOLID;
         }
@@ -564,7 +594,79 @@ public final class SotoGhostMeshCache {
             builder = new BufferBuilder(allocator, PrimitiveTopology.QUADS, DefaultVertexFormat.BLOCK);
             builders.put(layer, builder);
         }
-        builder.putBlockBakedQuad(x, y, z, quad, instance);
+        return builder;
+    }
+
+    /**
+     * Whether a block contributes geometry to a ghost chunk mesh: a visible model, or a fluid
+     * (vanilla fluid blocks are {@link RenderShape#INVISIBLE} and meshed separately).
+     */
+    static boolean needsBake(BlockState state) {
+        return state != null
+                && (state.getRenderShape() != RenderShape.INVISIBLE || !state.getFluidState().isEmpty());
+    }
+
+    /** Shifts vertex positions; {@code FluidRenderer} emits section-relative coordinates. */
+    private static final class OffsetVertexConsumer implements VertexConsumer {
+        private final VertexConsumer delegate;
+        private final float offX;
+        private final float offY;
+        private final float offZ;
+
+        OffsetVertexConsumer(VertexConsumer delegate, float offX, float offY, float offZ) {
+            this.delegate = delegate;
+            this.offX = offX;
+            this.offY = offY;
+            this.offZ = offZ;
+        }
+
+        @Override
+        public VertexConsumer addVertex(float x, float y, float z) {
+            delegate.addVertex(x + offX, y + offY, z + offZ);
+            return this;
+        }
+
+        @Override
+        public VertexConsumer setColor(int r, int g, int b, int a) {
+            delegate.setColor(r, g, b, a);
+            return this;
+        }
+
+        @Override
+        public VertexConsumer setColor(int color) {
+            delegate.setColor(color);
+            return this;
+        }
+
+        @Override
+        public VertexConsumer setUv(float u, float v) {
+            delegate.setUv(u, v);
+            return this;
+        }
+
+        @Override
+        public VertexConsumer setUv1(int u, int v) {
+            delegate.setUv1(u, v);
+            return this;
+        }
+
+        @Override
+        public VertexConsumer setUv2(int u, int v) {
+            delegate.setUv2(u, v);
+            return this;
+        }
+
+        @Override
+        public VertexConsumer setNormal(float x, float y, float z) {
+            delegate.setNormal(x, y, z);
+            return this;
+        }
+
+        @Override
+        public VertexConsumer setLineWidth(float width) {
+            delegate.setLineWidth(width);
+            return this;
+        }
     }
 
     private static byte[] copyBytes(ByteBuffer buffer) {
