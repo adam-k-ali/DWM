@@ -185,6 +185,11 @@ public class ArsScreen extends Screen {
         return new int[]{panelLeft + SIDE_LEFT + SIDE_WIDTH / 2, panelTop + PALETTE_ROWS_TOP + index * PALETTE_ROW + PALETTE_ROW / 2};
     }
 
+    /** The rules' answer for the selected palette piece anchored at {@code anchor}, or null with none selected. */
+    public ArsLayoutLogic.@Nullable PlaceResult placementAt(ArsCell anchor) {
+        return state.ghostAt(anchor, lookup).map(ghost -> state.check(ghost, lookup, instabuild())).orElse(null);
+    }
+
     private boolean instabuild() {
         Minecraft client = Minecraft.getInstance();
         return client.player != null && client.player.getAbilities().instabuild;
@@ -394,8 +399,13 @@ public class ArsScreen extends Screen {
         int cz = (int) Math.round(geo.blockZ(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getZ() + 0.5));
         graphics.fill(cx - 2, cz - 2, cx + 3, cz + 3, CONSOLE_MARK);
         graphics.fill(cx - 1, cz - 1, cx + 2, cz + 2, CONSOLE_FILL);
+        // Small text so the label stays inside the two-cell-wide room.
         Component label = Component.translatable("dwm.gui.ars.console_room");
-        graphics.centeredText(font, label, (x0 + x1) / 2, cz + 6, WHITE);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate((x0 + x1) / 2.0F, cz + 8);
+        graphics.pose().scale(0.75F, 0.75F);
+        graphics.centeredText(font, label, 0, 0, WHITE);
+        graphics.pose().popMatrix();
     }
 
     private boolean isNearRootDoorway(ArsMapState.MapGeometry geo, int mouseX, int mouseY) {
@@ -490,7 +500,7 @@ public class ArsScreen extends Screen {
     private void drawPalette(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         int x0 = panelLeft + SIDE_LEFT;
         int right = x0 + SIDE_WIDTH - 4;
-        int sizeX = x0 + SIDE_WIDTH - 52;
+        int sizeX = x0 + SIDE_WIDTH - 72;
         int headerY = panelTop + MAP_TOP + 2;
         graphics.text(font, Component.translatable("dwm.gui.ars.palette"), x0 + 4, headerY, LABEL, false);
         graphics.text(font, Component.translatable("dwm.gui.ars.size"), sizeX, headerY, LABEL, false);
