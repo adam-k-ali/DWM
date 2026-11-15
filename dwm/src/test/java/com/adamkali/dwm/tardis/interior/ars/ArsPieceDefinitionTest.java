@@ -113,6 +113,21 @@ class ArsPieceDefinitionTest {
     }
 
     @Test
+    void rejectsEmptyConnectors() {
+        assertRejected(VALID.replace("[{ \"cell\": [0, 1], \"side\": \"west\" }]", "[]"));
+    }
+
+    @Test
+    void rejectsDuplicateConnectors() {
+        assertRejected(VALID.replace("[{ \"cell\": [0, 1], \"side\": \"west\" }]",
+                "[{ \"cell\": [0, 1], \"side\": \"west\" }, { \"cell\": [0, 1], \"side\": \"west\" }]"));
+        // Same cell, different side is fine.
+        assertTrue(parse(VALID.replace("[{ \"cell\": [0, 1], \"side\": \"west\" }]",
+                "[{ \"cell\": [0, 1], \"side\": \"west\" }, { \"cell\": [0, 1], \"side\": \"south\" }]"))
+                .isSuccess());
+    }
+
+    @Test
     void rejectsUnknownKind() {
         assertRejected(VALID.replace("\"room\"", "\"hallway\""));
     }

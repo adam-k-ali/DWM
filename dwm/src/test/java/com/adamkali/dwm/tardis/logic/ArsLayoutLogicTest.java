@@ -335,8 +335,10 @@ class ArsLayoutLogicTest {
         assertEquals(20, ArsLayoutLogic.refundFor(HALL_DEF));
         assertEquals(5, ArsLayoutLogic.refundFor(STRAIGHT_DEF));
         assertEquals(2, ArsLayoutLogic.refundFor(DEAD_END_DEF));
-        assertEquals(0, ArsLayoutLogic.refundFor(def(ArsPieceKind.ROOM, 1, 1, 1)));
-        assertEquals(0, ArsLayoutLogic.refundFor(def(ArsPieceKind.ROOM, 1, 1, 0)));
+        assertEquals(0, ArsLayoutLogic.refundFor(def(ArsPieceKind.ROOM, 1, 1, 1,
+                new ArsConnector(new ArsCell(0, 0), Direction.WEST))));
+        assertEquals(0, ArsLayoutLogic.refundFor(def(ArsPieceKind.ROOM, 1, 1, 0,
+                new ArsConnector(new ArsCell(0, 0), Direction.WEST))));
     }
 
     // --- missing definitions --------------------------------------------------------------------

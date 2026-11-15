@@ -6,6 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Util;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -19,7 +20,8 @@ import java.util.regex.Pattern;
  * }</pre>
  *
  * <p>{@code cells} is the unrotated footprint {@code [width, depth]}, each {@code 1..}
- * {@value ArsGrid#MAX_PIECE_CELLS}. Connector cells are footprint-local and unrotated; each must lie
+ * {@value ArsGrid#MAX_PIECE_CELLS}. {@code connectors} must be non-empty with no duplicates (same cell
+ * and side). Connector cells are footprint-local and unrotated; each must lie
  * inside the footprint with a horizontal side on its outer boundary. {@code artron_cost} is
  * non-negative and {@code map_color} is {@code #RRGGBB}. {@link #CODEC} rejects anything else with a
  * {@link DataResult#error}; the constructor itself does not validate.
@@ -68,6 +70,12 @@ public record ArsPieceDefinition(
         }
         if (def.artronCost < 0) {
             return DataResult.error(() -> "ARS piece artron_cost must be >= 0, got " + def.artronCost);
+        }
+        if (def.connectors.isEmpty()) {
+            return DataResult.error(() -> "ARS piece must have at least one connector");
+        }
+        if (new HashSet<>(def.connectors).size() != def.connectors.size()) {
+            return DataResult.error(() -> "ARS piece has duplicate connectors: " + def.connectors);
         }
         for (ArsConnector connector : def.connectors) {
             ArsCell cell = connector.cell();
