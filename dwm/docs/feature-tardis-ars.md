@@ -40,17 +40,20 @@ neighbour's facing one, become air. Unmatched connectors keep their plugs.
 **Jettisoning** the piece covering a cell is refused, with nothing changed, when:
 - the TARDIS is in flight or has no console room;
 - there is no piece there, or another piece is only reachable through it;
-- a player is inside the piece, or inside the annex when it is the last piece.
+- a player is inside the piece, or inside the annex when the piece is the one on the root link (the west face of
+  cell (2, 1)) and nothing else would keep that link open.
 
 Otherwise everything in the piece is destroyed: blocks, container contents and non-player entities, with no
 drops. Each neighbour that shared a doorway gets its own wall plug back (its template is re-placed, clipped to that
 4×4 layer). Half the cost, rounded down, is refunded.
 
 ### Console annex and doorway
-Growing the first piece also places the console annex (below) and carves a 2-wide, 3-high doorway through the console
-room's east wall at plot-local `x = 10`, `z = 7..8`, `y = 1..3`. Jettisoning the last piece clears the annex and puts
-the console room's wall back from its template. Re-placing the console room (first entry, deferred preload or
-`/tardis rebuild`) re-opens the doorway whenever the layout has a piece.
+The annex and doorway follow the root link (the west face of cell (2, 1)). Growing the piece that opens the root link
+also places the console annex (below) and carves a 2-wide, 3-high doorway through the console room's east wall at
+plot-local `x = 10`, `z = 7..8`, `y = 1..3`. Jettisoning the piece on the root link clears the annex and puts the
+console room's wall back from its template, even if pieces cut off from the console room remain. Re-placing the
+console room (first entry, deferred preload or `/tardis rebuild`) re-opens the doorway only while the root link is
+open.
 
 `/tardis rebuild` only rebuilds the console room. It does not re-place ARS rooms or the annex.
 

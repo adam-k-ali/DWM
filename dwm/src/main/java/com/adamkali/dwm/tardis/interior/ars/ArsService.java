@@ -12,6 +12,7 @@ import com.adamkali.dwm.tardis.logic.ArtronLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
 import com.adamkali.dwm.tardis.portal.PortalStreamSyncService;
 import com.mojang.logging.LogUtils;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -99,8 +100,9 @@ public final class ArsService {
      * Grows {@code pieceId} anchored at cell {@code (cellX, cellZ)} with {@code rotation} (clockwise quarter
      * turns). Refuses without changing anything when the TARDIS is unknown or in flight, the console room is
      * not generated at {@code plotOrigin}, the layout rules refuse, or the template is missing. Otherwise
-     * spends the artron cost (free when {@code instabuild}), places the console annex and doorway for the
-     * first piece, places the piece and opens every doorway it now shares.
+     * spends the artron cost (free when {@code instabuild}), places the piece and opens every doorway it now
+     * shares. When the piece opens {@link ArsLayoutLogic#ROOT_LINK}, it also places the console annex and carves
+     * the console doorway.
      */
     public static Result grow(
             ServerLevel world,
@@ -136,24 +138,27 @@ public final class ArsService {
             return Result.refused(ArsLayoutLogic.NOT_ENOUGH_ARTRON_KEY);
         }
 
-        boolean firstPiece = !hasResolvedPieces(layout, definitions);
+        Set<ArsLayoutLogic.Link> linksBefore = ArsLayoutLogic.openLinks(layout, definitions);
+        List<ArsPlacedPiece> grown = new ArrayList<>(layout);
+        grown.add(piece);
+        boolean opensRoot = !linksBefore.contains(ArsLayoutLogic.ROOT_LINK)
+                && ArsLayoutLogic.openLinks(grown, definitions).contains(ArsLayoutLogic.ROOT_LINK);
         // Orphaned pieces whose definition vanished may have been taller than this one: clear full height.
         BoundingBox clearBox = ArsGeometry.pieceBox(piece, definition, ArsGrid.MAX_PIECE_HEIGHT);
         BoundingBox touched = clearBox.inflatedBy(1, 0, 1);
-        if (firstPiece) {
+        if (opensRoot) {
             touched = BoundingBox.encapsulating(touched, ArsGeometry.annexBox());
             touched = BoundingBox.encapsulating(touched, ArsGeometry.consoleDoorwayBox());
         }
         ArsRoomPlacer.forceLoad(world, plotOrigin, touched);
 
-        Set<ArsLayoutLogic.Link> linksBefore = ArsLayoutLogic.openLinks(layout, definitions);
         ArsRoomPlacer.clearBox(world, plotOrigin, clearBox);
         if (!ArsRoomPlacer.placePiece(world, plotOrigin, template.get(), piece, null)) {
             LOGGER.error("ARS piece {} template {} placed nothing", pieceId, definition.structure());
             ArtronLogic.refund(model, cost);
             return Result.refused(MISSING_STRUCTURE_KEY);
         }
-        if (firstPiece) {
+        if (opensRoot) {
             if (!ArsRoomPlacer.placeAnnex(world, plotOrigin)) {
                 LOGGER.error("Missing ARS console annex template {}", ArsGeometry.ANNEX_STRUCTURE_ID);
             }
@@ -185,10 +190,10 @@ public final class ArsService {
     /**
      * Jettisons the resolved piece covering cell {@code (cellX, cellZ)}. Refuses without changing anything
      * when the TARDIS is unknown or in flight, the console room is not generated, the layout rules refuse
-     * (no piece, or others depend on it), or a player is inside the piece (or inside the annex when this is
-     * the last piece). Otherwise destroys everything in the piece (blocks, block-entity contents and
-     * non-player entities, with no drops), re-seals the neighbours' walls, removes the annex and restores the
-     * console wall when no piece is left, and refunds half the cost.
+     * (no piece, or others depend on it), or a player is inside the piece (or inside the annex when the
+     * piece holds {@link ArsLayoutLogic#ROOT_LINK} open). Otherwise destroys everything in the piece (blocks,
+     * block-entity contents and non-player entities, with no drops), re-seals the neighbours' walls, removes
+     * the annex and restores the console wall when the root link closes, and refunds half the cost.
      */
     public static Result jettison(ServerLevel world, BlockPos plotOrigin, UUID tardisId, int cellX, int cellZ) {
         TardisDataModel model = TardisDataLoader.get(tardisId);
@@ -206,20 +211,24 @@ public final class ArsService {
         ArsPieceDefinition definition = ArsLayoutLogic.definitionOf(piece, definitions);
         Identifier pieceId = Identifier.parse(piece.pieceId);
         BoundingBox box = ArsGeometry.pieceBox(piece, definition, ArsGrid.MAX_PIECE_HEIGHT);
-        boolean lastPiece = resolvedCount(layout, definitions) == 1;
+        Set<ArsLayoutLogic.Link> linksBefore = ArsLayoutLogic.openLinks(layout, definitions);
+        List<ArsPlacedPiece> remaining = new ArrayList<>(layout);
+        remaining.removeIf(placed -> placed == piece);
+        Set<ArsLayoutLogic.Link> linksAfter = ArsLayoutLogic.openLinks(remaining, definitions);
+        boolean closesRoot = linksBefore.contains(ArsLayoutLogic.ROOT_LINK)
+                && !linksAfter.contains(ArsLayoutLogic.ROOT_LINK);
         if (ArsRoomPlacer.hasPlayerInside(world, plotOrigin, box)
-                || (lastPiece && ArsRoomPlacer.hasPlayerInside(world, plotOrigin, ArsGeometry.annexBox()))) {
+                || (closesRoot && ArsRoomPlacer.hasPlayerInside(world, plotOrigin, ArsGeometry.annexBox()))) {
             return Result.refused(PLAYER_INSIDE_KEY);
         }
 
         BoundingBox touched = box.inflatedBy(1, 0, 1);
-        if (lastPiece) {
+        if (closesRoot) {
             touched = BoundingBox.encapsulating(touched, ArsGeometry.annexBox());
             touched = BoundingBox.encapsulating(touched, ArsGeometry.consoleDoorwayBox());
         }
         ArsRoomPlacer.forceLoad(world, plotOrigin, touched);
 
-        Set<ArsLayoutLogic.Link> linksBefore = ArsLayoutLogic.openLinks(layout, definitions);
         Set<ArsCell> removedCells = new HashSet<>(ArsLayoutLogic.occupiedCells(piece, definition));
         ArsRoomPlacer.discardNonPlayerEntities(world, plotOrigin, box);
         ArsRoomPlacer.clearBox(world, plotOrigin, box);
@@ -227,11 +236,11 @@ public final class ArsService {
         model.setChanged();
 
         Set<ArsLayoutLogic.Link> closed = new HashSet<>(linksBefore);
-        closed.removeAll(ArsLayoutLogic.openLinks(layout, definitions));
+        closed.removeAll(linksAfter);
         for (ArsLayoutLogic.Link link : closed) {
             sealSurvivingSide(world, plotOrigin, layout, definitions, link, removedCells);
         }
-        if (!hasResolvedPieces(layout, definitions)) {
+        if (closesRoot) {
             ArsRoomPlacer.clearAnnex(world, plotOrigin);
             if (!ArsRoomPlacer.restoreConsoleWall(world, plotOrigin)) {
                 LOGGER.error("Missing console room template {}; console wall not restored",
@@ -278,8 +287,8 @@ public final class ArsService {
     }
 
     /**
-     * Re-carves the console room's east doorway after the console room template is re-placed, when the
-     * TARDIS has at least one resolved ARS piece. Used by the console room placer so a rebuild does not
+     * Re-carves the console room's east doorway after the console room template is re-placed, when a piece
+     * holds {@link ArsLayoutLogic#ROOT_LINK} open. Used by the console room placer so a rebuild does not
      * seal the way into the ARS rooms.
      */
     public static void restoreConsoleDoorway(ServerLevel world, BlockPos plotOrigin, @Nullable UUID tardisId) {
@@ -290,7 +299,7 @@ public final class ArsService {
         if (model == null || model.getArsPieces().isEmpty()) {
             return;
         }
-        if (hasResolvedPieces(model.getArsPieces(), definitions(world))) {
+        if (ArsLayoutLogic.openLinks(model.getArsPieces(), definitions(world)).contains(ArsLayoutLogic.ROOT_LINK)) {
             ArsRoomPlacer.carveConsoleDoorway(world, plotOrigin);
         }
     }
@@ -309,23 +318,6 @@ public final class ArsService {
     public static boolean isInteriorGenerated(ServerLevel world, BlockPos plotOrigin) {
         return world.getBlockState(plotOrigin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE))
                 .is(DWMBlocks.FIRST_DOCTOR_CONSOLE);
-    }
-
-    /** Whether any piece is one {@link ArsLayoutLogic} does not ignore: valid rotation and a known definition. */
-    static boolean hasResolvedPieces(List<ArsPlacedPiece> layout, Function<Identifier, ArsPieceDefinition> definitions) {
-        return resolvedCount(layout, definitions) > 0;
-    }
-
-    /** Number of pieces {@link ArsLayoutLogic} does not ignore. */
-    static int resolvedCount(List<ArsPlacedPiece> layout, Function<Identifier, ArsPieceDefinition> definitions) {
-        int count = 0;
-        for (ArsPlacedPiece piece : layout) {
-            if (piece != null && ArsGrid.isValidRotation(piece.rotation)
-                    && ArsLayoutLogic.definitionOf(piece, definitions) != null) {
-                count++;
-            }
-        }
-        return count;
     }
 
     private static @Nullable Result checkTardis(

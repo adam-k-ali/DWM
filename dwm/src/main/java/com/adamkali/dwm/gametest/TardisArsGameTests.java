@@ -59,7 +59,7 @@ public class TardisArsGameTests {
     public void grow_RootCorridorPlacesAnnexAndOpensDoorways(GameTestHelper context) {
         Plot plot = plot(context);
         int before = ArtronLogic.read(plot.model());
-        assertSolid(plot, ArsGeometry.consoleDoorwayBox(), "console east wall before the first piece");
+        assertSolid(plot, ArsGeometry.consoleDoorwayBox(), "console east wall before the root link opens");
 
         ArsService.Result result = grow(plot, "corridor_straight", 2, 1, 1);
 
@@ -277,6 +277,29 @@ public class TardisArsGameTests {
     }
 
     @GameTest(structure = STRUCTURE)
+    public void jettison_RootPieceWithOnlyIslandsLeftRemovesAnnex(GameTestHelper context) {
+        Plot plot = plot(context);
+        Map<BlockPos, BlockState> consoleWall = snapshot(plot, ArsGeometry.consoleDoorwayBox());
+        grow(plot, "corridor_straight", 2, 1, 1);
+        // A resolved piece linked to nothing (as left behind when a piece between them loses its definition).
+        ArsPlacedPiece island = new ArsPlacedPiece("dwm:corridor_dead_end", 6, 6, 0);
+        plot.model().getArsPieces().add(island);
+
+        ArsService.Result result = ArsService.jettison(plot.level(), plot.origin(), plot.id(), 2, 1);
+
+        check(result.success(), "jettison refused: " + result.translationKey());
+        check(plot.model().getArsPieces().equals(List.of(island)), "model layout " + plot.model().getArsPieces());
+        assertAir(plot, ArsGeometry.annexBox(), "annex once the root link closes");
+        assertUnchanged(plot, consoleWall, "console east wall once the root link closes");
+
+        if (TardisInteriorService.regenerateInterior(plot.level(), plot.origin(), plot.id()) == null) {
+            throw new AssertionError("regenerateInterior returned null");
+        }
+        assertUnchanged(plot, consoleWall, "console east wall after rebuild with only an island");
+        context.succeed();
+    }
+
+    @GameTest(structure = STRUCTURE)
     public void jettison_RefusedWhilePlayerInside(GameTestHelper context) {
         Plot plot = plot(context);
         grow(plot, "corridor_straight", 2, 1, 1);
@@ -288,7 +311,7 @@ public class TardisArsGameTests {
             check(!inRoom.success() && ArsService.PLAYER_INSIDE_KEY.equals(inRoom.translationKey()),
                     "expected player inside (room), got " + inRoom);
 
-            // The last piece also takes the annex with it.
+            // The piece on the root link also takes the annex with it.
             BlockPos annex = plot.origin().offset(13, 1, 10);
             player.snapTo(annex.getX() + 0.5, annex.getY(), annex.getZ() + 0.5);
             ArsService.Result inAnnex = ArsService.jettison(plot.level(), plot.origin(), plot.id(), 2, 1);
