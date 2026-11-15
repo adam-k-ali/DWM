@@ -367,6 +367,16 @@ public abstract class PortalSampler {
         return section != null
                 && !section.hasOnlyAir()
                 && !section.maybeHas(state -> state != null && !state.isSolidRender());
+  }
+
+    /**
+     * Ground height for the surface skin. {@code MOTION_BLOCKING_NO_LEAVES} counts fluid as ground, so
+     * under a lake the skin would stop just below the water surface; the client reads the unstreamed
+     * water below as air and draws the underwater side/bottom faces. {@code OCEAN_FLOOR} is the solid
+     * floor, so the whole water column streams and its faces cull against each other.
+     */
+    static int skinGroundHeight(int motionBlockingNoLeaves, int oceanFloor) {
+        return Math.min(motionBlockingNoLeaves, oceanFloor);
     }
 
     /**
@@ -582,7 +592,9 @@ public abstract class PortalSampler {
             for (int lz = 0; lz < 16; lz++) {
                 for (int lx = 0; lx < 16; lx++) {
                     heights[(lz << 4) | lx] = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, lx, lz);
-                    ground[(lz << 4) | lx] = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, lx, lz);
+                    ground[(lz << 4) | lx] = skinGroundHeight(
+                            chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, lx, lz),
+                            chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, lx, lz));
                 }
             }
             computeSurfaceSkinBounds(heights, ground, yRange.min(), yRange.max(), colMin, colMax);

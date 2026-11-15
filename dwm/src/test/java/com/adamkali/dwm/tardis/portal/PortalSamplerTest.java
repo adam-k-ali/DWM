@@ -207,6 +207,15 @@ class PortalSamplerTest {
     }
 
     @Test
+    void skinGroundHeight_reachesLakeFloorUnderWater() {
+        // Water surface counts as motion-blocking ground; the ocean floor is 12 blocks lower.
+        assertEquals(52, PortalSampler.skinGroundHeight(64, 52));
+        // No fluid: both heightmaps agree, or leaves lift the ocean floor above leaf-free ground.
+        assertEquals(64, PortalSampler.skinGroundHeight(64, 64));
+        assertEquals(64, PortalSampler.skinGroundHeight(64, 70));
+    }
+
+    @Test
     void computeSurfaceSkinBounds_keepsNeighborPadAndEdgeDepth() {
         int[] heights = new int[256];
         java.util.Arrays.fill(heights, 70);

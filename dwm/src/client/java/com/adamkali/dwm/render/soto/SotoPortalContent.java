@@ -204,16 +204,6 @@ public final class SotoPortalContent implements PortalContent {
             );
             PortalPerfStats.end(PortalPerfStats.Stage.TERRAIN_CUTOUT, cutoutStart);
 
-            long translucentStart = PortalPerfStats.begin();
-            SotoGhostMeshCache.drawLayer(
-                    PortalStreamKind.SOTO,
-                    id,
-                    hitch.viewMatrix(),
-                    SotoGhostMeshCache.TerrainPass.TRANSLUCENT,
-                    cull
-            );
-            PortalPerfStats.end(PortalPerfStats.Stage.TERRAIN_TRANSLUCENT, translucentStart);
-
             long featuresStart = PortalPerfStats.begin();
             try {
                 PortalFeatureFlush featureFlush = context.featureFlush();
@@ -254,6 +244,17 @@ public final class SotoPortalContent implements PortalContent {
             } finally {
                 PortalPerfStats.end(PortalPerfStats.Stage.GHOST_FEATURES, featuresStart);
             }
+
+            // Translucent terrain (water) writes depth; entities must be flushed first or submerged ones fail the depth test.
+            long translucentStart = PortalPerfStats.begin();
+            SotoGhostMeshCache.drawLayer(
+                    PortalStreamKind.SOTO,
+                    id,
+                    hitch.viewMatrix(),
+                    SotoGhostMeshCache.TerrainPass.TRANSLUCENT,
+                    cull
+            );
+            PortalPerfStats.end(PortalPerfStats.Stage.TERRAIN_TRANSLUCENT, translucentStart);
         } finally {
             SotoSkyFogRenderer.restoreFog(previousFog);
             if (portalLightmap != null) {
