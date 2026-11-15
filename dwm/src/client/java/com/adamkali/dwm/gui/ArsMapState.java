@@ -1,0 +1,232 @@
+package com.adamkali.dwm.gui;
+
+import com.adamkali.dwm.tardis.data.model.ArsPlacedPiece;
+import com.adamkali.dwm.tardis.interior.ars.ArsCell;
+import com.adamkali.dwm.tardis.interior.ars.ArsConnector;
+import com.adamkali.dwm.tardis.interior.ars.ArsGrid;
+import com.adamkali.dwm.tardis.interior.ars.ArsPieceDefinition;
+import com.adamkali.dwm.tardis.interior.ars.ArsPieceKind;
+import com.adamkali.dwm.tardis.logic.ArsLayoutLogic;
+import net.minecraft.resources.Identifier;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+
+/**
+ * Everything the ARS map screen decides that is not drawing: map hit-testing, palette order, the placement
+ * ghost, and the palette/jettison selection. Pure, so it is unit-tested without a client.
+ *
+ * <p>The map is drawn north-up: cell x grows to the right (east) and cell z grows downward (south).
+ */
+public final class ArsMapState {
+    private List<ArsPlacedPiece> layout = List.of();
+    private int artron;
+    private @Nullable Identifier selectedPiece;
+    private int rotation;
+    private @Nullable ArsCell selectedCell;
+
+    /** Map placement on screen: top-left corner of cell (0, 0) and cell edge length in GUI pixels. */
+    public record MapGeometry(int left, int top, int cellSize) {
+        public int size() {
+            return cellSize * ArsGrid.GRID_SIZE;
+        }
+
+        /** The grid cell under a GUI point, or {@code null} outside the map. */
+        public @Nullable ArsCell cellAt(double mouseX, double mouseY) {
+            if (mouseX < left || mouseY < top || mouseX >= left + size() || mouseY >= top + size()) {
+                return null;
+            }
+            int cx = (int) Math.floor((mouseX - left) / cellSize);
+            int cz = (int) Math.floor((mouseY - top) / cellSize);
+            return ArsGrid.inBounds(cx, cz) ? new ArsCell(cx, cz) : null;
+        }
+
+        public int cellLeft(int cellX) {
+            return left + cellX * cellSize;
+        }
+
+        public int cellTop(int cellZ) {
+            return top + cellZ * cellSize;
+        }
+
+        /** Screen x of a plot-local block x (blocks scale to {@code cellSize / CELL_SIZE} pixels). */
+        public double blockX(double plotLocalX) {
+            return left + plotLocalX * cellSize / ArsGrid.CELL_SIZE;
+        }
+
+        /** Screen y of a plot-local block z. */
+        public double blockZ(double plotLocalZ) {
+            return top + plotLocalZ * cellSize / ArsGrid.CELL_SIZE;
+        }
+    }
+
+    /** A candidate piece at an anchor cell: its rotated footprint and connectors (absolute cells). */
+    public record Ghost(ArsPlacedPiece candidate, List<ArsCell> cells, List<ArsConnector> connectors) {
+    }
+
+    /** What a click on the map asks for. */
+    public enum ClickKind {
+        /** Nothing to do. */
+        NONE,
+        /** Send a grow request for {@link Click#grow()}. */
+        GROW,
+        /** The ghost is refused here; {@link Click#refusal()} says why. Nothing is sent. */
+        REFUSED,
+        /** A placed piece was selected for jettisoning. */
+        SELECTED,
+        /** The jettison selection was cleared. */
+        DESELECTED
+    }
+
+    public record Click(ClickKind kind, @Nullable ArsPlacedPiece grow, @Nullable ArsLayoutLogic.PlaceResult refusal) {
+        static Click of(ClickKind kind) {
+            return new Click(kind, null, null);
+        }
+    }
+
+    /**
+     * Palette order: corridors first, then rooms, each by id. {@link ArsPieceKind} declares rooms first, so the
+     * kind order is spelled out here rather than taken from the enum.
+     */
+    public static List<Identifier> paletteOrder(Map<Identifier, ArsPieceDefinition> definitions) {
+        List<Identifier> ids = new ArrayList<>(definitions.keySet());
+        ids.sort(Comparator
+                .comparingInt((Identifier id) -> definitions.get(id).kind() == ArsPieceKind.CORRIDOR ? 0 : 1)
+                .thenComparing(Identifier::toString));
+        return ids;
+    }
+
+    /** The ghost of {@code pieceId} anchored at {@code anchor} (min corner of the rotated footprint). */
+    public static Ghost ghost(Identifier pieceId, ArsPieceDefinition definition, ArsCell anchor, int rotation) {
+        ArsPlacedPiece candidate = new ArsPlacedPiece(pieceId.toString(), anchor.x(), anchor.z(), rotation);
+        return new Ghost(
+                candidate,
+                ArsLayoutLogic.occupiedCells(candidate, definition),
+                ArsLayoutLogic.connectors(candidate, definition));
+    }
+
+    /** Replaces the layout and artron from a server snapshot, keeping palette selection and rotation. */
+    public void update(List<ArsPlacedPiece> layout, int artron, Function<Identifier, ArsPieceDefinition> definitions) {
+        this.layout = List.copyOf(layout);
+        this.artron = artron;
+        if (selectedPiece != null && definitions.apply(selectedPiece) == null) {
+            selectedPiece = null;
+        }
+        if (selectedCell != null && selectedPlaced(definitions).isEmpty()) {
+            selectedCell = null;
+        }
+    }
+
+    public List<ArsPlacedPiece> layout() {
+        return layout;
+    }
+
+    public int artron() {
+        return artron;
+    }
+
+    public @Nullable Identifier selectedPiece() {
+        return selectedPiece;
+    }
+
+    public int rotation() {
+        return rotation;
+    }
+
+    public @Nullable ArsCell selectedCell() {
+        return selectedCell;
+    }
+
+    /** Selects a palette piece (or clears it when it is already selected) and drops the jettison selection. */
+    public void togglePalette(Identifier pieceId) {
+        selectedPiece = pieceId.equals(selectedPiece) ? null : pieceId;
+        selectedCell = null;
+    }
+
+    public void clearPalette() {
+        selectedPiece = null;
+    }
+
+    /** Turns the ghost a quarter turn clockwise. */
+    public void rotateClockwise() {
+        rotation = (rotation + 1) % ArsGrid.ROTATION_COUNT;
+    }
+
+    /** The ghost of the selected palette piece at {@code anchor}, if a piece is selected and known. */
+    public Optional<Ghost> ghostAt(@Nullable ArsCell anchor, Function<Identifier, ArsPieceDefinition> definitions) {
+        if (anchor == null || selectedPiece == null) {
+            return Optional.empty();
+        }
+        ArsPieceDefinition definition = definitions.apply(selectedPiece);
+        return definition == null ? Optional.empty() : Optional.of(ghost(selectedPiece, definition, anchor, rotation));
+    }
+
+    /** {@link ArsLayoutLogic#canPlace} for a ghost against the current layout and artron. */
+    public ArsLayoutLogic.PlaceResult check(
+            Ghost ghost,
+            Function<Identifier, ArsPieceDefinition> definitions,
+            boolean instabuild
+    ) {
+        return ArsLayoutLogic.canPlace(layout, definitions, ghost.candidate(), artron, instabuild);
+    }
+
+    /**
+     * A click on map cell {@code cell}. With a palette piece selected, a left click grows it there when the
+     * rules allow (else {@link ClickKind#REFUSED}). Otherwise, and on any right click, it selects the placed
+     * piece under the cursor for jettisoning (right click also drops the palette selection), or clears the
+     * jettison selection on an empty cell.
+     */
+    public Click click(
+            @Nullable ArsCell cell,
+            boolean rightClick,
+            Function<Identifier, ArsPieceDefinition> definitions,
+            boolean instabuild
+    ) {
+        if (cell == null) {
+            return Click.of(ClickKind.NONE);
+        }
+        if (!rightClick && selectedPiece != null) {
+            Optional<Ghost> ghost = ghostAt(cell, definitions);
+            if (ghost.isEmpty()) {
+                return new Click(ClickKind.REFUSED, null, ArsLayoutLogic.PlaceResult.UNKNOWN_PIECE);
+            }
+            ArsLayoutLogic.PlaceResult result = check(ghost.get(), definitions, instabuild);
+            return result == ArsLayoutLogic.PlaceResult.OK
+                    ? new Click(ClickKind.GROW, ghost.get().candidate(), null)
+                    : new Click(ClickKind.REFUSED, null, result);
+        }
+        if (rightClick) {
+            selectedPiece = null;
+        }
+        if (ArsLayoutLogic.pieceAt(layout, definitions, cell.x(), cell.z()).isPresent()) {
+            selectedCell = cell;
+            return Click.of(ClickKind.SELECTED);
+        }
+        if (selectedCell != null) {
+            selectedCell = null;
+            return Click.of(ClickKind.DESELECTED);
+        }
+        return Click.of(ClickKind.NONE);
+    }
+
+    /** The placed piece selected for jettisoning, if it still exists. */
+    public Optional<ArsPlacedPiece> selectedPlaced(Function<Identifier, ArsPieceDefinition> definitions) {
+        if (selectedCell == null) {
+            return Optional.empty();
+        }
+        return ArsLayoutLogic.pieceAt(layout, definitions, selectedCell.x(), selectedCell.z());
+    }
+
+    /** Whether the selected placed piece may be jettisoned ({@link ArsLayoutLogic.RemoveResult#NO_PIECE} if none). */
+    public ArsLayoutLogic.RemoveResult removeCheck(Function<Identifier, ArsPieceDefinition> definitions) {
+        if (selectedCell == null) {
+            return ArsLayoutLogic.RemoveResult.NO_PIECE;
+        }
+        return ArsLayoutLogic.canRemove(layout, definitions, selectedCell.x(), selectedCell.z());
+    }
+}

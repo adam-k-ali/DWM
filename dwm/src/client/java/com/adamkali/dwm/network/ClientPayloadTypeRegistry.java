@@ -1,6 +1,7 @@
 package com.adamkali.dwm.network;
 
 import com.adamkali.dwm.ClientTardis;
+import com.adamkali.dwm.gui.ArsScreen;
 import com.adamkali.dwm.gui.PlayerLocatorScreen;
 import com.adamkali.dwm.gui.TardisChameleonGui;
 import com.adamkali.dwm.gui.WaypointScreen;
@@ -23,6 +24,7 @@ public class ClientPayloadTypeRegistry {
         ClientPlayNetworking.registerGlobalReceiver(OpenTardisChameleonScreen.ID, ClientPayloadTypeRegistry::openTardisChameleonScreen);
         ClientPlayNetworking.registerGlobalReceiver(OpenWaypointScreen.ID, ClientPayloadTypeRegistry::openWaypointScreen);
         ClientPlayNetworking.registerGlobalReceiver(OpenPlayerLocatorScreen.ID, ClientPayloadTypeRegistry::openPlayerLocatorScreen);
+        ClientPlayNetworking.registerGlobalReceiver(OpenArsScreen.ID, ClientPayloadTypeRegistry::openArsScreen);
         ClientPlayNetworking.registerGlobalReceiver(SyncPortalMetaS2CPayload.ID, ClientPayloadTypeRegistry::syncPortalMeta);
         ClientPlayNetworking.registerGlobalReceiver(SyncPortalChunkS2CPayload.ID, ClientPayloadTypeRegistry::syncPortalChunk);
         ClientPlayNetworking.registerGlobalReceiver(UnloadPortalChunkS2CPayload.ID, ClientPayloadTypeRegistry::unloadPortalChunk);
@@ -84,6 +86,21 @@ public class ClientPayloadTypeRegistry {
                     payload.players(),
                     payload.selectedPlayerUuid()
             ));
+        });
+    }
+
+    /** Opens the ARS screen, or refreshes it in place when it is already open for this TARDIS. */
+    private static void openArsScreen(OpenArsScreen payload, ClientPlayNetworking.Context context) {
+        context.client().execute(() -> {
+            if (context.client().level == null) {
+                LOGGER.warn("Received OpenArsScreen payload but client or world is null");
+                return;
+            }
+            if (context.client().gui.screen() instanceof ArsScreen open && open.tardisId().equals(payload.tardisId())) {
+                open.update(payload);
+                return;
+            }
+            context.client().setScreenAndShow(new ArsScreen(new ClientTardis(payload.tardisId()), payload));
         });
     }
 

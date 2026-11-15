@@ -1,5 +1,7 @@
 package com.adamkali.dwm;
 
+import com.adamkali.dwm.network.ArsGrowC2SPayload;
+import com.adamkali.dwm.network.ArsJettisonC2SPayload;
 import com.adamkali.dwm.network.DeleteWaypointC2SPayload;
 import com.adamkali.dwm.network.RenameWaypointC2SPayload;
 import com.adamkali.dwm.network.SaveWaypointC2SPayload;
@@ -8,6 +10,7 @@ import com.adamkali.dwm.network.SelectWaypointC2SPayload;
 import com.adamkali.dwm.network.UpdateTardisChameleonC2SPayload;
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,5 +49,13 @@ public class ClientTardis {
 
     public void selectPlayer(@Nullable UUID playerUuid) {
         ClientPlayNetworking.send(new SelectPlayerC2SPayload(this.tardisId, playerUuid));
+    }
+
+    public void arsGrow(@NotNull Identifier pieceId, int cellX, int cellZ, int rotation) {
+        ClientPlayNetworking.send(new ArsGrowC2SPayload(this.tardisId, pieceId, cellX, cellZ, rotation));
+    }
+
+    public void arsJettison(int cellX, int cellZ) {
+        ClientPlayNetworking.send(new ArsJettisonC2SPayload(this.tardisId, cellX, cellZ));
     }
 }
