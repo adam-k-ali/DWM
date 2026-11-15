@@ -363,6 +363,31 @@ class ArsLayoutLogicTest {
     }
 
     @Test
+    void canPlace_refusesCandidateMatingOnlyAnIsland() {
+        // (4,1) is cut off: its only path to the root ran through the orphan at (3,1).
+        List<ArsPlacedPiece> layout = List.of(
+                piece(STRAIGHT, 2, 1, 0),
+                piece("dwm:removed_by_datapack", 3, 1, 0),
+                piece(STRAIGHT, 4, 1, 0)
+        );
+
+        // East of the island: mates only the island's east door.
+        assertEquals(PlaceResult.NOT_CONNECTED,
+                ArsLayoutLogic.canPlace(layout, DEFS, piece(STRAIGHT, 5, 1, 0), 500, false));
+        // Same candidate mating a reachable piece is accepted.
+        List<ArsPlacedPiece> reachableLayout = List.of(
+                piece(STRAIGHT, 2, 1, 0),
+                piece(STRAIGHT, 3, 1, 0),
+                piece(STRAIGHT, 4, 1, 0)
+        );
+        assertEquals(PlaceResult.OK,
+                ArsLayoutLogic.canPlace(reachableLayout, DEFS, piece(STRAIGHT, 5, 1, 0), 500, false));
+        // Filling the gap mates both the reachable piece and the island: accepted.
+        assertEquals(PlaceResult.OK,
+                ArsLayoutLogic.canPlace(layout, DEFS, piece(STRAIGHT, 3, 1, 0), 500, false));
+    }
+
+    @Test
     void savedPieceWithInvalidRotationIsIgnored() {
         List<ArsPlacedPiece> layout = new ArrayList<>(List.of(piece(STRAIGHT, 2, 1, 5)));
 

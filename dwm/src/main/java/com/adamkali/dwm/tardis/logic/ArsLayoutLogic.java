@@ -35,7 +35,8 @@ import java.util.function.Function;
  * {@link #pieceAt} never returns it, and {@link #canRemove} on its cells answers
  * {@link RemoveResult#NO_PIECE}. Its cells therefore count as free for {@link #canPlace}; world
  * placement must deal with any blocks it left behind. Pieces reached only through it become
- * unreachable from the root, which {@link #canRemove} tolerates (see there).
+ * unreachable from the root (an island): {@link #canRemove} tolerates them (see there), but
+ * {@link #canPlace} will not connect a new piece to an island.
  */
 public final class ArsLayoutLogic {
     public static final String UNKNOWN_PIECE_KEY = "dwm.ars.unknown_piece";
@@ -189,8 +190,10 @@ public final class ArsLayoutLogic {
     /**
      * Whether {@code candidate} may be added to {@code layout}. Checks, in order: definition exists,
      * rotation is {@code 0..3}, footprint inside the grid, footprint clear of the console cells,
-     * footprint clear of resolved pieces, at least one connector mates an existing piece's connector
-     * or the root link, and (unless {@code instabuild}) {@code artron} covers the cost.
+     * footprint clear of resolved pieces, at least one connector mates the root link or a connector of
+     * a piece that is itself reachable from the root, and (unless {@code instabuild}) {@code artron}
+     * covers the cost. Mating only an island (a piece cut off from the root) is
+     * {@link PlaceResult#NOT_CONNECTED}.
      */
     public static PlaceResult canPlace(
             List<ArsPlacedPiece> layout,
@@ -223,9 +226,11 @@ public final class ArsLayoutLogic {
                 return PlaceResult.OCCUPIED;
             }
         }
+        Set<Integer> reachable = graph.reachableFromRoot(NO_EXCLUSION);
         boolean connected = false;
         for (ArsConnector connector : connectors(candidate, definition)) {
-            if (graph.connectorOwners.containsKey(connector.mate())) {
+            Integer owner = graph.connectorOwners.get(connector.mate());
+            if (owner != null && (owner == ROOT_NODE || reachable.contains(owner))) {
                 connected = true;
                 break;
             }
