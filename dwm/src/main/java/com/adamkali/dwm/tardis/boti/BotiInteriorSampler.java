@@ -76,22 +76,24 @@ public final class BotiInteriorSampler extends PortalSampler {
     }
 
     /**
-     * Inclusive chunk-grid bounds of the allocated plot
-     * {@code [origin, origin + PLOT_SPACING)}.
+     * Inclusive chunk-grid bounds of the window owned by the plot anchored at {@code plotOrigin}
+     * ({@link TardisPlotAllocator#windowOrigin}). The window is not chunk-aligned, so the edge columns are
+     * shared with the neighbouring windows; sampling clips them per block ({@link #includePos}).
      */
-    public static int[] plotChunkBounds(BlockPos plotOrigin) {
-        int minCX = SectionPos.blockToSectionCoord(plotOrigin.getX());
-        int maxCX = SectionPos.blockToSectionCoord(plotOrigin.getX() + TardisPlotAllocator.PLOT_SPACING - 1);
-        int minCZ = SectionPos.blockToSectionCoord(plotOrigin.getZ());
-        int maxCZ = SectionPos.blockToSectionCoord(plotOrigin.getZ() + TardisPlotAllocator.PLOT_SPACING - 1);
+    public static int[] windowChunkBounds(BlockPos plotOrigin) {
+        BlockPos window = TardisPlotAllocator.windowOrigin(plotOrigin);
+        int minCX = SectionPos.blockToSectionCoord(window.getX());
+        int maxCX = SectionPos.blockToSectionCoord(window.getX() + TardisPlotAllocator.PLOT_SPACING - 1);
+        int minCZ = SectionPos.blockToSectionCoord(window.getZ());
+        int maxCZ = SectionPos.blockToSectionCoord(window.getZ() + TardisPlotAllocator.PLOT_SPACING - 1);
         return new int[]{minCX, maxCX, minCZ, maxCZ};
     }
 
     /**
-     * View-distance Chebyshev box around {@code plotOrigin}, clipped to the owning plot.
+     * View-distance Chebyshev box around the anchor {@code plotOrigin}, clipped to the owning window.
      */
     public static int[] streamChunkBounds(BlockPos plotOrigin, int radiusChunks) {
-        int[] plot = plotChunkBounds(plotOrigin);
+        int[] plot = windowChunkBounds(plotOrigin);
         return PortalSampler.clipChunkBounds(
                 PortalSampler.streamChunkBounds(plotOrigin, radiusChunks),
                 plot[0],
@@ -105,20 +107,18 @@ public final class BotiInteriorSampler extends PortalSampler {
         return streamChunkBounds(plotOrigin, PortalSampler.streamRadiusChunks(world));
     }
 
-    /** Caps a view-distance radius so fog/stream stay inside {@link TardisPlotAllocator#PLOT_SPACING}. */
+    /**
+     * Caps a view-distance radius so fog/stream stay inside {@link TardisPlotAllocator#PLOT_SPACING}. The cap (3)
+     * still covers the whole window, which spans anchor chunk {@code -2..+2}.
+     */
     public static int clipStreamRadiusChunks(int radiusChunks) {
         int plotRadius = Math.max(0, (TardisPlotAllocator.PLOT_SPACING - 1) / 16);
         return Math.min(Math.max(0, radiusChunks), plotRadius);
     }
 
-    public static boolean isInsidePlotStream(BlockPos worldPos, BlockPos plotOrigin, int radiusChunks) {
-        if (worldPos == null || plotOrigin == null) {
-            return false;
-        }
-        int localX = worldPos.getX() - plotOrigin.getX();
-        int localZ = worldPos.getZ() - plotOrigin.getZ();
-        if (localX < 0 || localX >= TardisPlotAllocator.PLOT_SPACING
-                || localZ < 0 || localZ >= TardisPlotAllocator.PLOT_SPACING) {
+    /** Whether {@code worldPos} is in the window of the plot anchored at {@code plotOrigin} and in stream range. */
+    public static boolean isInsideWindowStream(BlockPos worldPos, BlockPos plotOrigin, int radiusChunks) {
+        if (!TardisPlotAllocator.isInsideWindow(worldPos, plotOrigin)) {
             return false;
         }
         return PortalSampler.isInsideStreamRadius(
@@ -245,7 +245,7 @@ public final class BotiInteriorSampler extends PortalSampler {
     }
 
     /**
-     * Collects visible block states (+ BE NBT) for one chunk column clipped to the plot.
+     * Collects visible block states (+ BE NBT) for one chunk column clipped to the plot's window.
      * Positions in the returned maps are world-absolute.
      *
      * @return the sample, or {@code null} when the column is not yet {@code FULL}
@@ -279,23 +279,21 @@ public final class BotiInteriorSampler extends PortalSampler {
         int radius = PortalSampler.simulationRadiusChunks(world);
         int yRadius = PortalSampler.streamYRadiusBlocks(radius);
         AABB stream = PortalSampler.streamBox(anchor, radius, yRadius);
+        BlockPos window = TardisPlotAllocator.windowOrigin(anchor);
         AABB plot = new AABB(
-                anchor.getX(),
+                window.getX(),
                 stream.minY,
-                anchor.getZ(),
-                anchor.getX() + TardisPlotAllocator.PLOT_SPACING,
+                window.getZ(),
+                window.getX() + TardisPlotAllocator.PLOT_SPACING,
                 stream.maxY,
-                anchor.getZ() + TardisPlotAllocator.PLOT_SPACING
+                window.getZ() + TardisPlotAllocator.PLOT_SPACING
         );
         return stream.intersect(plot);
     }
 
     @Override
     protected boolean includePos(BlockPos worldPos, BlockPos anchor) {
-        int localX = worldPos.getX() - anchor.getX();
-        int localZ = worldPos.getZ() - anchor.getZ();
-        return localX >= 0 && localX < TardisPlotAllocator.PLOT_SPACING
-                && localZ >= 0 && localZ < TardisPlotAllocator.PLOT_SPACING;
+        return TardisPlotAllocator.isInsideWindow(worldPos, anchor);
     }
 
     @Override
@@ -318,10 +316,11 @@ public final class BotiInteriorSampler extends PortalSampler {
         }
         int baseX = chunkX << 4;
         int baseZ = chunkZ << 4;
-        int minX = Math.max(baseX, anchor.getX());
-        int maxX = Math.min(baseX + 15, anchor.getX() + TardisPlotAllocator.PLOT_SPACING - 1);
-        int minZ = Math.max(baseZ, anchor.getZ());
-        int maxZ = Math.min(baseZ + 15, anchor.getZ() + TardisPlotAllocator.PLOT_SPACING - 1);
+        BlockPos window = TardisPlotAllocator.windowOrigin(anchor);
+        int minX = Math.max(baseX, window.getX());
+        int maxX = Math.min(baseX + 15, window.getX() + TardisPlotAllocator.PLOT_SPACING - 1);
+        int minZ = Math.max(baseZ, window.getZ());
+        int maxZ = Math.min(baseZ + 15, window.getZ() + TardisPlotAllocator.PLOT_SPACING - 1);
         return PortalLightData.sample(
                 world.getLightEngine(),
                 new BlockPos(minX, lightY.min(), minZ),

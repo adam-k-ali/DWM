@@ -5,6 +5,7 @@ import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.entity.ConsoleControlInteractionEntity;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
+import com.adamkali.dwm.tardis.portal.PortalSampler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -68,15 +69,25 @@ class BotiInteriorSamplerTest {
     }
 
     @Test
-    void streamChunkBounds_clipsViewDistanceToPlot() {
+    void windowChunkBounds_spansAnchorChunkMinusTwoToPlusTwo() {
+        BlockPos origin = new BlockPos(64 * 10, 64, 64 * -3);
+        int cx = origin.getX() >> 4;
+        int cz = origin.getZ() >> 4;
+        // Window x/z = anchor - 27 .. anchor + 36: not chunk-aligned, so 5x5 columns.
+        assertArrayEquals(new int[]{cx - 2, cx + 2, cz - 2, cz + 2}, BotiInteriorSampler.windowChunkBounds(origin));
+    }
+
+    @Test
+    void streamChunkBounds_clipsViewDistanceToWindow() {
         BlockPos origin = new BlockPos(0, 64, 0);
-        int[] plot = BotiInteriorSampler.plotChunkBounds(origin);
+        int[] window = BotiInteriorSampler.windowChunkBounds(origin);
         int[] clipped = BotiInteriorSampler.streamChunkBounds(origin, 12);
-        assertEquals(plot[0], clipped[0]);
-        assertEquals(plot[1], clipped[1]);
-        assertEquals(plot[2], clipped[2]);
-        assertEquals(plot[3], clipped[3]);
+        assertArrayEquals(window, clipped);
         assertTrue(clipped[1] - clipped[0] < 12);
+        // The capped radius still reaches every window column.
+        int radius = BotiInteriorSampler.clipStreamRadiusChunks(32);
+        assertArrayEquals(window, BotiInteriorSampler.streamChunkBounds(origin, radius));
+        assertArrayEquals(window, BotiInteriorSampler.streamChunkBounds(origin, PortalSampler.DEFAULT_STREAM_RADIUS_CHUNKS));
     }
 
     @Test
@@ -91,11 +102,30 @@ class BotiInteriorSamplerTest {
     }
 
     @Test
-    void isInsidePlotStream_rejectsNeighborPlot() {
+    void isInsideWindowStream_rejectsNeighborWindows() {
         BlockPos origin = new BlockPos(0, 64, 0);
-        assertTrue(BotiInteriorSampler.isInsidePlotStream(origin, origin, 2));
-        assertFalse(BotiInteriorSampler.isInsidePlotStream(
-                origin.offset(TardisPlotAllocator.PLOT_SPACING, 0, 0), origin, 12));
+        int offset = TardisPlotAllocator.WINDOW_OFFSET;
+        int span = TardisPlotAllocator.PLOT_SPACING - offset;
+        assertTrue(BotiInteriorSampler.isInsideWindowStream(origin, origin, 2));
+        assertTrue(BotiInteriorSampler.isInsideWindowStream(origin.offset(-offset, 0, -offset), origin, 2));
+        assertTrue(BotiInteriorSampler.isInsideWindowStream(origin.offset(span - 1, 0, span - 1), origin, 2));
+        assertFalse(BotiInteriorSampler.isInsideWindowStream(origin.offset(span, 0, 0), origin, 12));
+        assertFalse(BotiInteriorSampler.isInsideWindowStream(origin.offset(-offset - 1, 0, 0), origin, 12));
+        assertFalse(BotiInteriorSampler.isInsideWindowStream(origin.offset(0, 0, -offset - 1), origin, 12));
+    }
+
+    @Test
+    void includePos_clipsSamplingToTheWindowPerBlock() {
+        BlockPos anchor = new BlockPos(64 * 3, 64, 64 * 5);
+        int offset = TardisPlotAllocator.WINDOW_OFFSET;
+        int span = TardisPlotAllocator.PLOT_SPACING - offset;
+        // Anchor chunk -2 starts at anchor - 32: its first 5 columns belong to the west neighbour.
+        assertFalse(BotiInteriorSampler.INSTANCE.includePos(anchor.offset(-32, 0, 0), anchor));
+        assertFalse(BotiInteriorSampler.INSTANCE.includePos(anchor.offset(-offset - 1, 0, 0), anchor));
+        assertTrue(BotiInteriorSampler.INSTANCE.includePos(anchor.offset(-offset, 0, 0), anchor));
+        assertTrue(BotiInteriorSampler.INSTANCE.includePos(anchor.offset(span - 1, 0, span - 1), anchor));
+        assertFalse(BotiInteriorSampler.INSTANCE.includePos(anchor.offset(span, 0, 0), anchor));
+        assertFalse(BotiInteriorSampler.INSTANCE.includePos(anchor.offset(0, 0, span), anchor));
     }
 
     @Test

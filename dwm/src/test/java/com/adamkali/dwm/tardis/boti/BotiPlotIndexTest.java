@@ -42,6 +42,30 @@ class BotiPlotIndexTest {
     }
 
     @Test
+    void resolve_UsesTheWindowAroundTheAnchor() {
+        UUID id = new UUID(10, 20);
+        UUID east = new UUID(11, 20);
+        UUID west = new UUID(9, 20);
+        BotiPlotIndex.register(id);
+        BotiPlotIndex.register(east);
+        BotiPlotIndex.register(west);
+        BlockPos origin = TardisPlotAllocator.plotOrigin(id);
+        int offset = TardisPlotAllocator.WINDOW_OFFSET;
+        int span = TardisPlotAllocator.PLOT_SPACING - offset;
+
+        // West and north of the anchor, inside the window: this TARDIS, not the neighbour.
+        assertEquals(id, BotiPlotIndex.resolve(origin.offset(-1, 1, 5)));
+        assertEquals(id, BotiPlotIndex.resolve(origin.offset(-offset, 1, -offset)));
+        assertEquals(id, BotiPlotIndex.resolve(origin.offset(span - 1, 1, span - 1)));
+        // anchor + 37 is the first block of the next window east; anchor - 28 the last of the one west.
+        assertEquals(east, BotiPlotIndex.resolve(origin.offset(span, 1, 5)));
+        assertEquals(west, BotiPlotIndex.resolve(origin.offset(-offset - 1, 1, 5)));
+        // The plot key stays on the anchor.
+        assertEquals(origin, BotiPlotIndex.getOrigin(id));
+        assertNull(BotiPlotIndex.resolve(origin.offset(5, 1, span)));
+    }
+
+    @Test
     void resolve_UnregisteredPlotReturnsNull() {
         UUID id = UUID.fromString("11111111-2222-3333-4444-555555555555");
         BlockPos origin = TardisPlotAllocator.plotOrigin(id);

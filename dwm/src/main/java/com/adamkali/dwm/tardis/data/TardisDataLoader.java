@@ -231,8 +231,8 @@ public class TardisDataLoader {
 
     /**
      * Returns the TARDIS whose interior plot contains {@code pos}, if any: the whole
-     * {@link TardisPlotAllocator#PLOT_SPACING}-square footprint at any height, so ARS rooms count as
-     * well as the console room. Scans disk so uncached
+     * {@link TardisPlotAllocator#PLOT_SPACING}-square window ({@link TardisPlotAllocator#windowOrigin}) at any
+     * height, so ARS rooms count as well as the console room. Scans disk so uncached
      * models are included. Does not use {@code BotiPlotIndex} (empty until an interior is entered).
      */
     public static Optional<TardisDataModel> findAtInteriorPos(@Nullable BlockPos pos) {
@@ -244,7 +244,7 @@ public class TardisDataLoader {
             if (model.uuid == null) {
                 continue;
             }
-            if (TardisPlotAllocator.isInsidePlot(pos, TardisPlotAllocator.plotOrigin(model.uuid))) {
+            if (TardisPlotAllocator.isInsideWindow(pos, TardisPlotAllocator.plotOrigin(model.uuid))) {
                 return Optional.of(model);
             }
         }
