@@ -49,26 +49,22 @@ public final class BotiPlotIndex {
     }
 
     /**
-     * Resolves the owning TARDIS for a world position in {@code dwm:tardis}, or null if outside a
-     * registered plot stream.
+     * Resolves the owning TARDIS for a world position in {@code dwm:tardis}: the TARDIS whose window
+     * ({@link TardisPlotAllocator#windowOrigin}) contains it, or null if that plot is not registered or the
+     * position is outside its stream.
      */
     public static @Nullable UUID resolve(BlockPos worldPos) {
         return resolve(worldPos, PortalSampler.DEFAULT_STREAM_RADIUS_CHUNKS);
     }
 
     public static @Nullable UUID resolve(BlockPos worldPos, int radiusChunks) {
-        int gridX = Math.floorDiv(worldPos.getX(), TardisPlotAllocator.PLOT_SPACING);
-        int gridZ = Math.floorDiv(worldPos.getZ(), TardisPlotAllocator.PLOT_SPACING);
-        BlockPos origin = new BlockPos(
-                gridX * TardisPlotAllocator.PLOT_SPACING,
-                TardisPlotAllocator.PLOT_BASE_Y,
-                gridZ * TardisPlotAllocator.PLOT_SPACING
-        );
+        // The window that holds worldPos decides the owner; its anchor keys the plot.
+        BlockPos origin = TardisPlotAllocator.anchorOfWindowAt(worldPos);
         UUID owner = PLOT_OWNERS.get(plotKey(origin));
         if (owner == null) {
             return null;
         }
-        if (!BotiInteriorSampler.isInsidePlotStream(worldPos, origin, radiusChunks)) {
+        if (!BotiInteriorSampler.isInsideWindowStream(worldPos, origin, radiusChunks)) {
             return null;
         }
         return owner;

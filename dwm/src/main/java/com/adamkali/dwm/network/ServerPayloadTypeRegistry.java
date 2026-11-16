@@ -396,7 +396,7 @@ public class ServerPayloadTypeRegistry {
     }
 
     /**
-     * The sender must stand in {@code dwm:tardis} inside {@code tardisId}'s interior plot: the ARS edits that
+     * The sender must stand in {@code dwm:tardis} inside {@code tardisId}'s interior plot window: the ARS edits that
      * world, so a request from anywhere else (or for another TARDIS's plot) is refused.
      */
     static boolean requireInsideTardis(
@@ -408,7 +408,7 @@ public class ServerPayloadTypeRegistry {
         boolean inside = tardisId != null
                 && dimension != null
                 && TardisDimensions.isTardisWorld(dimension)
-                && TardisPlotAllocator.isInsidePlot(position, TardisPlotAllocator.plotOrigin(tardisId));
+                && TardisPlotAllocator.isInsideWindow(position, TardisPlotAllocator.plotOrigin(tardisId));
         if (!inside && player != null) {
             player.sendOverlayMessage(Component.translatable(ARS_NOT_INSIDE_KEY));
         }

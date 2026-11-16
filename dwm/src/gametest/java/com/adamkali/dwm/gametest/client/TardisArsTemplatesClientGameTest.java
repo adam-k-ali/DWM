@@ -39,7 +39,7 @@ public class TardisArsTemplatesClientGameTest implements FabricClientGameTest {
     private record View(Vec3 eye, Vec3 target) {
     }
 
-    private record Shot(String name, boolean annex, List<View> views) {
+    private record Shot(String name, boolean lobby, List<View> views) {
     }
 
     private static final List<Shot> SHOTS = List.of(
@@ -59,7 +59,8 @@ public class TardisArsTemplatesClientGameTest implements FabricClientGameTest {
                     view(11.5, 1, 1.5, 12, 6, 12),
                     view(2.5, 1, 13.5, 12, 7, 12),
                     view(20.0, 6, 4.0, 12, 6, 12))),
-            new Shot("console_annex", true, List.of(view(0.5, 1, 1.5, 4.5, 2.0, 6))));
+            new Shot("console_lobby_east", true, List.of(view(1.0, 1, 1.3, 1.0, 2.0, 4.6))),
+            new Shot("console_lobby_west", true, List.of(view(1.5, 1, 1.3, 1.5, 2.0, 4.6))));
 
     private static View view(double x, double y, double z, double tx, double ty, double tz) {
         return new View(new Vec3(x, y, z), new Vec3(tx, ty, tz));
@@ -74,7 +75,7 @@ public class TardisArsTemplatesClientGameTest implements FabricClientGameTest {
             try {
                 for (Shot shot : SHOTS) {
                     Identifier id = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "tardis/ars/" + shot.name());
-                    Vec3i size = world.getServer().computeOnServer(server -> place(server.overworld(), id, shot.annex()));
+                    Vec3i size = world.getServer().computeOnServer(server -> place(server.overworld(), id, shot.lobby()));
 
                     for (int i = 0; i < shot.views().size(); i++) {
                         View view = shot.views().get(i);
@@ -113,7 +114,7 @@ public class TardisArsTemplatesClientGameTest implements FabricClientGameTest {
     }
 
     /** Clears the stage box, places the template at {@link #ORIGIN} and returns its size. */
-    private static Vec3i place(ServerLevel level, Identifier id, boolean annex) {
+    private static Vec3i place(ServerLevel level, Identifier id, boolean lobby) {
         for (int x = -2; x < CLEAR; x++) {
             for (int y = -2; y < 20; y++) {
                 for (int z = -2; z < CLEAR; z++) {
@@ -127,11 +128,13 @@ public class TardisArsTemplatesClientGameTest implements FabricClientGameTest {
         StructureTemplate template = level.getStructureManager().get(id)
                 .orElseThrow(() -> new AssertionError("Missing structure template " + id));
         Vec3i size = template.getSize();
-        if (annex) {
-            // Stand-in for the console room's east wall, which closes the annex's open west side.
+        if (lobby) {
+            // Stand-ins for the console room's wall and the root cell's piece, which close the lobby's open ends.
             for (int y = 0; y < size.getY(); y++) {
                 for (int z = 0; z < size.getZ(); z++) {
                     level.setBlock(ORIGIN.offset(-1, y, z), DWMBlocks.WHITE_TARDIS_WALL.defaultBlockState(), Block.UPDATE_CLIENTS);
+                    level.setBlock(ORIGIN.offset(size.getX(), y, z), DWMBlocks.WHITE_TARDIS_WALL.defaultBlockState(),
+                            Block.UPDATE_CLIENTS);
                 }
             }
         }

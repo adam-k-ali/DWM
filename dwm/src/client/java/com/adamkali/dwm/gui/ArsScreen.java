@@ -360,12 +360,14 @@ public class ArsScreen extends Screen {
             }
         }
 
-        boolean rootOpen = links.contains(ArsLayoutLogic.ROOT_LINK);
         for (ArsLayoutLogic.Link link : links) {
             doorway(graphics, geo, link, DOOR);
         }
-        if (!rootOpen) {
-            doorway(graphics, geo, ArsLayoutLogic.ROOT_LINK, ROOT_MARK);
+        // Each console doorway (east and west) is amber until a piece opens it.
+        for (ArsLayoutLogic.Link root : ArsLayoutLogic.ROOT_LINKS) {
+            if (!links.contains(root)) {
+                doorway(graphics, geo, root, ROOT_MARK);
+            }
         }
 
         state.selectedPlaced(lookup).ifPresent(piece -> {
@@ -399,9 +401,9 @@ public class ArsScreen extends Screen {
         graphics.fill(x0, z1 - 1, x1, z1, CONSOLE_EDGE);
         graphics.fill(x0, z0, x0 + 1, z1, CONSOLE_EDGE);
         graphics.fill(x1 - 1, z0, x1, z1, CONSOLE_EDGE);
-        // The console itself, at its plot-local block position.
-        int cx = (int) Math.round(geo.blockX(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getX() + 0.5));
-        int cz = (int) Math.round(geo.blockZ(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getZ() + 0.5));
+        // The console itself, at its anchor-local block position moved onto the grid.
+        int cx = (int) Math.round(geo.anchorBlockX(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getX() + 0.5));
+        int cz = (int) Math.round(geo.anchorBlockZ(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getZ() + 0.5));
         graphics.fill(cx - 2, cz - 2, cx + 3, cz + 3, CONSOLE_MARK);
         graphics.fill(cx - 1, cz - 1, cx + 2, cz + 2, CONSOLE_FILL);
         // The main doors: where players enter and leave the TARDIS.
@@ -423,10 +425,16 @@ public class ArsScreen extends Screen {
         graphics.pose().popMatrix();
     }
 
+    /** Whether the cursor is on either console doorway. Both root links are canonically on a cell's west edge. */
     private boolean isNearRootDoorway(ArsMapState.MapGeometry geo, int mouseX, int mouseY) {
-        int x = geo.cellLeft(ArsGrid.ROOT_CELL_X);
-        int y = geo.cellTop(ArsGrid.ROOT_CELL_Z);
-        return mouseX >= x - 3 && mouseX <= x + 3 && mouseY >= y + APERTURE_FROM && mouseY < y + APERTURE_TO;
+        for (ArsLayoutLogic.Link root : ArsLayoutLogic.ROOT_LINKS) {
+            int x = geo.cellLeft(root.cell().x());
+            int y = geo.cellTop(root.cell().z());
+            if (mouseX >= x - 3 && mouseX <= x + 3 && mouseY >= y + APERTURE_FROM && mouseY < y + APERTURE_TO) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void drawGhost(GuiGraphicsExtractor graphics, ArsMapState.MapGeometry geo, ArsMapState.Ghost ghost) {

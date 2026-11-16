@@ -1,6 +1,8 @@
 package com.adamkali.dwm.tardis.interior.ars;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
+import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
+import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Mirror;
@@ -103,14 +105,44 @@ class ArsGridTest {
         assertFalse(ArsGrid.inBounds(8, 0));
         assertFalse(ArsGrid.inBounds(0, -1));
 
-        assertTrue(ArsGrid.isReserved(0, 0));
-        assertTrue(ArsGrid.isReserved(1, 2));
-        assertFalse(ArsGrid.isReserved(2, 1));
-        assertFalse(ArsGrid.isReserved(0, 3));
-        assertFalse(ArsGrid.isReserved(ArsGrid.ROOT_CELL_X, ArsGrid.ROOT_CELL_Z));
-        assertTrue(ArsGrid.isReserved(
-                ArsGrid.rootCell().relative(ArsGrid.ROOT_SIDE).x(),
-                ArsGrid.rootCell().relative(ArsGrid.ROOT_SIDE).z()));
+        assertTrue(ArsGrid.isReserved(3, 3));
+        assertTrue(ArsGrid.isReserved(4, 5));
+        assertFalse(ArsGrid.isReserved(2, 4));
+        assertFalse(ArsGrid.isReserved(5, 4));
+        assertFalse(ArsGrid.isReserved(3, 2));
+        assertFalse(ArsGrid.isReserved(4, 6));
+        // Each root's cell is free and the cell across its face is the console room.
+        for (ArsConnector root : ArsGrid.ROOT_CONNECTORS) {
+            assertFalse(ArsGrid.isReserved(root.cell().x(), root.cell().z()), root.toString());
+            assertTrue(ArsGrid.isReserved(root.facingCell().x(), root.facingCell().z()), root.toString());
+        }
+        assertEquals(new ArsConnector(new ArsCell(5, 4), Direction.WEST), ArsGrid.EAST_ROOT);
+        assertEquals(new ArsConnector(new ArsCell(2, 4), Direction.EAST), ArsGrid.WEST_ROOT);
+    }
+
+    @Test
+    void consoleRoomSitsInTheMiddleOfItsReservedCells() {
+        // Grid-local (0, 0, 0) is the window origin, anchor - (27, 0, 27).
+        assertEquals(new BlockPos(TardisPlotAllocator.WINDOW_OFFSET, 0, TardisPlotAllocator.WINDOW_OFFSET), ArsGrid.CONSOLE_ORIGIN);
+        assertEquals(new BlockPos(27, 0, 27), ArsGrid.CONSOLE_ORIGIN);
+        BlockPos anchor = new BlockPos(64 * 7, 64, 64 * 9);
+        assertEquals(anchor, ArsGrid.gridOrigin(anchor).offset(ArsGrid.CONSOLE_ORIGIN));
+        // Console room grid-local x 27..37, z 27..43: exactly the reserved cells' span.
+        int minX = ArsGrid.CONSOLE_ORIGIN.getX();
+        int maxX = minX + FirstDoctorConsoleRoomLayout.SIZE_X - 1;
+        int minZ = ArsGrid.CONSOLE_ORIGIN.getZ();
+        int maxZ = minZ + FirstDoctorConsoleRoomLayout.SIZE_Z - 1;
+        assertEquals(37, maxX);
+        assertEquals(43, maxZ);
+        assertEquals(ArsGrid.RESERVED_MIN_X, minX / ArsGrid.CELL_SIZE);
+        assertEquals(ArsGrid.RESERVED_MAX_X, maxX / ArsGrid.CELL_SIZE);
+        assertEquals(ArsGrid.RESERVED_MIN_Z, minZ / ArsGrid.CELL_SIZE);
+        assertEquals(ArsGrid.RESERVED_MAX_Z, maxZ / ArsGrid.CELL_SIZE);
+        // Free on both sides: three columns west and east, three rows north and two south.
+        assertEquals(3, ArsGrid.RESERVED_MIN_X);
+        assertEquals(3, ArsGrid.GRID_SIZE - 1 - ArsGrid.RESERVED_MAX_X);
+        assertEquals(3, ArsGrid.RESERVED_MIN_Z);
+        assertEquals(2, ArsGrid.GRID_SIZE - 1 - ArsGrid.RESERVED_MAX_Z);
     }
 
     @Test

@@ -59,7 +59,7 @@ public final class TardisTravelAudio {
         }
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
         for (ServerPlayer player : interior.players()) {
-            if (isInsidePlot(player.blockPosition(), origin)
+            if (isInsideWindow(player.blockPosition(), origin)
                     || player.blockPosition().closerThan(console, EXTERIOR_RANGE)) {
                 ServerPlayNetworking.send(player, interiorCue);
             }
@@ -88,7 +88,7 @@ public final class TardisTravelAudio {
         if (interior != null) {
             BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
             for (ServerPlayer player : interior.players()) {
-                if (isInsidePlot(player.blockPosition(), origin)
+                if (isInsideWindow(player.blockPosition(), origin)
                         || player.blockPosition().closerThan(consolePos(tardisId), EXTERIOR_RANGE)) {
                     ServerPlayNetworking.send(player, interiorStop);
                 }
@@ -122,7 +122,7 @@ public final class TardisTravelAudio {
         }
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
         for (ServerPlayer player : interior.players()) {
-            if (isInsidePlot(player.blockPosition(), origin)
+            if (isInsideWindow(player.blockPosition(), origin)
                     || player.blockPosition().closerThan(console, EXTERIOR_RANGE)) {
                 ServerPlayNetworking.send(player, interiorCue);
             }
@@ -133,8 +133,8 @@ public final class TardisTravelAudio {
         return TardisPlotAllocator.plotOrigin(tardisId).offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE);
     }
 
-    /** Interior listeners: anyone in the TARDIS's plot, including ARS rooms beyond the console room. */
-    static boolean isInsidePlot(BlockPos worldPos, BlockPos origin) {
-        return TardisPlotAllocator.isInsidePlot(worldPos, origin);
+    /** Interior listeners: anyone in the TARDIS's plot window, including ARS rooms beyond the console room. */
+    static boolean isInsideWindow(BlockPos worldPos, BlockPos origin) {
+        return TardisPlotAllocator.isInsideWindow(worldPos, origin);
     }
 }
