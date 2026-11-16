@@ -2,8 +2,10 @@ package com.adamkali.dwm.gui;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.tardis.data.model.ArsPlacedPiece;
+import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.ars.ArsCell;
 import com.adamkali.dwm.tardis.interior.ars.ArsConnector;
+import com.adamkali.dwm.tardis.interior.ars.ArsGrid;
 import com.adamkali.dwm.tardis.interior.ars.ArsPieceDefinition;
 import com.adamkali.dwm.tardis.interior.ars.ArsPieceKind;
 import com.adamkali.dwm.tardis.logic.ArsLayoutLogic.PlaceResult;
@@ -21,6 +23,7 @@ import java.util.UUID;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -46,6 +49,22 @@ class ArsMapStateTest {
     @BeforeAll
     static void bootstrap() {
         MinecraftTestBootstrap.ensure();
+    }
+
+    @Test
+    void entranceRect_marksTheMainDoorsOnTheConsoleRoomsNorthWall() {
+        ArsMapState.Rect door = GEO.entranceRect();
+        // Door bank: plot-local x 4..6, z 1 at 2.5 px per block from the map's top-left (21, 29).
+        assertEquals(new ArsMapState.Rect(31, 32, 39, 34), door);
+        // Inside the console room's top cells, nearer the north wall than the console.
+        assertTrue(door.left() >= GEO.cellLeft(ArsGrid.RESERVED_MIN_X));
+        assertTrue(door.right() <= GEO.cellLeft(ArsGrid.RESERVED_MAX_X + 1));
+        assertTrue(door.bottom() <= GEO.cellTop(ArsGrid.RESERVED_MIN_Z + 1));
+        assertTrue(door.bottom() < GEO.blockZ(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getZ()));
+        assertTrue(door.contains(35, 33, 0));
+        assertTrue(door.contains(30, 31, 2));
+        assertFalse(door.contains(30, 31, 0));
+        assertFalse(door.contains(35, 40, 2));
     }
 
     @Test

@@ -372,6 +372,8 @@
   "dwm.gui.ars.console_doorway": "Console doorway: rooms join the console room here",
   "dwm.gui.ars.console_room": "Console",
   "dwm.gui.ars.cost_rotation": "Cost %s artron · rotation %s°",
+  "dwm.gui.ars.entrance": "Entrance",
+  "dwm.gui.ars.entrance_tooltip": "Main doors: the way in and out of the TARDIS",
   "dwm.gui.ars.footprint": "%s×%s",
   "dwm.gui.ars.hint": "Click: grow / select · Right-click: select · R: rotate · Esc: close",
   "dwm.gui.ars.jettison": "Jettison",

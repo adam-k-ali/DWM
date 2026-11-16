@@ -84,6 +84,9 @@ public class ArsScreen extends Screen {
     private static final int CONSOLE_EDGE = 0xFF6F93A3;
     private static final int CONSOLE_MARK = 0xFFE8F4FF;
     private static final int ROOT_MARK = 0xFFE0A030;
+    /** Police-box blue for the TARDIS's main doors. */
+    private static final int ENTRANCE_FILL = 0xFF2F63B8;
+    private static final int ENTRANCE_EDGE = 0xFFB9D4FF;
     private static final int PIECE_EDGE = 0xFF0A0A0A;
     private static final int DOOR = 0xFFF4F1E6;
     private static final int SELECTED_EDGE = 0xFFFFE070;
@@ -381,6 +384,8 @@ public class ArsScreen extends Screen {
 
         if (isNearRootDoorway(geo, mouseX, mouseY)) {
             graphics.setTooltipForNextFrame(Component.translatable("dwm.gui.ars.console_doorway"), mouseX, mouseY);
+        } else if (geo.entranceRect().contains(mouseX, mouseY, 2)) {
+            graphics.setTooltipForNextFrame(Component.translatable("dwm.gui.ars.entrance_tooltip"), mouseX, mouseY);
         }
     }
 
@@ -399,6 +404,16 @@ public class ArsScreen extends Screen {
         int cz = (int) Math.round(geo.blockZ(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getZ() + 0.5));
         graphics.fill(cx - 2, cz - 2, cx + 3, cz + 3, CONSOLE_MARK);
         graphics.fill(cx - 1, cz - 1, cx + 2, cz + 2, CONSOLE_FILL);
+        // The main doors: where players enter and leave the TARDIS.
+        ArsMapState.Rect door = geo.entranceRect();
+        graphics.fill(door.left() - 1, door.top() - 1, door.right() + 1, door.bottom() + 1, ENTRANCE_EDGE);
+        graphics.fill(door.left(), door.top(), door.right(), door.bottom(), ENTRANCE_FILL);
+        graphics.pose().pushMatrix();
+        // Smaller than the room label so it fits between the doors and the console mark.
+        graphics.pose().translate((door.left() + door.right()) / 2.0F, door.bottom() + 2);
+        graphics.pose().scale(0.6F, 0.6F);
+        graphics.centeredText(font, Component.translatable("dwm.gui.ars.entrance"), 0, 0, ENTRANCE_EDGE);
+        graphics.pose().popMatrix();
         // Small text so the label stays inside the two-cell-wide room.
         Component label = Component.translatable("dwm.gui.ars.console_room");
         graphics.pose().pushMatrix();

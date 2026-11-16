@@ -1,6 +1,8 @@
 package com.adamkali.dwm.gui;
 
+import com.adamkali.dwm.block.TardisInteriorDoorBlock;
 import com.adamkali.dwm.tardis.data.model.ArsPlacedPiece;
+import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.ars.ArsCell;
 import com.adamkali.dwm.tardis.interior.ars.ArsConnector;
 import com.adamkali.dwm.tardis.interior.ars.ArsGrid;
@@ -63,6 +65,28 @@ public final class ArsMapState {
         /** Screen y of a plot-local block z. */
         public double blockZ(double plotLocalZ) {
             return top + plotLocalZ * cellSize / ArsGrid.CELL_SIZE;
+        }
+
+        /**
+         * The TARDIS's main doors (the 3-wide interior door bank on the console room's north wall, where players
+         * enter and leave) as a screen rectangle, at least one pixel thick.
+         */
+        public Rect entranceRect() {
+            int doorX = FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN.getX();
+            int doorZ = FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN.getZ();
+            int x0 = (int) Math.round(blockX(doorX));
+            int x1 = (int) Math.round(blockX(doorX + TardisInteriorDoorBlock.BANK_WIDTH));
+            int z0 = (int) Math.round(blockZ(doorZ));
+            int z1 = (int) Math.round(blockZ(doorZ + 1));
+            return new Rect(x0, z0, Math.max(x1, x0 + 1), Math.max(z1, z0 + 1));
+        }
+    }
+
+    /** A screen rectangle, right and bottom exclusive. */
+    public record Rect(int left, int top, int right, int bottom) {
+        /** Whether a GUI point lies within this rectangle grown by {@code margin} pixels on every side. */
+        public boolean contains(double x, double y, int margin) {
+            return x >= left - margin && x < right + margin && y >= top - margin && y < bottom + margin;
         }
     }
 

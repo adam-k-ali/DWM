@@ -27,7 +27,8 @@ the in-flight overlay. Otherwise it opens the ARS screen, which does not pause t
 
 The screen has two halves:
 - **Map** (left): the 8×8 grid as a floor plan, north up (cell x grows to the right/east, z downward/south; the
-  screen says *North*). The console room's six cells are drawn as the console room with the console marked. The
+  screen says *North*). The console room's six cells are drawn as the console room with the console marked, and the
+  TARDIS's main doors (the entrance on the console room's north wall) shown as a blue bar labelled *Entrance*. The
   root link, the west face of cell (2, 1), is the console doorway: amber while closed, joined once a piece opens it.
   Each placed piece fills its cells in its `map_color` with an outline; its connectors are notches on the cell
   edges, and matched connectors (open links) are drawn as doorways across the shared edge.

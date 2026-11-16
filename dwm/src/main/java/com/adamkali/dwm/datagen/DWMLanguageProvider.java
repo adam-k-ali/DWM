@@ -765,6 +765,8 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.gui.ars.north", "\u2191 North");
         t.add("dwm.gui.ars.console_room", "Console");
         t.add("dwm.gui.ars.console_doorway", "Console doorway: rooms join the console room here");
+        t.add("dwm.gui.ars.entrance", "Entrance");
+        t.add("dwm.gui.ars.entrance_tooltip", "Main doors: the way in and out of the TARDIS");
         t.add("dwm.gui.ars.palette", "Room");
         t.add("dwm.gui.ars.size", "Size");
         t.add("dwm.gui.ars.artron_column", "Artron");
