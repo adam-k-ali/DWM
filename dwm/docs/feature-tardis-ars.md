@@ -2,9 +2,8 @@
 
 See also: [Docs Index](./index.md), [TARDIS Exterior Block](./feature-tardis-block.md), [Building Content System](./feature-building-content.md)
 
-> **Status: in development.** This page covers what exists today: the grid geometry, the piece definition
-> registry, and the room and corridor structure templates. **Nothing places these pieces in a TARDIS yet.**
-> In-world placement and the console control arrive in later PRs.
+> **Status: in development.** Pieces can be grown and jettisoned in a TARDIS interior with the ops command
+> `/tardis ars`. Only the console control and the ARS screen remain to be built.
 
 ## Product Intent
 Let a TARDIS crew grow the ship's interior beyond the console room: corridors, crew quarters, a library and the ARS
@@ -17,8 +16,57 @@ chamber itself, laid out on a grid so pieces join cleanly and can be removed aga
 - **Piece definitions:** a synced datapack registry. Entries load from `data/<namespace>/tardis/ars_piece/<name>.json`
   and are sent to clients on join.
 - **Structure templates** for eight pieces plus the console annex, under `data/dwm/structure/tardis/ars/`.
-- **Layout rules** (`ArsLayoutLogic`): pure logic for placing and removing pieces on the grid; not wired to the
-  game yet.
+- **Layout rules** (`ArsLayoutLogic`): pure logic for placing and removing pieces on the grid.
+- **Growing and jettisoning** pieces in the interior (`ArsService`, `ArsRoomPlacer`), with the console annex and
+  console doorway, and the ops command `/tardis ars`.
+
+## Growing and Jettisoning
+A TARDIS's layout is the list of placed pieces in its saved data (`arsPieces`: piece id, anchor cell, rotation).
+`ArsService` checks the rules, changes the world and updates that list. Every message it returns is a translation
+key (`dwm.ars.*`); piece names are `dwm.ars.piece.<name>`.
+
+**Growing a piece** at an anchor cell with a rotation is refused, with nothing changed, when:
+- the TARDIS is in flight, or its console room has not been generated yet;
+- the layout rules refuse: unknown piece, rotation outside `0..3`, outside the grid, on the console room's cells,
+  overlapping a piece, not connected to the console room (directly or through connected pieces), or not enough
+  artron;
+- the piece's structure template is missing.
+
+Otherwise it spends the piece's artron cost (free in creative), clears the piece's cells to full height (so blocks
+left by a piece whose datapack definition was removed do not linger), places the template rotated so its footprint
+starts at the anchor cell, and opens every doorway the piece now shares: both 4×4 wall plugs, the piece's own and the
+neighbour's facing one, become air. Unmatched connectors keep their plugs.
+
+**Jettisoning** the piece covering a cell is refused, with nothing changed, when:
+- the TARDIS is in flight or has no console room;
+- there is no piece there, or another piece is only reachable through it;
+- a player is inside the piece, or inside the annex when the piece is the one on the root link (the west face of
+  cell (2, 1)) and nothing else would keep that link open.
+
+Otherwise everything in the piece is destroyed: blocks, container contents and non-player entities, with no
+drops. Each neighbour that shared a doorway gets its own wall plug back (its template is re-placed, clipped to that
+4×4 layer). Half the cost, rounded down, is refunded.
+
+### Console annex and doorway
+The annex and doorway follow the root link (the west face of cell (2, 1)). Growing the piece that opens the root link
+also places the console annex (below) and carves a 2-wide, 3-high doorway through the console room's east wall at
+plot-local `x = 10`, `z = 7..8`, `y = 1..3`. Jettisoning the piece on the root link clears the annex and puts the
+console room's wall back from its template, even if pieces cut off from the console room remain. Re-placing the
+console room (first entry, deferred preload or `/tardis rebuild`) re-opens the doorway only while the root link is
+open.
+
+`/tardis rebuild` only rebuilds the console room. It does not re-place ARS rooms or the annex.
+
+### Command
+Ops (permission 2), standing inside the TARDIS interior to change:
+
+```
+/tardis ars place <piece> <cellX> <cellZ> [rotation]   # rotation 0..3, default 0
+/tardis ars remove <cellX> <cellZ>
+```
+
+`<piece>` suggests every registered piece id. A player in creative mode builds for free. The command replies with
+the result or the reason it was refused.
 
 ## Piece Definition JSON
 ```json
@@ -111,7 +159,10 @@ Templates are not built in game. They are described in Java in the test source s
 (`ars_<name>*.png`) to `dwm/build/run/clientGameTest/screenshots/`.
 
 ## Known Constraints
-- No in-world placement, removal or console control yet; those arrive in later PRs.
+- No console control or ARS screen yet; pieces are placed with `/tardis ars`.
+- Room blocks are not protected: players can still break walls by hand.
+- Removing a piece whose datapack definition no longer exists is not possible; its blocks stay until a new piece is
+  grown over its cells.
 - Pieces share a single floor; there are no multi-level layouts.
 
 ## Future Opportunities

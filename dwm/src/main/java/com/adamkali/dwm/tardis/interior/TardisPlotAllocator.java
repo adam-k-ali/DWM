@@ -24,6 +24,19 @@ public final class TardisPlotAllocator {
     }
 
     /**
+     * Whether {@code worldPos} lies in the plot that starts at {@code plotOrigin}: plot-local x and z in
+     * {@code 0..PLOT_SPACING-1}, at any height. Covers the console room and every ARS room.
+     */
+    public static boolean isInsidePlot(BlockPos worldPos, BlockPos plotOrigin) {
+        if (worldPos == null || plotOrigin == null) {
+            return false;
+        }
+        int localX = worldPos.getX() - plotOrigin.getX();
+        int localZ = worldPos.getZ() - plotOrigin.getZ();
+        return localX >= 0 && localX < PLOT_SPACING && localZ >= 0 && localZ < PLOT_SPACING;
+    }
+
+    /**
      * Distinct allocated plots are separated by {@link #PLOT_SPACING} on at least one horizontal axis,
      * which is enough for structures no larger than that spacing.
      */
