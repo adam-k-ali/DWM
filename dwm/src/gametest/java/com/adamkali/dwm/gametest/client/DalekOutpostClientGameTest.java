@@ -17,6 +17,7 @@ import net.minecraft.world.phys.AABB;
  * {@code dalek_outpost.png} (wastes/mountains) and {@code dalek_outpost_ruined.png} (petrified jungle). The garrison
  * is part of each shot and is frozen so it stays stable.
  */
+@ClientGameTestCategory(GameTestCategory.WORLDGEN)
 public class DalekOutpostClientGameTest implements FabricClientGameTest {
     /** Sand ground around the outpost; the core floor replaces its top layer like worldgen would. */
     private static final int GROUND_Y = ClientGameTestSupport.PAD_Y - 1;

@@ -17,6 +17,7 @@ import java.util.UUID;
  * Screenshots prove alignment, not latency: turning the camera quickly must still be checked by eye in
  * {@code runClient}.
  */
+@ClientGameTestCategory(GameTestCategory.PORTAL)
 public class TardisPortalParallaxClientGameTest implements FabricClientGameTest {
     /** Frames for the viewer-relative portal to re-render after the camera moves. */
     private static final int SETTLE_TICKS = 5;

@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContex
  * Sonic screwdriver HUD: {@code sonic_hud_indicator} (held, carousel closed) and
  * {@code sonic_hud_carousel} (field-mode carousel open).
  */
+@ClientGameTestCategory(GameTestCategory.ITEMS_UI)
 public class SonicHudClientGameTest implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {

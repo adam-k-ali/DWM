@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
  * ({@code first_doctor_console}), the EVA suit on a mannequin ({@code eva_suit}, front and back) and the
  * radiation meter in an item frame and held ({@code radiation_meter}).
  */
+@ClientGameTestCategory(GameTestCategory.ITEMS_UI)
 public class ConsoleAndSuitClientGameTest implements FabricClientGameTest {
     private static final int Z = 4;
 

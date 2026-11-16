@@ -30,6 +30,7 @@ import java.util.UUID;
  * Nether at the same X/Z (identical chunk keys, different dimension). After each move the client's ghost origin
  * must equal the new footprint origin and every sampled block must match the server.
  */
+@ClientGameTestCategory(GameTestCategory.PORTAL)
 public class TardisSotoRelocateClientGameTest implements FabricClientGameTest {
     private static final double VIEWER_LOCAL_X = 5.5;
     private static final double VIEWER_LOCAL_Y = 1.0;

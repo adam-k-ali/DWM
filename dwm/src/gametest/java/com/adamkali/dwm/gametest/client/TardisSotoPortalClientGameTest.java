@@ -15,6 +15,7 @@ import java.util.UUID;
  * Interior look-out portal (SOTO): stands inside the console room facing the open interior door and saves
  * {@code portal_soto_interior.png}, which should show the coloured wool landmarks outside the TARDIS.
  */
+@ClientGameTestCategory(GameTestCategory.PORTAL)
 public class TardisSotoPortalClientGameTest implements FabricClientGameTest {
     /** Console room: door bank is at local z = 1 facing south, so the viewer stands behind it and looks north. */
     private static final double VIEWER_LOCAL_X = 5.5;

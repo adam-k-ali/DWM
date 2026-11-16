@@ -11,6 +11,7 @@ import net.minecraft.core.BlockPos;
  * Smoke test for the client render path: boots a real client, places a TARDIS exterior
  * and saves a screenshot to {@code <runDir>/screenshots/tardis_exterior.png}.
  */
+@ClientGameTestCategory(GameTestCategory.TARDIS_EXTERIOR)
 public class TardisExteriorClientGameTest implements FabricClientGameTest {
     @Override
     public void runTest(ClientGameTestContext context) {

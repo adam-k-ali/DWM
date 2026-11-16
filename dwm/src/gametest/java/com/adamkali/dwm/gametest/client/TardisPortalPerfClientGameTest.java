@@ -24,6 +24,7 @@ import java.util.UUID;
  * burst in one chunk (must upload far less than the fill: only the edited chunk is re-uploaded), and draw calls
  * per frame with the cached portal frame forced to redraw every tick. Leaving the world must close every buffer.
  */
+@ClientGameTestCategory(GameTestCategory.PORTAL)
 public class TardisPortalPerfClientGameTest implements FabricClientGameTest {
     private static final int MEASURE_TICKS = 100;
 

@@ -17,6 +17,7 @@ import net.minecraft.world.phys.AABB;
  * {@code dalek_trench.png} (wastes) and {@code dalek_trench_ruined.png} (jungle/mountains). The garrison is part of
  * each shot and is frozen so it stays stable.
  */
+@ClientGameTestCategory(GameTestCategory.WORLDGEN)
 public class DalekTrenchClientGameTest implements FabricClientGameTest {
     /** Sand ground around the trench; the checkpoint floor replaces its top layer like worldgen would. */
     private static final int GROUND_Y = ClientGameTestSupport.PAD_Y - 1;

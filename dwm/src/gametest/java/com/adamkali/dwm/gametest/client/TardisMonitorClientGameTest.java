@@ -22,6 +22,7 @@ import java.util.UUID;
  * staged TARDIS, screens facing the camera. Saves {@code tardis_monitors.png} and a close-up of the
  * compact screen, {@code tardis_monitor_close.png}, to check mesh, texture and screen text.
  */
+@ClientGameTestCategory(GameTestCategory.TARDIS_EXTERIOR)
 public class TardisMonitorClientGameTest implements FabricClientGameTest {
     private static final BlockPos FULL_POS = new BlockPos(2, ClientGameTestSupport.PAD_Y, 4);
     private static final BlockPos COMPACT_POS = new BlockPos(-3, ClientGameTestSupport.PAD_Y, 3);

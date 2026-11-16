@@ -14,6 +14,7 @@ import net.minecraft.core.BlockPos;
  * {@code laser_gun_third_person} (mannequins: right hand side-on, facing the camera, left hand side-on) and
  * {@code laser_gun_displays} (in an item frame and dropped on the ground).
  */
+@ClientGameTestCategory(GameTestCategory.ITEMS_UI)
 public class LaserGunClientGameTest implements FabricClientGameTest {
     private static final String GUN = "{id:\"dwm:laser_gun\",count:1}";
     private static final int DISPLAY_PAD_X = 48;
