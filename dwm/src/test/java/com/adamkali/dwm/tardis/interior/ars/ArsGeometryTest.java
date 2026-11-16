@@ -95,39 +95,63 @@ class ArsGeometryTest {
     }
 
     @Test
-    void rootDoorwayMeetsAnnexEastDoorway() {
-        BoundingBox root = ArsGeometry.doorwayBox(ArsLayoutLogic.ROOT_LINK);
-        assertBox(root, 15, 1, 10, 16, 4, 13);
-        BoundingBox annex = ArsGeometry.annexBox();
-        assertBox(annex, 11, 0, 6, 15, 5, 14);
-        // The root doorway's outer layer is the annex's east wall.
-        assertEquals(annex.maxX(), root.minX());
+    void rootDoorwaysMeetTheirLobbies() {
+        // East: the piece's west plug on x = 40 and the lobby's open east end on x = 39.
+        BoundingBox eastRoot = ArsGeometry.doorwayBox(ArsLayoutLogic.EAST_ROOT_LINK);
+        assertBox(eastRoot, 39, 1, 34, 40, 4, 37);
+        BoundingBox eastLobby = ArsGeometry.EAST_ROOT.lobbyBox();
+        assertBox(eastLobby, 38, 0, 33, 39, 5, 38);
+        assertEquals(eastLobby.maxX(), eastRoot.minX());
+        assertEquals(new BlockPos(38, 0, 33), ArsGeometry.EAST_ROOT.lobbyOrigin());
+        // West: the piece's east plug on x = 23 and the lobby's open west end on x = 24.
+        BoundingBox westRoot = ArsGeometry.doorwayBox(ArsLayoutLogic.WEST_ROOT_LINK);
+        assertBox(westRoot, 23, 1, 34, 24, 4, 37);
+        BoundingBox westLobby = ArsGeometry.WEST_ROOT.lobbyBox();
+        assertBox(westLobby, 24, 0, 33, 26, 5, 38);
+        assertEquals(westLobby.minX(), westRoot.maxX());
+        assertEquals(new BlockPos(24, 0, 33), ArsGeometry.WEST_ROOT.lobbyOrigin());
+        // Both lobbies stay inside the console room's reserved cells.
+        for (ArsGeometry.RootEntrance entrance : ArsGeometry.ROOT_ENTRANCES) {
+            BoundingBox lobby = entrance.lobbyBox();
+            assertEquals(true, ArsGrid.isReserved(lobby.minX() / ArsGrid.CELL_SIZE, lobby.minZ() / ArsGrid.CELL_SIZE));
+            assertEquals(true, ArsGrid.isReserved(lobby.maxX() / ArsGrid.CELL_SIZE, lobby.maxZ() / ArsGrid.CELL_SIZE));
+        }
     }
 
     @Test
-    void consoleDoorwayIsInConsoleRoomEastWall() {
-        assertBox(ArsGeometry.consoleDoorwayBox(), 10, 1, 7, 10, 3, 8);
-        assertEquals(FirstDoctorConsoleRoomLayout.SIZE_X - 1, ArsGeometry.CONSOLE_DOORWAY_X);
+    void consoleDoorwaysAreInConsoleRoomEastAndWestWalls() {
+        assertBox(ArsGeometry.EAST_ROOT.consoleDoorwayBox(), 37, 1, 34, 37, 3, 35);
+        assertBox(ArsGeometry.WEST_ROOT.consoleDoorwayBox(), 27, 1, 34, 27, 3, 35);
+        assertEquals(ArsGrid.CONSOLE_ORIGIN.getX() + FirstDoctorConsoleRoomLayout.SIZE_X - 1, ArsGeometry.CONSOLE_EAST_WALL_X);
+        assertEquals(ArsGrid.CONSOLE_ORIGIN.getX(), ArsGeometry.CONSOLE_WEST_WALL_X);
+        // Anchor-local z 7..8, both 2 wide and 3 high; along-face offsets 2..3 of root row cz = 4.
+        assertEquals(ArsGrid.CONSOLE_ORIGIN.getZ() + 7, ArsGeometry.CONSOLE_DOORWAY_MIN_Z);
+        assertEquals(ArsGrid.cellMinBlockZ(4) + 2, ArsGeometry.CONSOLE_DOORWAY_MIN_Z);
+        assertEquals(ArsGrid.cellMinBlockZ(4) + 3, ArsGeometry.CONSOLE_DOORWAY_MAX_Z);
     }
 
     @Test
-    void clampToPlotKeepsEdgePiecesInsideTheirPlot() {
+    void clampToWindowKeepsEdgePiecesInsideTheirWindow() {
         assertEquals(TardisPlotAllocator.PLOT_SPACING, ArsGrid.GRID_SIZE * ArsGrid.CELL_SIZE);
-        // Cell (7, 7): the 1-block halo around it would reach x/z = 64, the next plot.
+        // Cell (7, 7): the 1-block halo around it would reach x/z = 64, the next window.
         BoundingBox corner = ArsGeometry.pieceBox(new ArsPlacedPiece("dwm:corridor_cross", 7, 7, 0), single(), 16)
                 .inflatedBy(1, 0, 1);
-        assertBox(ArsGeometry.clampToPlot(corner), 55, 0, 55, 63, 15, 63);
+        assertBox(ArsGeometry.clampToWindow(corner), 55, 0, 55, 63, 15, 63);
         // Row cz = 0 and a 2x1 piece on column 6..7: the halo would reach z = -1 and x = 64.
         BoundingBox north = ArsGeometry.pieceBox(new ArsPlacedPiece("dwm:bedroom", 6, 0, 0), WIDE, 16)
                 .inflatedBy(1, 0, 1);
         assertBox(north, 47, 0, -1, 64, 15, 8);
-        assertBox(ArsGeometry.clampToPlot(north), 47, 0, 0, 63, 15, 8);
-        BlockPos origin = new BlockPos(64 * 10, 64, 64 * -3);
-        int[] chunks = ArsGeometry.chunkBounds(ArsGeometry.toWorld(ArsGeometry.clampToPlot(north), origin));
-        assertArrayEquals(new int[]{origin.getX() / 16 + 2, origin.getX() / 16 + 3, origin.getZ() / 16, origin.getZ() / 16},
-                chunks);
+        assertBox(ArsGeometry.clampToWindow(north), 47, 0, 0, 63, 15, 8);
+        BlockPos anchor = new BlockPos(64 * 10, 64, 64 * -3);
+        BlockPos grid = ArsGrid.gridOrigin(anchor);
+        assertEquals(TardisPlotAllocator.windowOrigin(anchor), grid);
+        BoundingBox world = ArsGeometry.toWorld(ArsGeometry.clampToWindow(north), grid);
+        assertBox(world, grid.getX() + 47, 64, grid.getZ(), grid.getX() + 63, 79, grid.getZ() + 8);
+        // Grid x 47..63 is anchor + 20..36: chunks +1 and +2 of the anchor; grid z 0..8 is anchor - 27..-19: chunk -2.
+        assertArrayEquals(new int[]{anchor.getX() / 16 + 1, anchor.getX() / 16 + 2, anchor.getZ() / 16 - 2, anchor.getZ() / 16 - 2},
+                ArsGeometry.chunkBounds(world));
         // Boxes already inside are unchanged.
-        assertBox(ArsGeometry.clampToPlot(new BoundingBox(10, 2, 20, 30, 5, 40)), 10, 2, 20, 30, 5, 40);
+        assertBox(ArsGeometry.clampToWindow(new BoundingBox(10, 2, 20, 30, 5, 40)), 10, 2, 20, 30, 5, 40);
     }
 
     @Test

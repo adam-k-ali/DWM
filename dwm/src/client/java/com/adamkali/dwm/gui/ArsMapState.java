@@ -57,27 +57,40 @@ public final class ArsMapState {
             return top + cellZ * cellSize;
         }
 
-        /** Screen x of a plot-local block x (blocks scale to {@code cellSize / CELL_SIZE} pixels). */
-        public double blockX(double plotLocalX) {
-            return left + plotLocalX * cellSize / ArsGrid.CELL_SIZE;
+        /** Screen x of a grid-local block x (blocks scale to {@code cellSize / CELL_SIZE} pixels). */
+        public double blockX(double gridLocalX) {
+            return left + gridLocalX * cellSize / ArsGrid.CELL_SIZE;
         }
 
-        /** Screen y of a plot-local block z. */
-        public double blockZ(double plotLocalZ) {
-            return top + plotLocalZ * cellSize / ArsGrid.CELL_SIZE;
+        /** Screen y of a grid-local block z. */
+        public double blockZ(double gridLocalZ) {
+            return top + gridLocalZ * cellSize / ArsGrid.CELL_SIZE;
+        }
+
+        /**
+         * Screen x of an anchor-local block x: a console room layout position ({@code FirstDoctorConsoleRoomLayout}),
+         * moved to the grid by {@link ArsGrid#CONSOLE_ORIGIN}.
+         */
+        public double anchorBlockX(double anchorLocalX) {
+            return blockX(ArsGrid.CONSOLE_ORIGIN.getX() + anchorLocalX);
+        }
+
+        /** Screen y of an anchor-local block z. */
+        public double anchorBlockZ(double anchorLocalZ) {
+            return blockZ(ArsGrid.CONSOLE_ORIGIN.getZ() + anchorLocalZ);
         }
 
         /**
          * The TARDIS's main doors (the 3-wide interior door bank on the console room's north wall, where players
-         * enter and leave) as a screen rectangle, at least one pixel thick.
+         * enter and leave, at anchor-local {@code LOCAL_DOOR_ORIGIN}) as a screen rectangle, at least one pixel thick.
          */
         public Rect entranceRect() {
             int doorX = FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN.getX();
             int doorZ = FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN.getZ();
-            int x0 = (int) Math.round(blockX(doorX));
-            int x1 = (int) Math.round(blockX(doorX + TardisInteriorDoorBlock.BANK_WIDTH));
-            int z0 = (int) Math.round(blockZ(doorZ));
-            int z1 = (int) Math.round(blockZ(doorZ + 1));
+            int x0 = (int) Math.round(anchorBlockX(doorX));
+            int x1 = (int) Math.round(anchorBlockX(doorX + TardisInteriorDoorBlock.BANK_WIDTH));
+            int z0 = (int) Math.round(anchorBlockZ(doorZ));
+            int z1 = (int) Math.round(anchorBlockZ(doorZ + 1));
             return new Rect(x0, z0, Math.max(x1, x0 + 1), Math.max(z1, z0 + 1));
         }
     }

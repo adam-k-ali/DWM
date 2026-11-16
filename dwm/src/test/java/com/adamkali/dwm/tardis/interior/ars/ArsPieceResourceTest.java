@@ -3,6 +3,7 @@ package com.adamkali.dwm.tardis.interior.ars;
 import com.adamkali.dwm.DWMReference;
 import com.adamkali.dwm.MinecraftTestBootstrap;
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.tardis.logic.ArsLayoutLogic;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.core.BlockPos;
@@ -16,6 +17,7 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -44,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 /**
  * Resource contract for ARS pieces: every {@code data/dwm/tardis/ars_piece/*.json} decodes with
  * {@link ArsPieceDefinition#CODEC}, and its committed structure template is a closed shell sized to its footprint
- * whose connector apertures are wall-palette plugs with walkable air behind them. Also pins the console annex.
+ * whose connector apertures are wall-palette plugs with walkable air behind them. Also pins the two console lobbies.
  */
 class ArsPieceResourceTest {
     private static final Path DATA = Path.of("src/main/resources/data");
@@ -57,10 +59,6 @@ class ArsPieceResourceTest {
     /** Blocks a closed doorway plug may be made of: the TARDIS wall and roundel families, any colour. */
     private static final Pattern WALL_PALETTE =
             Pattern.compile("dwm:[a-z_]+_(tardis_wall|roundel_a|roundel_b|big_roundel_a|big_roundel_b)");
-
-    private static final Identifier CONSOLE_ANNEX = ArsGeometry.ANNEX_STRUCTURE_ID;
-    /** Plot-local origin the annex is placed at: immediately east of the console room's east wall. */
-    private static final BlockPos ANNEX_ORIGIN = ArsGeometry.ANNEX_ORIGIN;
 
     @BeforeAll
     static void bootstrap() {
@@ -165,44 +163,61 @@ class ArsPieceResourceTest {
     }
 
     @Test
-    void consoleAnnexJoinsConsoleRoomToRootCell() throws IOException {
-        Template annex = Template.load(CONSOLE_ANNEX);
-        assertEquals(ArsGeometry.ANNEX_SIZE_X, annex.sizeX);
-        assertEquals(ArsGeometry.ANNEX_SIZE_Y, annex.sizeY);
-        assertEquals(ArsGeometry.ANNEX_SIZE_Z, annex.sizeZ);
-        int east = annex.sizeX - 1;
-        int south = annex.sizeZ - 1;
-        int ceiling = annex.sizeY - 1;
-        // The console doorway is carved in the wall that closes the annex's open west side, inside its walls.
-        assertEquals(ANNEX_ORIGIN.getX() - 1, ArsGeometry.CONSOLE_DOORWAY_X);
-        assertTrue(ArsGeometry.CONSOLE_DOORWAY_MIN_Z - ANNEX_ORIGIN.getZ() > 0);
-        assertTrue(ArsGeometry.CONSOLE_DOORWAY_MAX_Z - ANNEX_ORIGIN.getZ() < south);
+    void consoleLobbiesJoinConsoleDoorwaysToRootCells() throws IOException {
+        assertEquals(List.of(ArsLayoutLogic.EAST_ROOT_LINK, ArsLayoutLogic.WEST_ROOT_LINK),
+                ArsGeometry.ROOT_ENTRANCES.stream().map(ArsGeometry.RootEntrance::link).toList());
+        assertLobby(ArsGeometry.EAST_ROOT, ArsGrid.EAST_ROOT, 2, 38, 37, 40);
+        assertLobby(ArsGeometry.WEST_ROOT, ArsGrid.WEST_ROOT, 3, 24, 27, 23);
+    }
+
+    /**
+     * One lobby: its template size, its place between the console room wall (which holds the console doorway) and
+     * the root cell's aperture layer, open ends and solid side walls, floor and ceiling.
+     */
+    private static void assertLobby(ArsGeometry.RootEntrance entrance, ArsConnector root, int sizeX, int minX,
+                                    int consoleWallX, int apertureX) throws IOException {
+        Template lobby = Template.load(entrance.lobbyTemplate());
+        assertEquals(sizeX, lobby.sizeX, entrance.lobbyTemplate() + " size x");
+        assertEquals(ArsGeometry.LOBBY_SIZE_Y, lobby.sizeY);
+        assertEquals(ArsGeometry.LOBBY_SIZE_Z, lobby.sizeZ);
+        assertEquals(new BoundingBox(minX, 0, 33, minX + sizeX - 1, 5, 38), entrance.lobbyBox());
+        assertEquals(new BoundingBox(consoleWallX, 1, 34, consoleWallX, 3, 35), entrance.consoleDoorwayBox());
+
+        // The lobby fills the gap between the console room's wall and the root aperture layer exactly.
+        assertEquals(ArsLayoutLogic.Link.of(root), entrance.link());
+        BoundingBox outer = ArsGeometry.apertureBox(root.cell(), root.side());
+        assertEquals(apertureX, outer.minX(), "root aperture layer of " + root);
+        int near = Math.min(consoleWallX, apertureX);
+        int far = Math.max(consoleWallX, apertureX);
+        assertEquals(near + 1, entrance.lobbyBox().minX());
+        assertEquals(far - 1, entrance.lobbyBox().maxX());
+        // Its open cross-section is the root row's aperture (z 34..37, y 1..4), which holds the console doorway.
+        assertEquals(outer.minZ(), ArsGeometry.LOBBY_MIN_Z + 1);
+        assertEquals(outer.maxZ(), ArsGeometry.LOBBY_MIN_Z + ArsGeometry.LOBBY_SIZE_Z - 2);
+        assertTrue(ArsGeometry.CONSOLE_DOORWAY_MIN_Z >= outer.minZ() && ArsGeometry.CONSOLE_DOORWAY_MAX_Z <= outer.maxZ());
         assertTrue(ArsGeometry.CONSOLE_DOORWAY_MIN_Y >= ArsGrid.APERTURE_MIN_Y);
         assertTrue(ArsGeometry.CONSOLE_DOORWAY_MAX_Y <= ArsGrid.APERTURE_MAX_Y);
-        // The annex ends right where the root cell's west face begins, and its doorway faces that face's aperture.
-        assertEquals(ArsGrid.cellMinBlockX(ArsGrid.ROOT_CELL_X), ANNEX_ORIGIN.getX() + annex.sizeX);
-        assertEquals(Direction.WEST, ArsGrid.ROOT_SIDE);
-        int doorMinZ = ArsGrid.cellMinBlockZ(ArsGrid.ROOT_CELL_Z) + ArsGrid.APERTURE_MIN_OFFSET - ANNEX_ORIGIN.getZ();
-        int doorMaxZ = ArsGrid.cellMinBlockZ(ArsGrid.ROOT_CELL_Z) + ArsGrid.APERTURE_MAX_OFFSET - ANNEX_ORIGIN.getZ();
-        assertEquals(4, doorMinZ);
-        assertEquals(7, doorMaxZ);
 
-        for (int x = 0; x < annex.sizeX; x++) {
-            for (int z = 0; z < annex.sizeZ; z++) {
-                assertSolid(annex, x, 0, z, "floor");
-                assertSolid(annex, x, ceiling, z, "ceiling");
+        int south = lobby.sizeZ - 1;
+        int ceiling = lobby.sizeY - 1;
+        for (int x = 0; x < lobby.sizeX; x++) {
+            for (int z = 0; z < lobby.sizeZ; z++) {
+                assertSolid(lobby, x, 0, z, "floor");
+                assertSolid(lobby, x, ceiling, z, "ceiling");
                 for (int y = ArsGrid.APERTURE_MIN_Y; y <= ArsGrid.APERTURE_MAX_Y; y++) {
-                    boolean doorway = x == east && z >= doorMinZ && z <= doorMaxZ;
-                    boolean wall = z == 0 || z == south || x == east;
-                    BlockState state = annex.at(x, y, z);
-                    if (doorway || !wall) {
-                        assertTrue(state != null && state.isAir(), "annex " + x + "," + y + "," + z + " should be air, is " + state);
+                    BlockState state = lobby.at(x, y, z);
+                    if (z == 0 || z == south) {
+                        assertSolid(lobby, x, y, z, "side wall");
                     } else {
-                        assertSolid(annex, x, y, z, "wall");
+                        // Open through both x ends.
+                        assertTrue(state != null && state.isAir(), entrance.lobbyTemplate() + " " + x + "," + y + "," + z
+                                + " should be air, is " + state);
                     }
                 }
             }
         }
+        assertTrue(lobby.blocks.values().stream().anyMatch(state -> state.getLightEmission() > 0),
+                entrance.lobbyTemplate() + " has no light-emitting block");
     }
 
     private static void assertSolid(Template template, int x, int y, int z, String what) {

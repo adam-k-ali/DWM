@@ -54,17 +54,31 @@ class ArsMapStateTest {
     @Test
     void entranceRect_marksTheMainDoorsOnTheConsoleRoomsNorthWall() {
         ArsMapState.Rect door = GEO.entranceRect();
-        // Door bank: plot-local x 4..6, z 1 at 2.5 px per block from the map's top-left (21, 29).
-        assertEquals(new ArsMapState.Rect(31, 32, 39, 34), door);
+        // Door bank: anchor-local x 4..6, z 1, so grid-local x 31..33, z 28, at 2.5 px per block from (21, 29).
+        assertEquals(new ArsMapState.Rect(99, 99, 106, 102), door);
         // Inside the console room's top cells, nearer the north wall than the console.
         assertTrue(door.left() >= GEO.cellLeft(ArsGrid.RESERVED_MIN_X));
         assertTrue(door.right() <= GEO.cellLeft(ArsGrid.RESERVED_MAX_X + 1));
+        assertTrue(door.top() >= GEO.cellTop(ArsGrid.RESERVED_MIN_Z));
         assertTrue(door.bottom() <= GEO.cellTop(ArsGrid.RESERVED_MIN_Z + 1));
-        assertTrue(door.bottom() < GEO.blockZ(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getZ()));
-        assertTrue(door.contains(35, 33, 0));
-        assertTrue(door.contains(30, 31, 2));
-        assertFalse(door.contains(30, 31, 0));
-        assertFalse(door.contains(35, 40, 2));
+        assertTrue(door.bottom() < GEO.anchorBlockZ(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getZ()));
+        assertTrue(door.contains(102, 100, 0));
+        assertTrue(door.contains(98, 98, 2));
+        assertFalse(door.contains(98, 98, 0));
+        assertFalse(door.contains(102, 108, 2));
+    }
+
+    @Test
+    void consoleRoom_isCentredOnTheMap() {
+        // Reserved cells 3..4 x 3..5: three free columns on each side, three rows north and two south.
+        int roomLeft = GEO.cellLeft(ArsGrid.RESERVED_MIN_X);
+        int roomRight = GEO.cellLeft(ArsGrid.RESERVED_MAX_X + 1);
+        assertEquals(GEO.left() + GEO.size() - roomRight, roomLeft - GEO.left());
+        // The console (anchor-local x 5) sits on the map's vertical centre line.
+        assertEquals(GEO.left() + GEO.size() / 2.0, GEO.anchorBlockX(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getX() + 0.5),
+                2.5);
+        assertEquals(GEO.blockX(ArsGrid.CONSOLE_ORIGIN.getX()), GEO.anchorBlockX(0), 1e-9);
+        assertEquals(GEO.blockZ(ArsGrid.CONSOLE_ORIGIN.getZ() + 7), GEO.anchorBlockZ(7), 1e-9);
     }
 
     @Test
@@ -120,28 +134,30 @@ class ArsMapStateTest {
         state.update(List.of(), 100, DEFS);
         state.togglePalette(STRAIGHT);
 
-        // Rotation 0 runs north-south and does not meet the west root link.
-        ArsMapState.Click refused = state.click(new ArsCell(2, 1), false, DEFS, false);
+        // Rotation 0 runs north-south and does not meet the east root link.
+        ArsMapState.Click refused = state.click(new ArsCell(5, 4), false, DEFS, false);
         assertEquals(ArsMapState.ClickKind.REFUSED, refused.kind());
         assertEquals(PlaceResult.NOT_CONNECTED, refused.refusal());
 
         state.rotateClockwise();
-        ArsMapState.Click grow = state.click(new ArsCell(2, 1), false, DEFS, false);
+        ArsMapState.Click grow = state.click(new ArsCell(5, 4), false, DEFS, false);
         assertEquals(ArsMapState.ClickKind.GROW, grow.kind());
-        assertEquals(new ArsPlacedPiece(STRAIGHT.toString(), 2, 1, 1), grow.grow());
+        assertEquals(new ArsPlacedPiece(STRAIGHT.toString(), 5, 4, 1), grow.grow());
+        // The west root link takes the same corridor on the other side of the console room.
+        assertEquals(ArsMapState.ClickKind.GROW, state.click(new ArsCell(2, 4), false, DEFS, false).kind());
 
-        assertEquals(PlaceResult.RESERVED, state.click(new ArsCell(1, 1), false, DEFS, false).refusal());
+        assertEquals(PlaceResult.RESERVED, state.click(new ArsCell(4, 4), false, DEFS, false).refusal());
         assertEquals(ArsMapState.ClickKind.NONE, state.click(null, false, DEFS, false).kind());
     }
 
     @Test
     void click_reportsMissingArtronUnlessInstabuild() {
         ArsMapState state = new ArsMapState();
-        state.update(List.of(new ArsPlacedPiece(CROSS.toString(), 2, 1, 0)), 10, DEFS);
+        state.update(List.of(new ArsPlacedPiece(CROSS.toString(), 5, 4, 0)), 10, DEFS);
         state.togglePalette(LIBRARY);
 
-        assertEquals(PlaceResult.NOT_ENOUGH_ARTRON, state.click(new ArsCell(2, 2), false, DEFS, false).refusal());
-        assertEquals(ArsMapState.ClickKind.GROW, state.click(new ArsCell(2, 2), false, DEFS, true).kind());
+        assertEquals(PlaceResult.NOT_ENOUGH_ARTRON, state.click(new ArsCell(5, 5), false, DEFS, false).refusal());
+        assertEquals(ArsMapState.ClickKind.GROW, state.click(new ArsCell(5, 5), false, DEFS, true).kind());
     }
 
     @Test
@@ -149,11 +165,11 @@ class ArsMapStateTest {
         ArsMapState state = new ArsMapState();
         state.update(layout(), 100, DEFS);
 
-        assertEquals(ArsMapState.ClickKind.SELECTED, state.click(new ArsCell(3, 1), false, DEFS, false).kind());
-        assertEquals(new ArsPlacedPiece(CROSS.toString(), 3, 1, 0), state.selectedPlaced(DEFS).orElseThrow());
+        assertEquals(ArsMapState.ClickKind.SELECTED, state.click(new ArsCell(6, 4), false, DEFS, false).kind());
+        assertEquals(new ArsPlacedPiece(CROSS.toString(), 6, 4, 0), state.selectedPlaced(DEFS).orElseThrow());
         assertEquals(RemoveResult.WOULD_DISCONNECT, state.removeCheck(DEFS));
 
-        assertEquals(ArsMapState.ClickKind.SELECTED, state.click(new ArsCell(4, 2), false, DEFS, false).kind());
+        assertEquals(ArsMapState.ClickKind.SELECTED, state.click(new ArsCell(7, 5), false, DEFS, false).kind());
         assertEquals(RemoveResult.OK, state.removeCheck(DEFS));
 
         assertEquals(ArsMapState.ClickKind.DESELECTED, state.click(new ArsCell(6, 6), false, DEFS, false).kind());
@@ -168,16 +184,16 @@ class ArsMapStateTest {
         state.update(layout(), 100, DEFS);
         state.togglePalette(BEDROOM);
 
-        assertEquals(ArsMapState.ClickKind.SELECTED, state.click(new ArsCell(2, 1), true, DEFS, false).kind());
+        assertEquals(ArsMapState.ClickKind.SELECTED, state.click(new ArsCell(5, 4), true, DEFS, false).kind());
         assertNull(state.selectedPiece());
-        assertEquals(new ArsCell(2, 1), state.selectedCell());
+        assertEquals(new ArsCell(5, 4), state.selectedCell());
     }
 
     @Test
     void togglePalette_switchesBetweenPlacingAndJettisoning() {
         ArsMapState state = new ArsMapState();
         state.update(layout(), 100, DEFS);
-        state.click(new ArsCell(3, 1), false, DEFS, false);
+        state.click(new ArsCell(6, 4), false, DEFS, false);
 
         state.togglePalette(BEDROOM);
         assertEquals(BEDROOM, state.selectedPiece());
@@ -191,11 +207,11 @@ class ArsMapStateTest {
     void update_keepsPaletteAndRotationButDropsVanishedSelections() {
         ArsMapState state = new ArsMapState();
         state.update(layout(), 100, DEFS);
-        state.click(new ArsCell(4, 2), false, DEFS, false);
+        state.click(new ArsCell(7, 5), false, DEFS, false);
         state.togglePalette(LIBRARY);
         state.rotateClockwise();
         state.rotateClockwise();
-        state.click(new ArsCell(4, 2), true, DEFS, false);
+        state.click(new ArsCell(7, 5), true, DEFS, false);
         state.togglePalette(LIBRARY);
         assertEquals(LIBRARY, state.selectedPiece());
 
@@ -209,8 +225,8 @@ class ArsMapStateTest {
         assertNull(state.selectedPiece());
 
         // A jettison selection survives only while a piece still covers that cell.
-        state.click(new ArsCell(4, 2), false, DEFS, false);
-        assertEquals(new ArsCell(4, 2), state.selectedCell());
+        state.click(new ArsCell(7, 5), false, DEFS, false);
+        assertEquals(new ArsCell(7, 5), state.selectedCell());
         state.update(layout().subList(0, 2), 60, DEFS);
         assertNull(state.selectedCell());
     }
@@ -250,12 +266,12 @@ class ArsMapStateTest {
         assertEquals(List.of(new ArsCell(2, 1)), state.ghostAt(new ArsCell(2, 1), DEFS).orElseThrow().cells());
     }
 
-    /** Straight corridor on the root cell, crossroads east of it, bedroom south of the crossroads. */
+    /** Straight corridor on the east root cell, crossroads east of it, bedroom south of the crossroads. */
     private static List<ArsPlacedPiece> layout() {
         return List.of(
-                new ArsPlacedPiece(STRAIGHT.toString(), 2, 1, 1),
-                new ArsPlacedPiece(CROSS.toString(), 3, 1, 0),
-                new ArsPlacedPiece(BEDROOM.toString(), 3, 2, 0));
+                new ArsPlacedPiece(STRAIGHT.toString(), 5, 4, 1),
+                new ArsPlacedPiece(CROSS.toString(), 6, 4, 0),
+                new ArsPlacedPiece(BEDROOM.toString(), 6, 5, 0));
     }
 
     private static ArsPieceDefinition def(ArsPieceKind kind, int width, int depth, int cost, ArsConnector... connectors) {

@@ -49,7 +49,7 @@ public final class ArsLayoutLogic {
     public static final String NO_PIECE_KEY = "dwm.ars.no_piece";
     public static final String WOULD_DISCONNECT_KEY = "dwm.ars.would_disconnect";
 
-    /** Graph node id for the console room in reachability searches. */
+    /** Graph node id for the console room (through any root link) in reachability searches. */
     private static final int ROOT_NODE = -1;
     /** Sentinel for {@link Graph#reachableFromRoot} meaning no piece is excluded. */
     private static final int NO_EXCLUSION = -2;
@@ -99,7 +99,7 @@ public final class ArsLayoutLogic {
      * One matched connector pair: the shared wall between {@link #cell} and the cell across
      * {@link #side}. Canonical form puts the wall on the cell with the larger coordinate, so
      * {@link #side} is always {@link Direction#NORTH} or {@link Direction#WEST} and each wall appears
-     * once. The root link is {@code Link(ArsGrid.rootCell(), ArsGrid.ROOT_SIDE)}.
+     * once. The root links are {@link #ROOT_LINKS}.
      */
     public record Link(ArsCell cell, Direction side) {
         public static Link of(ArsConnector connector) {
@@ -111,16 +111,23 @@ public final class ArsLayoutLogic {
         }
 
         public boolean isRoot() {
-            return this.equals(ROOT_LINK);
+            return ROOT_LINKS.contains(this);
         }
     }
 
-    /** The console room's permanent link to the grid. */
-    public static final Link ROOT_LINK = Link.of(new ArsConnector(ArsGrid.rootCell(), ArsGrid.ROOT_SIDE));
+    /** The console room's east link to the grid: the west face of cell (5, 4). */
+    public static final Link EAST_ROOT_LINK = Link.of(ArsGrid.EAST_ROOT);
+    /** The console room's west link to the grid: the east face of cell (2, 4), canonically {@code ((3, 4), WEST)}. */
+    public static final Link WEST_ROOT_LINK = Link.of(ArsGrid.WEST_ROOT);
+    /** Every link between the console room and the grid, in {@link ArsGrid#ROOT_CONNECTORS} order. */
+    public static final List<Link> ROOT_LINKS = ArsGrid.ROOT_CONNECTORS.stream().map(Link::of).toList();
 
-    /** The console room's virtual connector, facing back across the root link into the grid. */
-    public static final ArsConnector CONSOLE_CONNECTOR =
-            new ArsConnector(ArsGrid.rootCell(), ArsGrid.ROOT_SIDE).mate();
+    /**
+     * The console room's virtual connectors, one per root link, each facing back across it into the grid. All of
+     * them are the console room: the graph's root node connects through any of them.
+     */
+    public static final List<ArsConnector> CONSOLE_CONNECTORS =
+            ArsGrid.ROOT_CONNECTORS.stream().map(ArsConnector::mate).toList();
 
     private ArsLayoutLogic() {
     }
@@ -178,7 +185,7 @@ public final class ArsLayoutLogic {
         return Optional.empty();
     }
 
-    /** Every matched connector pair in the layout, including {@link #ROOT_LINK} when a piece mates it. */
+    /** Every matched connector pair in the layout, including each root link a piece mates. */
     public static Set<Link> openLinks(
             List<ArsPlacedPiece> layout,
             Function<Identifier, ArsPieceDefinition> definitions
@@ -190,7 +197,7 @@ public final class ArsLayoutLogic {
     /**
      * Whether {@code candidate} may be added to {@code layout}. Checks, in order: definition exists,
      * rotation is {@code 0..3}, footprint inside the grid, footprint clear of the console cells,
-     * footprint clear of resolved pieces, at least one connector mates the root link or a connector of
+     * footprint clear of resolved pieces, at least one connector mates a root link or a connector of
      * a piece that is itself reachable from the root, and (unless {@code instabuild}) {@code artron}
      * covers the cost. Mating only an island (a piece cut off from the root) is
      * {@link PlaceResult#NOT_CONNECTED}.
@@ -324,7 +331,9 @@ public final class ArsLayoutLogic {
 
         static Graph build(List<Resolved> resolved) {
             Graph graph = new Graph();
-            graph.connectorOwners.put(CONSOLE_CONNECTOR, ROOT_NODE);
+            for (ArsConnector console : CONSOLE_CONNECTORS) {
+                graph.connectorOwners.put(console, ROOT_NODE);
+            }
             for (int i = 0; i < resolved.size(); i++) {
                 for (ArsCell cell : resolved.get(i).cells) {
                     graph.cellOwners.putIfAbsent(cell, i);

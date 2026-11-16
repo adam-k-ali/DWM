@@ -360,12 +360,14 @@ public class ArsScreen extends Screen {
             }
         }
 
-        boolean rootOpen = links.contains(ArsLayoutLogic.ROOT_LINK);
         for (ArsLayoutLogic.Link link : links) {
             doorway(graphics, geo, link, DOOR);
         }
-        if (!rootOpen) {
-            doorway(graphics, geo, ArsLayoutLogic.ROOT_LINK, ROOT_MARK);
+        // Each console doorway (east and west) is amber until a piece opens it.
+        for (ArsLayoutLogic.Link root : ArsLayoutLogic.ROOT_LINKS) {
+            if (!links.contains(root)) {
+                doorway(graphics, geo, root, ROOT_MARK);
+            }
         }
 
         state.selectedPlaced(lookup).ifPresent(piece -> {
@@ -423,10 +425,16 @@ public class ArsScreen extends Screen {
         graphics.pose().popMatrix();
     }
 
+    /** Whether the cursor is on either console doorway. Both root links are canonically on a cell's west edge. */
     private boolean isNearRootDoorway(ArsMapState.MapGeometry geo, int mouseX, int mouseY) {
-        int x = geo.cellLeft(ArsGrid.ROOT_CELL_X);
-        int y = geo.cellTop(ArsGrid.ROOT_CELL_Z);
-        return mouseX >= x - 3 && mouseX <= x + 3 && mouseY >= y + APERTURE_FROM && mouseY < y + APERTURE_TO;
+        for (ArsLayoutLogic.Link root : ArsLayoutLogic.ROOT_LINKS) {
+            int x = geo.cellLeft(root.cell().x());
+            int y = geo.cellTop(root.cell().z());
+            if (mouseX >= x - 3 && mouseX <= x + 3 && mouseY >= y + APERTURE_FROM && mouseY < y + APERTURE_TO) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void drawGhost(GuiGraphicsExtractor graphics, ArsMapState.MapGeometry geo, ArsMapState.Ghost ghost) {
