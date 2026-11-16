@@ -95,6 +95,17 @@ public final class ArtronLogic {
     }
 
     /**
+     * Returns {@code amount} artron to the tank, clamped to {@link #CAPACITY}, and marks the model
+     * changed. A {@code null} model or a non-positive amount is a no-op.
+     */
+    public static void refund(@Nullable TardisDataModel model, int amount) {
+        if (model == null || amount <= 0) {
+            return;
+        }
+        write(model, (int) Math.min((long) CAPACITY, (long) read(model) + amount));
+    }
+
+    /**
      * Found Type 40 starting reserve (three local hops).
      */
     public static void applyFoundStart(@Nullable TardisDataModel model) {
