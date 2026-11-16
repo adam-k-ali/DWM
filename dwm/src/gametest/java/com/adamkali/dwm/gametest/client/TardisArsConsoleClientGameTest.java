@@ -10,6 +10,7 @@ import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import com.adamkali.dwm.tardis.interior.ars.ArsCell;
+import com.adamkali.dwm.tardis.interior.ars.ArsGrid;
 import com.adamkali.dwm.tardis.logic.ArsLayoutLogic;
 import com.adamkali.dwm.tardis.logic.TardisOwnershipLogic;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
@@ -33,9 +34,10 @@ import java.util.function.Predicate;
 /**
  * The ARS console control and map screen on a real TARDIS interior, at the smallest common GUI size
  * (427×240). Saves {@code ars_console_control}, {@code ars_screen_empty}, {@code ars_screen_ghost},
- * {@code ars_screen_layout}, {@code ars_world_console_doorway}, {@code ars_world_annex} and
- * {@code ars_world_library}. The first piece is grown by clicking the screen (real C2S path); the rest go
- * through the same server handler on the server thread.
+ * {@code ars_screen_layout} (console room centred, pieces on both sides), {@code ars_world_console_doorway}
+ * (east), {@code ars_world_west_doorway}, {@code ars_world_east_lobby} and {@code ars_world_library}. The first
+ * piece is grown by clicking the screen (real C2S path); the rest go through the same server handler on the
+ * server thread.
  */
 public class TardisArsConsoleClientGameTest implements FabricClientGameTest {
     private static final BlockPos SHELL_POS = new BlockPos(0, ClientGameTestSupport.PAD_Y, 6);
@@ -56,6 +58,7 @@ public class TardisArsConsoleClientGameTest implements FabricClientGameTest {
             UUID id = ClientGameTestSupport.placeTardisWithOpenDoor(server, SHELL_POS);
             ClientGameTestSupport.waitForInteriorReady(server, SHELL_POS, id);
             BlockPos origin = TardisPlotAllocator.plotOrigin(id);
+            BlockPos grid = ArsGrid.gridOrigin(origin);
             BlockPos consolePos = origin.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE);
             server.runOnServer(minecraft -> {
                 ServerPlayer player = minecraft.getPlayerList().getPlayers().getFirst();
@@ -91,30 +94,34 @@ public class TardisArsConsoleClientGameTest implements FabricClientGameTest {
             context.waitTicks(10);
             ClientGameTestSupport.screenshot(context, "ars_screen_empty");
 
-            // 3. Pick the straight corridor, rotate it east-west (R) and hover the root cell.
+            // 3. Pick the straight corridor, rotate it east-west (R) and hover the east root cell.
             clickAt(context, context.computeOnClient(client -> screen.paletteRowCenter(STRAIGHT)), GLFW.GLFW_MOUSE_BUTTON_LEFT);
             context.getInput().pressKey(GLFW.GLFW_KEY_R);
-            moveCursor(context, context.computeOnClient(client -> screen.cellCenter(new ArsCell(2, 1))));
+            moveCursor(context, context.computeOnClient(client -> screen.cellCenter(new ArsCell(5, 4))));
             context.waitTicks(5);
             boolean ghostOk = context.computeOnClient(client -> STRAIGHT.equals(screen.state().selectedPiece())
                     && screen.state().rotation() == 1
-                    && screen.placementAt(new ArsCell(2, 1)) == ArsLayoutLogic.PlaceResult.OK);
+                    && screen.placementAt(new ArsCell(5, 4)) == ArsLayoutLogic.PlaceResult.OK
+                    && screen.placementAt(new ArsCell(2, 4)) == ArsLayoutLogic.PlaceResult.OK);
             if (!ghostOk) {
-                throw new AssertionError("Expected a valid east-west straight corridor ghost on the root cell");
+                throw new AssertionError("Expected a valid east-west straight corridor ghost on both root cells");
             }
             ClientGameTestSupport.screenshot(context, "ars_screen_ghost");
 
-            // 4. Grow it by clicking (C2S), then the rest through the server handler; select the library.
+            // 4. Grow it by clicking (C2S), then the rest through the server handler on both sides of the
+            // console room; select the library.
             context.getInput().pressMouse(GLFW.GLFW_MOUSE_BUTTON_LEFT);
             waitForLayout(context, screen, 1);
-            grow(server, new ArsGrowC2SPayload(id, CROSS, 3, 1, 0));
-            grow(server, new ArsGrowC2SPayload(id, BEDROOM, 3, 2, 0));
-            grow(server, new ArsGrowC2SPayload(id, LIBRARY, 4, 0, 3));
-            waitForLayout(context, screen, 4);
+            grow(server, new ArsGrowC2SPayload(id, CROSS, 6, 4, 0));
+            grow(server, new ArsGrowC2SPayload(id, BEDROOM, 6, 5, 0));
+            grow(server, new ArsGrowC2SPayload(id, STRAIGHT, 2, 4, 1));
+            grow(server, new ArsGrowC2SPayload(id, CROSS, 1, 4, 0));
+            grow(server, new ArsGrowC2SPayload(id, LIBRARY, 1, 5, 0));
+            waitForLayout(context, screen, 6);
             if (context.computeOnClient(client -> client.gui.screen()) != screen) {
                 throw new AssertionError("The ARS screen should update in place, not be replaced");
             }
-            clickAt(context, context.computeOnClient(client -> screen.cellCenter(new ArsCell(5, 1))), GLFW.GLFW_MOUSE_BUTTON_RIGHT);
+            clickAt(context, context.computeOnClient(client -> screen.cellCenter(new ArsCell(2, 6))), GLFW.GLFW_MOUSE_BUTTON_RIGHT);
             moveCursor(context, -1000, -1000);
             context.waitTicks(5);
             if (context.computeOnClient(client -> screen.state().selectedCell()) == null) {
@@ -124,18 +131,20 @@ public class TardisArsConsoleClientGameTest implements FabricClientGameTest {
             context.setScreen(() -> null);
 
             // The reply to a request made after closing is a refresh: it must not reopen the screen.
-            grow(server, new ArsGrowC2SPayload(id, DEAD_END, 3, 0, 2));
+            grow(server, new ArsGrowC2SPayload(id, DEAD_END, 6, 3, 2));
             context.waitTicks(10);
             if (context.computeOnClient(client -> client.gui.screen()) != null) {
                 throw new AssertionError("A grow reply reopened a closed screen: "
                         + context.computeOnClient(client -> client.gui.screen()));
             }
 
-            // 5-7. In the world, in spectator so the camera can stand anywhere.
+            // 5-8. In the world, in spectator so the camera can stand anywhere. Positions are grid-local: the console
+            // room spans x 27..37, z 27..43; its doorways are at z 34..35 in the east (x 37) and west (x 27) walls.
             server.runCommand("gamemode spectator @a");
-            shoot(context, server, origin, new Vec3(7.0, 1, 8.0), new Vec3(11.5, 2.2, 8.0), "ars_world_console_doorway");
-            shoot(context, server, origin, new Vec3(12.0, 1, 12.0), new Vec3(26.0, 2.4, 12.0), "ars_world_annex");
-            shoot(context, server, origin, new Vec3(34.5, 1, 13.0), new Vec3(44.0, 3.0, 3.0), "ars_world_library");
+            shoot(context, server, grid, new Vec3(34.0, 1, 35.0), new Vec3(38.5, 2.2, 35.0), "ars_world_console_doorway");
+            shoot(context, server, grid, new Vec3(31.0, 1, 35.0), new Vec3(18.0, 2.2, 36.0), "ars_world_west_doorway");
+            shoot(context, server, grid, new Vec3(39.0, 1, 36.0), new Vec3(53.0, 2.4, 36.0), "ars_world_east_lobby");
+            shoot(context, server, grid, new Vec3(12.0, 1, 42.0), new Vec3(20.0, 3.0, 52.0), "ars_world_library");
             ClientGameTestSupport.toggleHud(context);
         }
     }
@@ -190,13 +199,13 @@ public class TardisArsConsoleClientGameTest implements FabricClientGameTest {
         context.waitTicks(2);
     }
 
-    /** Teleports to a plot-local feet position in dwm:tardis, waits for block light there, aims and shoots. */
-    private static void shoot(ClientGameTestContext context, TestServerContext server, BlockPos origin,
+    /** Teleports to a grid-local feet position in dwm:tardis, waits for block light there, aims and shoots. */
+    private static void shoot(ClientGameTestContext context, TestServerContext server, BlockPos grid,
                               Vec3 localFeet, Vec3 localTarget, String name) {
-        Vec3 feet = Vec3.atLowerCornerOf(origin).add(localFeet);
+        Vec3 feet = Vec3.atLowerCornerOf(grid).add(localFeet);
         BlockPos probe = BlockPos.containing(feet.add(0, 1, 0));
         server.waitFor(minecraft -> interior(minecraft).getBrightness(LightLayer.BLOCK, probe) > 0, LIGHT_WAIT_TICKS);
-        aim(context, server, feet, Vec3.atLowerCornerOf(origin).add(localTarget));
+        aim(context, server, feet, Vec3.atLowerCornerOf(grid).add(localTarget));
         context.waitTicks(RENDER_TICKS);
         ClientGameTestSupport.screenshot(context, name);
     }

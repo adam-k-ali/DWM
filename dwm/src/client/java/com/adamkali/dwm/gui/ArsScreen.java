@@ -401,9 +401,9 @@ public class ArsScreen extends Screen {
         graphics.fill(x0, z1 - 1, x1, z1, CONSOLE_EDGE);
         graphics.fill(x0, z0, x0 + 1, z1, CONSOLE_EDGE);
         graphics.fill(x1 - 1, z0, x1, z1, CONSOLE_EDGE);
-        // The console itself, at its plot-local block position.
-        int cx = (int) Math.round(geo.blockX(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getX() + 0.5));
-        int cz = (int) Math.round(geo.blockZ(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getZ() + 0.5));
+        // The console itself, at its anchor-local block position moved onto the grid.
+        int cx = (int) Math.round(geo.anchorBlockX(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getX() + 0.5));
+        int cz = (int) Math.round(geo.anchorBlockZ(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getZ() + 0.5));
         graphics.fill(cx - 2, cz - 2, cx + 3, cz + 3, CONSOLE_MARK);
         graphics.fill(cx - 1, cz - 1, cx + 2, cz + 2, CONSOLE_FILL);
         // The main doors: where players enter and leave the TARDIS.
