@@ -109,6 +109,7 @@ public final class ConsoleControlHud {
                     display != null && display.lockZ()
                             ? "dwm.console.lock_z_on"
                             : "dwm.console.lock_z_off");
+            case ARS -> Component.translatable("dwm.console.ars");
             case NONE -> null;
         };
     }

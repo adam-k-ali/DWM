@@ -6,6 +6,7 @@ import com.adamkali.dwm.block.FirstDoctorConsoleBlock;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls;
 import com.adamkali.dwm.block.FirstDoctorConsoleControls.LookTarget;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
+import com.adamkali.dwm.model.tileentity.ArsControlModel;
 import com.adamkali.dwm.model.tileentity.BiomeSelectorModel;
 import com.adamkali.dwm.model.tileentity.ChameleonCircuitModel;
 import com.adamkali.dwm.model.tileentity.CloakLeverModel;
@@ -128,7 +129,10 @@ public class FirstDoctorConsoleBlockEntityRenderer
                 // One mesh for all three coordinate-lock pads; Y/Z are hitboxes only.
                 widget(LookTarget.COORDINATE_LOCK_X,
                         new CoordinateLockModel(context.bakeLayer(CoordinateLockModel.LAYER_LOCATION)),
-                        EntityModelTextures.get(CoordinateLockModel.LAYER_LOCATION), null)
+                        EntityModelTextures.get(CoordinateLockModel.LAYER_LOCATION), null),
+                widget(LookTarget.ARS,
+                        new ArsControlModel(context.bakeLayer(ArsControlModel.LAYER_LOCATION)),
+                        EntityModelTextures.get(ArsControlModel.LAYER_LOCATION), null)
         );
 
         for (TardisChameleonVariant variant : TardisChameleonVariant.values()) {

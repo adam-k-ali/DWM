@@ -10,8 +10,12 @@ import com.adamkali.dwm.tardis.data.model.TardisCircuit;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
 import com.adamkali.dwm.tardis.data.model.TardisWaypoint;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
+import com.adamkali.dwm.tardis.interior.TardisDimensions;
+import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
+import com.adamkali.dwm.tardis.interior.ars.ArsService;
 import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
 import com.adamkali.dwm.tardis.logic.ConsolePilotLogic;
+import com.adamkali.dwm.tardis.logic.FirstDoctorConsoleSync;
 import com.adamkali.dwm.tardis.logic.PlayerLocatorLogic;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisTravelService;
@@ -21,10 +25,14 @@ import com.adamkali.dwm.tardis.soto.SotoExteriorIndex;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 
 import java.util.Optional;
@@ -34,6 +42,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class ServerPayloadTypeRegistry {
     private static final Logger LOGGER = LogUtils.getLogger();
+    /** Overlay when an ARS request comes from outside that TARDIS's interior. */
+    public static final String ARS_NOT_INSIDE_KEY = "dwm.ars.not_inside_tardis";
 
     public static void initialize() {
         PayloadTypeRegistry.clientboundPlay().register(OpenTardisChameleonScreen.ID, OpenTardisChameleonScreen.CODEC);
@@ -49,6 +59,7 @@ public class ServerPayloadTypeRegistry {
         PayloadTypeRegistry.clientboundPlay().register(TravelAudioS2CPayload.ID, TravelAudioS2CPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(SonicPingRevealS2CPayload.ID, SonicPingRevealS2CPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(SonicScanS2CPayload.ID, SonicScanS2CPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(OpenArsScreen.ID, OpenArsScreen.CODEC);
 
         PayloadTypeRegistry.serverboundPlay().register(UpdateTardisChameleonC2SPayload.ID, UpdateTardisChameleonC2SPayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(SaveWaypointC2SPayload.ID, SaveWaypointC2SPayload.CODEC);
@@ -58,6 +69,8 @@ public class ServerPayloadTypeRegistry {
         PayloadTypeRegistry.serverboundPlay().register(SelectPlayerC2SPayload.ID, SelectPlayerC2SPayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(RequestPortalStreamC2SPayload.ID, RequestPortalStreamC2SPayload.CODEC);
         PayloadTypeRegistry.serverboundPlay().register(SelectSonicFieldModeC2SPayload.ID, SelectSonicFieldModeC2SPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(ArsGrowC2SPayload.ID, ArsGrowC2SPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(ArsJettisonC2SPayload.ID, ArsJettisonC2SPayload.CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(UpdateTardisChameleonC2SPayload.ID, (payload, context) -> {
             context.server().execute(() -> safelyHandleChameleonUpdate(payload, context.player()));
@@ -82,6 +95,12 @@ public class ServerPayloadTypeRegistry {
         });
         ServerPlayNetworking.registerGlobalReceiver(SelectSonicFieldModeC2SPayload.ID, (payload, context) -> {
             context.server().execute(() -> safelyHandleSelectSonicFieldMode(payload, context.player()));
+        });
+        ServerPlayNetworking.registerGlobalReceiver(ArsGrowC2SPayload.ID, (payload, context) -> {
+            context.server().execute(() -> safelyHandleArsGrow(payload, context.player()));
+        });
+        ServerPlayNetworking.registerGlobalReceiver(ArsJettisonC2SPayload.ID, (payload, context) -> {
+            context.server().execute(() -> safelyHandleArsJettison(payload, context.player()));
         });
     }
 
@@ -291,6 +310,124 @@ public class ServerPayloadTypeRegistry {
             player.sendOverlayMessage(Component.translatable("dwm.console.player_locator_selected"));
         }
         return true;
+    }
+
+    /**
+     * Grows an ARS piece for the sender and refreshes their screen. Returns whether the piece was grown.
+     */
+    public static boolean safelyHandleArsGrow(ArsGrowC2SPayload payload, @Nullable ServerPlayer player) {
+        if (payload == null || player == null) {
+            return false;
+        }
+        ArsService.Result result = handleArsGrow(
+                player.level().getServer(),
+                payload,
+                player.getUUID(),
+                player.level().dimension(),
+                player.blockPosition(),
+                player.getAbilities().instabuild,
+                player
+        );
+        return finishArsAction(payload.tardisId(), result, player);
+    }
+
+    /**
+     * Jettisons an ARS piece for the sender and refreshes their screen. Returns whether the piece was removed.
+     */
+    public static boolean safelyHandleArsJettison(ArsJettisonC2SPayload payload, @Nullable ServerPlayer player) {
+        if (payload == null || player == null) {
+            return false;
+        }
+        ArsService.Result result = handleArsJettison(
+                player.level().getServer(),
+                payload,
+                player.getUUID(),
+                player.level().dimension(),
+                player.blockPosition(),
+                player
+        );
+        return finishArsAction(payload.tardisId(), result, player);
+    }
+
+    /**
+     * Decision core of {@link #safelyHandleArsGrow}: the sender must pass {@link #validateConsoleAction} and stand
+     * inside that TARDIS's interior plot ({@link #requireInsideTardis}); then {@link ArsService#grow} decides.
+     * Cells, rotation and piece id are passed through untouched: the service and {@code ArsLayoutLogic} refuse
+     * anything out of range. Returns {@code null} when refused before the service (overlay sent when
+     * {@code player} is non-null), otherwise the service result. Unit tests may pass null server and player.
+     */
+    static @Nullable ArsService.Result handleArsGrow(
+            @Nullable MinecraftServer server,
+            ArsGrowC2SPayload payload,
+            @Nullable UUID playerUuid,
+            @Nullable ResourceKey<Level> dimension,
+            @Nullable BlockPos position,
+            boolean instabuild,
+            @Nullable ServerPlayer player
+    ) {
+        if (payload == null || payload.pieceId() == null) {
+            return null;
+        }
+        if (!validateConsoleAction(payload.tardisId(), playerUuid, player)
+                || !requireInsideTardis(payload.tardisId(), dimension, position, player)) {
+            return null;
+        }
+        return ArsService.grow(server, payload.tardisId(), payload.pieceId(),
+                payload.cellX(), payload.cellZ(), payload.rotation(), instabuild);
+    }
+
+    /** Decision core of {@link #safelyHandleArsJettison}; see {@link #handleArsGrow}. */
+    static @Nullable ArsService.Result handleArsJettison(
+            @Nullable MinecraftServer server,
+            ArsJettisonC2SPayload payload,
+            @Nullable UUID playerUuid,
+            @Nullable ResourceKey<Level> dimension,
+            @Nullable BlockPos position,
+            @Nullable ServerPlayer player
+    ) {
+        if (payload == null) {
+            return null;
+        }
+        if (!validateConsoleAction(payload.tardisId(), playerUuid, player)
+                || !requireInsideTardis(payload.tardisId(), dimension, position, player)) {
+            return null;
+        }
+        return ArsService.jettison(server, payload.tardisId(), payload.cellX(), payload.cellZ());
+    }
+
+    /**
+     * The sender must stand in {@code dwm:tardis} inside {@code tardisId}'s interior plot: the ARS edits that
+     * world, so a request from anywhere else (or for another TARDIS's plot) is refused.
+     */
+    static boolean requireInsideTardis(
+            UUID tardisId,
+            @Nullable ResourceKey<Level> dimension,
+            @Nullable BlockPos position,
+            @Nullable ServerPlayer player
+    ) {
+        boolean inside = tardisId != null
+                && dimension != null
+                && TardisDimensions.isTardisWorld(dimension)
+                && TardisPlotAllocator.isInsidePlot(position, TardisPlotAllocator.plotOrigin(tardisId));
+        if (!inside && player != null) {
+            player.sendOverlayMessage(Component.translatable(ARS_NOT_INSIDE_KEY));
+        }
+        return inside;
+    }
+
+    /**
+     * After the service ran: shows its message, re-syncs the console (artron changed, so the refueler needle
+     * moves) and re-sends the layout as a refresh, so an ARS screen still open refreshes (also after a refusal);
+     * a refresh never reopens a closed screen.
+     */
+    private static boolean finishArsAction(UUID tardisId, @Nullable ArsService.Result result, ServerPlayer player) {
+        if (result == null) {
+            return false;
+        }
+        player.sendOverlayMessage(result.message());
+        FirstDoctorConsoleSync.syncFromModel(player.level().getServer(), tardisId);
+        ServerPlayNetworking.send(player, OpenArsScreen.of(tardisId, TardisDataLoader.get(tardisId), true));
+        return result.success();
     }
 
     private static boolean requireCircuit(UUID tardisId, TardisCircuit circuit) {

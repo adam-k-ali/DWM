@@ -128,6 +128,7 @@ public final class FirstDoctorConsoleControls {
     private static final float CLOAK_SCALE = LEVER_SCALE;
     private static final float DOOR_LOCK_SCALE = 0.14F;
     private static final float COORDINATE_LOCK_SCALE = 0.11F;
+    private static final float ARS_SCALE = 0.22F;
 
     private static final float SEL_MIN_X = -7.0F;
     private static final float SEL_MIN_Y = 0.0F;
@@ -203,6 +204,14 @@ public final class FirstDoctorConsoleControls {
     private static final float CLKA_MIN_Z = -12.0F;
     private static final float CLKA_MAX_Z = -6.0F;
 
+    /** ARS control mesh extents (plate 12×10, copper tree up to 9 high). */
+    private static final float ARS_MIN_X = -6.0F;
+    private static final float ARS_MIN_Y = 0.0F;
+    private static final float ARS_MIN_Z = -5.0F;
+    private static final float ARS_MAX_X = 6.0F;
+    private static final float ARS_MAX_Y = 9.0F;
+    private static final float ARS_MAX_Z = 5.0F;
+
     private static final float Y_SCALE = 0.8F;
     private static final float PX = 1.0F / 16.0F;
     private static final double REACH = 5.0;
@@ -232,7 +241,9 @@ public final class FirstDoctorConsoleControls {
         DOOR_LOCK,
         COORDINATE_LOCK_X,
         COORDINATE_LOCK_Y,
-        COORDINATE_LOCK_Z;
+        COORDINATE_LOCK_Z,
+        /** Architectural Reconfiguration System; keep last, ordinals are saved in entity NBT. */
+        ARS;
 
         /** Controls that spawn interaction entities (excludes {@link #NONE}). */
         public static LookTarget[] interactiveValues() {
@@ -421,6 +432,8 @@ public final class FirstDoctorConsoleControls {
                 CLKY_MIN_X, CLKA_MIN_Y, CLKA_MIN_Z, CLKY_MAX_X, CLKA_MAX_Y, CLKA_MAX_Z));
         put(map, bottom(LookTarget.COORDINATE_LOCK_Z, PANEL3_YAW_RAD, COORDINATE_LOCK_SCALE, 0.0F,
                 CLKZ_MIN_X, CLKA_MIN_Y, CLKA_MIN_Z, CLKZ_MAX_X, CLKA_MAX_Y, CLKA_MAX_Z));
+        put(map, bottom(LookTarget.ARS, PANEL5_YAW_RAD, ARS_SCALE, 0.0F,
+                ARS_MIN_X, ARS_MIN_Y, ARS_MIN_Z, ARS_MAX_X, ARS_MAX_Y, ARS_MAX_Z));
 
         for (LookTarget target : LookTarget.interactiveValues()) {
             if (!map.containsKey(target)) {

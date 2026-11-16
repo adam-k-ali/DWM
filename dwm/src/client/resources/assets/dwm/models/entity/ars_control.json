@@ -1,0 +1,46 @@
+{
+  "texture_width": 64,
+  "texture_height": 32,
+  "texture": "dwm:textures/entity/ars_control.png",
+  "parts": [
+    {
+      "name": "plate",
+      "cubes": [
+        { "uv": [0, 0], "origin": [-6, 0, -5], "size": [12, 1, 10] },
+        { "uv": [0, 11], "origin": [-5, 1, -4], "size": [10, 1, 8] }
+      ]
+    },
+    {
+      "name": "tree",
+      "pivot": [0, 2, 1],
+      "cubes": [
+        { "uv": [4, 20], "origin": [-1.5, 0, -0.5], "size": [3, 1, 1] },
+        { "uv": [0, 20], "origin": [-0.5, 0, -0.5], "size": [1, 6, 1] },
+        { "uv": [12, 20], "origin": [-2.5, 2, -0.5], "size": [2, 1, 1] },
+        { "uv": [12, 20], "origin": [0.5, 3.5, -0.5], "size": [2, 1, 1] }
+      ],
+      "children": [
+        {
+          "name": "orbs",
+          "cubes": [
+            { "uv": [18, 20], "origin": [-3.5, 2.5, -0.5], "size": [1, 1, 1] },
+            { "uv": [18, 20], "origin": [2.5, 4, -0.5], "size": [1, 1, 1] },
+            { "uv": [18, 20], "origin": [-0.5, 6, -0.5], "size": [1, 1, 1] }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "lamp",
+      "cubes": [
+        { "uv": [22, 20], "origin": [-4, 2, -3.5], "size": [2, 1, 2] }
+      ]
+    },
+    {
+      "name": "dial",
+      "cubes": [
+        { "uv": [30, 20], "origin": [2, 2, -3.5], "size": [2, 1, 2] }
+      ]
+    }
+  ]
+}

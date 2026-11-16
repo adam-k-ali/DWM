@@ -3,6 +3,7 @@ package com.adamkali.dwm.block;
 import com.adamkali.dwm.advancement.DWMCriteria;
 import com.adamkali.dwm.block.entities.DWMBlockEntities;
 import com.adamkali.dwm.block.entities.FirstDoctorConsoleBlockEntity;
+import com.adamkali.dwm.network.OpenArsScreen;
 import com.adamkali.dwm.network.OpenPlayerLocatorScreen;
 import com.adamkali.dwm.network.OpenWaypointScreen;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
@@ -270,6 +271,12 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             case COORDINATE_LOCK_X -> handleCoordinateLock(world, pos, player, serverWorld, tardisId, CoordinateLockLogic.Axis.X);
             case COORDINATE_LOCK_Y -> handleCoordinateLock(world, pos, player, serverWorld, tardisId, CoordinateLockLogic.Axis.Y);
             case COORDINATE_LOCK_Z -> handleCoordinateLock(world, pos, player, serverWorld, tardisId, CoordinateLockLogic.Axis.Z);
+            case ARS -> {
+                if (!(player instanceof ServerPlayer serverPlayer)) {
+                    yield InteractionResult.CONSUME;
+                }
+                yield handleArs(world, pos, serverPlayer, tardisId);
+            }
             case NONE -> InteractionResult.PASS;
         };
     }
@@ -291,6 +298,7 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
             case DOOR_LOCK -> "dwm.console.door_lock_unavailable";
             case COORDINATE_LOCK_X, COORDINATE_LOCK_Y, COORDINATE_LOCK_Z ->
                     "dwm.console.coordinate_lock_unavailable";
+            case ARS -> "dwm.console.ars_unavailable";
             case MATERIALISATION_LEVER, NONE -> "dwm.console.travel_unavailable";
         };
     }
@@ -402,6 +410,17 @@ public class FirstDoctorConsoleBlock extends BaseEntityBlock {
         }
         TardisDataModel model = TardisDataLoader.get(tardisId);
         ServerPlayNetworking.send(player, OpenWaypointScreen.of(tardisId, model));
+        playClick(world, pos);
+        return InteractionResult.SUCCESS;
+    }
+
+    /** Opens the ARS map for the owner; refused in flight, like the other screen controls. */
+    private static InteractionResult handleArs(Level world, BlockPos pos, ServerPlayer player, UUID tardisId) {
+        if (TardisTravelService.isTraveling(tardisId)) {
+            player.sendOverlayMessage(Component.translatable("dwm.console.travel_in_flight"));
+            return InteractionResult.CONSUME;
+        }
+        ServerPlayNetworking.send(player, OpenArsScreen.of(tardisId, TardisDataLoader.get(tardisId), false));
         playClick(world, pos);
         return InteractionResult.SUCCESS;
     }

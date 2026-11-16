@@ -398,6 +398,31 @@ class ArsLayoutLogicTest {
         assertEquals(RemoveResult.NO_PIECE, ArsLayoutLogic.canRemove(layout, DEFS, 2, 1));
     }
 
+    /** Values a hostile client could put in an ARS payload: the rules refuse them without throwing. */
+    @Test
+    void absurdCellsAndRotationsAreRefusedWithoutThrowing() {
+        List<ArsPlacedPiece> layout = new ArrayList<>(List.of(piece(HALL, 2, 0, 0)));
+        int[] extremes = {Integer.MIN_VALUE, Integer.MIN_VALUE + 1, -1, ArsGrid.GRID_SIZE, Integer.MAX_VALUE - 1,
+                Integer.MAX_VALUE};
+        for (int value : extremes) {
+            for (String id : List.of(HALL, STRAIGHT)) {
+                for (int rotation = 0; rotation < ArsGrid.ROTATION_COUNT; rotation++) {
+                    assertEquals(PlaceResult.OUT_OF_BOUNDS,
+                            ArsLayoutLogic.canPlace(layout, DEFS, piece(id, value, 3, rotation), 500, true),
+                            id + " at x=" + value + " r=" + rotation);
+                    assertEquals(PlaceResult.OUT_OF_BOUNDS,
+                            ArsLayoutLogic.canPlace(layout, DEFS, piece(id, 3, value, rotation), 500, true),
+                            id + " at z=" + value + " r=" + rotation);
+                }
+            }
+            assertEquals(PlaceResult.INVALID_ROTATION,
+                    ArsLayoutLogic.canPlace(layout, DEFS, piece(STRAIGHT, 3, 3, value), 500, true));
+            assertEquals(RemoveResult.NO_PIECE, ArsLayoutLogic.canRemove(layout, DEFS, value, value));
+            assertEquals(RemoveResult.NO_PIECE, ArsLayoutLogic.canRemove(layout, DEFS, 3, value));
+            assertEquals(Optional.empty(), ArsLayoutLogic.pieceAt(layout, DEFS, value, 0));
+        }
+    }
+
     // --- helpers --------------------------------------------------------------------------------
 
     private static ArsPieceDefinition def(ArsPieceKind kind, int width, int depth, int cost, ArsConnector... connectors) {

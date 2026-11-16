@@ -18,6 +18,10 @@ public class DWMPacketIds {
     public static final Identifier SONIC_PING_REVEAL_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sonic_ping_reveal");
     public static final Identifier SONIC_SCAN_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sonic_scan");
 
+    public static final Identifier OPEN_ARS_SCREEN_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "open_ars_screen");
+    public static final Identifier ARS_GROW_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "ars_grow");
+    public static final Identifier ARS_JETTISON_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "ars_jettison");
+
     public static final Identifier REQUEST_PORTAL_STREAM_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "request_portal_stream");
     public static final Identifier SYNC_PORTAL_META_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sync_portal_meta");
     public static final Identifier SYNC_PORTAL_CHUNK_PACKET_ID = Identifier.fromNamespaceAndPath(DWMReference.MOD_ID, "sync_portal_chunk");

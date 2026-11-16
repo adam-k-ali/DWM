@@ -17,6 +17,7 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -119,6 +120,33 @@ public class ConsolePilotGameTests {
             InteractionResult result = oxygen.interact(visitor, InteractionHand.MAIN_HAND, Vec3.ZERO);
             if (!result.consumesAction()) {
                 throw new AssertionError("Visitor oxygen reader should respond, got " + result);
+            }
+
+            context.succeed();
+        });
+    }
+
+    @GameTest(structure = "fabric-gametest-api-v1:empty")
+    public void arsControlIsOwnerOnly(GameTestHelper context) {
+        Setup setup = arrangeConsole(context);
+
+        context.runAtTickTime(1, () -> {
+            // In-level server players: the owner path sends the ARS screen payload over a real connection.
+            ServerPlayer owner = context.makeMockServerPlayerInLevel();
+            if (!TardisOwnershipLogic.tryClaimOnEnter(setup.tardisId(), owner.getUUID())) {
+                throw new AssertionError("Expected owner claim to succeed");
+            }
+            ConsoleControlInteractionEntity ars = requireControl(context, setup.consoleAbs(), LookTarget.ARS);
+
+            ServerPlayer visitor = context.makeMockServerPlayerInLevel();
+            InteractionResult visitorResult = ars.interact(visitor, InteractionHand.MAIN_HAND, Vec3.ZERO);
+            if (visitorResult != InteractionResult.CONSUME) {
+                throw new AssertionError("Visitor ARS click must be refused (not-owner overlay), got " + visitorResult);
+            }
+
+            InteractionResult ownerResult = ars.interact(owner, InteractionHand.MAIN_HAND, Vec3.ZERO);
+            if (ownerResult != InteractionResult.SUCCESS) {
+                throw new AssertionError("Owner ARS click should open the ARS screen, got " + ownerResult);
             }
 
             context.succeed();

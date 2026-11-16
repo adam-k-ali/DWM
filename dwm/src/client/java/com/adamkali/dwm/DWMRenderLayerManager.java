@@ -30,6 +30,7 @@ public class DWMRenderLayerManager {
         JsonEntityModelLayers.register(DoorLockModel.LAYER_LOCATION);
         JsonEntityModelLayers.register(TelepathicCircuitModel.LAYER_LOCATION);
         JsonEntityModelLayers.register(CoordinateLockModel.LAYER_LOCATION);
+        JsonEntityModelLayers.register(ArsControlModel.LAYER_LOCATION);
         JsonEntityModelLayers.register(TardisGlobeModel.LAYER_LOCATION);
         JsonEntityModelLayers.register(TardisCompactScannerModel.LAYER_LOCATION);
         JsonEntityModelLayers.register(TardisFullScannerModel.LAYER_LOCATION);
