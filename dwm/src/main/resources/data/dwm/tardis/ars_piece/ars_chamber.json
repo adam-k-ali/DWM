@@ -1,0 +1,11 @@
+{
+  "kind": "room",
+  "structure": "dwm:tardis/ars/ars_chamber",
+  "cells": [3, 3],
+  "connectors": [
+    { "cell": [1, 0], "side": "north" },
+    { "cell": [1, 2], "side": "south" }
+  ],
+  "artron_cost": 80,
+  "map_color": "#E0B341"
+}

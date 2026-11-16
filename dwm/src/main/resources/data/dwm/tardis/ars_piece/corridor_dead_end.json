@@ -1,0 +1,10 @@
+{
+  "kind": "corridor",
+  "structure": "dwm:tardis/ars/corridor_dead_end",
+  "cells": [1, 1],
+  "connectors": [
+    { "cell": [0, 0], "side": "north" }
+  ],
+  "artron_cost": 5,
+  "map_color": "#B8C4D0"
+}

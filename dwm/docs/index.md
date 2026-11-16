@@ -29,6 +29,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 
 ### Planned Features
 - [Skaro Dimension](./feature-skaro-dimension.md) (destination world; petrified wood, five biomes, Petrified Jungle trees, radiation/suit/meter, and Dalek patrols shipped; Thal settlements and Dalek trenches shipped; remaining flora and hostile structures still planned)
+- [TARDIS Architectural Reconfiguration System](./feature-tardis-ars.md) (in development; piece definitions and room/corridor templates only, no in-world placement yet)
 
 ## Brand and Differentiation
 - [Branding Guidelines](./branding-guidelines.md)
