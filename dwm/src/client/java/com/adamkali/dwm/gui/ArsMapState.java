@@ -33,10 +33,13 @@ public final class ArsMapState {
     private int rotation;
     private @Nullable ArsCell selectedCell;
 
+    /** Cells shown along each edge of the map viewport. */
+    public static final int VIEW_CELLS = 8;
+
     /** Map placement on screen: top-left corner of cell (0, 0) and cell edge length in GUI pixels. */
     public record MapGeometry(int left, int top, int cellSize) {
         public int size() {
-            return cellSize * ArsGrid.GRID_SIZE;
+            return cellSize * VIEW_CELLS;
         }
 
         /** The grid cell under a GUI point, or {@code null} outside the map. */

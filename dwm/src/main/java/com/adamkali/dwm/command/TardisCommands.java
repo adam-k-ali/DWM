@@ -60,8 +60,8 @@ public final class TardisCommands {
                                                         ctx.getSource().registryAccess()
                                                                 .lookupOrThrow(ArsRegistries.PIECE).keySet(),
                                                         builder))
-                                                .then(Commands.argument("cellX", IntegerArgumentType.integer(0, ArsGrid.GRID_SIZE - 1))
-                                                        .then(Commands.argument("cellZ", IntegerArgumentType.integer(0, ArsGrid.GRID_SIZE - 1))
+                                                .then(Commands.argument("cellX", IntegerArgumentType.integer(ArsGrid.MIN_CELL, ArsGrid.MAX_CELL))
+                                                        .then(Commands.argument("cellZ", IntegerArgumentType.integer(ArsGrid.MIN_CELL, ArsGrid.MAX_CELL))
                                                                 .executes(ctx -> arsPlace(ctx, 0))
                                                                 .then(Commands.argument("rotation",
                                                                                 IntegerArgumentType.integer(0, ArsGrid.ROTATION_COUNT - 1))
@@ -73,8 +73,8 @@ public final class TardisCommands {
                                         )
                                 )
                                 .then(Commands.literal("remove")
-                                        .then(Commands.argument("cellX", IntegerArgumentType.integer(0, ArsGrid.GRID_SIZE - 1))
-                                                .then(Commands.argument("cellZ", IntegerArgumentType.integer(0, ArsGrid.GRID_SIZE - 1))
+                                        .then(Commands.argument("cellX", IntegerArgumentType.integer(ArsGrid.MIN_CELL, ArsGrid.MAX_CELL))
+                                                .then(Commands.argument("cellZ", IntegerArgumentType.integer(ArsGrid.MIN_CELL, ArsGrid.MAX_CELL))
                                                         .executes(TardisCommands::arsRemove)
                                                 )
                                         )

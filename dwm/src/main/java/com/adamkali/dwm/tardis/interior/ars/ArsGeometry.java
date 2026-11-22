@@ -153,14 +153,16 @@ public final class ArsGeometry {
     }
 
     /**
-     * {@code local} with its x and z clamped to the plot window ({@code 0..GRID_SIZE*CELL_SIZE-1}), so chunk
-     * work around a piece on the grid edge never reaches a neighbouring TARDIS's window. Y is unchanged.
+     * {@code local} with its x and z clamped to the plot window ({@link ArsGrid#windowMinBlock()} ..
+     * {@link ArsGrid#windowMaxBlock()}), so chunk work around a piece on the grid edge never reaches a neighbouring
+     * TARDIS's window. Y is unchanged.
      */
     public static BoundingBox clampToWindow(BoundingBox local) {
-        int last = ArsGrid.GRID_SIZE * ArsGrid.CELL_SIZE - 1;
+        int first = ArsGrid.windowMinBlock();
+        int last = ArsGrid.windowMaxBlock();
         return new BoundingBox(
-                Math.clamp(local.minX(), 0, last), local.minY(), Math.clamp(local.minZ(), 0, last),
-                Math.clamp(local.maxX(), 0, last), local.maxY(), Math.clamp(local.maxZ(), 0, last));
+                Math.clamp(local.minX(), first, last), local.minY(), Math.clamp(local.minZ(), first, last),
+                Math.clamp(local.maxX(), first, last), local.maxY(), Math.clamp(local.maxZ(), first, last));
     }
 
     /** {@code box} moved from grid-local to world coordinates ({@code gridOrigin} from {@link ArsGrid#gridOrigin}). */

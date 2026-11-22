@@ -19,6 +19,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ArsGeometryTest {
@@ -133,24 +134,32 @@ class ArsGeometryTest {
     @Test
     void clampToWindowKeepsEdgePiecesInsideTheirWindow() {
         assertEquals(TardisPlotAllocator.PLOT_SPACING, ArsGrid.GRID_SIZE * ArsGrid.CELL_SIZE);
-        // Cell (7, 7): the 1-block halo around it would reach x/z = 64, the next window.
-        BoundingBox corner = ArsGeometry.pieceBox(new ArsPlacedPiece("dwm:corridor_cross", 7, 7, 0), single(), 16)
+        int min = ArsGrid.windowMinBlock();
+        int max = ArsGrid.windowMaxBlock();
+        assertEquals(-4968, min);
+        assertEquals(5031, max);
+        // Cell (MAX, MAX): the 1-block halo around it would reach the next window.
+        BoundingBox corner = ArsGeometry.pieceBox(
+                        new ArsPlacedPiece("dwm:corridor_cross", ArsGrid.MAX_CELL, ArsGrid.MAX_CELL, 0), single(), 16)
                 .inflatedBy(1, 0, 1);
-        assertBox(ArsGeometry.clampToWindow(corner), 55, 0, 55, 63, 15, 63);
-        // Row cz = 0 and a 2x1 piece on column 6..7: the halo would reach z = -1 and x = 64.
-        BoundingBox north = ArsGeometry.pieceBox(new ArsPlacedPiece("dwm:bedroom", 6, 0, 0), WIDE, 16)
+        assertBox(ArsGeometry.clampToWindow(corner), max - 8, 0, max - 8, max, 15, max);
+        // Row cz = MIN and a 2x1 piece on the last two columns: the halo would reach z = min - 1 and x = max + 1.
+        BoundingBox north = ArsGeometry.pieceBox(
+                        new ArsPlacedPiece("dwm:bedroom", ArsGrid.MAX_CELL - 1, ArsGrid.MIN_CELL, 0), WIDE, 16)
                 .inflatedBy(1, 0, 1);
-        assertBox(north, 47, 0, -1, 64, 15, 8);
-        assertBox(ArsGeometry.clampToWindow(north), 47, 0, 0, 63, 15, 8);
-        BlockPos anchor = new BlockPos(64 * 10, 64, 64 * -3);
+        assertBox(north, max - 16, 0, min - 1, max + 1, 15, min + 8);
+        assertBox(ArsGeometry.clampToWindow(north), max - 16, 0, min, max, 15, min + 8);
+        BlockPos anchor = new BlockPos(TardisPlotAllocator.PLOT_SPACING * 10, 64, TardisPlotAllocator.PLOT_SPACING * -3);
         BlockPos grid = ArsGrid.gridOrigin(anchor);
-        assertEquals(TardisPlotAllocator.windowOrigin(anchor), grid);
+        BlockPos window = TardisPlotAllocator.windowOrigin(anchor);
         BoundingBox world = ArsGeometry.toWorld(ArsGeometry.clampToWindow(north), grid);
-        assertBox(world, grid.getX() + 47, 64, grid.getZ(), grid.getX() + 63, 79, grid.getZ() + 8);
-        // Grid x 47..63 is anchor + 20..36: chunks +1 and +2 of the anchor; grid z 0..8 is anchor - 27..-19: chunk -2.
-        assertArrayEquals(new int[]{anchor.getX() / 16 + 1, anchor.getX() / 16 + 2, anchor.getZ() / 16 - 2, anchor.getZ() / 16 - 2},
-                ArsGeometry.chunkBounds(world));
-        // Boxes already inside are unchanged.
+        // The clamped box stays inside this TARDIS's window on every side.
+        assertEquals(window.getZ(), world.minZ());
+        assertEquals(window.getX() + TardisPlotAllocator.PLOT_SPACING - 1, world.maxX());
+        assertTrue(TardisPlotAllocator.isInsideWindow(new BlockPos(world.maxX(), 64, world.minZ()), anchor));
+        // Pieces near the console room (and their halos) are unchanged.
+        BoundingBox near = ArsGeometry.pieceBox(new ArsPlacedPiece("dwm:bedroom", 6, 0, 0), WIDE, 16).inflatedBy(1, 0, 1);
+        assertBox(ArsGeometry.clampToWindow(near), 47, 0, -1, 64, 15, 8);
         assertBox(ArsGeometry.clampToWindow(new BoundingBox(10, 2, 20, 30, 5, 40)), 10, 2, 20, 30, 5, 40);
     }
 

@@ -56,7 +56,7 @@ public class ArsScreen extends Screen {
     private static final int MARGIN = 10;
     private static final int CELL = 20;
     private static final int MAP_TOP = 22;
-    private static final int SIDE_LEFT = MARGIN + CELL * ArsGrid.GRID_SIZE + 10;
+    private static final int SIDE_LEFT = MARGIN + CELL * ArsMapState.VIEW_CELLS + 10;
     private static final int SIDE_WIDTH = PANEL_WIDTH - SIDE_LEFT - MARGIN;
     private static final int PALETTE_ROW = 11;
     private static final int PALETTE_ROWS_TOP = MAP_TOP + 11;
@@ -333,7 +333,7 @@ public class ArsScreen extends Screen {
         int size = geo.size();
         graphics.fill(left - 1, top - 1, left + size + 1, top + size + 1, MAP_BORDER);
         graphics.fill(left, top, left + size, top + size, MAP_BACKGROUND);
-        for (int i = 1; i < ArsGrid.GRID_SIZE; i++) {
+        for (int i = 1; i < ArsMapState.VIEW_CELLS; i++) {
             graphics.fill(left + i * CELL, top, left + i * CELL + 1, top + size, GRID_LINE);
             graphics.fill(left, top + i * CELL, left + size, top + i * CELL + 1, GRID_LINE);
         }

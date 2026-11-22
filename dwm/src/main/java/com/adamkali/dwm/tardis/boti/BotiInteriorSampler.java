@@ -108,12 +108,14 @@ public final class BotiInteriorSampler extends PortalSampler {
     }
 
     /**
-     * Caps a view-distance radius so fog/stream stay inside {@link TardisPlotAllocator#PLOT_SPACING}. The cap (3)
-     * still covers the whole window, which spans anchor chunk {@code -2..+2}.
+     * Largest BOTI stream radius around the anchor, in chunks. The console room and its lobbies (anchor chunk
+     * {@code -2..+2}) fit well inside it; ARS rooms further out are not streamed through the doors.
      */
+    public static final int MAX_STREAM_RADIUS_CHUNKS = 3;
+
+    /** Caps a view-distance radius to {@link #MAX_STREAM_RADIUS_CHUNKS} so fog/stream cost stays flat. */
     public static int clipStreamRadiusChunks(int radiusChunks) {
-        int plotRadius = Math.max(0, (TardisPlotAllocator.PLOT_SPACING - 1) / 16);
-        return Math.min(Math.max(0, radiusChunks), plotRadius);
+        return Math.min(Math.max(0, radiusChunks), MAX_STREAM_RADIUS_CHUNKS);
     }
 
     /** Whether {@code worldPos} is in the window of the plot anchored at {@code plotOrigin} and in stream range. */

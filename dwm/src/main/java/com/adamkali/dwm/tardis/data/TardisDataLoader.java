@@ -2,7 +2,9 @@ package com.adamkali.dwm.tardis.data;
 
 import com.adamkali.dwm.tardis.data.model.TardisChameleonVariant;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.interior.PlotSlot;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
+import com.adamkali.dwm.tardis.interior.TardisPlotSlots;
 import com.adamkali.dwm.tardis.logic.ArtronLogic;
 import com.adamkali.dwm.tardis.logic.CircuitFittedLogic;
 import com.google.gson.Gson;
@@ -12,7 +14,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -148,8 +152,37 @@ public class TardisDataLoader {
     public static TardisDataModel create() {
         TardisDataModel model = new TardisDataModel();
         tardisData.put(model.uuid, model);
-
+        initialiseNewPlot(model);
         return model;
+    }
+
+    /**
+     * Marks a freshly created model as built on the current plot layout and gives it its plot slot, so it is never
+     * mistaken for a pre-10000 save that needs migrating.
+     */
+    private static void initialiseNewPlot(TardisDataModel model) {
+        model.plotVersion = TardisDataModel.CURRENT_PLOT_VERSION;
+        TardisPlotSlots.ensureSlot(model);
+    }
+
+    /** Every model currently in the cache (a copy, safe to iterate while loading or allocating). */
+    public static List<TardisDataModel> cachedModels() {
+        return new ArrayList<>(tardisData.values());
+    }
+
+    /**
+     * Saves {@code model} to disk now (no-op in cache-only mode). For state that must survive a crash, such as a plot
+     * slot that an interior is about to be built in.
+     */
+    public static void persist(TardisDataModel model) {
+        if (tardisSaveDirectory == null || model.uuid == null) {
+            return;
+        }
+        try {
+            save(model);
+        } catch (IOException | RuntimeException e) {
+            System.err.println("Failed to save tardis data for " + model.uuid + ": " + e.getMessage());
+        }
     }
 
     /**
@@ -161,6 +194,7 @@ public class TardisDataLoader {
         CircuitFittedLogic.applyFoundUnfinished(model);
         ArtronLogic.applyFoundStart(model);
         tardisData.put(model.uuid, model);
+        initialiseNewPlot(model);
         return model;
     }
 
@@ -175,6 +209,7 @@ public class TardisDataLoader {
         TardisDataModel model = new TardisDataModel();
         model.uuid = uuid;
         tardisData.put(uuid, model);
+        initialiseNewPlot(model);
         return model;
     }
 
@@ -232,22 +267,16 @@ public class TardisDataLoader {
     /**
      * Returns the TARDIS whose interior plot contains {@code pos}, if any: the whole
      * {@link TardisPlotAllocator#PLOT_SPACING}-square window ({@link TardisPlotAllocator#windowOrigin}) at any
-     * height, so ARS rooms count as well as the console room. Scans disk so uncached
-     * models are included. Does not use {@code BotiPlotIndex} (empty until an interior is entered).
+     * height, so ARS rooms count as well as the console room. Looks the window's slot up among the persisted slots
+     * ({@link TardisPlotSlots#ownerAt}); never allocates. Does not use {@code BotiPlotIndex} (empty until an interior
+     * is entered).
      */
     public static Optional<TardisDataModel> findAtInteriorPos(@Nullable BlockPos pos) {
         if (pos == null) {
             return Optional.empty();
         }
-        ensureAllLoaded();
-        for (TardisDataModel model : tardisData.values()) {
-            if (model.uuid == null) {
-                continue;
-            }
-            if (TardisPlotAllocator.isInsideWindow(pos, TardisPlotAllocator.plotOrigin(model.uuid))) {
-                return Optional.of(model);
-            }
-        }
-        return Optional.empty();
+        PlotSlot slot = TardisPlotAllocator.slotAt(TardisPlotAllocator.anchorOfWindowAt(pos));
+        UUID owner = TardisPlotSlots.ownerAt(slot);
+        return owner == null ? Optional.empty() : Optional.ofNullable(get(owner));
     }
 }

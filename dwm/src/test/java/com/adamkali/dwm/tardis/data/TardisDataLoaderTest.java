@@ -194,11 +194,13 @@ public class TardisDataLoaderTest {
 
         TardisDataModel cleanModel = TardisDataLoader.create();
         UUID cleanId = cleanModel.uuid;
-
-        TardisDataLoader.save();
-
         File dirtyFile = new File(tempDir.toFile(), dirtyId + ".json");
         File cleanFile = new File(tempDir.toFile(), cleanId + ".json");
+        // create() writes each new model once straight away so its plot slot survives a crash; drop that copy to see
+        // whether save() rewrites a model with no unsaved changes.
+        assertTrue(cleanFile.delete(), "create() should persist the new model's plot slot");
+
+        TardisDataLoader.save();
 
         assertTrue(dirtyFile.exists(), "Dirty model should be saved");
         assertFalse(cleanFile.exists(), "Clean model should not be saved");

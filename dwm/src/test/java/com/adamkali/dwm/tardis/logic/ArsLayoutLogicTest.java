@@ -180,14 +180,40 @@ class ArsLayoutLogicTest {
 
     @Test
     void canPlace_outOfBounds() {
+        int max = ArsGrid.MAX_CELL;
+        int min = ArsGrid.MIN_CELL;
+        // A 3x2 hall needs three columns: two from the east edge it runs off the grid.
         assertEquals(PlaceResult.OUT_OF_BOUNDS,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, 6, 0, 0), 500, false));
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, max - 1, 0, 0), 500, false));
+        // Rotated a quarter turn it is 2x3, so it runs off the south edge instead.
         assertEquals(PlaceResult.OUT_OF_BOUNDS,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, 6, 6, 1), 500, false));
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, 0, max - 1, 1), 500, false));
         assertEquals(PlaceResult.OUT_OF_BOUNDS,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 8, 3, 0), 500, false));
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, max + 1, 3, 0), 500, false));
         assertEquals(PlaceResult.OUT_OF_BOUNDS,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 3, -1, 0), 500, false));
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 3, min - 1, 0), 500, false));
+        assertEquals(PlaceResult.OUT_OF_BOUNDS,
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, min - 1, 3, 0), 500, false));
+        // Pieces on the very edge cells and west/north of the console room (negative cells) are in bounds: they
+        // are only refused because nothing connects them to the console room.
+        assertEquals(PlaceResult.NOT_CONNECTED,
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, max - 2, max - 1, 0), 500, false));
+        assertEquals(PlaceResult.NOT_CONNECTED,
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, min, min, 0), 500, false));
+        assertEquals(PlaceResult.NOT_CONNECTED,
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, -1, -1, 0), 500, false));
+    }
+
+    @Test
+    void canPlace_growsIntoNegativeCells() {
+        // The west root opens onto cell (2, 4); a straight corridor run west reaches negative cells.
+        List<ArsPlacedPiece> layout = new ArrayList<>();
+        for (int x = 2; x >= -2; x--) {
+            ArsPlacedPiece corridor = piece(STRAIGHT, x, 4, 0);
+            assertEquals(PlaceResult.OK, ArsLayoutLogic.canPlace(layout, DEFS, corridor, 500, false), "x=" + x);
+            layout.add(corridor);
+        }
+        assertEquals(-2, ArsLayoutLogic.pieceAt(layout, DEFS, -2, 4).orElseThrow().cellX);
     }
 
     @Test
@@ -244,8 +270,12 @@ class ArsLayoutLogicTest {
                 ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 9, 9, 4), 0, false));
         assertEquals(PlaceResult.INVALID_ROTATION,
                 ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 5, 4, -1), 500, false));
-        // Out of bounds beats reserved (footprint spans x = 3..8, through the console room and off the grid).
+        // Out of bounds beats occupied (footprint runs over a placed corridor and off the east edge).
+        int edge = ArsGrid.MAX_CELL;
         assertEquals(PlaceResult.OUT_OF_BOUNDS,
+                ArsLayoutLogic.canPlace(List.of(piece(STRAIGHT, edge, 0, 0)), DEFS, piece(GALLERY, edge - 3, 0, 0), 0, false));
+        // Without the edge the same overlap is just reserved (footprint x = 3..8 crosses the console room).
+        assertEquals(PlaceResult.RESERVED,
                 ArsLayoutLogic.canPlace(List.of(), DEFS, piece(GALLERY, 3, 4, 0), 0, false));
         // Reserved beats occupied and not-connected (footprint x = 4..6 covers (4,3) and the corridor's (5,4)).
         List<ArsPlacedPiece> layout = List.of(piece(STRAIGHT, 5, 4, 0));
@@ -482,7 +512,7 @@ class ArsLayoutLogicTest {
     @Test
     void absurdCellsAndRotationsAreRefusedWithoutThrowing() {
         List<ArsPlacedPiece> layout = new ArrayList<>(List.of(piece(HALL, 5, 0, 0)));
-        int[] extremes = {Integer.MIN_VALUE, Integer.MIN_VALUE + 1, -1, ArsGrid.GRID_SIZE, Integer.MAX_VALUE - 1,
+        int[] extremes = {Integer.MIN_VALUE, Integer.MIN_VALUE + 1, ArsGrid.MIN_CELL - 1, ArsGrid.MAX_CELL + 1, Integer.MAX_VALUE - 1,
                 Integer.MAX_VALUE};
         for (int value : extremes) {
             for (String id : List.of(HALL, STRAIGHT)) {

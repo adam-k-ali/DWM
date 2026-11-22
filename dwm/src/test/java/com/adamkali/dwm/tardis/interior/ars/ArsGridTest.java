@@ -102,8 +102,14 @@ class ArsGridTest {
     void boundsAndReservedCells() {
         assertTrue(ArsGrid.inBounds(0, 0));
         assertTrue(ArsGrid.inBounds(7, 7));
-        assertFalse(ArsGrid.inBounds(8, 0));
-        assertFalse(ArsGrid.inBounds(0, -1));
+        assertTrue(ArsGrid.inBounds(8, 0));
+        assertTrue(ArsGrid.inBounds(0, -1));
+        assertTrue(ArsGrid.inBounds(ArsGrid.MIN_CELL, ArsGrid.MIN_CELL));
+        assertTrue(ArsGrid.inBounds(ArsGrid.MAX_CELL, ArsGrid.MAX_CELL));
+        assertFalse(ArsGrid.inBounds(ArsGrid.MIN_CELL - 1, 0));
+        assertFalse(ArsGrid.inBounds(0, ArsGrid.MIN_CELL - 1));
+        assertFalse(ArsGrid.inBounds(ArsGrid.MAX_CELL + 1, 0));
+        assertFalse(ArsGrid.inBounds(0, ArsGrid.MAX_CELL + 1));
 
         assertTrue(ArsGrid.isReserved(3, 3));
         assertTrue(ArsGrid.isReserved(4, 5));
@@ -122,10 +128,11 @@ class ArsGridTest {
 
     @Test
     void consoleRoomSitsInTheMiddleOfItsReservedCells() {
-        // Grid-local (0, 0, 0) is the window origin, anchor - (27, 0, 27).
-        assertEquals(new BlockPos(TardisPlotAllocator.WINDOW_OFFSET, 0, TardisPlotAllocator.WINDOW_OFFSET), ArsGrid.CONSOLE_ORIGIN);
+        // Grid-local (0, 0, 0) is the grid origin, anchor - (27, 0, 27); the window starts 621 cells further out.
+        assertEquals(new BlockPos(TardisPlotAllocator.GRID_ORIGIN_OFFSET, 0, TardisPlotAllocator.GRID_ORIGIN_OFFSET),
+                ArsGrid.CONSOLE_ORIGIN);
         assertEquals(new BlockPos(27, 0, 27), ArsGrid.CONSOLE_ORIGIN);
-        BlockPos anchor = new BlockPos(64 * 7, 64, 64 * 9);
+        BlockPos anchor = new BlockPos(TardisPlotAllocator.PLOT_SPACING * 7, 64, TardisPlotAllocator.PLOT_SPACING * -9);
         assertEquals(anchor, ArsGrid.gridOrigin(anchor).offset(ArsGrid.CONSOLE_ORIGIN));
         // Console room grid-local x 27..37, z 27..43: exactly the reserved cells' span.
         int minX = ArsGrid.CONSOLE_ORIGIN.getX();
@@ -138,11 +145,30 @@ class ArsGridTest {
         assertEquals(ArsGrid.RESERVED_MAX_X, maxX / ArsGrid.CELL_SIZE);
         assertEquals(ArsGrid.RESERVED_MIN_Z, minZ / ArsGrid.CELL_SIZE);
         assertEquals(ArsGrid.RESERVED_MAX_Z, maxZ / ArsGrid.CELL_SIZE);
-        // Free on both sides: three columns west and east, three rows north and two south.
-        assertEquals(3, ArsGrid.RESERVED_MIN_X);
-        assertEquals(3, ArsGrid.GRID_SIZE - 1 - ArsGrid.RESERVED_MAX_X);
-        assertEquals(3, ArsGrid.RESERVED_MIN_Z);
-        assertEquals(2, ArsGrid.GRID_SIZE - 1 - ArsGrid.RESERVED_MAX_Z);
+        // The console room sits in the middle: 624 free columns west and east, 624 rows north and 623 south.
+        assertEquals(624, ArsGrid.RESERVED_MIN_X - ArsGrid.MIN_CELL);
+        assertEquals(624, ArsGrid.MAX_CELL - ArsGrid.RESERVED_MAX_X);
+        assertEquals(624, ArsGrid.RESERVED_MIN_Z - ArsGrid.MIN_CELL);
+        assertEquals(623, ArsGrid.MAX_CELL - ArsGrid.RESERVED_MAX_Z);
+    }
+
+    @Test
+    void gridCoversExactlyThePlotWindow() {
+        assertEquals(1250, ArsGrid.GRID_SIZE);
+        assertEquals(TardisPlotAllocator.PLOT_SPACING, ArsGrid.GRID_SIZE * ArsGrid.CELL_SIZE);
+        assertEquals(8, ArsGrid.MAX_PIECE_CELLS);
+        BlockPos anchor = new BlockPos(-TardisPlotAllocator.PLOT_SPACING * 3, 64, TardisPlotAllocator.PLOT_SPACING * 5);
+        BlockPos gridOrigin = ArsGrid.gridOrigin(anchor);
+        BlockPos window = TardisPlotAllocator.windowOrigin(anchor);
+        assertEquals(window.getX(), gridOrigin.getX() + ArsGrid.windowMinBlock());
+        assertEquals(window.getZ(), gridOrigin.getZ() + ArsGrid.windowMinBlock());
+        assertEquals(window.getX() + TardisPlotAllocator.PLOT_SPACING - 1, gridOrigin.getX() + ArsGrid.windowMaxBlock());
+        BlockPos first = gridOrigin.offset(ArsGrid.cellMinBlockX(ArsGrid.MIN_CELL), 0, ArsGrid.cellMinBlockZ(ArsGrid.MIN_CELL));
+        BlockPos last = gridOrigin.offset(ArsGrid.cellMinBlockX(ArsGrid.MAX_CELL) + 7, 0, ArsGrid.cellMinBlockZ(ArsGrid.MAX_CELL) + 7);
+        assertTrue(TardisPlotAllocator.isInsideWindow(first, anchor));
+        assertTrue(TardisPlotAllocator.isInsideWindow(last, anchor));
+        assertFalse(TardisPlotAllocator.isInsideWindow(first.offset(-1, 0, 0), anchor));
+        assertFalse(TardisPlotAllocator.isInsideWindow(last.offset(0, 0, 1), anchor));
     }
 
     @Test

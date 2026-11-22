@@ -44,25 +44,26 @@ class BotiPlotIndexTest {
     @Test
     void resolve_UsesTheWindowAroundTheAnchor() {
         UUID id = new UUID(10, 20);
-        UUID east = new UUID(11, 20);
-        UUID west = new UUID(9, 20);
+        UUID other = new UUID(11, 20);
         BotiPlotIndex.register(id);
-        BotiPlotIndex.register(east);
-        BotiPlotIndex.register(west);
+        BotiPlotIndex.register(other);
         BlockPos origin = TardisPlotAllocator.plotOrigin(id);
+        BlockPos otherOrigin = TardisPlotAllocator.plotOrigin(other);
+        // Persisted slots never collide, even for ids whose legacy plots were neighbours.
+        assertNotEquals(origin, otherOrigin);
         int offset = TardisPlotAllocator.WINDOW_OFFSET;
         int span = TardisPlotAllocator.PLOT_SPACING - offset;
 
-        // West and north of the anchor, inside the window: this TARDIS, not the neighbour.
+        // West and north of the anchor, inside the window and the stream: this TARDIS.
         assertEquals(id, BotiPlotIndex.resolve(origin.offset(-1, 1, 5)));
-        assertEquals(id, BotiPlotIndex.resolve(origin.offset(-offset, 1, -offset)));
-        assertEquals(id, BotiPlotIndex.resolve(origin.offset(span - 1, 1, span - 1)));
-        // anchor + 37 is the first block of the next window east; anchor - 28 the last of the one west.
-        assertEquals(east, BotiPlotIndex.resolve(origin.offset(span, 1, 5)));
-        assertEquals(west, BotiPlotIndex.resolve(origin.offset(-offset - 1, 1, 5)));
+        assertEquals(id, BotiPlotIndex.resolve(origin.offset(-20, 1, 30)));
+        assertEquals(other, BotiPlotIndex.resolve(otherOrigin.offset(5, 1, 5)));
+        // Inside the window but outside the BOTI stream around the anchor.
+        assertNull(BotiPlotIndex.resolve(origin.offset(-offset, 1, -offset)));
+        assertNull(BotiPlotIndex.resolve(origin.offset(span - 1, 1, span - 1)));
         // The plot key stays on the anchor.
         assertEquals(origin, BotiPlotIndex.getOrigin(id));
-        assertNull(BotiPlotIndex.resolve(origin.offset(5, 1, span)));
+        assertEquals(otherOrigin, BotiPlotIndex.getOrigin(other));
     }
 
     @Test

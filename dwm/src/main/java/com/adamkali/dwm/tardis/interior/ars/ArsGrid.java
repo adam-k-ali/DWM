@@ -8,10 +8,13 @@ import net.minecraft.core.Direction;
 /**
  * Architectural Reconfiguration System grid geometry for one TARDIS interior plot.
  *
- * <p>The grid covers the plot's 64×64-block window ({@link TardisPlotAllocator#windowOrigin}) as an
- * {@value #GRID_SIZE}×{@value #GRID_SIZE} grid of {@value #CELL_SIZE}×{@value #CELL_SIZE}-block cells. Grid-local
- * {@code (0, 0, 0)} is the window origin, so the console room (placed at the plot anchor) starts at grid-local
- * {@link #CONSOLE_ORIGIN} and sits in the middle of the grid. Cell {@code (cx, cz)} covers grid-local blocks
+ * <p>The grid covers the plot's {@value TardisPlotAllocator#PLOT_SPACING}-square window
+ * ({@link TardisPlotAllocator#windowOrigin}) as a {@value #GRID_SIZE}×{@value #GRID_SIZE} grid of
+ * {@value #CELL_SIZE}×{@value #CELL_SIZE}-block cells, {@value #MIN_CELL}..{@value #MAX_CELL} on each axis.
+ * Grid-local {@code (0, 0, 0)} is the <b>grid origin</b> ({@link #gridOrigin}), the anchor shifted
+ * {@value TardisPlotAllocator#GRID_ORIGIN_OFFSET} blocks west and north, <em>not</em> the window origin: the console
+ * room (placed at the plot anchor) starts at grid-local {@link #CONSOLE_ORIGIN} and sits in the middle of the grid, and
+ * cells west and north of it have negative coordinates. Cell {@code (cx, cz)} covers grid-local blocks
  * {@code x = cx*8 .. cx*8+7}, {@code z = cz*8 .. cz*8+7}. There is a single floor: pieces sit with their floor at
  * grid-local {@code y = 0} (the anchor's height) and are at most {@value #MAX_PIECE_HEIGHT} blocks tall.
  *
@@ -23,10 +26,14 @@ import net.minecraft.core.Direction;
 public final class ArsGrid {
     /** Blocks per cell edge. */
     public static final int CELL_SIZE = 8;
+    /** Westmost / northmost cell. */
+    public static final int MIN_CELL = -621;
+    /** Eastmost / southmost cell. */
+    public static final int MAX_CELL = 628;
     /** Cells per plot edge. */
-    public static final int GRID_SIZE = 8;
+    public static final int GRID_SIZE = MAX_CELL - MIN_CELL + 1;
     /** Largest piece footprint edge, in cells. */
-    public static final int MAX_PIECE_CELLS = GRID_SIZE;
+    public static final int MAX_PIECE_CELLS = 8;
     /** Grid-local floor height of every piece. */
     public static final int FLOOR_Y = 0;
     /** Tallest piece, in blocks. */
@@ -34,11 +41,11 @@ public final class ArsGrid {
     public static final int ROTATION_COUNT = 4;
 
     /**
-     * Grid-local position of the plot anchor, where the console room template is placed: the window offset on x
+     * Grid-local position of the plot anchor, where the console room template is placed: the grid origin offset on x
      * and z. Anchor-local positions (console, doors, entrance) convert to grid-local by adding this.
      */
     public static final BlockPos CONSOLE_ORIGIN =
-            new BlockPos(TardisPlotAllocator.WINDOW_OFFSET, FLOOR_Y, TardisPlotAllocator.WINDOW_OFFSET);
+            new BlockPos(TardisPlotAllocator.GRID_ORIGIN_OFFSET, FLOOR_Y, TardisPlotAllocator.GRID_ORIGIN_OFFSET);
 
     /** Console room cells (inclusive); nothing may be placed here. They cover grid-local x 24..39, z 24..47. */
     public static final int RESERVED_MIN_X = 3;
@@ -69,13 +76,23 @@ public final class ArsGrid {
     private ArsGrid() {
     }
 
-    /** World position of grid-local {@code (0, 0, 0)} for the plot anchored at {@code anchor}: its window origin. */
+    /** World position of grid-local {@code (0, 0, 0)} for the plot anchored at {@code anchor}: {@code anchor - (27, 0, 27)}. */
     public static BlockPos gridOrigin(BlockPos anchor) {
-        return TardisPlotAllocator.windowOrigin(anchor);
+        return anchor.offset(-TardisPlotAllocator.GRID_ORIGIN_OFFSET, 0, -TardisPlotAllocator.GRID_ORIGIN_OFFSET);
     }
 
     public static boolean inBounds(int cellX, int cellZ) {
-        return cellX >= 0 && cellX < GRID_SIZE && cellZ >= 0 && cellZ < GRID_SIZE;
+        return cellX >= MIN_CELL && cellX <= MAX_CELL && cellZ >= MIN_CELL && cellZ <= MAX_CELL;
+    }
+
+    /** Grid-local block x/z of the window's min corner (the west/north edge of {@link #MIN_CELL}). */
+    public static int windowMinBlock() {
+        return MIN_CELL * CELL_SIZE;
+    }
+
+    /** Grid-local block x/z of the window's max corner (inclusive; the east/south edge of {@link #MAX_CELL}). */
+    public static int windowMaxBlock() {
+        return (MAX_CELL + 1) * CELL_SIZE - 1;
     }
 
     public static boolean isReserved(int cellX, int cellZ) {
