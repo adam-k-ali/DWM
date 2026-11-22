@@ -111,6 +111,95 @@ class ArsMapStateTest {
     }
 
     @Test
+    void scrolledGeometry_movesCellsAndBlocksUnderTheViewport() {
+        // Panned one and a half cells east and two cells north of home.
+        ArsMapState.MapGeometry geo = new ArsMapState.MapGeometry(21, 29, 20, 30, -40);
+        assertEquals(21 - 30, geo.cellLeft(0));
+        assertEquals(29 + 40, geo.cellTop(0));
+        assertEquals(new ArsCell(1, -2), geo.cellAt(21, 29));
+        assertEquals(new ArsCell(2, -2), geo.cellAt(21 + 10, 29));
+        assertEquals(new ArsCell(9, 5), geo.cellAt(21 + 159.5, 29 + 159.5));
+        assertEquals(new ArsCell(4, 3), geo.cellAt(geo.cellLeft(4) + 10, geo.cellTop(3) + 10));
+        assertEquals(geo.cellLeft(2), geo.blockX(16), 1e-9);
+        assertEquals(geo.cellTop(-1), geo.blockZ(-8), 1e-9);
+        // The viewport does not move with the scroll.
+        assertTrue(geo.contains(21, 29));
+        assertFalse(geo.contains(21 + 160, 40));
+        assertNull(geo.cellAt(21 + 160, 40));
+        assertEquals(1, geo.firstVisibleCellX());
+        assertEquals(9, geo.lastVisibleCellX());
+        assertEquals(-2, geo.firstVisibleCellZ());
+        assertEquals(5, geo.lastVisibleCellZ());
+    }
+
+    @Test
+    void scrolledGeometry_reachesNegativeAndFarCellsButNotPastTheGrid() {
+        int cell = 20;
+        ArsMapState.MapGeometry west = new ArsMapState.MapGeometry(0, 0, cell,
+                (int) ArsMapState.minScroll(cell), (int) ArsMapState.minScroll(cell));
+        assertEquals(new ArsCell(ArsGrid.MIN_CELL, ArsGrid.MIN_CELL), west.cellAt(0, 0));
+        assertEquals(ArsGrid.MIN_CELL, west.firstVisibleCellX());
+        ArsMapState.MapGeometry east = new ArsMapState.MapGeometry(0, 0, cell,
+                (int) ArsMapState.maxScroll(cell), (int) ArsMapState.maxScroll(cell));
+        assertEquals(new ArsCell(ArsGrid.MAX_CELL, ArsGrid.MAX_CELL), east.cellAt(159.5, 159.5));
+        assertEquals(ArsGrid.MAX_CELL, east.lastVisibleCellZ());
+        // Beyond the grid there is no cell, even if a geometry is built scrolled past it.
+        ArsMapState.MapGeometry past = new ArsMapState.MapGeometry(0, 0, cell,
+                (int) ArsMapState.maxScroll(cell) + cell, 0);
+        assertNull(past.cellAt(159.5, 0));
+        assertEquals(ArsGrid.MAX_CELL, past.lastVisibleCellX());
+    }
+
+    @Test
+    void panBy_clampsToTheGridEdgesAndCentreReturnsHome() {
+        ArsMapState state = new ArsMapState();
+        int cell = 20;
+        assertTrue(state.isHome());
+        assertEquals(new ArsCell(0, 0), state.geometry(21, 29, cell).cellAt(21, 29));
+
+        state.panCells(3, -2, cell);
+        assertFalse(state.isHome());
+        assertEquals(new ArsCell(3, -2), state.geometry(21, 29, cell).cellAt(21, 29));
+        state.panBy(-12.5, 7.25, cell);
+        assertEquals(47.5, state.scrollX(), 1e-9);
+        assertEquals(-32.75, state.scrollY(), 1e-9);
+
+        state.panBy(-1.0e9, -1.0e9, cell);
+        assertEquals(ArsMapState.minScroll(cell), state.scrollX(), 1e-9);
+        assertEquals(ArsMapState.minScroll(cell), state.scrollY(), 1e-9);
+        assertEquals(new ArsCell(ArsGrid.MIN_CELL, ArsGrid.MIN_CELL), state.geometry(0, 0, cell).cellAt(0, 0));
+        state.panBy(1.0e9, 1.0e9, cell);
+        assertEquals(ArsMapState.maxScroll(cell), state.scrollX(), 1e-9);
+        assertEquals(new ArsCell(ArsGrid.MAX_CELL, ArsGrid.MAX_CELL), state.geometry(0, 0, cell).cellAt(159, 159));
+        // The whole grid is reachable: 1250 cells less the 8 on screen.
+        assertEquals((ArsGrid.GRID_SIZE - ArsMapState.VIEW_CELLS) * cell,
+                ArsMapState.maxScroll(cell) - ArsMapState.minScroll(cell), 1e-9);
+
+        state.centre();
+        assertTrue(state.isHome());
+        assertEquals(new ArsCell(0, 0), state.geometry(21, 29, cell).cellAt(21, 29));
+    }
+
+    @Test
+    void isDrag_needsTheCursorToMoveAFewPixels() {
+        assertFalse(ArsMapState.isDrag(0, 0));
+        assertFalse(ArsMapState.isDrag(2, 2));
+        assertFalse(ArsMapState.isDrag(-2.9, 0));
+        assertTrue(ArsMapState.isDrag(3, 0));
+        assertTrue(ArsMapState.isDrag(0, -3));
+        assertTrue(ArsMapState.isDrag(2.2, 2.2));
+    }
+
+    @Test
+    void update_keepsTheView() {
+        ArsMapState state = new ArsMapState();
+        state.panCells(-5, 9, 20);
+        state.update(layout(), 100, DEFS);
+        assertEquals(-100, state.scrollX(), 1e-9);
+        assertEquals(180, state.scrollY(), 1e-9);
+    }
+
+    @Test
     void paletteOrder_putsCorridorsFirstThenRoomsById() {
         assertEquals(List.of(CROSS, STRAIGHT, EXTRA_ROOM, BEDROOM, LIBRARY), ArsMapState.paletteOrder(DEFINITIONS));
     }

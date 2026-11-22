@@ -128,6 +128,51 @@ public class TardisArsConsoleClientGameTest implements FabricClientGameTest {
                 throw new AssertionError("Right-clicking the library should select it for jettison");
             }
             ClientGameTestSupport.screenshot(context, "ars_screen_layout");
+
+            // Pan: D moves the view one cell east, so every cell shows one cell further west on screen.
+            int[] home = context.computeOnClient(client -> screen.cellCenter(new ArsCell(5, 4)));
+            context.getInput().pressKey(GLFW.GLFW_KEY_D);
+            context.waitTicks(2);
+            int[] panned = context.computeOnClient(client -> screen.cellCenter(new ArsCell(5, 4)));
+            if (panned[0] != home[0] - CELL_PIXELS || panned[1] != home[1]) {
+                throw new AssertionError("D should pan one cell east: " + home[0] + "," + home[1] + " -> "
+                        + panned[0] + "," + panned[1]);
+            }
+            // Drag with the left button: a drag pans and never grows, selects or deselects.
+            ArsCell selectedBefore = context.computeOnClient(client -> screen.state().selectedCell());
+            int layoutBefore = context.computeOnClient(client -> screen.state().layout().size());
+            int[] start = context.computeOnClient(client -> screen.cellCenter(new ArsCell(4, 2)));
+            moveCursor(context, start);
+            context.waitTicks(1);
+            context.getInput().holdMouse(GLFW.GLFW_MOUSE_BUTTON_LEFT);
+            for (int step = 1; step <= 5; step++) {
+                moveCursor(context, start[0] + 12 * step, start[1] + 8 * step);
+                context.waitTicks(1);
+            }
+            context.getInput().releaseMouse(GLFW.GLFW_MOUSE_BUTTON_LEFT);
+            context.waitTicks(2);
+            double[] scroll = context.computeOnClient(client -> new double[]{screen.state().scrollX(), screen.state().scrollY()});
+            if (scroll[0] != CELL_PIXELS - 60 || scroll[1] != -40) {
+                throw new AssertionError("Dragging 60 right and 40 down should scroll to (-40, -40), got ("
+                        + scroll[0] + ", " + scroll[1] + ")");
+            }
+            if (context.computeOnClient(client -> screen.state().layout().size()) != layoutBefore
+                    || !java.util.Objects.equals(selectedBefore, context.computeOnClient(client -> screen.state().selectedCell()))) {
+                throw new AssertionError("A drag must not act as a click");
+            }
+            moveCursor(context, -1000, -1000);
+            context.waitTicks(5);
+            ClientGameTestSupport.screenshot(context, "ars_screen_panned");
+            // C (or Centre) returns to the home view.
+            context.getInput().pressKey(GLFW.GLFW_KEY_C);
+            context.waitTicks(2);
+            if (!context.computeOnClient(client -> screen.state().isHome())) {
+                throw new AssertionError("C should return the map to the home view");
+            }
+            int[] back = context.computeOnClient(client -> screen.cellCenter(new ArsCell(5, 4)));
+            if (back[0] != home[0] || back[1] != home[1]) {
+                throw new AssertionError("The home view should put cell (5, 4) back where it was");
+            }
             context.setScreen(() -> null);
 
             // The reply to a request made after closing is a refresh: it must not reopen the screen.
@@ -148,6 +193,9 @@ public class TardisArsConsoleClientGameTest implements FabricClientGameTest {
             ClientGameTestSupport.toggleHud(context);
         }
     }
+
+    /** Map cell edge in GUI pixels on the ARS screen. */
+    private static final int CELL_PIXELS = 20;
 
     private static ServerLevel interior(net.minecraft.server.MinecraftServer minecraft) {
         ServerLevel level = minecraft.getLevel(TardisDimensions.TARDIS_WORLD_KEY);
