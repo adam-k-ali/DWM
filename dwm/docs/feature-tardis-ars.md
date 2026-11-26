@@ -124,6 +124,11 @@ to its new plot:
   time it is used (`TardisInteriorService.refreshEntrance`). Players whose save files existed when the migration ran
   are checked once on their next join: anyone standing in a migrated legacy window, or with a respawn point there,
   is moved by the same offset. Players who first join later are never moved.
+- **Back up first:** the migration is one-way. Once it reaches `DONE` the legacy windows are empty and there is no
+  undo or dry-run mode. Players and server owners should back up their world before loading it with this version
+  (the release notes for the first release with 10000-block plots must say so). Each moved interior is logged at
+  INFO (`TARDIS <id>: interior moved from <legacy anchor> to <new anchor>`), and while a migration is unfinished its
+  snapshots stay in `tardis_data/plot_migration/`.
 - **Not copied, by design:** entities that are never saved (leash knots, which are rebuilt from the leashed mob,
   and the console's control hitboxes, which the console re-spawns) are left out, exactly as when a chunk unloads.
 - **Not covered:** pending block and fluid ticks are not carried over, so copied redstone and flowing fluids settle
