@@ -194,11 +194,13 @@ public class TardisDataLoaderTest {
 
         TardisDataModel cleanModel = TardisDataLoader.create();
         UUID cleanId = cleanModel.uuid;
-
-        TardisDataLoader.save();
-
         File dirtyFile = new File(tempDir.toFile(), dirtyId + ".json");
         File cleanFile = new File(tempDir.toFile(), cleanId + ".json");
+        // create() writes each new model once straight away so its plot slot survives a crash; drop that copy to see
+        // whether save() rewrites a model with no unsaved changes.
+        assertTrue(cleanFile.delete(), "create() should persist the new model's plot slot");
+
+        TardisDataLoader.save();
 
         assertTrue(dirtyFile.exists(), "Dirty model should be saved");
         assertFalse(cleanFile.exists(), "Clean model should not be saved");
@@ -261,26 +263,29 @@ public class TardisDataLoaderTest {
     }
 
     @Test
-    void findAtInteriorPos_CoversWholePlotOutsideConsoleRoom() {
+    void findAtInteriorPos_CoversWholeWindowOutsideConsoleRoom() {
         UUID tardisId = UUID.fromString("abababab-bbbb-cccc-dddd-eeeeeeeeeeee");
         TardisDataModel model = TardisDataLoader.getOrCreate(tardisId);
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
-        int last = TardisPlotAllocator.PLOT_SPACING - 1;
+        int offset = TardisPlotAllocator.WINDOW_OFFSET;
+        int last = TardisPlotAllocator.PLOT_SPACING - offset - 1;
 
-        // An ARS room far from the console room, at any height, still belongs to this plot.
+        // An ARS room on either side of the console room, at any height, still belongs to this plot.
         for (BlockPos inside : new BlockPos[]{
-                origin.offset(TardisPlotAllocator.PLOT_SPACING / 2, 0, 0),
+                origin.offset(-1, 0, 0),
+                origin.offset(0, 0, -1),
+                origin.offset(-offset, 12, -offset),
                 origin.offset(last, 12, last),
-                origin.offset(40, -3, 20)}) {
+                origin.offset(30, -3, -20)}) {
             Optional<TardisDataModel> found = TardisDataLoader.findAtInteriorPos(inside);
             assertTrue(found.isPresent(), "expected plot at " + inside);
             assertEquals(model.uuid, found.get().uuid);
         }
         for (BlockPos outside : new BlockPos[]{
-                origin.offset(-1, 0, 0),
-                origin.offset(0, 0, -1),
-                origin.offset(TardisPlotAllocator.PLOT_SPACING, 0, 5),
-                origin.offset(5, 0, TardisPlotAllocator.PLOT_SPACING)}) {
+                origin.offset(-offset - 1, 0, 0),
+                origin.offset(0, 0, -offset - 1),
+                origin.offset(last + 1, 0, 5),
+                origin.offset(5, 0, last + 1)}) {
             assertTrue(TardisDataLoader.findAtInteriorPos(outside)
                     .map(found -> !tardisId.equals(found.uuid))
                     .orElse(true), "expected no match for this TARDIS at " + outside);

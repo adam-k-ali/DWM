@@ -8,6 +8,7 @@ import com.adamkali.dwm.tardis.TardisExteriorFacing;
 import com.adamkali.dwm.tardis.boti.BotiPlotIndex;
 import com.adamkali.dwm.tardis.data.TardisDataLoader;
 import com.adamkali.dwm.tardis.data.model.TardisDataModel;
+import com.adamkali.dwm.tardis.interior.migration.TardisPlotPreparer;
 import com.adamkali.dwm.tardis.logic.FirstHourLogic;
 import com.adamkali.dwm.tardis.logic.TardisLogic;
 import com.adamkali.dwm.tardis.logic.TardisOwnershipLogic;
@@ -61,7 +62,7 @@ public final class TardisInteriorService {
         updateExteriorLocation(exteriorWorld, exteriorEntity);
 
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
-        if (exteriorEntity.isInteriorGenerated() && exteriorEntity.getInteriorEntrance() != null) {
+        if (exteriorEntity.isInteriorGenerated() && refreshEntrance(exteriorEntity) != null) {
             // Recover from a prior empty place (e.g. unloaded chunks) by regenerating if the floor is missing.
             BlockPos entrance = exteriorEntity.getInteriorEntrance();
             if (!interiorWorld.getBlockState(entrance.below()).isAir()) {
@@ -92,6 +93,38 @@ public final class TardisInteriorService {
         return placeInterior(exteriorWorld, exteriorEntity, interiorWorld, origin, false) != null;
     }
 
+    /**
+     * The exterior's recorded interior entrance, corrected to the TARDIS's current plot. The entrance is always
+     * {@code plotOrigin + LOCAL_ENTRANCE}; one recorded before interiors moved to 10000-block plots still points at
+     * the legacy plot and is rewritten (and saved with the block entity) here. Null when none is recorded.
+     */
+    public static @Nullable BlockPos refreshEntrance(TardisBlockEntity exteriorEntity) {
+        BlockPos recorded = exteriorEntity.getInteriorEntrance();
+        UUID tardisId = exteriorEntity.getTardisIdOrNull();
+        if (recorded == null || tardisId == null) {
+            return recorded;
+        }
+        BlockPos expected = TardisPlotAllocator.plotOrigin(tardisId).offset(FirstDoctorConsoleRoomPlacer.LOCAL_ENTRANCE);
+        if (!expected.equals(recorded)) {
+            exteriorEntity.setInteriorEntrance(expected);
+        }
+        return expected;
+    }
+
+    /**
+     * Empties a plot window of leftovers the first time this TARDIS uses it ({@link TardisPlotPreparer}): a new
+     * 10000-block window can overlap old interiors in {@code dwm:tardis}. A no-op once the model is marked prepared.
+     */
+    public static void preparePlotOnce(ServerLevel interiorWorld, UUID tardisId, BlockPos origin) {
+        TardisDataModel model = TardisDataLoader.get(tardisId);
+        if (model == null || model.isPlotPrepared()) {
+            return;
+        }
+        TardisPlotPreparer.prepare(interiorWorld, origin);
+        model.plotPrepared = Boolean.TRUE;
+        TardisDataLoader.persist(model);
+    }
+
     private static @Nullable BlockPos placeInterior(
             ServerLevel exteriorWorld,
             TardisBlockEntity exteriorEntity,
@@ -100,6 +133,7 @@ public final class TardisInteriorService {
             boolean forceLoadChunks
     ) {
         UUID tardisId = exteriorEntity.getTardisId();
+        preparePlotOnce(interiorWorld, tardisId, origin);
         BlockPos entrance = forceLoadChunks
                 ? FirstDoctorConsoleRoomPlacer.place(interiorWorld, origin, tardisId)
                 : FirstDoctorConsoleRoomPlacer.placeAssumingChunksLoaded(interiorWorld, origin, tardisId);

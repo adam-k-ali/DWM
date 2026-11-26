@@ -122,8 +122,8 @@ public final class PortalStreamSyncService {
     }
 
     /**
-     * Marks every BOTI plot chunk column dirty so already-streamed empty samples are re-sent
-     * after interior place / rebuild.
+     * Marks every BOTI stream chunk column (the capped stream box around the anchor, not the whole window) dirty so
+     * already-streamed empty samples are re-sent after interior place / rebuild.
      */
     public static void markBotiFootprintDirty(UUID tardisId) {
         if (tardisId == null) {
@@ -131,7 +131,7 @@ public final class PortalStreamSyncService {
         }
         META_DIRTY.add(tardisId);
         BlockPos origin = TardisPlotAllocator.plotOrigin(tardisId);
-        int[] bounds = BotiInteriorSampler.plotChunkBounds(origin);
+        int[] bounds = BotiInteriorSampler.streamChunkBounds(origin, BotiInteriorSampler.MAX_STREAM_RADIUS_CHUNKS);
         StreamKey streamKey = new StreamKey(PortalStreamKind.BOTI, tardisId);
         BOTI_LIGHT_DEFER_STARTED.remove(streamKey);
         Set<Long> dirty = DIRTY_CHUNKS.computeIfAbsent(streamKey, id -> ConcurrentHashMap.newKeySet());

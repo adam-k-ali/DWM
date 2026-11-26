@@ -32,52 +32,106 @@ public final class ArsMapState {
     private @Nullable Identifier selectedPiece;
     private int rotation;
     private @Nullable ArsCell selectedCell;
+    private double scrollX;
+    private double scrollY;
 
-    /** Map placement on screen: top-left corner of cell (0, 0) and cell edge length in GUI pixels. */
-    public record MapGeometry(int left, int top, int cellSize) {
-        public int size() {
-            return cellSize * ArsGrid.GRID_SIZE;
+    /** Cells shown along each edge of the map viewport. */
+    public static final int VIEW_CELLS = 8;
+    /** How far (GUI pixels) the cursor must move with a button held before the press pans instead of clicking. */
+    public static final double DRAG_THRESHOLD = 3.0;
+
+    /**
+     * Map placement on screen: the viewport's top-left corner and cell edge length in GUI pixels, and the scroll: the
+     * GUI-pixel offset of the viewport's top-left corner from cell (0, 0)'s. At scroll (0, 0) (the home view) the
+     * viewport shows cells (0..7, 0..7) with the console room in the middle.
+     */
+    public record MapGeometry(int left, int top, int cellSize, int scrollX, int scrollY) {
+        public MapGeometry(int left, int top, int cellSize) {
+            this(left, top, cellSize, 0, 0);
         }
 
-        /** The grid cell under a GUI point, or {@code null} outside the map. */
+        /** Viewport edge length in GUI pixels. */
+        public int size() {
+            return cellSize * VIEW_CELLS;
+        }
+
+        /** Whether a GUI point is inside the viewport. */
+        public boolean contains(double mouseX, double mouseY) {
+            return mouseX >= left && mouseY >= top && mouseX < left + size() && mouseY < top + size();
+        }
+
+        /** The grid cell under a GUI point, or {@code null} outside the viewport or the grid. */
         public @Nullable ArsCell cellAt(double mouseX, double mouseY) {
-            if (mouseX < left || mouseY < top || mouseX >= left + size() || mouseY >= top + size()) {
+            if (!contains(mouseX, mouseY)) {
                 return null;
             }
-            int cx = (int) Math.floor((mouseX - left) / cellSize);
-            int cz = (int) Math.floor((mouseY - top) / cellSize);
+            int cx = Math.floorDiv((int) Math.floor(mouseX - left) + scrollX, cellSize);
+            int cz = Math.floorDiv((int) Math.floor(mouseY - top) + scrollY, cellSize);
             return ArsGrid.inBounds(cx, cz) ? new ArsCell(cx, cz) : null;
         }
 
         public int cellLeft(int cellX) {
-            return left + cellX * cellSize;
+            return left + cellX * cellSize - scrollX;
         }
 
         public int cellTop(int cellZ) {
-            return top + cellZ * cellSize;
+            return top + cellZ * cellSize - scrollY;
         }
 
-        /** Screen x of a plot-local block x (blocks scale to {@code cellSize / CELL_SIZE} pixels). */
-        public double blockX(double plotLocalX) {
-            return left + plotLocalX * cellSize / ArsGrid.CELL_SIZE;
+        /** First (westmost) cell column at least partly in the viewport, clamped to the grid. */
+        public int firstVisibleCellX() {
+            return Math.max(ArsGrid.MIN_CELL, Math.floorDiv(scrollX, cellSize));
         }
 
-        /** Screen y of a plot-local block z. */
-        public double blockZ(double plotLocalZ) {
-            return top + plotLocalZ * cellSize / ArsGrid.CELL_SIZE;
+        /** Last (eastmost) cell column at least partly in the viewport, clamped to the grid. */
+        public int lastVisibleCellX() {
+            return Math.min(ArsGrid.MAX_CELL, Math.floorDiv(scrollX + size() - 1, cellSize));
+        }
+
+        /** First (northmost) cell row at least partly in the viewport, clamped to the grid. */
+        public int firstVisibleCellZ() {
+            return Math.max(ArsGrid.MIN_CELL, Math.floorDiv(scrollY, cellSize));
+        }
+
+        /** Last (southmost) cell row at least partly in the viewport, clamped to the grid. */
+        public int lastVisibleCellZ() {
+            return Math.min(ArsGrid.MAX_CELL, Math.floorDiv(scrollY + size() - 1, cellSize));
+        }
+
+        /** Screen x of a grid-local block x (blocks scale to {@code cellSize / CELL_SIZE} pixels). */
+        public double blockX(double gridLocalX) {
+            return left + gridLocalX * cellSize / ArsGrid.CELL_SIZE - scrollX;
+        }
+
+        /** Screen y of a grid-local block z. */
+        public double blockZ(double gridLocalZ) {
+            return top + gridLocalZ * cellSize / ArsGrid.CELL_SIZE - scrollY;
+        }
+
+        /**
+         * Screen x of an anchor-local block x: a console room layout position ({@code FirstDoctorConsoleRoomLayout}),
+         * moved to the grid by {@link ArsGrid#CONSOLE_ORIGIN}.
+         */
+        public double anchorBlockX(double anchorLocalX) {
+            return blockX(ArsGrid.CONSOLE_ORIGIN.getX() + anchorLocalX);
+        }
+
+        /** Screen y of an anchor-local block z. */
+        public double anchorBlockZ(double anchorLocalZ) {
+            return blockZ(ArsGrid.CONSOLE_ORIGIN.getZ() + anchorLocalZ);
         }
 
         /**
          * The TARDIS's main doors (the 3-wide interior door bank on the console room's north wall, where players
-         * enter and leave) as a screen rectangle, at least one pixel thick.
+         * enter and leave, at anchor-local {@code LOCAL_DOOR_ORIGIN}) as a screen rectangle, at least one pixel thick.
          */
         public Rect entranceRect() {
             int doorX = FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN.getX();
             int doorZ = FirstDoctorConsoleRoomLayout.LOCAL_DOOR_ORIGIN.getZ();
-            int x0 = (int) Math.round(blockX(doorX));
-            int x1 = (int) Math.round(blockX(doorX + TardisInteriorDoorBlock.BANK_WIDTH));
-            int z0 = (int) Math.round(blockZ(doorZ));
-            int z1 = (int) Math.round(blockZ(doorZ + 1));
+            int x0 = (int) Math.round(anchorBlockX(doorX));
+            int x1 = (int) Math.round(anchorBlockX(doorX + TardisInteriorDoorBlock.BANK_WIDTH));
+            int z0 = (int) Math.round(anchorBlockZ(doorZ));
+            int z1 = (int) Math.round(anchorBlockZ(doorZ + 1));
             return new Rect(x0, z0, Math.max(x1, x0 + 1), Math.max(z1, z0 + 1));
         }
     }
@@ -157,7 +211,59 @@ public final class ArsMapState {
                 ArsLayoutLogic.connectors(candidate, definition));
     }
 
-    /** Replaces the layout and artron from a server snapshot, keeping palette selection and rotation. */
+    /** Smallest scroll on either axis: the grid's west / north edge at the viewport's edge. */
+    public static double minScroll(int cellSize) {
+        return (double) ArsGrid.MIN_CELL * cellSize;
+    }
+
+    /** Largest scroll on either axis: the grid's east / south edge at the viewport's far edge. */
+    public static double maxScroll(int cellSize) {
+        return (double) (ArsGrid.MAX_CELL + 1) * cellSize - (double) VIEW_CELLS * cellSize;
+    }
+
+    /** Whether a press that has moved {@code (dx, dy)} GUI pixels has become a drag (pans) rather than a click. */
+    public static boolean isDrag(double dx, double dy) {
+        return Math.hypot(dx, dy) >= DRAG_THRESHOLD;
+    }
+
+    /** The map placement at {@code (left, top)} for the current scroll. */
+    public MapGeometry geometry(int left, int top, int cellSize) {
+        return new MapGeometry(left, top, cellSize, (int) Math.floor(scrollX), (int) Math.floor(scrollY));
+    }
+
+    public double scrollX() {
+        return scrollX;
+    }
+
+    public double scrollY() {
+        return scrollY;
+    }
+
+    /**
+     * Moves the view by {@code (dx, dy)} GUI pixels (positive pans east / south), clamped so the viewport never leaves
+     * the grid.
+     */
+    public void panBy(double dx, double dy, int cellSize) {
+        scrollX = Math.clamp(scrollX + dx, minScroll(cellSize), maxScroll(cellSize));
+        scrollY = Math.clamp(scrollY + dy, minScroll(cellSize), maxScroll(cellSize));
+    }
+
+    /** Pans by whole cells (keyboard). */
+    public void panCells(int cellsX, int cellsZ, int cellSize) {
+        panBy((double) cellsX * cellSize, (double) cellsZ * cellSize, cellSize);
+    }
+
+    /** Back to the home view: cells (0..7, 0..7), the console room in the middle. */
+    public void centre() {
+        scrollX = 0;
+        scrollY = 0;
+    }
+
+    public boolean isHome() {
+        return scrollX == 0 && scrollY == 0;
+    }
+
+    /** Replaces the layout and artron from a server snapshot, keeping palette selection, rotation and the view. */
     public void update(List<ArsPlacedPiece> layout, int artron, Function<Identifier, ArsPieceDefinition> definitions) {
         this.layout = List.copyOf(layout);
         this.artron = artron;

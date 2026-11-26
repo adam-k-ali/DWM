@@ -42,6 +42,31 @@ class BotiPlotIndexTest {
     }
 
     @Test
+    void resolve_UsesTheWindowAroundTheAnchor() {
+        UUID id = new UUID(10, 20);
+        UUID other = new UUID(11, 20);
+        BotiPlotIndex.register(id);
+        BotiPlotIndex.register(other);
+        BlockPos origin = TardisPlotAllocator.plotOrigin(id);
+        BlockPos otherOrigin = TardisPlotAllocator.plotOrigin(other);
+        // Persisted slots never collide, even for ids whose legacy plots were neighbours.
+        assertNotEquals(origin, otherOrigin);
+        int offset = TardisPlotAllocator.WINDOW_OFFSET;
+        int span = TardisPlotAllocator.PLOT_SPACING - offset;
+
+        // West and north of the anchor, inside the window and the stream: this TARDIS.
+        assertEquals(id, BotiPlotIndex.resolve(origin.offset(-1, 1, 5)));
+        assertEquals(id, BotiPlotIndex.resolve(origin.offset(-20, 1, 30)));
+        assertEquals(other, BotiPlotIndex.resolve(otherOrigin.offset(5, 1, 5)));
+        // Inside the window but outside the BOTI stream around the anchor.
+        assertNull(BotiPlotIndex.resolve(origin.offset(-offset, 1, -offset)));
+        assertNull(BotiPlotIndex.resolve(origin.offset(span - 1, 1, span - 1)));
+        // The plot key stays on the anchor.
+        assertEquals(origin, BotiPlotIndex.getOrigin(id));
+        assertEquals(otherOrigin, BotiPlotIndex.getOrigin(other));
+    }
+
+    @Test
     void resolve_UnregisteredPlotReturnsNull() {
         UUID id = UUID.fromString("11111111-2222-3333-4444-555555555555");
         BlockPos origin = TardisPlotAllocator.plotOrigin(id);

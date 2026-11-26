@@ -140,8 +140,10 @@ class TardisInteriorPreloadServiceTest {
     void markBotiFootprintDirty_MarksExpectedColumnCount() {
         PortalStreamSyncService.markBotiFootprintDirty(TARDIS_ID);
         BlockPos origin = TardisPlotAllocator.plotOrigin(TARDIS_ID);
-        int[] bounds = BotiInteriorSampler.plotChunkBounds(origin);
+        int[] bounds = BotiInteriorSampler.streamChunkBounds(origin, BotiInteriorSampler.MAX_STREAM_RADIUS_CHUNKS);
         int expected = (bounds[1] - bounds[0] + 1) * (bounds[3] - bounds[2] + 1);
+        // Only the capped BOTI stream box (7x7 around the anchor's chunk), never the whole 10000-block window.
+        assertEquals(49, expected);
         assertEquals(expected, PortalStreamSyncService.botiDirtyChunkCountForTest(TARDIS_ID));
         assertTrue(expected > 0);
     }

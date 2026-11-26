@@ -1,6 +1,7 @@
 package com.adamkali.dwm.world.structure;
 
 import com.adamkali.dwm.block.DWMBlocks;
+import com.adamkali.dwm.tardis.interior.ars.ArsGeometry;
 import com.adamkali.dwm.tardis.interior.ars.ArsGrid;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.DyeColor;
@@ -24,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Layouts for the TARDIS Architectural Reconfiguration System (ARS) pieces and the console annex. Regenerate the
+ * Layouts for the TARDIS Architectural Reconfiguration System (ARS) pieces and the two console lobbies. Regenerate the
  * committed templates with {@code ./gradlew generateStructureTemplates}; {@link StructureTemplateGeneratorTest}
  * fails if they drift.
  *
@@ -47,20 +48,14 @@ public final class TardisArsTemplates {
     public static final String BEDROOM = PREFIX + "bedroom";
     public static final String LIBRARY = PREFIX + "library";
     public static final String ARS_CHAMBER = PREFIX + "ars_chamber";
-    /** Fixed lobby joining the console room to the grid; not a registry piece. */
-    public static final String CONSOLE_ANNEX = PREFIX + "console_annex";
+    /** Fixed lobbies joining the console room to the grid on each side; not registry pieces. */
+    public static final String CONSOLE_LOBBY_EAST = PREFIX + "console_lobby_east";
+    public static final String CONSOLE_LOBBY_WEST = PREFIX + "console_lobby_west";
 
     public static final int CORRIDOR_HEIGHT = 6;
     public static final int BEDROOM_HEIGHT = 6;
     public static final int LIBRARY_HEIGHT = 10;
     public static final int ARS_CHAMBER_HEIGHT = 14;
-
-    public static final int ANNEX_SIZE_X = 5;
-    public static final int ANNEX_SIZE_Y = 6;
-    public static final int ANNEX_SIZE_Z = 9;
-    /** Annex-local z range of the permanently open east doorway (lines up with the root cell's west aperture). */
-    public static final int ANNEX_DOOR_MIN_Z = 4;
-    public static final int ANNEX_DOOR_MAX_Z = 7;
 
     private static final int CELL = ArsGrid.CELL_SIZE;
     private static final int AP_MIN = ArsGrid.APERTURE_MIN_OFFSET;
@@ -107,7 +102,8 @@ public final class TardisArsTemplates {
                 bedroom(),
                 library(),
                 arsChamber(),
-                consoleAnnex());
+                consoleLobby(CONSOLE_LOBBY_EAST, ArsGeometry.EAST_ROOT.lobbySizeX()),
+                consoleLobby(CONSOLE_LOBBY_WEST, ArsGeometry.WEST_ROOT.lobbySizeX()));
     }
 
     // ---- Corridors ---------------------------------------------------------------------------------------------
@@ -456,37 +452,28 @@ public final class TardisArsTemplates {
     }
 
     /**
-     * 5×6×9 lobby east of the console room. The console room's east wall closes its open west side; the east wall
-     * has a permanently open 4×4 doorway at {@code z = }{@value #ANNEX_DOOR_MIN_Z}..{@value #ANNEX_DOOR_MAX_Z},
-     * {@code y = 1..4}, framed in plain white like the ARS doorways.
+     * A short passage joining a console room doorway to a root cell's aperture: {@code sizeX} deep, the corridors'
+     * 4-wide, 4-high cross-section ({@code z = 1..4}, {@code y = 1..4}) between white roundel walls at {@code z = 0}
+     * and {@code z = 5}, white floor and ceiling. Both x ends are open: the console room's wall closes one and the
+     * root cell's piece the other.
      */
-    static TemplateLayout consoleAnnex() {
-        Canvas canvas = new Canvas(ANNEX_SIZE_X, ANNEX_SIZE_Y, ANNEX_SIZE_Z);
-        int top = ANNEX_SIZE_Y - 1;
-        int east = ANNEX_SIZE_X - 1;
-        int south = ANNEX_SIZE_Z - 1;
-        for (int x = 0; x < ANNEX_SIZE_X; x++) {
-            for (int z = 0; z < ANNEX_SIZE_Z; z++) {
+    static TemplateLayout consoleLobby(String path, int sizeX) {
+        int sizeY = ArsGeometry.LOBBY_SIZE_Y;
+        int sizeZ = ArsGeometry.LOBBY_SIZE_Z;
+        Canvas canvas = new Canvas(sizeX, sizeY, sizeZ);
+        int top = sizeY - 1;
+        int south = sizeZ - 1;
+        for (int x = 0; x < sizeX; x++) {
+            for (int z = 0; z < sizeZ; z++) {
                 canvas.set(x, 0, z, WHITE.plain());
                 canvas.set(x, top, z, WHITE.plain());
                 for (int y = 1; y < top; y++) {
-                    boolean wall = z == 0 || z == south || x == east;
-                    boolean corner = x == east && (z == 0 || z == south);
-                    boolean doorway = x == east && z >= ANNEX_DOOR_MIN_Z && z <= ANNEX_DOOR_MAX_Z;
-                    boolean frame = x == east && z == ANNEX_DOOR_MIN_Z - 1;
-                    BlockState state;
-                    if (!wall || doorway) {
-                        state = AIR;
-                    } else if (corner || frame) {
-                        state = WHITE.plain();
-                    } else {
-                        state = WHITE.roundel(x + z);
-                    }
-                    canvas.set(x, y, z, state);
+                    boolean wall = z == 0 || z == south;
+                    canvas.set(x, y, z, wall ? WHITE.roundel(x + z) : AIR);
                 }
             }
         }
-        return canvas.build(CONSOLE_ANNEX);
+        return canvas.build(path);
     }
 
     // ---- Room helpers --------------------------------------------------------------------------------------------

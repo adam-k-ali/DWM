@@ -124,6 +124,16 @@ public class TardisDataModel {
     /** Architectural Reconfiguration System pieces grown on the interior plot grid. */
     public List<ArsPlacedPiece> arsPieces = new ArrayList<>();
 
+    /** Interior plot layout this TARDIS's interior is in: null for saves from before 10000-block plots. */
+    public @Nullable Integer plotVersion;
+
+    /** Persisted interior plot slot ({@code TardisPlotSlots}); null until one is allocated. */
+    public @Nullable Integer plotSlotX;
+    public @Nullable Integer plotSlotZ;
+
+    /** Whether leftover blocks and entities have been cleared from this TARDIS's plot window. */
+    public @Nullable Boolean plotPrepared;
+
     private transient boolean needsSaving = false;
 
     /**
@@ -192,6 +202,18 @@ public class TardisDataModel {
             locationHistory = new ArrayList<>();
         }
         return locationHistory;
+    }
+
+    /** Plot layout version of interiors built on 10000-block plots. */
+    public static final int CURRENT_PLOT_VERSION = 2;
+
+    /** Whether this TARDIS's interior still has to be migrated from its legacy 64-block plot. */
+    public boolean isLegacyPlot() {
+        return plotVersion == null || plotVersion < CURRENT_PLOT_VERSION;
+    }
+
+    public boolean isPlotPrepared() {
+        return Boolean.TRUE.equals(plotPrepared);
     }
 
     /**

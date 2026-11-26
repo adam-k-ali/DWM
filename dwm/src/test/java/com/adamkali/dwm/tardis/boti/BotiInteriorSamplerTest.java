@@ -5,6 +5,7 @@ import com.adamkali.dwm.block.DWMBlocks;
 import com.adamkali.dwm.entity.ConsoleControlInteractionEntity;
 import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
 import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
+import com.adamkali.dwm.tardis.portal.PortalSampler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -68,22 +69,38 @@ class BotiInteriorSamplerTest {
     }
 
     @Test
-    void streamChunkBounds_clipsViewDistanceToPlot() {
-        BlockPos origin = new BlockPos(0, 64, 0);
-        int[] plot = BotiInteriorSampler.plotChunkBounds(origin);
-        int[] clipped = BotiInteriorSampler.streamChunkBounds(origin, 12);
-        assertEquals(plot[0], clipped[0]);
-        assertEquals(plot[1], clipped[1]);
-        assertEquals(plot[2], clipped[2]);
-        assertEquals(plot[3], clipped[3]);
-        assertTrue(clipped[1] - clipped[0] < 12);
+    void windowChunkBounds_spansTheWholeWindow() {
+        BlockPos origin = new BlockPos(TardisPlotAllocator.PLOT_SPACING * 10, 64, TardisPlotAllocator.PLOT_SPACING * -3);
+        BlockPos window = TardisPlotAllocator.windowOrigin(origin);
+        int last = TardisPlotAllocator.PLOT_SPACING - 1;
+        // Window x/z = anchor - 4995 .. anchor + 5004: not chunk-aligned, so edge columns are shared.
+        assertArrayEquals(new int[]{
+                window.getX() >> 4, (window.getX() + last) >> 4,
+                window.getZ() >> 4, (window.getZ() + last) >> 4
+        }, BotiInteriorSampler.windowChunkBounds(origin));
     }
 
     @Test
-    void clipStreamRadiusChunks_capsToPlot() {
+    void streamChunkBounds_capsTheStreamAroundTheAnchor() {
+        BlockPos origin = new BlockPos(0, 64, 0);
+        int max = BotiInteriorSampler.MAX_STREAM_RADIUS_CHUNKS;
+        int[] capped = {-max, max, -max, max};
+        int radius = BotiInteriorSampler.clipStreamRadiusChunks(32);
+        assertEquals(max, radius);
+        assertArrayEquals(capped, BotiInteriorSampler.streamChunkBounds(origin, radius));
+        // A smaller view distance streams a smaller box; the window never clips it.
+        assertArrayEquals(new int[]{-2, 2, -2, 2}, BotiInteriorSampler.streamChunkBounds(origin, 2));
+        // The capped stream still covers the console room and both lobbies (anchor chunk -2..+2).
+        assertTrue(max >= 2);
+    }
+
+    @Test
+    void clipStreamRadiusChunks_capsToTheBotiStream() {
+        assertEquals(3, BotiInteriorSampler.MAX_STREAM_RADIUS_CHUNKS);
         assertEquals(0, BotiInteriorSampler.clipStreamRadiusChunks(0));
+        assertEquals(0, BotiInteriorSampler.clipStreamRadiusChunks(-4));
         assertEquals(2, BotiInteriorSampler.clipStreamRadiusChunks(2));
-        assertTrue(BotiInteriorSampler.clipStreamRadiusChunks(12) <= 3);
+        assertEquals(3, BotiInteriorSampler.clipStreamRadiusChunks(12));
         assertEquals(
                 BotiInteriorSampler.clipStreamRadiusChunks(3),
                 BotiInteriorSampler.clipStreamRadiusChunks(32)
@@ -91,11 +108,33 @@ class BotiInteriorSamplerTest {
     }
 
     @Test
-    void isInsidePlotStream_rejectsNeighborPlot() {
+    void isInsideWindowStream_rejectsNeighborWindowsAndFarPositions() {
         BlockPos origin = new BlockPos(0, 64, 0);
-        assertTrue(BotiInteriorSampler.isInsidePlotStream(origin, origin, 2));
-        assertFalse(BotiInteriorSampler.isInsidePlotStream(
-                origin.offset(TardisPlotAllocator.PLOT_SPACING, 0, 0), origin, 12));
+        int offset = TardisPlotAllocator.WINDOW_OFFSET;
+        int span = TardisPlotAllocator.PLOT_SPACING - offset;
+        assertTrue(BotiInteriorSampler.isInsideWindowStream(origin, origin, 2));
+        assertTrue(BotiInteriorSampler.isInsideWindowStream(origin.offset(-20, 0, 30), origin, 2));
+        // Inside the window but far outside the stream.
+        assertFalse(BotiInteriorSampler.isInsideWindowStream(origin.offset(-offset, 0, -offset), origin, 2));
+        assertFalse(BotiInteriorSampler.isInsideWindowStream(origin.offset(span - 1, 0, span - 1), origin, 2));
+        // Outside the window.
+        assertFalse(BotiInteriorSampler.isInsideWindowStream(origin.offset(span, 0, 0), origin, 12));
+        assertFalse(BotiInteriorSampler.isInsideWindowStream(origin.offset(-offset - 1, 0, 0), origin, 12));
+        assertFalse(BotiInteriorSampler.isInsideWindowStream(origin.offset(0, 0, -offset - 1), origin, 12));
+    }
+
+    @Test
+    void includePos_clipsSamplingToTheWindowPerBlock() {
+        BlockPos anchor = new BlockPos(TardisPlotAllocator.PLOT_SPACING * 3, 64, TardisPlotAllocator.PLOT_SPACING * 5);
+        int offset = TardisPlotAllocator.WINDOW_OFFSET;
+        int span = TardisPlotAllocator.PLOT_SPACING - offset;
+        assertTrue(BotiInteriorSampler.INSTANCE.includePos(anchor, anchor));
+        assertTrue(BotiInteriorSampler.INSTANCE.includePos(anchor.offset(-32, 0, 0), anchor));
+        assertFalse(BotiInteriorSampler.INSTANCE.includePos(anchor.offset(-offset - 1, 0, 0), anchor));
+        assertTrue(BotiInteriorSampler.INSTANCE.includePos(anchor.offset(-offset, 0, 0), anchor));
+        assertTrue(BotiInteriorSampler.INSTANCE.includePos(anchor.offset(span - 1, 0, span - 1), anchor));
+        assertFalse(BotiInteriorSampler.INSTANCE.includePos(anchor.offset(span, 0, 0), anchor));
+        assertFalse(BotiInteriorSampler.INSTANCE.includePos(anchor.offset(0, 0, span), anchor));
     }
 
     @Test

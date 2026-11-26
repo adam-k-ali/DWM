@@ -1,6 +1,8 @@
 package com.adamkali.dwm.tardis.interior.ars;
 
 import com.adamkali.dwm.MinecraftTestBootstrap;
+import com.adamkali.dwm.tardis.interior.FirstDoctorConsoleRoomLayout;
+import com.adamkali.dwm.tardis.interior.TardisPlotAllocator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Mirror;
@@ -100,17 +102,73 @@ class ArsGridTest {
     void boundsAndReservedCells() {
         assertTrue(ArsGrid.inBounds(0, 0));
         assertTrue(ArsGrid.inBounds(7, 7));
-        assertFalse(ArsGrid.inBounds(8, 0));
-        assertFalse(ArsGrid.inBounds(0, -1));
+        assertTrue(ArsGrid.inBounds(8, 0));
+        assertTrue(ArsGrid.inBounds(0, -1));
+        assertTrue(ArsGrid.inBounds(ArsGrid.MIN_CELL, ArsGrid.MIN_CELL));
+        assertTrue(ArsGrid.inBounds(ArsGrid.MAX_CELL, ArsGrid.MAX_CELL));
+        assertFalse(ArsGrid.inBounds(ArsGrid.MIN_CELL - 1, 0));
+        assertFalse(ArsGrid.inBounds(0, ArsGrid.MIN_CELL - 1));
+        assertFalse(ArsGrid.inBounds(ArsGrid.MAX_CELL + 1, 0));
+        assertFalse(ArsGrid.inBounds(0, ArsGrid.MAX_CELL + 1));
 
-        assertTrue(ArsGrid.isReserved(0, 0));
-        assertTrue(ArsGrid.isReserved(1, 2));
-        assertFalse(ArsGrid.isReserved(2, 1));
-        assertFalse(ArsGrid.isReserved(0, 3));
-        assertFalse(ArsGrid.isReserved(ArsGrid.ROOT_CELL_X, ArsGrid.ROOT_CELL_Z));
-        assertTrue(ArsGrid.isReserved(
-                ArsGrid.rootCell().relative(ArsGrid.ROOT_SIDE).x(),
-                ArsGrid.rootCell().relative(ArsGrid.ROOT_SIDE).z()));
+        assertTrue(ArsGrid.isReserved(3, 3));
+        assertTrue(ArsGrid.isReserved(4, 5));
+        assertFalse(ArsGrid.isReserved(2, 4));
+        assertFalse(ArsGrid.isReserved(5, 4));
+        assertFalse(ArsGrid.isReserved(3, 2));
+        assertFalse(ArsGrid.isReserved(4, 6));
+        // Each root's cell is free and the cell across its face is the console room.
+        for (ArsConnector root : ArsGrid.ROOT_CONNECTORS) {
+            assertFalse(ArsGrid.isReserved(root.cell().x(), root.cell().z()), root.toString());
+            assertTrue(ArsGrid.isReserved(root.facingCell().x(), root.facingCell().z()), root.toString());
+        }
+        assertEquals(new ArsConnector(new ArsCell(5, 4), Direction.WEST), ArsGrid.EAST_ROOT);
+        assertEquals(new ArsConnector(new ArsCell(2, 4), Direction.EAST), ArsGrid.WEST_ROOT);
+    }
+
+    @Test
+    void consoleRoomSitsInTheMiddleOfItsReservedCells() {
+        // Grid-local (0, 0, 0) is the grid origin, anchor - (27, 0, 27); the window starts 621 cells further out.
+        assertEquals(new BlockPos(TardisPlotAllocator.GRID_ORIGIN_OFFSET, 0, TardisPlotAllocator.GRID_ORIGIN_OFFSET),
+                ArsGrid.CONSOLE_ORIGIN);
+        assertEquals(new BlockPos(27, 0, 27), ArsGrid.CONSOLE_ORIGIN);
+        BlockPos anchor = new BlockPos(TardisPlotAllocator.PLOT_SPACING * 7, 64, TardisPlotAllocator.PLOT_SPACING * -9);
+        assertEquals(anchor, ArsGrid.gridOrigin(anchor).offset(ArsGrid.CONSOLE_ORIGIN));
+        // Console room grid-local x 27..37, z 27..43: exactly the reserved cells' span.
+        int minX = ArsGrid.CONSOLE_ORIGIN.getX();
+        int maxX = minX + FirstDoctorConsoleRoomLayout.SIZE_X - 1;
+        int minZ = ArsGrid.CONSOLE_ORIGIN.getZ();
+        int maxZ = minZ + FirstDoctorConsoleRoomLayout.SIZE_Z - 1;
+        assertEquals(37, maxX);
+        assertEquals(43, maxZ);
+        assertEquals(ArsGrid.RESERVED_MIN_X, minX / ArsGrid.CELL_SIZE);
+        assertEquals(ArsGrid.RESERVED_MAX_X, maxX / ArsGrid.CELL_SIZE);
+        assertEquals(ArsGrid.RESERVED_MIN_Z, minZ / ArsGrid.CELL_SIZE);
+        assertEquals(ArsGrid.RESERVED_MAX_Z, maxZ / ArsGrid.CELL_SIZE);
+        // The console room sits in the middle: 624 free columns west and east, 624 rows north and 623 south.
+        assertEquals(624, ArsGrid.RESERVED_MIN_X - ArsGrid.MIN_CELL);
+        assertEquals(624, ArsGrid.MAX_CELL - ArsGrid.RESERVED_MAX_X);
+        assertEquals(624, ArsGrid.RESERVED_MIN_Z - ArsGrid.MIN_CELL);
+        assertEquals(623, ArsGrid.MAX_CELL - ArsGrid.RESERVED_MAX_Z);
+    }
+
+    @Test
+    void gridCoversExactlyThePlotWindow() {
+        assertEquals(1250, ArsGrid.GRID_SIZE);
+        assertEquals(TardisPlotAllocator.PLOT_SPACING, ArsGrid.GRID_SIZE * ArsGrid.CELL_SIZE);
+        assertEquals(8, ArsGrid.MAX_PIECE_CELLS);
+        BlockPos anchor = new BlockPos(-TardisPlotAllocator.PLOT_SPACING * 3, 64, TardisPlotAllocator.PLOT_SPACING * 5);
+        BlockPos gridOrigin = ArsGrid.gridOrigin(anchor);
+        BlockPos window = TardisPlotAllocator.windowOrigin(anchor);
+        assertEquals(window.getX(), gridOrigin.getX() + ArsGrid.windowMinBlock());
+        assertEquals(window.getZ(), gridOrigin.getZ() + ArsGrid.windowMinBlock());
+        assertEquals(window.getX() + TardisPlotAllocator.PLOT_SPACING - 1, gridOrigin.getX() + ArsGrid.windowMaxBlock());
+        BlockPos first = gridOrigin.offset(ArsGrid.cellMinBlockX(ArsGrid.MIN_CELL), 0, ArsGrid.cellMinBlockZ(ArsGrid.MIN_CELL));
+        BlockPos last = gridOrigin.offset(ArsGrid.cellMinBlockX(ArsGrid.MAX_CELL) + 7, 0, ArsGrid.cellMinBlockZ(ArsGrid.MAX_CELL) + 7);
+        assertTrue(TardisPlotAllocator.isInsideWindow(first, anchor));
+        assertTrue(TardisPlotAllocator.isInsideWindow(last, anchor));
+        assertFalse(TardisPlotAllocator.isInsideWindow(first.offset(-1, 0, 0), anchor));
+        assertFalse(TardisPlotAllocator.isInsideWindow(last.offset(0, 0, 1), anchor));
     }
 
     @Test

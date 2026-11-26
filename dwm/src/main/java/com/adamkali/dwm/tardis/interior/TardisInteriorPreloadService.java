@@ -90,7 +90,7 @@ public final class TardisInteriorPreloadService {
         if (JOBS.containsKey(tardisId)) {
             return;
         }
-        if (exteriorEntity.isInteriorGenerated() && exteriorEntity.getInteriorEntrance() != null) {
+        if (exteriorEntity.isInteriorGenerated() && TardisInteriorService.refreshEntrance(exteriorEntity) != null) {
             BotiPlotIndex.register(tardisId);
             return;
         }
@@ -162,7 +162,7 @@ public final class TardisInteriorPreloadService {
         if (beId == null || !beId.equals(job.tardisId())) {
             return false;
         }
-        if (exterior.isInteriorGenerated() && exterior.getInteriorEntrance() != null) {
+        if (exterior.isInteriorGenerated() && TardisInteriorService.refreshEntrance(exterior) != null) {
             BotiPlotIndex.register(job.tardisId());
             return true;
         }

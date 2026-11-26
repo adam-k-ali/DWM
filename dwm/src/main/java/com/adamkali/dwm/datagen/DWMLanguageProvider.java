@@ -782,10 +782,13 @@ public class DWMLanguageProvider extends FabricLanguageProvider {
         t.add("dwm.gui.ars.refund", "Jettison refund: %s artron");
         t.add("dwm.gui.ars.can_jettison", "Can be jettisoned");
         t.add("dwm.gui.ars.nothing_selected", "Pick a room to grow, or click a room on the map to select it");
-        t.add("dwm.gui.ars.hint", "Click: grow / select \u00b7 Right-click: select \u00b7 R: rotate \u00b7 Esc: close");
+        t.add("dwm.gui.ars.hint", "Click: grow / select \u00b7 Drag/WASD: pan \u00b7 C: centre \u00b7 R: rotate");
+        t.add("dwm.gui.ars.cell", "Cell %s, %s");
+        t.add("dwm.gui.ars.centre", "Centre");
         t.add("dwm.gui.ars.rotate", "Rotate (R)");
         t.add("dwm.gui.ars.jettison", "Jettison");
         t.add("dwm.gui.ars.tooltip.rotate", "Turn the room a quarter turn clockwise");
+        t.add("dwm.gui.ars.tooltip.centre", "Pan back to the console room (C)");
         t.add("dwm.gui.ars.tooltip.jettison", "Destroy the selected room and everything in it");
         t.add("dwm.gui.ars.tooltip.jettison_select", "Select a room on the map first");
         t.add("dwm.gui.player_locator.title", "Player Locator");

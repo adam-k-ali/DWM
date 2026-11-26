@@ -13,25 +13,30 @@ class TardisTravelAudioTest {
 
     @Test
     void interiorListenersIncludeConsoleRoom() {
-        assertTrue(TardisTravelAudio.isInsidePlot(ORIGIN.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE), ORIGIN));
-        assertTrue(TardisTravelAudio.isInsidePlot(ORIGIN, ORIGIN));
+        assertTrue(TardisTravelAudio.isInsideWindow(ORIGIN.offset(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE), ORIGIN));
+        assertTrue(TardisTravelAudio.isInsideWindow(ORIGIN, ORIGIN));
     }
 
     @Test
-    void interiorListenersIncludeArsRoomsAcrossThePlot() {
-        int last = TardisPlotAllocator.PLOT_SPACING - 1;
-        // Beyond the 11x7x17 console room: east, south, far corner and a tall room's upper floor.
-        assertTrue(TardisTravelAudio.isInsidePlot(ORIGIN.offset(30, 2, 10), ORIGIN));
-        assertTrue(TardisTravelAudio.isInsidePlot(ORIGIN.offset(4, 1, 40), ORIGIN));
-        assertTrue(TardisTravelAudio.isInsidePlot(ORIGIN.offset(last, 0, last), ORIGIN));
-        assertTrue(TardisTravelAudio.isInsidePlot(ORIGIN.offset(20, 12, 20), ORIGIN));
+    void interiorListenersIncludeArsRoomsAcrossTheWindow() {
+        int offset = TardisPlotAllocator.WINDOW_OFFSET;
+        int last = TardisPlotAllocator.PLOT_SPACING - offset - 1;
+        // Beyond the 11x7x17 console room: east, west, south, both far corners and a tall room's upper floor.
+        assertTrue(TardisTravelAudio.isInsideWindow(ORIGIN.offset(30, 2, 10), ORIGIN));
+        assertTrue(TardisTravelAudio.isInsideWindow(ORIGIN.offset(-20, 2, 10), ORIGIN));
+        assertTrue(TardisTravelAudio.isInsideWindow(ORIGIN.offset(4, 1, 30), ORIGIN));
+        assertTrue(TardisTravelAudio.isInsideWindow(ORIGIN.offset(last, 0, last), ORIGIN));
+        assertTrue(TardisTravelAudio.isInsideWindow(ORIGIN.offset(-offset, 0, -offset), ORIGIN));
+        assertTrue(TardisTravelAudio.isInsideWindow(ORIGIN.offset(20, 12, -20), ORIGIN));
     }
 
     @Test
-    void interiorListenersExcludeNeighbouringPlots() {
-        assertFalse(TardisTravelAudio.isInsidePlot(ORIGIN.offset(-1, 1, 5), ORIGIN));
-        assertFalse(TardisTravelAudio.isInsidePlot(ORIGIN.offset(5, 1, -1), ORIGIN));
-        assertFalse(TardisTravelAudio.isInsidePlot(ORIGIN.offset(TardisPlotAllocator.PLOT_SPACING, 1, 5), ORIGIN));
-        assertFalse(TardisTravelAudio.isInsidePlot(ORIGIN.offset(5, 1, TardisPlotAllocator.PLOT_SPACING), ORIGIN));
+    void interiorListenersExcludeNeighbouringWindows() {
+        int offset = TardisPlotAllocator.WINDOW_OFFSET;
+        int span = TardisPlotAllocator.PLOT_SPACING - offset;
+        assertFalse(TardisTravelAudio.isInsideWindow(ORIGIN.offset(-offset - 1, 1, 5), ORIGIN));
+        assertFalse(TardisTravelAudio.isInsideWindow(ORIGIN.offset(5, 1, -offset - 1), ORIGIN));
+        assertFalse(TardisTravelAudio.isInsideWindow(ORIGIN.offset(span, 1, 5), ORIGIN));
+        assertFalse(TardisTravelAudio.isInsideWindow(ORIGIN.offset(5, 1, span), ORIGIN));
     }
 }

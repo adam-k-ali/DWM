@@ -161,9 +161,10 @@ class ArsPayloadHandlerTest {
     @Test
     void growAndJettison_refuseOutsideThisTardisPlot() {
         BlockPos origin = TardisPlotAllocator.plotOrigin(model.uuid);
+        int offset = TardisPlotAllocator.WINDOW_OFFSET;
         List<BlockPos> outside = List.of(
-                origin.offset(-1, 1, 5),
-                origin.offset(TardisPlotAllocator.PLOT_SPACING, 1, 5),
+                origin.offset(-offset - 1, 1, 5),
+                origin.offset(TardisPlotAllocator.PLOT_SPACING - offset, 1, 5),
                 origin.offset(5, 1, TardisPlotAllocator.PLOT_SPACING + 10));
         try (MockedStatic<TardisDataLoader> loader = Mockito.mockStatic(TardisDataLoader.class);
              MockedStatic<ArsService> service = Mockito.mockStatic(ArsService.class)) {
@@ -181,15 +182,17 @@ class ArsPayloadHandlerTest {
     }
 
     @Test
-    void requireInsideTardis_acceptsWholePlotFootprintAtAnyHeight() {
-        BlockPos origin = TardisPlotAllocator.plotOrigin(model.uuid);
+    void requireInsideTardis_acceptsWholeWindowAtAnyHeight() {
+        BlockPos window = TardisPlotAllocator.windowOrigin(TardisPlotAllocator.plotOrigin(model.uuid));
         int last = TardisPlotAllocator.PLOT_SPACING - 1;
-        for (BlockPos pos : List.of(origin, origin.offset(last, -30, last), origin.offset(0, 40, last))) {
+        for (BlockPos pos : List.of(window, window.offset(last, -30, last), window.offset(0, 40, last))) {
             assertTrue(ServerPayloadTypeRegistry.requireInsideTardis(
                     model.uuid, TardisDimensions.TARDIS_WORLD_KEY, pos, null), pos.toString());
         }
         assertFalse(ServerPayloadTypeRegistry.requireInsideTardis(
-                model.uuid, TardisDimensions.TARDIS_WORLD_KEY, origin.offset(last + 1, 0, 0), null));
+                model.uuid, TardisDimensions.TARDIS_WORLD_KEY, window.offset(last + 1, 0, 0), null));
+        assertFalse(ServerPayloadTypeRegistry.requireInsideTardis(
+                model.uuid, TardisDimensions.TARDIS_WORLD_KEY, window.offset(-1, 0, 0), null));
     }
 
     @Test

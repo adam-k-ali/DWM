@@ -42,8 +42,10 @@ import java.util.UUID;
 import java.util.function.Function;
 
 /**
- * Architectural Reconfiguration System map, opened from the console's ARS control. The left half is the
- * plot grid as a north-up floor plan; the right half is the piece palette and a readout of the selection.
+ * Architectural Reconfiguration System map, opened from the console's ARS control. The left half is an 8×8-cell
+ * window onto the plot grid as a north-up floor plan, panned by dragging, the arrow keys / WASD or the mouse wheel
+ * and re-centred on the console room with {@code C} or <b>Centre</b>; the right half is the piece palette and a
+ * readout of the selection.
  * Growing and jettisoning are requests to the server, which re-sends {@link OpenArsScreen} so this screen
  * {@link #update updates in place}. Sized for a 427×240 scaled GUI.
  */
@@ -56,7 +58,7 @@ public class ArsScreen extends Screen {
     private static final int MARGIN = 10;
     private static final int CELL = 20;
     private static final int MAP_TOP = 22;
-    private static final int SIDE_LEFT = MARGIN + CELL * ArsGrid.GRID_SIZE + 10;
+    private static final int SIDE_LEFT = MARGIN + CELL * ArsMapState.VIEW_CELLS + 10;
     private static final int SIDE_WIDTH = PANEL_WIDTH - SIDE_LEFT - MARGIN;
     private static final int PALETTE_ROW = 11;
     private static final int PALETTE_ROWS_TOP = MAP_TOP + 11;
@@ -67,6 +69,7 @@ public class ArsScreen extends Screen {
     private static final int HINT_Y = 189;
     private static final int BUTTON_Y = 202;
     private static final int BUTTON_WIDTH = 80;
+    private static final int CENTRE_WIDTH = 60;
     private static final int SWATCH = 7;
     /** Connector aperture along a cell edge: block offsets 2..5 of 8. */
     private static final int APERTURE_FROM = CELL * ArsGrid.APERTURE_MIN_OFFSET / ArsGrid.CELL_SIZE;
@@ -105,6 +108,12 @@ public class ArsScreen extends Screen {
 
     private Button rotateButton;
     private Button jettisonButton;
+    private Button centreButton;
+    /** The mouse button pressed on the map, or -1; a press acts as a click on release unless it became a drag. */
+    private int pressButton = -1;
+    private double pressX;
+    private double pressY;
+    private boolean dragging;
     private int panelLeft;
     private int panelTop;
 
@@ -162,18 +171,22 @@ public class ArsScreen extends Screen {
         jettisonButton = addRenderableWidget(Button.builder(Component.translatable("dwm.gui.ars.jettison"), button -> jettison())
                 .bounds(panelLeft + MARGIN + BUTTON_WIDTH + 4, buttonY, BUTTON_WIDTH, 20)
                 .build());
+        centreButton = addRenderableWidget(Button.builder(Component.translatable("dwm.gui.ars.centre"), button -> centre())
+                .bounds(panelLeft + MARGIN + 2 * (BUTTON_WIDTH + 4), buttonY, CENTRE_WIDTH, 20)
+                .tooltip(Tooltip.create(Component.translatable("dwm.gui.ars.tooltip.centre")))
+                .build());
         addRenderableWidget(Button.builder(Component.translatable("gui.done"), button -> onClose())
                 .bounds(panelLeft + PANEL_WIDTH - MARGIN - BUTTON_WIDTH, buttonY, BUTTON_WIDTH, 20)
                 .build());
         updateButtons();
     }
 
-    /** Map placement for the current screen size. */
+    /** Map placement for the current screen size and view. */
     public ArsMapState.MapGeometry geometry() {
-        return new ArsMapState.MapGeometry(panelLeft + MARGIN, panelTop + MAP_TOP, CELL);
+        return state.geometry(panelLeft + MARGIN, panelTop + MAP_TOP, CELL);
     }
 
-    /** GUI-space centre of a map cell. */
+    /** GUI-space centre of a map cell (it may be outside the viewport when the map is panned away from it). */
     public int[] cellCenter(ArsCell cell) {
         ArsMapState.MapGeometry geometry = geometry();
         return new int[]{geometry.cellLeft(cell.x()) + CELL / 2, geometry.cellTop(cell.z()) + CELL / 2};
@@ -202,6 +215,16 @@ public class ArsScreen extends Screen {
         state.rotateClockwise();
     }
 
+    private void centre() {
+        state.centre();
+        updateButtons();
+    }
+
+    private void pan(int cellsX, int cellsZ) {
+        state.panCells(cellsX, cellsZ, CELL);
+        updateButtons();
+    }
+
     private void jettison() {
         Optional<ArsPlacedPiece> selected = state.selectedPlaced(lookup);
         if (selected.isEmpty() || state.removeCheck(lookup) != ArsLayoutLogic.RemoveResult.OK) {
@@ -214,6 +237,9 @@ public class ArsScreen extends Screen {
     private void updateButtons() {
         if (jettisonButton == null) {
             return;
+        }
+        if (centreButton != null) {
+            centreButton.active = !state.isHome();
         }
         ArsLayoutLogic.RemoveResult removal = state.removeCheck(lookup);
         boolean hasSelection = state.selectedPlaced(lookup).isPresent();
@@ -229,11 +255,18 @@ public class ArsScreen extends Screen {
 
     @Override
     public boolean keyPressed(KeyEvent event) {
-        if (event.key() == GLFW.GLFW_KEY_R) {
-            rotate();
-            return true;
+        switch (event.key()) {
+            case GLFW.GLFW_KEY_R -> rotate();
+            case GLFW.GLFW_KEY_C -> centre();
+            case GLFW.GLFW_KEY_LEFT, GLFW.GLFW_KEY_A -> pan(-1, 0);
+            case GLFW.GLFW_KEY_RIGHT, GLFW.GLFW_KEY_D -> pan(1, 0);
+            case GLFW.GLFW_KEY_UP, GLFW.GLFW_KEY_W -> pan(0, -1);
+            case GLFW.GLFW_KEY_DOWN, GLFW.GLFW_KEY_S -> pan(0, 1);
+            default -> {
+                return super.keyPressed(event);
+            }
         }
-        return super.keyPressed(event);
+        return true;
     }
 
     @Override
@@ -251,12 +284,56 @@ public class ArsScreen extends Screen {
                 return true;
             }
         }
-        if (button != GLFW.GLFW_MOUSE_BUTTON_LEFT && button != GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+        if (!geometry().contains(event.x(), event.y())) {
             return false;
         }
-        ArsCell cell = geometry().cellAt(event.x(), event.y());
+        // On the map a press only arms: releasing without moving clicks, moving pans (see mouseDragged).
+        pressButton = button;
+        pressX = event.x();
+        pressY = event.y();
+        dragging = false;
+        return true;
+    }
+
+    @Override
+    public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
+        if (event.button() == pressButton) {
+            if (!dragging && ArsMapState.isDrag(event.x() - pressX, event.y() - pressY)) {
+                dragging = true;
+                // Catch up with the movement that crossed the threshold.
+                state.panBy(pressX - event.x() + dx, pressY - event.y() + dy, CELL);
+            }
+            if (dragging) {
+                state.panBy(-dx, -dy, CELL);
+                updateButtons();
+            }
+            return true;
+        }
+        return super.mouseDragged(event, dx, dy);
+    }
+
+    @Override
+    public boolean mouseReleased(MouseButtonEvent event) {
+        if (event.button() != pressButton) {
+            return super.mouseReleased(event);
+        }
+        boolean wasDrag = dragging;
+        pressButton = -1;
+        dragging = false;
+        if (!wasDrag) {
+            clickMap(event.button(), pressX, pressY);
+        }
+        return true;
+    }
+
+    /** A click (press and release without dragging) on the map: grow, select or deselect. */
+    private void clickMap(int button, double x, double y) {
+        if (button != GLFW.GLFW_MOUSE_BUTTON_LEFT && button != GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+            return;
+        }
+        ArsCell cell = geometry().cellAt(x, y);
         if (cell == null) {
-            return false;
+            return;
         }
         ArsMapState.Click click = state.click(cell, button == GLFW.GLFW_MOUSE_BUTTON_RIGHT, lookup, instabuild());
         switch (click.kind()) {
@@ -270,7 +347,6 @@ public class ArsScreen extends Screen {
             }
         }
         updateButtons();
-        return click.kind() != ArsMapState.ClickKind.NONE;
     }
 
     private void playClick() {
@@ -300,6 +376,11 @@ public class ArsScreen extends Screen {
             paletteScroll = Math.clamp(paletteScroll - (long) Math.signum(scrollY), 0, max);
             return true;
         }
+        if (geometry().contains(mouseX, mouseY)) {
+            // Wheel up pans north; a sideways wheel or trackpad swipe pans east and west.
+            pan((int) -Math.signum(scrollX), (int) -Math.signum(scrollY));
+            return true;
+        }
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
@@ -315,9 +396,15 @@ public class ArsScreen extends Screen {
 
         graphics.text(font, getTitle(), panelLeft + MARGIN, panelTop + 9, WHITE, false);
         Component north = Component.translatable("dwm.gui.ars.north");
-        graphics.text(font, north, panelLeft + PANEL_WIDTH - MARGIN - font.width(north), panelTop + 9, LABEL, false);
+        int northX = panelLeft + PANEL_WIDTH - MARGIN - font.width(north);
+        graphics.text(font, north, northX, panelTop + 9, LABEL, false);
 
         ArsCell hovered = geometry().cellAt(mouseX, mouseY);
+        if (hovered != null) {
+            // Where the cursor is, so the grid's position stays readable once panned.
+            Component cell = Component.translatable("dwm.gui.ars.cell", hovered.x(), hovered.z());
+            graphics.text(font, cell, northX - 8 - font.width(cell), panelTop + 9, LABEL, false);
+        }
         drawMap(graphics, hovered, mouseX, mouseY);
         drawPalette(graphics, mouseX, mouseY);
         drawDetail(graphics, hovered);
@@ -333,9 +420,19 @@ public class ArsScreen extends Screen {
         int size = geo.size();
         graphics.fill(left - 1, top - 1, left + size + 1, top + size + 1, MAP_BORDER);
         graphics.fill(left, top, left + size, top + size, MAP_BACKGROUND);
-        for (int i = 1; i < ArsGrid.GRID_SIZE; i++) {
-            graphics.fill(left + i * CELL, top, left + i * CELL + 1, top + size, GRID_LINE);
-            graphics.fill(left, top + i * CELL, left + size, top + i * CELL + 1, GRID_LINE);
+        // Everything on the map is clipped to the viewport; pieces off-screen are simply not visible.
+        graphics.enableScissor(left, top, left + size, top + size);
+        for (int cx = geo.firstVisibleCellX(); cx <= geo.lastVisibleCellX() + 1; cx++) {
+            int x = geo.cellLeft(cx);
+            if (x > left && x < left + size) {
+                graphics.fill(x, top, x + 1, top + size, GRID_LINE);
+            }
+        }
+        for (int cz = geo.firstVisibleCellZ(); cz <= geo.lastVisibleCellZ() + 1; cz++) {
+            int y = geo.cellTop(cz);
+            if (y > top && y < top + size) {
+                graphics.fill(left, y, left + size, y + 1, GRID_LINE);
+            }
         }
 
         drawConsoleRoom(graphics, geo);
@@ -360,12 +457,14 @@ public class ArsScreen extends Screen {
             }
         }
 
-        boolean rootOpen = links.contains(ArsLayoutLogic.ROOT_LINK);
         for (ArsLayoutLogic.Link link : links) {
             doorway(graphics, geo, link, DOOR);
         }
-        if (!rootOpen) {
-            doorway(graphics, geo, ArsLayoutLogic.ROOT_LINK, ROOT_MARK);
+        // Each console doorway (east and west) is amber until a piece opens it.
+        for (ArsLayoutLogic.Link root : ArsLayoutLogic.ROOT_LINKS) {
+            if (!links.contains(root)) {
+                doorway(graphics, geo, root, ROOT_MARK);
+            }
         }
 
         state.selectedPlaced(lookup).ifPresent(piece -> {
@@ -375,13 +474,17 @@ public class ArsScreen extends Screen {
             }
         });
 
-        Optional<ArsMapState.Ghost> ghost = state.ghostAt(hovered, lookup);
+        Optional<ArsMapState.Ghost> ghost = state.ghostAt(dragging ? null : hovered, lookup);
         if (ghost.isPresent()) {
             drawGhost(graphics, geo, ghost.get());
-        } else if (hovered != null) {
+        } else if (hovered != null && !dragging) {
             outline(graphics, geo, Set.of(hovered), HOVER_EDGE, 1);
         }
+        graphics.disableScissor();
 
+        if (!geo.contains(mouseX, mouseY) || dragging) {
+            return;
+        }
         if (isNearRootDoorway(geo, mouseX, mouseY)) {
             graphics.setTooltipForNextFrame(Component.translatable("dwm.gui.ars.console_doorway"), mouseX, mouseY);
         } else if (geo.entranceRect().contains(mouseX, mouseY, 2)) {
@@ -399,9 +502,9 @@ public class ArsScreen extends Screen {
         graphics.fill(x0, z1 - 1, x1, z1, CONSOLE_EDGE);
         graphics.fill(x0, z0, x0 + 1, z1, CONSOLE_EDGE);
         graphics.fill(x1 - 1, z0, x1, z1, CONSOLE_EDGE);
-        // The console itself, at its plot-local block position.
-        int cx = (int) Math.round(geo.blockX(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getX() + 0.5));
-        int cz = (int) Math.round(geo.blockZ(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getZ() + 0.5));
+        // The console itself, at its anchor-local block position moved onto the grid.
+        int cx = (int) Math.round(geo.anchorBlockX(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getX() + 0.5));
+        int cz = (int) Math.round(geo.anchorBlockZ(FirstDoctorConsoleRoomLayout.LOCAL_CONSOLE.getZ() + 0.5));
         graphics.fill(cx - 2, cz - 2, cx + 3, cz + 3, CONSOLE_MARK);
         graphics.fill(cx - 1, cz - 1, cx + 2, cz + 2, CONSOLE_FILL);
         // The main doors: where players enter and leave the TARDIS.
@@ -423,10 +526,16 @@ public class ArsScreen extends Screen {
         graphics.pose().popMatrix();
     }
 
+    /** Whether the cursor is on either console doorway. Both root links are canonically on a cell's west edge. */
     private boolean isNearRootDoorway(ArsMapState.MapGeometry geo, int mouseX, int mouseY) {
-        int x = geo.cellLeft(ArsGrid.ROOT_CELL_X);
-        int y = geo.cellTop(ArsGrid.ROOT_CELL_Z);
-        return mouseX >= x - 3 && mouseX <= x + 3 && mouseY >= y + APERTURE_FROM && mouseY < y + APERTURE_TO;
+        for (ArsLayoutLogic.Link root : ArsLayoutLogic.ROOT_LINKS) {
+            int x = geo.cellLeft(root.cell().x());
+            int y = geo.cellTop(root.cell().z());
+            if (mouseX >= x - 3 && mouseX <= x + 3 && mouseY >= y + APERTURE_FROM && mouseY < y + APERTURE_TO) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void drawGhost(GuiGraphicsExtractor graphics, ArsMapState.MapGeometry geo, ArsMapState.Ghost ghost) {

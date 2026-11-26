@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,6 +35,7 @@ class ArsLayoutLogicTest {
     private static final String STRAIGHT = "dwm:straight";
     private static final String CROSS = "dwm:cross";
     private static final String DEAD_END = "dwm:dead_end";
+    private static final String GALLERY = "dwm:gallery";
 
     /** 3x2 room: doors on the west of (0,0), east of (2,1), north of (1,0). */
     private static final ArsPieceDefinition HALL_DEF = def(ArsPieceKind.ROOM, 3, 2, 41,
@@ -53,12 +55,16 @@ class ArsLayoutLogicTest {
     /** 1x1 dead end opening north only. */
     private static final ArsPieceDefinition DEAD_END_DEF = def(ArsPieceKind.CORRIDOR, 1, 1, 5,
             new ArsConnector(new ArsCell(0, 0), Direction.NORTH));
+    /** 6x1 gallery with a west door, long enough to span the console room's cells and the grid edge. */
+    private static final ArsPieceDefinition GALLERY_DEF = def(ArsPieceKind.ROOM, 6, 1, 30,
+            new ArsConnector(new ArsCell(0, 0), Direction.WEST));
 
     private static final Map<Identifier, ArsPieceDefinition> DEFINITIONS = Map.of(
             Identifier.parse(HALL), HALL_DEF,
             Identifier.parse(STRAIGHT), STRAIGHT_DEF,
             Identifier.parse(CROSS), CROSS_DEF,
-            Identifier.parse(DEAD_END), DEAD_END_DEF
+            Identifier.parse(DEAD_END), DEAD_END_DEF,
+            Identifier.parse(GALLERY), GALLERY_DEF
     );
     private static final Function<Identifier, ArsPieceDefinition> DEFS = DEFINITIONS::get;
 
@@ -110,58 +116,104 @@ class ArsLayoutLogicTest {
     // --- canPlace -------------------------------------------------------------------------------
 
     @Test
-    void canPlace_connectsToRootLink() {
+    void canPlace_connectsToEastRootLink() {
         assertEquals(PlaceResult.OK,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 2, 1, 0), 500, false));
-        // Hall's west door on its (0,0) cell lands on the root cell.
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 5, 4, 0), 500, false));
+        // Hall's west door on its (0,0) cell lands on the east root cell.
         assertEquals(PlaceResult.OK,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, 2, 1, 0), 500, false));
-        // Rotated 180 its east door turns west on the anchor cell, here (2,0): faces the console, not the root link.
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, 5, 4, 0), 500, false));
+        // Rotated 180 its east door turns west on the anchor cell, here (5,3): faces the console, not a root link.
         assertEquals(PlaceResult.NOT_CONNECTED,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, 2, 0, 2), 500, false));
-        // One row down that west door sits on the root cell (2,1).
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, 5, 3, 2), 500, false));
+        // One row down that west door sits on the east root cell (5,4).
         assertEquals(PlaceResult.OK,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, 2, 1, 2), 500, false));
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, 5, 4, 2), 500, false));
+    }
+
+    @Test
+    void canPlace_connectsToWestRootLink() {
+        // The east door of a straight corridor on (2,4) faces the console room's west doorway.
+        assertEquals(PlaceResult.OK,
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 2, 4, 0), 500, false));
+        assertEquals(PlaceResult.NOT_CONNECTED,
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 2, 4, 1), 500, false));
+        // Hall's east door on its (2,1) cell lands on the west root cell (2,4).
+        assertEquals(PlaceResult.OK,
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, 0, 3, 0), 500, false));
+        // A dead end turned once opens east onto the west root link.
+        assertEquals(PlaceResult.OK,
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(DEAD_END, 2, 4, 1), 500, false));
+        assertEquals(PlaceResult.NOT_CONNECTED,
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(DEAD_END, 2, 4, 0), 500, false));
     }
 
     @Test
     void canPlace_notConnectedWhenNoConnectorMates() {
         assertEquals(PlaceResult.NOT_CONNECTED,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 5, 5, 0), 500, false));
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 7, 7, 0), 500, false));
         // Root cell, but a north-only dead end does not face the console.
         assertEquals(PlaceResult.NOT_CONNECTED,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(DEAD_END, 2, 1, 0), 500, false));
-        // Rotated three quarter turns its door faces west onto the root link.
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(DEAD_END, 5, 4, 0), 500, false));
+        // Rotated three quarter turns its door faces west onto the east root link.
         assertEquals(PlaceResult.OK,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(DEAD_END, 2, 1, 3), 500, false));
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(DEAD_END, 5, 4, 3), 500, false));
+        // Next to the console room but not at a root: (5,5) faces the console's east wall without a doorway.
+        assertEquals(PlaceResult.NOT_CONNECTED,
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 5, 5, 0), 500, false));
     }
 
     @Test
     void canPlace_connectsToExistingPieceOnlyThroughMatchingConnector() {
-        List<ArsPlacedPiece> layout = List.of(piece(STRAIGHT, 2, 1, 0));
+        List<ArsPlacedPiece> layout = List.of(piece(STRAIGHT, 5, 4, 0));
 
         assertEquals(PlaceResult.OK,
-                ArsLayoutLogic.canPlace(layout, DEFS, piece(STRAIGHT, 3, 1, 0), 500, false));
-        // Adjacent, but the dead end's north door faces (3,0), not the corridor.
+                ArsLayoutLogic.canPlace(layout, DEFS, piece(STRAIGHT, 6, 4, 0), 500, false));
+        // Adjacent, but the dead end's north door faces (6,3), not the corridor.
         assertEquals(PlaceResult.NOT_CONNECTED,
-                ArsLayoutLogic.canPlace(layout, DEFS, piece(DEAD_END, 3, 1, 0), 500, false));
+                ArsLayoutLogic.canPlace(layout, DEFS, piece(DEAD_END, 6, 4, 0), 500, false));
         assertEquals(PlaceResult.OK,
-                ArsLayoutLogic.canPlace(layout, DEFS, piece(DEAD_END, 3, 1, 3), 500, false));
+                ArsLayoutLogic.canPlace(layout, DEFS, piece(DEAD_END, 6, 4, 3), 500, false));
         // A cross north of the straight corridor: the corridor has no north door to mate.
         assertEquals(PlaceResult.NOT_CONNECTED,
-                ArsLayoutLogic.canPlace(layout, DEFS, piece(CROSS, 2, 0, 0), 500, false));
+                ArsLayoutLogic.canPlace(layout, DEFS, piece(CROSS, 5, 3, 0), 500, false));
     }
 
     @Test
     void canPlace_outOfBounds() {
+        int max = ArsGrid.MAX_CELL;
+        int min = ArsGrid.MIN_CELL;
+        // A 3x2 hall needs three columns: two from the east edge it runs off the grid.
         assertEquals(PlaceResult.OUT_OF_BOUNDS,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, 6, 0, 0), 500, false));
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, max - 1, 0, 0), 500, false));
+        // Rotated a quarter turn it is 2x3, so it runs off the south edge instead.
         assertEquals(PlaceResult.OUT_OF_BOUNDS,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, 6, 6, 1), 500, false));
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, 0, max - 1, 1), 500, false));
         assertEquals(PlaceResult.OUT_OF_BOUNDS,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 8, 3, 0), 500, false));
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, max + 1, 3, 0), 500, false));
         assertEquals(PlaceResult.OUT_OF_BOUNDS,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 3, -1, 0), 500, false));
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 3, min - 1, 0), 500, false));
+        assertEquals(PlaceResult.OUT_OF_BOUNDS,
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, min - 1, 3, 0), 500, false));
+        // Pieces on the very edge cells and west/north of the console room (negative cells) are in bounds: they
+        // are only refused because nothing connects them to the console room.
+        assertEquals(PlaceResult.NOT_CONNECTED,
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, max - 2, max - 1, 0), 500, false));
+        assertEquals(PlaceResult.NOT_CONNECTED,
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, min, min, 0), 500, false));
+        assertEquals(PlaceResult.NOT_CONNECTED,
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, -1, -1, 0), 500, false));
+    }
+
+    @Test
+    void canPlace_growsIntoNegativeCells() {
+        // The west root opens onto cell (2, 4); a straight corridor run west reaches negative cells.
+        List<ArsPlacedPiece> layout = new ArrayList<>();
+        for (int x = 2; x >= -2; x--) {
+            ArsPlacedPiece corridor = piece(STRAIGHT, x, 4, 0);
+            assertEquals(PlaceResult.OK, ArsLayoutLogic.canPlace(layout, DEFS, corridor, 500, false), "x=" + x);
+            layout.add(corridor);
+        }
+        assertEquals(-2, ArsLayoutLogic.pieceAt(layout, DEFS, -2, 4).orElseThrow().cellX);
     }
 
     @Test
@@ -174,26 +226,27 @@ class ArsLayoutLogicTest {
         }
         // Wide piece overlapping the console's south-east corner.
         assertEquals(PlaceResult.RESERVED,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, 1, 2, 0), 500, true));
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, 4, 5, 0), 500, true));
         assertEquals(PlaceResult.NOT_CONNECTED,
                 ArsLayoutLogic.canPlace(List.of(), DEFS, piece(CROSS, 0, 3, 0), 500, true));
     }
 
     @Test
     void canPlace_occupied() {
-        List<ArsPlacedPiece> layout = List.of(piece(HALL, 2, 1, 0));
+        List<ArsPlacedPiece> layout = List.of(piece(HALL, 5, 4, 0));
 
         assertEquals(PlaceResult.OCCUPIED,
-                ArsLayoutLogic.canPlace(layout, DEFS, piece(STRAIGHT, 4, 2, 0), 500, false));
+                ArsLayoutLogic.canPlace(layout, DEFS, piece(STRAIGHT, 7, 5, 0), 500, false));
         assertEquals(PlaceResult.OCCUPIED,
-                ArsLayoutLogic.canPlace(layout, DEFS, piece(HALL, 4, 2, 1), 500, false));
+                ArsLayoutLogic.canPlace(layout, DEFS, piece(HALL, 6, 4, 1), 500, false));
+        // North of the hall's north door, a north-south corridor joins it.
         assertEquals(PlaceResult.OK,
-                ArsLayoutLogic.canPlace(layout, DEFS, piece(STRAIGHT, 5, 2, 0), 500, false));
+                ArsLayoutLogic.canPlace(layout, DEFS, piece(STRAIGHT, 6, 3, 1), 500, false));
     }
 
     @Test
     void canPlace_artronAndInstabuild() {
-        ArsPlacedPiece candidate = piece(STRAIGHT, 2, 1, 0);
+        ArsPlacedPiece candidate = piece(STRAIGHT, 5, 4, 0);
 
         assertEquals(PlaceResult.NOT_ENOUGH_ARTRON,
                 ArsLayoutLogic.canPlace(List.of(), DEFS, candidate, 9, false));
@@ -209,27 +262,31 @@ class ArsLayoutLogicTest {
         assertEquals(PlaceResult.UNKNOWN_PIECE,
                 ArsLayoutLogic.canPlace(List.of(), DEFS, piece("dwm:missing", 9, 9, 7), 0, false));
         assertEquals(PlaceResult.UNKNOWN_PIECE,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece("Not An Id!", 2, 1, 0), 500, false));
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece("Not An Id!", 5, 4, 0), 500, false));
         assertEquals(PlaceResult.UNKNOWN_PIECE,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(null, 2, 1, 0), 500, false));
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(null, 5, 4, 0), 500, false));
         // Invalid rotation beats out of bounds.
         assertEquals(PlaceResult.INVALID_ROTATION,
                 ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 9, 9, 4), 0, false));
         assertEquals(PlaceResult.INVALID_ROTATION,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 2, 1, -1), 500, false));
-        // Out of bounds beats reserved (footprint spans x = -1..1, inside the console).
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(STRAIGHT, 5, 4, -1), 500, false));
+        // Out of bounds beats occupied (footprint runs over a placed corridor and off the east edge).
+        int edge = ArsGrid.MAX_CELL;
         assertEquals(PlaceResult.OUT_OF_BOUNDS,
-                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(HALL, -1, 0, 0), 0, false));
-        // Reserved beats occupied and not-connected.
-        List<ArsPlacedPiece> layout = List.of(piece(STRAIGHT, 2, 1, 0));
+                ArsLayoutLogic.canPlace(List.of(piece(STRAIGHT, edge, 0, 0)), DEFS, piece(GALLERY, edge - 3, 0, 0), 0, false));
+        // Without the edge the same overlap is just reserved (footprint x = 3..8 crosses the console room).
         assertEquals(PlaceResult.RESERVED,
-                ArsLayoutLogic.canPlace(layout, DEFS, piece(HALL, 0, 1, 0), 0, false));
+                ArsLayoutLogic.canPlace(List.of(), DEFS, piece(GALLERY, 3, 4, 0), 0, false));
+        // Reserved beats occupied and not-connected (footprint x = 4..6 covers (4,3) and the corridor's (5,4)).
+        List<ArsPlacedPiece> layout = List.of(piece(STRAIGHT, 5, 4, 0));
+        assertEquals(PlaceResult.RESERVED,
+                ArsLayoutLogic.canPlace(layout, DEFS, piece(HALL, 4, 3, 0), 0, false));
         // Occupied beats not-connected and artron.
         assertEquals(PlaceResult.OCCUPIED,
-                ArsLayoutLogic.canPlace(layout, DEFS, piece(DEAD_END, 2, 1, 0), 0, false));
+                ArsLayoutLogic.canPlace(layout, DEFS, piece(DEAD_END, 5, 4, 0), 0, false));
         // Not-connected beats artron.
         assertEquals(PlaceResult.NOT_CONNECTED,
-                ArsLayoutLogic.canPlace(layout, DEFS, piece(STRAIGHT, 6, 6, 0), 0, false));
+                ArsLayoutLogic.canPlace(layout, DEFS, piece(STRAIGHT, 7, 7, 0), 0, false));
     }
 
     @Test
@@ -257,17 +314,32 @@ class ArsLayoutLogicTest {
     @Test
     void openLinks_rootAndMatchedPairsOnce() {
         List<ArsPlacedPiece> layout = List.of(
-                piece(STRAIGHT, 2, 1, 0),
-                piece(STRAIGHT, 3, 1, 0),
+                piece(STRAIGHT, 5, 4, 0),
+                piece(STRAIGHT, 6, 4, 0),
                 // Cross north of the second corridor: walls touch but the corridor has no north door.
-                piece(CROSS, 3, 0, 0)
+                piece(CROSS, 6, 3, 0)
         );
 
         Set<Link> links = ArsLayoutLogic.openLinks(layout, DEFS);
 
-        assertEquals(Set.of(ArsLayoutLogic.ROOT_LINK, new Link(new ArsCell(3, 1), Direction.WEST)), links);
-        assertTrue(ArsLayoutLogic.ROOT_LINK.isRoot());
-        assertEquals(new Link(ArsGrid.rootCell(), ArsGrid.ROOT_SIDE), ArsLayoutLogic.ROOT_LINK);
+        assertEquals(Set.of(ArsLayoutLogic.EAST_ROOT_LINK, new Link(new ArsCell(6, 4), Direction.WEST)), links);
+        assertTrue(ArsLayoutLogic.EAST_ROOT_LINK.isRoot());
+        assertEquals(new Link(new ArsCell(5, 4), Direction.WEST), ArsLayoutLogic.EAST_ROOT_LINK);
+    }
+
+    @Test
+    void rootLinks_areCanonicalAndHaveOneConsoleConnectorEach() {
+        // The west root is the east face of (2,4), canonically the west face of the console cell (3,4).
+        assertEquals(new Link(new ArsCell(3, 4), Direction.WEST), ArsLayoutLogic.WEST_ROOT_LINK);
+        assertEquals(Link.of(ArsGrid.WEST_ROOT), ArsLayoutLogic.WEST_ROOT_LINK);
+        assertEquals(List.of(ArsLayoutLogic.EAST_ROOT_LINK, ArsLayoutLogic.WEST_ROOT_LINK), ArsLayoutLogic.ROOT_LINKS);
+        assertTrue(ArsLayoutLogic.WEST_ROOT_LINK.isRoot());
+        assertFalse(new Link(new ArsCell(5, 5), Direction.WEST).isRoot());
+        assertEquals(List.of(conn(4, 4, Direction.EAST), conn(3, 4, Direction.WEST)), ArsLayoutLogic.CONSOLE_CONNECTORS);
+        assertEquals(Set.of(ArsLayoutLogic.WEST_ROOT_LINK),
+                ArsLayoutLogic.openLinks(List.of(piece(STRAIGHT, 2, 4, 0)), DEFS));
+        assertEquals(Set.copyOf(ArsLayoutLogic.ROOT_LINKS),
+                ArsLayoutLogic.openLinks(List.of(piece(STRAIGHT, 2, 4, 0), piece(STRAIGHT, 5, 4, 0)), DEFS));
     }
 
     @Test
@@ -293,39 +365,77 @@ class ArsLayoutLogicTest {
     @Test
     void canRemove_leafOkButCutVertexWouldDisconnect() {
         List<ArsPlacedPiece> layout = List.of(
-                piece(STRAIGHT, 2, 1, 0),
-                piece(STRAIGHT, 3, 1, 0),
-                piece(STRAIGHT, 4, 1, 0)
+                piece(STRAIGHT, 5, 4, 0),
+                piece(STRAIGHT, 6, 4, 0),
+                piece(STRAIGHT, 7, 4, 0)
         );
 
-        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(layout, DEFS, 4, 1));
-        assertEquals(RemoveResult.WOULD_DISCONNECT, ArsLayoutLogic.canRemove(layout, DEFS, 3, 1));
-        assertEquals(RemoveResult.WOULD_DISCONNECT, ArsLayoutLogic.canRemove(layout, DEFS, 2, 1));
-        assertEquals(RemoveResult.NO_PIECE, ArsLayoutLogic.canRemove(layout, DEFS, 5, 1));
+        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(layout, DEFS, 7, 4));
+        assertEquals(RemoveResult.WOULD_DISCONNECT, ArsLayoutLogic.canRemove(layout, DEFS, 6, 4));
+        assertEquals(RemoveResult.WOULD_DISCONNECT, ArsLayoutLogic.canRemove(layout, DEFS, 5, 4));
+        assertEquals(RemoveResult.NO_PIECE, ArsLayoutLogic.canRemove(layout, DEFS, 5, 5));
     }
 
     @Test
     void canRemove_loopLeavesAlternatePath() {
         List<ArsPlacedPiece> layout = List.of(
-                piece(CROSS, 2, 1, 0),
-                piece(CROSS, 3, 1, 0),
-                piece(CROSS, 2, 2, 0),
-                piece(CROSS, 3, 2, 0)
+                piece(CROSS, 5, 4, 0),
+                piece(CROSS, 6, 4, 0),
+                piece(CROSS, 5, 5, 0),
+                piece(CROSS, 6, 5, 0)
         );
 
-        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(layout, DEFS, 3, 1));
-        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(layout, DEFS, 2, 2));
-        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(layout, DEFS, 3, 2));
+        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(layout, DEFS, 6, 4));
+        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(layout, DEFS, 5, 5));
+        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(layout, DEFS, 6, 5));
         // The only piece on the root link carries everything else.
-        assertEquals(RemoveResult.WOULD_DISCONNECT, ArsLayoutLogic.canRemove(layout, DEFS, 2, 1));
+        assertEquals(RemoveResult.WOULD_DISCONNECT, ArsLayoutLogic.canRemove(layout, DEFS, 5, 4));
+    }
+
+    @Test
+    void canRemove_eachSideIsItsOwnTreeUnlessJoined() {
+        // West: two corridors in a row; east: one corridor. The sides only meet through the console room.
+        List<ArsPlacedPiece> layout = List.of(
+                piece(STRAIGHT, 2, 4, 0),
+                piece(STRAIGHT, 1, 4, 0),
+                piece(STRAIGHT, 5, 4, 0)
+        );
+        assertEquals(RemoveResult.WOULD_DISCONNECT, ArsLayoutLogic.canRemove(layout, DEFS, 2, 4));
+        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(layout, DEFS, 1, 4));
+        // Removing the only piece on the east side closes the east root only.
+        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(layout, DEFS, 5, 4));
+        List<ArsPlacedPiece> westOnly = layout.subList(0, 2);
+        Set<Link> links = ArsLayoutLogic.openLinks(westOnly, DEFS);
+        assertTrue(links.contains(ArsLayoutLogic.WEST_ROOT_LINK));
+        assertFalse(links.contains(ArsLayoutLogic.EAST_ROOT_LINK));
+        // The west side still grows from the console room.
+        assertEquals(PlaceResult.OK, ArsLayoutLogic.canPlace(westOnly, DEFS, piece(STRAIGHT, 0, 4, 0), 500, false));
+    }
+
+    @Test
+    void canRemove_ringThroughBothRootsKeepsEverythingReachable() {
+        // Crossroads from the west root up and over the console room's north side to the east root.
+        List<ArsPlacedPiece> ring = List.of(
+                piece(CROSS, 2, 4, 0), piece(CROSS, 2, 3, 0), piece(CROSS, 2, 2, 0), piece(CROSS, 3, 2, 0),
+                piece(CROSS, 4, 2, 0), piece(CROSS, 5, 2, 0), piece(CROSS, 5, 3, 0), piece(CROSS, 5, 4, 0));
+        Set<Link> links = ArsLayoutLogic.openLinks(ring, DEFS);
+        assertTrue(links.containsAll(ArsLayoutLogic.ROOT_LINKS));
+        // Each root piece is the only one on its root link, yet the ring reaches the rest from the other side.
+        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(ring, DEFS, 2, 4));
+        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(ring, DEFS, 5, 4));
+        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(ring, DEFS, 3, 2));
+        // With the east root piece gone, everything hangs off the west root alone.
+        List<ArsPlacedPiece> westRooted = ring.subList(0, 7);
+        assertEquals(RemoveResult.WOULD_DISCONNECT, ArsLayoutLogic.canRemove(westRooted, DEFS, 2, 4));
+        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(westRooted, DEFS, 5, 3));
     }
 
     @Test
     void canRemove_findsMultiCellPieceByAnyCell() {
-        List<ArsPlacedPiece> layout = List.of(piece(HALL, 2, 1, 0));
+        List<ArsPlacedPiece> layout = List.of(piece(HALL, 5, 4, 0));
 
-        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(layout, DEFS, 4, 2));
-        assertEquals(RemoveResult.NO_PIECE, ArsLayoutLogic.canRemove(layout, DEFS, 5, 2));
+        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(layout, DEFS, 7, 5));
+        assertEquals(RemoveResult.NO_PIECE, ArsLayoutLogic.canRemove(layout, DEFS, 7, 6));
     }
 
     // --- refund ---------------------------------------------------------------------------------
@@ -345,64 +455,64 @@ class ArsLayoutLogicTest {
 
     @Test
     void missingDefinition_isIgnoredByAllRules() {
-        ArsPlacedPiece orphan = piece("dwm:removed_by_datapack", 3, 1, 0);
+        ArsPlacedPiece orphan = piece("dwm:removed_by_datapack", 6, 4, 0);
         List<ArsPlacedPiece> layout = List.of(
-                piece(STRAIGHT, 2, 1, 0),
+                piece(STRAIGHT, 5, 4, 0),
                 orphan,
-                piece(STRAIGHT, 4, 1, 0)
+                piece(STRAIGHT, 7, 4, 0)
         );
 
         assertNull(ArsLayoutLogic.definitionOf(orphan, DEFS));
-        assertEquals(Optional.empty(), ArsLayoutLogic.pieceAt(layout, DEFS, 3, 1));
-        assertEquals(Set.of(ArsLayoutLogic.ROOT_LINK), ArsLayoutLogic.openLinks(layout, DEFS));
+        assertEquals(Optional.empty(), ArsLayoutLogic.pieceAt(layout, DEFS, 6, 4));
+        assertEquals(Set.of(ArsLayoutLogic.EAST_ROOT_LINK), ArsLayoutLogic.openLinks(layout, DEFS));
         // Its cell counts as free.
         assertEquals(PlaceResult.OK,
-                ArsLayoutLogic.canPlace(layout, DEFS, piece(STRAIGHT, 3, 1, 0), 500, false));
-        assertEquals(RemoveResult.NO_PIECE, ArsLayoutLogic.canRemove(layout, DEFS, 3, 1));
-        // (4,1) is already cut off by the orphan, so it does not block removing the root corridor.
-        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(layout, DEFS, 2, 1));
-        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(layout, DEFS, 4, 1));
+                ArsLayoutLogic.canPlace(layout, DEFS, piece(STRAIGHT, 6, 4, 0), 500, false));
+        assertEquals(RemoveResult.NO_PIECE, ArsLayoutLogic.canRemove(layout, DEFS, 6, 4));
+        // (7,4) is already cut off by the orphan, so it does not block removing the root corridor.
+        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(layout, DEFS, 5, 4));
+        assertEquals(RemoveResult.OK, ArsLayoutLogic.canRemove(layout, DEFS, 7, 4));
     }
 
     @Test
     void canPlace_refusesCandidateMatingOnlyAnIsland() {
-        // (4,1) is cut off: its only path to the root ran through the orphan at (3,1).
+        // (5,2) is cut off: its only path to the east root ran through the orphan at (5,3).
         List<ArsPlacedPiece> layout = List.of(
-                piece(STRAIGHT, 2, 1, 0),
-                piece("dwm:removed_by_datapack", 3, 1, 0),
-                piece(STRAIGHT, 4, 1, 0)
+                piece(CROSS, 5, 4, 0),
+                piece("dwm:removed_by_datapack", 5, 3, 1),
+                piece(STRAIGHT, 5, 2, 1)
         );
 
-        // East of the island: mates only the island's east door.
+        // North of the island: mates only the island's north door.
         assertEquals(PlaceResult.NOT_CONNECTED,
-                ArsLayoutLogic.canPlace(layout, DEFS, piece(STRAIGHT, 5, 1, 0), 500, false));
+                ArsLayoutLogic.canPlace(layout, DEFS, piece(STRAIGHT, 5, 1, 1), 500, false));
         // Same candidate mating a reachable piece is accepted.
         List<ArsPlacedPiece> reachableLayout = List.of(
-                piece(STRAIGHT, 2, 1, 0),
-                piece(STRAIGHT, 3, 1, 0),
-                piece(STRAIGHT, 4, 1, 0)
+                piece(CROSS, 5, 4, 0),
+                piece(STRAIGHT, 5, 3, 1),
+                piece(STRAIGHT, 5, 2, 1)
         );
         assertEquals(PlaceResult.OK,
-                ArsLayoutLogic.canPlace(reachableLayout, DEFS, piece(STRAIGHT, 5, 1, 0), 500, false));
+                ArsLayoutLogic.canPlace(reachableLayout, DEFS, piece(STRAIGHT, 5, 1, 1), 500, false));
         // Filling the gap mates both the reachable piece and the island: accepted.
         assertEquals(PlaceResult.OK,
-                ArsLayoutLogic.canPlace(layout, DEFS, piece(STRAIGHT, 3, 1, 0), 500, false));
+                ArsLayoutLogic.canPlace(layout, DEFS, piece(STRAIGHT, 5, 3, 1), 500, false));
     }
 
     @Test
     void savedPieceWithInvalidRotationIsIgnored() {
-        List<ArsPlacedPiece> layout = new ArrayList<>(List.of(piece(STRAIGHT, 2, 1, 5)));
+        List<ArsPlacedPiece> layout = new ArrayList<>(List.of(piece(STRAIGHT, 5, 4, 5)));
 
-        assertEquals(Optional.empty(), ArsLayoutLogic.pieceAt(layout, DEFS, 2, 1));
+        assertEquals(Optional.empty(), ArsLayoutLogic.pieceAt(layout, DEFS, 5, 4));
         assertEquals(Set.of(), ArsLayoutLogic.openLinks(layout, DEFS));
-        assertEquals(RemoveResult.NO_PIECE, ArsLayoutLogic.canRemove(layout, DEFS, 2, 1));
+        assertEquals(RemoveResult.NO_PIECE, ArsLayoutLogic.canRemove(layout, DEFS, 5, 4));
     }
 
     /** Values a hostile client could put in an ARS payload: the rules refuse them without throwing. */
     @Test
     void absurdCellsAndRotationsAreRefusedWithoutThrowing() {
-        List<ArsPlacedPiece> layout = new ArrayList<>(List.of(piece(HALL, 2, 0, 0)));
-        int[] extremes = {Integer.MIN_VALUE, Integer.MIN_VALUE + 1, -1, ArsGrid.GRID_SIZE, Integer.MAX_VALUE - 1,
+        List<ArsPlacedPiece> layout = new ArrayList<>(List.of(piece(HALL, 5, 0, 0)));
+        int[] extremes = {Integer.MIN_VALUE, Integer.MIN_VALUE + 1, ArsGrid.MIN_CELL - 1, ArsGrid.MAX_CELL + 1, Integer.MAX_VALUE - 1,
                 Integer.MAX_VALUE};
         for (int value : extremes) {
             for (String id : List.of(HALL, STRAIGHT)) {

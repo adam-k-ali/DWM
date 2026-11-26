@@ -7,17 +7,54 @@ Let a TARDIS crew grow the ship's interior beyond the console room: corridors, c
 chamber itself, laid out on a grid so pieces join cleanly and can be removed again.
 
 ## Implemented Now
-- **Plot grid** (`ArsGrid`): each interior plot is an 8×8 grid of 8×8-block cells with a single floor
-  (`y = 0`). Pieces are at most 16 blocks tall. Cells (0..1, 0..2) are reserved for the console room, which joins
-  the grid at the west face of cell (2, 1). Rotation counts clockwise quarter turns (`0..3`).
+- **Plot grid** (`ArsGrid`): each interior plot's 10000×10000 window is a 1250×1250 grid of 8×8-block cells,
+  cells −621..628 on each axis, with a single floor (`y = 0`). Pieces are at most 16 blocks tall and 8×8 cells. The
+  console room sits in the middle: cells (3..4, 3..5) are reserved for it, leaving 624 free columns west and east,
+  624 rows north and 623 south. It joins the grid at two root links, the west face of cell (5, 4) and the east face
+  of cell (2, 4). Rotation counts clockwise quarter turns (`0..3`).
 - **Piece definitions:** a synced datapack registry. Entries load from `data/<namespace>/tardis/ars_piece/<name>.json`
   and are sent to clients on join.
-- **Structure templates** for eight pieces plus the console annex, under `data/dwm/structure/tardis/ars/`.
+- **Structure templates** for eight pieces plus the two console lobbies, under `data/dwm/structure/tardis/ars/`.
 - **Layout rules** (`ArsLayoutLogic`): pure logic for placing and removing pieces on the grid.
-- **Growing and jettisoning** pieces in the interior (`ArsService`, `ArsRoomPlacer`), with the console annex and
-  console doorway, and the ops command `/tardis ars`.
-- **Console control and ARS screen:** the owner opens a map of the plot from the First Doctor console, grows pieces
-  from a palette and jettisons them.
+- **Growing and jettisoning** pieces in the interior (`ArsService`, `ArsRoomPlacer`), with a console lobby and
+  console doorway on each side, and the ops command `/tardis ars`.
+- **Console control and ARS screen:** the owner opens a pannable map of the plot from the First Doctor console, grows
+  pieces from a palette and jettisons them.
+- **Plot migration:** interiors built on the old 64-block plots are copied to the new plots the first time a world
+  loads (see [Plot Migration](#plot-migration)).
+
+## Plot Window and Grid Coordinates
+Every TARDIS is given a **plot slot** the first time one is needed (`TardisPlotSlots`): the lowest free index of a
+square spiral out from slot (0, 0), so plots stay close to the world origin. The slot is saved in the TARDIS's data
+(`plotSlotX`, `plotSlotZ`) straight away and never changes or goes to another TARDIS, so plots never collide. Slots
+run over −2999..2999 on both axes, which keeps every window inside the world border.
+
+Each plot has two origins (`TardisPlotAllocator`):
+- The **anchor** (`plotOrigin`) is the slot × 10000, at `y = 64`. The console room (11×7×17), its doors and
+  entrance, the BOTI relative coordinates and the portal stream centre are anchor-relative.
+- The **window** (`windowOrigin` = anchor − (4995, 0, 4995)) is the 10000×10000 box, any height, that the TARDIS owns,
+  with the console room in the middle. Every ownership check and clip uses it: the plot index, monitors and
+  `/tardis claim`, flight audio, the ARS request check and the ARS chunk clamp. Neighbouring windows tile exactly.
+  The BOTI stream is still capped at 3 chunks around the anchor (`BotiInteriorSampler.MAX_STREAM_RADIUS_CHUNKS`), so
+  rooms further out are not shown through the doors and portal cost does not grow with the plot.
+
+ARS cells and boxes are **grid-local**. Grid-local (0, 0, 0) is the **grid origin**, anchor − (27, 0, 27)
+(`ArsGrid.gridOrigin`), not the window origin, so the console room's template origin is grid-local (27, 0, 27)
+(`ArsGrid.CONSOLE_ORIGIN`), the room covers x 27..37, z 27..43, and cells west and north of it are negative. The
+window covers grid-local −4968..5031 on x and z.
+
+Before a TARDIS's console room is first placed, leftovers in its window are cleared (`TardisPlotPreparer`): the
+window can overlap old content, such as legacy interiors of TARDISes whose data is gone. Only chunk columns that exist
+(loaded, or saved in a region file) are loaded; every block and non-player entity in the window is removed, with no
+drops, and the TARDIS is marked `plotPrepared` so it only happens once.
+
+| Root link | Cell face | Console doorway (grid-local, 2×3) | Lobby | Lobby x (grid-local) |
+| --- | --- | --- | --- | --- |
+| East | west face of (5, 4) | `x = 37`, `z = 34..35`, `y = 1..3` | `dwm:tardis/ars/console_lobby_east` (2×6×6) | 38..39 |
+| West | east face of (2, 4) | `x = 27`, `z = 34..35`, `y = 1..3` | `dwm:tardis/ars/console_lobby_west` (3×6×6) | 24..26 |
+
+Both doorways sit at along-face offsets 2..3 of the root row `cz = 4`, inside its standard aperture (`z = 34..37`,
+`y = 1..4`). The west doorway replaces the console room's two decorative ash doors while it is open.
 
 ## Console Control and ARS Screen
 The **ARS control** sits on the console's Panel5 (Systems) bottom row, below the refueler: a small copper tree on a
@@ -26,10 +63,15 @@ TARDIS owner can use it (visitors see *You do not own this TARDIS*); no circuit 
 the in-flight overlay. Otherwise it opens the ARS screen, which does not pause the game.
 
 The screen has two halves:
-- **Map** (left): the 8×8 grid as a floor plan, north up (cell x grows to the right/east, z downward/south; the
-  screen says *North*). The console room's six cells are drawn as the console room with the console marked, and the
-  TARDIS's main doors (the entrance on the console room's north wall) shown as a blue bar labelled *Entrance*. The
-  root link, the west face of cell (2, 1), is the console doorway: amber while closed, joined once a piece opens it.
+- **Map** (left): an 8×8-cell window onto the grid as a floor plan, north up (cell x grows to the right/east, z
+  downward/south; the screen says *North*). It opens on the **home view**, cells (0..7, 0..7), with the console room
+  in the middle, and pans over the whole grid: drag with any mouse button (a press that moves less than 3 pixels is
+  still a click), use the arrow keys or `W` `A` `S` `D` (one cell per press), or the mouse wheel (up/down pans north
+  and south, sideways east and west). **Centre** or `C` returns to the home view. The view stops at the grid's edges,
+  and the title bar shows the coordinates of the cell under the cursor. The console room's six cells, in the middle of the map, are drawn as the console room with
+  the console marked, and the TARDIS's main doors (the entrance on the console room's north wall) shown as a blue
+  bar labelled *Entrance*. The two root links, the west face of cell (5, 4) and the east face of cell (2, 4), are
+  the console doorways: each is amber while closed and joined once a piece opens it.
   Each placed piece fills its cells in its `map_color` with an outline; its connectors are notches on the cell
   edges, and matched connectors (open links) are drawn as doorways across the shared edge.
 - **Palette** (right): every registered piece, corridors first and then rooms, each by id, with its name, footprint
@@ -53,10 +95,44 @@ Interactions:
 ### Server checks
 The screen only sends requests (`ArsGrowC2SPayload`, `ArsJettisonC2SPayload`); the server re-checks everything:
 the TARDIS must exist, the sender must own it, it must not be in flight, and the sender must be standing in
-`dwm:tardis` inside that TARDIS's interior plot (*Stand inside this TARDIS to reconfigure it*). Cells, rotation
+`dwm:tardis` inside that TARDIS's interior plot window (*Stand inside this TARDIS to reconfigure it*). Cells, rotation
 and piece id are then passed to `ArsService`, which applies the layout rules, so out-of-range values and unknown
 pieces are refused rather than trusted. Building is free when the sender is in creative. The layout and artron are
 sent back with `OpenArsScreen` (piece definitions come from the synced registry).
+
+## Plot Migration
+Before 10000-block plots, each TARDIS's interior sat in a 64×64 window around an anchor hashed from its UUID
+(`TardisPlotAllocator.legacyPlotOrigin`, kept frozen for this). When a world loads (`SERVER_STARTED`, before any
+player can be inside), `TardisPlotMigration` moves every TARDIS whose data predates the change (`plotVersion` unset)
+to its new plot:
+
+- **What is copied:** the whole legacy window, at every height: every non-air block and block state, every block
+  entity's full NBT, and every non-player entity with its passengers, keeping its UUID. It lands at the same
+  anchor-relative place in the new plot, so the ARS layout (`arsPieces`) keeps its meaning with no rewrite.
+  Positions saved inside that NBT that point into the legacy window move with it (`LegacyPositionRewriter`): every
+  `BlockPos` (paintings, item frames, leash knots, bee hive flowers, villager memories in `dwm:tardis`, the console
+  controls' console, chairs, Dalek posts) and every entity position. Positions elsewhere are left alone.
+- **Order:** every interior is captured to a snapshot file (`tardis_data/plot_migration/<id>.nbt`) before any legacy
+  window is cleared, because a new window can cover another TARDIS's legacy window. Then every legacy window is
+  cleared, then each new window is cleared of leftovers and its snapshot pasted. Blocks are set without neighbour
+  updates, drops or side effects, so nothing pops off or fires.
+- **Crash-safe:** each phase (`SNAPSHOTTED`, `CLEARED`, `PASTED`, `DONE`) is recorded in
+  `plot_migration/state.json` only after the interior level has been saved to disk. Every step is repeatable, so a
+  crash resumes from the last recorded phase without losing or duplicating anything. Snapshot files are deleted when
+  the migration is done.
+- **References outside the copy:** an exterior's recorded interior entrance is recomputed from the new plot the next
+  time it is used (`TardisInteriorService.refreshEntrance`). Players whose save files existed when the migration ran
+  are checked once on their next join: anyone standing in a migrated legacy window, or with a respawn point there,
+  is moved by the same offset. Players who first join later are never moved.
+- **Back up first:** the migration is one-way. Once it reaches `DONE` the legacy windows are empty and there is no
+  undo or dry-run mode. Players and server owners should back up their world before loading it with this version
+  (the release notes for the first release with 10000-block plots must say so). Each moved interior is logged at
+  INFO (`TARDIS <id>: interior moved from <legacy anchor> to <new anchor>`), and while a migration is unfinished its
+  snapshots stay in `tardis_data/plot_migration/`.
+- **Not copied, by design:** entities that are never saved (leash knots, which are rebuilt from the leashed mob,
+  and the console's control hitboxes, which the console re-spawns) are left out, exactly as when a chunk unloads.
+- **Not covered:** pending block and fluid ticks are not carried over, so copied redstone and flowing fluids settle
+  on their next update. Absolute positions in NBT that are not `BlockPos` int triples are copied unchanged.
 
 ## Growing and Jettisoning
 A TARDIS's layout is the list of placed pieces in its saved data (`arsPieces`: piece id, anchor cell, rotation).
@@ -78,22 +154,22 @@ neighbour's facing one, become air. Unmatched connectors keep their plugs.
 **Jettisoning** the piece covering a cell is refused, with nothing changed, when:
 - the TARDIS is in flight or has no console room;
 - there is no piece there, or another piece is only reachable through it;
-- a player is inside the piece, or inside the annex when the piece is the one on the root link (the west face of
-  cell (2, 1)) and nothing else would keep that link open.
+- a player is inside the piece, or inside a lobby whose root link the jettison would close (the piece is the one
+  on that root link and nothing else keeps it open). A player in the other side's lobby does not block it.
 
 Otherwise everything in the piece is destroyed: blocks, container contents and non-player entities, with no
 drops. Each neighbour that shared a doorway gets its own wall plug back (its template is re-placed, clipped to that
 4×4 layer). Half the cost, rounded down, is refunded.
 
-### Console annex and doorway
-The annex and doorway follow the root link (the west face of cell (2, 1)). Growing the piece that opens the root link
-also places the console annex (below) and carves a 2-wide, 3-high doorway through the console room's east wall at
-plot-local `x = 10`, `z = 7..8`, `y = 1..3`. Jettisoning the piece on the root link clears the annex and puts the
-console room's wall back from its template, even if pieces cut off from the console room remain. Re-placing the
-console room (first entry, deferred preload or `/tardis rebuild`) re-opens the doorway only while the root link is
-open.
+### Console lobbies and doorways
+Each root link has its own lobby and console doorway, handled on its own. Growing the piece that opens a root link
+places that side's lobby and carves that side's doorway through the console room's wall (east wall `x = 37` or
+west wall `x = 27`, `z = 34..35`, `y = 1..3`, grid-local). Jettisoning the piece that closes a root link clears that
+side's lobby and puts the console room's wall back from its template (on the west side this restores the ash
+doors), even if pieces cut off from the console room remain; the other side stays open. Re-placing the console room
+(first entry, deferred preload or `/tardis rebuild`) re-opens the doorway of each side whose root link is open.
 
-`/tardis rebuild` only rebuilds the console room. It does not re-place ARS rooms or the annex.
+`/tardis rebuild` only rebuilds the console room. It does not re-place ARS rooms or the lobbies.
 
 ### Command
 Ops (permission 2), standing inside the TARDIS interior to change:
@@ -125,7 +201,7 @@ the result or the reason it was refused.
 | --- | --- |
 | `kind` | `room` or `corridor`. |
 | `structure` | Structure template id (`data/<ns>/structure/<path>.nbt`). |
-| `cells` | Unrotated footprint `[width, depth]` in cells; each `1..8`. |
+| `cells` | Unrotated footprint `[width, depth]` in cells; each `1..8` (`ArsGrid.MAX_PIECE_CELLS`). |
 | `connectors` | Doorways: a footprint-local cell `[x, z]` (unrotated) and a horizontal `side`. |
 | `artron_cost` | Cost to build the piece; `>= 0`. |
 | `map_color` | `#RRGGBB` colour for the ARS map. |
@@ -177,11 +253,13 @@ Every piece template must follow these rules; `ArsPieceResourceTest` checks them
   eight branches spiralling out and up, glowing orbs hung from them on chains, and a sea-lantern heart. It is
   decorative only.
 
-### Console annex
-`dwm:tardis/ars/console_annex` is a fixed 5×6×9 lobby, not a registry piece. It sits at plot-local (11, 0, 6), just
-east of the console room's east wall (plot-local `x = 10`), which closes its open west side. Its east wall has a
-permanently open 4×4 doorway at annex `z = 4..7`, `y = 1..4`, which lines up with the west aperture of cell (2, 1).
-The closed-shell rule does not apply to its west face or east doorway.
+### Console lobbies
+`dwm:tardis/ars/console_lobby_east` (2×6×6) and `dwm:tardis/ars/console_lobby_west` (3×6×6) are fixed lobbies, not
+registry pieces, placed unrotated at grid-local (38, 0, 33) and (24, 0, 33). Each is a short white passage with the
+corridors' 4×4 cross-section (`z = 34..37`, `y = 1..4`) between roundel walls at `z = 33` and `z = 38`, floor
+`y = 0` and ceiling `y = 5`, open at both x ends: the console room's wall closes one end and the root cell's piece
+the other. The closed-shell rule does not apply to them; `ArsPieceResourceTest` checks their size, open ends and
+solid walls.
 
 ## Regenerating Templates
 Templates are not built in game. They are described in Java in the test source set
