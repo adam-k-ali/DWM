@@ -15,8 +15,20 @@ import org.jetbrains.annotations.Nullable;
  * {@link TardisDataModel} ({@code plotSlotX}/{@code plotSlotZ}) and saved straight away, so it never changes and is
  * never handed out twice.
  *
- * <p>A TARDIS id with no model yet (only in tests and transient lookups) gets a slot held in memory, reserved the
- * same way; a model created for that id later adopts it.
+ * <p>A TARDIS id with no model yet gets a slot held in memory ({@code UNSAVED}), reserved the same way, so nothing
+ * else is given it. Every way a model comes to exist keeps the slots consistent:
+ * <ul>
+ *     <li>{@link TardisDataLoader#getOrCreate} for that id adopts the reserved slot and saves it;</li>
+ *     <li>{@link TardisDataLoader#create} and {@code createFoundUnfinished} use fresh random ids, so never have a
+ *     reservation, and allocate around every reserved slot;</li>
+ *     <li>a model loaded from disk that already stores a slot keeps it, and any reservation for its id is dropped.
+ *     Reservations never equal a stored slot, because allocation counts every model on disk.</li>
+ * </ul>
+ * Server code only asks for the plots of TARDISes that have a model (client requests are checked against the model
+ * and its owner first), so reservations are rare; they are forgotten when a server starts ({@link #reset}).
+ *
+ * <p>Allocation and {@link #ownerAt} scan the cached models: O(TARDIS count) per call. Allocation happens once per
+ * TARDIS and {@code ownerAt} only on monitor placement and {@code /tardis claim}, so no index is kept.
  */
 public final class TardisPlotSlots {
     private static final Map<UUID, PlotSlot> UNSAVED = new HashMap<>();
@@ -32,6 +44,8 @@ public final class TardisPlotSlots {
         TardisDataModel model = TardisDataLoader.get(tardisId);
         PlotSlot stored = storedSlot(model);
         if (stored != null) {
+            // A saved slot always wins over a reservation made before the model was known.
+            UNSAVED.remove(tardisId);
             return stored;
         }
         PlotSlot pending = UNSAVED.get(tardisId);
@@ -113,8 +127,16 @@ public final class TardisPlotSlots {
         TardisDataLoader.persist(model);
     }
 
-    /** Test helper: forgets slots of ids that have no model. */
-    public static synchronized void clearUnsavedForTest() {
+    /**
+     * Forgets the in-memory reservations of ids that have no model. Called when a server starts (they belong to the
+     * world that was running before, e.g. after switching worlds in singleplayer) and by tests.
+     */
+    public static synchronized void reset() {
         UNSAVED.clear();
+    }
+
+    /** Number of in-memory reservations (for tests). */
+    static synchronized int reservationCount() {
+        return UNSAVED.size();
     }
 }

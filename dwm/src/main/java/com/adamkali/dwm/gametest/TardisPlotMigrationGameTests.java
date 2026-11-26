@@ -183,7 +183,7 @@ public class TardisPlotMigrationGameTests {
                 LOGGER.info("Simulated crash at {} in phase {}", crashes[i], TardisPlotMigration.phase());
             }
             // Restart: forget cached state and resume from what is on disk.
-            TardisPlotMigration.resetCacheForTest();
+            TardisPlotMigration.reset();
             TardisPlotMigration.Report resumed = migrate(level);
             check(resumed.resumedFrom() != TardisPlotMigration.Phase.NONE || crashes[i].equals("clear"),
                     "crash at " + crashes[i] + " resumed from " + resumed.resumedFrom());

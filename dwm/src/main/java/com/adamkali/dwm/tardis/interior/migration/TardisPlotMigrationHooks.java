@@ -1,6 +1,7 @@
 package com.adamkali.dwm.tardis.interior.migration;
 
 import com.adamkali.dwm.tardis.interior.TardisDimensions;
+import com.adamkali.dwm.tardis.interior.TardisPlotSlots;
 import com.mojang.logging.LogUtils;
 import java.nio.file.Path;
 import java.util.Set;
@@ -29,6 +30,9 @@ public final class TardisPlotMigrationHooks {
 
     /** Called from {@code SERVER_STARTED} once the TARDIS save directory is set, before the first tick. */
     public static TardisPlotMigration.Report onServerStarted(MinecraftServer server) {
+        // Nothing cached from a world that ran earlier in this JVM (singleplayer) may carry over.
+        TardisPlotSlots.reset();
+        TardisPlotMigration.reset();
         ServerLevel level = server.getLevel(TardisDimensions.TARDIS_WORLD_KEY);
         Path directory = TardisPlotMigration.directory();
         if (level == null || directory == null) {

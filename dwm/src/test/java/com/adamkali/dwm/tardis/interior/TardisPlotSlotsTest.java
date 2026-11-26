@@ -33,13 +33,13 @@ class TardisPlotSlotsTest {
     void setUp() throws Exception {
         TardisDataLoader.tardisSaveDirectory = tempDir;
         clearCache();
-        TardisPlotSlots.clearUnsavedForTest();
+        TardisPlotSlots.reset();
     }
 
     @AfterEach
     void tearDown() throws Exception {
         clearCache();
-        TardisPlotSlots.clearUnsavedForTest();
+        TardisPlotSlots.reset();
         TardisDataLoader.tardisSaveDirectory = null;
     }
 
@@ -111,6 +111,48 @@ class TardisPlotSlotsTest {
         // A model created later for that id keeps it.
         TardisDataModel adopted = TardisDataLoader.getOrCreate(transientId);
         assertEquals(held, TardisPlotSlots.storedSlot(adopted));
+    }
+
+    @Test
+    void freshModelsNeverTakeAReservedSlot() {
+        // Reserve the first three spiral slots for ids that have no model yet.
+        Set<PlotSlot> reserved = new HashSet<>();
+        for (int i = 0; i < 3; i++) {
+            reserved.add(TardisPlotSlots.slotOf(UUID.randomUUID()));
+        }
+        assertEquals(3, TardisPlotSlots.reservationCount());
+        // Both model-creation paths that pick a fresh id allocate around the reservations.
+        assertTrue(!reserved.contains(TardisPlotSlots.storedSlot(TardisDataLoader.create())));
+        assertTrue(!reserved.contains(TardisPlotSlots.storedSlot(TardisDataLoader.createFoundUnfinished())));
+        assertEquals(3, TardisPlotSlots.reservationCount());
+    }
+
+    @Test
+    void aStoredSlotWinsOverAReservationAndDropsIt() throws Exception {
+        UUID id = UUID.randomUUID();
+        PlotSlot reserved = TardisPlotSlots.slotOf(id);
+        assertEquals(1, TardisPlotSlots.reservationCount());
+        // The model turns up on disk afterwards (for example written by another tool) with its own slot.
+        PlotSlot onDisk = new PlotSlot(42, -17);
+        assertNotEquals(reserved, onDisk);
+        writeModel(id, onDisk);
+        clearCache();
+        assertEquals(onDisk, TardisPlotSlots.slotOf(id));
+        assertEquals(0, TardisPlotSlots.reservationCount(), "the stale reservation is dropped");
+        assertEquals(id, TardisPlotSlots.ownerAt(onDisk));
+        assertNull(TardisPlotSlots.ownerAt(reserved));
+    }
+
+    @Test
+    void resetForgetsReservationsSoANewWorldStartsClean() {
+        UUID id = UUID.randomUUID();
+        PlotSlot reserved = TardisPlotSlots.slotOf(id);
+        assertEquals(id, TardisPlotSlots.ownerAt(reserved));
+        TardisPlotSlots.reset();
+        assertEquals(0, TardisPlotSlots.reservationCount());
+        assertNull(TardisPlotSlots.ownerAt(reserved));
+        // The slot is free again for the next TARDIS created.
+        assertEquals(reserved, TardisPlotSlots.storedSlot(TardisDataLoader.create()));
     }
 
     @Test

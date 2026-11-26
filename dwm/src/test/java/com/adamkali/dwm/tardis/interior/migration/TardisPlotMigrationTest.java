@@ -47,15 +47,15 @@ class TardisPlotMigrationTest {
     void setUp() throws Exception {
         TardisDataLoader.tardisSaveDirectory = tempDir;
         clearModelCache();
-        TardisPlotSlots.clearUnsavedForTest();
-        TardisPlotMigration.resetCacheForTest();
+        TardisPlotSlots.reset();
+        TardisPlotMigration.reset();
     }
 
     @AfterEach
     void tearDown() throws Exception {
         clearModelCache();
-        TardisPlotSlots.clearUnsavedForTest();
-        TardisPlotMigration.resetCacheForTest();
+        TardisPlotSlots.reset();
+        TardisPlotMigration.reset();
         TardisDataLoader.tardisSaveDirectory = null;
     }
 
@@ -192,8 +192,8 @@ class TardisPlotMigrationTest {
 
     private void restart(Path dir) throws Exception {
         clearModelCache();
-        TardisPlotSlots.clearUnsavedForTest();
-        TardisPlotMigration.resetCacheForTest();
+        TardisPlotSlots.reset();
+        TardisPlotMigration.reset();
         TardisDataLoader.tardisSaveDirectory = dir;
     }
 

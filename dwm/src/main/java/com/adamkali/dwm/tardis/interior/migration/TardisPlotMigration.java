@@ -304,8 +304,8 @@ public final class TardisPlotMigration {
         cachedStateDirectory = dir;
     }
 
-    /** Test helper: forgets the cached state so the next call re-reads the file. */
-    public static synchronized void resetCacheForTest() {
+    /** Forgets the cached state so the next call re-reads the file. Called when a server starts, and by tests. */
+    public static synchronized void reset() {
         cachedState = null;
         cachedStateDirectory = null;
     }
