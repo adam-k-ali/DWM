@@ -28,6 +28,7 @@ This folder documents implemented player-facing features for The Doctor Who Mod 
 - [TARDIS Chameleon System](./feature-chameleon-system.md) (config-gated and disabled by default)
 
 ### Planned Features
+- [TARDIS Toyota Interior (Series 7)](./feature-tardis-toyota-interior.md) (design only: second console room, Series 7 console and new interior blocks; nothing implemented)
 - [Skaro Dimension](./feature-skaro-dimension.md) (destination world; petrified wood, five biomes, Petrified Jungle trees, radiation/suit/meter, and Dalek patrols shipped; Thal settlements and Dalek trenches shipped; remaining flora and hostile structures still planned)
 
 ## Brand and Differentiation
